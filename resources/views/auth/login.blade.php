@@ -42,10 +42,10 @@
                         @endforeach
                     @endif
                 @endif --}}
-                @if(session()->has('error'))
-                <div>
-                    <p class="text-danger">{{session('error')}}</p>
-                </div>
+                @if (session()->has('error'))
+                    <div>
+                        <p class="text-danger">{{ session('error') }}</p>
+                    </div>
                 @endif
                 <form method="POST" id="form_data" action="{{ route('login') }}">
                     @csrf
@@ -55,13 +55,13 @@
                             <input type="email" class="form-control  @error('email') is-invalid @enderror" name="email"
                                 id="emailaddress" value="{{ old('email') }}" required autocomplete="email" autofocus
                                 placeholder="{{ __('Enter Your Email') }}">
-                                @error('email')
+                            @error('email')
                                 <span class="error invalid-email text-danger" role="alert">
                                     <small>{{ $message }}</small>
                                 </span>
                             @enderror
                         </div>
-                        
+
                         <div class="form-group mb-3">
                             <label for="password" class="form-label">{{ __('Password') }}</label>
                             <input type="password" class="form-control @error('password') is-invalid @enderror"
@@ -93,10 +93,10 @@
                         </div>
                         <!--  <p class="my-4 text-center">or register with</p> -->
 
-                        @if ($setting['signup_button'] == 'on')
-                            <p class="my-4 text-center">Don't have an account? <a href="{{ route('register', $lang) }}"
-                                    class="my-4 text-center text-primary"> Register</a></p>
-                        @endif
+                        {{-- @if ($setting['signup_button'] == 'on') --}}
+                        <p class="my-4 text-center">Don't have an account? <a href="{{ route('register', $lang) }}"
+                                class="my-4 text-center text-primary"> Register</a></p>
+                        {{-- @endif --}}
                 </form>
                 <div class="d-grid mt-3">
                     <button type="button" id="" class="btn btn-primary btn-block  "><a

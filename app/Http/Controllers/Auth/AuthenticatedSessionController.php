@@ -45,9 +45,9 @@ class AuthenticatedSessionController extends Controller
 
     public function store(LoginRequest $request)
     {
-        $checkUser = User::where('email', '=', $request->email)->where('type','!=','admin')->first();
-        if($checkUser){
-            $currentWorkspace = UserWorkspace::where('workspace_id', '=', $checkUser->currant_workspace)->where('user_id',$checkUser->id)->first();
+        $checkUser = User::where('email', '=', $request->email)->where('type', '!=', 'admin')->first();
+        if ($checkUser) {
+            $currentWorkspace = UserWorkspace::where('workspace_id', '=', $checkUser->currant_workspace)->where('user_id', $checkUser->id)->first();
             if ($currentWorkspace->is_active == 0) {
                 $userOtherWorkspace = UserWorkspace::where('user_id', $checkUser->id)->where('is_active', 1)->get();
 
@@ -133,7 +133,7 @@ class AuthenticatedSessionController extends Controller
 
     public function showClientLoginForm($lang = '')
     {
-         
+
         if ($lang == '') {
             // $lang = env('DEFAULT_LANG') ?? 'en';
             $adminDefaultLang = Utility::getAdminPaymentSettings();
@@ -153,8 +153,8 @@ class AuthenticatedSessionController extends Controller
     public function clientLogin(Request $request)
     {
         $checkClient = Client::where('email', '=', $request->email)->first();
-        if($checkClient){
-            $currentWorkspace = ClientWorkspace::where('workspace_id', '=', $checkClient->currant_workspace)->where('client_id',$checkClient->id)->first();
+        if ($checkClient) {
+            $currentWorkspace = ClientWorkspace::where('workspace_id', '=', $checkClient->currant_workspace)->where('client_id', $checkClient->id)->first();
             if ($currentWorkspace->is_active == 0) {
                 $clientOtherWorkspace = ClientWorkspace::where('client_id', $checkClient->id)->where('is_active', 1)->get();
 

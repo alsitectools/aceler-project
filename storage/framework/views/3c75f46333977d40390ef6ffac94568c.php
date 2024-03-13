@@ -1,17 +1,11 @@
 <!DOCTYPE html>
-
 <?php
-
     $logo = \App\Models\Utility::get_file('logo/');
-
     if (Auth::user()->type == 'admin') {
         $setting = App\Models\Utility::getAdminPaymentSettings();
-
         $color = 'theme-5';
-
         $dark_mode = $setting['cust_darklayout'];
         $cust_theme_bg = $setting['cust_theme_bg'];
-        // $SITE_RTL = env('SITE_RTL');
         $SITE_RTL = $setting['site_rtl'];
     } else {
         $setting = App\Models\Utility::getcompanySettings($currentWorkspace->id);
@@ -47,7 +41,6 @@
 
 ?>
 <html lang="<?php echo e(str_replace('_', '-', app()->getLocale())); ?>" dir="<?php echo e($SITE_RTL == 'on' ? 'rtl' : ''); ?>">
-
 <head>
 
     <meta charset="utf-8">
@@ -235,6 +228,7 @@
     <?php echo $__env->make('partials.sidebar', \Illuminate\Support\Arr::except(get_defined_vars(), ['__data', '__path']))->render(); ?>
 
     <?php echo $__env->make('partials.topnav', \Illuminate\Support\Arr::except(get_defined_vars(), ['__data', '__path']))->render(); ?>
+
     <div class="dash-container">
         <div class="dash-content">
             <!-- [ breadcrumb ] start -->
@@ -271,13 +265,11 @@
                     </div>
                 </div>
             </div>
-
             <?php echo $__env->yieldContent('content'); ?>
-
         </div>
     </div>
 
-    <?php if(Auth::user()->type != 'admin'): ?>
+    <?php if(Auth::user()->type == 'admin'): ?>
         <div class="modal fade" id="modelCreateWorkspace" tabindex="-1" role="dialog"
             aria-labelledby="exampleModalLabel" aria-hidden="true">
             <div class="modal-dialog " role="document">

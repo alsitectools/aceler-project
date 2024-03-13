@@ -118,5 +118,6 @@ return [
     'Company' => 'Company',
     'company' => 'Company',
     'Date_created'=> 'Date created: ',
-    'Desired_delivery_date' =>'Desired delivery date: '
+    'Desired_delivery_date' =>'Desired delivery date: ',
+    'Type_user'=> 'Type user',
 ];

@@ -1,7 +1,7 @@
 @extends('layouts.admin')
 
 @section('page-title')
-    {{ __('Company') }}
+    {{ __('messages.Company') }}
 @endsection
 
 @php
@@ -15,7 +15,7 @@
     @else
         <li class="breadcrumb-item"><a href="{{ route('home') }}">{{ __('Home') }}</a></li>
     @endif
-    <li class="breadcrumb-item"> {{ __('company') }}</li>
+    <li class="breadcrumb-item"> {{ __('messages.company') }}</li>
 @endsection
 @section('action-button')
     @auth('web')
@@ -37,12 +37,15 @@
         @endif
     @endauth
 @endsection
-
+@php
+    use App\Models\User;
+    $usuarios = User::all()->where('type', 'user');
+@endphp
 @section('content')
 
     @if ((isset($currentWorkspace) && $currentWorkspace) || Auth::user()->type == 'admin')
         <div class="row">
-            @foreach ($users as $user)
+            @foreach ($usuarios as $user)
                 @php($workspace_id = isset($currentWorkspace) && $currentWorkspace ? $currentWorkspace->id : '')
                 <div class="col-xl-3 col-lg-4 col-sm-6">
                     <div class="card   text-center">

@@ -133,19 +133,6 @@
                             </div>
                         </div>
 
-                        {{-- <div class="col-xl-3 col-md-6 col-sm-6">
-                            <div class="card">
-                                <div class="card-body">
-                                    <div class="theme-avtar bg-danger">
-                                        <i class="fas fa-bug bg-danger text-white"></i>
-                                    </div>
-                                    <p class="text-muted text-sm"></p>
-                                    <h6 class="">{{ __('Total Bug') }}</h6>
-                                    <h3 class="mb-0">{{ $totalBugs }} <span class="text-success text-sm"></span></h3>
-                                </div>
-                            </div>
-                        </div> --}}
-
                         <div class="col-xl-4 col-md-6 col-sm-6">
                             <div class="card">
                                 <div class="card-body">
@@ -237,8 +224,6 @@
                             </div>
                         </div>
                     </div>
-
-
                 </div>
 
 
@@ -252,8 +237,6 @@
                             <div id="task-area-chart"></div>
                         </div>
                     </div>
-
-
 
                     <div class="card">
                         <div class="card-header">

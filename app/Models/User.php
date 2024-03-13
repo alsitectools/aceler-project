@@ -164,7 +164,10 @@ class User extends Authenticatable implements MustVerifyEmail
 
         public function getPermission($project_id)
         {
+                //========================================MODIFICADO ===========================================================//
                 $data = UserProject::where('user_id', '=', $this->id)->where('project_id', '=', $project_id)->first();
+                // $data = UserProject::where('user_id', '=', $this->id)->where('workspace_id', '=', $currant_workspace)->first();
+                
                 return json_decode($data->permission, true);
         }
 

@@ -67,7 +67,7 @@
                         </div>
                         {{-- añadido tipo de usuario --}}
                         <div class="form-group mb-3">
-                            <label for="type" class="form-label">{{ __('Type user') }}</label>
+                            <label for="type" class="form-label">{{ __('messages.Type_user') }}</label>
                             <input type="text" class="form-control  @error('type') is-invalid @enderror" name="type"
                                 id="type" value="{{ old('type') }}" required autocomplete="type" autofocus
                                 placeholder="{{ __('type user') }}">
@@ -79,20 +79,40 @@
                         </div>
                         <div class="form-group mb-3">
                             {{-- modificado OK delegaciones españa --}}
-                            <label for="workspace_name" class="form-label">{{ __('Workspace Name') }}</label>
+                            <label for="currant_workspace" class="form-label">{{ __('Workspace Name') }}</label>
                             <div class="input-group mb-3">
                                 <label class="input-group-text" for="workspace">Options</label>
-                                <select class="form-select" name="workspace" id="workspace_name">
+                                <select class="form-select" name="currant_workspace" id="currant_workspace">
                                     <option selected>Choose...</option>
                                     <option value="Alicante">Alicante</option>
                                     <option value="Aragon">Aragón</option>
                                     <option value="Asturas">Asturias</option>
-                                    <option value="Baleare">Baleares</option>
-                                    <option value="Cataluña">Cataluña</option>
+                                    <option value="Baleares">Baleares</option>
+                                    <option value="Catalunya">Cataluña</option>
                                     <option value="Galicia">Galicia</option>
-                                    <option value="Las Palmas">Las Palmas</option>
-                                    <option value="Pais Vasco">Pais Vasco</option>
+                                    <option value="LasPalmas">Las Palmas</option>
+                                    <option value="PaisVasco">Pais Vasco</option>
                                     <option value="Tenerife">Tenerife</option>
+                                    <option value="Polonia">Polonia</option>
+                                    <option value="Chile">Chile</option>
+                                    <option value="Italia">Italia</option>
+                                    <option value="Portugal">Portugal</option>
+                                    <option value="EEUU">Estados Unidos de América</option>
+                                    <option value="Dubai">Dubai</option>
+                                    <option value="Uruguay">Uruguay</option>
+                                    <option value="Marruecos">Marruecos</option>
+                                    <option value="Rumania">Rumania</option>
+                                    <option value="Panama">Panama</option>
+                                    <option value="Peru">Perú</option>
+                                    <option value="Colombia">Colombia</option>
+                                    <option value="Paraguay">Paraguay</option>
+                                    <option value="Mexico">México</option>
+                                    <option value="India">India</option>
+                                    <option value="Filipinas">Filipinas</option>
+                                    <option value="Indonesia">Indonesia</option>
+                                    <option value="ReinoUnido">Reino Unido</option>
+                                    <option value="Tunez">Tunez</option>
+                                    <option value="Argelia">Argelia</option>
                                 </select>
                             </div>
                             {{-- coment x karla
@@ -130,9 +150,10 @@
 
                         <div class="form-group mb-3">
                             <label for="password_confirmation" class="form-label">{{ __('Confirm Password') }}</label>
-                            <input type="password" class="form-control @error('password_confirmation') is-invalid @enderror"
-                                name="password_confirmation" required autocomplete="new-password" id="password_confirmation"
-                                placeholder="{{ __('Confirm Your Password') }}">
+                            <input type="password"
+                                class="form-control @error('password_confirmation') is-invalid @enderror"
+                                name="password_confirmation" required autocomplete="new-password"
+                                id="password_confirmation" placeholder="{{ __('Confirm Your Password') }}">
 
                         </div>
 

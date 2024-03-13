@@ -37,9 +37,9 @@ class Workspace extends Model
 
     public static function create($data)
     {
-        $obj          = new Utility();
-        $table        = with(new Workspace)->getTable();
-        $data['slug'] = $obj->createSlug($table, $data['name']);
+        // $obj          = new Utility();
+        // $table        = with(new Workspace)->getTable();
+        $data['slug'] =  $data['name'];
         $workspace    = static::query()->create($data);
 
         $defaultStages = [

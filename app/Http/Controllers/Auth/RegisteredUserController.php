@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\ProjectController;
 use App\Models\User;
 use App\Models\Workspace;
 use App\Models\Utility;
@@ -16,6 +17,8 @@ use Illuminate\Validation\Rules;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Mail;
 use App\Models\Mail\SendLoginDetail;
+use Illuminate\Support\Facades\App;
+use Illuminate\Support\Facades\DB;
 
 class RegisteredUserController extends Controller
 {
@@ -46,21 +49,21 @@ class RegisteredUserController extends Controller
     {
         $setting = Utility::getAdminPaymentSettings();
         if ($lang == '') {
-            $lang = $setting['default_lang'] ?? 'en';
+            $lang = app()->getLocale();
         }
 
         $langList = Utility::langList();
-        $lang = array_key_exists($lang, $langList) ? $lang : 'en';
+        $lang = array_key_exists($lang, $langList) ? $lang : 'es';
         if (empty($lang)) {
             $lang = Utility::getValByName('default_language');
         }
 
-        \App::setLocale($lang);
+        // App()->setLocale($lang);
 
         if ($setting['signup_button'] == 'on') {
             return view('auth.register', compact('lang'));
         } else {
-            return abort('404', 'Page not found');
+            // return abort('404', 'Page not found');
         }
         return view('auth.register', compact('lang'));
     }
@@ -76,7 +79,7 @@ class RegisteredUserController extends Controller
         $this->validate($request, $validation);
         $request->validate([
             'name' => 'required|string|max:255',
-            'workspace' => 'required', 'string', 'max:255',
+            'currant_workspace' => 'required', 'string', 'max:255',
             'email' => 'required|string|email|max:255|unique:users',
             'password' => ['required', 'string', 'min:8', 'confirmed', Rules\Password::defaults()],
         ]);
@@ -86,22 +89,38 @@ class RegisteredUserController extends Controller
             // añadido FUNCIONAAAAAAAAAAAAAAA
             'type' => $request->type,
             'email' => $request->email,
-            'workspace' => $request->workspace,
+            'currant_workspace' => $request->currant_workspace,
             'password' => Hash::make($request->password),
             'plan' => 1,
-            'lang' => $setting['default_lang'] ? $setting['default_lang'] : 'en',
+            'lang' => $setting['default_lang'] ? $setting['default_lang'] : 'es',
         ]);
 
+        //añadido, solo si eres admin o el workspace aun no a sido creado. Crea uno nuevo
+        $workspaceExist = DB::table('workspaces')->where('name', $request->currant_workspace)->exists();
 
-        $objWorkspace = Workspace::create(['created_by' => $user->id, 'name' => $request->workspace, 'currency_code' => 'USD', 'paypal_mode' => 'sandbox']);
-        $setting = Utility::getAdminPaymentSettings();
+        if ($request->type == 'admin' || !$workspaceExist) {
+            $objWorkspace = Workspace::create(['created_by' => $user->id, 'name' => $user->currant_workspace, 'currency_code' => 'USD', 'paypal_mode' => 'sandbox']);
+            $setting = Utility::getAdminPaymentSettings();
+        }
 
+        //==========AÑADIDO ==========//
+        $workspace = DB::table('workspaces')
+            ->where('name', $user->currant_workspace)
+            ->first();
 
+        if ($workspace) {
+            $workspaceId = $workspace->id;
+        }
 
+        //============================//
         $userWorkspace               =   new UserWorkspace();
         $userWorkspace->user_id      =     $user->id;
-        $userWorkspace->workspace_id =    $objWorkspace->id;
-        $userWorkspace->permission   = 'Owner';
+        $userWorkspace->workspace_id =      $workspaceId;
+        if ($request->type == 'admin') {
+            $userWorkspace->permission   = 'Owner';
+        } else {
+            $userWorkspace->permission   = 'Member';
+        }
 
         if (empty($userWorkspace)) {
             $errorArray[] = $userWorkspace;
@@ -109,7 +128,7 @@ class RegisteredUserController extends Controller
             $userWorkspace->save();
         }
 
-        $user->currant_workspace = $objWorkspace->id;
+        $user->currant_workspace = $workspaceId;
         $user->save();
         User::userDefaultDataRegister($user);
 
@@ -122,9 +141,9 @@ class RegisteredUserController extends Controller
                 event(new Registered($user));
                 // UserWorkspace::create(['user_id'=> $user->id,'workspace_id'=>$objWorkspace->id,'permission'=>'Owner']);
                 if (empty($lang)) {
-                    $lang = $setting['default_lang'] ? $setting['default_lang'] : 'en';
+                    $lang = $setting['default_lang'] ? $setting['default_lang'] : 'es';
                 }
-                \App::setLocale($lang);
+                App::setLocale($lang);
             } catch (\Exception $e) {
                 $user->delete();
                 $userWorkspace->delete();

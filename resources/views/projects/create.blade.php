@@ -2,12 +2,7 @@
     @csrf
      <div class="modal-body">
     <div class="row">
-        @if ($currentWorkspace->is_chagpt_enable())
-        <div class="text-end col-12">
-            <a href="#" data-size="lg" data-ajax-popup-over="true" class="btn btn-sm btn-primary" data-url="{{ route('generate',['project']) }}" data-bs-toggle="tooltip" data-bs-placement="top" title="{{ __('Generate with AI') }}" data-title="{{ __('Generate Project Name & Description') }}">
-                <i class="fas fa-robot px-1"></i>{{ __('Generate with AI') }}</a>
-        </div>
-        @endif
+   
         <div class="form-group col-md-12">
             <label for="projectname" class="col-form-label">{{ __('Name') }}</label>
             <input class="form-control" type="text" id="projectname" name="name" required="" placeholder="{{ __('Project Name') }}">

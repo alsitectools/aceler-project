@@ -112,15 +112,14 @@ class UserController extends Controller
 
                     $user = User::where('id', $request->user_id)->first();
                     $remaningUserWorkspace = UserWorkspace::where('user_id', $request->user_id)->where('is_active', 1)->get();
-                    if(count($remaningUserWorkspace) == 0){
+                    if (count($remaningUserWorkspace) == 0) {
                         $userWorkspace->is_active = $request->is_disable;
                         $userWorkspace->save();
-                    }else{
+                    } else {
                         $getFirstWorkspace = UserWorkspace::where('user_id', $request->user_id)->where('is_active', 1)->first();
                         $user->currant_workspace =  $getFirstWorkspace->workspace_id;
                         $user->save();
                     }
-                  
                 }
 
                 if ($request->is_disable == 1) {
@@ -281,6 +280,7 @@ class UserController extends Controller
             $setting = Utility::getAdminPaymentSettings();
             $objUser = User::create([
                 'name' => $request->name,
+                'currant_workspace' => $request->currant_workspace,
                 'email' => $request->email,
                 'password' => Hash::make($request->password),
                 'email_verified_at' => date('Y-m-d H:i:s'),

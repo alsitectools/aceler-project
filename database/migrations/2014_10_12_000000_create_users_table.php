@@ -20,7 +20,7 @@ class CreateUsersTable extends Migration
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
             $table->rememberToken();
-            $table->integer('currant_workspace')->nullable();
+            $table->integer('currant_workspace');
             $table->string('lang', 5)->default('en');
             // $table->string('avatar')->default(config('chatify.user_avatar.default'));
             $table->string('avatar')->nullable();

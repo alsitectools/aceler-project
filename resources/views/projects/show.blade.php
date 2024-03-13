@@ -21,7 +21,7 @@
     <li class="breadcrumb-item">{{ $project->name }}</li>
 @endsection
 @php
-    $permissions = Auth::user()->getPermission($project->id);
+  //  $permissions = Auth::user()->getPermission($project->id);
     $client_keyword = Auth::user()->getGuard() == 'client' ? 'client.' : '';
     // $logo = \App\Models\Utility::get_file('users-avatar/');
     $logo = \App\Models\Utility::get_file('avatars/');
@@ -41,46 +41,24 @@
             </a>
         </div>
     @endif
-
-    {{-- <div class="col-md-auto col-sm-4 pb-3">
-        <a href="#" class="btn btn-xs btn-primary btn-icon-only col-12 cp_link "
-            data-link="{{ route('projects.link', [$currentWorkspace->slug, \Illuminate\Support\Facades\Crypt::encrypt($project->id)]) }}"
-            data-toggle="popover"  title="Copy Project"
-            ><span
-                class=""></span><span class="btn-inner--text text-white"><i
-                    class="ti ti-copy"></i></span></a>
-        </a>
-    </div> --}}
     @if (
         (isset($permissions) && in_array('show timesheet', $permissions)) ||
-            (isset($currentWorkspace) && $currentWorkspace->permission == 'Owner'))
+            (isset($currentWorkspace) && $currentWorkspace->permission == 'Member') || (isset($currentWorkspace) && $currentWorkspace->permission == 'Owner'))
         <div class="col-md-auto col-sm-4 pb-3">
             <a href="{{ route($client_keyword . 'projects.timesheet.index', [$currentWorkspace->slug, $project->id]) }}"
                 class="btn btn-xs btn-primary btn-icon-only col-12 ">{{ trans('messages.Timesheet') }}</a>
         </div>
     @endif
-    {{-- coment x karla
-     @if ((isset($permissions) && in_array('show gantt', $permissions)) || (isset($currentWorkspace) && $currentWorkspace->permission == 'Owner'))
-        <div class="col-md-auto col-sm-4 pb-3">
-            <a href="{{ route($client_keyword . 'projects.gantt', [$currentWorkspace->slug, $project->id]) }}"
-                class="btn btn-xs btn-primary btn-icon-only col-12 ">{{ __('Gantt Chart') }}</a>
-        </div>
-    @endif --}}
+
     @if (
         (isset($permissions) && in_array('show task', $permissions)) ||
-            (isset($currentWorkspace) && $currentWorkspace->permission == 'Owner'))
+            (isset($currentWorkspace) && $currentWorkspace->permission == 'Member')|| (isset($currentWorkspace) && $currentWorkspace->permission == 'Owner'))
         <div class="col-md-auto col-sm-4 pb-3">
             <a href="{{ route($client_keyword . 'projects.task.board', [$currentWorkspace->slug, $project->id]) }}"
                 class="btn btn-xs btn-primary btn-icon-only col-12 ">{{ trans('messages.Task_Board') }}</a>
         </div>
     @endif
-    {{-- cometn x karla 
-    @if ((isset($permissions) && in_array('show bug report', $permissions)) || (isset($currentWorkspace) && $currentWorkspace->permission == 'Owner'))
-        <div class="col-md-auto col-sm-6 pb-3">
-            <a href="{{ route($client_keyword . 'projects.bug.report', [$currentWorkspace->slug, $project->id]) }}"
-                class="btn btn-xs btn-primary btn-icon-only col-12">{{ __('Bug Report') }}</a>
-        </div>
-    @endif --}}
+
     <div class="col-md-auto col-sm-6 pb-3">
         <a href="{{ route($client_keyword . 'projecttime.tracker', [$currentWorkspace->slug, $project->id]) }}"
             class="btn btn-xs btn-primary btn-icon-only col-12 ">{{ trans('messages.Tracker') }}</a>
@@ -511,7 +489,7 @@
                     </div>
                 </div>
                 <div class="col-lg-8">
-                    @if ((isset($permissions) && in_array('show milestone', $permissions)) || $currentWorkspace->permission == 'Owner')
+                    @if ((isset($permissions) && in_array('show milestone', $permissions)) || $currentWorkspace->permission == 'Member' || $currentWorkspace->permission == 'Owner')
                         <div class="card">
                             <div class="card-header">
                                 <div class="d-flex justify-content-between align-items-center">
@@ -520,7 +498,7 @@
                                         </h5>
                                     </div>
                                     <div class="float-end">
-                                        @if ((isset($permissions) && in_array('create milestone', $permissions)) || $currentWorkspace->permission == 'Owner')
+                                        @if ((isset($permissions) && in_array('create milestone', $permissions)) || $currentWorkspace->permission == 'Member' || $currentWorkspace->permission == 'Owner')
                                             <a href="#" class="btn btn-sm btn-primary" data-ajax-popup="true"
                                                 data-title="{{ __('Create Milestone') }}"
                                                 data-url="{{ route($client_keyword . 'projects.milestone', [$currentWorkspace->slug, $project->id]) }}"
@@ -607,7 +585,7 @@
                                                                     @csrf
                                                                     @method('DELETE')
                                                                 </form>
-                                                            @elseif(isset($permissions))
+                                                            @elseif($currentWorkspace->permission == 'Member' || $currentWorkspace->permission == 'Owner')
                                                                 @if (in_array('edit milestone', $permissions))
                                                                     <a href="#"
                                                                         class="action-btn btn-info mx-1  btn btn-sm d-inline-flex align-items-center bs-pass-para"
@@ -618,7 +596,7 @@
                                                                         data-url="{{ route($client_keyword . 'projects.milestone.edit', [$currentWorkspace->slug, $milestone->id]) }}"><i
                                                                             class="ti ti-edit"></i></a>
                                                                 @endif
-                                                                @if (in_array('delete milestone', $permissions))
+                                                                @if (in_array('delete milestone', $permissions) || $currentWorkspace->permission == 'Owner')
                                                                     <a href="#"
                                                                         class="action-btn btn-danger mx-1  btn btn-sm d-inline-flex align-items-center bs-pass-para"
                                                                         data-confirm="{{ __('Are You Sure?') }}"

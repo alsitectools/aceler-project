@@ -17,10 +17,10 @@ class CreateMilestonesTable extends Migration
             $table->bigIncrements('id');
             $table->integer('project_id');
             $table->string('title');
-            $table->string('status');
+            $table->string('status')->nullable();
             $table->string('progress')->nullable();
-            $table->float('cost', 25, 2)->default('0.00')->nullable();
-            $table->date('end_date')->nullable();        
+            // $table->float('cost', 25, 2)->default('0.00')->nullable();
+            $table->date('end_date');
             $table->date('start_date')->nullable();
             $table->text('summary');
             $table->timestamps();

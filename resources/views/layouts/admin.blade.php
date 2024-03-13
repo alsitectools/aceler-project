@@ -1,17 +1,11 @@
 <!DOCTYPE html>
-
 @php
-
     $logo = \App\Models\Utility::get_file('logo/');
-
     if (Auth::user()->type == 'admin') {
         $setting = App\Models\Utility::getAdminPaymentSettings();
-
         $color = 'theme-5';
-
         $dark_mode = $setting['cust_darklayout'];
         $cust_theme_bg = $setting['cust_theme_bg'];
-        // $SITE_RTL = env('SITE_RTL');
         $SITE_RTL = $setting['site_rtl'];
     } else {
         $setting = App\Models\Utility::getcompanySettings($currentWorkspace->id);
@@ -47,7 +41,6 @@
 
 @endphp
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}" dir="{{ $SITE_RTL == 'on' ? 'rtl' : '' }}">
-
 <head>
 
     <meta charset="utf-8">
@@ -234,6 +227,7 @@
     @include('partials.sidebar')
 
     @include('partials.topnav')
+
     <div class="dash-container">
         <div class="dash-content">
             <!-- [ breadcrumb ] start -->
@@ -270,13 +264,11 @@
                     </div>
                 </div>
             </div>
-
             @yield('content')
-
         </div>
     </div>
 
-    @if (Auth::user()->type != 'admin')
+    @if (Auth::user()->type == 'admin')
         <div class="modal fade" id="modelCreateWorkspace" tabindex="-1" role="dialog"
             aria-labelledby="exampleModalLabel" aria-hidden="true">
             <div class="modal-dialog " role="document">

@@ -1,3 +1,5 @@
+
+
 <?php $__env->startSection('page-title'); ?>
     <?php echo e(__('Project Detail')); ?>
 
@@ -20,7 +22,7 @@
     <li class="breadcrumb-item"><?php echo e($project->name); ?></li>
 <?php $__env->stopSection(); ?>
 <?php
-    $permissions = Auth::user()->getPermission($project->id);
+  //  $permissions = Auth::user()->getPermission($project->id);
     $client_keyword = Auth::user()->getGuard() == 'client' ? 'client.' : '';
     // $logo = \App\Models\Utility::get_file('users-avatar/');
     $logo = \App\Models\Utility::get_file('avatars/');
@@ -40,26 +42,24 @@
             </a>
         </div>
     <?php endif; ?>
-
-    
     <?php if(
         (isset($permissions) && in_array('show timesheet', $permissions)) ||
-            (isset($currentWorkspace) && $currentWorkspace->permission == 'Owner')): ?>
+            (isset($currentWorkspace) && $currentWorkspace->permission == 'Member') || (isset($currentWorkspace) && $currentWorkspace->permission == 'Owner')): ?>
         <div class="col-md-auto col-sm-4 pb-3">
             <a href="<?php echo e(route($client_keyword . 'projects.timesheet.index', [$currentWorkspace->slug, $project->id])); ?>"
                 class="btn btn-xs btn-primary btn-icon-only col-12 "><?php echo e(trans('messages.Timesheet')); ?></a>
         </div>
     <?php endif; ?>
-    
+
     <?php if(
         (isset($permissions) && in_array('show task', $permissions)) ||
-            (isset($currentWorkspace) && $currentWorkspace->permission == 'Owner')): ?>
+            (isset($currentWorkspace) && $currentWorkspace->permission == 'Member')|| (isset($currentWorkspace) && $currentWorkspace->permission == 'Owner')): ?>
         <div class="col-md-auto col-sm-4 pb-3">
             <a href="<?php echo e(route($client_keyword . 'projects.task.board', [$currentWorkspace->slug, $project->id])); ?>"
                 class="btn btn-xs btn-primary btn-icon-only col-12 "><?php echo e(trans('messages.Task_Board')); ?></a>
         </div>
     <?php endif; ?>
-    
+
     <div class="col-md-auto col-sm-6 pb-3">
         <a href="<?php echo e(route($client_keyword . 'projecttime.tracker', [$currentWorkspace->slug, $project->id])); ?>"
             class="btn btn-xs btn-primary btn-icon-only col-12 "><?php echo e(trans('messages.Tracker')); ?></a>
@@ -477,7 +477,7 @@
                     </div>
                 </div>
                 <div class="col-lg-8">
-                    <?php if((isset($permissions) && in_array('show milestone', $permissions)) || $currentWorkspace->permission == 'Owner'): ?>
+                    <?php if((isset($permissions) && in_array('show milestone', $permissions)) || $currentWorkspace->permission == 'Member' || $currentWorkspace->permission == 'Owner'): ?>
                         <div class="card">
                             <div class="card-header">
                                 <div class="d-flex justify-content-between align-items-center">
@@ -486,7 +486,7 @@
                                         </h5>
                                     </div>
                                     <div class="float-end">
-                                        <?php if((isset($permissions) && in_array('create milestone', $permissions)) || $currentWorkspace->permission == 'Owner'): ?>
+                                        <?php if((isset($permissions) && in_array('create milestone', $permissions)) || $currentWorkspace->permission == 'Member' || $currentWorkspace->permission == 'Owner'): ?>
                                             <a href="#" class="btn btn-sm btn-primary" data-ajax-popup="true"
                                                 data-title="<?php echo e(__('Create Milestone')); ?>"
                                                 data-url="<?php echo e(route($client_keyword . 'projects.milestone', [$currentWorkspace->slug, $project->id])); ?>"
@@ -574,7 +574,7 @@
                                                                     <?php echo csrf_field(); ?>
                                                                     <?php echo method_field('DELETE'); ?>
                                                                 </form>
-                                                            <?php elseif(isset($permissions)): ?>
+                                                            <?php elseif($currentWorkspace->permission == 'Member' || $currentWorkspace->permission == 'Owner'): ?>
                                                                 <?php if(in_array('edit milestone', $permissions)): ?>
                                                                     <a href="#"
                                                                         class="action-btn btn-info mx-1  btn btn-sm d-inline-flex align-items-center bs-pass-para"
@@ -585,7 +585,7 @@
                                                                         data-url="<?php echo e(route($client_keyword . 'projects.milestone.edit', [$currentWorkspace->slug, $milestone->id])); ?>"><i
                                                                             class="ti ti-edit"></i></a>
                                                                 <?php endif; ?>
-                                                                <?php if(in_array('delete milestone', $permissions)): ?>
+                                                                <?php if(in_array('delete milestone', $permissions) || $currentWorkspace->permission == 'Owner'): ?>
                                                                     <a href="#"
                                                                         class="action-btn btn-danger mx-1  btn btn-sm d-inline-flex align-items-center bs-pass-para"
                                                                         data-confirm="<?php echo e(__('Are You Sure?')); ?>"

@@ -47,7 +47,6 @@
     }
 ?>
 
-
 <nav class="dash-sidebar light-sidebar <?php echo e(isset($cust_theme_bg) && $cust_theme_bg == 'on' ? 'transprent-bg' : ''); ?>">
     <div class="navbar-wrapper">
         <div class="m-header main-logo">
@@ -62,21 +61,27 @@
         </div>
         <div class="navbar-content">
             <ul class="dash-navbar">
-                <?php if(\Auth::guard('client')->check()): ?>
+
+                <?php if(Auth::user()->type == 'client'): ?>
                     <li class="dash-item dash-hasmenu">
                         <a href="<?php echo e(route('client.home')); ?>"
                             class="dash-link <?php echo e(Request::route()->getName() == 'home' || Request::route()->getName() == null || Request::route()->getName() == 'client.home' ? ' active' : ''); ?>">
                             <span class="dash-micon"><i class="ti ti-home"></i></span>
                             <span class="dash-mtext"><?php echo e(__('Dashboard')); ?></span>
-
-
+                        </a>
+                    </li>
+                    <li
+                        class="dash-item <?php echo e(Request::route()->getName() == 'users.index' || Request::route()->getName() == 'users_logs.index' ? ' active' : ''); ?>">
+                        <a href="<?php echo e(route('users.index', $currentWorkspace->slug)); ?>" class="dash-link ">
+                            <span class="dash-micon"> <i data-feather="user"></i></span><span 
+                                class="dash-mtext"><?php echo e(trans('messages.Technicians')); ?></span>
                         </a>
                     </li>
                 <?php else: ?>
                     <li class="dash-item dash-hasmenu">
                         <a href="<?php echo e(route('home')); ?>"
                             class="dash-link  <?php echo e(Request::route()->getName() == 'home' || Request::route()->getName() == null || Request::route()->getName() == 'client.home' ? ' active' : ''); ?>">
-                            <?php if(Auth::user()->type == 'admin'): ?>
+                            <?php if(Auth::user()->type == 'user'): ?>
                                 <span class="dash-micon"><i class="ti ti-user"></i></span>
                             <span class="dash-mtext"><?php echo e(trans('messages.Company')); ?></span><?php else: ?><span
                                     class="dash-micon"><i class="ti ti-home"></i></span>
@@ -84,31 +89,28 @@
                             <?php endif; ?>
                         </a>
                     </li>
+                    <?php if(Auth::user()->type == 'user' || Auth::user()->type == 'admin'): ?>
+
+                        <li class="dash-item dash-hasmenu">
+                            <a href="<?php echo e(route('clients.index', $currentWorkspace->slug)); ?>"  class="dash-link <?php echo e(Request::route()->getName() == 'clients.index' ? ' active' : ''); ?> "><span
+                                    class="dash-micon"> <i class="ti ti-brand-python"></i></span><span
+                                     class="dash-mtext">
+                                    <?php echo e(trans('messages.Sales_manager')); ?></span></a>
+                        </li>
+                        <?php if(Auth::user()->type == 'admin'): ?>
+                            <li
+                                class="dash-item <?php echo e(Request::route()->getName() == 'users.index' || Request::route()->getName() == 'users_logs.index' ? ' active' : ''); ?>">
+                                <a href="<?php echo e(route('users.index', $currentWorkspace->slug)); ?>" class="dash-link ">
+                                    <span class="dash-micon"> <i data-feather="user"></i></span><span
+                                        
+                                        class="dash-mtext"><?php echo e(trans('messages.Technicians')); ?></span>
+                                </a>
+                            </li>
+                        <?php endif; ?>
+                    <?php endif; ?>
                 <?php endif; ?>
                 <?php if(isset($currentWorkspace) && $currentWorkspace): ?>
                     <?php if(auth()->guard('web')->check()): ?>
-                        
-
-                        
-                        
-                        <li class="dash-item dash-hasmenu">
-                            <a href="<?php echo e(route('clients.index', $currentWorkspace->slug)); ?>"
-                                class="dash-link <?php echo e(Request::route()->getName() == 'clients.index' ? ' active' : ''); ?>"><span
-                                    class="dash-micon"> <i class="ti ti-brand-python"></i></span><span 
-                                    class="dash-mtext"> <?php echo e(trans('messages.Sales_manager')); ?></span></a>
-                        </li>
-                        
-
-                        <li 
-                            class="dash-item <?php echo e(Request::route()->getName() == 'users.index' || Request::route()->getName() == 'users_logs.index' ? ' active' : ''); ?>">
-                            <a href="<?php echo e(route('users.index', $currentWorkspace->slug)); ?>" class="dash-link ">
-                                <span class="dash-micon"> <i data-feather="user"></i></span><span 
-                                    class="dash-mtext"><?php echo e(trans('messages.Technicians')); ?></span>
-                            </a>
-                        </li>
-                        
-
-                        
                         <li
                             class="dash-item <?php echo e(Request::route()->getName() == 'projects.index' || Request::segment(2) == 'projects' ? ' active' : ''); ?>">
                             <a href="<?php echo e(route('projects.index', $currentWorkspace->slug)); ?>" class="dash-link"><span
@@ -126,7 +128,6 @@
                                     class="dash-micon"><i data-feather="clock"></i></span><span
                                     class="dash-mtext"><?php echo e(trans('messages.Timesheets')); ?></span></a>
                         </li>
-
 
                         <?php if(isset($currentWorkspace) &&
                                 $currentWorkspace &&
@@ -179,7 +180,8 @@
                         <li
                             class="dash-item <?php echo e(Request::route()->getName() == 'client.contracts.index' || Request::route()->getName() == 'client.contracts.show' ? 'active' : ''); ?>">
                             <a href="<?php echo e(route('client.contracts.index', $currentWorkspace->slug)); ?>"
-                                class="dash-link "><span class="dash-micon"><i class="ti ti-device-floppy"></i></span><span
+                                class="dash-link "><span class="dash-micon"><i
+                                        class="ti ti-device-floppy"></i></span><span
                                     class="dash-mtext"><?php echo e(__('Contracts')); ?></span></a>
                         </li>
 
@@ -189,7 +191,6 @@
                                 class="dash-link "><span class="dash-micon"><i class="ti ti-chart-line"></i></span><span
                                     class="dash-mtext"><?php echo e(__('Project Report')); ?></span></a>
                         </li>
-
 
                         <li
                             class="dash-item <?php echo e(Request::route()->getName() == 'client.calender.index' ? ' active' : ''); ?>">

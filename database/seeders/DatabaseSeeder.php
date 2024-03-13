@@ -16,19 +16,18 @@ class DatabaseSeeder extends Seeder
      */
     public function run()
     {
-        Artisan::call('module:migrate LandingPage'); 
-        Artisan::call('module:seed LandingPage'); 
+        Artisan::call('module:migrate LandingPage');
+        Artisan::call('module:seed LandingPage');
         $this->call(NotificationSeeder::class);
-         
-        if(\Request::route()->getName()!='LaravelUpdater::database')
-        {
+
+        if (\Request::route()->getName() != 'LaravelUpdater::database') {
             $this->call(UsersTableSeeder::class);
             $this->call(AiTemplateSeeder::class);
+        } else {
 
-        }else{
-            
             User::seed_languages();
         }
-          
+
+        
     }
 }

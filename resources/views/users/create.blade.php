@@ -7,7 +7,7 @@
     </div>
     <div class="form-group">
         <label for="workspace_name" class="form-label">{{ __('Workspace Name') }}</label>
-        <input class="form-control" name="workspace" type="text" id="workspace_name" placeholder="{{ __('Enter Workspace Name') }}" value="{{ old('workspace') }}" required autocomplete="workspace">
+        <input class="form-control" name="currant_workspace" type="text" id="currant_workspace" placeholder="{{ __('Enter Workspace Name') }}" value="{{ old('workspace') }}" required autocomplete="workspace">
     </div>
     <div class="form-group">
         <label for="emailaddress" class="form-label">{{ __('Email Address') }}</label>

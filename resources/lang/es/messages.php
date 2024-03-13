@@ -121,5 +121,6 @@ return [
     'company' => 'Empresa',
     'Date_created'=>'Fecha de creación: ',
     'Desired_delivery_date'=>'Fecha de entrega deseada: ',
+    'Type_user'=>'Tipo de usuario',
 
 ];

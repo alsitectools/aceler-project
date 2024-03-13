@@ -4,11 +4,11 @@
     {{ __('Clients') }}
 @endsection
 @section('links')
-    @if (\Auth::guard('client')->check())
+    {{-- @if (\Auth::guard('client')->check())
         <li class="breadcrumb-item"><a href="{{ route('client.home') }}">{{ __('Home') }}</a></li>
     @else
         <li class="breadcrumb-item"><a href="{{ route('home') }}">{{ __('Home') }}</a></li>
-    @endif
+    @endif --}}
     <li class="breadcrumb-item"> {{ __('Clients') }}</li>
 @endsection
 
@@ -25,7 +25,6 @@
                 <i class="ti ti-file-x"></i>
             </a>
 
-
             <a href="#" class="btn btn-sm btn-primary mx-1" data-ajax-popup="true" data-size="md"
                 data-title="{{ __('Import Client') }}" data-url="{{ route('client.file.import', $currentWorkspace->slug) }}"
                 data-toggle="tooltip" title="{{ __('Import Client') }}">
@@ -40,81 +39,81 @@
         @endif
     @endauth
 @endsection
-
+@php
+    use App\Models\User;
+    $clientes = User::all()->where('type', 'client');
+@endphp
 @section('content')
-    @if ($currentWorkspace)
-        <div class="row">
-            @foreach ($clients as $client)
-                <div class="col-xl-3 col-lg-4 col-sm-6">
+    <div class="row">
+        @foreach ($clientes as $client)
+            <div class="col-xl-3 col-lg-4 col-sm-6">
+                <div class="card   text-center">
+                    <div class="card-header border-0 pb-0">
+                        <div class="card-header-right">
+                            <div class="btn-group card-option">
+                                <button type="button" class="btn dropdown-toggle" data-bs-toggle="dropdown"
+                                    aria-haspopup="true" aria-expanded="false">
+                                    <i class="feather icon-more-vertical"></i>
+                                </button>
+                                @if ($client->is_active)
+                                    <div class="dropdown-menu dropdown-menu-end">
 
-                    <div class="card   text-center">
-                        <div class="card-header border-0 pb-0">
-                            <div class="card-header-right">
-                                <div class="btn-group card-option">
-                                    <button type="button" class="btn dropdown-toggle" data-bs-toggle="dropdown"
-                                        aria-haspopup="true" aria-expanded="false">
-                                        <i class="feather icon-more-vertical"></i>
-                                    </button>
-                                    @if ($client->is_active && \Auth::user()->type == 'Admin')
-                                        <div class="dropdown-menu dropdown-menu-end">
+                                        <a href="#" class="dropdown-item" data-ajax-popup="true" data-size="md"
+                                            data-title="{{ __('Reset Password') }}"
+                                            data-url="{{ route('client.reset.password', [$currentWorkspace->slug, $client->id]) }}"><i
+                                                class="ti ti-pencil"></i> <span>{{ __('Reset Password') }}</span></a>
 
-                                            <a href="#" class="dropdown-item" data-ajax-popup="true" data-size="md"
-                                                data-title="{{ __('Reset Password') }}"
-                                                data-url="{{ route('client.reset.password', [$currentWorkspace->slug, $client->id]) }}"><i
-                                                    class="ti ti-pencil"></i> <span>{{ __('Reset Password') }}</span></a>
+                                        <a href="#" class="dropdown-item" data-ajax-popup="true" data-size="md"
+                                            data-title="{{ __('Edit Client') }}"
+                                            data-url="{{ route('clients.edit', [$currentWorkspace->slug, $client->id]) }}"><i
+                                                class="ti ti-edit"></i>{{ __('Edit') }}</span></a>
 
-                                            <a href="#" class="dropdown-item" data-ajax-popup="true" data-size="md"
-                                                data-title="{{ __('Edit Client') }}"
-                                                data-url="{{ route('clients.edit', [$currentWorkspace->slug, $client->id]) }}"><i
-                                                    class="ti ti-edit"></i>{{ __('Edit') }}</span></a>
+                                        <a href="#" class="dropdown-item bs-pass-para"
+                                            data-confirm="{{ __('Are You Sure?') }}"
+                                            data-text="{{ trans('messages.This_action_can_not_be_undone._Do_you_want_to_continue?') }}"
+                                            data-confirm-yes="delete-form-{{ $client->id }}"><i class="ti ti-trash"></i>
+                                            <span>{{ __('Delete') }}</span></a>
 
-                                            <a href="#" class="dropdown-item bs-pass-para"
-                                                data-confirm="{{ __('Are You Sure?') }}"
-                                                data-text="{{ trans('messages.This_action_can_not_be_undone._Do_you_want_to_continue?') }}"
-                                                data-confirm-yes="delete-form-{{ $client->id }}"><i
-                                                    class="ti ti-trash"></i> <span>{{ __('Delete') }}</span></a>
+                                        {!! Form::open([
+                                            'method' => 'DELETE',
+                                            'route' => ['clients.destroy', [$currentWorkspace->slug, $client->id]],
+                                            'id' => 'delete-form-' . $client->id,
+                                        ]) !!}
+                                        {!! Form::close() !!}
 
-                                            {!! Form::open([
-                                                'method' => 'DELETE',
-                                                'route' => ['clients.destroy', [$currentWorkspace->slug, $client->id]],
-                                                'id' => 'delete-form-' . $client->id,
-                                            ]) !!}
-                                            {!! Form::close() !!}
-
-                                        </div>
-                                    @else
-                                        <a href="#" class="dropdown-item" title="{{ __('Locked') }}">
-                                            <i class="fas fa-lock"></i>
-                                        </a>
-                                    @endif
-                                </div>
+                                    </div>
+                                @else
+                                    <a href="#" class="dropdown-item" title="{{ __('Locked') }}">
+                                        <i class="fas fa-lock"></i>
+                                    </a>
+                                @endif
                             </div>
-
-                        </div>
-                        <div class="card-body">
-                            <img alt="user-image" class="img-fluid rounded-circle img_users_fix_size"
-                                @if ($client->avatar) src="{{ asset($logo . $client->avatar) }}" @else avatar="{{ $client->name }}" @endif>
-                            <h4 class="mt-2">{{ $client->name }}</h4>
-                            <small>{{ $client->email }}</small>
                         </div>
                     </div>
-
+                    <div class="card-body">
+                        <img alt="user-image" class="img-fluid rounded-circle img_users_fix_size"
+                            @if ($client->avatar) src="{{ asset($logo . $client->avatar) }}" @else avatar="{{ $client->name }}" @endif>
+                        <h4 class="mt-2">{{ $client->name }}</h4>
+                        <small>{{ $client->email }}</small>
+                    </div>
                 </div>
-            @endforeach
 
-            <div class="col-xl-3 col-lg-4 col-sm-6">
-                @auth('web')
-                    <a href="#" class="btn-addnew-project" data-ajax-popup="true" data-size="md"
-                        data-title="{{ __('Add Client') }}" data-url="{{ route('clients.create', $currentWorkspace->slug) }}">
-                        <div class="bg-primary proj-add-icon">
-                            <i class="ti ti-plus"></i>
-                        </div>
-                        <h6 class="mt-4 mb-2">{{ trans('messages.New_Sales_manager') }}</h6>
-                        <p class="text-muted text-center">{{ trans('messages.Click_here_to_add_New_Sales_manager') }}</p>
-                    </a>
-                @endauth
             </div>
-        @else
+        @endforeach
+
+        <div class="col-xl-3 col-lg-4 col-sm-6">
+            @auth('web')
+                <a href="#" class="btn-addnew-project" data-ajax-popup="true" data-size="md"
+                    data-title="{{ __('Add Client') }}" data-url="{{ route('clients.create', $currentWorkspace->slug) }}">
+                    <div class="bg-primary proj-add-icon">
+                        <i class="ti ti-plus"></i>
+                    </div>
+                    <h6 class="mt-4 mb-2">{{ trans('messages.New_Sales_manager') }}</h6>
+                    <p class="text-muted text-center">{{ trans('messages.Click_here_to_add_New_Sales_manager') }}</p>
+                </a>
+            @endauth
+        </div>
+        @if (!$currentWorkspace)
             <div class="container mt-5">
                 <div class="card">
                     <div class="card-body p-4">
@@ -138,7 +137,7 @@
                     </div>
                 </div>
             </div>
-    @endif
+        @endif
 
     </div>
     </div>

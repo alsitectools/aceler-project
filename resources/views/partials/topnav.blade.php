@@ -153,7 +153,10 @@
                             @if ($workspace->is_active)
                                 @php
                                     $user = Auth::user();
-                                    $userWorkspace = App\Models\UserWorkspace::where([['user_id', $user->id], ['workspace_id', $workspace->id]])->first();
+                                    $userWorkspace = App\Models\UserWorkspace::where([
+                                        ['user_id', $user->id],
+                                        ['workspace_id', $workspace->id],
+                                    ])->first();
                                 @endphp
                                 @if (isset($userWorkspace))
                                     @if ($userWorkspace->is_active == 1)
@@ -201,7 +204,10 @@
                             @foreach ($client->workspace as $workspace)
                                 @if ($workspace->is_active == 1)
                                     @php
-                                        $clientWorkspace = App\Models\ClientWorkspace::where([['client_id', $client->id], ['workspace_id', $workspace->id]])->first();
+                                        $clientWorkspace = App\Models\ClientWorkspace::where([
+                                            ['client_id', $client->id],
+                                            ['workspace_id', $workspace->id],
+                                        ])->first();
                                     @endphp
                                     @if (isset($clientWorkspace))
                                         @php
@@ -250,7 +256,7 @@
                                     @if (Auth::user()->id == $currentWorkspace->created_by)
                                         <a href="#" class="dropdown-item bs-pass-para"
                                             data-confirm="{{ __('Are You Sure?') }}"
-                                            data-text="{{ __('This action can not be undone. Do you want to continue?') }}"
+                                            data-text="{{ __('messages.This_action_can_not_be_undone._Do_you_want_to_continue?') }}"
                                             data-confirm-yes="remove-workspace-form">
                                             <i class="ti ti-circle-x"></i>
                                             <span>{{ __('Remove Me From This Workspace') }}</span>
@@ -264,7 +270,7 @@
                                     @else
                                         <a href="#" class="dropdown-item bs-pass-para"
                                             data-confirm="{{ __('Are You Sure?') }}"
-                                            data-text="{{ __('This action can not be undone. Do you want to continue?') }}"
+                                            data-text="{{ __('messages.This_action_can_not_be_undone._Do_you_want_tocontinue?') }}"
                                             data-confirm-yes="remove-workspace-form">
                                             <i class="ti ti-circle-x"></i>
                                             <span>{{ __('Leave Me From This Workspace') }}</span>
@@ -389,8 +395,19 @@
                                                 @if ($notification->type == 'task_assign')
                                                     @php
                                                         if ($project) {
-                                                            $link = route('projects.task.board', [$notification->workspace_id, $notification->project_id]);
-                                                            $text = __('New task assign') . ' <b>' . $data->title . '</b> ' . __('in project') . ' <b>' . $project->name . '</b>';
+                                                            $link = route('projects.task.board', [
+                                                                $notification->workspace_id,
+                                                                $notification->project_id,
+                                                            ]);
+                                                            $text =
+                                                                __('New task assign') .
+                                                                ' <b>' .
+                                                                $data->title .
+                                                                '</b> ' .
+                                                                __('in project') .
+                                                                ' <b>' .
+                                                                $project->name .
+                                                                '</b>';
                                                             $icon = 'fa fa-clock-o';
                                                             if ($data->priority == 'Low') {
                                                                 $icon_color = 'bg-success';
@@ -403,15 +420,30 @@
                                                     @endphp
                                                 @elseif($notification->type == 'project_assign')
                                                     @php
-                                                        $link = route('projects.show', [$notification->workspace_id, $notification->data->id]);
-                                                        $text = __('New project assign') . ' <b>' . $data->title . '</b>';
+                                                        $link = route('projects.show', [
+                                                            $notification->workspace_id,
+                                                            $notification->data->id,
+                                                        ]);
+                                                        $text =
+                                                            __('New project assign') . ' <b>' . $data->title . '</b>';
                                                         $icon = 'fa fa-suitcase';
                                                     @endphp
                                                 @elseif($notification->type == 'bug_assign')
                                                     @php
                                                         if ($project) {
-                                                            $link = route('projects.bug.report', [$notification->workspace_id, $notification->project_id]);
-                                                            $text = __('New bug assign') . ' <b>' . $data->title . '</b> ' . __('in project') . ' <b>' . $project->name . '</b>';
+                                                            $link = route('projects.bug.report', [
+                                                                $notification->workspace_id,
+                                                                $notification->project_id,
+                                                            ]);
+                                                            $text =
+                                                                __('New bug assign') .
+                                                                ' <b>' .
+                                                                $data->title .
+                                                                '</b> ' .
+                                                                __('in project') .
+                                                                ' <b>' .
+                                                                $project->name .
+                                                                '</b>';
                                                             $icon = 'fa fa-bug';
                                                             if ($data->priority == 'Low') {
                                                                 $icon_color = 'bg-success';

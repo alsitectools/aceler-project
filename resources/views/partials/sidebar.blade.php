@@ -48,7 +48,6 @@ Establece el formato de como se ve el menu si seres admin o user/client --}}
     }
 @endphp
 
-{{-- //////////////////////////////////////////////////// --}}
 <nav class="dash-sidebar light-sidebar {{ isset($cust_theme_bg) && $cust_theme_bg == 'on' ? 'transprent-bg' : '' }}">
     <div class="navbar-wrapper">
         <div class="m-header main-logo">
@@ -64,21 +63,27 @@ Establece el formato de como se ve el menu si seres admin o user/client --}}
         </div>
         <div class="navbar-content">
             <ul class="dash-navbar">
-                @if (\Auth::guard('client')->check())
+
+                @if (Auth::user()->type == 'client')
                     <li class="dash-item dash-hasmenu">
                         <a href="{{ route('client.home') }}"
                             class="dash-link {{ Request::route()->getName() == 'home' || Request::route()->getName() == null || Request::route()->getName() == 'client.home' ? ' active' : '' }}">
                             <span class="dash-micon"><i class="ti ti-home"></i></span>
                             <span class="dash-mtext">{{ __('Dashboard') }}</span>
-
-
+                        </a>
+                    </li>
+                    <li
+                        class="dash-item {{ Request::route()->getName() == 'users.index' || Request::route()->getName() == 'users_logs.index' ? ' active' : '' }}">
+                        <a href="{{ route('users.index', $currentWorkspace->slug) }}" class="dash-link ">
+                            <span class="dash-micon"> <i data-feather="user"></i></span><span {{-- USER --}}
+                                class="dash-mtext">{{ trans('messages.Technicians') }}</span>
                         </a>
                     </li>
                 @else
                     <li class="dash-item dash-hasmenu">
                         <a href="{{ route('home') }}"
                             class="dash-link  {{ Request::route()->getName() == 'home' || Request::route()->getName() == null || Request::route()->getName() == 'client.home' ? ' active' : '' }}">
-                            @if (Auth::user()->type == 'admin')
+                            @if (Auth::user()->type == 'user')
                                 <span class="dash-micon"><i class="ti ti-user"></i></span>
                             <span class="dash-mtext">{{ trans('messages.Company') }}</span>@else<span
                                     class="dash-micon"><i class="ti ti-home"></i></span>
@@ -86,31 +91,28 @@ Establece el formato de como se ve el menu si seres admin o user/client --}}
                             @endif
                         </a>
                     </li>
+                    @if (Auth::user()->type == 'user' || Auth::user()->type == 'admin')
+
+                        <li class="dash-item dash-hasmenu">
+                            <a href="{{ route('clients.index', $currentWorkspace->slug) }}"  class="dash-link {{ Request::route()->getName() == 'clients.index' ? ' active' : '' }} "><span
+                                    class="dash-micon"> <i class="ti ti-brand-python"></i></span><span
+                                    {{-- CLIENTS --}} class="dash-mtext">
+                                    {{ trans('messages.Sales_manager') }}</span></a>
+                        </li>
+                        @if (Auth::user()->type == 'admin')
+                            <li
+                                class="dash-item {{ Request::route()->getName() == 'users.index' || Request::route()->getName() == 'users_logs.index' ? ' active' : '' }}">
+                                <a href="{{ route('users.index', $currentWorkspace->slug) }}" class="dash-link ">
+                                    <span class="dash-micon"> <i data-feather="user"></i></span><span
+                                        {{-- USER --}}
+                                        class="dash-mtext">{{ trans('messages.Technicians') }}</span>
+                                </a>
+                            </li>
+                        @endif
+                    @endif
                 @endif
                 @if (isset($currentWorkspace) && $currentWorkspace)
                     @auth('web')
-                        {{-- ////////////////////////////////////    CONFLICTO  /////////////////////////////////////// --}}
-
-                        {{-- @if (\Auth::guard('client')->check() && \Auth::guard('client') == 'client') --}}
-                        {{-- esta condicion la puse yo --}}
-                        <li class="dash-item dash-hasmenu">
-                            <a href="{{ route('clients.index', $currentWorkspace->slug) }}"
-                                class="dash-link {{ Request::route()->getName() == 'clients.index' ? ' active' : '' }}"><span
-                                    class="dash-micon"> <i class="ti ti-brand-python"></i></span><span {{-- antes Clients --}}
-                                    class="dash-mtext"> {{ trans('messages.Sales_manager') }}</span></a>
-                        </li>
-                        {{-- @else --}}
-
-                        <li {{-- La clase de user son los Technicians. Los tecnicos quieren la lista de sus/los tecnicos??? --}}
-                            class="dash-item {{ Request::route()->getName() == 'users.index' || Request::route()->getName() == 'users_logs.index' ? ' active' : '' }}">
-                            <a href="{{ route('users.index', $currentWorkspace->slug) }}" class="dash-link ">
-                                <span class="dash-micon"> <i data-feather="user"></i></span><span {{-- Antes user --}}
-                                    class="dash-mtext">{{ trans('messages.Technicians') }}</span>
-                            </a>
-                        </li>
-                        {{-- @endif --}}
-
-                        {{-- ////////////////////////////////////////////////////////////// --}}
                         <li
                             class="dash-item {{ Request::route()->getName() == 'projects.index' || Request::segment(2) == 'projects' ? ' active' : '' }}">
                             <a href="{{ route('projects.index', $currentWorkspace->slug) }}" class="dash-link"><span
@@ -128,7 +130,6 @@ Establece el formato de como se ve el menu si seres admin o user/client --}}
                                     class="dash-micon"><i data-feather="clock"></i></span><span
                                     class="dash-mtext">{{ trans('messages.Timesheets') }}</span></a>
                         </li>
-
 
                         @if (isset($currentWorkspace) &&
                                 $currentWorkspace &&
@@ -181,7 +182,8 @@ Establece el formato de como se ve el menu si seres admin o user/client --}}
                         <li
                             class="dash-item {{ Request::route()->getName() == 'client.contracts.index' || Request::route()->getName() == 'client.contracts.show' ? 'active' : '' }}">
                             <a href="{{ route('client.contracts.index', $currentWorkspace->slug) }}"
-                                class="dash-link "><span class="dash-micon"><i class="ti ti-device-floppy"></i></span><span
+                                class="dash-link "><span class="dash-micon"><i
+                                        class="ti ti-device-floppy"></i></span><span
                                     class="dash-mtext">{{ __('Contracts') }}</span></a>
                         </li>
 
@@ -191,7 +193,6 @@ Establece el formato de como se ve el menu si seres admin o user/client --}}
                                 class="dash-link "><span class="dash-micon"><i class="ti ti-chart-line"></i></span><span
                                     class="dash-mtext">{{ __('Project Report') }}</span></a>
                         </li>
-
 
                         <li
                             class="dash-item {{ Request::route()->getName() == 'client.calender.index' ? ' active' : '' }}">

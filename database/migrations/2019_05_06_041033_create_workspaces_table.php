@@ -15,10 +15,10 @@ class CreateWorkspacesTable extends Migration
     {
         Schema::create('workspaces', function (Blueprint $table) {
             $table->bigIncrements('id');
-            $table->string('name');
+            $table->string('name')->nullable();
             $table->string('slug');
             $table->integer('created_by');
-            $table->string('lang',5)->default('en');
+            $table->string('lang',5)->default('es');
             $table->string('currency')->default('$');
             $table->integer('interval_time')->default(10);
             $table->string('currency_code')->nullable();
