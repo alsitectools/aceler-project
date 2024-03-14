@@ -42,24 +42,15 @@
     use App\Models\UserWorkspace;
     use App\Models\Workspace;
     //Para mostrar todos los proyectos busco en la BBDD los proyectos que existen
-    $proyectos = Project::all();
+    $proyectos = Project::all()->where('workspace', '=', Auth::user()->currant_workspace);
     $usuarios = User::all();
     $usuarioWorkspace = UserWorkspace::all();
 
     //===== Que solo los usuarios del mimso workspace veasn los proyectos ==//
-
 ?>
 <?php $__env->startSection('content'); ?>
     <section class="section">
-        <?php $__currentLoopData = $proyectos; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $proyecto): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-            <?php if($proyecto->workspace == Auth::user()->currant_workspace): ?>
-                <?php echo e("usuario workspaceID: ".Auth::user()->currant_workspace. "Workspace del Proyecto: ". $proyecto->workspace); ?>
 
-            <?php endif; ?>
-        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
-
-
-        
         <div class="row mb-2">
             <div class="col-xl-12 col-lg-12 col-md-12 col-12 d-flex align-items-center justify-content-end">
                 <div class="text-sm-right status-filter">
@@ -247,7 +238,6 @@
                 <?php endif; ?>
             </div>
         </div>
-        
         
     </section>
 <?php $__env->stopSection(); ?>

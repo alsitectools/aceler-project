@@ -37,27 +37,12 @@
 @endsection
 @php
     use App\Models\Project;
-    use App\Models\User;
-    use App\Models\UserWorkspace;
-    use App\Models\Workspace;
     //Para mostrar todos los proyectos busco en la BBDD los proyectos que existen
-    $proyectos = Project::all();
-    $usuarios = User::all();
-    $usuarioWorkspace = UserWorkspace::all();
-
-    //===== Que solo los usuarios del mimso workspace veasn los proyectos ==//
-
+    $proyectos = Project::all()->where('workspace', '=', Auth::user()->currant_workspace);
 @endphp
 @section('content')
     <section class="section">
-        @foreach ($proyectos as $proyecto)
-            @if ($proyecto->workspace == Auth::user()->currant_workspace)
-                {{ "usuario workspaceID: ".Auth::user()->currant_workspace. "Workspace del Proyecto: ". $proyecto->workspace  }}
-            @endif
-        @endforeach
 
-
-        {{-- @if ($workspaceID != '') --}}
         <div class="row mb-2">
             <div class="col-xl-12 col-lg-12 col-md-12 col-12 d-flex align-items-center justify-content-end">
                 <div class="text-sm-right status-filter">
@@ -268,7 +253,6 @@
                     </div>
                 </div>
             </div> --}}
-        {{-- @endif --}}
     </section>
 @endsection
 
