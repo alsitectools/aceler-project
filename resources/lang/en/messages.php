@@ -117,7 +117,7 @@ return [
     'Telephone' => 'Telephone',
     'Company' => 'Company',
     'company' => 'Company',
-    'Date_created'=> 'Date created: ',
+    'Created_Date'=> 'Created date: ',
     'Desired_delivery_date' =>'Desired delivery date: ',
     'Type_user'=> 'Type user',
 ];

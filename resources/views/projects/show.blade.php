@@ -4,24 +4,25 @@
     {{ __('Project Detail') }}
 @endsection
 @section('links')
-    @if (\Auth::guard('client')->check())
+    {{-- @if (\Auth::guard('client')->check())
         <li class="breadcrumb-item">
             <a href="{{ route('client.home') }}">{{ __('Home') }}</a>
         </li>
     @else
         <li class="breadcrumb-item"><a href="{{ route('home') }}">{{ __('Home') }}</a></li>
-    @endif
-    @if (\Auth::guard('client')->check())
+    @endif --}}
+    {{-- @if (\Auth::guard('client')->check())
         <li class="breadcrumb-item"><a
                 href="{{ route('client.projects.index', $currentWorkspace->slug) }}">{{ __('Project') }}</a></li>
     @else
-        <li class="breadcrumb-item"><a href="{{ route('projects.index', $currentWorkspace->slug) }}">{{ __('Project') }}</a>
-        </li>
-    @endif
+      
+    @endif --}}
+    <li class="breadcrumb-item"><a href="{{ route('projects.index', $currentWorkspace->slug) }}">{{ __('Project') }}</a>
+    </li>
     <li class="breadcrumb-item">{{ $project->name }}</li>
 @endsection
 @php
-  //  $permissions = Auth::user()->getPermission($project->id);
+    // $permissions = Auth::user()->getPermission($project->id);
     $client_keyword = Auth::user()->getGuard() == 'client' ? 'client.' : '';
     // $logo = \App\Models\Utility::get_file('users-avatar/');
     $logo = \App\Models\Utility::get_file('avatars/');
@@ -33,8 +34,8 @@
     @if (isset($currentWorkspace) && $currentWorkspace->permission == 'Owner')
         <div class="col-md-auto col-sm-4 pb-3">
             <a href="#" class="btn btn-xs btn-primary btn-icon-only col-12" data-toggle="popover"
-                title="{{trans('messages.Shared_Project_Settings')}}" data-ajax-popup="true" data-size="md"
-                data-title="{{trans('messages.Shared_Project_Settings')}}"
+                title="{{ trans('messages.Shared_Project_Settings') }}" data-ajax-popup="true" data-size="md"
+                data-title="{{ trans('messages.Shared_Project_Settings') }}"
                 data-url="{{ route('projects.copylink.setting.create', [$currentWorkspace->slug, $project->id]) }}"
                 data-toggle="tooltip" title="{{ __('Add Project') }}">
                 <i class="ti ti-settings"></i>
@@ -42,8 +43,8 @@
         </div>
     @endif
     @if (
-        (isset($permissions) && in_array('show timesheet', $permissions)) ||
-            (isset($currentWorkspace) && $currentWorkspace->permission == 'Member') || (isset($currentWorkspace) && $currentWorkspace->permission == 'Owner'))
+        (isset($currentWorkspace) && $currentWorkspace->permission == 'Member') ||
+            (isset($currentWorkspace) && $currentWorkspace->permission == 'Owner'))
         <div class="col-md-auto col-sm-4 pb-3">
             <a href="{{ route($client_keyword . 'projects.timesheet.index', [$currentWorkspace->slug, $project->id]) }}"
                 class="btn btn-xs btn-primary btn-icon-only col-12 ">{{ trans('messages.Timesheet') }}</a>
@@ -51,8 +52,8 @@
     @endif
 
     @if (
-        (isset($permissions) && in_array('show task', $permissions)) ||
-            (isset($currentWorkspace) && $currentWorkspace->permission == 'Member')|| (isset($currentWorkspace) && $currentWorkspace->permission == 'Owner'))
+        (isset($currentWorkspace) && $currentWorkspace->permission == 'Member') ||
+            (isset($currentWorkspace) && $currentWorkspace->permission == 'Owner'))
         <div class="col-md-auto col-sm-4 pb-3">
             <a href="{{ route($client_keyword . 'projects.task.board', [$currentWorkspace->slug, $project->id]) }}"
                 class="btn btn-xs btn-primary btn-icon-only col-12 ">{{ trans('messages.Task_Board') }}</a>
@@ -186,23 +187,6 @@
                                 </div>
                             </div>
                         </div>
-                        {{-- coment x karla
-                         <div class="col-lg-3 col-sm-6">
-                            <div class="card">
-                                <div class="card-body">
-                                    <div class="row">
-                                        <div class="theme-avtar bg-info">
-                                            <i class="fas fa-money-bill-alt"></i>
-                                        </div>
-                                        <div class="col text-end">
-                                            <h6 class="text-muted mb-1">{{ __('Budget') }}</h6>
-                                            <span
-                                                class="h6 font-weight-bold mb-0 ">{{ !empty($currentWorkspace->currency) ? $currentWorkspace->currency : '$' }}{{ number_format($project->budget) }}</span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div> --}}
                         <div class="col-lg-4 col-sm-6">
                             <div class="card">
                                 <div class="card-body">
@@ -242,7 +226,8 @@
                                     <div class="d-flex justify-content-between align-items-center">
                                         <div>
                                             {{-- team usuario/tecnicos --}}
-                                            <h5 class="mb-0">{{ trans('messages.Team_Members') }} ({{ count($project->users) }})
+                                            <h5 class="mb-0">{{ trans('messages.Team_Members') }}
+                                                ({{ count($project->users) }})
                                             </h5>
                                         </div>
 
@@ -322,7 +307,8 @@
                                     <div class="d-flex justify-content-between align-items-center">
                                         <div>
 
-                                            <h5 class="mb-0">{{ trans('messages.Sales_manager') }} ({{ count($project->clients) }})
+                                            <h5 class="mb-0">{{ trans('messages.Sales_manager') }}
+                                                ({{ count($project->clients) }})
                                             </h5>
                                         </div>
 
@@ -407,7 +393,8 @@
                                 <div class="card-header" style="padding: 25px 35px !important;">
                                     <div class="d-flex justify-content-between align-items-center">
                                         <div class="row">
-                                            <h5 class="mb-0">{{ __('Progress') }}<span class="text-end"> ({{trans('messages.Last_Week_Tasks')}})  </span></h5>
+                                            <h5 class="mb-0">{{ __('Progress') }}<span class="text-end">
+                                                    ({{ trans('messages.Last_Week_Tasks') }}) </span></h5>
 
                                         </div>
                                     </div>
@@ -432,7 +419,7 @@
                         <div class="card-body p-3">
                             <div class="timeline timeline-one-side top-10-scroll" data-timeline-content="axis"
                                 data-timeline-axis-style="dashed">
-                                @if ((isset($permissions) && in_array('show activity', $permissions)) || $currentWorkspace->permission == 'Owner')
+                                @if ($currentWorkspace->permission == 'Owner')
                                     @foreach ($project->activities as $activity)
                                         <div class="timeline-block px-2 pt-3">
                                             @if ($activity->log_type == 'Upload File')
@@ -488,8 +475,8 @@
                         </div>
                     </div>
                 </div>
-                <div class="col-lg-8">
-                    @if ((isset($permissions) && in_array('show milestone', $permissions)) || $currentWorkspace->permission == 'Member' || $currentWorkspace->permission == 'Owner')
+                <div class="col-lg-12">
+                    @if ($currentWorkspace->permission == 'Member' || $currentWorkspace->permission == 'Owner')
                         <div class="card">
                             <div class="card-header">
                                 <div class="d-flex justify-content-between align-items-center">
@@ -498,7 +485,7 @@
                                         </h5>
                                     </div>
                                     <div class="float-end">
-                                        @if ((isset($permissions) && in_array('create milestone', $permissions)) || $currentWorkspace->permission == 'Member' || $currentWorkspace->permission == 'Owner')
+                                        @if ($currentWorkspace->permission == 'Member' || $currentWorkspace->permission == 'Owner')
                                             <a href="#" class="btn btn-sm btn-primary" data-ajax-popup="true"
                                                 data-title="{{ __('Create Milestone') }}"
                                                 data-url="{{ route($client_keyword . 'projects.milestone', [$currentWorkspace->slug, $project->id]) }}"
@@ -515,10 +502,10 @@
                                             <tr>
                                                 <th>{{ __('Name') }}</th>
                                                 <th>{{ trans('messages.Status') }}</th>
-                                                <th>{{ trans('messages.Start_Date') }}</th>
-                                                <th>{{ __('End Date') }}</th>
-                                                <th>{{ __('Cost') }}</th>
-                                                <th>{{ __('Progress') }}</th>
+                                                <th>{{ __('messages.Created_date') }}</th>
+                                                <th>{{ __('messages.Desired_delivery_date') }}</th>
+                                                <th>{{ __('Fecha de inicio') }}</th>
+                                                <th>{{ __('Fecha final') }}</th>
                                                 <th>{{ __('Action') }}</th>
                                             </tr>
                                         </thead>
@@ -542,26 +529,8 @@
                                                     </td>
                                                     <td>{{ $milestone->start_date }}</td>
                                                     <td>{{ $milestone->end_date }}</td>
-                                                    <td>{{ !empty($currentWorkspace->currency) ? $currentWorkspace->currency : '$' }}{{ $milestone->cost }}
-                                                    </td>
-                                                    <td>
-                                                        <div class="progress_wrapper">
-                                                            <div class="progress">
-                                                                <div class="progress-bar" role="progressbar"
-                                                                    style="width: {{ $milestone->progress }}%;"
-                                                                    aria-valuenow="55" aria-valuemin="0"
-                                                                    aria-valuemax="100"></div>
-                                                            </div>
-                                                            <div class="progress_labels">
-                                                                <div class="total_progress">
-
-                                                                    <strong> {{ $milestone->progress }}%</strong>
-                                                                </div>
-
-                                                            </div>
-                                                        </div>
-                                                    </td>
-
+                                                    <td></td>
+                                                    <td></td>
                                                     <td class="text-right">
                                                         <div class="col-auto">
                                                             @if ($currentWorkspace->permission == 'Owner')
@@ -586,17 +555,15 @@
                                                                     @method('DELETE')
                                                                 </form>
                                                             @elseif($currentWorkspace->permission == 'Member' || $currentWorkspace->permission == 'Owner')
-                                                                @if (in_array('edit milestone', $permissions))
-                                                                    <a href="#"
-                                                                        class="action-btn btn-info mx-1  btn btn-sm d-inline-flex align-items-center bs-pass-para"
-                                                                        data-ajax-popup="true" data-size="lg"
-                                                                        data-title="{{ __('Edit Milestone') }}"
-                                                                        data-toggle="popover"
-                                                                        title="{{ __('Edit') }}"
-                                                                        data-url="{{ route($client_keyword . 'projects.milestone.edit', [$currentWorkspace->slug, $milestone->id]) }}"><i
-                                                                            class="ti ti-edit"></i></a>
-                                                                @endif
-                                                                @if (in_array('delete milestone', $permissions) || $currentWorkspace->permission == 'Owner')
+                                                                <a href="#"
+                                                                    class="action-btn btn-info mx-1  btn btn-sm d-inline-flex align-items-center bs-pass-para"
+                                                                    data-ajax-popup="true" data-size="lg"
+                                                                    data-title="{{ __('Edit Milestone') }}"
+                                                                    data-toggle="popover" title="{{ __('Edit') }}"
+                                                                    data-url="{{ route($client_keyword . 'projects.milestone.edit', [$currentWorkspace->slug, $milestone->id]) }}"><i
+                                                                        class="ti ti-edit"></i></a>
+
+                                                                @if ($currentWorkspace->permission == 'Owner')
                                                                     <a href="#"
                                                                         class="action-btn btn-danger mx-1  btn btn-sm d-inline-flex align-items-center bs-pass-para"
                                                                         data-confirm="{{ __('Are You Sure?') }}"
@@ -625,10 +592,7 @@
                         </div>
                     @endif
                 </div>
-                @if (
-                    (isset($permissions) && in_array('show uploading', $permissions)) ||
-                        $currentWorkspace->permission == 'Owner' ||
-                        $currentWorkspace->permission == 'Member')
+                @if ($currentWorkspace->permission == 'Owner' || $currentWorkspace->permission == 'Member')
                     <div class="col-lg-4">
                         <div class="card ">
                             <div class="card-header">
@@ -673,9 +637,9 @@
 @endpush
 @push('scripts')
     <!--
-                                        <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+                                                        <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
 
-                                         -->
+                                                         -->
     <script src="{{ asset('assets/js/plugins/apexcharts.min.js') }}"></script>
     <script>
         (function() {

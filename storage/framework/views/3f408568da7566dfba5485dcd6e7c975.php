@@ -38,15 +38,8 @@
 <?php $__env->stopSection(); ?>
 <?php
     use App\Models\Project;
-    use App\Models\User;
-    use App\Models\UserWorkspace;
-    use App\Models\Workspace;
     //Para mostrar todos los proyectos busco en la BBDD los proyectos que existen
     $proyectos = Project::all()->where('workspace', '=', Auth::user()->currant_workspace);
-    $usuarios = User::all();
-    $usuarioWorkspace = UserWorkspace::all();
-
-    //===== Que solo los usuarios del mimso workspace veasn los proyectos ==//
 ?>
 <?php $__env->startSection('content'); ?>
     <section class="section">

@@ -10,7 +10,7 @@
                 </div>
             </div>
             <div class="col-md-4">
-                <div class="form-control-label">{{ __('Status')}}</div>
+                <div class="form-control-label">{{ __('messages.Status')}}</div>
                 <p class="mt-1">
                     @if($milestone->status == 'incomplete')
                         <label class="badge bg-warning p-2 px-3 rounded">{{__('Incomplete')}}</label>
@@ -20,10 +20,7 @@
                     @endif
                 </p>
             </div>
-            <div class="col-md-4">
-                <div class="form-control-label">{{ __('Milestone Cost')}}</div>
-                <p class="mt-1">{{ (!empty($currentWorkspace->currency)) ? $currentWorkspace->currency : '$' }}{{number_format($milestone->cost)}}</p>
-            </div>
+            {{-- Posibilidad de mostrar quien lo creo --}}
             <div class="col-md-12">
                 <div class="form-control-label">{{ __('Milestone Summary')}}</div>
                 <p class="mt-1">{{$milestone->summary}}</p>

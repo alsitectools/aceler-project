@@ -1,14 +1,15 @@
 @extends('layouts.admin')
 @php
-    $permissions = Auth::user()->getPermission($project->id);
+    //  $permissions = Auth::user()->getPermission($project->id);
     $client_keyword = Auth::user()->getGuard() == 'client' ? 'client.' : '';
     // $logo=\App\Models\Utility::get_file('users-avatar/');
     $logo = \App\Models\Utility::get_file('avatars/');
     $logo_tasks = \App\Models\Utility::get_file('tasks/');
 @endphp
 @section('page-title')
-    {{trans('messages.Task_Board')  }}
+    {{ trans('messages.Task_Board') }}
 @endsection
+
 @section('links')
     @if (\Auth::guard('client')->check())
         <li class="breadcrumb-item"><a href="{{ route('client.home') }}">{{ __('Home') }}</a></li>
@@ -30,9 +31,7 @@
 
 
 @section('action-button')
-    @if (
-        (isset($permissions) && in_array('create task', $permissions)) ||
-            ($currentWorkspace && $currentWorkspace->permission == 'Owner'))
+    @if (($currentWorkspace && $currentWorkspace->permission == 'Owner') || $currentWorkspace->permission == 'Member')
         <a href="#" class="btn btn-sm btn-primary" data-ajax-popup="true" data-size="lg"
             data-title="{{ __('Create New Task') }}"
             data-url="{{ route($client_keyword . 'tasks.create', [$currentWorkspace->slug, $project->id]) }}"
@@ -63,15 +62,15 @@
                                         </div>
                                         <h4 class="mb-0">{{ $stage->name }}</h4>
                                         <!--   <div class="col text-right">
-                                                    <span class="badge badge-secondary rounded-pill count">{{ $stage->tasks->count() }}</span>
-                                                </div> -->
+                                                        <span class="badge badge-secondary rounded-pill count">{{ $stage->tasks->count() }}</span>
+                                                    </div> -->
                                     </div>
                                     <div id="{{ 'task-list-' . str_replace(' ', '_', $stage->id) }}"
                                         data-status="{{ $stage->id }}" class="card-body kanban-box">
                                         @foreach ($stage->tasks as $task)
                                             <div class="card" id="{{ $task->id }}">
                                                 <!--  <img class="img-fluid card-img-top" src=""
-                                            alt=""> -->
+                                                alt=""> -->
                                                 <div class="position-absolute top-0 start-0 pt-3 ps-3">
                                                     @if ($task->priority == 'Low')
                                                         <div class="badge bg-success p-2 px-3 rounded">
@@ -94,7 +93,7 @@
                                                         </a></div>
                                                     <div class="card-header-right">
                                                         <div class="btn-group card-option">
-                                                            @if ($currentWorkspace->permission == 'Owner' || isset($permissions))
+                                                            @if ($currentWorkspace->permission == 'Owner' || $currentWorkspace->permission == 'Member')
                                                                 <button type="button" class="btn dropdown-toggle"
                                                                     data-bs-toggle="dropdown" aria-haspopup="true"
                                                                     aria-expanded="false">
@@ -127,32 +126,29 @@
                                                                             @csrf
                                                                             @method('DELETE')
                                                                         </form>
-                                                                    @elseif(isset($permissions))
-                                                                        @if (in_array('edit task', $permissions))
-                                                                            <a href="#" class="dropdown-item"
-                                                                                data-ajax-popup="true" data-size="lg"
-                                                                                data-title="{{ __('Edit Task') }}"
-                                                                                data-url="{{ route($client_keyword . 'tasks.edit', [$currentWorkspace->slug, $task->project_id, $task->id]) }}">
-                                                                                <i class="ti ti-edit"></i>
-                                                                                {{ __('Edit') }}
-                                                                            </a>
-                                                                        @endif
-                                                                        @if (in_array('delete task', $permissions))
-                                                                            <a href="#"
-                                                                                class="dropdown-item bs-pass-para"
-                                                                                data-confirm="{{ __('Are You Sure?') }}"
-                                                                                data-text="{{ __('This action can not be undone. Do you want to continue?') }}"
-                                                                                data-confirm-yes="delete-form-{{ $task->id }}">
-                                                                                <i class="ti ti-trash"></i>
-                                                                                {{ __('Delete') }}
-                                                                            </a>
-                                                                            <form id="delete-form-{{ $task->id }}"
+                                                                    @elseif($currentWorkspace->permission == 'Member')
+                                                                        <a href="#" class="dropdown-item"
+                                                                            data-ajax-popup="true" data-size="lg"
+                                                                            data-title="{{ __('Edit Task') }}"
+                                                                            data-url="{{ route($client_keyword . 'tasks.edit', [$currentWorkspace->slug, $task->project_id, $task->id]) }}">
+                                                                            <i class="ti ti-edit"></i>
+                                                                            {{ __('Edit') }}
+                                                                        </a>
+
+                                                                        <a href="#"
+                                                                            class="dropdown-item bs-pass-para"
+                                                                            data-confirm="{{ __('Are You Sure?') }}"
+                                                                            data-text="{{ __('This action can not be undone. Do you want to continue?') }}"
+                                                                            data-confirm-yes="delete-form-{{ $task->id }}">
+                                                                            <i class="ti ti-trash"></i>
+                                                                            {{ __('Delete') }}
+                                                                        </a>
+                                                                        {{-- <form id="delete-form-{{ $task->id }}"
                                                                                 action="{{ route($client_keyword . 'tasks.destroy', [$currentWorkspace->slug, $task->project_id, $task->id]) }}"
                                                                                 method="POST" style="display: none;">
                                                                                 @csrf
                                                                                 @method('DELETE')
-                                                                            </form>
-                                                                        @endif
+                                                                            </form> --}}
                                                                     @endif
 
                                                                 </div>

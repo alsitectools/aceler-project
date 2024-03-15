@@ -5,18 +5,18 @@
         <div class="modal-body">
             <div class="row">
 
-                <div class="col-md-8">
+                <div class="col-md-12">
                     <div class="form-group">
                         <label for="milestone-title" class="col-form-label">{{ __('Milestone Title') }}</label>
                         <input type="text" class="form-control form-control-light" id="milestone-title"
                             placeholder="{{ __('Enter Title') }}" value="{{ $milestone->title }}" name="title"
-                            required>
+                            required disabled>
                     </div>
                 </div>
 
-                <div class="col-md-4">
+                {{-- <div class="col-md-4">
                     <div class="form-group">
-                        <label for="milestone-status" class="col-form-label">{{ __('Status') }}</label>
+                        <label for="milestone-status" class="col-form-label">{{ __('messages.Status') }}</label>
                         <select class="form-control select2" name="status" id="milestone-status" required>
                             <option value="incomplete" @if ($milestone->status == 'incomplete') selected @endif>
                                 {{ __('Incomplete') }}</option>
@@ -25,17 +25,17 @@
                         </select>
                     </div>
                 </div>
-            </div>
+            </div> --}}
 
 
             <div class="row">
                 <div class="col-md-6">
                     <div class="form-group ">
-                        <label class="form-label">{{ __('Start Date') }}</label>
+                        <label class="form-label">{{ __('messages.Created_date') }}</label>
 
                         <div class="input-group date ">
                             <input class="form-control datepicker22" type="text" id="start_date" name="start_date"
-                                value="{{ $milestone->start_date }}" autocomplete="off">
+                                value="{{ $milestone->start_date }}" autocomplete="off" disabled>
                             <span class="input-group-text">
                                 <i class="feather icon-calendar"></i>
                             </span>
@@ -44,7 +44,7 @@
                 </div>
                 <div class="col-md-6">
                     <div class="form-group">
-                        <label class="form-label">{{ __('End Date') }}</label>
+                        <label class="form-label">{{ __('messages.Desired_delivery_date') }}</label>
                         <div class="input-group date ">
                             <input class="form-control datepicker23" type="text" id="end_date" name="end_date"
                                 value="{{ $milestone->end_date }}" autocomplete="off">
@@ -57,22 +57,10 @@
             </div>
 
             <div class="form-group col-md-12">
-                <label for="task-summary" class="col-form-label">{{ __('Summary') }}</label>
+                <label for="task-summary" class="col-form-label">{{ __('messages.Summary') }}</label>
                 <textarea class="form-control form-control-light" id="task-summary" rows="3" name="summary">{{ $milestone->summary }}</textarea>
             </div>
 
-
-            <div class="col-md-12">
-                <div class="form-group">
-                    <label for="task-summary" class="col-form-label">{{ __('Progress') }}</label>
-                    <input type="range" class="slider w-100 mb-0 " name="progress" id="myRange"
-                        value="{{ $milestone->progress ? $milestone->progress : '0' }}" min="0" max="100"
-                        oninput="ageOutputId.value = myRange.value">
-                    <output name="ageOutputName"
-                        id="ageOutputId">{{ $milestone->progress ? $milestone->progress : '0' }}</output>
-                    %
-                </div>
-            </div>
         </div>
         <div class="modal-footer">
             <button type="button" class="btn  btn-light" data-bs-dismiss="modal">{{ __('Close') }}</button>

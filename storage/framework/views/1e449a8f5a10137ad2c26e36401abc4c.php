@@ -5,24 +5,14 @@
 
 <?php $__env->stopSection(); ?>
 <?php $__env->startSection('links'); ?>
-    <?php if(\Auth::guard('client')->check()): ?>
-        <li class="breadcrumb-item">
-            <a href="<?php echo e(route('client.home')); ?>"><?php echo e(__('Home')); ?></a>
-        </li>
-    <?php else: ?>
-        <li class="breadcrumb-item"><a href="<?php echo e(route('home')); ?>"><?php echo e(__('Home')); ?></a></li>
-    <?php endif; ?>
-    <?php if(\Auth::guard('client')->check()): ?>
-        <li class="breadcrumb-item"><a
-                href="<?php echo e(route('client.projects.index', $currentWorkspace->slug)); ?>"><?php echo e(__('Project')); ?></a></li>
-    <?php else: ?>
-        <li class="breadcrumb-item"><a href="<?php echo e(route('projects.index', $currentWorkspace->slug)); ?>"><?php echo e(__('Project')); ?></a>
-        </li>
-    <?php endif; ?>
+    
+    
+    <li class="breadcrumb-item"><a href="<?php echo e(route('projects.index', $currentWorkspace->slug)); ?>"><?php echo e(__('Project')); ?></a>
+    </li>
     <li class="breadcrumb-item"><?php echo e($project->name); ?></li>
 <?php $__env->stopSection(); ?>
 <?php
-  //  $permissions = Auth::user()->getPermission($project->id);
+    // $permissions = Auth::user()->getPermission($project->id);
     $client_keyword = Auth::user()->getGuard() == 'client' ? 'client.' : '';
     // $logo = \App\Models\Utility::get_file('users-avatar/');
     $logo = \App\Models\Utility::get_file('avatars/');
@@ -43,8 +33,8 @@
         </div>
     <?php endif; ?>
     <?php if(
-        (isset($permissions) && in_array('show timesheet', $permissions)) ||
-            (isset($currentWorkspace) && $currentWorkspace->permission == 'Member') || (isset($currentWorkspace) && $currentWorkspace->permission == 'Owner')): ?>
+        (isset($currentWorkspace) && $currentWorkspace->permission == 'Member') ||
+            (isset($currentWorkspace) && $currentWorkspace->permission == 'Owner')): ?>
         <div class="col-md-auto col-sm-4 pb-3">
             <a href="<?php echo e(route($client_keyword . 'projects.timesheet.index', [$currentWorkspace->slug, $project->id])); ?>"
                 class="btn btn-xs btn-primary btn-icon-only col-12 "><?php echo e(trans('messages.Timesheet')); ?></a>
@@ -52,8 +42,8 @@
     <?php endif; ?>
 
     <?php if(
-        (isset($permissions) && in_array('show task', $permissions)) ||
-            (isset($currentWorkspace) && $currentWorkspace->permission == 'Member')|| (isset($currentWorkspace) && $currentWorkspace->permission == 'Owner')): ?>
+        (isset($currentWorkspace) && $currentWorkspace->permission == 'Member') ||
+            (isset($currentWorkspace) && $currentWorkspace->permission == 'Owner')): ?>
         <div class="col-md-auto col-sm-4 pb-3">
             <a href="<?php echo e(route($client_keyword . 'projects.task.board', [$currentWorkspace->slug, $project->id])); ?>"
                 class="btn btn-xs btn-primary btn-icon-only col-12 "><?php echo e(trans('messages.Task_Board')); ?></a>
@@ -189,7 +179,6 @@
                                 </div>
                             </div>
                         </div>
-                        
                         <div class="col-lg-4 col-sm-6">
                             <div class="card">
                                 <div class="card-body">
@@ -229,7 +218,9 @@
                                     <div class="d-flex justify-content-between align-items-center">
                                         <div>
                                             
-                                            <h5 class="mb-0"><?php echo e(trans('messages.Team_Members')); ?> (<?php echo e(count($project->users)); ?>)
+                                            <h5 class="mb-0"><?php echo e(trans('messages.Team_Members')); ?>
+
+                                                (<?php echo e(count($project->users)); ?>)
                                             </h5>
                                         </div>
 
@@ -309,7 +300,9 @@
                                     <div class="d-flex justify-content-between align-items-center">
                                         <div>
 
-                                            <h5 class="mb-0"><?php echo e(trans('messages.Sales_manager')); ?> (<?php echo e(count($project->clients)); ?>)
+                                            <h5 class="mb-0"><?php echo e(trans('messages.Sales_manager')); ?>
+
+                                                (<?php echo e(count($project->clients)); ?>)
                                             </h5>
                                         </div>
 
@@ -394,7 +387,8 @@
                                 <div class="card-header" style="padding: 25px 35px !important;">
                                     <div class="d-flex justify-content-between align-items-center">
                                         <div class="row">
-                                            <h5 class="mb-0"><?php echo e(__('Progress')); ?><span class="text-end"> (<?php echo e(trans('messages.Last_Week_Tasks')); ?>)  </span></h5>
+                                            <h5 class="mb-0"><?php echo e(__('Progress')); ?><span class="text-end">
+                                                    (<?php echo e(trans('messages.Last_Week_Tasks')); ?>) </span></h5>
 
                                         </div>
                                     </div>
@@ -419,7 +413,7 @@
                         <div class="card-body p-3">
                             <div class="timeline timeline-one-side top-10-scroll" data-timeline-content="axis"
                                 data-timeline-axis-style="dashed">
-                                <?php if((isset($permissions) && in_array('show activity', $permissions)) || $currentWorkspace->permission == 'Owner'): ?>
+                                <?php if($currentWorkspace->permission == 'Owner'): ?>
                                     <?php $__currentLoopData = $project->activities; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $activity): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                                         <div class="timeline-block px-2 pt-3">
                                             <?php if($activity->log_type == 'Upload File'): ?>
@@ -476,8 +470,8 @@
                         </div>
                     </div>
                 </div>
-                <div class="col-lg-8">
-                    <?php if((isset($permissions) && in_array('show milestone', $permissions)) || $currentWorkspace->permission == 'Member' || $currentWorkspace->permission == 'Owner'): ?>
+                <div class="col-lg-12">
+                    <?php if($currentWorkspace->permission == 'Member' || $currentWorkspace->permission == 'Owner'): ?>
                         <div class="card">
                             <div class="card-header">
                                 <div class="d-flex justify-content-between align-items-center">
@@ -486,7 +480,7 @@
                                         </h5>
                                     </div>
                                     <div class="float-end">
-                                        <?php if((isset($permissions) && in_array('create milestone', $permissions)) || $currentWorkspace->permission == 'Member' || $currentWorkspace->permission == 'Owner'): ?>
+                                        <?php if($currentWorkspace->permission == 'Member' || $currentWorkspace->permission == 'Owner'): ?>
                                             <a href="#" class="btn btn-sm btn-primary" data-ajax-popup="true"
                                                 data-title="<?php echo e(__('Create Milestone')); ?>"
                                                 data-url="<?php echo e(route($client_keyword . 'projects.milestone', [$currentWorkspace->slug, $project->id])); ?>"
@@ -503,10 +497,10 @@
                                             <tr>
                                                 <th><?php echo e(__('Name')); ?></th>
                                                 <th><?php echo e(trans('messages.Status')); ?></th>
-                                                <th><?php echo e(trans('messages.Start_Date')); ?></th>
-                                                <th><?php echo e(__('End Date')); ?></th>
-                                                <th><?php echo e(__('Cost')); ?></th>
-                                                <th><?php echo e(__('Progress')); ?></th>
+                                                <th><?php echo e(__('messages.Created_date')); ?></th>
+                                                <th><?php echo e(__('messages.Desired_delivery_date')); ?></th>
+                                                <th><?php echo e(__('Fecha de inicio')); ?></th>
+                                                <th><?php echo e(__('Fecha final')); ?></th>
                                                 <th><?php echo e(__('Action')); ?></th>
                                             </tr>
                                         </thead>
@@ -530,27 +524,8 @@
                                                     </td>
                                                     <td><?php echo e($milestone->start_date); ?></td>
                                                     <td><?php echo e($milestone->end_date); ?></td>
-                                                    <td><?php echo e(!empty($currentWorkspace->currency) ? $currentWorkspace->currency : '$'); ?><?php echo e($milestone->cost); ?>
-
-                                                    </td>
-                                                    <td>
-                                                        <div class="progress_wrapper">
-                                                            <div class="progress">
-                                                                <div class="progress-bar" role="progressbar"
-                                                                    style="width: <?php echo e($milestone->progress); ?>%;"
-                                                                    aria-valuenow="55" aria-valuemin="0"
-                                                                    aria-valuemax="100"></div>
-                                                            </div>
-                                                            <div class="progress_labels">
-                                                                <div class="total_progress">
-
-                                                                    <strong> <?php echo e($milestone->progress); ?>%</strong>
-                                                                </div>
-
-                                                            </div>
-                                                        </div>
-                                                    </td>
-
+                                                    <td></td>
+                                                    <td></td>
                                                     <td class="text-right">
                                                         <div class="col-auto">
                                                             <?php if($currentWorkspace->permission == 'Owner'): ?>
@@ -575,17 +550,15 @@
                                                                     <?php echo method_field('DELETE'); ?>
                                                                 </form>
                                                             <?php elseif($currentWorkspace->permission == 'Member' || $currentWorkspace->permission == 'Owner'): ?>
-                                                                <?php if(in_array('edit milestone', $permissions)): ?>
-                                                                    <a href="#"
-                                                                        class="action-btn btn-info mx-1  btn btn-sm d-inline-flex align-items-center bs-pass-para"
-                                                                        data-ajax-popup="true" data-size="lg"
-                                                                        data-title="<?php echo e(__('Edit Milestone')); ?>"
-                                                                        data-toggle="popover"
-                                                                        title="<?php echo e(__('Edit')); ?>"
-                                                                        data-url="<?php echo e(route($client_keyword . 'projects.milestone.edit', [$currentWorkspace->slug, $milestone->id])); ?>"><i
-                                                                            class="ti ti-edit"></i></a>
-                                                                <?php endif; ?>
-                                                                <?php if(in_array('delete milestone', $permissions) || $currentWorkspace->permission == 'Owner'): ?>
+                                                                <a href="#"
+                                                                    class="action-btn btn-info mx-1  btn btn-sm d-inline-flex align-items-center bs-pass-para"
+                                                                    data-ajax-popup="true" data-size="lg"
+                                                                    data-title="<?php echo e(__('Edit Milestone')); ?>"
+                                                                    data-toggle="popover" title="<?php echo e(__('Edit')); ?>"
+                                                                    data-url="<?php echo e(route($client_keyword . 'projects.milestone.edit', [$currentWorkspace->slug, $milestone->id])); ?>"><i
+                                                                        class="ti ti-edit"></i></a>
+
+                                                                <?php if($currentWorkspace->permission == 'Owner'): ?>
                                                                     <a href="#"
                                                                         class="action-btn btn-danger mx-1  btn btn-sm d-inline-flex align-items-center bs-pass-para"
                                                                         data-confirm="<?php echo e(__('Are You Sure?')); ?>"
@@ -614,10 +587,7 @@
                         </div>
                     <?php endif; ?>
                 </div>
-                <?php if(
-                    (isset($permissions) && in_array('show uploading', $permissions)) ||
-                        $currentWorkspace->permission == 'Owner' ||
-                        $currentWorkspace->permission == 'Member'): ?>
+                <?php if($currentWorkspace->permission == 'Owner' || $currentWorkspace->permission == 'Member'): ?>
                     <div class="col-lg-4">
                         <div class="card ">
                             <div class="card-header">
@@ -664,9 +634,9 @@
 <?php $__env->stopPush(); ?>
 <?php $__env->startPush('scripts'); ?>
     <!--
-                                        <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+                                                        <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
 
-                                         -->
+                                                         -->
     <script src="<?php echo e(asset('assets/js/plugins/apexcharts.min.js')); ?>"></script>
     <script>
         (function() {

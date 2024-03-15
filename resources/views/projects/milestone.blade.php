@@ -12,11 +12,11 @@
                     </div>
                 </div>
 
-                {{-- Quitado coste y añadido fecha --}}
+                {{-- Quitado coste y añadido fecha de creación--}}
                 <div class="row">
                     <div class="col-md-6">
                         <div class="form-group ">
-                            <label class="form-label">{{ trans('messages.Date_created') }}</label>
+                            <label class="form-label">{{ trans('messages.Created_date') }}</label>
 
                             <div class="input-group date ">
                                 <input class="form-control datepicker22" type="text" id="start_date"

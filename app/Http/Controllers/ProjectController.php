@@ -1435,19 +1435,19 @@ class ProjectController extends Controller
         $setting = Utility::getAdminPaymentSettings();
         $request->validate(
             [
-                'title' => 'required',
-                'status' => 'required',
+                // 'title' => 'required',
+                // 'status' => 'required',
                 // 'cost' => 'required',
             ]
         );
 
         $milestone = Milestone::find($milestoneID);
-        $milestone->title = $request->title;
+        // $milestone->title = $request->title;
         $milestone->status = $request->status;
         // $milestone->cost = $request->cost;
         $milestone->summary = $request->summary;
-        $milestone->progress = $request->progress;
-        $milestone->start_date = $request->start_date;
+        // $milestone->progress = $request->progress;
+        // $milestone->start_date = $request->start_date;
         $milestone->end_date = $request->end_date;
         $milestone->save();
 
@@ -3118,9 +3118,9 @@ class ProjectController extends Controller
 
             $stages_task = $statusClass_task = [];
 
-            $permissions = $objUser->getPermission($projectID);
+            // $permissions = $objUser->getPermission($projectID);
 
-            if ($project && (isset($permissions) && in_array('show task', $permissions)) || (isset($currentWorkspace) && $currentWorkspace->permission == 'Owner')) {
+            if (isset($currentWorkspace) && $currentWorkspace->permission == 'Owner' || isset($currentWorkspace) && $currentWorkspace->permission == 'Member') {
                 $stages_task = Stage::where('workspace_id', '=', $currentWorkspace->id)->orderBy('order')->get();
 
                 foreach ($stages_task as &$status) {
