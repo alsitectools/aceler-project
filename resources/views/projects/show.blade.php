@@ -89,7 +89,7 @@
         <!-- [ sample-page ] start -->
         <div class="col-sm-12">
             <div class="row">
-                <div class="col-xxl-8">
+                <div class="col-xxl-12">
                     <div class="card bg-primary">
                         <div class="card-body">
                             <div class="d-block d-sm-flex align-items-center justify-content-between">
@@ -219,6 +219,129 @@
                             </div>
                         </div>
                     </div>
+
+                    {{-- ======================================================================================== --}}
+
+                    <div class="col-lg-12">
+                        @if ($currentWorkspace->permission == 'Member' || $currentWorkspace->permission == 'Owner')
+                            <div class="card">
+                                <div class="card-header">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <h5 class="mb-0">{{ __('Milestones') }} ({{ count($project->milestones) }})
+                                            </h5>
+                                        </div>
+                                        <div class="float-end">
+                                            @if ($currentWorkspace->permission == 'Member' || $currentWorkspace->permission == 'Owner')
+                                                <a href="#" class="btn btn-sm btn-primary" data-ajax-popup="true"
+                                                    data-title="{{ __('Create Milestone') }}"
+                                                    data-url="{{ route($client_keyword . 'projects.milestone', [$currentWorkspace->slug, $project->id]) }}"
+                                                    data-toggle="popover" title="{{ __('Create') }}"><i
+                                                        class="ti ti-plus"></i></a>
+                                            @endif
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="card-body">
+                                    <div class="table-responsive">
+                                        <table id="" class="table table-bordered px-2">
+                                            <thead>
+                                                <tr>
+                                                    <th>{{ __('Name') }}</th>
+                                                    <th>{{ trans('messages.Status') }}</th>
+                                                    <th>{{ __('messages.Created_date') }}</th>
+                                                    <th>{{ __('messages.Desired_delivery_date') }}</th>
+                                                    <th>{{ __('Fecha de inicio') }}</th>
+                                                    <th>{{ __('Fecha final') }}</th>
+                                                    <th>{{ __('Action') }}</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                @foreach ($project->milestones as $key => $milestone)
+                                                    <tr>
+                                                        <td><a href="#" class="d-block font-weight-500 mb-0"
+                                                                data-ajax-popup="true"
+                                                                data-title="{{ __('Milestone Details') }}"
+                                                                data-url="{{ route($client_keyword . 'projects.milestone.show', [$currentWorkspace->slug, $milestone->id]) }}">
+                                                                <h5 class="m-0"> {{ $milestone->title }} </h5>
+                                                            </a></td>
+                                                        <td>
+                                                            @if ($milestone->status == 'complete')
+                                                                <label
+                                                                    class="badge bg-success p-2 px-3 rounded">{{ __('Complete') }}</label>
+                                                            @else
+                                                                <label
+                                                                    class="badge bg-warning p-2 px-3 rounded">{{ __('Incomplete') }}</label>
+                                                            @endif
+                                                        </td>
+                                                        <td>{{ $milestone->start_date }}</td>
+                                                        <td>{{ $milestone->end_date }}</td>
+                                                        <td></td>
+                                                        <td></td>
+                                                        <td class="text-right">
+                                                            <div class="col-auto">
+                                                                @if ($currentWorkspace->permission == 'Owner')
+                                                                    <a href="#"
+                                                                        class="action-btn btn-info mx-1  btn btn-sm d-inline-flex align-items-center"
+                                                                        data-ajax-popup="true" data-size="lg"
+                                                                        data-toggle="popover" title="{{ __('Edit') }}"
+                                                                        data-title="{{ __('Edit Milestone') }}"
+                                                                        data-url="{{ route('projects.milestone.edit', [$currentWorkspace->slug, $milestone->id]) }}"><i
+                                                                            class="ti ti-edit"></i></a>
+                                                                    <a href="#"
+                                                                        class="action-btn btn-danger mx-1  btn btn-sm d-inline-flex align-items-center bs-pass-para"
+                                                                        data-confirm="{{ __('Are You Sure?') }}"
+                                                                        data-toggle="popover" title="{{ __('Delete') }}"
+                                                                        data-text="{{ __('This action can not be undone. Do you want to continue?') }}"
+                                                                        data-confirm-yes="delete-form1-{{ $milestone->id }}"><i
+                                                                            class="ti ti-trash"></i></a>
+                                                                    <form id="delete-form1-{{ $milestone->id }}"
+                                                                        action="{{ route('projects.milestone.destroy', [$currentWorkspace->slug, $milestone->id]) }}"
+                                                                        method="POST" style="display: none;">
+                                                                        @csrf
+                                                                        @method('DELETE')
+                                                                    </form>
+                                                                @elseif($currentWorkspace->permission == 'Member' || $currentWorkspace->permission == 'Owner')
+                                                                    <a href="#"
+                                                                        class="action-btn btn-info mx-1  btn btn-sm d-inline-flex align-items-center bs-pass-para"
+                                                                        data-ajax-popup="true" data-size="lg"
+                                                                        data-title="{{ __('Edit Milestone') }}"
+                                                                        data-toggle="popover" title="{{ __('Edit') }}"
+                                                                        data-url="{{ route($client_keyword . 'projects.milestone.edit', [$currentWorkspace->slug, $milestone->id]) }}"><i
+                                                                            class="ti ti-edit"></i></a>
+
+                                                                    @if ($currentWorkspace->permission == 'Owner')
+                                                                        <a href="#"
+                                                                            class="action-btn btn-danger mx-1  btn btn-sm d-inline-flex align-items-center bs-pass-para"
+                                                                            data-confirm="{{ __('Are You Sure?') }}"
+                                                                            data-toggle="popover"
+                                                                            title="{{ __('Delete') }}"
+                                                                            data-text="{{ __('This action can not be undone. Do you want to continue?') }}"
+                                                                            data-confirm-yes="delete-form1-{{ $milestone->id }}"><i
+                                                                                class="ti ti-trash"></i></a>
+                                                                        <form id="delete-form1-{{ $milestone->id }}"
+                                                                            action="{{ route($client_keyword . 'projects.milestone.destroy', [$currentWorkspace->slug, $milestone->id]) }}"
+                                                                            method="POST" style="display: none;">
+                                                                            @csrf
+                                                                            @method('DELETE')
+                                                                        </form>
+                                                                    @endif
+                                                                @endif
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                @endforeach
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+
+                            </div>
+                        @endif
+                    </div>
+
+                    {{-- ======================================================================================== --}}
+
                     <div class="row">
                         <div class="col-md-6">
                             <div class="card ">
@@ -340,7 +463,8 @@
                                                                 </a>
                                                                 <div class="px-2">
                                                                     <h5 class="m-0">{{ $client->name }}</h5>
-                                                                    <small class="text-muted">{{ $client->email }}</small>
+                                                                    <small
+                                                                        class="text-muted">{{ $client->email }}</small>
                                                                 </div>
                                                             </div>
                                                         </div>
@@ -385,10 +509,43 @@
 
                 </div>
 
-                <div class="col-xxl-4">
+                <div class="col-xxl-12">
                     <div class="row">
+                        <div class="col-md-4">
+                            <div class="card">
+                                @if ($currentWorkspace->permission == 'Owner' || $currentWorkspace->permission == 'Member')
+                                    {{-- <div class="col-md-4"> --}}
 
-                        <div class="col-md-12">
+                                    <div class="card-header">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <div>
+                                                <h5 class="mb-0"> {{ __('Files') }}</h5>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="card-body p-3">
+                                        <div class="author-box-name form-control-label mb-4"></div>
+
+                                        <div class="col-md-12 dropzone browse-file" id="dropzonewidget">
+                                            <div class="dz-message" data-dz-message>
+                                                <span>
+                                                    @if (Auth::user()->getGuard() == 'client')
+                                                        {{ __('No files available') }}
+                                                    @else
+                                                        {{ __('Drop files here to upload') }}
+                                                    @endif
+                                                </span>
+
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {{-- </div> --}}
+                                @endif
+                            </div>
+                        </div>
+
+                        <div class="col-md-4">
                             <div class="card">
                                 <div class="card-header" style="padding: 25px 35px !important;">
                                     <div class="d-flex justify-content-between align-items-center">
@@ -406,223 +563,82 @@
                                 <div id="task-chart"></div>
                             </div>
                         </div>
-                    </div>
-
-                    <div class="card">
-                        <div class="card-header">
-                            <div class="d-flex justify-content-between align-items-center">
-                                <div>
-                                    <h5 class="mb-0">{{ __('Activity') }}</h5>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="card-body p-3">
-                            <div class="timeline timeline-one-side top-10-scroll" data-timeline-content="axis"
-                                data-timeline-axis-style="dashed">
-                                @if ($currentWorkspace->permission == 'Owner')
-                                    @foreach ($project->activities as $activity)
-                                        <div class="timeline-block px-2 pt-3">
-                                            @if ($activity->log_type == 'Upload File')
-                                                <span
-                                                    class="timeline-step timeline-step-sm border border-primary text-white">
-                                                    <i class="fas fa-file"></i></span>
-                                            @elseif($activity->log_type == 'Create Milestone')
-                                                <span class="timeline-step timeline-step-sm border border-info text-white">
-                                                    <i class="fas fa-cubes"></i></span>
-                                            @elseif($activity->log_type == 'Create Task')
-                                                <span
-                                                    class="timeline-step timeline-step-sm border border-success text-white">
-                                                    <i class="fas fa-tasks"></i></span>
-                                            @elseif($activity->log_type == 'Create Bug')
-                                                <span
-                                                    class="timeline-step timeline-step-sm border border-warning text-white">
-                                                    <i class="fas fa-bug"></i></span>
-                                            @elseif($activity->log_type == 'Move' || $activity->log_type == 'Move Bug')
-                                                <span
-                                                    class="timeline-step timeline-step-sm border round border-danger text-white">
-                                                    <i class="fas fa-align-justify"></i></span>
-                                            @elseif($activity->log_type == 'Create Invoice')
-                                                <span
-                                                    class="timeline-step timeline-step-sm border border-bg-dark text-white">
-                                                    <i class="fas fa-file-invoice"></i></span>
-                                            @elseif($activity->log_type == 'Invite User')
-                                                <span
-                                                    class="timeline-step timeline-step-sm border border-success text-white">
-                                                    <i class="fas fa-plus"></i></span>
-                                            @elseif($activity->log_type == 'Share with Client')
-                                                <span class="timeline-step timeline-step-sm border border-info text-white">
-                                                    <i class="fas fa-share"></i></span>
-                                            @elseif($activity->log_type == 'Create Timesheet')
-                                                <span
-                                                    class="timeline-step timeline-step-sm border border-success text-white">
-                                                    <i class="fas fa-clock-o"></i></span>
-                                            @endif
-
-                                            <div class="last_notification_text">
-                                                <!--   <p class="m-0"> <span>{{ $activity->log_type }} </span> </p> <br> -->
-                                                <p class="m-0"> <span>{{ $activity->logType($activity->log_type) }}
-                                                    </span> </p> <br>
-                                                <p> {!! $activity->getRemark() !!} </p>
-                                                <div class="notification_time_main">
-                                                    <p>{{ $activity->created_at->diffForHumans() }}</p>
-                                                </div>
-                                            </div>
-
+                        <div class="col-md-4">
+                            <div class="card">
+                                <div class="card-header">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <h5 class="mb-0">{{ __('Activity') }}</h5>
                                         </div>
-                                    @endforeach
-                                @endif
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-lg-12">
-                    @if ($currentWorkspace->permission == 'Member' || $currentWorkspace->permission == 'Owner')
-                        <div class="card">
-                            <div class="card-header">
-                                <div class="d-flex justify-content-between align-items-center">
-                                    <div>
-                                        <h5 class="mb-0">{{ __('Milestones') }} ({{ count($project->milestones) }})
-                                        </h5>
                                     </div>
-                                    <div class="float-end">
-                                        @if ($currentWorkspace->permission == 'Member' || $currentWorkspace->permission == 'Owner')
-                                            <a href="#" class="btn btn-sm btn-primary" data-ajax-popup="true"
-                                                data-title="{{ __('Create Milestone') }}"
-                                                data-url="{{ route($client_keyword . 'projects.milestone', [$currentWorkspace->slug, $project->id]) }}"
-                                                data-toggle="popover" title="{{ __('Create') }}"><i
-                                                    class="ti ti-plus"></i></a>
+                                </div>
+                                <div class="card-body p-3">
+                                    <div class="timeline timeline-one-side top-10-scroll" data-timeline-content="axis"
+                                        data-timeline-axis-style="dashed">
+                                        @if ($currentWorkspace->permission == 'Owner' || $currentWorkspace->permission == 'Member')
+                                            @foreach ($project->activities as $activity)
+                                                <div class="timeline-block px-2 pt-3">
+                                                    @if ($activity->log_type == 'Upload File')
+                                                        <span
+                                                            class="timeline-step timeline-step-sm border border-primary text-white">
+                                                            <i class="fas fa-file"></i></span>
+                                                    @elseif($activity->log_type == 'Create Milestone')
+                                                        <span
+                                                            class="timeline-step timeline-step-sm border border-info text-white">
+                                                            <i class="fas fa-cubes"></i></span>
+                                                    @elseif($activity->log_type == 'Create Task')
+                                                        <span
+                                                            class="timeline-step timeline-step-sm border border-success text-white">
+                                                            <i class="fas fa-tasks"></i></span>
+                                                    @elseif($activity->log_type == 'Create Bug')
+                                                        <span
+                                                            class="timeline-step timeline-step-sm border border-warning text-white">
+                                                            <i class="fas fa-bug"></i></span>
+                                                    @elseif($activity->log_type == 'Move' || $activity->log_type == 'Move Bug')
+                                                        <span
+                                                            class="timeline-step timeline-step-sm border round border-danger text-white">
+                                                            <i class="fas fa-align-justify"></i></span>
+                                                    @elseif($activity->log_type == 'Create Invoice')
+                                                        <span
+                                                            class="timeline-step timeline-step-sm border border-bg-dark text-white">
+                                                            <i class="fas fa-file-invoice"></i></span>
+                                                    @elseif($activity->log_type == 'Invite User')
+                                                        <span
+                                                            class="timeline-step timeline-step-sm border border-success text-white">
+                                                            <i class="fas fa-plus"></i></span>
+                                                    @elseif($activity->log_type == 'Share with Client')
+                                                        <span
+                                                            class="timeline-step timeline-step-sm border border-info text-white">
+                                                            <i class="fas fa-share"></i></span>
+                                                    @elseif($activity->log_type == 'Create Timesheet')
+                                                        <span
+                                                            class="timeline-step timeline-step-sm border border-success text-white">
+                                                            <i class="fas fa-clock-o"></i></span>
+                                                    @endif
+
+                                                    <div class="last_notification_text">
+                                                        <!--   <p class="m-0"> <span>{{ $activity->log_type }} </span> </p> <br> -->
+                                                        <p class="m-0">
+                                                            <span>{{ $activity->logType($activity->log_type) }}
+                                                            </span>
+                                                        </p> <br>
+                                                        <p> {!! $activity->getRemark() !!} </p>
+                                                        <div class="notification_time_main">
+                                                            <p>{{ $activity->created_at->diffForHumans() }}</p>
+                                                        </div>
+                                                    </div>
+
+                                                </div>
+                                            @endforeach
                                         @endif
                                     </div>
                                 </div>
                             </div>
-                            <div class="card-body">
-                                <div class="table-responsive">
-                                    <table id="" class="table table-bordered px-2">
-                                        <thead>
-                                            <tr>
-                                                <th>{{ __('Name') }}</th>
-                                                <th>{{ trans('messages.Status') }}</th>
-                                                <th>{{ __('messages.Created_date') }}</th>
-                                                <th>{{ __('messages.Desired_delivery_date') }}</th>
-                                                <th>{{ __('Fecha de inicio') }}</th>
-                                                <th>{{ __('Fecha final') }}</th>
-                                                <th>{{ __('Action') }}</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            @foreach ($project->milestones as $key => $milestone)
-                                                <tr>
-                                                    <td><a href="#" class="d-block font-weight-500 mb-0"
-                                                            data-ajax-popup="true"
-                                                            data-title="{{ __('Milestone Details') }}"
-                                                            data-url="{{ route($client_keyword . 'projects.milestone.show', [$currentWorkspace->slug, $milestone->id]) }}">
-                                                            <h5 class="m-0"> {{ $milestone->title }} </h5>
-                                                        </a></td>
-                                                    <td>
-                                                        @if ($milestone->status == 'complete')
-                                                            <label
-                                                                class="badge bg-success p-2 px-3 rounded">{{ __('Complete') }}</label>
-                                                        @else
-                                                            <label
-                                                                class="badge bg-warning p-2 px-3 rounded">{{ __('Incomplete') }}</label>
-                                                        @endif
-                                                    </td>
-                                                    <td>{{ $milestone->start_date }}</td>
-                                                    <td>{{ $milestone->end_date }}</td>
-                                                    <td></td>
-                                                    <td></td>
-                                                    <td class="text-right">
-                                                        <div class="col-auto">
-                                                            @if ($currentWorkspace->permission == 'Owner')
-                                                                <a href="#"
-                                                                    class="action-btn btn-info mx-1  btn btn-sm d-inline-flex align-items-center"
-                                                                    data-ajax-popup="true" data-size="lg"
-                                                                    data-toggle="popover" title="{{ __('Edit') }}"
-                                                                    data-title="{{ __('Edit Milestone') }}"
-                                                                    data-url="{{ route('projects.milestone.edit', [$currentWorkspace->slug, $milestone->id]) }}"><i
-                                                                        class="ti ti-edit"></i></a>
-                                                                <a href="#"
-                                                                    class="action-btn btn-danger mx-1  btn btn-sm d-inline-flex align-items-center bs-pass-para"
-                                                                    data-confirm="{{ __('Are You Sure?') }}"
-                                                                    data-toggle="popover" title="{{ __('Delete') }}"
-                                                                    data-text="{{ __('This action can not be undone. Do you want to continue?') }}"
-                                                                    data-confirm-yes="delete-form1-{{ $milestone->id }}"><i
-                                                                        class="ti ti-trash"></i></a>
-                                                                <form id="delete-form1-{{ $milestone->id }}"
-                                                                    action="{{ route('projects.milestone.destroy', [$currentWorkspace->slug, $milestone->id]) }}"
-                                                                    method="POST" style="display: none;">
-                                                                    @csrf
-                                                                    @method('DELETE')
-                                                                </form>
-                                                            @elseif($currentWorkspace->permission == 'Member' || $currentWorkspace->permission == 'Owner')
-                                                                <a href="#"
-                                                                    class="action-btn btn-info mx-1  btn btn-sm d-inline-flex align-items-center bs-pass-para"
-                                                                    data-ajax-popup="true" data-size="lg"
-                                                                    data-title="{{ __('Edit Milestone') }}"
-                                                                    data-toggle="popover" title="{{ __('Edit') }}"
-                                                                    data-url="{{ route($client_keyword . 'projects.milestone.edit', [$currentWorkspace->slug, $milestone->id]) }}"><i
-                                                                        class="ti ti-edit"></i></a>
-
-                                                                @if ($currentWorkspace->permission == 'Owner')
-                                                                    <a href="#"
-                                                                        class="action-btn btn-danger mx-1  btn btn-sm d-inline-flex align-items-center bs-pass-para"
-                                                                        data-confirm="{{ __('Are You Sure?') }}"
-                                                                        data-toggle="popover"
-                                                                        title="{{ __('Delete') }}"
-                                                                        data-text="{{ __('This action can not be undone. Do you want to continue?') }}"
-                                                                        data-confirm-yes="delete-form1-{{ $milestone->id }}"><i
-                                                                            class="ti ti-trash"></i></a>
-                                                                    <form id="delete-form1-{{ $milestone->id }}"
-                                                                        action="{{ route($client_keyword . 'projects.milestone.destroy', [$currentWorkspace->slug, $milestone->id]) }}"
-                                                                        method="POST" style="display: none;">
-                                                                        @csrf
-                                                                        @method('DELETE')
-                                                                    </form>
-                                                                @endif
-                                                            @endif
-                                                        </div>
-                                                    </td>
-                                                </tr>
-                                            @endforeach
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
 
                         </div>
-                    @endif
-                </div>
-                @if ($currentWorkspace->permission == 'Owner' || $currentWorkspace->permission == 'Member')
-                    <div class="col-lg-4">
-                        <div class="card ">
-                            <div class="card-header">
-                                <div class="d-flex justify-content-between align-items-center">
-                                    <div>
-                                        <h5 class="mb-0"> {{ __('Files') }}</h5>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="card-body p-4">
 
-                                <div class="author-box-name form-control-label mb-4">
-
-                                </div>
-                                <div class="col-md-12 dropzone browse-file" id="dropzonewidget">
-                                    <div class="dz-message" data-dz-message>
-                                        <span>
-                                            @if (Auth::user()->getGuard() == 'client')
-                                                {{ __('No files available') }}
-                                            @else
-                                                {{ __('Drop files here to upload') }}
-                                            @endif
-                                        </span>
-
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
                     </div>
-                @endif
+                </div>
             </div>
             <!-- [ sample-page ] end -->
         </div>
@@ -637,9 +653,9 @@
 @endpush
 @push('scripts')
     <!--
-                                                        <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+                                                                                                    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
 
-                                                         -->
+                                                                                                     -->
     <script src="{{ asset('assets/js/plugins/apexcharts.min.js') }}"></script>
     <script>
         (function() {

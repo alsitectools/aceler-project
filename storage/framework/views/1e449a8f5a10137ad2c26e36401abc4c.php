@@ -79,7 +79,7 @@
         <!-- [ sample-page ] start -->
         <div class="col-sm-12">
             <div class="row">
-                <div class="col-xxl-8">
+                <div class="col-xxl-12">
                     <div class="card bg-primary">
                         <div class="card-body">
                             <div class="d-block d-sm-flex align-items-center justify-content-between">
@@ -211,6 +211,129 @@
                             </div>
                         </div>
                     </div>
+
+                    
+
+                    <div class="col-lg-12">
+                        <?php if($currentWorkspace->permission == 'Member' || $currentWorkspace->permission == 'Owner'): ?>
+                            <div class="card">
+                                <div class="card-header">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <h5 class="mb-0"><?php echo e(__('Milestones')); ?> (<?php echo e(count($project->milestones)); ?>)
+                                            </h5>
+                                        </div>
+                                        <div class="float-end">
+                                            <?php if($currentWorkspace->permission == 'Member' || $currentWorkspace->permission == 'Owner'): ?>
+                                                <a href="#" class="btn btn-sm btn-primary" data-ajax-popup="true"
+                                                    data-title="<?php echo e(__('Create Milestone')); ?>"
+                                                    data-url="<?php echo e(route($client_keyword . 'projects.milestone', [$currentWorkspace->slug, $project->id])); ?>"
+                                                    data-toggle="popover" title="<?php echo e(__('Create')); ?>"><i
+                                                        class="ti ti-plus"></i></a>
+                                            <?php endif; ?>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="card-body">
+                                    <div class="table-responsive">
+                                        <table id="" class="table table-bordered px-2">
+                                            <thead>
+                                                <tr>
+                                                    <th><?php echo e(__('Name')); ?></th>
+                                                    <th><?php echo e(trans('messages.Status')); ?></th>
+                                                    <th><?php echo e(__('messages.Created_date')); ?></th>
+                                                    <th><?php echo e(__('messages.Desired_delivery_date')); ?></th>
+                                                    <th><?php echo e(__('Fecha de inicio')); ?></th>
+                                                    <th><?php echo e(__('Fecha final')); ?></th>
+                                                    <th><?php echo e(__('Action')); ?></th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <?php $__currentLoopData = $project->milestones; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $key => $milestone): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                                    <tr>
+                                                        <td><a href="#" class="d-block font-weight-500 mb-0"
+                                                                data-ajax-popup="true"
+                                                                data-title="<?php echo e(__('Milestone Details')); ?>"
+                                                                data-url="<?php echo e(route($client_keyword . 'projects.milestone.show', [$currentWorkspace->slug, $milestone->id])); ?>">
+                                                                <h5 class="m-0"> <?php echo e($milestone->title); ?> </h5>
+                                                            </a></td>
+                                                        <td>
+                                                            <?php if($milestone->status == 'complete'): ?>
+                                                                <label
+                                                                    class="badge bg-success p-2 px-3 rounded"><?php echo e(__('Complete')); ?></label>
+                                                            <?php else: ?>
+                                                                <label
+                                                                    class="badge bg-warning p-2 px-3 rounded"><?php echo e(__('Incomplete')); ?></label>
+                                                            <?php endif; ?>
+                                                        </td>
+                                                        <td><?php echo e($milestone->start_date); ?></td>
+                                                        <td><?php echo e($milestone->end_date); ?></td>
+                                                        <td></td>
+                                                        <td></td>
+                                                        <td class="text-right">
+                                                            <div class="col-auto">
+                                                                <?php if($currentWorkspace->permission == 'Owner'): ?>
+                                                                    <a href="#"
+                                                                        class="action-btn btn-info mx-1  btn btn-sm d-inline-flex align-items-center"
+                                                                        data-ajax-popup="true" data-size="lg"
+                                                                        data-toggle="popover" title="<?php echo e(__('Edit')); ?>"
+                                                                        data-title="<?php echo e(__('Edit Milestone')); ?>"
+                                                                        data-url="<?php echo e(route('projects.milestone.edit', [$currentWorkspace->slug, $milestone->id])); ?>"><i
+                                                                            class="ti ti-edit"></i></a>
+                                                                    <a href="#"
+                                                                        class="action-btn btn-danger mx-1  btn btn-sm d-inline-flex align-items-center bs-pass-para"
+                                                                        data-confirm="<?php echo e(__('Are You Sure?')); ?>"
+                                                                        data-toggle="popover" title="<?php echo e(__('Delete')); ?>"
+                                                                        data-text="<?php echo e(__('This action can not be undone. Do you want to continue?')); ?>"
+                                                                        data-confirm-yes="delete-form1-<?php echo e($milestone->id); ?>"><i
+                                                                            class="ti ti-trash"></i></a>
+                                                                    <form id="delete-form1-<?php echo e($milestone->id); ?>"
+                                                                        action="<?php echo e(route('projects.milestone.destroy', [$currentWorkspace->slug, $milestone->id])); ?>"
+                                                                        method="POST" style="display: none;">
+                                                                        <?php echo csrf_field(); ?>
+                                                                        <?php echo method_field('DELETE'); ?>
+                                                                    </form>
+                                                                <?php elseif($currentWorkspace->permission == 'Member' || $currentWorkspace->permission == 'Owner'): ?>
+                                                                    <a href="#"
+                                                                        class="action-btn btn-info mx-1  btn btn-sm d-inline-flex align-items-center bs-pass-para"
+                                                                        data-ajax-popup="true" data-size="lg"
+                                                                        data-title="<?php echo e(__('Edit Milestone')); ?>"
+                                                                        data-toggle="popover" title="<?php echo e(__('Edit')); ?>"
+                                                                        data-url="<?php echo e(route($client_keyword . 'projects.milestone.edit', [$currentWorkspace->slug, $milestone->id])); ?>"><i
+                                                                            class="ti ti-edit"></i></a>
+
+                                                                    <?php if($currentWorkspace->permission == 'Owner'): ?>
+                                                                        <a href="#"
+                                                                            class="action-btn btn-danger mx-1  btn btn-sm d-inline-flex align-items-center bs-pass-para"
+                                                                            data-confirm="<?php echo e(__('Are You Sure?')); ?>"
+                                                                            data-toggle="popover"
+                                                                            title="<?php echo e(__('Delete')); ?>"
+                                                                            data-text="<?php echo e(__('This action can not be undone. Do you want to continue?')); ?>"
+                                                                            data-confirm-yes="delete-form1-<?php echo e($milestone->id); ?>"><i
+                                                                                class="ti ti-trash"></i></a>
+                                                                        <form id="delete-form1-<?php echo e($milestone->id); ?>"
+                                                                            action="<?php echo e(route($client_keyword . 'projects.milestone.destroy', [$currentWorkspace->slug, $milestone->id])); ?>"
+                                                                            method="POST" style="display: none;">
+                                                                            <?php echo csrf_field(); ?>
+                                                                            <?php echo method_field('DELETE'); ?>
+                                                                        </form>
+                                                                    <?php endif; ?>
+                                                                <?php endif; ?>
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+
+                            </div>
+                        <?php endif; ?>
+                    </div>
+
+                    
+
                     <div class="row">
                         <div class="col-md-6">
                             <div class="card ">
@@ -334,7 +457,8 @@
                                                                 </a>
                                                                 <div class="px-2">
                                                                     <h5 class="m-0"><?php echo e($client->name); ?></h5>
-                                                                    <small class="text-muted"><?php echo e($client->email); ?></small>
+                                                                    <small
+                                                                        class="text-muted"><?php echo e($client->email); ?></small>
                                                                 </div>
                                                             </div>
                                                         </div>
@@ -379,10 +503,46 @@
 
                 </div>
 
-                <div class="col-xxl-4">
+                <div class="col-xxl-12">
                     <div class="row">
 
-                        <div class="col-md-12">
+                        <div class="col-md-4">
+                            <div class="card">
+                                <?php if($currentWorkspace->permission == 'Owner' || $currentWorkspace->permission == 'Member'): ?>
+                                    
+
+                                    <div class="card-header">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <div>
+                                                <h5 class="mb-0"> <?php echo e(__('Files')); ?></h5>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="card-body p-3">
+                                        <div class="author-box-name form-control-label mb-4"></div>
+
+                                        <div class="col-md-12 dropzone browse-file" id="dropzonewidget">
+                                            <div class="dz-message" data-dz-message>
+                                                <span>
+                                                    <?php if(Auth::user()->getGuard() == 'client'): ?>
+                                                        <?php echo e(__('No files available')); ?>
+
+                                                    <?php else: ?>
+                                                        <?php echo e(__('Drop files here to upload')); ?>
+
+                                                    <?php endif; ?>
+                                                </span>
+
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    
+                                <?php endif; ?>
+                            </div>
+                        </div>
+
+                        <div class="col-md-4">
                             <div class="card">
                                 <div class="card-header" style="padding: 25px 35px !important;">
                                     <div class="d-flex justify-content-between align-items-center">
@@ -400,226 +560,83 @@
                                 <div id="task-chart"></div>
                             </div>
                         </div>
-                    </div>
-
-                    <div class="card">
-                        <div class="card-header">
-                            <div class="d-flex justify-content-between align-items-center">
-                                <div>
-                                    <h5 class="mb-0"><?php echo e(__('Activity')); ?></h5>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="card-body p-3">
-                            <div class="timeline timeline-one-side top-10-scroll" data-timeline-content="axis"
-                                data-timeline-axis-style="dashed">
-                                <?php if($currentWorkspace->permission == 'Owner'): ?>
-                                    <?php $__currentLoopData = $project->activities; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $activity): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                                        <div class="timeline-block px-2 pt-3">
-                                            <?php if($activity->log_type == 'Upload File'): ?>
-                                                <span
-                                                    class="timeline-step timeline-step-sm border border-primary text-white">
-                                                    <i class="fas fa-file"></i></span>
-                                            <?php elseif($activity->log_type == 'Create Milestone'): ?>
-                                                <span class="timeline-step timeline-step-sm border border-info text-white">
-                                                    <i class="fas fa-cubes"></i></span>
-                                            <?php elseif($activity->log_type == 'Create Task'): ?>
-                                                <span
-                                                    class="timeline-step timeline-step-sm border border-success text-white">
-                                                    <i class="fas fa-tasks"></i></span>
-                                            <?php elseif($activity->log_type == 'Create Bug'): ?>
-                                                <span
-                                                    class="timeline-step timeline-step-sm border border-warning text-white">
-                                                    <i class="fas fa-bug"></i></span>
-                                            <?php elseif($activity->log_type == 'Move' || $activity->log_type == 'Move Bug'): ?>
-                                                <span
-                                                    class="timeline-step timeline-step-sm border round border-danger text-white">
-                                                    <i class="fas fa-align-justify"></i></span>
-                                            <?php elseif($activity->log_type == 'Create Invoice'): ?>
-                                                <span
-                                                    class="timeline-step timeline-step-sm border border-bg-dark text-white">
-                                                    <i class="fas fa-file-invoice"></i></span>
-                                            <?php elseif($activity->log_type == 'Invite User'): ?>
-                                                <span
-                                                    class="timeline-step timeline-step-sm border border-success text-white">
-                                                    <i class="fas fa-plus"></i></span>
-                                            <?php elseif($activity->log_type == 'Share with Client'): ?>
-                                                <span class="timeline-step timeline-step-sm border border-info text-white">
-                                                    <i class="fas fa-share"></i></span>
-                                            <?php elseif($activity->log_type == 'Create Timesheet'): ?>
-                                                <span
-                                                    class="timeline-step timeline-step-sm border border-success text-white">
-                                                    <i class="fas fa-clock-o"></i></span>
-                                            <?php endif; ?>
-
-                                            <div class="last_notification_text">
-                                                <!--   <p class="m-0"> <span><?php echo e($activity->log_type); ?> </span> </p> <br> -->
-                                                <p class="m-0"> <span><?php echo e($activity->logType($activity->log_type)); ?>
-
-                                                    </span> </p> <br>
-                                                <p> <?php echo $activity->getRemark(); ?> </p>
-                                                <div class="notification_time_main">
-                                                    <p><?php echo e($activity->created_at->diffForHumans()); ?></p>
-                                                </div>
-                                            </div>
-
+                        <div class="col-md-4">
+                            <div class="card">
+                                <div class="card-header">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <h5 class="mb-0"><?php echo e(__('Activity')); ?></h5>
                                         </div>
-                                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
-                                <?php endif; ?>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-lg-12">
-                    <?php if($currentWorkspace->permission == 'Member' || $currentWorkspace->permission == 'Owner'): ?>
-                        <div class="card">
-                            <div class="card-header">
-                                <div class="d-flex justify-content-between align-items-center">
-                                    <div>
-                                        <h5 class="mb-0"><?php echo e(__('Milestones')); ?> (<?php echo e(count($project->milestones)); ?>)
-                                        </h5>
                                     </div>
-                                    <div class="float-end">
-                                        <?php if($currentWorkspace->permission == 'Member' || $currentWorkspace->permission == 'Owner'): ?>
-                                            <a href="#" class="btn btn-sm btn-primary" data-ajax-popup="true"
-                                                data-title="<?php echo e(__('Create Milestone')); ?>"
-                                                data-url="<?php echo e(route($client_keyword . 'projects.milestone', [$currentWorkspace->slug, $project->id])); ?>"
-                                                data-toggle="popover" title="<?php echo e(__('Create')); ?>"><i
-                                                    class="ti ti-plus"></i></a>
+                                </div>
+                                <div class="card-body p-3">
+                                    <div class="timeline timeline-one-side top-10-scroll" data-timeline-content="axis"
+                                        data-timeline-axis-style="dashed">
+                                        <?php if($currentWorkspace->permission == 'Owner' || $currentWorkspace->permission == 'Member'): ?>
+                                            <?php $__currentLoopData = $project->activities; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $activity): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                                <div class="timeline-block px-2 pt-3">
+                                                    <?php if($activity->log_type == 'Upload File'): ?>
+                                                        <span
+                                                            class="timeline-step timeline-step-sm border border-primary text-white">
+                                                            <i class="fas fa-file"></i></span>
+                                                    <?php elseif($activity->log_type == 'Create Milestone'): ?>
+                                                        <span
+                                                            class="timeline-step timeline-step-sm border border-info text-white">
+                                                            <i class="fas fa-cubes"></i></span>
+                                                    <?php elseif($activity->log_type == 'Create Task'): ?>
+                                                        <span
+                                                            class="timeline-step timeline-step-sm border border-success text-white">
+                                                            <i class="fas fa-tasks"></i></span>
+                                                    <?php elseif($activity->log_type == 'Create Bug'): ?>
+                                                        <span
+                                                            class="timeline-step timeline-step-sm border border-warning text-white">
+                                                            <i class="fas fa-bug"></i></span>
+                                                    <?php elseif($activity->log_type == 'Move' || $activity->log_type == 'Move Bug'): ?>
+                                                        <span
+                                                            class="timeline-step timeline-step-sm border round border-danger text-white">
+                                                            <i class="fas fa-align-justify"></i></span>
+                                                    <?php elseif($activity->log_type == 'Create Invoice'): ?>
+                                                        <span
+                                                            class="timeline-step timeline-step-sm border border-bg-dark text-white">
+                                                            <i class="fas fa-file-invoice"></i></span>
+                                                    <?php elseif($activity->log_type == 'Invite User'): ?>
+                                                        <span
+                                                            class="timeline-step timeline-step-sm border border-success text-white">
+                                                            <i class="fas fa-plus"></i></span>
+                                                    <?php elseif($activity->log_type == 'Share with Client'): ?>
+                                                        <span
+                                                            class="timeline-step timeline-step-sm border border-info text-white">
+                                                            <i class="fas fa-share"></i></span>
+                                                    <?php elseif($activity->log_type == 'Create Timesheet'): ?>
+                                                        <span
+                                                            class="timeline-step timeline-step-sm border border-success text-white">
+                                                            <i class="fas fa-clock-o"></i></span>
+                                                    <?php endif; ?>
+
+                                                    <div class="last_notification_text">
+                                                        <!--   <p class="m-0"> <span><?php echo e($activity->log_type); ?> </span> </p> <br> -->
+                                                        <p class="m-0">
+                                                            <span><?php echo e($activity->logType($activity->log_type)); ?>
+
+                                                            </span>
+                                                        </p> <br>
+                                                        <p> <?php echo $activity->getRemark(); ?> </p>
+                                                        <div class="notification_time_main">
+                                                            <p><?php echo e($activity->created_at->diffForHumans()); ?></p>
+                                                        </div>
+                                                    </div>
+
+                                                </div>
+                                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                                         <?php endif; ?>
                                     </div>
                                 </div>
                             </div>
-                            <div class="card-body">
-                                <div class="table-responsive">
-                                    <table id="" class="table table-bordered px-2">
-                                        <thead>
-                                            <tr>
-                                                <th><?php echo e(__('Name')); ?></th>
-                                                <th><?php echo e(trans('messages.Status')); ?></th>
-                                                <th><?php echo e(__('messages.Created_date')); ?></th>
-                                                <th><?php echo e(__('messages.Desired_delivery_date')); ?></th>
-                                                <th><?php echo e(__('Fecha de inicio')); ?></th>
-                                                <th><?php echo e(__('Fecha final')); ?></th>
-                                                <th><?php echo e(__('Action')); ?></th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            <?php $__currentLoopData = $project->milestones; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $key => $milestone): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                                                <tr>
-                                                    <td><a href="#" class="d-block font-weight-500 mb-0"
-                                                            data-ajax-popup="true"
-                                                            data-title="<?php echo e(__('Milestone Details')); ?>"
-                                                            data-url="<?php echo e(route($client_keyword . 'projects.milestone.show', [$currentWorkspace->slug, $milestone->id])); ?>">
-                                                            <h5 class="m-0"> <?php echo e($milestone->title); ?> </h5>
-                                                        </a></td>
-                                                    <td>
-                                                        <?php if($milestone->status == 'complete'): ?>
-                                                            <label
-                                                                class="badge bg-success p-2 px-3 rounded"><?php echo e(__('Complete')); ?></label>
-                                                        <?php else: ?>
-                                                            <label
-                                                                class="badge bg-warning p-2 px-3 rounded"><?php echo e(__('Incomplete')); ?></label>
-                                                        <?php endif; ?>
-                                                    </td>
-                                                    <td><?php echo e($milestone->start_date); ?></td>
-                                                    <td><?php echo e($milestone->end_date); ?></td>
-                                                    <td></td>
-                                                    <td></td>
-                                                    <td class="text-right">
-                                                        <div class="col-auto">
-                                                            <?php if($currentWorkspace->permission == 'Owner'): ?>
-                                                                <a href="#"
-                                                                    class="action-btn btn-info mx-1  btn btn-sm d-inline-flex align-items-center"
-                                                                    data-ajax-popup="true" data-size="lg"
-                                                                    data-toggle="popover" title="<?php echo e(__('Edit')); ?>"
-                                                                    data-title="<?php echo e(__('Edit Milestone')); ?>"
-                                                                    data-url="<?php echo e(route('projects.milestone.edit', [$currentWorkspace->slug, $milestone->id])); ?>"><i
-                                                                        class="ti ti-edit"></i></a>
-                                                                <a href="#"
-                                                                    class="action-btn btn-danger mx-1  btn btn-sm d-inline-flex align-items-center bs-pass-para"
-                                                                    data-confirm="<?php echo e(__('Are You Sure?')); ?>"
-                                                                    data-toggle="popover" title="<?php echo e(__('Delete')); ?>"
-                                                                    data-text="<?php echo e(__('This action can not be undone. Do you want to continue?')); ?>"
-                                                                    data-confirm-yes="delete-form1-<?php echo e($milestone->id); ?>"><i
-                                                                        class="ti ti-trash"></i></a>
-                                                                <form id="delete-form1-<?php echo e($milestone->id); ?>"
-                                                                    action="<?php echo e(route('projects.milestone.destroy', [$currentWorkspace->slug, $milestone->id])); ?>"
-                                                                    method="POST" style="display: none;">
-                                                                    <?php echo csrf_field(); ?>
-                                                                    <?php echo method_field('DELETE'); ?>
-                                                                </form>
-                                                            <?php elseif($currentWorkspace->permission == 'Member' || $currentWorkspace->permission == 'Owner'): ?>
-                                                                <a href="#"
-                                                                    class="action-btn btn-info mx-1  btn btn-sm d-inline-flex align-items-center bs-pass-para"
-                                                                    data-ajax-popup="true" data-size="lg"
-                                                                    data-title="<?php echo e(__('Edit Milestone')); ?>"
-                                                                    data-toggle="popover" title="<?php echo e(__('Edit')); ?>"
-                                                                    data-url="<?php echo e(route($client_keyword . 'projects.milestone.edit', [$currentWorkspace->slug, $milestone->id])); ?>"><i
-                                                                        class="ti ti-edit"></i></a>
-
-                                                                <?php if($currentWorkspace->permission == 'Owner'): ?>
-                                                                    <a href="#"
-                                                                        class="action-btn btn-danger mx-1  btn btn-sm d-inline-flex align-items-center bs-pass-para"
-                                                                        data-confirm="<?php echo e(__('Are You Sure?')); ?>"
-                                                                        data-toggle="popover"
-                                                                        title="<?php echo e(__('Delete')); ?>"
-                                                                        data-text="<?php echo e(__('This action can not be undone. Do you want to continue?')); ?>"
-                                                                        data-confirm-yes="delete-form1-<?php echo e($milestone->id); ?>"><i
-                                                                            class="ti ti-trash"></i></a>
-                                                                    <form id="delete-form1-<?php echo e($milestone->id); ?>"
-                                                                        action="<?php echo e(route($client_keyword . 'projects.milestone.destroy', [$currentWorkspace->slug, $milestone->id])); ?>"
-                                                                        method="POST" style="display: none;">
-                                                                        <?php echo csrf_field(); ?>
-                                                                        <?php echo method_field('DELETE'); ?>
-                                                                    </form>
-                                                                <?php endif; ?>
-                                                            <?php endif; ?>
-                                                        </div>
-                                                    </td>
-                                                </tr>
-                                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
 
                         </div>
-                    <?php endif; ?>
-                </div>
-                <?php if($currentWorkspace->permission == 'Owner' || $currentWorkspace->permission == 'Member'): ?>
-                    <div class="col-lg-4">
-                        <div class="card ">
-                            <div class="card-header">
-                                <div class="d-flex justify-content-between align-items-center">
-                                    <div>
-                                        <h5 class="mb-0"> <?php echo e(__('Files')); ?></h5>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="card-body p-4">
 
-                                <div class="author-box-name form-control-label mb-4">
-
-                                </div>
-                                <div class="col-md-12 dropzone browse-file" id="dropzonewidget">
-                                    <div class="dz-message" data-dz-message>
-                                        <span>
-                                            <?php if(Auth::user()->getGuard() == 'client'): ?>
-                                                <?php echo e(__('No files available')); ?>
-
-                                            <?php else: ?>
-                                                <?php echo e(__('Drop files here to upload')); ?>
-
-                                            <?php endif; ?>
-                                        </span>
-
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
                     </div>
-                <?php endif; ?>
+                </div>
             </div>
             <!-- [ sample-page ] end -->
         </div>
@@ -634,9 +651,9 @@
 <?php $__env->stopPush(); ?>
 <?php $__env->startPush('scripts'); ?>
     <!--
-                                                        <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+                                                                                                    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
 
-                                                         -->
+                                                                                                     -->
     <script src="<?php echo e(asset('assets/js/plugins/apexcharts.min.js')); ?>"></script>
     <script>
         (function() {
