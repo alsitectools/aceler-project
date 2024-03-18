@@ -269,7 +269,15 @@
 
                                 <div class="row text-center">
 
-                                    
+                                    <?php $__currentLoopData = $arrProcessPer; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $index => $value): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                        <div class="col-4">
+                                            <i class="fas fa-chart <?php echo e($arrProcessClass[$index]); ?>  h3"></i>
+                                            <h6 class="font-weight-bold">
+                                                <span><?php echo e($value); ?>%</span>
+                                            </h6>
+                                            <p class="text-muted"><?php echo e(__($arrProcessLabel[$index])); ?></p>
+                                        </div>
+                                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
 
                                 </div>
                             </div>

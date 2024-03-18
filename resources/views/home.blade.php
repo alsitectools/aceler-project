@@ -275,7 +275,7 @@
 
                                 <div class="row text-center">
 
-                                    {{-- @foreach ($arrProcessPer as $index => $value)
+                                    @foreach ($arrProcessPer as $index => $value)
                                         <div class="col-4">
                                             <i class="fas fa-chart {{ $arrProcessClass[$index] }}  h3"></i>
                                             <h6 class="font-weight-bold">
@@ -283,7 +283,7 @@
                                             </h6>
                                             <p class="text-muted">{{ __($arrProcessLabel[$index]) }}</p>
                                         </div>
-                                    @endforeach --}}
+                                    @endforeach
 
                                 </div>
                             </div>

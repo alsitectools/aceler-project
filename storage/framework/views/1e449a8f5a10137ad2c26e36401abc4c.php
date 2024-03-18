@@ -505,12 +505,9 @@
 
                 <div class="col-xxl-12">
                     <div class="row">
-
                         <div class="col-md-4">
                             <div class="card">
                                 <?php if($currentWorkspace->permission == 'Owner' || $currentWorkspace->permission == 'Member'): ?>
-                                    
-
                                     <div class="card-header">
                                         <div class="d-flex justify-content-between align-items-center">
                                             <div>
@@ -536,8 +533,6 @@
                                             </div>
                                         </div>
                                     </div>
-
-                                    
                                 <?php endif; ?>
                             </div>
                         </div>
@@ -651,9 +646,9 @@
 <?php $__env->stopPush(); ?>
 <?php $__env->startPush('scripts'); ?>
     <!--
-                                                                                                    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+                                                                                                        <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
 
-                                                                                                     -->
+                                                                                                         -->
     <script src="<?php echo e(asset('assets/js/plugins/apexcharts.min.js')); ?>"></script>
     <script>
         (function() {

@@ -15,7 +15,6 @@
 @php
     // $logo=\App\Models\Utility::get_file('users-avatar/');
     $logo = \App\Models\Utility::get_file('avatars/');
-
 @endphp
 @section('action-button')
     @auth('web')
@@ -35,14 +34,8 @@
         @endif
     @endauth
 @endsection
-@php
-    use App\Models\Project;
-    //Para mostrar todos los proyectos busco en la BBDD los proyectos que existen
-    $proyectos = Project::all()->where('workspace', '=', Auth::user()->currant_workspace);
-@endphp
 @section('content')
     <section class="section">
-
         <div class="row mb-2">
             <div class="col-xl-12 col-lg-12 col-md-12 col-12 d-flex align-items-center justify-content-end">
                 <div class="text-sm-right status-filter">
@@ -62,7 +55,7 @@
 
         <div class="filters-content">
             <div class="row grid">
-                @foreach ($proyectos as $project)
+                @foreach ($projects as $project)
                     <div class="col-xl-3 col-lg-4 col-sm-6 All {{ $project->status }}">
                         <div class="card">
                             <div class="card-header border-0 pb-0">

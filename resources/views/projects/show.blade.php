@@ -514,8 +514,6 @@
                         <div class="col-md-4">
                             <div class="card">
                                 @if ($currentWorkspace->permission == 'Owner' || $currentWorkspace->permission == 'Member')
-                                    {{-- <div class="col-md-4"> --}}
-
                                     <div class="card-header">
                                         <div class="d-flex justify-content-between align-items-center">
                                             <div>
@@ -539,8 +537,6 @@
                                             </div>
                                         </div>
                                     </div>
-
-                                    {{-- </div> --}}
                                 @endif
                             </div>
                         </div>
@@ -653,9 +649,9 @@
 @endpush
 @push('scripts')
     <!--
-                                                                                                    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+                                                                                                        <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
 
-                                                                                                     -->
+                                                                                                         -->
     <script src="{{ asset('assets/js/plugins/apexcharts.min.js') }}"></script>
     <script>
         (function() {

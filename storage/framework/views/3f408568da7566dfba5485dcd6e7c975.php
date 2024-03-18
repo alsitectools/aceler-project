@@ -16,7 +16,6 @@
 <?php
     // $logo=\App\Models\Utility::get_file('users-avatar/');
     $logo = \App\Models\Utility::get_file('avatars/');
-
 ?>
 <?php $__env->startSection('action-button'); ?>
     <?php if(auth()->guard('web')->check()): ?>
@@ -36,14 +35,8 @@
         <?php endif; ?>
     <?php endif; ?>
 <?php $__env->stopSection(); ?>
-<?php
-    use App\Models\Project;
-    //Para mostrar todos los proyectos busco en la BBDD los proyectos que existen
-    $proyectos = Project::all()->where('workspace', '=', Auth::user()->currant_workspace);
-?>
 <?php $__env->startSection('content'); ?>
     <section class="section">
-
         <div class="row mb-2">
             <div class="col-xl-12 col-lg-12 col-md-12 col-12 d-flex align-items-center justify-content-end">
                 <div class="text-sm-right status-filter">
@@ -63,7 +56,7 @@
 
         <div class="filters-content">
             <div class="row grid">
-                <?php $__currentLoopData = $proyectos; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $project): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                <?php $__currentLoopData = $projects; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $project): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                     <div class="col-xl-3 col-lg-4 col-sm-6 All <?php echo e($project->status); ?>">
                         <div class="card">
                             <div class="card-header border-0 pb-0">

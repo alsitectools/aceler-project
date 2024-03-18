@@ -1,4 +1,4 @@
-@if($project && $currentWorkspace)
+              @if($project && $currentWorkspace)
     <form class="" method="post" action="@auth('web'){{ route('tasks.store',[$currentWorkspace->slug,$project->id]) }}@elseauth{{ route('client.tasks.store',[$currentWorkspace->slug,$project->id]) }}@endauth">
         @csrf
          <div class="modal-body">
