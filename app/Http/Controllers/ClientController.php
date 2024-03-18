@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\User;
 use App\Models\Client;
 use App\Models\ClientProject;
 use App\Models\ClientWorkspace;
@@ -32,17 +33,26 @@ class ClientController extends Controller
         return redirect()->route('client.login');
     }
 
-    public function index($slug)
+    public function index($slug = '')
     {
         $this->middleware('auth');
         $currentWorkspace = Utility::getWorkspaceBySlug($slug);
-        if ($currentWorkspace->creater->id == \Auth::user()->id) {
-            $clients = Client::select(
-                [
-                    'clients.*',
-                    'client_workspaces.is_active',
-                ]
-            )->join('client_workspaces', 'client_workspaces.client_id', '=', 'clients.id')->where('client_workspaces.workspace_id', '=', $currentWorkspace->id)->get();
+
+        if ($currentWorkspace) {
+
+            $clients = User::select('users.*', 'user_workspaces.permission', 'user_workspaces.is_active')
+                ->join('user_workspaces', 'user_workspaces.user_id', '=', 'users.id');
+            $clients->where('user_workspaces.workspace_id', '=', $currentWorkspace->id);
+            $clients->where('type', 'client');
+            $clients = $clients->get();
+            // $currentWorkspace = Utility::getWorkspaceBySlug($slug);
+            // if ($currentWorkspace->creater->id == \Auth::user()->id) {
+            //     $clients = Client::select(
+            //         [
+            //             'clients.*',
+            //             'client_workspaces.is_active',
+            //         ]
+            //     )->join('client_workspaces', 'client_workspaces.client_id', '=', 'clients.id')->where('client_workspaces.workspace_id', '=', $currentWorkspace->id)->get();
 
             return view('clients.index', compact('currentWorkspace', 'clients'));
         } else {
@@ -272,16 +282,16 @@ class ClientController extends Controller
                 $client->save();
                 // ClientWorkspace::where('workspace_id', '=', $currentWorkspace->id)->delete();
                 // ClientProject::where('workspace_id', '=', $currentWorkspace->id)->delete();
-                ClientWorkspace::where('workspace_id', '=', $currentWorkspace->id)->where('client_id','=',$id)->delete();
-                ClientProject::where('workspace_id', '=', $currentWorkspace->id)->where('client_id','=',$id)->delete();
+                ClientWorkspace::where('workspace_id', '=', $currentWorkspace->id)->where('client_id', '=', $id)->delete();
+                ClientProject::where('workspace_id', '=', $currentWorkspace->id)->where('client_id', '=', $id)->delete();
                 return redirect()->back()->with('success', __('Client Deleted Successfully!'));
             } else {
                 // ClientWorkspace::where('workspace_id', '=', $currentWorkspace->id)->delete();
                 // ClientProject::where('workspace_id', '=', $currentWorkspace->id)->delete();
-                ClientWorkspace::where('workspace_id', '=', $currentWorkspace->id)->where('client_id','=',$id)->delete();
-                ClientProject::where('workspace_id', '=', $currentWorkspace->id)->where('client_id','=',$id)->delete();
-               $client->delete();
-               return redirect()->back()->with('success', __('Client Deleted Successfully!'));
+                ClientWorkspace::where('workspace_id', '=', $currentWorkspace->id)->where('client_id', '=', $id)->delete();
+                ClientProject::where('workspace_id', '=', $currentWorkspace->id)->where('client_id', '=', $id)->delete();
+                $client->delete();
+                return redirect()->back()->with('success', __('Client Deleted Successfully!'));
             }
         } else {
             return redirect()->back()->with('error', __('Something is wrong.'));

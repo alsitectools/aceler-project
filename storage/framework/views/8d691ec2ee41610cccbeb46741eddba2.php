@@ -36,13 +36,10 @@
         <?php endif; ?>
     <?php endif; ?>
 <?php $__env->stopSection(); ?>
-<?php
-    use App\Models\User;
-    $clientes = User::all()->where('type', 'client');
-?>
+
 <?php $__env->startSection('content'); ?>
     <div class="row">
-        <?php $__currentLoopData = $clientes; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $client): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+        <?php $__currentLoopData = $clients; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $client): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
             <div class="col-xl-3 col-lg-4 col-sm-6">
                 <div class="card   text-center">
                     <div class="card-header border-0 pb-0">
