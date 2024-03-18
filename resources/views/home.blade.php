@@ -314,7 +314,7 @@
     <script src="{{ asset('assets/custom/js/apexcharts.min.js') }}"></script>
 
     @if (Auth::user()->type == 'admin' /* || Auth::user()->type == 'user' || Auth::user()->type == 'client'*/)
-    @elseif(isset($currentWorkspace) && $currentWorkspace)
+        {{-- @elseif(isset($currentWorkspace) && $currentWorkspace) --}}
         <script>
             (function() {
                 var options = {

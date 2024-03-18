@@ -309,7 +309,7 @@
     <script src="<?php echo e(asset('assets/custom/js/apexcharts.min.js')); ?>"></script>
 
     <?php if(Auth::user()->type == 'admin' /* || Auth::user()->type == 'user' || Auth::user()->type == 'client'*/): ?>
-    <?php elseif(isset($currentWorkspace) && $currentWorkspace): ?>
+        
         <script>
             (function() {
                 var options = {
