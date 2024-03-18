@@ -9,6 +9,7 @@
 @section('content')
 
     <section class="section">
+
         @if (Auth::user()->type == 'admin')
             <div class="row">
                 <div class="col-12">
@@ -312,7 +313,7 @@
 @push('scripts')
     <script src="{{ asset('assets/custom/js/apexcharts.min.js') }}"></script>
 
-    @if (Auth::user()->type == 'admin')
+    @if (Auth::user()->type == 'admin' /* || Auth::user()->type == 'user' || Auth::user()->type == 'client'*/)
     @elseif(isset($currentWorkspace) && $currentWorkspace)
         <script>
             (function() {
@@ -392,7 +393,7 @@
 
 
     <script src="{{ asset('assets/js/plugins/apexcharts.min.js') }}"></script>
-    @if (Auth::user()->type == 'admin')
+    @if (Auth::user()->type == 'admin' /*|| Auth::user()->type == 'user' || Auth::user()->type == 'client' */)
         <script>
             (function() {
                 var options = {

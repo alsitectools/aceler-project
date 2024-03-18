@@ -10,6 +10,7 @@
 <?php $__env->startSection('content'); ?>
 
     <section class="section">
+
         <?php if(Auth::user()->type == 'admin'): ?>
             <div class="row">
                 <div class="col-12">
@@ -307,7 +308,7 @@
 <?php $__env->startPush('scripts'); ?>
     <script src="<?php echo e(asset('assets/custom/js/apexcharts.min.js')); ?>"></script>
 
-    <?php if(Auth::user()->type == 'admin'): ?>
+    <?php if(Auth::user()->type == 'admin' /* || Auth::user()->type == 'user' || Auth::user()->type == 'client'*/): ?>
     <?php elseif(isset($currentWorkspace) && $currentWorkspace): ?>
         <script>
             (function() {
@@ -387,7 +388,7 @@
 
 
     <script src="<?php echo e(asset('assets/js/plugins/apexcharts.min.js')); ?>"></script>
-    <?php if(Auth::user()->type == 'admin'): ?>
+    <?php if(Auth::user()->type == 'admin' /*|| Auth::user()->type == 'user' || Auth::user()->type == 'client' */): ?>
         <script>
             (function() {
                 var options = {
