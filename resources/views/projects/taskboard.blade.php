@@ -31,7 +31,7 @@
 
 
 @section('action-button')
-    @if (($currentWorkspace && $currentWorkspace->permission == 'Owner') || $currentWorkspace->permission == 'Member')
+    @if (($currentWorkspace && $currentWorkspace->permission == 'Owner') || $currentWorkspace->permission == 'Member' && Auth::user()->type == 'user')
         <a href="#" class="btn btn-sm btn-primary" data-ajax-popup="true" data-size="lg"
             data-title="{{ __('Create New Task') }}"
             data-url="{{ route($client_keyword . 'tasks.create', [$currentWorkspace->slug, $project->id]) }}"
@@ -93,7 +93,7 @@
                                                         </a></div>
                                                     <div class="card-header-right">
                                                         <div class="btn-group card-option">
-                                                            @if ($currentWorkspace->permission == 'Owner' || $currentWorkspace->permission == 'Member')
+                                                            @if ($currentWorkspace->permission == 'Owner' || $currentWorkspace->permission == 'Member' && Auth::user()->type == 'user')
                                                                 <button type="button" class="btn dropdown-toggle"
                                                                     data-bs-toggle="dropdown" aria-haspopup="true"
                                                                     aria-expanded="false">
@@ -105,7 +105,7 @@
                                                                         data-title="{{ __('View Task') }}"
                                                                         data-url="{{ route($client_keyword . 'tasks.show', [$currentWorkspace->slug, $task->project_id, $task->id]) }}">
                                                                         <i class="ti ti-eye"></i>
-                                                                        {{ __('View') }}</a>
+                                                                        {{ __('messages.View') }}</a>
                                                                     @if ($currentWorkspace->permission == 'Owner')
                                                                         <a href="#" class="dropdown-item"
                                                                             data-ajax-popup="true" data-size="lg"

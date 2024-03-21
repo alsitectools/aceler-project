@@ -45,26 +45,11 @@ $logo_tasks=\App\Models\Utility::get_file('tasks/');
         <li class="annual-billing">
             <a id="file-tab" data-toggle="tab" href="#file-data" role="tab" aria-controls="profile" aria-selected="false"> {{ __('Files') }} </a>
         </li>
-        <li class="annual-billing">
-            <a id="sub-task-tab" data-toggle="tab" href="#sub-task-data" role="tab" aria-controls="contact" aria-selected="true"> {{ __('Sub Task') }} </a>
-        </li>
     </ul>
     <div class="tab-content" id="myTabContent">
         <div class="tab-pane fade active show" id="comments-data" role="tabpanel" aria-labelledby="home-tab">
             <form method="post" id="form-comment" data-action="{{route('comment.store',[$currentWorkspace->slug,$task->project_id,$task->id,$clientID])}}">
-                @if ($currentWorkspace->is_chagpt_enable())
-                    <div class="row text-end pb-3">
-                        <div class="col">
-                            <a href="#" data-size="md" class="btn btn-primary btn-icon btn-sm" data-ajax-popup-over="true" id="grammarCheck" data-url="{{ route('grammar',['grammar']) }}"
-                            data-bs-placement="top" data-title="{{ __('Grammar check with AI') }}">
-                            <i class="ti ti-rotate"></i> <span>{{__('Grammar check with AI')}}</span></a>
-                        </div>
-                        <div class="col-auto">
-                            <a href="#" data-size="lg" data-ajax-popup-over="true" class="btn btn-sm btn-primary" data-url="{{ route('generate',['task show']) }}" data-bs-toggle="tooltip" data-bs-placement="top" title="{{ __('Generate with AI') }}" data-title="{{ __('Generate Task Massage') }}">
-                                <i class="fas fa-robot px-1"></i>{{ __('Generate with AI') }}</a>
-                        </div>
-                    </div>
-                @endif
+            
                 <textarea class="form-control form-control-light mb-2 grammer_textarea" name="comment" placeholder="{{ __('Write message')}}" id="example-textarea" rows="3" required></textarea>
                 <div class="text-end">
                     <div class="btn-group mb-2 ml-2 d-sm-inline-block">

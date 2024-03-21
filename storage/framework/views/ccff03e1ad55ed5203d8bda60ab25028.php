@@ -32,7 +32,7 @@
 
 
 <?php $__env->startSection('action-button'); ?>
-    <?php if(($currentWorkspace && $currentWorkspace->permission == 'Owner') || $currentWorkspace->permission == 'Member'): ?>
+    <?php if(($currentWorkspace && $currentWorkspace->permission == 'Owner') || $currentWorkspace->permission == 'Member' && Auth::user()->type == 'user'): ?>
         <a href="#" class="btn btn-sm btn-primary" data-ajax-popup="true" data-size="lg"
             data-title="<?php echo e(__('Create New Task')); ?>"
             data-url="<?php echo e(route($client_keyword . 'tasks.create', [$currentWorkspace->slug, $project->id])); ?>"
@@ -94,7 +94,7 @@
                                                         </a></div>
                                                     <div class="card-header-right">
                                                         <div class="btn-group card-option">
-                                                            <?php if($currentWorkspace->permission == 'Owner' || $currentWorkspace->permission == 'Member'): ?>
+                                                            <?php if($currentWorkspace->permission == 'Owner' || $currentWorkspace->permission == 'Member' && Auth::user()->type == 'user'): ?>
                                                                 <button type="button" class="btn dropdown-toggle"
                                                                     data-bs-toggle="dropdown" aria-haspopup="true"
                                                                     aria-expanded="false">
@@ -106,7 +106,7 @@
                                                                         data-title="<?php echo e(__('View Task')); ?>"
                                                                         data-url="<?php echo e(route($client_keyword . 'tasks.show', [$currentWorkspace->slug, $task->project_id, $task->id])); ?>">
                                                                         <i class="ti ti-eye"></i>
-                                                                        <?php echo e(__('View')); ?></a>
+                                                                        <?php echo e(__('messages.View')); ?></a>
                                                                     <?php if($currentWorkspace->permission == 'Owner'): ?>
                                                                         <a href="#" class="dropdown-item"
                                                                             data-ajax-popup="true" data-size="lg"

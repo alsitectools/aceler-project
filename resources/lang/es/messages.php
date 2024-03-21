@@ -122,5 +122,6 @@ return [
     'Created_date'=>'Fecha de creación: ',
     'Desired_delivery_date'=>'Fecha de entrega deseada: ',
     'Type_user'=>'Tipo de usuario',
+    'View' => 'Ver',
 
 ];

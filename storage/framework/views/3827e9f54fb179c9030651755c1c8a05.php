@@ -375,11 +375,7 @@
                                                                 $project->name .
                                                                 '</b>';
                                                             $icon = 'fa fa-clock-o';
-                                                            if ($data->priority == 'Low') {
-                                                                $icon_color = 'bg-success';
-                                                            } elseif ($data->priority == 'High') {
-                                                                $icon_color = 'bg-danger';
-                                                            }
+    
                                                         } else {
                                                             return '';
                                                         }
@@ -411,11 +407,11 @@
                                                                 $project->name .
                                                                 '</b>';
                                                             $icon = 'fa fa-bug';
-                                                            if ($data->priority == 'Low') {
-                                                                $icon_color = 'bg-success';
-                                                            } elseif ($data->priority == 'High') {
-                                                                $icon_color = 'bg-danger';
-                                                            }
+                                                         //   if ($data->priority == 'Low') {
+                                                         //       $icon_color = 'bg-success';
+                                                         //   } elseif ($data->priority == 'High') {
+                                                         //       $icon_color = 'bg-danger';
+                                                         //   }
                                                         }
                                                     ?>
                                                 <?php endif; ?>
