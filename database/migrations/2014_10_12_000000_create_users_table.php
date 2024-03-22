@@ -21,7 +21,7 @@ class CreateUsersTable extends Migration
             $table->string('password');
             $table->rememberToken();
             $table->integer('currant_workspace');
-            $table->string('lang', 5)->default('en');
+            $table->string('lang', 5)->default('es');
             // $table->string('avatar')->default(config('chatify.user_avatar.default'));
             $table->string('avatar')->nullable();
             $table->string('type')->default('user');

@@ -27,7 +27,6 @@
     // $logo = \App\Models\Utility::get_file('users-avatar/');
     $logo = \App\Models\Utility::get_file('avatars/');
     $logo_project_files = \App\Models\Utility::get_file('project_files/');
-
 @endphp
 
 @section('multiple-action-button')
@@ -95,6 +94,11 @@
                             <div class="d-block d-sm-flex align-items-center justify-content-between">
                                 <h4 class="text-white"> {{ $project->name }}</h4>
                                 <div class="d-flex  align-items-center row1">
+                                    <div class="px-3">
+                                        <span class="text-white text-sm">{{ __('[REF] MasterObras') }}:</span>
+                                        <h5 class="text-white text-nowrap">
+                                            {{ "M1234234654 "}}</h5>
+                                    </div>
                                     <div class="px-3">
                                         <span class="text-white text-sm">{{ trans('messages.Start_Date') }}:</span>
                                         <h5 class="text-white text-nowrap">

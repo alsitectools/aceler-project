@@ -398,6 +398,7 @@ class ProjectController extends Controller
 
     public function show($slug, $projectID)
     {
+
         $objUser = Auth::user();
         $currentWorkspace = Utility::getWorkspaceBySlug($slug);
         if ($objUser && $currentWorkspace) {
@@ -669,14 +670,13 @@ class ProjectController extends Controller
 
             if ($project) {
                 $stages = $statusClass = [];
-
                 $stages = Stage::where('workspace_id', '=', $currentWorkspace->id)->orderBy('order')->get();
 
-                foreach ($stages as &$status) {
+                foreach ($stages as $status) {
                     $statusClass[] = 'task-list-' . str_replace(' ', '_', $status->id);
                     $task = Task::where('project_id', '=', $projectID);
-
                     $task->orderBy('order');
+
                     $status['tasks'] = $task->where('status', '=', $status->id)->get();
                 }
 
@@ -696,9 +696,14 @@ class ProjectController extends Controller
         $currentWorkspace = Utility::getWorkspaceBySlug($slug);
 
         $project = Project::select('projects.*')
+            ->join('user_projects', 'user_projects.project_id', '=', 'projects.id')
+            // ->where('user_projects.user_id', '=', $objUser->id) comprueba que este invitado
             ->where('projects.workspace', '=', $currentWorkspace->id)
             ->where('projects.id', '=', $projectID)->first();
+
         $projects = Project::select('projects.*')
+            ->join('user_projects', 'user_projects.project_id', '=', 'projects.id')
+            ->where('user_projects.user_id', '=', $objUser->id)
             ->where('projects.workspace', '=', $currentWorkspace->id)->get();
 
         $users = User::select('users.*')->join('user_projects', 'user_projects.user_id', '=', 'users.id')->where('project_id', '=', $projectID)->get();
@@ -713,8 +718,9 @@ class ProjectController extends Controller
             [
                 'project_id' => 'required',
                 'title' => 'required',
+                // 'priority' => 'required',
                 'milestone_id' => 'required',
-                'assign_to' => 'required',
+                // 'assign_to' => 'required' ,
                 'start_date' => 'required',
                 'due_date' => 'required',
                 'description' => 'required',
@@ -742,11 +748,10 @@ class ProjectController extends Controller
             if ($stage) {
                 $post['milestone_id'] = !empty($request->milestone_id) ? $request->milestone_id : 0;
                 $post['status'] = $stage->id;
-                $post['assign_to'] = implode(",", $request->assign_to);
+                $post['assign_to'] = is_array($request->assign_to) ? implode(",", $request->assign_to) : $request->assign_to;
                 $task = Task::create($post);
 
                 if ($request->get('synchronize_type') == 'google_calender') {
-
                     $type = 'task';
                     $request1 = new Task();
                     $request1->title = $request->title;
@@ -766,7 +771,6 @@ class ProjectController extends Controller
                     ]
                 );
 
-                $settings = Utility::getPaymentSetting($user);
                 $uArr = [
                     'project_name' => $project_name->name,
                     'user_name' => Auth::user()->name,
@@ -788,15 +792,19 @@ class ProjectController extends Controller
 
                 Utility::sendNotification('task_assign', $currentWorkspace, $request->assign_to, $task);
 
-                //webhook
+                //  webhook
                 $module = 'New Task';
-                // $webhook=  Utility::webhookSetting($module);
                 $webhook =  Utility::webhookSetting($module, $user);
 
                 if ($webhook) {
                     $parameter = json_encode($task);
                     // 1 parameter is  URL , 2 parameter is data , 3 parameter is method
-                    $status = Utility::WebhookCall($webhook['url'], $parameter, $webhook['method']);
+                    // $status = Utility::WebhookCall($webhook['url'], $parameter, $webhook['method']);
+                    // if ($status == true) {
+                    //     return redirect()->back()->with('success', __('Task successfully created!'));
+                    // } else {
+                    //     return redirect()->back()->with('error', __('Webhook call failed.'));
+                    // }
                 }
 
                 if ($objUser->getGuard() == 'client') {
@@ -808,13 +816,8 @@ class ProjectController extends Controller
                         ]
                     )->with('success', __('Task Create Successfully!'));
                 } else {
-                    return redirect()->route(
-                        'projects.task.board',
-                        [
-                            $currentWorkspace->slug,
-                            $request->project_id,
-                        ]
-                    )->with('success', __('Task Create Successfully!'));
+
+                    return redirect()->route('projects.task.board', [$currentWorkspace->slug, $request->project_id,])->with('success', __('Task Create Successfully!'));
                 }
             } else {
                 return redirect()->back()->with('error', __('Please add stages first.'));
@@ -823,6 +826,7 @@ class ProjectController extends Controller
             return redirect()->back()->with('error', __("You can't Add Task!"));
         }
     }
+
     public function taskOrderUpdate(Request $request, $slug, $projectID)
     {
         $currentWorkspace = Utility::getWorkspaceBySlug($slug);
@@ -914,11 +918,20 @@ class ProjectController extends Controller
         $currentWorkspace = Utility::getWorkspaceBySlug($slug);
 
         if ($objUser->getGuard() == 'client') {
-            $project = Project::select('projects.*')->where('projects.workspace', '=', $currentWorkspace->id)->where('projects.id', '=', $projectID)->first();
-            $projects = Project::select('projects.*')->join('client_projects', 'client_projects.project_id', '=', 'projects.id')->where('client_projects.client_id', '=', $objUser->id)->where('projects.workspace', '=', $currentWorkspace->id)->get();
+            $project = Project::select('projects.*')
+                ->where('projects.workspace', '=', $currentWorkspace->id)
+                ->where('projects.id', '=', $projectID)->first();
+            $projects = Project::select('projects.*')->join('client_projects', 'client_projects.project_id', '=', 'projects.id')
+                ->where('client_projects.client_id', '=', $objUser->id)
+                ->where('projects.workspace', '=', $currentWorkspace->id)->get();
         } else {
-            $project = Project::select('projects.*')->join('user_projects', 'user_projects.project_id', '=', 'projects.id')->where('user_projects.user_id', '=', $objUser->id)->where('projects.workspace', '=', $currentWorkspace->id)->where('projects.id', '=', $projectID)->first();
-            $projects = Project::select('projects.*')->join('user_projects', 'user_projects.project_id', '=', 'projects.id')->where('user_projects.user_id', '=', $objUser->id)->where('projects.workspace', '=', $currentWorkspace->id)->get();
+            $project = Project::select('projects.*')->join('user_projects', 'user_projects.project_id', '=', 'projects.id')
+                ->where('user_projects.user_id', '=', $objUser->id)
+                ->where('projects.workspace', '=', $currentWorkspace->id)
+                ->where('projects.id', '=', $projectID)->first();
+            $projects = Project::select('projects.*')->join('user_projects', 'user_projects.project_id', '=', 'projects.id')
+                ->where('user_projects.user_id', '=', $objUser->id)
+                ->where('projects.workspace', '=', $currentWorkspace->id)->get();
         }
         $users = User::select('users.*')->join('user_projects', 'user_projects.user_id', '=', 'users.id')->where('project_id', '=', $projectID)->get();
         $task = Task::find($taskId);
@@ -946,7 +959,10 @@ class ProjectController extends Controller
         if ($objUser->getGuard() == 'client') {
             $project = Project::where('projects.workspace', '=', $currentWorkspace->id)->where('projects.id', '=', $projectID)->first();
         } else {
-            $project = Project::select('projects.*')->join('user_projects', 'user_projects.project_id', '=', 'projects.id')->where('user_projects.user_id', '=', $objUser->id)->where('projects.workspace', '=', $currentWorkspace->id)->where('projects.id', '=', $request->project_id)->first();
+            $project = Project::select('projects.*')->join('user_projects', 'user_projects.project_id', '=', 'projects.id')
+                ->where('user_projects.user_id', '=', $objUser->id)
+                ->where('projects.workspace', '=', $currentWorkspace->id)
+                ->where('projects.id', '=', $request->project_id)->first();
         }
         if ($project) {
             $post = $request->all();
@@ -2090,7 +2106,7 @@ class ProjectController extends Controller
     {
         $userObj = Auth::user();
         $currentWorkspace = Utility::getWorkspaceBySlug($slug);
-        if ($currentWorkspace->permission == 'Owner') {
+        if ($currentWorkspace->permission == 'Owner' || $currentWorkspace->permission == 'Member') {
             $tasks = Task::select(
                 [
                     'tasks.*',

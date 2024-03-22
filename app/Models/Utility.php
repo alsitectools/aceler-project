@@ -108,25 +108,32 @@ Utility
 
         if ($objUser && $objUser->currant_workspace) {
             if ($objUser->getGuard() == 'client') {
-                $rs = Workspace::select(['workspaces.*'])->join('client_workspaces', 'workspaces.id', '=', 'client_workspaces.workspace_id')->where('workspaces.id', '=', $objUser->currant_workspace)->where('client_id', '=', $objUser->id)->first();
+                $rs = Workspace::select(['workspaces.*'])->join('client_workspaces', 'workspaces.id', '=', 'client_workspaces.workspace_id')
+                ->where('workspaces.id', '=', $objUser->currant_workspace)
+                ->where('client_id', '=', $objUser->id)->first();
+
+                
             } else {
-                $rs = Workspace::select([
-                    'workspaces.*',
-                    'user_workspaces.permission',
-                ])->join('user_workspaces', 'workspaces.id', '=', 'user_workspaces.workspace_id')->where('workspaces.id', '=', $objUser->currant_workspace)->where('user_id', '=', $objUser->id)->first();
+                $rs = Workspace::select(['workspaces.*','user_workspaces.permission', ])->join('user_workspaces', 'workspaces.id', '=', 'user_workspaces.workspace_id')
+                    ->where('workspaces.id', '=', $objUser->currant_workspace)
+                    ->where('user_id', '=', $objUser->id)->first();
             }
         } elseif ($objUser && !empty($slug)) {
             if ($objUser->getGuard() == 'client') {
-                $rs = Workspace::select(['workspaces.*'])->join('client_workspaces', 'workspaces.id', '=', 'client_workspaces.workspace_id')->where('slug', '=', $slug)->where('client_id', '=', $objUser->id)->first();
+                $rs = Workspace::select(['workspaces.*'])->join('client_workspaces', 'workspaces.id', '=', 'client_workspaces.workspace_id')
+                ->where('slug', '=', $slug
+                )->where('client_id', '=', $objUser->id)->first();
             } else {
                 $rs = Workspace::select([
                     'workspaces.*',
                     'user_workspaces.permission',
-                ])->join('user_workspaces', 'workspaces.id', '=', 'user_workspaces.workspace_id')->where('slug', '=', $slug)->where('user_id', '=', $objUser->id)->first();
+                ])->join('user_workspaces', 'workspaces.id', '=', 'user_workspaces.workspace_id')
+                ->where('slug', '=', $slug)->where('user_id', '=', $objUser->id)->first();
             }
         } elseif ($objUser) {
             if ($objUser->getGuard() == 'client') {
-                $rs = Workspace::select(['workspaces.*'])->join('client_workspaces', 'workspaces.id', '=', 'client_workspaces.workspace_id')->where('client_id', '=', $objUser->id)->orderBy('workspaces.id', 'desc')->limit(1)->first();
+                $rs = Workspace::select(['workspaces.*'])->join('client_workspaces', 'workspaces.id', '=', 'client_workspaces.workspace_id')
+                ->where('client_id', '=', $objUser->id)->orderBy('workspaces.id', 'desc')->limit(1)->first();
                 $objUser->currant_workspace = $rs->id;
                 $objUser->save();
             } else {

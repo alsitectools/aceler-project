@@ -1,16 +1,12 @@
 
 
 <?php $__env->startSection('page-title'); ?>
-    <?php echo e(trans('messages.Tasks')); ?>
+    <?php echo e(__('messages.Tasks')); ?>
 
 <?php $__env->stopSection(); ?>
 <?php $__env->startSection('links'); ?>
-    <?php if(\Auth::guard('client')->check()): ?>
-        <li class="breadcrumb-item"><a href="<?php echo e(route('client.home')); ?>"><?php echo e(__('Home')); ?></a></li>
-    <?php else: ?>
-        <li class="breadcrumb-item"><a href="<?php echo e(route('home')); ?>"><?php echo e(__('Home')); ?></a></li>
-    <?php endif; ?>
-    <li class="breadcrumb-item"> <?php echo e(trans('messages.Tasks')); ?></li>
+    
+    <li class="breadcrumb-item"> <?php echo e(__('messages.Tasks')); ?></li>
 <?php $__env->stopSection(); ?>
 <?php $__env->startSection('action-button'); ?>
     <a href="#" class="btn btn-sm btn-primary filter" data-toggle="tooltip" title="<?php echo e(__('Filter')); ?>">
@@ -29,11 +25,6 @@
     </style>
 <?php $__env->stopPush(); ?>
 <?php $__env->startSection('content'); ?>
-    <!--  <div class="form-group col-auto">
-                                <select class="form-select" id="project_tasks">
-                                       <option value=""><?php echo e(__('Add Task on Timesheet')); ?></option>
-                                </select>
-                            </div>  -->
 
     <div class="row  display-none" id="show_filter">
         <div class=" col-sm-6 col-xl-2 pb-2">
@@ -44,7 +35,7 @@
                 <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
             </select>
         </div>
-        <?php if($currentWorkspace->permission == 'Owner'): ?>
+        <?php if($currentWorkspace->permission == 'Owner' || $currentWorkspace->permission == 'Member'): ?>
             <div class="col-sm-6 col-xl-2 pb-2">
                 <select class="select2 form-select" name="all_users" id="all_users">
                     <option value="" class="px-4"><?php echo e(__('All Users')); ?></option>
@@ -63,7 +54,7 @@
             </select>
         </div>
         <div class="col-sm-6 col-xl-2 pb-2">
-            <select class="select2 form-select"  name="priority" id="priority">
+            <select class="select2 form-select" name="priority" id="priority">
                 <option value="" class="px-4"><?php echo e(__('All Priority')); ?></option>
                 <option value="Low"><?php echo e(__('Low')); ?></option>
                 <option value="Medium"><?php echo e(__('Medium')); ?></option>
@@ -72,8 +63,8 @@
         </div>
         <div class="col-sm-6 col-xl-2 pb-2">
             <!--  <input type="text" class="month-btn form-control-light form-select" id="duration1" name="duration" value="<?php echo e(__('Select Date Range')); ?>">
-                            <input type="hidden" name="start_date1" id="start_date1">
-                            <input type="hidden" name="due_date1" id="end_date1"> -->
+                                <input type="hidden" name="start_date1" id="start_date1">
+                                <input type="hidden" name="due_date1" id="end_date1"> -->
 
 
             <div class='input-group'>
@@ -107,16 +98,16 @@
                         <table class="table table-centered table-hover mb-0 animated selection-datatable px-4 mt-2"
                             id="tasks-selection-datatable">
                             <thead>
-                                <th><?php echo e(trans('messages.Task')); ?></th>
+                                <th><?php echo e(__('messages.Task')); ?></th>
                                 <th><?php echo e(__('Project')); ?></th>
                                 <th><?php echo e(__('Milestone')); ?></th>
                                 <th><?php echo e(__('Due Date')); ?></th>
-                                <?php if($currentWorkspace->permission == 'Owner' || Auth::user()->getGuard() == 'client'): ?>
+                                <?php if($currentWorkspace->permission == 'Owner' || $currentWorkspace->permission == 'Member'): ?>
                                     <th><?php echo e(__('Assigned to')); ?></th>
                                 <?php endif; ?>
                                 <th><?php echo e(trans('messages.Status')); ?></th>
                                 <th><?php echo e(__('Priority')); ?></th>
-                                <?php if($currentWorkspace->permission == 'Owner'): ?>
+                                <?php if($currentWorkspace->permission == 'Owner' || $currentWorkspace->permission == 'Member'): ?>
                                     <th><?php echo e(__('Action')); ?></th>
                                 <?php endif; ?>
                             </thead>

@@ -17,7 +17,6 @@
     // $logo = \App\Models\Utility::get_file('users-avatar/');
     $logo = \App\Models\Utility::get_file('avatars/');
     $logo_project_files = \App\Models\Utility::get_file('project_files/');
-
 ?>
 
 <?php $__env->startSection('multiple-action-button'); ?>
@@ -85,6 +84,11 @@
                             <div class="d-block d-sm-flex align-items-center justify-content-between">
                                 <h4 class="text-white"> <?php echo e($project->name); ?></h4>
                                 <div class="d-flex  align-items-center row1">
+                                    <div class="px-3">
+                                        <span class="text-white text-sm"><?php echo e(__('[REF] MasterObras')); ?>:</span>
+                                        <h5 class="text-white text-nowrap">
+                                            <?php echo e("M1234234654 "); ?></h5>
+                                    </div>
                                     <div class="px-3">
                                         <span class="text-white text-sm"><?php echo e(trans('messages.Start_Date')); ?>:</span>
                                         <h5 class="text-white text-nowrap">

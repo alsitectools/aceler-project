@@ -201,27 +201,26 @@
                         </div>
                     </div>
                 <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
-                
-                <?php if(\Auth::user()->type == 'admin'): ?>
-                    <?php if(auth()->guard('web')->check()): ?>
-                        <?php if(isset($currentWorkspace) && $currentWorkspace->creater->id == Auth::id()): ?>
-                            <div class="col-xl-3 col-lg-4 col-sm-6 All add_projects">
-                                <a href="#" class="btn-addnew-project " style="padding: 90px 10px;"
-                                    data-ajax-popup="true" data-size="md" data-title="<?php echo e(__('Create New Project')); ?>"
-                                    data-url="<?php echo e(route('projects.create', $currentWorkspace->slug)); ?>">
-                                    <div class="bg-primary proj-add-icon">
-                                        <i class="ti ti-plus"></i>
-                                    </div>
-                                    <h6 class="mt-4 mb-2"><?php echo e(trans('messages.Add_Project')); ?></h6>
-                                    <p class="text-muted text-center">
-                                        <?php echo e(trans('messages.Click_here_to_add_New_Project')); ?>
 
-                                    </p>
-                                </a>
-                            </div>
-                        <?php endif; ?>
+                <?php if(auth()->guard('web')->check()): ?>
+                    <?php if(isset($currentWorkspace) && $currentWorkspace->creater->id == Auth::id()): ?>
+                        <div class="col-xl-3 col-lg-4 col-sm-6 All add_projects">
+                            <a href="#" class="btn-addnew-project " style="padding: 90px 10px;" data-ajax-popup="true"
+                                data-size="md" data-title="<?php echo e(__('Create New Project')); ?>"
+                                data-url="<?php echo e(route('projects.create', $currentWorkspace->slug)); ?>">
+                                <div class="bg-primary proj-add-icon">
+                                    <i class="ti ti-plus"></i>
+                                </div>
+                                <h6 class="mt-4 mb-2"><?php echo e(trans('messages.Add_Project')); ?></h6>
+                                <p class="text-muted text-center">
+                                    <?php echo e(trans('messages.Click_here_to_add_New_Project')); ?>
+
+                                </p>
+                            </a>
+                        </div>
                     <?php endif; ?>
                 <?php endif; ?>
+
             </div>
         </div>
         

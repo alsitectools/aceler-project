@@ -11,7 +11,7 @@ class Task extends Model
         'description',
         'start_date',
         'due_date',
-        'assign_to',
+         'assign_to',
         'project_id',
         'milestone_id',
         'status',
@@ -34,8 +34,8 @@ class Task extends Model
     }
     public function taskUsers()
     {
-       $users = explode(',',$this->assign_to);
-       return $users;
+    //    $users = explode(',',$this->assign_to);
+       return User::select('users.*')->join('projects','projects.workspace', '=', 'users.currant_workspace');
     }
 
     public function comments()

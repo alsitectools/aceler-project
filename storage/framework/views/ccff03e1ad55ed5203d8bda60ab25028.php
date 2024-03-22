@@ -5,6 +5,7 @@
     // $logo=\App\Models\Utility::get_file('users-avatar/');
     $logo = \App\Models\Utility::get_file('avatars/');
     $logo_tasks = \App\Models\Utility::get_file('tasks/');
+    use App\Models\User;
 ?>
 <?php $__env->startSection('page-title'); ?>
     <?php echo e(trans('messages.Task_Board')); ?>
@@ -12,18 +13,10 @@
 <?php $__env->stopSection(); ?>
 
 <?php $__env->startSection('links'); ?>
-    <?php if(\Auth::guard('client')->check()): ?>
-        <li class="breadcrumb-item"><a href="<?php echo e(route('client.home')); ?>"><?php echo e(__('Home')); ?></a></li>
-    <?php else: ?>
-        <li class="breadcrumb-item"><a href="<?php echo e(route('home')); ?>"><?php echo e(__('Home')); ?></a></li>
-    <?php endif; ?>
-    <?php if(\Auth::guard('client')->check()): ?>
-        <li class="breadcrumb-item"><a
-                href="<?php echo e(route('client.projects.index', $currentWorkspace->slug)); ?>"><?php echo e(__('Project')); ?></a></li>
-    <?php else: ?>
-        <li class="breadcrumb-item"><a href="<?php echo e(route('projects.index', $currentWorkspace->slug)); ?>"><?php echo e(__('Project')); ?></a>
-        </li>
-    <?php endif; ?>
+    
+    <li class="breadcrumb-item"><a href="<?php echo e(route('projects.index', $currentWorkspace->slug)); ?>"><?php echo e(__('Project')); ?></a>
+    </li>
+
     <li class="breadcrumb-item"><a
             href="<?php echo e(route($client_keyword . 'projects.show', [$currentWorkspace->slug, $project->id])); ?>"><?php echo e(__('Project Details')); ?></a>
     </li>
@@ -32,12 +25,20 @@
 
 
 <?php $__env->startSection('action-button'); ?>
+<<<<<<< Updated upstream
     <?php if(($currentWorkspace && $currentWorkspace->permission == 'Owner') || $currentWorkspace->permission == 'Member' && Auth::user()->type == 'user'): ?>
         <a href="#" class="btn btn-sm btn-primary" data-ajax-popup="true" data-size="lg"
             data-title="<?php echo e(__('Create New Task')); ?>"
             data-url="<?php echo e(route($client_keyword . 'tasks.create', [$currentWorkspace->slug, $project->id])); ?>"
             data-toggle="tooltip" title="<?php echo e(__('Add Task')); ?>"><i class="ti ti-plus"></i></a>
     <?php endif; ?>
+=======
+    <a href="#" class="btn btn-sm btn-primary" data-ajax-popup="true" data-size="lg"
+        data-title="<?php echo e(__('Create New Task')); ?>"
+        data-url="<?php echo e(route('tasks.create', [$currentWorkspace->slug, $project->id])); ?>" data-toggle="tooltip"
+        title="<?php echo e(__('Add Task')); ?>"><i class="ti ti-plus"></i></a>
+
+>>>>>>> Stashed changes
     <a href="<?php echo e(route($client_keyword . 'projects.show', [$currentWorkspace->slug, $project->id])); ?>"
         class="btn-submit btn btn-sm btn-primary mx-1" data-toggle="tooltip" title="<?php echo e(__('Back')); ?>">
         <i class=" ti ti-arrow-back-up"></i>
@@ -62,16 +63,11 @@
                                             </button>
                                         </div>
                                         <h4 class="mb-0"><?php echo e($stage->name); ?></h4>
-                                        <!--   <div class="col text-right">
-                                                        <span class="badge badge-secondary rounded-pill count"><?php echo e($stage->tasks->count()); ?></span>
-                                                    </div> -->
                                     </div>
                                     <div id="<?php echo e('task-list-' . str_replace(' ', '_', $stage->id)); ?>"
                                         data-status="<?php echo e($stage->id); ?>" class="card-body kanban-box">
                                         <?php $__currentLoopData = $stage->tasks; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $task): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                                             <div class="card" id="<?php echo e($task->id); ?>">
-                                                <!--  <img class="img-fluid card-img-top" src=""
-                                                alt=""> -->
                                                 <div class="position-absolute top-0 start-0 pt-3 ps-3">
                                                     <?php if($task->priority == 'Low'): ?>
                                                         <div class="badge bg-success p-2 px-3 rounded">
@@ -87,7 +83,7 @@
                                                 <div class="card-header border-0 pb-0 position-relative">
 
                                                     <div style="padding: 30px 2px;"> <a href="#" data-size="lg"
-                                                            data-url="<?php echo e(route($client_keyword . 'tasks.show', [$currentWorkspace->slug, $task->project_id, $task->id])); ?>"
+                                                            data-url="<?php echo e(route('tasks.show', [$currentWorkspace->slug, $task->project_id, $task->id])); ?>"
                                                             data-ajax-popup="true" data-title="<?php echo e(__('Task Detail')); ?>"
                                                             class="h6 task-title">
                                                             <h5><?php echo e($task->title); ?></h5>
@@ -95,6 +91,7 @@
                                                     <div class="card-header-right">
                                                         <div class="btn-group card-option">
                                                             <?php if($currentWorkspace->permission == 'Owner' || $currentWorkspace->permission == 'Member' && Auth::user()->type == 'user'): ?>
+<<<<<<< Updated upstream
                                                                 <button type="button" class="btn dropdown-toggle"
                                                                     data-bs-toggle="dropdown" aria-haspopup="true"
                                                                     aria-expanded="false">
@@ -120,37 +117,62 @@
                                                                             data-confirm-yes="delete-form-<?php echo e($task->id); ?>">
                                                                             <i class="ti ti-trash"></i>
                                                                             <?php echo e(__('Delete')); ?>
+=======
+                                                            <button type="button" class="btn dropdown-toggle"
+                                                                data-bs-toggle="dropdown" aria-haspopup="true"
+                                                                aria-expanded="false">
+                                                                <i class="feather icon-more-vertical"></i>
+                                                            </button>
+                                                            <div class="dropdown-menu dropdown-menu-end">
+                                                                <a href="#" class="dropdown-item"
+                                                                    data-ajax-popup="true" data-size="lg"
+                                                                    data-title="<?php echo e(__('View Task')); ?>"
+                                                                    data-url="<?php echo e(route('tasks.show', [$currentWorkspace->slug, $task->project_id, $task->id])); ?>">
+                                                                    <i class="ti ti-eye"></i>
+                                                                    <?php echo e(__('messages.View')); ?></a>
+                                                                <?php if($currentWorkspace->permission == 'Owner'): ?>
+                                                                    <a href="#" class="dropdown-item"
+                                                                        data-ajax-popup="true" data-size="lg"
+                                                                        data-title="<?php echo e(__('Edit Task')); ?>"
+                                                                        data-url="<?php echo e(route('tasks.edit', [$currentWorkspace->slug, $task->project_id, $task->id])); ?>">
+                                                                        <i class="ti ti-edit"></i>
+                                                                        <?php echo e(__('Edit')); ?></a>
+                                                                    <a href="#" class="dropdown-item bs-pass-para"
+                                                                        data-confirm="<?php echo e(__('Are You Sure?')); ?>"
+                                                                        data-text="<?php echo e(__('messages.This_action_can_not_be_undone._Do_you_want_to_continue?')); ?>"
+                                                                        data-confirm-yes="delete-form-<?php echo e($task->id); ?>">
+                                                                        <i class="ti ti-trash"></i>
+                                                                        <?php echo e(__('Delete')); ?>
+>>>>>>> Stashed changes
 
-                                                                        </a>
-                                                                        <form id="delete-form-<?php echo e($task->id); ?>"
-                                                                            action="<?php echo e(route('tasks.destroy', [$currentWorkspace->slug, $task->project_id, $task->id])); ?>"
-                                                                            method="POST" style="display: none;">
-                                                                            <?php echo csrf_field(); ?>
-                                                                            <?php echo method_field('DELETE'); ?>
-                                                                        </form>
-                                                                    <?php elseif($currentWorkspace->permission == 'Member'): ?>
-                                                                        <a href="#" class="dropdown-item"
-                                                                            data-ajax-popup="true" data-size="lg"
-                                                                            data-title="<?php echo e(__('Edit Task')); ?>"
-                                                                            data-url="<?php echo e(route($client_keyword . 'tasks.edit', [$currentWorkspace->slug, $task->project_id, $task->id])); ?>">
-                                                                            <i class="ti ti-edit"></i>
-                                                                            <?php echo e(__('Edit')); ?>
+                                                                    </a>
+                                                                    <form id="delete-form-<?php echo e($task->id); ?>"
+                                                                        action="<?php echo e(route('tasks.destroy', [$currentWorkspace->slug, $task->project_id, $task->id])); ?>"
+                                                                        method="POST" style="display: none;">
+                                                                        <?php echo csrf_field(); ?>
+                                                                        <?php echo method_field('DELETE'); ?>
+                                                                    </form>
+                                                                <?php elseif($currentWorkspace->permission == 'Member'): ?>
+                                                                    <a href="#" class="dropdown-item"
+                                                                        data-ajax-popup="true" data-size="lg"
+                                                                        data-title="<?php echo e(__('Edit Task')); ?>"
+                                                                        data-url="<?php echo e(route('tasks.edit', [$currentWorkspace->slug, $task->project_id, $task->id])); ?>">
+                                                                        <i class="ti ti-edit"></i>
+                                                                        <?php echo e(__('Edit')); ?>
 
-                                                                        </a>
+                                                                    </a>
 
-                                                                        <a href="#"
-                                                                            class="dropdown-item bs-pass-para"
-                                                                            data-confirm="<?php echo e(__('Are You Sure?')); ?>"
-                                                                            data-text="<?php echo e(__('This action can not be undone. Do you want to continue?')); ?>"
-                                                                            data-confirm-yes="delete-form-<?php echo e($task->id); ?>">
-                                                                            <i class="ti ti-trash"></i>
-                                                                            <?php echo e(__('Delete')); ?>
+                                                                    <a href="#" class="dropdown-item bs-pass-para"
+                                                                        data-confirm="<?php echo e(__('Are You Sure?')); ?>"
+                                                                        data-text="<?php echo e(__('This action can not be undone. Do you want to continue?')); ?>"
+                                                                        data-confirm-yes="delete-form-<?php echo e($task->id); ?>">
+                                                                        <i class="ti ti-trash"></i>
+                                                                        <?php echo e(__('Delete')); ?>
 
-                                                                        </a>
-                                                                        
-                                                                    <?php endif; ?>
-
-                                                                </div>
+                                                                    </a>
+                                                                    
+                                                                <?php endif; ?>
+                                                            </div>
                                                             <?php endif; ?>
                                                         </div>
                                                     </div>
@@ -300,7 +322,7 @@
             function(a) {
                 "use strict";
                 <?php if(
-                    (isset($permissions) && in_array('move task', $permissions)) ||
+                    ($currentWorkspace && $currentWorkspace->permission == 'Member') ||
                         ($currentWorkspace && $currentWorkspace->permission == 'Owner')): ?>
                     a.Dragula.init();
                 <?php endif; ?>
@@ -320,40 +342,40 @@
                         success: function(data) {
                             data = JSON.parse(data);
 
-                            if (data.user_type == 'Client') {
-                                var avatar = "avatar='" + data.client.name + "'";
-                                var html = "<li class='media border-bottom mb-3'>" +
-                                    "                    <img class='mr-3 avatar-sm rounded-circle img-thumbnail hight_img' width='60' " +
-                                    avatar + " alt='" + data.client.name + "'>" +
-                                    "                    <div class='media-body mb-2'>" +
-                                    "                    <div class='float-left'>" +
-                                    "                        <h5 class='mt-0 mb-1 form-control-label'>" +
-                                    data.client.name + "</h5>" +
-                                    "                        " + data.comment +
-                                    "                    </div>" +
-                                    "                    </div>" +
-                                    "                </li>";
-                            } else {
-                                var avatar = (data.user.avatar) ? "src='<?php echo e($logo); ?>/" + data.user
-                                    .avatar + "'" : "avatar='" + data.user.name + "'";
-                                var html = "<li class='media border-bottom mb-3'>" +
-                                    "                    <img class='mr-3 avatar-sm rounded-circle img-thumbnail hight_img ' width='60' " +
-                                    avatar + " alt='" + data.user.name + "'>" +
-                                    "                    <div class='media-body mb-2'>" +
-                                    "                    <div class='float-left'>" +
-                                    "                        <h5 class='mt-0 mb-1 form-control-label'>" +
-                                    data.user.name + "</h5>" +
-                                    "                        " + data.comment +
-                                    "                           </div>" +
-                                    "                           <div class='text-end'>" +
-                                    "                               <a href='#' class='delete-icon action-btn btn-danger  btn btn-sm d-inline-flex align-items-center delete-comment' data-url='" +
-                                    data.deleteUrl + "'>" +
-                                    "                                   <i class='ti ti-trash'></i>" +
-                                    "                               </a>" +
-                                    "                           </div>" +
-                                    "                    </div>" +
-                                    "                </li>";
-                            }
+                            //   if (data.user_type == 'Client') {
+                            //     var avatar = "avatar='" + data.client.name + "'";
+                            //    var html = "<li class='media border-bottom mb-3'>" +
+                            //      "                    <img class='mr-3 avatar-sm rounded-circle img-thumbnail hight_img' width='60' " +
+                            //    avatar + " alt='" + data.client.name + "'>" +
+                            //  "                    <div class='media-body mb-2'>" +
+                            //"                    <div class='float-left'>" +
+                            //"                        <h5 class='mt-0 mb-1 form-control-label'>" +
+                            //data.client.name + "</h5>" +
+                            //  "                        " + data.comment +
+                            // "                    </div>" +
+                            //"                    </div>" +
+                            //"                </li>";
+                            //} else {
+                            var avatar = (data.user.avatar) ? "src='<?php echo e($logo); ?>/" + data.user
+                                .avatar + "'" : "avatar='" + data.user.name + "'";
+                            var html = "<li class='media border-bottom mb-3'>" +
+                                "                    <img class='mr-3 avatar-sm rounded-circle img-thumbnail hight_img ' width='60' " +
+                                avatar + " alt='" + data.user.name + "'>" +
+                                "                    <div class='media-body mb-2'>" +
+                                "                    <div class='float-left'>" +
+                                "                        <h5 class='mt-0 mb-1 form-control-label'>" +
+                                data.user.name + "</h5>" +
+                                "                        " + data.comment +
+                                "                           </div>" +
+                                "                           <div class='text-end'>" +
+                                "                               <a href='#' class='delete-icon action-btn btn-danger  btn btn-sm d-inline-flex align-items-center delete-comment' data-url='" +
+                                data.deleteUrl + "'>" +
+                                "                                   <i class='ti ti-trash'></i>" +
+                                "                               </a>" +
+                                "                           </div>" +
+                                "                    </div>" +
+                                "                </li>";
+                            //}
 
                             $("#task-comments").prepend(html);
                             LetterAvatar.transform();
