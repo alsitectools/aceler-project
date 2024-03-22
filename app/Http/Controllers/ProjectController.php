@@ -402,12 +402,18 @@ class ProjectController extends Controller
         $objUser = Auth::user();
         $currentWorkspace = Utility::getWorkspaceBySlug($slug);
         if ($objUser && $currentWorkspace) {
-
+            //===============MODIFICADO =============//
+            // if ($objUser->getGuard() == 'client') {
+            //     $project = Project::select('projects.*')->join('client_projects', 'projects.id', '=', 'client_projects.project_id')
+            //         // ->where('client_projects.client_id', '=', $objUser->id)
+            //         ->where('projects.workspace', '=', $currentWorkspace->id)
+            //         ->where('projects.id', '=', $projectID)->with('activities.user')->first();
+            // } else {
             $project = Project::select('projects.*')->join('user_projects', 'projects.id', '=', 'user_projects.project_id')
                 // ->where('user_projects.user_id', '=', $objUser->id)
                 ->where('projects.workspace', '=', $currentWorkspace->id)
                 ->where('projects.id', '=', $projectID)->with('activities.user')->first();
-
+            // }
             if (isset($project) && $project != null) {
                 $chartData = $this->getProjectChart(
                     [
@@ -661,12 +667,25 @@ class ProjectController extends Controller
     public function taskBoard($slug, $projectID)
     {
         $currentWorkspace = Utility::getWorkspaceBySlug($slug);
+
         $objUser = Auth::user();
 
         if ($objUser && $currentWorkspace) {
+
+            // if ($objUser->getGuard() == 'client') {
+            //     $project = Project::select('projects.*')->join('user_projects', 'projects.id', '=', 'user_projects.project_id')
+            //         ->where(
+            //             'projects.workspace',
+            //             '=',
+            //             $currentWorkspace->id
+            //         )->where('projects.id', '=', $projectID)->first();
+            // } else {
             $project = Project::select('projects.*')
+                // ->join('user_projects', 'projects.id', '=', 'user_projects.project_id')
+                // ->where('user_projects.user_id', '=', $objUser->id)
                 ->where('projects.workspace', '=', $currentWorkspace->id)
                 ->where('projects.id', '=', $projectID)->first();
+            // }
 
             if ($project) {
                 $stages = $statusClass = [];
@@ -694,7 +713,10 @@ class ProjectController extends Controller
     {
         $objUser = Auth::user();
         $currentWorkspace = Utility::getWorkspaceBySlug($slug);
-
+        // if ($objUser->getGuard() == 'client') {
+        //     $project = Project::select('projects.*')->where('projects.workspace', '=', $currentWorkspace->id)->where('projects.id', '=', $projectID)->first();
+        //     $projects = Project::select('projects.*')->join('client_projects', 'client_projects.project_id', '=', 'projects.id')->where('client_projects.client_id', '=', $objUser->id)->where('projects.workspace', '=', $currentWorkspace->id)->get();
+        // } else {
         $project = Project::select('projects.*')
             ->join('user_projects', 'user_projects.project_id', '=', 'projects.id')
             // ->where('user_projects.user_id', '=', $objUser->id) comprueba que este invitado
@@ -705,6 +727,7 @@ class ProjectController extends Controller
             ->join('user_projects', 'user_projects.project_id', '=', 'projects.id')
             ->where('user_projects.user_id', '=', $objUser->id)
             ->where('projects.workspace', '=', $currentWorkspace->id)->get();
+        // }
 
         $users = User::select('users.*')->join('user_projects', 'user_projects.user_id', '=', 'users.id')->where('project_id', '=', $projectID)->get();
 
@@ -713,6 +736,16 @@ class ProjectController extends Controller
 
     public function taskStore(Request $request, $slug, $projectID)
     {
+        // $request->validate(
+        //     [
+        //         'project_id' => 'required',
+        //         'title' => 'required',
+        //         'priority' => 'required',
+        //         'assign_to' => 'required',
+        //         'start_date' => 'required',
+        //         'due_date' => 'required',
+        //     ]
+        // );
         $validator = Validator::make(
             $request->all(),
             [
@@ -734,13 +767,14 @@ class ProjectController extends Controller
         $objUser = Auth::user();
         $currentWorkspace = Utility::getWorkspaceBySlug($slug);
         $user = $currentWorkspace->id;
-
         $project_name = Project::where('id', $request->project_id)->first();
+        $setting = Utility::getAdminPaymentSettings();
 
-        $project = Project::select('projects.*')->join('user_projects', 'user_projects.project_id', '=', 'projects.id')
-            ->where('user_projects.user_id', '=', $objUser->id)
-            ->where('projects.workspace', '=', $currentWorkspace->id)
-            ->where('projects.id', '=', $request->project_id)->first();
+        if ($objUser->getGuard() == 'client') {
+            $project = Project::where('projects.workspace', '=', $currentWorkspace->id)->where('projects.id', '=', $projectID)->first();
+        } else {
+            $project = Project::select('projects.*')->join('user_projects', 'user_projects.project_id', '=', 'projects.id')->where('user_projects.user_id', '=', $objUser->id)->where('projects.workspace', '=', $currentWorkspace->id)->where('projects.id', '=', $request->project_id)->first();
+        }
 
         if ($project) {
             $post = $request->all();
@@ -755,6 +789,7 @@ class ProjectController extends Controller
                     $type = 'task';
                     $request1 = new Task();
                     $request1->title = $request->title;
+                    // dd($request1);
                     $request1->start_date = $request->start_date;
                     $request1->end_date = $request->due_date;
 
@@ -763,8 +798,8 @@ class ProjectController extends Controller
 
                 ActivityLog::create(
                     [
-                        'user_id' => Auth::user()->id,
-                        'user_type' => get_class(Auth::user()),
+                        'user_id' => \Auth::user()->id,
+                        'user_type' => get_class(\Auth::user()),
                         'project_id' => $projectID,
                         'log_type' => 'Create Task',
                         'remark' => json_encode(['title' => $task->title]),
@@ -772,9 +807,11 @@ class ProjectController extends Controller
                 );
 
                 $uArr = [
+                    // 'user_name' => $user->name,
                     'project_name' => $project_name->name,
-                    'user_name' => Auth::user()->name,
+                    'user_name' => \Auth::user()->name,
                     'task_title' => $task->title,
+                    'app_name'  => $setting['app_name'],
                     'app_url' => env('APP_URL'),
                 ];
 

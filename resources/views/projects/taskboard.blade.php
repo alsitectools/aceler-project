@@ -34,6 +34,7 @@
 
 
 @section('action-button')
+    @if (($currentWorkspace && $currentWorkspace->permission == 'Owner') || $currentWorkspace->permission == 'Member')
 <<<<<<< Updated upstream
     @if (($currentWorkspace && $currentWorkspace->permission == 'Owner') || $currentWorkspace->permission == 'Member' && Auth::user()->type == 'user')
         <a href="#" class="btn btn-sm btn-primary" data-ajax-popup="true" data-size="lg"
@@ -112,7 +113,7 @@
                                                                         data-title="{{ __('View Task') }}"
                                                                         data-url="{{ route($client_keyword . 'tasks.show', [$currentWorkspace->slug, $task->project_id, $task->id]) }}">
                                                                         <i class="ti ti-eye"></i>
-                                                                        {{ __('messages.View') }}</a>
+                                                                        {{ __('View') }}</a>
                                                                     @if ($currentWorkspace->permission == 'Owner')
                                                                         <a href="#" class="dropdown-item"
                                                                             data-ajax-popup="true" data-size="lg"

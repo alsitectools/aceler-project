@@ -375,7 +375,6 @@
                                                                 $project->name .
                                                                 '</b>';
                                                             $icon = 'fa fa-clock-o';
-<<<<<<< Updated upstream
     
                                                         } else {
                                                             return '';
@@ -410,14 +409,11 @@
                                                                 $project->name .
                                                                 '</b>';
                                                             $icon = 'fa fa-bug';
-<<<<<<< Updated upstream
                                                          //   if ($data->priority == 'Low') {
                                                          //       $icon_color = 'bg-success';
                                                          //   } elseif ($data->priority == 'High') {
                                                          //       $icon_color = 'bg-danger';
                                                          //   }
-=======
->>>>>>> Stashed changes
                                                         }
                                                     ?>
                                                 <?php endif; ?>
