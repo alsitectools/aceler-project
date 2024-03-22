@@ -8,7 +8,6 @@
         <div class="p-2">
             <div class="form-control-label">{{ __('Description') }}:</div>
 
-<<<<<<< Updated upstream
     <div class="p-2">
         <div class="form-control-label">{{ __('Description')}}:</div>
 
@@ -73,15 +72,6 @@
                     <div class="btn-group mb-2 ml-2 d-sm-inline-block">
                         <button type="button" class="btn btn btn-primary">{{ __('Submit')}}</button>
                     </div>
-=======
-            <p class="text-muted mb-4">
-                {{ $task->description }}
-            </p>
-            <div class="row mb-4">
-                <div class="col-md-3">
-                    <div class="form-control-label">{{ __('Create Date') }}</div>
-                    <p class="mt-1">{{ \App\Models\Utility::dateFormat($task->created_at) }}</p>
->>>>>>> Stashed changes
                 </div>
                 <div class="col-md-3">
                     <div class="form-control-label">{{ __('Due Date') }}</div>

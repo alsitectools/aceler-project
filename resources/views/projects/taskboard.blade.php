@@ -35,20 +35,12 @@
 
 @section('action-button')
     @if (($currentWorkspace && $currentWorkspace->permission == 'Owner') || $currentWorkspace->permission == 'Member')
-<<<<<<< Updated upstream
     @if (($currentWorkspace && $currentWorkspace->permission == 'Owner') || $currentWorkspace->permission == 'Member' && Auth::user()->type == 'user')
         <a href="#" class="btn btn-sm btn-primary" data-ajax-popup="true" data-size="lg"
             data-title="{{ __('Create New Task') }}"
             data-url="{{ route($client_keyword . 'tasks.create', [$currentWorkspace->slug, $project->id]) }}"
             data-toggle="tooltip" title="{{ __('Add Task') }}"><i class="ti ti-plus"></i></a>
     @endif
-=======
-    <a href="#" class="btn btn-sm btn-primary" data-ajax-popup="true" data-size="lg"
-        data-title="{{ __('Create New Task') }}"
-        data-url="{{ route('tasks.create', [$currentWorkspace->slug, $project->id]) }}" data-toggle="tooltip"
-        title="{{ __('Add Task') }}"><i class="ti ti-plus"></i></a>
-
->>>>>>> Stashed changes
     <a href="{{ route($client_keyword . 'projects.show', [$currentWorkspace->slug, $project->id]) }}"
         class="btn-submit btn btn-sm btn-primary mx-1" data-toggle="tooltip" title="{{ __('Back') }}">
         <i class=" ti ti-arrow-back-up"></i>
@@ -101,7 +93,6 @@
                                                     <div class="card-header-right">
                                                         <div class="btn-group card-option">
                                                             @if ($currentWorkspace->permission == 'Owner' || $currentWorkspace->permission == 'Member' && Auth::user()->type == 'user')
-<<<<<<< Updated upstream
                                                                 <button type="button" class="btn dropdown-toggle"
                                                                     data-bs-toggle="dropdown" aria-haspopup="true"
                                                                     aria-expanded="false">
@@ -142,48 +133,6 @@
                                                                             <i class="ti ti-edit"></i>
                                                                             {{ __('Edit') }}
                                                                         </a>
-=======
-                                                            <button type="button" class="btn dropdown-toggle"
-                                                                data-bs-toggle="dropdown" aria-haspopup="true"
-                                                                aria-expanded="false">
-                                                                <i class="feather icon-more-vertical"></i>
-                                                            </button>
-                                                            <div class="dropdown-menu dropdown-menu-end">
-                                                                <a href="#" class="dropdown-item"
-                                                                    data-ajax-popup="true" data-size="lg"
-                                                                    data-title="{{ __('View Task') }}"
-                                                                    data-url="{{ route('tasks.show', [$currentWorkspace->slug, $task->project_id, $task->id]) }}">
-                                                                    <i class="ti ti-eye"></i>
-                                                                    {{ __('messages.View') }}</a>
-                                                                @if ($currentWorkspace->permission == 'Owner')
-                                                                    <a href="#" class="dropdown-item"
-                                                                        data-ajax-popup="true" data-size="lg"
-                                                                        data-title="{{ __('Edit Task') }}"
-                                                                        data-url="{{ route('tasks.edit', [$currentWorkspace->slug, $task->project_id, $task->id]) }}">
-                                                                        <i class="ti ti-edit"></i>
-                                                                        {{ __('Edit') }}</a>
-                                                                    <a href="#" class="dropdown-item bs-pass-para"
-                                                                        data-confirm="{{ __('Are You Sure?') }}"
-                                                                        data-text="{{ __('messages.This_action_can_not_be_undone._Do_you_want_to_continue?') }}"
-                                                                        data-confirm-yes="delete-form-{{ $task->id }}">
-                                                                        <i class="ti ti-trash"></i>
-                                                                        {{ __('Delete') }}
-                                                                    </a>
-                                                                    <form id="delete-form-{{ $task->id }}"
-                                                                        action="{{ route('tasks.destroy', [$currentWorkspace->slug, $task->project_id, $task->id]) }}"
-                                                                        method="POST" style="display: none;">
-                                                                        @csrf
-                                                                        @method('DELETE')
-                                                                    </form>
-                                                                @elseif($currentWorkspace->permission == 'Member')
-                                                                    <a href="#" class="dropdown-item"
-                                                                        data-ajax-popup="true" data-size="lg"
-                                                                        data-title="{{ __('Edit Task') }}"
-                                                                        data-url="{{ route('tasks.edit', [$currentWorkspace->slug, $task->project_id, $task->id]) }}">
-                                                                        <i class="ti ti-edit"></i>
-                                                                        {{ __('Edit') }}
-                                                                    </a>
->>>>>>> Stashed changes
 
                                                                     <a href="#" class="dropdown-item bs-pass-para"
                                                                         data-confirm="{{ __('Are You Sure?') }}"
