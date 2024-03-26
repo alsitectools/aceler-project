@@ -53,7 +53,6 @@
                         <div class="row">
                             <div class="col-lg-6">
                                 <div class="form-group">
-
                                     <img @if ($user->avatar) src="{{ asset($logo . $user->avatar) }}" @else avatar="{{ $user->name }}" @endif
                                         id="myAvatar" alt="user-image" class="rounded-circle img-thumbnail img_hight w-25">
                                     {{-- @if ($user->avatar != '')
@@ -70,8 +69,8 @@
                                         <label for="avatar">
                                             <div class=" bg-primary"> <i
                                                     class="ti ti-upload px-1"></i>{{ __('Choose file here') }}</div>
-                                            <input type="file" class="form-control choose_file_custom" name="avatar" id="avatar"
-                                                data-filename="avatar-logo">
+                                            <input type="file" class="form-control choose_file_custom" name="avatar"
+                                                id="avatar" data-filename="avatar-logo">
                                         </label>
                                         <!--     <p class="avatar-logo"></p> -->
                                         @error('avatar')
@@ -116,8 +115,7 @@
                                     <button type="submit" class="btn-submit btn btn-primary col-sm-auto col-12">
                                         {{ __('Save Changes') }}
                                     </button>
-                                    <!--   <button class="btn btn-danger">Delete Account<i
-                                                    class="ti ti-chevron-right ms-1 ms-sm-2"></i></button> -->
+
                     </form>
                     @if ($user->avatar != '')
                         <form
@@ -129,17 +127,17 @@
                     @endif
                     @auth('web')
                         <div class="text-end">
-                            <a href="#" class="btn btn-danger delete_btn bs-pass-para "
+                            {{-- <a href="#" class="btn btn-danger delete_btn bs-pass-para "
                                 data-confirm="{{ __('Are You Sure?') }}"
                                 data-text="{{ __('This action can not be undone. Do you want to continue?') }}"
                                 data-confirm-yes="delete-my-account">
                                 {{ __('Delete') }} {{ __('My Account') }}
-                            </a>
+                            </a> 
 
-                            <form action="{{ route('delete.my.account') }}" method="post" id="delete-my-account">
+                         <form action="{{ route('delete.my.account') }}" method="post" id="delete-my-account">
                                 @csrf
                                 @method('DELETE')
-                            </form>
+                            </form> --}}
                         </div>
                     @endauth
                 </div>
@@ -162,8 +160,8 @@
                         <div class="col-lg-12">
                             <div class="form-group">
                                 <label for="old_password" class="form-label">{{ __('Old Password') }}</label>
-                                <input class="form-control @error('old_password') is-invalid @enderror"
-                                    name="old_password" type="password" id="old_password" autocomplete="old_password"
+                                <input class="form-control @error('old_password') is-invalid @enderror" name="old_password"
+                                    type="password" id="old_password" autocomplete="old_password"
                                     placeholder="{{ __('Enter Old Password') }}">
                                 @error('old_password')
                                     <span class="invalid-feedback" role="alert">
@@ -190,7 +188,7 @@
                                 <label for="password_confirmation"
                                     class="form-label">{{ __('Confirm New Password') }}</label>
                                 <input class="form-control @error('password_confirmation') is-invalid @enderror"
-                                    name="password_confirmation" type="password"    ` autocomplete="new-password"
+                                    name="password_confirmation" type="password" ` autocomplete="new-password"
                                     id="password_confirmation" placeholder="{{ __('Enter confirm password') }}">
                             </div>
                         </div>

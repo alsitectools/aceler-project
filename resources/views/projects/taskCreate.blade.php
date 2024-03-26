@@ -1,22 +1,22 @@
-              @if($project && $currentWorkspace)
-    <form class="" method="post" action="@auth('web'){{ route('tasks.store',[$currentWorkspace->slug,$project->id]) }}@elseauth{{ route('client.tasks.store',[$currentWorkspace->slug,$project->id]) }}@endauth">
 @php
     $user = Auth::user();
 @endphp
 @if ($project && $currentWorkspace)
     <form class="" method="post"
-        action="@auth('web'){{ route('tasks.store', [$currentWorkspace->slug, $project->id]) }}@elseauth{{ route('client.tasks.store', [$currentWorkspace->slug, $project->id]) }}@endauth">
+        action="@auth('web'){{ route('tasks.store', [$currentWorkspace->slug, $project->id]) }}@endauth">
         @csrf
         <div class="modal-body">
             <div class="row">
                 <div class="form-group col-md-8">
                     <label class="col-form-label">{{ __('Project') }}</label>
-                    <select class="form-control form-control-light select2" name="project_id" required>
-
+                    <select class="form-control form-control-light select2" name="project_id" style="display:none" required>
                         <option value="{{ $project->id }}">{{ $project->name }}</option>
-
+                    </select>
+                    <select class="form-control form-control-light select2" disabled>
+                        <option>{{ $project->name }}</option>
                     </select>
                 </div>
+
                 <div class="form-group col-md-4">
                     <label class="col-form-label">{{ __('Milestone') }}</label>
                     <select class="form-control form-control-light select2" name="milestone_id" id="task-milestone"
@@ -27,6 +27,7 @@
                         @endforeach
                     </select>
                 </div>
+
                 <div class="form-group col-md-12">
                     <label class="col-form-label">{{ __('Title') }}</label>
                     <input type="text" class="form-control form-control-light" id="task-title"
@@ -42,7 +43,6 @@
                 </div>
 
                 <div class="col-md-12">
-
                     <label class="col-form-label">{{ __('Duration') }}</label>
                     <div class='input-group form-group'>
                         <input type='text' class=" form-control form-control-light" id="duration" name="duration"
@@ -57,6 +57,7 @@
                     <label class="col-form-label">{{ __('Description') }}</label>
                     <textarea class="form-control form-control-light" id="task-description" rows="3" name="description"></textarea>
                 </div>
+
                 @if ($currentWorkspace->is_googlecalendar_enabled == 'on')
                     <div class="form-group col-md-6">
                         {{ Form::label('synchronize_type', __('Synchroniz in Google Calendar ?'), ['class' => 'col-form-label']) }}
@@ -148,7 +149,7 @@
             cb(start, end);
         });
         $(document).on('change', "select[name=project_id]", function() {
-            $.get('@auth('web'){{ route('home') }}@elseauth{{ route('client.home') }}@endauth' +
+            $.get('@auth('web'){{ route('home') }}@endauth' +
                 '/userProjectJson/' + $(this).val(),
                 function(data) {
                     $('select[name=assign_to]').html('');
@@ -158,7 +159,7 @@
                             ' - ' + d.email + '</option>');
                     });
                 });
-            $.get('@auth('web'){{ route('home') }}@elseauth{{ route('client.home') }}@endauth' +
+            $.get('@auth('web'){{ route('home') }}@endauth' +
                 '/projectMilestoneJson/' + $(this).val(),
                 function(data) {
                     $('select[name=milestone_id]').html(
@@ -187,7 +188,8 @@
                             </p>
                             <div class="mt-3">
                                 <a class="btn-return-home badge-blue" href="{{ route('home') }}"><i
-                                        class="fas fa-reply"></i> {{ __('Return Home') }}</a>
+                                        class="fas fa-reply"></i>
+                                    {{ __('Return Home') }}</a>
                             </div>
                         </div>
                     </div>

@@ -41,6 +41,7 @@
 
 @endphp
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}" dir="{{ $SITE_RTL == 'on' ? 'rtl' : '' }}">
+
 <head>
 
     <meta charset="utf-8">
@@ -93,6 +94,7 @@
     {{-- <link rel="stylesheet" href="{{asset('assets/css/landing.css')}}" /> --}}
     <link rel="stylesheet" href="{{ asset('assets/css/plugins/animate.min.css') }}" />
     <link rel="stylesheet" href="{{ asset('assets/custom/libs/summernote/summernote-bs4.css') }}">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
 
     <!-- vendor css -->
     @stack('css-page')
@@ -215,7 +217,7 @@
             },
             lengthMenu: "{{ trans('messages.Show') }} _MENU_ {{ __('entries') }}",
             zeroRecords: "{{ __('No data available in table.') }}",
-            info: "{{ trans('messages.Showing') }} _START_ {{ __('to') }} _END_ {{ __('of') }} _TOTAL_ {{ __('entries') }}",
+            info: "{{ trans('messages.Showing') }} _START_ {{ trans('messages.to') }} _END_ {{ __('of') }} _TOTAL_ {{ __('entries') }}",
             infoEmpty: "{{ trans('messages.Showing_0_to_0_of_0_entries') }}",
             infoFiltered: "{{ __('(filtered from _MAX_ total entries)') }}",
             search: "{{ __('Search:') }}",

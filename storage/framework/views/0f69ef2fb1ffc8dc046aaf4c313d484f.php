@@ -61,24 +61,12 @@
         </div>
         <div class="navbar-content">
             <ul class="dash-navbar">
-
-
-                <li class="dash-item dash-hasmenu">
-                    <a href="<?php echo e(route('client.home')); ?>"
-                        class="dash-link <?php echo e(Request::route()->getName() == 'home' || Request::route()->getName() == null || Request::route()->getName() == 'client.home' ? ' active' : ''); ?>">
-                        <span class="dash-micon"><i class="ti ti-home"></i></span>
-                        <span class="dash-mtext"><?php echo e(__('Dashboard')); ?></span>
-                    </a>
-                </li>
-
-
                 <li class="dash-item dash-hasmenu">
                     <a href="<?php echo e(route('home')); ?>"
                         class="dash-link  <?php echo e(Request::route()->getName() == 'home' || Request::route()->getName() == null || Request::route()->getName() == 'client.home' ? ' active' : ''); ?>">
 
                         <span class="dash-micon"><i class="ti ti-user"></i></span>
                         <span class="dash-mtext"><?php echo e(trans('messages.Company')); ?></span>
-                        
 
                     </a>
                 </li>

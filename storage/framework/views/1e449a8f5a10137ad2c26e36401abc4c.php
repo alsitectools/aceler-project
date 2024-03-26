@@ -87,7 +87,7 @@
                                     <div class="px-3">
                                         <span class="text-white text-sm"><?php echo e(__('[REF] MasterObras')); ?>:</span>
                                         <h5 class="text-white text-nowrap">
-                                            <?php echo e("M1234234654 "); ?></h5>
+                                            <?php echo e('M1234234654 '); ?></h5>
                                     </div>
                                     <div class="px-3">
                                         <span class="text-white text-sm"><?php echo e(trans('messages.Start_Date')); ?>:</span>
@@ -240,7 +240,7 @@
                                 </div>
                                 <div class="card-body">
                                     <div class="table-responsive">
-                                        <table id="" class="table table-bordered px-2">
+                                        <table id="" class="table table-bordered">
                                             <thead>
                                                 <tr>
                                                     <th><?php echo e(__('Name')); ?></th>
@@ -650,9 +650,9 @@
 <?php $__env->stopPush(); ?>
 <?php $__env->startPush('scripts'); ?>
     <!--
-                                                                                                        <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+                                                                                                            <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
 
-                                                                                                         -->
+                                                                                                             -->
     <script src="<?php echo e(asset('assets/js/plugins/apexcharts.min.js')); ?>"></script>
     <script>
         (function() {

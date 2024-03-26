@@ -63,25 +63,12 @@ Establece el formato de como se ve el menu si seres admin o user/client --}}
         </div>
         <div class="navbar-content">
             <ul class="dash-navbar">
-
-
-                <li class="dash-item dash-hasmenu">
-                    <a href="{{ route('client.home') }}"
-                        class="dash-link {{ Request::route()->getName() == 'home' || Request::route()->getName() == null || Request::route()->getName() == 'client.home' ? ' active' : '' }}">
-                        <span class="dash-micon"><i class="ti ti-home"></i></span>
-                        <span class="dash-mtext">{{ __('Dashboard') }}</span>
-                    </a>
-                </li>
-
-
                 <li class="dash-item dash-hasmenu">
                     <a href="{{ route('home') }}"
                         class="dash-link  {{ Request::route()->getName() == 'home' || Request::route()->getName() == null || Request::route()->getName() == 'client.home' ? ' active' : '' }}">
 
                         <span class="dash-micon"><i class="ti ti-user"></i></span>
                         <span class="dash-mtext">{{ trans('messages.Company') }}</span>
-                        {{-- <span class="dash-micon"><i class="ti ti-home"></i></span>
-                        <span class="dash-mtext">{{ __('Dashboard') }}</span> --}}
 
                     </a>
                 </li>

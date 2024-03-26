@@ -378,8 +378,6 @@
     
                                                         } else {
                                                             return '';
-=======
->>>>>>> Stashed changes
                                                         }
                                                     ?>
                                                 <?php elseif($notification->type == 'project_assign'): ?>

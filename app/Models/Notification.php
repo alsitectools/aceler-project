@@ -52,11 +52,6 @@ class Notification extends Model
                 $link = route('projects.task.board',[$this->workspace_id,$data->project_id]);
                 $text = __('New task assign')." <b>".$data->title."</b> ".__('in project')." <b>".$project->name."</b>";
                 $icon = "fa fa-clock-o";
-                if($data->priority == 'Low'){
-                    $icon_color = 'bg-success';
-                }elseif($data->priority == 'High'){
-                    $icon_color = 'bg-danger';
-                }
             }else{
                 return '';
             }
@@ -72,11 +67,6 @@ class Notification extends Model
                 $link = route('projects.bug.report',[$this->workspace_id,$data->project_id]);
                 $text = __('New bug assign')." <b>".$data->title."</b> ".__('in project')." <b>".$project->name."</b>";
                 $icon = "fa fa-bug";
-                if($data->priority == 'Low'){
-                    $icon_color = 'bg-success';
-                }elseif($data->priority == 'High'){
-                    $icon_color = 'bg-danger';
-                }
             }
         }
 

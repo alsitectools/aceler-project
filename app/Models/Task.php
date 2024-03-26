@@ -8,17 +8,16 @@ class Task extends Model
 {
     protected $fillable = [
         'title',
-        'priority',
         'description',
         'start_date',
         'due_date',
-         'assign_to',
+        'assign_to',
         'project_id',
         'milestone_id',
         'status',
         'order',
     ];
-      // use for invoice details
+    // use for invoice details
     public function invoiceproject()
     {
         return $this->belongsTo('App\Models\Project', 'project_id', 'id');
@@ -31,12 +30,12 @@ class Task extends Model
 
     public function users()
     {
-        return User::whereIn('id',explode(',',$this->assign_to))->get();
+        return User::whereIn('id', explode(',', $this->assign_to))->get();
     }
     public function taskUsers()
     {
-    //    $users = explode(',',$this->assign_to);
-       return User::select('users.*')->join('projects','projects.workspace', '=', 'users.currant_workspace');
+        //User::select('users.*')->join('projects','projects.workspace', '=', 'users.currant_workspace');    
+        return User::whereIn('id', explode(',', $this->assign_to))->get();
     }
 
     public function comments()
@@ -57,6 +56,10 @@ class Task extends Model
     public function sub_tasks()
     {
         return $this->hasMany('App\Models\SubTask', 'task_id', 'id')->orderBy('id', 'DESC');
+    }
+    public function daysLeft()
+    {
+        return  round((strtotime($this->due_date) - strtotime(date('Y-m-d'))) /   24 / 60 / 60,);
     }
 
     public function taskCompleteSubTaskCount()
@@ -79,5 +82,4 @@ class Task extends Model
 
         return (int) number_format($percentageNumber);
     }
-
 }

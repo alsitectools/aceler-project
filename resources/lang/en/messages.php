@@ -120,9 +120,6 @@ return [
     'Created_Date'=> 'Created date: ',
     'Desired_delivery_date' =>'Desired delivery date: ',
     'Type_user'=> 'Type user',
-<<<<<<< Updated upstream
     'View'=> 'View',
-=======
-    'View' =>'View',
->>>>>>> Stashed changes
+    'to'=> 'to',
 ];

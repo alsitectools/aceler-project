@@ -16,10 +16,6 @@ class CreateTasksTable extends Migration
         Schema::create('tasks', function (Blueprint $table) {
             $table->bigIncrements('id');
             $table->string('title');
-<<<<<<< Updated upstream
-=======
-            // $table->string('priority');
->>>>>>> Stashed changes
             $table->text('description');
             $table->dateTime('start_date')->nullable();
             $table->dateTime('due_date')->nullable();
