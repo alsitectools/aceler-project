@@ -8,11 +8,9 @@
     use App\Models\User;
     use App\Models\Milestone;
 
-    //  $daysleft = round((((strtotime($project->end_date) - strtotime(date('Y-m-d'))) / 24) / 60) / 60);
-
 @endphp
 @section('page-title')
-    {{ trans('messages.Task_Board') }}
+    {{ __('messages.Task_Board') }}
 @endsection
 
 @section('links')
@@ -22,7 +20,7 @@
     <li class="breadcrumb-item"><a
             href="{{ route('projects.show', [$currentWorkspace->slug, $project->id]) }}">{{ __('Project Details') }}</a>
     </li>
-    <li class="breadcrumb-item">{{ trans('messages.Task_Board') }}</li>
+    <li class="breadcrumb-item">{{ __('messages.Task_Board') }}</li>
 @endsection
 
 
@@ -100,7 +98,7 @@
                                                                             {{ __('Edit') }}</a>
                                                                         <a href="#" class="dropdown-item bs-pass-para"
                                                                             data-confirm="{{ __('Are You Sure?') }}"
-                                                                            data-text="{{ __('This action can not be undone. Do you want to continue?') }}"
+                                                                            data-text="{{ __('messages.This_action_can_not_be_undone._Do_you_want_to_continue?') }}"
                                                                             data-confirm-yes="delete-form-{{ $task->id }}">
                                                                             <i class="ti ti-trash"></i>
                                                                             {{ __('Delete') }}
@@ -136,12 +134,7 @@
                                                 <div class="card-body pt-0">
                                                     <div class="row" style="text-align: center;">
                                                         <div>
-                                                            <a href="#" data-size="lg"
-                                                                data-url="{{ route('tasks.show', [$currentWorkspace->slug, $task->project_id, $task->id]) }}"
-                                                                data-ajax-popup="true" data-title="{{ __('Task Detail') }}"
-                                                                class="h6 task-title">
-                                                                <h6> {{ 'Encargo: ' . $task->milestone()->title }}</h6>
-                                                            </a>
+                                                            <h6> {{ $task->milestone()->title }}</h6>
                                                         </div>
 
                                                         <div class="d-flex justify-content-first" style="margin: 10px;">
@@ -281,7 +274,7 @@
             function(a) {
                 "use strict";
                 @if (
-                    ($currentWorkspace && $currentWorkspace->permission == 'Member') ||
+                    ($currentWorkspace && $currentWorkspace->permission == 'Member' && Auth::user()->type == 'user') ||
                         ($currentWorkspace && $currentWorkspace->permission == 'Owner'))
                     a.Dragula.init();
                 @endif

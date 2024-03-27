@@ -380,7 +380,7 @@
 
 
     <script src="{{ asset('assets/js/plugins/apexcharts.min.js') }}"></script>
-    @if (Auth::user()->type == 'admin' || Auth::user()->type == 'user'/* || Auth::user()->type == 'client' */)
+    @if (Auth::user()->type == 'admin'/* || Auth::user()->type == 'user' || Auth::user()->type == 'client' */)
         <script>
             (function() {
                 var options = {

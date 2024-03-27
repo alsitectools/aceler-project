@@ -33,9 +33,9 @@ class Task extends Model
         return User::whereIn('id', explode(',', $this->assign_to))->get();
     }
     public function taskUsers()
-    {
-        //User::select('users.*')->join('projects','projects.workspace', '=', 'users.currant_workspace');    
-        return User::whereIn('id', explode(',', $this->assign_to))->get();
+    {  
+        // User::select('users.*')->join('projects','projects.workspace', '=', 'users.currant_workspace');  
+        return User::whereIn('id', explode(',', $this->assign_to))->get(); 
     }
 
     public function comments()

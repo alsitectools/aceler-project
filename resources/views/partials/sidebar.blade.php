@@ -1,6 +1,3 @@
-{{-- //////////////////////////////////////////////////// 
-Establece el formato de como se ve el menu si seres admin o user/client --}}
-
 @php
     $logo = \App\Models\Utility::get_file('logo/');
     if (Auth::user()->type == 'admin') {

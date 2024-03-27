@@ -54,19 +54,6 @@
             </select>
         </div>
         <div class="col-sm-6 col-xl-2 pb-2">
-            <select class="select2 form-select" name="priority" id="priority">
-                <option value="" class="px-4"><?php echo e(__('All Priority')); ?></option>
-                <option value="Low"><?php echo e(__('Low')); ?></option>
-                <option value="Medium"><?php echo e(__('Medium')); ?></option>
-                <option value="High"><?php echo e(__('High')); ?></option>
-            </select>
-        </div>
-        <div class="col-sm-6 col-xl-2 pb-2">
-            <!--  <input type="text" class="month-btn form-control-light form-select" id="duration1" name="duration" value="<?php echo e(__('Select Date Range')); ?>">
-                                <input type="hidden" name="start_date1" id="start_date1">
-                                <input type="hidden" name="due_date1" id="end_date1"> -->
-
-
             <div class='input-group'>
                 <input type='text' class=" form-control pc-daterangepicker-2" id="duration1" name="duration"
                     value="<?php echo e(__('Select Date Range')); ?>" placeholder="Select date range" />
@@ -78,7 +65,6 @@
         </div>
         <div class="col-sm-6 col-xl-1 pb-2">
             <select class="select2 form-select" name="due_date_order" id="due_date_order">
-                
                 <option value="due_date,asc " class="px-4"><?php echo e(__('Oldest')); ?></option>
                 <option value="due_date,desc" class="px-4"><?php echo e(__('Newest')); ?></option>
             </select>
@@ -106,7 +92,6 @@
                                     <th><?php echo e(__('Assigned to')); ?></th>
                                 <?php endif; ?>
                                 <th><?php echo e(trans('messages.Status')); ?></th>
-                                <th><?php echo e(__('Priority')); ?></th>
                                 <?php if($currentWorkspace->permission == 'Owner' || $currentWorkspace->permission == 'Member'): ?>
                                     <th><?php echo e(__('Action')); ?></th>
                                 <?php endif; ?>
@@ -221,7 +206,7 @@
                 var data = {
                     project: $("#project").val(),
                     assign_to: $("#all_users").val(),
-                    priority: $("#priority").val(),
+                    //priority: $("#priority").val(),
                     due_date_order: $("#due_date_order").val(),
                     status: $("#status").val(),
                     start_date: myArray[0],

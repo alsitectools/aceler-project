@@ -1,5 +1,3 @@
-
-
 <?php
     $logo = \App\Models\Utility::get_file('logo/');
     if (Auth::user()->type == 'admin') {

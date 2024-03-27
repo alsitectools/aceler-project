@@ -122,4 +122,6 @@ return [
     'Type_user'=> 'Type user',
     'View'=> 'View',
     'to'=> 'to',
+    'Write_message' => 'Write message',
+    'Submit'=> 'Submit',
 ];

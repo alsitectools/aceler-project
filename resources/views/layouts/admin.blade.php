@@ -40,7 +40,8 @@
     }
 
 @endphp
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" dir="{{ $SITE_RTL == 'on' ? 'rtl' : '' }}">
+{{-- <html lang="{{ str_replace('_', '-', app()->getLocale()) }}" dir="{{ $SITE_RTL == 'on' ? 'rtl' : '' }}"> --}}
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 
 <head>
 

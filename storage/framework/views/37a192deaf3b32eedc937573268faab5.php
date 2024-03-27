@@ -385,7 +385,7 @@
 
 
     <script src="<?php echo e(asset('assets/js/plugins/apexcharts.min.js')); ?>"></script>
-    <?php if(Auth::user()->type == 'admin' || Auth::user()->type == 'user'/* || Auth::user()->type == 'client' */): ?>
+    <?php if(Auth::user()->type == 'admin'/* || Auth::user()->type == 'user' || Auth::user()->type == 'client' */): ?>
         <script>
             (function() {
                 var options = {

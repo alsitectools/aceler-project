@@ -19,7 +19,7 @@ class CreateTasksTable extends Migration
             $table->text('description');
             $table->dateTime('start_date')->nullable();
             $table->dateTime('due_date')->nullable();
-            $table->string('assign_to');
+            $table->string('assign_to')->nullable();
             $table->integer('project_id');
             $table->string('milestone_id')->nullable();
             $table->string('status')->default('todo');

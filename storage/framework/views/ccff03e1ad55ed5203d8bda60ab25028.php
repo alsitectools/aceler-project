@@ -8,11 +8,9 @@
     use App\Models\User;
     use App\Models\Milestone;
 
-    //  $daysleft = round((((strtotime($project->end_date) - strtotime(date('Y-m-d'))) / 24) / 60) / 60);
-
 ?>
 <?php $__env->startSection('page-title'); ?>
-    <?php echo e(trans('messages.Task_Board')); ?>
+    <?php echo e(__('messages.Task_Board')); ?>
 
 <?php $__env->stopSection(); ?>
 
@@ -23,7 +21,7 @@
     <li class="breadcrumb-item"><a
             href="<?php echo e(route('projects.show', [$currentWorkspace->slug, $project->id])); ?>"><?php echo e(__('Project Details')); ?></a>
     </li>
-    <li class="breadcrumb-item"><?php echo e(trans('messages.Task_Board')); ?></li>
+    <li class="breadcrumb-item"><?php echo e(__('messages.Task_Board')); ?></li>
 <?php $__env->stopSection(); ?>
 
 
@@ -102,7 +100,7 @@
                                                                             <?php echo e(__('Edit')); ?></a>
                                                                         <a href="#" class="dropdown-item bs-pass-para"
                                                                             data-confirm="<?php echo e(__('Are You Sure?')); ?>"
-                                                                            data-text="<?php echo e(__('This action can not be undone. Do you want to continue?')); ?>"
+                                                                            data-text="<?php echo e(__('messages.This_action_can_not_be_undone._Do_you_want_to_continue?')); ?>"
                                                                             data-confirm-yes="delete-form-<?php echo e($task->id); ?>">
                                                                             <i class="ti ti-trash"></i>
                                                                             <?php echo e(__('Delete')); ?>
@@ -141,12 +139,7 @@
                                                 <div class="card-body pt-0">
                                                     <div class="row" style="text-align: center;">
                                                         <div>
-                                                            <a href="#" data-size="lg"
-                                                                data-url="<?php echo e(route('tasks.show', [$currentWorkspace->slug, $task->project_id, $task->id])); ?>"
-                                                                data-ajax-popup="true" data-title="<?php echo e(__('Task Detail')); ?>"
-                                                                class="h6 task-title">
-                                                                <h6> <?php echo e('Encargo: ' . $task->milestone()->title); ?></h6>
-                                                            </a>
+                                                            <h6> <?php echo e($task->milestone()->title); ?></h6>
                                                         </div>
 
                                                         <div class="d-flex justify-content-first" style="margin: 10px;">
@@ -289,7 +282,7 @@
             function(a) {
                 "use strict";
                 <?php if(
-                    ($currentWorkspace && $currentWorkspace->permission == 'Member') ||
+                    ($currentWorkspace && $currentWorkspace->permission == 'Member' && Auth::user()->type == 'user') ||
                         ($currentWorkspace && $currentWorkspace->permission == 'Owner')): ?>
                     a.Dragula.init();
                 <?php endif; ?>

@@ -124,5 +124,7 @@ return [
     'Type_user'=>'Tipo de usuario',
     'View'=> 'Ver',
     'to'=>'a',
-
+    'Write_message'=>'Escribir comentario',
+    'Submit'=> 'Enviar',
+    
 ];
