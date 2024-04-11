@@ -5,39 +5,35 @@
     // $logo=\App\Models\Utility::get_file('users-avatar/');
     $logo = \App\Models\Utility::get_file('avatars/');
     $logo_tasks = \App\Models\Utility::get_file('tasks/');
+    use App\Models\User;
+    use App\Models\Milestone;
+
 @endphp
 @section('page-title')
-    {{ trans('messages.Task_Board') }}
+    {{ __('messages.Task_Board') }}
 @endsection
 
 @section('links')
-    @if (\Auth::guard('client')->check())
-        <li class="breadcrumb-item"><a href="{{ route('client.home') }}">{{ __('Home') }}</a></li>
-    @else
-        <li class="breadcrumb-item"><a href="{{ route('home') }}">{{ __('Home') }}</a></li>
-    @endif
-    @if (\Auth::guard('client')->check())
-        <li class="breadcrumb-item"><a
-                href="{{ route('client.projects.index', $currentWorkspace->slug) }}">{{ __('Project') }}</a></li>
-    @else
-        <li class="breadcrumb-item"><a href="{{ route('projects.index', $currentWorkspace->slug) }}">{{ __('Project') }}</a>
-        </li>
-    @endif
-    <li class="breadcrumb-item"><a
-            href="{{ route($client_keyword . 'projects.show', [$currentWorkspace->slug, $project->id]) }}">{{ __('Project Details') }}</a>
+    <li class="breadcrumb-item"><a href="{{ route('projects.index', $currentWorkspace->slug) }}">{{ __('Project') }}</a>
     </li>
-    <li class="breadcrumb-item">{{ trans('messages.Task_Board') }}</li>
+
+    <li class="breadcrumb-item"><a
+            href="{{ route('projects.show', [$currentWorkspace->slug, $project->id]) }}">{{ __('Project Details') }}</a>
+    </li>
+    <li class="breadcrumb-item">{{ __('messages.Task_Board') }}</li>
 @endsection
 
 
 @section('action-button')
-    @if (($currentWorkspace && $currentWorkspace->permission == 'Owner') || $currentWorkspace->permission == 'Member')
+    @if (
+        ($currentWorkspace && $currentWorkspace->permission == 'Owner') ||
+            ($currentWorkspace->permission == 'Member' && Auth::user()->type == 'user'))
         <a href="#" class="btn btn-sm btn-primary" data-ajax-popup="true" data-size="lg"
             data-title="{{ __('Create New Task') }}"
-            data-url="{{ route($client_keyword . 'tasks.create', [$currentWorkspace->slug, $project->id]) }}"
-            data-toggle="tooltip" title="{{ __('Add Task') }}"><i class="ti ti-plus"></i></a>
+            data-url="{{ route('tasks.create', [$currentWorkspace->slug, $project->id]) }}" data-toggle="tooltip"
+            title="{{ __('Add Task') }}"><i class="ti ti-plus"></i></a>
     @endif
-    <a href="{{ route($client_keyword . 'projects.show', [$currentWorkspace->slug, $project->id]) }}"
+    <a href="{{ route('projects.show', [$currentWorkspace->slug, $project->id]) }}"
         class="btn-submit btn btn-sm btn-primary mx-1" data-toggle="tooltip" title="{{ __('Back') }}">
         <i class=" ti ti-arrow-back-up"></i>
     </a>
@@ -61,36 +57,21 @@
                                             </button>
                                         </div>
                                         <h4 class="mb-0">{{ $stage->name }}</h4>
-                                        <!--   <div class="col text-right">
-                                                        <span class="badge badge-secondary rounded-pill count">{{ $stage->tasks->count() }}</span>
-                                                    </div> -->
                                     </div>
                                     <div id="{{ 'task-list-' . str_replace(' ', '_', $stage->id) }}"
                                         data-status="{{ $stage->id }}" class="card-body kanban-box">
                                         @foreach ($stage->tasks as $task)
                                             <div class="card" id="{{ $task->id }}">
-                                                <!--  <img class="img-fluid card-img-top" src=""
-                                                alt=""> -->
-                                                <div class="position-absolute top-0 start-0 pt-3 ps-3">
-                                                    @if ($task->priority == 'Low')
-                                                        <div class="badge bg-success p-2 px-3 rounded">
-                                                            {{ $task->priority }}</div>
-                                                    @elseif($task->priority == 'Medium')
-                                                        <div class="badge bg-warning p-2 px-3 rounded">
-                                                            {{ $task->priority }}</div>
-                                                    @elseif($task->priority == 'High')
-                                                        <div class="badge bg-danger p-2 px-3 rounded">
-                                                            {{ $task->priority }}</div>
-                                                    @endif
-                                                </div>
                                                 <div class="card-header border-0 pb-0 position-relative">
+                                                    <div style="text-align: center;">
+                                                        <div class="pt-6 ps-6" style="height: 50px; width:250px;">
+                                                            <div class="rounded"
+                                                                style="padding: 2%; margin-bottom: 4%; margin-top: 4%; background-color: #AA182C; color: white;">
+                                                                {{ $task->title }}
+                                                            </div>
+                                                        </div>
+                                                    </div>
 
-                                                    <div style="padding: 30px 2px;"> <a href="#" data-size="lg"
-                                                            data-url="{{ route($client_keyword . 'tasks.show', [$currentWorkspace->slug, $task->project_id, $task->id]) }}"
-                                                            data-ajax-popup="true" data-title="{{ __('Task Detail') }}"
-                                                            class="h6 task-title">
-                                                            <h5>{{ $task->title }}</h5>
-                                                        </a></div>
                                                     <div class="card-header-right">
                                                         <div class="btn-group card-option">
                                                             @if ($currentWorkspace->permission == 'Owner' || $currentWorkspace->permission == 'Member')
@@ -103,10 +84,12 @@
                                                                     <a href="#" class="dropdown-item"
                                                                         data-ajax-popup="true" data-size="lg"
                                                                         data-title="{{ __('View Task') }}"
-                                                                        data-url="{{ route($client_keyword . 'tasks.show', [$currentWorkspace->slug, $task->project_id, $task->id]) }}">
+                                                                        data-url="{{ route('tasks.show', [$currentWorkspace->slug, $task->project_id, $task->id]) }}">
                                                                         <i class="ti ti-eye"></i>
-                                                                        {{ __('View') }}</a>
-                                                                    @if ($currentWorkspace->permission == 'Owner')
+                                                                        {{ __('messages.View') }}</a>
+                                                                    @if (
+                                                                        $currentWorkspace->permission == 'Owner' ||
+                                                                            ($currentWorkspace->permission == 'Member' && Auth::user()->type == 'user'))
                                                                         <a href="#" class="dropdown-item"
                                                                             data-ajax-popup="true" data-size="lg"
                                                                             data-title="{{ __('Edit Task') }}"
@@ -115,7 +98,7 @@
                                                                             {{ __('Edit') }}</a>
                                                                         <a href="#" class="dropdown-item bs-pass-para"
                                                                             data-confirm="{{ __('Are You Sure?') }}"
-                                                                            data-text="{{ __('This action can not be undone. Do you want to continue?') }}"
+                                                                            data-text="{{ __('messages.This_action_can_not_be_undone._Do_you_want_to_continue?') }}"
                                                                             data-confirm-yes="delete-form-{{ $task->id }}">
                                                                             <i class="ti ti-trash"></i>
                                                                             {{ __('Delete') }}
@@ -126,7 +109,7 @@
                                                                             @csrf
                                                                             @method('DELETE')
                                                                         </form>
-                                                                    @elseif($currentWorkspace->permission == 'Member')
+                                                                    @elseif($currentWorkspace->permission == 'Member' && Auth::user()->type == 'user')
                                                                         <a href="#" class="dropdown-item"
                                                                             data-ajax-popup="true" data-size="lg"
                                                                             data-title="{{ __('Edit Task') }}"
@@ -135,71 +118,66 @@
                                                                             {{ __('Edit') }}
                                                                         </a>
 
-                                                                        <a href="#"
-                                                                            class="dropdown-item bs-pass-para"
+                                                                        <a href="#" class="dropdown-item bs-pass-para"
                                                                             data-confirm="{{ __('Are You Sure?') }}"
                                                                             data-text="{{ __('This action can not be undone. Do you want to continue?') }}"
                                                                             data-confirm-yes="delete-form-{{ $task->id }}">
                                                                             <i class="ti ti-trash"></i>
                                                                             {{ __('Delete') }}
                                                                         </a>
-                                                                        {{-- <form id="delete-form-{{ $task->id }}"
-                                                                                action="{{ route($client_keyword . 'tasks.destroy', [$currentWorkspace->slug, $task->project_id, $task->id]) }}"
-                                                                                method="POST" style="display: none;">
-                                                                                @csrf
-                                                                                @method('DELETE')
-                                                                            </form> --}}
                                                                     @endif
-
                                                                 </div>
                                                             @endif
                                                         </div>
                                                     </div>
                                                 </div>
                                                 <div class="card-body pt-0">
-                                                    <div class="row">
-                                                        <div class="col">
-                                                            <div class="action-item">
-                                                                {{ \App\Models\Utility::dateFormat($task->start_date) }}
+                                                    <div class="row" style="text-align: center;">
+                                                        <div>
+                                                            <h6> {{ $task->milestone()->title }}</h6>
+                                                        </div>
+
+                                                        <div class="d-flex justify-content-first" style="margin: 10px;">
+                                                            <div class="action-item" style=" font-size: 15px">
+                                                                {{ 'Fecha prevista: ' . \App\Models\Utility::dateFormat($task->due_date) }}
+
+                                                                @if ($task->daysleft() <= 1)
+                                                                    <i
+                                                                        class="fa-solid fa-circle-exclamation "style="color: red;"></i>
+                                                                @elseif($task->daysleft() < 3)
+                                                                    <i
+                                                                        class="fa-solid fa-circle-exclamation "style="color:  #ffc107;">
+                                                                    </i>
+                                                                @endif
+
                                                             </div>
                                                         </div>
-                                                        <div class="col text-right">
-                                                            <div class="action-item">
-                                                                {{ \App\Models\Utility::dateFormat($task->due_date) }}
-                                                            </div>
-                                                        </div>
+
                                                     </div>
-                                                    <div class="d-flex align-items-center justify-content-between">
-                                                        <ul class="list-inline mb-0">
-
-                                                            <li class="list-inline-item d-inline-flex align-items-center">
-                                                                <i class="f-16 text-primary ti ti-brand-telegram"></i>
-                                                                {{ $task->taskCompleteSubTaskCount() }}/{{ $task->taskTotalSubTaskCount() }}
-                                                            </li>
-
-                                                        </ul>
-
-                                                        <div class="user-group">
-                                                            @if ($users = $task->users())
-                                                                @foreach ($users as $key => $user)
-                                                                    @if ($key < 3)
-                                                                        <a href="#" class="img_group">
-                                                                            <img alt="image" data-toggle="tooltip"
-                                                                                data-original-title="{{ $user->name }}"
-                                                                                @if ($user->avatar) src="{{ asset($logo . $user->avatar) }}" @else avatar="{{ $user->name }}" @endif>
-                                                                        </a>
-                                                                    @endif
-                                                                @endforeach
-                                                                @if (count($users) > 3)
+                                                    <div class="user-group d-flex justify-content-end"
+                                                        style="margin: 10px;">
+                                                        @if ($users = $task->taskUsers())
+                                                            @foreach ($users as $key => $user)
+                                                                @if ($key < 3)
                                                                     <a href="#" class="img_group">
                                                                         <img alt="image" data-toggle="tooltip"
-                                                                            data-original-title="{{ count($users) - 3 }} {{ __('more') }}"
-                                                                            avatar="+ {{ count($users) - 3 }}">
+                                                                            data-placement="top"
+                                                                            title="{{ $user->name }}"
+                                                                            @if ($user->avatar) src="{{ asset($logo . $user->avatar) }}" @else avatar="{{ $user->name }}" @endif>
                                                                     </a>
                                                                 @endif
+                                                            @endforeach
+                                                            @if ($users->count() > 3)
+                                                                <a href="#" class="img_group">
+                                                                    <img alt="image" data-toggle="tooltip"
+                                                                        data-original-title="{{ $users->count() - 3 }} {{ __('more') }}"
+                                                                        avatar="+ {{ $users->count() - 3 }}">
+                                                                </a>
                                                             @endif
-                                                        </div>
+                                                        @endif
+
                                                     </div>
+
                                                 </div>
                                             </div>
                                         @endforeach
@@ -296,7 +274,7 @@
             function(a) {
                 "use strict";
                 @if (
-                    (isset($permissions) && in_array('move task', $permissions)) ||
+                    ($currentWorkspace && $currentWorkspace->permission == 'Member' && Auth::user()->type == 'user') ||
                         ($currentWorkspace && $currentWorkspace->permission == 'Owner'))
                     a.Dragula.init();
                 @endif
@@ -316,40 +294,25 @@
                         success: function(data) {
                             data = JSON.parse(data);
 
-                            if (data.user_type == 'Client') {
-                                var avatar = "avatar='" + data.client.name + "'";
-                                var html = "<li class='media border-bottom mb-3'>" +
-                                    "                    <img class='mr-3 avatar-sm rounded-circle img-thumbnail hight_img' width='60' " +
-                                    avatar + " alt='" + data.client.name + "'>" +
-                                    "                    <div class='media-body mb-2'>" +
-                                    "                    <div class='float-left'>" +
-                                    "                        <h5 class='mt-0 mb-1 form-control-label'>" +
-                                    data.client.name + "</h5>" +
-                                    "                        " + data.comment +
-                                    "                    </div>" +
-                                    "                    </div>" +
-                                    "                </li>";
-                            } else {
-                                var avatar = (data.user.avatar) ? "src='{{ $logo }}/" + data.user
-                                    .avatar + "'" : "avatar='" + data.user.name + "'";
-                                var html = "<li class='media border-bottom mb-3'>" +
-                                    "                    <img class='mr-3 avatar-sm rounded-circle img-thumbnail hight_img ' width='60' " +
-                                    avatar + " alt='" + data.user.name + "'>" +
-                                    "                    <div class='media-body mb-2'>" +
-                                    "                    <div class='float-left'>" +
-                                    "                        <h5 class='mt-0 mb-1 form-control-label'>" +
-                                    data.user.name + "</h5>" +
-                                    "                        " + data.comment +
-                                    "                           </div>" +
-                                    "                           <div class='text-end'>" +
-                                    "                               <a href='#' class='delete-icon action-btn btn-danger  btn btn-sm d-inline-flex align-items-center delete-comment' data-url='" +
-                                    data.deleteUrl + "'>" +
-                                    "                                   <i class='ti ti-trash'></i>" +
-                                    "                               </a>" +
-                                    "                           </div>" +
-                                    "                    </div>" +
-                                    "                </li>";
-                            }
+                            var avatar = (data.user.avatar) ? "src='{{ $logo }}/" + data.user
+                                .avatar + "'" : "avatar='" + data.user.name + "'";
+                            var html = "<li class='media border-bottom mb-3'>" +
+                                "                    <img class='mr-3 avatar-sm rounded-circle img-thumbnail hight_img ' width='60' " +
+                                avatar + " alt='" + data.user.name + "'>" +
+                                "                    <div class='media-body mb-2'>" +
+                                "                    <div class='float-left'>" +
+                                "                        <h5 class='mt-0 mb-1 form-control-label'>" +
+                                data.user.name + "</h5>" +
+                                "                        " + data.comment +
+                                "                           </div>" +
+                                "                           <div class='text-end'>" +
+                                "                               <a href='#' class='delete-icon action-btn btn-danger  btn btn-sm d-inline-flex align-items-center delete-comment' data-url='" +
+                                data.deleteUrl + "'>" +
+                                "                                   <i class='ti ti-trash'></i>" +
+                                "                               </a>" +
+                                "                           </div>" +
+                                "                    </div>" +
+                                "                </li>";
 
                             $("#task-comments").prepend(html);
                             LetterAvatar.transform();

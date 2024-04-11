@@ -234,13 +234,16 @@ class UserController extends Controller
         }
         return response()->json('error');
     }
+
     public function index($slug = '')
     {
         $currentWorkspace = Utility::getWorkspaceBySlug($slug);
 
         if ($currentWorkspace) {
-            $users = User::select('users.*', 'user_workspaces.permission', 'user_workspaces.is_active')->join('user_workspaces', 'user_workspaces.user_id', '=', 'users.id');
+            $users = User::select('users.*', 'user_workspaces.permission', 'user_workspaces.is_active')
+                ->join('user_workspaces', 'user_workspaces.user_id', '=', 'users.id');
             $users->where('user_workspaces.workspace_id', '=', $currentWorkspace->id);
+            $users->where('type', 'user')/*->orWhere('type', 'admin') */;
             $users = $users->get();
         } else {
             $users = User::select('users.*')->join('user_workspaces', 'user_workspaces.user_id', '=', 'users.id')

@@ -40,7 +40,9 @@
     }
 
 ?>
-<html lang="<?php echo e(str_replace('_', '-', app()->getLocale())); ?>" dir="<?php echo e($SITE_RTL == 'on' ? 'rtl' : ''); ?>">
+
+<html lang="<?php echo e(str_replace('_', '-', app()->getLocale())); ?>">
+
 <head>
 
     <meta charset="utf-8">
@@ -94,6 +96,7 @@
     
     <link rel="stylesheet" href="<?php echo e(asset('assets/css/plugins/animate.min.css')); ?>" />
     <link rel="stylesheet" href="<?php echo e(asset('assets/custom/libs/summernote/summernote-bs4.css')); ?>">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
 
     <!-- vendor css -->
     <?php echo $__env->yieldPushContent('css-page'); ?>
@@ -216,7 +219,7 @@
             },
             lengthMenu: "<?php echo e(trans('messages.Show')); ?> _MENU_ <?php echo e(__('entries')); ?>",
             zeroRecords: "<?php echo e(__('No data available in table.')); ?>",
-            info: "<?php echo e(trans('messages.Showing')); ?> _START_ <?php echo e(__('to')); ?> _END_ <?php echo e(__('of')); ?> _TOTAL_ <?php echo e(__('entries')); ?>",
+            info: "<?php echo e(trans('messages.Showing')); ?> _START_ <?php echo e(trans('messages.to')); ?> _END_ <?php echo e(__('of')); ?> _TOTAL_ <?php echo e(__('entries')); ?>",
             infoEmpty: "<?php echo e(trans('messages.Showing_0_to_0_of_0_entries')); ?>",
             infoFiltered: "<?php echo e(__('(filtered from _MAX_ total entries)')); ?>",
             search: "<?php echo e(__('Search:')); ?>",

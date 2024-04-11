@@ -3,12 +3,10 @@
 @section('page-title')
     {{ __('Dashboard') }}
 @endsection
-@php
-    $client_keyword = Auth::user()->getGuard() == 'client' ? 'client.' : '';
-@endphp
 @section('content')
 
     <section class="section">
+
         @if (Auth::user()->type == 'admin')
             <div class="row">
                 <div class="col-12">
@@ -171,7 +169,7 @@
                                             <tr>
                                                 <td>
                                                     <div class="font-14 my-1"><a
-                                                            href="{{ route($client_keyword . 'projects.task.board', [$currentWorkspace->slug, $task->project_id]) }}"
+                                                            href="{{ route('projects.task.board', [$currentWorkspace->slug, $task->project_id]) }}"
                                                             class="text-body">{{ $task->title }}</a></div>
 
                                                     @php($due_date = '<span class="text-' . ($task->due_date < date('Y-m-d') ? 'danger' : 'success') . '">' . date('Y-m-d', strtotime($task->due_date)) . '</span> ')
@@ -195,17 +193,7 @@
                                                     <div class="font-14 mt-1 font-weight-normal">
                                                         {{ $task->project->name }}</div>
                                                 </td>
-                                                {{-- @if ($currentWorkspace->permission == 'Owner' || Auth::user()->getGuard() == 'client')
-                                                    <td>
-                                                        <span class="text-muted font-13">{{ __('Assigned to') }}</span>
-                                                        <div class="font-14 mt-1 font-weight-normal">
-                                                            @foreach ($task->users() as $user)
-                                                                <span
-                                                                    class="badge p-2 px-2 rounded bg-secondary">{{ isset($user->name) ? $user->name : '-' }}</span>
-                                                            @endforeach
-                                                        </div>
-                                                    </td>
-                                                @endif --}}
+
                                                 @if ($currentWorkspace->permission == 'Owner' || Auth::user()->getGuard() == 'client')
                                                     <td>
                                                         <span class="text-muted font-13">{{ __('Assigned to') }}</span>
@@ -275,7 +263,7 @@
 
                                 <div class="row text-center">
 
-                                    {{-- @foreach ($arrProcessPer as $index => $value)
+                                    @foreach ($arrProcessPer as $index => $value)
                                         <div class="col-4">
                                             <i class="fas fa-chart {{ $arrProcessClass[$index] }}  h3"></i>
                                             <h6 class="font-weight-bold">
@@ -283,7 +271,7 @@
                                             </h6>
                                             <p class="text-muted">{{ __($arrProcessLabel[$index]) }}</p>
                                         </div>
-                                    @endforeach --}}
+                                    @endforeach
 
                                 </div>
                             </div>
@@ -312,7 +300,7 @@
 @push('scripts')
     <script src="{{ asset('assets/custom/js/apexcharts.min.js') }}"></script>
 
-    @if (Auth::user()->type == 'admin')
+    @if (Auth::user()->type == 'admin'  || Auth::user()->type == 'user' || Auth::user()->type == 'client'/**/)
     @elseif(isset($currentWorkspace) && $currentWorkspace)
         <script>
             (function() {
@@ -392,7 +380,7 @@
 
 
     <script src="{{ asset('assets/js/plugins/apexcharts.min.js') }}"></script>
-    @if (Auth::user()->type == 'admin')
+    @if (Auth::user()->type == 'admin'/* || Auth::user()->type == 'user' || Auth::user()->type == 'client' */)
         <script>
             (function() {
                 var options = {

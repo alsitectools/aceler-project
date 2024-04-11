@@ -1,15 +1,15 @@
 @extends('layouts.admin')
 
 @section('page-title')
-    {{ trans('messages.Tasks') }}
+    {{ __('messages.Tasks') }}
 @endsection
 @section('links')
-    @if (\Auth::guard('client')->check())
+    {{-- @if (\Auth::guard('client')->check())
         <li class="breadcrumb-item"><a href="{{ route('client.home') }}">{{ __('Home') }}</a></li>
     @else
         <li class="breadcrumb-item"><a href="{{ route('home') }}">{{ __('Home') }}</a></li>
-    @endif
-    <li class="breadcrumb-item"> {{ trans('messages.Tasks') }}</li>
+    @endif --}}
+    <li class="breadcrumb-item"> {{ __('messages.Tasks') }}</li>
 @endsection
 @section('action-button')
     <a href="#" class="btn btn-sm btn-primary filter" data-toggle="tooltip" title="{{ __('Filter') }}">
@@ -28,11 +28,6 @@
     </style>
 @endpush
 @section('content')
-    <!--  <div class="form-group col-auto">
-                                <select class="form-select" id="project_tasks">
-                                       <option value="">{{ __('Add Task on Timesheet') }}</option>
-                                </select>
-                            </div>  -->
 
     <div class="row  display-none" id="show_filter">
         <div class=" col-sm-6 col-xl-2 pb-2">
@@ -43,7 +38,7 @@
                 @endforeach
             </select>
         </div>
-        @if ($currentWorkspace->permission == 'Owner')
+        @if ($currentWorkspace->permission == 'Owner' || $currentWorkspace->permission == 'Member')
             <div class="col-sm-6 col-xl-2 pb-2">
                 <select class="select2 form-select" name="all_users" id="all_users">
                     <option value="" class="px-4">{{ __('All Users') }}</option>
@@ -62,19 +57,6 @@
             </select>
         </div>
         <div class="col-sm-6 col-xl-2 pb-2">
-            <select class="select2 form-select"  name="priority" id="priority">
-                <option value="" class="px-4">{{ __('All Priority') }}</option>
-                <option value="Low">{{ __('Low') }}</option>
-                <option value="Medium">{{ __('Medium') }}</option>
-                <option value="High">{{ __('High') }}</option>
-            </select>
-        </div>
-        <div class="col-sm-6 col-xl-2 pb-2">
-            <!--  <input type="text" class="month-btn form-control-light form-select" id="duration1" name="duration" value="{{ __('Select Date Range') }}">
-                            <input type="hidden" name="start_date1" id="start_date1">
-                            <input type="hidden" name="due_date1" id="end_date1"> -->
-
-
             <div class='input-group'>
                 <input type='text' class=" form-control pc-daterangepicker-2" id="duration1" name="duration"
                     value="{{ __('Select Date Range') }}" placeholder="Select date range" />
@@ -86,10 +68,6 @@
         </div>
         <div class="col-sm-6 col-xl-1 pb-2">
             <select class="select2 form-select" name="due_date_order" id="due_date_order">
-                {{-- <option value="">{{__('By Due Date')}}</option>
-                            <option value="expired">{{ __('Expired')}}</option>
-                            <option value="today">{{ __('Today')}}</option>
-                            <option value="in_7_days">{{ __('In 7 days')}}</option> --}}
                 <option value="due_date,asc " class="px-4">{{ __('Oldest') }}</option>
                 <option value="due_date,desc" class="px-4">{{ __('Newest') }}</option>
             </select>
@@ -109,16 +87,15 @@
                         <table class="table table-centered table-hover mb-0 animated selection-datatable px-4 mt-2"
                             id="tasks-selection-datatable">
                             <thead>
-                                <th>{{ trans('messages.Task') }}</th>
+                                <th>{{ __('messages.Task') }}</th>
                                 <th>{{ __('Project') }}</th>
                                 <th>{{ __('Milestone') }}</th>
                                 <th>{{ __('Due Date') }}</th>
-                                @if ($currentWorkspace->permission == 'Owner' || Auth::user()->getGuard() == 'client')
+                                @if ($currentWorkspace->permission == 'Owner' || $currentWorkspace->permission == 'Member')
                                     <th>{{ __('Assigned to') }}</th>
                                 @endif
                                 <th>{{ trans('messages.Status') }}</th>
-                                <th>{{ __('Priority') }}</th>
-                                @if ($currentWorkspace->permission == 'Owner')
+                                @if ($currentWorkspace->permission == 'Owner' || $currentWorkspace->permission == 'Member')
                                     <th>{{ __('Action') }}</th>
                                 @endif
                             </thead>
@@ -232,7 +209,7 @@
                 var data = {
                     project: $("#project").val(),
                     assign_to: $("#all_users").val(),
-                    priority: $("#priority").val(),
+                    //priority: $("#priority").val(),
                     due_date_order: $("#due_date_order").val(),
                     status: $("#status").val(),
                     start_date: myArray[0],

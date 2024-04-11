@@ -17,7 +17,6 @@
     // $logo = \App\Models\Utility::get_file('users-avatar/');
     $logo = \App\Models\Utility::get_file('avatars/');
     $logo_project_files = \App\Models\Utility::get_file('project_files/');
-
 ?>
 
 <?php $__env->startSection('multiple-action-button'); ?>
@@ -85,6 +84,11 @@
                             <div class="d-block d-sm-flex align-items-center justify-content-between">
                                 <h4 class="text-white"> <?php echo e($project->name); ?></h4>
                                 <div class="d-flex  align-items-center row1">
+                                    <div class="px-3">
+                                        <span class="text-white text-sm"><?php echo e(__('[REF] MasterObras')); ?>:</span>
+                                        <h5 class="text-white text-nowrap">
+                                            <?php echo e('M1234234654 '); ?></h5>
+                                    </div>
                                     <div class="px-3">
                                         <span class="text-white text-sm"><?php echo e(trans('messages.Start_Date')); ?>:</span>
                                         <h5 class="text-white text-nowrap">
@@ -236,7 +240,7 @@
                                 </div>
                                 <div class="card-body">
                                     <div class="table-responsive">
-                                        <table id="" class="table table-bordered px-2">
+                                        <table id="" class="table table-bordered">
                                             <thead>
                                                 <tr>
                                                     <th><?php echo e(__('Name')); ?></th>
@@ -505,12 +509,9 @@
 
                 <div class="col-xxl-12">
                     <div class="row">
-
                         <div class="col-md-4">
                             <div class="card">
                                 <?php if($currentWorkspace->permission == 'Owner' || $currentWorkspace->permission == 'Member'): ?>
-                                    
-
                                     <div class="card-header">
                                         <div class="d-flex justify-content-between align-items-center">
                                             <div>
@@ -536,8 +537,6 @@
                                             </div>
                                         </div>
                                     </div>
-
-                                    
                                 <?php endif; ?>
                             </div>
                         </div>
@@ -651,9 +650,9 @@
 <?php $__env->stopPush(); ?>
 <?php $__env->startPush('scripts'); ?>
     <!--
-                                                                                                    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+                                                                                                            <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
 
-                                                                                                     -->
+                                                                                                             -->
     <script src="<?php echo e(asset('assets/js/plugins/apexcharts.min.js')); ?>"></script>
     <script>
         (function() {

@@ -37,15 +37,11 @@
         @endif
     @endauth
 @endsection
-@php
-    use App\Models\User;
-    $usuarios = User::all()->where('type', 'user');
-@endphp
 @section('content')
 
     @if ((isset($currentWorkspace) && $currentWorkspace) || Auth::user()->type == 'admin')
         <div class="row">
-            @foreach ($usuarios as $user)
+            @foreach ($users as $user)
                 @php($workspace_id = isset($currentWorkspace) && $currentWorkspace ? $currentWorkspace->id : '')
                 <div class="col-xl-3 col-lg-4 col-sm-6">
                     <div class="card   text-center">

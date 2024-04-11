@@ -39,13 +39,10 @@
         @endif
     @endauth
 @endsection
-@php
-    use App\Models\User;
-    $clientes = User::all()->where('type', 'client');
-@endphp
+
 @section('content')
     <div class="row">
-        @foreach ($clientes as $client)
+        @foreach ($clients as $client)
             <div class="col-xl-3 col-lg-4 col-sm-6">
                 <div class="card   text-center">
                     <div class="card-header border-0 pb-0">

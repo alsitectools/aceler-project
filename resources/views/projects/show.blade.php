@@ -27,7 +27,6 @@
     // $logo = \App\Models\Utility::get_file('users-avatar/');
     $logo = \App\Models\Utility::get_file('avatars/');
     $logo_project_files = \App\Models\Utility::get_file('project_files/');
-
 @endphp
 
 @section('multiple-action-button')
@@ -95,6 +94,11 @@
                             <div class="d-block d-sm-flex align-items-center justify-content-between">
                                 <h4 class="text-white"> {{ $project->name }}</h4>
                                 <div class="d-flex  align-items-center row1">
+                                    <div class="px-3">
+                                        <span class="text-white text-sm">{{ __('[REF] MasterObras') }}:</span>
+                                        <h5 class="text-white text-nowrap">
+                                            {{ 'M1234234654 ' }}</h5>
+                                    </div>
                                     <div class="px-3">
                                         <span class="text-white text-sm">{{ trans('messages.Start_Date') }}:</span>
                                         <h5 class="text-white text-nowrap">
@@ -244,7 +248,7 @@
                                 </div>
                                 <div class="card-body">
                                     <div class="table-responsive">
-                                        <table id="" class="table table-bordered px-2">
+                                        <table id="" class="table table-bordered">
                                             <thead>
                                                 <tr>
                                                     <th>{{ __('Name') }}</th>
@@ -514,8 +518,6 @@
                         <div class="col-md-4">
                             <div class="card">
                                 @if ($currentWorkspace->permission == 'Owner' || $currentWorkspace->permission == 'Member')
-                                    {{-- <div class="col-md-4"> --}}
-
                                     <div class="card-header">
                                         <div class="d-flex justify-content-between align-items-center">
                                             <div>
@@ -539,8 +541,6 @@
                                             </div>
                                         </div>
                                     </div>
-
-                                    {{-- </div> --}}
                                 @endif
                             </div>
                         </div>
@@ -653,9 +653,9 @@
 @endpush
 @push('scripts')
     <!--
-                                                                                                    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+                                                                                                            <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
 
-                                                                                                     -->
+                                                                                                             -->
     <script src="{{ asset('assets/js/plugins/apexcharts.min.js') }}"></script>
     <script>
         (function() {

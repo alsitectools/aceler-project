@@ -38,15 +38,11 @@
         <?php endif; ?>
     <?php endif; ?>
 <?php $__env->stopSection(); ?>
-<?php
-    use App\Models\User;
-    $usuarios = User::all()->where('type', 'user');
-?>
 <?php $__env->startSection('content'); ?>
 
     <?php if((isset($currentWorkspace) && $currentWorkspace) || Auth::user()->type == 'admin'): ?>
         <div class="row">
-            <?php $__currentLoopData = $usuarios; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $user): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+            <?php $__currentLoopData = $users; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $user): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                 <?php ($workspace_id = isset($currentWorkspace) && $currentWorkspace ? $currentWorkspace->id : ''); ?>
                 <div class="col-xl-3 col-lg-4 col-sm-6">
                     <div class="card   text-center">

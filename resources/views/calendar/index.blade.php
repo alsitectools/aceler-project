@@ -216,7 +216,7 @@
                                     "                </li>";
                             } else {
                                 var avatar = (data.user.avatar) ? "src='{{ $logo }}/" + data.user
-                                    .avatar + "'" : "avatar='" + data.user.name + "'";
+                                    .avatar + "'" : "avatar='" + data.user.name +"'";
                                 var html = "<li class='media border-bottom mb-3'>" +
                                     "                    <img class='mr-3 avatar-sm rounded-circle img-thumbnail' width='60' " +
                                     avatar + " alt='" + data.user.name + "'>" +

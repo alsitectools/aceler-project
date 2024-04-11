@@ -122,5 +122,9 @@ return [
     'Created_date'=>'Fecha de creación: ',
     'Desired_delivery_date'=>'Fecha de entrega deseada: ',
     'Type_user'=>'Tipo de usuario',
-
+    'View'=> 'Ver',
+    'to'=>'a',
+    'Write_message'=>'Escribir comentario',
+    'Submit'=> 'Enviar',
+    
 ];

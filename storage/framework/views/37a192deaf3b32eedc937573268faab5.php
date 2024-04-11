@@ -4,12 +4,10 @@
     <?php echo e(__('Dashboard')); ?>
 
 <?php $__env->stopSection(); ?>
-<?php
-    $client_keyword = Auth::user()->getGuard() == 'client' ? 'client.' : '';
-?>
 <?php $__env->startSection('content'); ?>
 
     <section class="section">
+
         <?php if(Auth::user()->type == 'admin'): ?>
             <div class="row">
                 <div class="col-12">
@@ -175,7 +173,7 @@
                                             <tr>
                                                 <td>
                                                     <div class="font-14 my-1"><a
-                                                            href="<?php echo e(route($client_keyword . 'projects.task.board', [$currentWorkspace->slug, $task->project_id])); ?>"
+                                                            href="<?php echo e(route('projects.task.board', [$currentWorkspace->slug, $task->project_id])); ?>"
                                                             class="text-body"><?php echo e($task->title); ?></a></div>
 
                                                     <?php ($due_date = '<span class="text-' . ($task->due_date < date('Y-m-d') ? 'danger' : 'success') . '">' . date('Y-m-d', strtotime($task->due_date)) . '</span> '); ?>
@@ -199,7 +197,7 @@
                                                     <div class="font-14 mt-1 font-weight-normal">
                                                         <?php echo e($task->project->name); ?></div>
                                                 </td>
-                                                
+
                                                 <?php if($currentWorkspace->permission == 'Owner' || Auth::user()->getGuard() == 'client'): ?>
                                                     <td>
                                                         <span class="text-muted font-13"><?php echo e(__('Assigned to')); ?></span>
@@ -269,7 +267,15 @@
 
                                 <div class="row text-center">
 
-                                    
+                                    <?php $__currentLoopData = $arrProcessPer; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $index => $value): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                        <div class="col-4">
+                                            <i class="fas fa-chart <?php echo e($arrProcessClass[$index]); ?>  h3"></i>
+                                            <h6 class="font-weight-bold">
+                                                <span><?php echo e($value); ?>%</span>
+                                            </h6>
+                                            <p class="text-muted"><?php echo e(__($arrProcessLabel[$index])); ?></p>
+                                        </div>
+                                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
 
                                 </div>
                             </div>
@@ -299,7 +305,7 @@
 <?php $__env->startPush('scripts'); ?>
     <script src="<?php echo e(asset('assets/custom/js/apexcharts.min.js')); ?>"></script>
 
-    <?php if(Auth::user()->type == 'admin'): ?>
+    <?php if(Auth::user()->type == 'admin'  || Auth::user()->type == 'user' || Auth::user()->type == 'client'/**/): ?>
     <?php elseif(isset($currentWorkspace) && $currentWorkspace): ?>
         <script>
             (function() {
@@ -379,7 +385,7 @@
 
 
     <script src="<?php echo e(asset('assets/js/plugins/apexcharts.min.js')); ?>"></script>
-    <?php if(Auth::user()->type == 'admin'): ?>
+    <?php if(Auth::user()->type == 'admin'/* || Auth::user()->type == 'user' || Auth::user()->type == 'client' */): ?>
         <script>
             (function() {
                 var options = {

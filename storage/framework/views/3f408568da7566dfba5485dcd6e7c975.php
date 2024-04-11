@@ -16,7 +16,6 @@
 <?php
     // $logo=\App\Models\Utility::get_file('users-avatar/');
     $logo = \App\Models\Utility::get_file('avatars/');
-
 ?>
 <?php $__env->startSection('action-button'); ?>
     <?php if(auth()->guard('web')->check()): ?>
@@ -36,14 +35,8 @@
         <?php endif; ?>
     <?php endif; ?>
 <?php $__env->stopSection(); ?>
-<?php
-    use App\Models\Project;
-    //Para mostrar todos los proyectos busco en la BBDD los proyectos que existen
-    $proyectos = Project::all()->where('workspace', '=', Auth::user()->currant_workspace);
-?>
 <?php $__env->startSection('content'); ?>
     <section class="section">
-
         <div class="row mb-2">
             <div class="col-xl-12 col-lg-12 col-md-12 col-12 d-flex align-items-center justify-content-end">
                 <div class="text-sm-right status-filter">
@@ -63,7 +56,7 @@
 
         <div class="filters-content">
             <div class="row grid">
-                <?php $__currentLoopData = $proyectos; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $project): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                <?php $__currentLoopData = $projects; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $project): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                     <div class="col-xl-3 col-lg-4 col-sm-6 All <?php echo e($project->status); ?>">
                         <div class="card">
                             <div class="card-header border-0 pb-0">
@@ -208,27 +201,26 @@
                         </div>
                     </div>
                 <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
-                
-                <?php if(\Auth::user()->type == 'admin'): ?>
-                    <?php if(auth()->guard('web')->check()): ?>
-                        <?php if(isset($currentWorkspace) && $currentWorkspace->creater->id == Auth::id()): ?>
-                            <div class="col-xl-3 col-lg-4 col-sm-6 All add_projects">
-                                <a href="#" class="btn-addnew-project " style="padding: 90px 10px;"
-                                    data-ajax-popup="true" data-size="md" data-title="<?php echo e(__('Create New Project')); ?>"
-                                    data-url="<?php echo e(route('projects.create', $currentWorkspace->slug)); ?>">
-                                    <div class="bg-primary proj-add-icon">
-                                        <i class="ti ti-plus"></i>
-                                    </div>
-                                    <h6 class="mt-4 mb-2"><?php echo e(trans('messages.Add_Project')); ?></h6>
-                                    <p class="text-muted text-center">
-                                        <?php echo e(trans('messages.Click_here_to_add_New_Project')); ?>
 
-                                    </p>
-                                </a>
-                            </div>
-                        <?php endif; ?>
+                <?php if(auth()->guard('web')->check()): ?>
+                    <?php if(isset($currentWorkspace) && $currentWorkspace->creater->id == Auth::id()): ?>
+                        <div class="col-xl-3 col-lg-4 col-sm-6 All add_projects">
+                            <a href="#" class="btn-addnew-project " style="padding: 90px 10px;" data-ajax-popup="true"
+                                data-size="md" data-title="<?php echo e(__('Create New Project')); ?>"
+                                data-url="<?php echo e(route('projects.create', $currentWorkspace->slug)); ?>">
+                                <div class="bg-primary proj-add-icon">
+                                    <i class="ti ti-plus"></i>
+                                </div>
+                                <h6 class="mt-4 mb-2"><?php echo e(trans('messages.Add_Project')); ?></h6>
+                                <p class="text-muted text-center">
+                                    <?php echo e(trans('messages.Click_here_to_add_New_Project')); ?>
+
+                                </p>
+                            </a>
+                        </div>
                     <?php endif; ?>
                 <?php endif; ?>
+
             </div>
         </div>
         
