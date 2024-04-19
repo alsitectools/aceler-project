@@ -121,7 +121,7 @@ class AuthenticatedSessionController extends Controller
     {
         $adminDefaultLang = Utility::getAdminPaymentSettings();
         if ($lang == '') {
-            $lang = $adminDefaultLang['default_lang'] ?? 'en';
+            $lang = $adminDefaultLang['default_lang'] ?? 'es';
         }
         \App::setLocale($lang);
 
@@ -141,7 +141,7 @@ class AuthenticatedSessionController extends Controller
         }
 
         $langList = Utility::langList();
-        $lang = array_key_exists($lang, $langList) ? $lang : 'en';
+        $lang = array_key_exists($lang, $langList) ? $lang : 'es';
         if (empty($lang)) {
             $lang = Utility::getValByName('default_language');
         }
@@ -228,7 +228,7 @@ class AuthenticatedSessionController extends Controller
         }
 
         $langList = Utility::langList();
-        $lang = array_key_exists($lang, $langList) ? $lang : 'en';
+        $lang = array_key_exists($lang, $langList) ? $lang : 'es';
         if (empty($lang)) {
             $lang = Utility::getValByName('default_language');
         }
@@ -245,7 +245,7 @@ class AuthenticatedSessionController extends Controller
     {
         if ($lang == '') {
             $adminDefaultLang = Utility::getAdminPaymentSettings();
-            $lang = $adminDefaultLang['default_lang'] ?? 'en';
+            $lang = $adminDefaultLang['default_lang'] ?? 'es';
         }
 
         \App::setLocale($lang);

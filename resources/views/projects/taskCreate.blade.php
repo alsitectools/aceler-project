@@ -9,7 +9,8 @@
             <div class="row">
                 <div class="form-group col-md-8">
                     <label class="col-form-label">{{ __('Project') }}</label>
-                    <select class="form-control form-control-light select2" name="project_id" style="display:none" required>
+                    <select class="form-control form-control-light select2" name="project_id" style="display:none"
+                        required>
                         <option value="{{ $project->id }}">{{ $project->name }}</option>
                     </select>
                     <select class="form-control form-control-light select2" disabled>
@@ -34,11 +35,12 @@
                         placeholder="{{ __('Enter Title') }}" name="title" required>
                 </div>
 
-                <div class="form-group col-md-12" style="display:none">
+                <div class="form-group col-md-12">
                     <label class="col-form-label">{{ __('Assign To') }}</label>
                     <select class=" multi-select" id="assign_to" name="assign_to[]" data-toggle="select2"
                         multiple="multiple" data-placeholder="{{ __('Select Users ...') }}">
-                        <option value="{{ $user->id }}" selected></option>
+                        {{-- <option value="{{ $user->id }}" selected></option> --}}
+                        <option value="{{ $user->id }}"> {{ $user->name }}</option>
                     </select>
                 </div>
 
@@ -55,7 +57,7 @@
 
                 <div class="form-group col-md-12">
                     <label class="col-form-label">{{ __('Description') }}</label>
-                    <textarea class="form-control form-control-light" id="task-description" rows="3" name="description"></textarea>
+                    <textarea class="form-control form-control-light" id="task-description" rows="3" name="description" required></textarea>
                 </div>
 
                 @if ($currentWorkspace->is_googlecalendar_enabled == 'on')

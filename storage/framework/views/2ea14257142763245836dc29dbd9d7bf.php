@@ -26,16 +26,14 @@
 
         <?php $__env->stopSection(); ?>
 
-
         <?php $__env->startSection('language-bar'); ?>
             <div href="#" class="lang-dropdown-only-desk">
                 <li class="dropdown dash-h-item drp-language">
                     <a class="dash-head-link dropdown-toggle btn" href="#" data-bs-toggle="dropdown"
                         aria-expanded="false">
-                        <span class="drp-text"> <?php echo e(ucFirst($languages[$lang])); ?>
-
-                        </span>
+                        <span class="drp-text"><?php echo e(isset($languages[$lang]) ? ucfirst($languages[$lang]) : 'es'); ?></span>
                     </a>
+
                     <div class="dropdown-menu dash-h-dropdown dropdown-menu-end">
                         <?php $__currentLoopData = $languages; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $code => $language): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                             <a href="<?php echo e(route('login', $code)); ?>" tabindex="0"
@@ -53,7 +51,6 @@
                 <div class="">
                     <h2 class="mb-3 f-w-600"><?php echo e(__('Login')); ?></h2>
                 </div>
-                
                 <?php if(session()->has('error')): ?>
                     <div>
                         <p class="text-danger"><?php echo e(session('error')); ?></p>
@@ -104,13 +101,12 @@ unset($__errorArgs, $__bag); ?>"
                         <div class="form-group mb-3 text-start">
                             <span>
                                 <a href="<?php echo e(route('password.request', $lang)); ?>"
-                                    tabindex="0"><?php echo e(__('Forgot Your Password?')); ?></a>
+                                    tabindex="0"><?php echo e(trans('dictionary.Forgot_Password?')); ?></a>
                             </span>
                         </div>
 
                         <?php if($setting['recaptcha_module'] == 'on'): ?>
                             <div class="form-group col-lg-12 col-md-12 mt-3">
-                                
                                 <?php echo NoCaptcha::display($setting['cust_darklayout'] == 'on' ? ['data-theme' => 'dark'] : []); ?>
 
                                 <?php $__errorArgs = ['g-recaptcha-response'];
@@ -132,20 +128,15 @@ unset($__errorArgs, $__bag); ?>
                             <button type="submit" id="login_button"
                                 class="btn btn-primary btn-block mt-2"><?php echo e(__('Login')); ?></button>
                         </div>
-                        <!--  <p class="my-4 text-center">or register with</p> -->
+                        <p class="my-4 text-center"><?php echo e(__('dictionary.DontAccount?')); ?>
 
-                        
-                        <p class="my-4 text-center">Don't have an account? <a href="<?php echo e(route('register', $lang)); ?>"
-                                class="my-4 text-center text-primary"> Register</a></p>
-                        
+                            <a href="<?php echo e(route('register', $lang)); ?>" class="my-4 text-center text-primary">
+                                <?php echo e(__('dictionary.SignUp')); ?></a>
+                        </p>
+                    </div>
                 </form>
-                <div class="d-grid mt-3">
-                    <button type="button" id="" class="btn btn-primary btn-block  "><a
-                            href="<?php echo e(route('client.login', $lang)); ?>" class="" style="color:#fff">
-                            <?php echo e(__('Client Login')); ?></a></button>
-                </div>
+                
             </div>
-            
         <?php $__env->stopSection(); ?>
         <?php $__env->startPush('custom-scripts'); ?>
             <script src="<?php echo e(asset('assets/custom/libs/jquery/dist/jquery.min.js')); ?>"></script>

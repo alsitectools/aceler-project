@@ -16,6 +16,8 @@ class CreateProjectsTable extends Migration
         Schema::create('projects', function (Blueprint $table) {
             $table->bigIncrements('id');
             $table->string('name');
+            $table->string('ref_mo')->nullable();
+            $table->string('project_type');
             $table->enum('status',['Ongoing','Finished','OnHold'])->default('Ongoing');
             $table->text('description')->nullable();
             $table->date('start_date')->nullable();

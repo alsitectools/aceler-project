@@ -9,15 +9,14 @@
             {{ __('Login') }}
         @endsection
 
-
         @section('language-bar')
             <div href="#" class="lang-dropdown-only-desk">
                 <li class="dropdown dash-h-item drp-language">
                     <a class="dash-head-link dropdown-toggle btn" href="#" data-bs-toggle="dropdown"
                         aria-expanded="false">
-                        <span class="drp-text"> {{ ucFirst($languages[$lang]) }}
-                        </span>
+                        <span class="drp-text">{{ isset($languages[$lang]) ? ucfirst($languages[$lang]) : 'es' }}</span>
                     </a>
+
                     <div class="dropdown-menu dash-h-dropdown dropdown-menu-end">
                         @foreach ($languages as $code => $language)
                             <a href="{{ route('login', $code) }}" tabindex="0"
@@ -35,13 +34,6 @@
                 <div class="">
                     <h2 class="mb-3 f-w-600">{{ __('Login') }}</h2>
                 </div>
-                {{-- @if ($setting['recaptcha_module'] != 'on')
-                    @if ($errors->any())
-                        @foreach ($errors->all() as $error)
-                            <span class="text-danger">{{ $error }}</span>
-                        @endforeach
-                    @endif
-                @endif --}}
                 @if (session()->has('error'))
                     <div>
                         <p class="text-danger">{{ session('error') }}</p>
@@ -71,13 +63,12 @@
                         <div class="form-group mb-3 text-start">
                             <span>
                                 <a href="{{ route('password.request', $lang) }}"
-                                    tabindex="0">{{ __('Forgot Your Password?') }}</a>
+                                    tabindex="0">{{ trans('dictionary.Forgot_Password?') }}</a>
                             </span>
                         </div>
 
                         @if ($setting['recaptcha_module'] == 'on')
                             <div class="form-group col-lg-12 col-md-12 mt-3">
-                                {{-- {!! NoCaptcha::display() !!} --}}
                                 {!! NoCaptcha::display($setting['cust_darklayout'] == 'on' ? ['data-theme' => 'dark'] : []) !!}
                                 @error('g-recaptcha-response')
                                     <span class="small text-danger" role="alert">
@@ -91,27 +82,18 @@
                             <button type="submit" id="login_button"
                                 class="btn btn-primary btn-block mt-2">{{ __('Login') }}</button>
                         </div>
-                        <!--  <p class="my-4 text-center">or register with</p> -->
-
-                        {{-- @if ($setting['signup_button'] == 'on') --}}
-                        <p class="my-4 text-center">Don't have an account? <a href="{{ route('register', $lang) }}"
-                                class="my-4 text-center text-primary"> Register</a></p>
-                        {{-- @endif --}}
+                        <p class="my-4 text-center">{{ __('dictionary.DontAccount?') }}
+                            <a href="{{ route('register', $lang) }}" class="my-4 text-center text-primary">
+                                {{ __('dictionary.SignUp') }}</a>
+                        </p>
+                    </div>
                 </form>
-                <div class="d-grid mt-3">
+                {{-- <div class="d-grid mt-3">
                     <button type="button" id="" class="btn btn-primary btn-block  "><a
                             href="{{ route('client.login', $lang) }}" class="" style="color:#fff">
                             {{ __('Client Login') }}</a></button>
-                </div>
+                 --}}
             </div>
-            {{-- <div class="col-xl-6 img-card-side">
-                <div class="auth-img-content">
-                    <img src="{{ asset('assets/images/auth/img-auth-3.svg') }}" alt="" class="img-fluid">
-                    <h3 class="text-white mb-4 mt-5">“Attention is the new currency”</h3>
-                    <p class="text-white">The more effortless the writing looks, the more effort the writer
-                        actually put into the process.</p>
-                </div>
-            </div> --}}
         @endsection
         @push('custom-scripts')
             <script src="{{ asset('assets/custom/libs/jquery/dist/jquery.min.js') }}"></script>

@@ -25,14 +25,14 @@
 
 
 @section('action-button')
-    @if (
+    {{-- @if (
         ($currentWorkspace && $currentWorkspace->permission == 'Owner') ||
-            ($currentWorkspace->permission == 'Member' && Auth::user()->type == 'user'))
+            ($currentWorkspace->permission == 'Member' && Auth::user()->type == 'user')) --}}
         <a href="#" class="btn btn-sm btn-primary" data-ajax-popup="true" data-size="lg"
             data-title="{{ __('Create New Task') }}"
             data-url="{{ route('tasks.create', [$currentWorkspace->slug, $project->id]) }}" data-toggle="tooltip"
             title="{{ __('Add Task') }}"><i class="ti ti-plus"></i></a>
-    @endif
+    {{-- @endif --}}
     <a href="{{ route('projects.show', [$currentWorkspace->slug, $project->id]) }}"
         class="btn-submit btn btn-sm btn-primary mx-1" data-toggle="tooltip" title="{{ __('Back') }}">
         <i class=" ti ti-arrow-back-up"></i>

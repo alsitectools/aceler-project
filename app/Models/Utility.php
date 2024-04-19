@@ -12,6 +12,7 @@ use Jenssegers\Date\Date;
 use Illuminate\Support\Facades\Mail;
 use Pusher\Pusher;
 use App\Models\Workspace;
+use Illuminate\Support\Facades\App;
 use Spatie\GoogleCalendar\Event;
 
 
@@ -102,46 +103,40 @@ Utility
         return $totalDuration;
     }
 
+    public static function getWorkspaceById($id)
+    {
+
+        $rs = Workspace::select(['workspaces.*'])->where('id', '=', $id)->limit(1)->first();
+
+        if ($rs) {
+            Utility::setLang($rs);
+
+            // Devolver solo el ID del workspace
+            return $rs->id;
+        }
+    }
+
     public static function getWorkspaceBySlug($slug)
     {
         $objUser = Auth::user();
-
         if ($objUser && $objUser->currant_workspace) {
-            if ($objUser->getGuard() == 'client') {
-                $rs = Workspace::select(['workspaces.*'])->join('client_workspaces', 'workspaces.id', '=', 'client_workspaces.workspace_id')
-                ->where('workspaces.id', '=', $objUser->currant_workspace)
-                ->where('client_id', '=', $objUser->id)->first();
 
-                
-            } else {
-                $rs = Workspace::select(['workspaces.*','user_workspaces.permission', ])->join('user_workspaces', 'workspaces.id', '=', 'user_workspaces.workspace_id')
-                    ->where('workspaces.id', '=', $objUser->currant_workspace)
-                    ->where('user_id', '=', $objUser->id)->first();
-            }
+            $rs = Workspace::select(['workspaces.*', 'user_workspaces.permission',])->join('user_workspaces', 'workspaces.id', '=', 'user_workspaces.workspace_id')
+                ->where('workspaces.id', '=', $objUser->currant_workspace)
+                ->where('user_id', '=', $objUser->id)->first();
         } elseif ($objUser && !empty($slug)) {
-            if ($objUser->getGuard() == 'client') {
-                $rs = Workspace::select(['workspaces.*'])->join('client_workspaces', 'workspaces.id', '=', 'client_workspaces.workspace_id')
-                ->where('slug', '=', $slug
-                )->where('client_id', '=', $objUser->id)->first();
-            } else {
-                $rs = Workspace::select([
-                    'workspaces.*',
-                    'user_workspaces.permission',
-                ])->join('user_workspaces', 'workspaces.id', '=', 'user_workspaces.workspace_id')
+
+            $rs = Workspace::select([
+                'workspaces.*',
+                'user_workspaces.permission',
+            ])->join('user_workspaces', 'workspaces.id', '=', 'user_workspaces.workspace_id')
                 ->where('slug', '=', $slug)->where('user_id', '=', $objUser->id)->first();
-            }
         } elseif ($objUser) {
-            if ($objUser->getGuard() == 'client') {
-                $rs = Workspace::select(['workspaces.*'])->join('client_workspaces', 'workspaces.id', '=', 'client_workspaces.workspace_id')
-                ->where('client_id', '=', $objUser->id)->orderBy('workspaces.id', 'desc')->limit(1)->first();
-                $objUser->currant_workspace = $rs->id;
-                $objUser->save();
-            } else {
-                $rs = Workspace::select([
-                    'workspaces.*',
-                    'user_workspaces.permission',
-                ])->join('user_workspaces', 'workspaces.id', '=', 'user_workspaces.workspace_id')->where('user_id', '=', $objUser->id)->orderBy('workspaces.id', 'desc')->limit(1)->first();
-            }
+
+            $rs = Workspace::select([
+                'workspaces.*',
+                'user_workspaces.permission',
+            ])->join('user_workspaces', 'workspaces.id', '=', 'user_workspaces.workspace_id')->where('user_id', '=', $objUser->id)->orderBy('workspaces.id', 'desc')->limit(1)->first();
         } else {
             $rs = Workspace::select(['workspaces.*'])->where('slug', '=', $slug)->limit(1)->first();
         }
@@ -189,6 +184,7 @@ Utility
     //     return $finalLangArr;
     // }
     private static $languages = NULL;
+
     public static function languages()
     {
         if (self::$languages == null) {
@@ -201,9 +197,9 @@ Utility
         $settings = Utility::getAdminPaymentSettings();
         $disablelang = $settings['disable_lang'];
 
-        // Use Eloquent to fetch all languages from the database, including English
+        // Use Eloquent to fetch all languages from the database, including Espanish
         $languages = Languages::whereNotIn('lang_code', explode(',', $disablelang))
-            ->orWhere('lang_code', 'en') // Include English
+            ->orWhere('lang_code', 'es') // Include Espanish
             ->pluck('lang_fullname', 'lang_code')
             ->all();
 
@@ -217,11 +213,11 @@ Utility
             $lang = $Workspace->id . "/" . $Workspace->lang;
         } else {
             // $lang = $Workspace->lang;
-            $lang = (\Auth::user()) ? \Auth::user()->lang : $Workspace->lang;
+            $lang = (Auth::user()) ? Auth::user()->lang : $Workspace->lang;
         }
 
         \Date::setLocale(basename($lang));
-        \App::setLocale($lang);
+        App::setLocale($lang);
     }
     public static function setAdminLang()
     {
@@ -230,7 +226,7 @@ Utility
 
 
         \Date::setLocale(basename($lang));
-        \App::setLocale($lang);
+        App::setLocale($lang);
     }
 
     public static function get_timeago($ptime)
@@ -505,7 +501,10 @@ Utility
 
         return $totalMigration;
     }
-
+    public static function getCompany()
+    {
+        $company = array();
+    }
     public static function getAllPermission()
     {
         return [
@@ -607,13 +606,11 @@ Utility
             'email_verification' => 'off',
         ];
 
-
         $data = $data->get();
 
         foreach ($data as $row) {
             $adminSettings[$row->name] = $row->value;
         }
-
         return $adminSettings;
     }
 

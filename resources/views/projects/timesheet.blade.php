@@ -1,69 +1,73 @@
 @extends('layouts.admin')
 @php
-  
     $client_keyword = Auth::user()->getGuard() == 'client' ? 'client.' : '';
 @endphp
-@section('page-title') {{trans('messages.Timesheet')}} @endsection
+@section('page-title')
+    {{ trans('messages.Timesheet') }}
+@endsection
 @section('links')
-@if(\Auth::guard('client')->check())   
-<li class="breadcrumb-item"><a href="{{route('client.home')}}">{{__('Home')}}</a></li>
- @else
- <li class="breadcrumb-item"><a href="{{route('home')}}">{{__('Home')}}</a></li>
- @endif
-@if($project_id != '-1')
- @if(\Auth::guard('client')->check())  
-<li class="breadcrumb-item"><a href="{{ route('client.projects.index',$currentWorkspace->slug) }}">{{__('Project')}}</a></li>
- @else  
-<li class="breadcrumb-item"><a href="{{ route('projects.index',$currentWorkspace->slug)}}">{{__('Project')}}</a></li>
-@endif
-<li class="breadcrumb-item"><a href="{{route($client_keyword.'projects.show',[$currentWorkspace->slug,$project_id ])}}">{{__('Project Details')}}</a></li>
+    @if (\Auth::guard('client')->check())
+        <li class="breadcrumb-item"><a href="{{ route('client.home') }}">{{ __('Home') }}</a></li>
+    @else
+        <li class="breadcrumb-item"><a href="{{ route('home') }}">{{ __('Home') }}</a></li>
+    @endif
+    @if ($project_id != '-1')
+        @if (\Auth::guard('client')->check())
+            <li class="breadcrumb-item"><a
+                    href="{{ route('client.projects.index', $currentWorkspace->slug) }}">{{ __('Project') }}</a></li>
+        @else
+            <li class="breadcrumb-item"><a
+                    href="{{ route('projects.index', $currentWorkspace->slug) }}">{{ __('Project') }}</a></li>
+        @endif
+        <li class="breadcrumb-item"><a
+                href="{{ route($client_keyword . 'projects.show', [$currentWorkspace->slug, $project_id]) }}">{{ __('Project Details') }}</a>
+        </li>
 
-<li class="breadcrumb-item"> {{ trans('messages.Timesheet') }}</li>
-@else
-<li class="breadcrumb-item"> {{ trans('messages.Timesheet') }}</li>
-@endif
+        <li class="breadcrumb-item"> {{ trans('messages.Timesheet') }}</li>
+    @else
+        <li class="breadcrumb-item"> {{ trans('messages.Timesheet') }}</li>
+    @endif
 @endsection
 
 
 @section('action-button')
-<div class="d-flex justify-content-end row1">
-        @if(isset($currentWorkspace) && $currentWorkspace)
-        @if($project_id != '-1' && Auth::user()->getGuard() != 'client')
-            <div class="form-group col-auto mx-2">
-                            <select class="btn btn-success w-100" id="project_tasks">
-                                   <option value="">{{ __('Add Task on Timesheet') }}</option>
-                            </select>
-                        </div>
+    <div class="d-flex justify-content-end row1">
+        @if (isset($currentWorkspace) && $currentWorkspace)
+            @if ($project_id != '-1' && Auth::user()->getGuard() != 'client')
+                <div class="form-group col-auto mx-2">
+                    <select class="btn btn-success w-100" id="project_tasks">
+                        <option value="">{{ __('Add Task on Timesheet') }}</option>
+                    </select>
+                </div>
+            @endif
         @endif
-    @endif 
-    <div class="col-sm-auto">
-        <div class="weekly-dates-div">
-            <i role="button" class="fa fa-arrow-left previous"></i>
+        <div class="col-sm-auto">
+            <div class="weekly-dates-div">
+                <i role="button" class="fa fa-arrow-left previous"></i>
 
-            <span class="weekly-dates"></span>
+                <span class="weekly-dates"></span>
 
-            <input type="hidden" id="weeknumber" value="0">
-            <input type="hidden" id="selected_dates">
+                <input type="hidden" id="weeknumber" value="0">
+                <input type="hidden" id="selected_dates">
 
-            <i role="button" class="fa fa-arrow-right next"></i>
+                <i role="button" class="fa fa-arrow-right next"></i>
+            </div>
         </div>
+
+        @if ($project_id != '-1')
+            <div class="col-auto">
+                <a href="{{ route($client_keyword . 'projects.show', [$currentWorkspace->slug, $project_id]) }}"
+                    class="btn btn-sm btn-primary">
+                    <i class=" ti ti-arrow-back-up"></i>
+                </a>
+            </div>
+        @endif
     </div>
-
-           
-    @if($project_id != '-1')
-        <div class="col-auto">
-            <a href="{{route($client_keyword.'projects.show',[$currentWorkspace->slug,$project_id])}}" class="btn btn-sm btn-primary">
-                 <i class=" ti ti-arrow-back-up"></i> 
-            </a>
-        </div>
-    @endif
-</div>
 @endsection
 
 @section('content')
     <section class="section">
-        @if($currentWorkspace)
-
+        @if ($currentWorkspace)
             <div class="row">
                 <div class="col-md-12">
 
@@ -81,11 +85,14 @@
                                         <p class="text-muted mt-3">
                                             {{ trans("messages.Sorry_we_can't_find_any_timesheet_records_on_this_week.") }}
                                             <br>
-                                            @if($project_id != '-1' && Auth::user()->getGuard() != 'client')
-                                                {{ trans('messages.To_add_timesheet_record_go_to ') }} <b>{{ __('Add Task on Timesheet.') }}</b>
+                                            @if ($project_id != '-1' && Auth::user()->getGuard() != 'client')
+                                                {{ trans('messages.To_add_timesheet_record_go_to ') }}
+                                                <b>{{ __('Add Task on Timesheet.') }}</b>
                                             @else
                                                 {{ trans('messages.To_add_timesheet_record_go_to ') }}
-                                                <a class="btn-home badge-blue" href="{{ route($client_keyword.'projects.index', $currentWorkspace->slug) }}"><i class="fas fa-reply"></i> {{ __('Projects')}}</a>
+                                                <a class="btn-home badge-blue"
+                                                    href="{{ route($client_keyword . 'projects.index', $currentWorkspace->slug) }}"><i
+                                                        class="fas fa-reply"></i> {{ __('Projects') }}</a>
                                             @endif
                                         </p>
                                     </div>
@@ -95,7 +102,6 @@
                     </div>
                 </div>
             </div>
-
         @endif
     </section>
 @endsection
@@ -118,20 +124,22 @@
             };
 
             $.ajax({
-                @if(Auth::user()->getGuard() == 'client')
-                url: '{{ route('client.filter.timesheet.table.view', '__slug') }}'.replace('__slug', '{{ $currentWorkspace->slug }}'),
+                @if (Auth::user()->getGuard() == 'client')
+                    url: '{{ route('client.filter.timesheet.table.view', '__slug') }}'.replace('__slug',
+                        '{{ $currentWorkspace->slug }}'),
                 @else
-                url: '{{ route('filter.timesheet.table.view', '__slug') }}'.replace('__slug', '{{ $currentWorkspace->slug }}'),
+                    url: '{{ route('filter.timesheet.table.view', '__slug') }}'.replace('__slug',
+                        '{{ $currentWorkspace->slug }}'),
                 @endif
                 data: data,
-                success: function (data) {
+                success: function(data) {
 
                     $('.weekly-dates-div .weekly-dates').text(data.onewWeekDate);
                     $('.weekly-dates-div #selected_dates').val(data.selectedDate);
 
                     $('#project_tasks').find('option').not(':first').remove();
 
-                    $.each(data.tasks, function (i, item) {
+                    $.each(data.tasks, function(i, item) {
                         $('#project_tasks').append($("<option></option>")
                             .attr("value", i)
                             .text(item));
@@ -150,11 +158,11 @@
             });
         }
 
-        $(function () {
+        $(function() {
             ajaxFilterTimesheetTableView();
         });
 
-        $(document).on('click', '.weekly-dates-div i', function () {
+        $(document).on('click', '.weekly-dates-div i', function() {
 
             var weeknumber = parseInt($('#weeknumber').val());
 
@@ -172,7 +180,7 @@
             ajaxFilterTimesheetTableView();
         });
 
-        $(document).on('click', '[data-ajax-timesheet-popup="true"]', function (e) {
+        $(document).on('click', '[data-ajax-timesheet-popup="true"]', function(e) {
             e.preventDefault();
 
             var data = {};
@@ -191,21 +199,22 @@
             }
 
             if (type == 'create') {
-                var title = '{{ __("Create Timesheet") }}';
+                var title = '{{ __('Create Timesheet') }}';
                 data.p_id = '{{ $project_id }}';
                 data.project_id = data.p_id != '-1' ? data.p_id : p_id;
 
             } else if (type == 'edit') {
-                var title = '{{ __("Edit Timesheet") }}';
+                var title = '{{ __('Edit Timesheet') }}';
             }
 
-            $("#commonModal .modal-title").html(title + ` <small>(` + moment(date).format("ddd, Do MMM YYYY") + `)</small>`);
+            $("#commonModal .modal-title").html(title + ` <small>(` + moment(date).format("ddd, Do MMM YYYY") +
+                `)</small>`);
 
             $.ajax({
                 url: url,
                 data: data,
                 dataType: 'html',
-                success: function (data) {
+                success: function(data) {
                     $('#commonModal .body').html(data);
                     // $('#commonModal .modal-body').html(data);
                     $("#commonModal").modal('show');
@@ -215,7 +224,7 @@
             });
         });
 
-        $(document).on('click', '#project_tasks', function (e) {
+        $(document).on('click', '#project_tasks', function(e) {
             var mainEle = $('#timesheet-table-view');
             var notfound = $('.notfound-timesheet');
 
@@ -226,13 +235,14 @@
             if (task_id != '') {
 
                 $.ajax({
-                    url: '{{ route('append.timesheet.task.html', '__slug') }}'.replace('__slug', '{{ $currentWorkspace->slug }}'),
+                    url: '{{ route('append.timesheet.task.html', '__slug') }}'.replace('__slug',
+                        '{{ $currentWorkspace->slug }}'),
                     data: {
                         project_id: '{{ $project_id }}',
                         task_id: task_id,
                         selected_dates: selected_dates,
                     },
-                    success: function (data) {
+                    success: function(data) {
 
                         notfound.hide();
                         mainEle.show();
@@ -244,7 +254,7 @@
             }
         });
 
-        $(document).on('change', '#time_hour, #time_minute', function () {
+        $(document).on('change', '#time_hour, #time_minute', function() {
 
             var hour = $('#time_hour').children("option:selected").val();
             var minute = $('#time_minute').children("option:selected").val();
@@ -269,24 +279,26 @@
             hour = hour < 10 ? '0' + hour : hour;
             minute = minute < 10 ? '0' + minute : minute;
 
-            $('.display-total-time span').text('{{ __("Total Time") }} : ' + hour + ' {{ __("Hours") }} ' + minute + ' {{ __("Minutes") }}');
+            $('.display-total-time span').text('{{ __('Total Time') }} : ' + hour + ' {{ __('Hours') }} ' +
+                minute + ' {{ __('Minutes') }}');
         });
     </script>
 @endpush
 <style type="text/css">
-    
-.weekly-dates-div {
-    padding: 8px 12px 8px 5px !important;
-}
-@media (max-width: 1300px) {
-    .header_breadcrumb {
-        width: 100% !important;
-        
+    .weekly-dates-div {
+        padding: 8px 12px 8px 5px !important;
     }
-    .row1{
+
+    @media (max-width: 1300px) {
+        .header_breadcrumb {
+            width: 100% !important;
+
+        }
+
+        .row1 {
             display: flex;
             flex-wrap: wrap;
+        }
+
     }
-    
-}
 </style>

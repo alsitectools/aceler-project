@@ -26,45 +26,54 @@
                     </div>
                 </div>
             </div> --}}
-            
-            <div class="row">
-                <div class="col-md-6">
-                    <div class="form-group ">
-                        <label class="form-label">{{ __('messages.Created_date') }}</label>
 
-                        <div class="input-group date ">
-                            <input class="form-control datepicker22" type="text" id="start_date" name="start_date"
-                                value="{{ $milestone->start_date }}" autocomplete="off" disabled>
-                            <span class="input-group-text">
-                                <i class="feather icon-calendar"></i>
-                            </span>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group ">
+                            <label class="form-label">{{ __('messages.Created_date') }}</label>
+
+                            <div class="input-group date ">
+                                <input class="form-control datepicker22" type="text" id="start_date"
+                                    name="start_date" value="{{ $milestone->start_date }}" autocomplete="off" disabled>
+                                <span class="input-group-text">
+                                    <i class="feather icon-calendar"></i>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label class="form-label">{{ __('messages.Desired_delivery_date') }}</label>
+                            <div class="input-group date ">
+                                <input class="form-control datepicker23" type="text" id="end_date" name="end_date"
+                                    value="{{ $milestone->end_date }}" autocomplete="off">
+                                <span class="input-group-text">
+                                    <i class="feather icon-calendar"></i>
+                                </span>
+                            </div>
                         </div>
                     </div>
                 </div>
-                <div class="col-md-6">
+                <div class="col-md-12">
                     <div class="form-group">
-                        <label class="form-label">{{ __('messages.Desired_delivery_date') }}</label>
-                        <div class="input-group date ">
-                            <input class="form-control datepicker23" type="text" id="end_date" name="end_date"
-                                value="{{ $milestone->end_date }}" autocomplete="off">
-                            <span class="input-group-text">
-                                <i class="feather icon-calendar"></i>
-                            </span>
-                        </div>
+                        <select class="form-select" aria-label="Default select example">
+                            <option selected>Seleccione la tarea a realizar</option>
+                            <option value="1">T1</option>
+                            <option value="2">T2</option>
+                            <option value="3">T3</option>
+                        </select>
                     </div>
                 </div>
-            </div>
+                <div class="form-group col-md-12">
+                    <label for="task-summary" class="col-form-label">{{ __('messages.Summary') }}</label>
+                    <textarea class="form-control form-control-light" id="task-summary" rows="3" name="summary">{{ $milestone->summary }}</textarea>
+                </div>
 
-            <div class="form-group col-md-12">
-                <label for="task-summary" class="col-form-label">{{ __('messages.Summary') }}</label>
-                <textarea class="form-control form-control-light" id="task-summary" rows="3" name="summary">{{ $milestone->summary }}</textarea>
             </div>
-
-        </div>
-        <div class="modal-footer">
-            <button type="button" class="btn  btn-light" data-bs-dismiss="modal">{{ __('Close') }}</button>
-            <input type="submit" value="{{ __('Save Changes') }}" class="btn  btn-primary">
-        </div>
+            <div class="modal-footer">
+                <button type="button" class="btn  btn-light" data-bs-dismiss="modal">{{ __('Close') }}</button>
+                <input type="submit" value="{{ __('Save Changes') }}" class="btn  btn-primary">
+            </div>
     </form>
 @else
     <div class="container mt-5">

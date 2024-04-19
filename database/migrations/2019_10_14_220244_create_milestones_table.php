@@ -17,9 +17,11 @@ class CreateMilestonesTable extends Migration
             $table->bigIncrements('id');
             $table->integer('project_id');
             $table->string('title');
-            $table->string('status')->nullable();
-            $table->string('progress')->nullable();
-            // $table->float('cost', 25, 2)->default('0.00')->nullable();
+            /* Hay que hacer la migracion, determinar nombre de Task ¿En plural o no?*/
+            $table->string('assign_to')->nullable();
+            $table->string('tasks')->nullable();
+            $table->string('status')->default('todo');
+            $table->string('order')->default(0);
             $table->date('end_date');
             $table->date('start_date')->nullable();
             $table->text('summary');

@@ -1,18 +1,41 @@
+@php
+    $user = Auth::user();
+@endphp
 @if ($project && $currentWorkspace)
     <form class="" method="post"
-        action="@auth('web'){{ route('projects.milestone.store', [$currentWorkspace->slug, $project->id]) }}@elseauth{{ route('client.projects.milestone.store', [$currentWorkspace->slug, $project->id]) }}@endauth">
+        action="@auth('web'){{ route('projects.milestone.store', [$currentWorkspace->slug, $project->id]) }}@endauth">
         @csrf
         <div class="modal-body">
             <div class="row">
                 <div class="col-md-12">
                     <div class="form-group">
-                        <label for="milestone-title" class="col-form-label">{{ __('Milestone Title') }}</label>
                         <input type="text" class="form-control form-control-light" id="milestone-title"
                             placeholder="{{ __('Enter Title') }}" name="title" required>
                     </div>
                 </div>
+                <div class="col-md-12">
+                    <div class="form-group">
+                        <button class="form-control form-control-light dropdown-toggle text-start" type="button"
+                            data-bs-toggle="dropdown" aria-expanded="false">
+                            Seleccionar encargo
+                        </button>
 
-                {{-- Quitado coste y añadido fecha de creación--}}
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="#">Menu item</a></li>
+                            <li><a class="dropdown-item" href="#">Menu item</a></li>
+                            <li><a class="dropdown-item" href="#">Menu item</a></li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="form-group col-md-12" style="display:none">
+                    <label class="col-form-label">{{ __('Assign To') }}</label>
+                    <select class=" multi-select" id="assign_to" name="assign_to[]" data-toggle="select2"
+                        multiple="multiple" data-placeholder="{{ __('Select Users ...') }}">
+                        <option value="{{ $user->id }}" selected></option>
+                    </select>
+                </div>
+
                 <div class="row">
                     <div class="col-md-6">
                         <div class="form-group ">

@@ -44,7 +44,6 @@
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 
 <head>
-
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
@@ -70,10 +69,9 @@
 
     <title>
         @if (trim($__env->yieldContent('page-title')) && Auth::user()->type == 'admin')
-            {{ config('app.name', 'Taskly') }} -@yield('page-title')
+            {{ 'aCeler Project' }} ~@yield('page-title')
         @else
-            {{ isset($currentWorkspace->company) && $currentWorkspace->company != '' ? $currentWorkspace->company : config('app.name', 'Taskly') }}
-            -@yield('page-title')
+            {{ 'aCeler Project' }} ~@yield('page-title')
         @endif
     </title>
 
@@ -230,7 +228,7 @@
     @include('partials.sidebar')
 
     @include('partials.topnav')
-
+    
     <div class="dash-container">
         <div class="dash-content">
             <!-- [ breadcrumb ] start -->
@@ -696,7 +694,7 @@
                     },
                     {
                         listLocation: "Tasks",
-                        header: "{{ __('Tasks') }}"
+                        header: "{{ __('messages.Tasks') }}"
                     }
                 ],
                 getValue: "text",

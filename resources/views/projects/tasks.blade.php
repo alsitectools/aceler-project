@@ -28,7 +28,6 @@
     </style>
 @endpush
 @section('content')
-
     <div class="row  display-none" id="show_filter">
         <div class=" col-sm-6 col-xl-2 pb-2">
             <select class=" form-select" name="project" id="project">
@@ -78,11 +77,9 @@
     </div>
 
     <div class="card">
-
         <div class="card-body mt-3 mx-2">
             <div class="row">
                 <div class="col-md-12 mt-2">
-
                     <div class="table-responsive">
                         <table class="table table-centered table-hover mb-0 animated selection-datatable px-4 mt-2"
                             id="tasks-selection-datatable">
@@ -94,13 +91,12 @@
                                 @if ($currentWorkspace->permission == 'Owner' || $currentWorkspace->permission == 'Member')
                                     <th>{{ __('Assigned to') }}</th>
                                 @endif
-                                <th>{{ trans('messages.Status') }}</th>
-                                @if ($currentWorkspace->permission == 'Owner' || $currentWorkspace->permission == 'Member')
+                                <th>{{ __('messages.Status') }}</th>
+                                @if ($currentWorkspace->permission == 'Owner' || $currentWorkspace->permission == 'Member' && Auth::user()->type == 'user')
                                     <th>{{ __('Action') }}</th>
                                 @endif
                             </thead>
                             <tbody>
-
                             </tbody>
                         </table>
                     </div>
@@ -155,27 +151,27 @@
                     fromLabel: "{{ __('From') }}",
                     toLabel: "{{ __('To') }}",
                     daysOfWeek: [
-                        "{{ __('Sun') }}",
-                        "{{ __('Mon') }}",
-                        "{{ __('Tue') }}",
-                        "{{ __('Wed') }}",
-                        "{{ __('Thu') }}",
-                        "{{ __('Fri') }}",
-                        "{{ __('Sat') }}"
+                        "{{ __('messages.Sun') }}",
+                        "{{ __('messages.Mon') }}",
+                        "{{ __('messages.Tue') }}",
+                        "{{ __('messages.Wed') }}",
+                        "{{ __('messages.Thu') }}",
+                        "{{ __('messages.Fri') }}",
+                        "{{ __('messages.Sat') }}"
                     ],
                     monthNames: [
-                        "{{ __('January') }}",
-                        "{{ __('February') }}",
-                        "{{ __('March') }}",
-                        "{{ __('April') }}",
-                        "{{ __('May') }}",
-                        "{{ __('June') }}",
-                        "{{ __('July') }}",
-                        "{{ __('August') }}",
-                        "{{ __('September') }}",
-                        "{{ __('October') }}",
-                        "{{ __('November') }}",
-                        "{{ __('December') }}"
+                        "{{ __('messages.January') }}",
+                        "{{ __('messages.February') }}",
+                        "{{ __('messages.March') }}",
+                        "{{ __('messages.April') }}",
+                        "{{ __('messages.May') }}",
+                        "{{ __('messages.June') }}",
+                        "{{ __('messages.July') }}",
+                        "{{ __('messages.August') }}",
+                        "{{ __('messages.September') }}",
+                        "{{ __('messages.October') }}",
+                        "{{ __('messages.November') }}",
+                        "{{ __('messages.December') }}"
                     ],
                 }
             }, cb);
@@ -231,7 +227,7 @@
                 })
             }
 
-            getData();
+             getData();
 
         });
     </script>

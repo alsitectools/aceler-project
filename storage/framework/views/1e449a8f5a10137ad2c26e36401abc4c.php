@@ -5,16 +5,12 @@
 
 <?php $__env->stopSection(); ?>
 <?php $__env->startSection('links'); ?>
-    
-    
     <li class="breadcrumb-item"><a href="<?php echo e(route('projects.index', $currentWorkspace->slug)); ?>"><?php echo e(__('Project')); ?></a>
     </li>
     <li class="breadcrumb-item"><?php echo e($project->name); ?></li>
 <?php $__env->stopSection(); ?>
 <?php
-    // $permissions = Auth::user()->getPermission($project->id);
-    $client_keyword = Auth::user()->getGuard() == 'client' ? 'client.' : '';
-    // $logo = \App\Models\Utility::get_file('users-avatar/');
+    $objUser = Auth::user();
     $logo = \App\Models\Utility::get_file('avatars/');
     $logo_project_files = \App\Models\Utility::get_file('project_files/');
 ?>
@@ -35,7 +31,7 @@
         (isset($currentWorkspace) && $currentWorkspace->permission == 'Member') ||
             (isset($currentWorkspace) && $currentWorkspace->permission == 'Owner')): ?>
         <div class="col-md-auto col-sm-4 pb-3">
-            <a href="<?php echo e(route($client_keyword . 'projects.timesheet.index', [$currentWorkspace->slug, $project->id])); ?>"
+            <a href="<?php echo e(route('projects.timesheet.index', [$currentWorkspace->slug, $project->id])); ?>"
                 class="btn btn-xs btn-primary btn-icon-only col-12 "><?php echo e(trans('messages.Timesheet')); ?></a>
         </div>
     <?php endif; ?>
@@ -44,13 +40,13 @@
         (isset($currentWorkspace) && $currentWorkspace->permission == 'Member') ||
             (isset($currentWorkspace) && $currentWorkspace->permission == 'Owner')): ?>
         <div class="col-md-auto col-sm-4 pb-3">
-            <a href="<?php echo e(route($client_keyword . 'projects.task.board', [$currentWorkspace->slug, $project->id])); ?>"
-                class="btn btn-xs btn-primary btn-icon-only col-12 "><?php echo e(trans('messages.Task_Board')); ?></a>
+            <a href="<?php echo e(route('projects.milestone.board', [$currentWorkspace->slug, $project->id])); ?>"
+                class="btn btn-xs btn-primary btn-icon-only col-12 "><?php echo e(trans('messages.Milestone_Board')); ?></a>
         </div>
     <?php endif; ?>
 
     <div class="col-md-auto col-sm-6 pb-3">
-        <a href="<?php echo e(route($client_keyword . 'projecttime.tracker', [$currentWorkspace->slug, $project->id])); ?>"
+        <a href="<?php echo e(route('projecttime.tracker', [$currentWorkspace->slug, $project->id])); ?>"
             class="btn btn-xs btn-primary btn-icon-only col-12 "><?php echo e(trans('messages.Tracker')); ?></a>
     </div>
 <?php $__env->stopSection(); ?>
@@ -86,8 +82,7 @@
                                 <div class="d-flex  align-items-center row1">
                                     <div class="px-3">
                                         <span class="text-white text-sm"><?php echo e(__('[REF] MasterObras')); ?>:</span>
-                                        <h5 class="text-white text-nowrap">
-                                            <?php echo e('M1234234654 '); ?></h5>
+                                        <h5 class="text-white text-nowrap"> <?php echo e($project->ref_mo); ?></h5>
                                     </div>
                                     <div class="px-3">
                                         <span class="text-white text-sm"><?php echo e(trans('messages.Start_Date')); ?>:</span>
@@ -128,7 +123,7 @@
                                 <?php else: ?>
                                     <?php if(auth()->guard('web')->check()): ?>
                                         
-                                        <?php if(\Auth::user()->type == 'admin'): ?>
+                                        <?php if($objUser->type == 'admin'): ?>
                                             <div class="d-flex align-items-center ">
 
                                                 <a href="#" class=""
@@ -228,10 +223,10 @@
                                             </h5>
                                         </div>
                                         <div class="float-end">
-                                            <?php if($currentWorkspace->permission == 'Member' || $currentWorkspace->permission == 'Owner'): ?>
+                                            <?php if($objUser->type == 'client' || $currentWorkspace->permission == 'Owner'): ?>
                                                 <a href="#" class="btn btn-sm btn-primary" data-ajax-popup="true"
                                                     data-title="<?php echo e(__('Create Milestone')); ?>"
-                                                    data-url="<?php echo e(route($client_keyword . 'projects.milestone', [$currentWorkspace->slug, $project->id])); ?>"
+                                                    data-url="<?php echo e(route('projects.milestone', [$currentWorkspace->slug, $project->id])); ?>"
                                                     data-toggle="popover" title="<?php echo e(__('Create')); ?>"><i
                                                         class="ti ti-plus"></i></a>
                                             <?php endif; ?>
@@ -249,7 +244,9 @@
                                                     <th><?php echo e(__('messages.Desired_delivery_date')); ?></th>
                                                     <th><?php echo e(__('Fecha de inicio')); ?></th>
                                                     <th><?php echo e(__('Fecha final')); ?></th>
-                                                    <th><?php echo e(__('Action')); ?></th>
+                                                    <?php if($objUser->type == 'client' || $currentWorkspace->permission == 'Owner'): ?>
+                                                        <th><?php echo e(__('Action')); ?></th>
+                                                    <?php endif; ?>
                                                 </tr>
                                             </thead>
                                             <tbody>
@@ -258,7 +255,7 @@
                                                         <td><a href="#" class="d-block font-weight-500 mb-0"
                                                                 data-ajax-popup="true"
                                                                 data-title="<?php echo e(__('Milestone Details')); ?>"
-                                                                data-url="<?php echo e(route($client_keyword . 'projects.milestone.show', [$currentWorkspace->slug, $milestone->id])); ?>">
+                                                                data-url="<?php echo e(route('projects.milestone.show', [$currentWorkspace->slug, $milestone->id])); ?>">
                                                                 <h5 class="m-0"> <?php echo e($milestone->title); ?> </h5>
                                                             </a></td>
                                                         <td>
@@ -276,7 +273,7 @@
                                                         <td></td>
                                                         <td class="text-right">
                                                             <div class="col-auto">
-                                                                <?php if($currentWorkspace->permission == 'Owner'): ?>
+                                                                <?php if($objUser->type == 'client' || $currentWorkspace->permission == 'Owner'): ?>
                                                                     <a href="#"
                                                                         class="action-btn btn-info mx-1  btn btn-sm d-inline-flex align-items-center"
                                                                         data-ajax-popup="true" data-size="lg"
@@ -297,13 +294,13 @@
                                                                         <?php echo csrf_field(); ?>
                                                                         <?php echo method_field('DELETE'); ?>
                                                                     </form>
-                                                                <?php elseif($currentWorkspace->permission == 'Member' || $currentWorkspace->permission == 'Owner'): ?>
+                                                                <?php elseif($objUser->type == 'client' || $currentWorkspace->permission == 'Owner'): ?>
                                                                     <a href="#"
                                                                         class="action-btn btn-info mx-1  btn btn-sm d-inline-flex align-items-center bs-pass-para"
                                                                         data-ajax-popup="true" data-size="lg"
                                                                         data-title="<?php echo e(__('Edit Milestone')); ?>"
                                                                         data-toggle="popover" title="<?php echo e(__('Edit')); ?>"
-                                                                        data-url="<?php echo e(route($client_keyword . 'projects.milestone.edit', [$currentWorkspace->slug, $milestone->id])); ?>"><i
+                                                                        data-url="<?php echo e(route('projects.milestone.edit', [$currentWorkspace->slug, $milestone->id])); ?>"><i
                                                                             class="ti ti-edit"></i></a>
 
                                                                     <?php if($currentWorkspace->permission == 'Owner'): ?>
@@ -316,7 +313,7 @@
                                                                             data-confirm-yes="delete-form1-<?php echo e($milestone->id); ?>"><i
                                                                                 class="ti ti-trash"></i></a>
                                                                         <form id="delete-form1-<?php echo e($milestone->id); ?>"
-                                                                            action="<?php echo e(route($client_keyword . 'projects.milestone.destroy', [$currentWorkspace->slug, $milestone->id])); ?>"
+                                                                            action="<?php echo e(route('projects.milestone.destroy', [$currentWorkspace->slug, $milestone->id])); ?>"
                                                                             method="POST" style="display: none;">
                                                                             <?php echo csrf_field(); ?>
                                                                             <?php echo method_field('DELETE'); ?>
@@ -650,9 +647,9 @@
 <?php $__env->stopPush(); ?>
 <?php $__env->startPush('scripts'); ?>
     <!--
-                                                                                                            <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+                                                                                                                            <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
 
-                                                                                                             -->
+                                                                                                                             -->
     <script src="<?php echo e(asset('assets/js/plugins/apexcharts.min.js')); ?>"></script>
     <script>
         (function() {

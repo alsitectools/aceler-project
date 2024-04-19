@@ -56,15 +56,10 @@
     <meta property="twitter:image" content="<?php echo e(asset($meta_images . $meta_setting['meta_image'])); ?>">
 
     <title>
-        <?php echo e(config('app.name', 'Taskly')); ?> - <?php echo $__env->yieldContent('page-title'); ?>
+        <?php echo e('aCeler Project'); ?> ~<?php echo $__env->yieldContent('page-title'); ?>
     </title>
     <!-- Favicon -->
     <link rel="shortcut icon" href="<?php echo e($logo . 'favicon.png' . '?' . time()); ?>">
-
-
-    <!--  <link rel="icon" href="<?php echo e(asset('assets/images/favicon.svg')); ?>" type="image/x-icon" /> -->
-
-    
 
     <?php if($setting['cust_darklayout'] == 'on'): ?>
         <?php if(isset($SITE_RTL) && $SITE_RTL == 'on'): ?>
@@ -114,18 +109,6 @@
     </script>
     <script>
         feather.replace();
-        // var pctoggle = document.querySelector("#pct-toggler");
-        // if (pctoggle) {
-        //     pctoggle.addEventListener("click", function() {
-        //         if (
-        //             !document.querySelector(".pct-customizer").classList.contains("active")
-        //         ) {
-        //             document.querySelector(".pct-customizer").classList.add("active");
-        //         } else {
-        //             document.querySelector(".pct-customizer").classList.remove("active");
-        //         }
-        //     });
-        // }
 
         var themescolors = document.querySelectorAll(".themes-color > a");
         for (var h = 0; h < themescolors.length; h++) {
@@ -190,7 +173,9 @@
     <?php
         $company_logo = App\Models\Utility::get_logo();
     ?>
-    <div class="custom-login">
+    
+    <div class="custom-login"
+        style="background-image: url('https://alsinadocs.piwigo.com/_datas/n/z/w/nzwsilkwfp/i/uploads/n/z/w/nzwsilkwfp//2021/02/25/20210225104025-91ec746b-xl.png');">
         <div class="login-bg-img">
             <img src="<?php echo e(asset('assets/img/' . $color . '.svg')); ?>" class="login-bg-1">
             <img src="<?php echo e(asset('assets/img/user2.svg')); ?>" class="login-bg-2">
@@ -200,11 +185,9 @@
             <header class="dash-header">
                 <nav class="navbar navbar-expand-md default">
                     <div class="container">
-                        <div class="navbar-brand">
-                            <a class="" href="#">
-                                <img src="<?php echo e(asset($logo . $company_logo)); ?>" class="" alt="logo">
-                            </a>
-                        </div>
+
+                        
+
                         <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
                             data-bs-target="#navbarlogin" aria-controls="navbarTogglerDemo01" aria-expanded="false"
                             aria-label="Toggle navigation">
@@ -251,19 +234,16 @@
                     <div class="container">
                         <div class="row">
                             <div class="col-12">
-                                
                                 <span>
                                     &copy; <?php echo e(date('Y')); ?>
 
-                                    <?php echo e(Utility::getValByName('footer_text') ? Utility::getValByName('footer_text') : config('app.name', 'Taskly')); ?>
-
+                                    <?php echo e('aCeler Project'); ?> ~<?php echo $__env->yieldContent('page-title'); ?>
                                 </span>
                             </div>
                         </div>
                     </div>
                 </div>
             </footer>
-            
 
         </div>
         

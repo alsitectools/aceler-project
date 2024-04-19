@@ -53,17 +53,18 @@ class RegisteredUserController extends Controller
         }
 
         $langList = Utility::langList();
-        $lang = array_key_exists($lang, $langList) ? $lang : 'es';
+        $lang = array_key_exists($lang, $langList) ? $lang : 'en';
         if (empty($lang)) {
             $lang = Utility::getValByName('default_language');
         }
 
-        // App()->setLocale($lang);
+        App()->setLocale($lang);
+        $workspaces = Workspace::all();
 
         if ($setting['signup_button'] == 'on') {
-            return view('auth.register', compact('lang'));
+            return view('auth.register', compact('workspaces', 'lang'));
         } else {
-            // return abort('404', 'Page not found');
+            return abort('404', 'Page not found');
         }
         return view('auth.register', compact('lang'));
     }

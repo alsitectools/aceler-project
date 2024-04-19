@@ -299,6 +299,14 @@ Route::group(['middleware' => ['verified']], function () {
     Route::delete('/{slug}/projects/{id}/task-board/{tid}', [ProjectController::class, 'taskDestroy'])->name('tasks.destroy')->middleware(['auth:client', 'XSS']);
     Route::get('/{slug}/projects/{id}/task-board/{tid}/{cid?}', [ProjectController::class, 'taskShow'])->name('tasks.show')->middleware(['auth:client', 'XSS']);;
 
+    /*=========== Milestone board =============*/
+    Route::get('/{slug}/projects/{id}/milestone-board', [ProjectController::class, 'milestoneBoard'])->name('projects.milestone.board')->middleware(['auth:client', 'XSS']);
+    Route::post('/{slug}/projects/milestone-board/{id}/store', [ProjectController::class, 'milestoneStore'])->name('projects.milestone.store')->middleware(['auth', 'XSS']);
+    Route::get('/{slug}/projects/milestone-board/{id}/show', [ProjectController::class, 'milestoneShow'])->name('projects.milestone.show')->middleware(['auth', 'XSS']);
+    Route::get('/{slug}/projects/milestone-board/{id}/edit', [ProjectController::class, 'milestoneEdit'])->name('projects.milestone.edit')->middleware(['auth', 'XSS']);
+    Route::post('/{slug}/projects/milestone-board/{id}/update', [ProjectController::class, 'milestoneUpdate'])->name('projects.milestone.update')->middleware(['auth', 'XSS']);
+    Route::delete('/{slug}/projects/milestone-board/{id}', [ProjectController::class, 'milestoneDestroy'])->name('projects.milestone.destroy')->middleware(['auth', 'XSS']);
+    
     Route::get('/{slug}/timesheet', [ProjectController::class, 'timesheet'])->name('timesheet.index')->middleware(['auth:client', 'XSS']);
     Route::get('/{slug}/timesheet-table-view', [ProjectController::class, 'filterTimesheetTableView'])->name('filter.timesheet.table.view')->middleware(['auth:client', 'XSS']);
     Route::get('/{slug}/timesheet/{id}', [ProjectController::class, 'projectsTimesheet'])->name('projects.timesheet.index')->middleware(['auth:client', 'XSS']);
@@ -595,8 +603,9 @@ Route::group(['middleware' => ['verified']], function () {
   Route::delete('/{slug}/projects/{id}/file/delete/{fid}', [ProjectController::class, 'fileDelete'])->name('projects.file.delete')->middleware(['auth', 'XSS']);
 
   // Task Board
-  Route::get('/{slug}/projects/client/task-board/{code}', [ProjectController::class, 'taskBoard'])->name('projects.client.task.board');
+  // Route::get('/{slug}/projects/client/task-board/{code}', [ProjectController::class, 'taskBoard'])->name('projects.client.task.board');
   Route::get('/{slug}/projects/{id}/task-board', [ProjectController::class, 'taskBoard'])->name('projects.task.board')->middleware(['auth', 'XSS']);
+  Route::get('/{slug}/projects/{id}/milestone-board', [ProjectController::class, 'milestoneBoard'])->name('projects.milestone.board')->middleware(['auth', 'XSS']);
   Route::get('/{slug}/projects/{id}/task-board/create', [ProjectController::class, 'taskCreate'])->name('tasks.create')->middleware(['auth', 'XSS']);
   Route::post('/{slug}/projects/{id}/task-board', [ProjectController::class, 'taskStore'])->name('tasks.store')->middleware(['auth', 'XSS']);
   Route::post('/{slug}/projects/{id}/task-board/order-update', [ProjectController::class, 'taskOrderUpdate'])->name('tasks.update.order');

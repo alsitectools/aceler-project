@@ -56,35 +56,10 @@
     <meta property="twitter:image" content="{{ asset($meta_images . $meta_setting['meta_image']) }}">
 
     <title>
-        {{ config('app.name', 'Taskly') }} - @yield('page-title')
+        {{ 'aCeler Project' }} ~@yield('page-title')
     </title>
     <!-- Favicon -->
     <link rel="shortcut icon" href="{{ $logo . 'favicon.png' . '?' . time() }}">
-
-
-    <!--  <link rel="icon" href="{{ asset('assets/images/favicon.svg') }}" type="image/x-icon" /> -->
-
-    {{-- @if ($setting['cust_darklayout'] == 'on')
-        @if (isset($SITE_RTL) && $SITE_RTL == 'on')
-            <link rel="stylesheet" href="{{ asset('assets/css/style-rtl.css') }}" id="main-style-link">
-        @endif
-        <link rel="stylesheet" href="{{ asset('assets/css/style-dark.css') }}">
-    @else
-        @if (isset($SITE_RTL) && $SITE_RTL == 'on')
-            <link rel="stylesheet" href="{{ asset('assets/css/style-rtl.css') }}" id="main-style-link">
-        @else
-            <link rel="stylesheet" href="{{ asset('assets/css/style.css') }}" id="main-style-link">
-        @endif
-    @endif
-
-    <link rel="stylesheet" href="{{ asset('assets/css/custom-auth.css') }}" id="main-style-link">
-    @if (isset($SITE_RTL) && $SITE_RTL == 'on')
-        <link rel="stylesheet" href="{{ asset('assets/css/custom-auth-rtl.css') }}" id="main-style-link">
-    @endif
-
-    @if ($setting['cust_darklayout'] == 'on')
-        <link rel="stylesheet" href="{{ asset('assets/css/custom-dark.css') }}" id="main-style-link">
-    @endif --}}
 
     @if ($setting['cust_darklayout'] == 'on')
         @if (isset($SITE_RTL) && $SITE_RTL == 'on')
@@ -134,18 +109,6 @@
     </script>
     <script>
         feather.replace();
-        // var pctoggle = document.querySelector("#pct-toggler");
-        // if (pctoggle) {
-        //     pctoggle.addEventListener("click", function() {
-        //         if (
-        //             !document.querySelector(".pct-customizer").classList.contains("active")
-        //         ) {
-        //             document.querySelector(".pct-customizer").classList.add("active");
-        //         } else {
-        //             document.querySelector(".pct-customizer").classList.remove("active");
-        //         }
-        //     });
-        // }
 
         var themescolors = document.querySelectorAll(".themes-color > a");
         for (var h = 0; h < themescolors.length; h++) {
@@ -210,7 +173,9 @@
     @php
         $company_logo = App\Models\Utility::get_logo();
     @endphp
-    <div class="custom-login">
+    {{-- Opcion de fondo --}}
+    <div class="custom-login"
+        style="background-image: url('https://alsinadocs.piwigo.com/_datas/n/z/w/nzwsilkwfp/i/uploads/n/z/w/nzwsilkwfp//2021/02/25/20210225104025-91ec746b-xl.png');">
         <div class="login-bg-img">
             <img src="{{ asset('assets/img/' . $color . '.svg') }}" class="login-bg-1">
             <img src="{{ asset('assets/img/user2.svg') }}" class="login-bg-2">
@@ -220,11 +185,15 @@
             <header class="dash-header">
                 <nav class="navbar navbar-expand-md default">
                     <div class="container">
-                        <div class="navbar-brand">
-                            <a class="" href="#">
-                                <img src="{{ asset($logo . $company_logo) }}" class="" alt="logo">
-                            </a>
-                        </div>
+
+                        {{-- <div class="navbar-brand">
+                            <div class="d-none d-md-block"> <!-- Oculta en pantallas pequeñas -->
+                                <a class="" href="#">
+                                    <img  width="200px" src="{{ asset('assets/img/favicon.png') }}">
+                                </a>
+                            </div>
+                        </div> --}}
+
                         <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
                             data-bs-target="#navbarlogin" aria-controls="navbarTogglerDemo01" aria-expanded="false"
                             aria-label="Toggle navigation">
@@ -269,17 +238,15 @@
                     <div class="container">
                         <div class="row">
                             <div class="col-12">
-                                {{-- <span class=""> {{ env('FOOTER_TEXT') }}</span> --}}
                                 <span>
                                     &copy; {{ date('Y') }}
-                                    {{ Utility::getValByName('footer_text') ? Utility::getValByName('footer_text') : config('app.name', 'Taskly') }}
+                                    {{ 'aCeler Project' }} ~@yield('page-title')
                                 </span>
                             </div>
                         </div>
                     </div>
                 </div>
             </footer>
-            {{-- @yield('content') --}}
 
         </div>
         {{-- <div class="auth-footer">
