@@ -175,7 +175,7 @@
     ?>
     
     <div class="custom-login"
-        style="background-image: url('https://alsinadocs.piwigo.com/_datas/n/z/w/nzwsilkwfp/i/uploads/n/z/w/nzwsilkwfp//2021/02/25/20210225104025-91ec746b-xl.png');">
+        style="background-image: url('https://alsinadocs.piwigo.com/_datas/n/z/w/nzwsilkwfp/i/uploads/n/z/w/nzwsilkwfp//2021/02/25/20210225104025-91ec746b-xl.png'); background-repeat: no-repeat;">
         <div class="login-bg-img">
             <img src="<?php echo e(asset('assets/img/' . $color . '.svg')); ?>" class="login-bg-1">
             <img src="<?php echo e(asset('assets/img/user2.svg')); ?>" class="login-bg-2">
@@ -229,16 +229,16 @@
                 </div>
             </div>
 
-            <footer>
+            <footer class="text-center">
                 <div class="auth-footer">
                     <div class="container">
-                        <div class="row">
-                            <div class="col-12">
-                                <span>
+                        <div class="row justify-content-center">
+                            <div class=" col-6 col-md-4 rounded text-center" style="background: white; color: #AA182C;">
+                                <a href="#"> <span>
                                     &copy; <?php echo e(date('Y')); ?>
 
-                                    <?php echo e('aCeler Project'); ?> ~<?php echo $__env->yieldContent('page-title'); ?>
-                                </span>
+                                 <?php echo e('aCeler Project'); ?> ~<?php echo $__env->yieldContent('page-title'); ?>   
+                                </span></a>
                             </div>
                         </div>
                     </div>
@@ -246,14 +246,8 @@
             </footer>
 
         </div>
-        
     </div>
-    </div>
-    <!-- [ auth-signup ] end -->
 
-    <!-- Required Js -->
-
-    
     <?php if($meta_setting['enable_cookie'] == 'on'): ?>
         <?php echo $__env->make('layouts.cookie_consent', \Illuminate\Support\Arr::except(get_defined_vars(), ['__data', '__path']))->render(); ?>
     <?php endif; ?>

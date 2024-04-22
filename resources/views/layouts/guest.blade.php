@@ -175,7 +175,7 @@
     @endphp
     {{-- Opcion de fondo --}}
     <div class="custom-login"
-        style="background-image: url('https://alsinadocs.piwigo.com/_datas/n/z/w/nzwsilkwfp/i/uploads/n/z/w/nzwsilkwfp//2021/02/25/20210225104025-91ec746b-xl.png');">
+        style="background-image: url('https://alsinadocs.piwigo.com/_datas/n/z/w/nzwsilkwfp/i/uploads/n/z/w/nzwsilkwfp//2021/02/25/20210225104025-91ec746b-xl.png'); background-repeat: no-repeat;">
         <div class="login-bg-img">
             <img src="{{ asset('assets/img/' . $color . '.svg') }}" class="login-bg-1">
             <img src="{{ asset('assets/img/user2.svg') }}" class="login-bg-2">
@@ -186,12 +186,9 @@
                 <nav class="navbar navbar-expand-md default">
                     <div class="container">
 
-                        {{-- <div class="navbar-brand">
-                            <div class="d-none d-md-block"> <!-- Oculta en pantallas pequeñas -->
-                                <a class="" href="#">
-                                    <img  width="200px" src="{{ asset('assets/img/favicon.png') }}">
-                                </a>
-                            </div>
+                        {{-- <div class="navbar-brand d-none d-md-block" style="width: 620px; background:#AA182C; overflow: hidden;">
+                            <img style="width: 100%; margin: 0; padding: 0; border: 0; display: block;"
+                                src="{{ asset('assets/img/portada.jpg') }}" alt="Imagen de portada">
                         </div> --}}
 
                         <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
@@ -233,15 +230,15 @@
                 </div>
             </div>
 
-            <footer>
+            <footer class="text-center">
                 <div class="auth-footer">
                     <div class="container">
-                        <div class="row">
-                            <div class="col-12">
-                                <span>
+                        <div class="row justify-content-center">
+                            <div class=" col-6 col-md-4 rounded text-center" style="background: white; color: #AA182C;">
+                                <a href="#"> <span>
                                     &copy; {{ date('Y') }}
-                                    {{ 'aCeler Project' }} ~@yield('page-title')
-                                </span>
+                                 {{ 'aCeler Project' }} ~@yield('page-title')   
+                                </span></a>
                             </div>
                         </div>
                     </div>
@@ -249,67 +246,8 @@
             </footer>
 
         </div>
-        {{-- <div class="auth-footer">
-            <div class="container-fluid">
-                <div class="row">
-
-                    <div class="col-12">
-                        <ul class="list-inline mb-1">
-
-                        </ul>
-                        <p class=""> {{ env('FOOTER_TEXT') }}</p>
-                    </div>
-
-                </div>
-            </div>
-        </div> --}}
     </div>
-    </div>
-    <!-- [ auth-signup ] end -->
 
-    <!-- Required Js -->
-
-    {{-- <div class="pct-customizer">
-        <div class="pct-c-btn">
-            <button class="btn btn-primary" id="pct-toggler">
-                <i data-feather="settings"></i>
-            </button>
-        </div>
-        <div class="pct-c-content">
-            <div class="pct-header bg-primary">
-                <h5 class="mb-0 text-white f-w-500">Theme Customizer</h5>
-            </div>
-            <div class="pct-body">
-                <h6 class="mt-2">
-                    <i data-feather="credit-card" class="me-2"></i>Primary color settings
-                </h6>
-                <hr class="my-2" />
-                <div class="theme-color themes-color">
-                    <a href="#!" class="" data-value="theme-1"></a>
-                    <a href="#!" class="" data-value="theme-2"></a>
-                    <a href="#!" class="" data-value="theme-3"></a>
-                    <a href="#!" class="" data-value="theme-4"></a>
-                </div>
-
-                <h6 class="mt-4">
-                    <i data-feather="layout" class="me-2"></i>Sidebar settings
-                </h6>
-                <hr class="my-2" />
-                <div class="form-check form-switch">
-                    <input type="checkbox" class="form-check-input" id="cust-theme-bg" checked />
-                    <label class="form-check-label f-w-600 pl-1" for="cust-theme-bg">Transparent layout</label>
-                </div>
-                <h6 class="mt-4">
-                    <i data-feather="sun" class="me-2"></i>Layout settings
-                </h6>
-                <hr class="my-2" />
-                <div class="form-check form-switch mt-2">
-                    <input type="checkbox" class="form-check-input" id="cust-darklayout" />
-                    <label class="form-check-label f-w-600 pl-1" for="cust-darklayout">Dark Layout</label>
-                </div>
-            </div>
-        </div>
-    </div> --}}
     @if ($meta_setting['enable_cookie'] == 'on')
         @include('layouts.cookie_consent')
     @endif
