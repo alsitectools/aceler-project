@@ -174,21 +174,10 @@
         $company_logo = App\Models\Utility::get_logo();
     ?>
     
-    <style>
-        .custom-login {
-            background-image: url('https://alsinadocs.piwigo.com/_datas/n/z/w/nzwsilkwfp/i/uploads/n/z/w/nzwsilkwfp//2021/02/25/20210225104025-91ec746b-xl.png');
-            background-repeat: no-repeat;
-            height: 100vh;
-        }
-
-        .login-bg-img .login-bg-1 {
-            fill: #AA182C;
-        }
-    </style>
-
-    <div class="custom-login">
+    <div class="custom-login"
+        style="background-image: url('https://alsinadocs.piwigo.com/_datas/n/z/w/nzwsilkwfp/i/uploads/n/z/w/nzwsilkwfp//2021/02/25/20210225104025-91ec746b-xl.png'); background-repeat: no-repeat;">
         <div class="login-bg-img">
-            <img src="<?php echo e(asset('assets/img/theme-alsina.svg')); ?>" class="login-bg-1">
+            <img src="<?php echo e(asset('assets/img/' . $color . '.svg')); ?>" class="login-bg-1">
             <img src="<?php echo e(asset('assets/img/user2.svg')); ?>" class="login-bg-2">
         </div>
         <div class="bg-login bg-primary"></div>
@@ -246,10 +235,10 @@
                         <div class="row justify-content-center">
                             <div class=" col-6 col-md-4 rounded text-center" style="background: white; color: #AA182C;">
                                 <a href="#"> <span>
-                                        &copy; <?php echo e(date('Y')); ?>
+                                    &copy; <?php echo e(date('Y')); ?>
 
-                                        <?php echo e('aCeler Project'); ?> ~<?php echo $__env->yieldContent('page-title'); ?>
-                                    </span></a>
+                                 <?php echo e('aCeler Project'); ?> ~<?php echo $__env->yieldContent('page-title'); ?>   
+                                </span></a>
                             </div>
                         </div>
                     </div>
