@@ -115,7 +115,6 @@
                                     <button type="submit" class="btn-submit btn btn-primary col-sm-auto col-12">
                                         {{ __('Save Changes') }}
                                     </button>
-
                     </form>
                     @if ($user->avatar != '')
                         <form

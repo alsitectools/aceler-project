@@ -15,7 +15,11 @@
     @else
         <li class="breadcrumb-item"><a href="{{ route('home') }}">{{ __('Home') }}</a></li>
     @endif
+<<<<<<< HEAD
+    <li class="breadcrumb-item"> {{ __('company') }}</li>
+=======
     <li class="breadcrumb-item"> {{ __('messages.company') }}</li>
+>>>>>>> production
 @endsection
 @section('action-button')
     @auth('web')
@@ -37,6 +41,10 @@
         @endif
     @endauth
 @endsection
+<<<<<<< HEAD
+
+=======
+>>>>>>> production
 @section('content')
 
     @if ((isset($currentWorkspace) && $currentWorkspace) || Auth::user()->type == 'admin')

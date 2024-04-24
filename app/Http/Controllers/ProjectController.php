@@ -90,7 +90,6 @@ class ProjectController extends Controller
         $post['start_date'] = $post['end_date'] = date('Y-m-d');
         $post['workspace'] = $currentWorkspace->id;
         $post['created_by'] = $objUser->id;
-
         $userList[] = $objUser->email;
         $userList = array_filter($userList);
         $objProject = Project::create($post);
@@ -339,12 +338,10 @@ class ProjectController extends Controller
         $objProject = Project::find($projectID);
         foreach ($userList as $email) {
             $permission = 'Member';
-
             $registerUsers = User::where('email', $email)->first();
             if ($registerUsers) {
                 $this->inviteUser($registerUsers, $objProject, $permission);
             } else {
-
                 $arrUser = [];
                 $arrUser['name'] = 'No Name';
                 $arrUser['email'] = $email;
@@ -763,7 +760,6 @@ class ProjectController extends Controller
 
     public function taskStore(Request $request, $slug, $projectID)
     {
-
         $validator = Validator::make(
             $request->all(),
             [
@@ -784,7 +780,6 @@ class ProjectController extends Controller
         $currentWorkspace = Utility::getWorkspaceBySlug($slug);
         $user = $currentWorkspace->id;
         $project_name = Project::where('id', $request->project_id)->first();
-
 
         $project = Project::select('projects.*')->join('user_projects', 'user_projects.project_id', '=', 'projects.id')
             ->where('user_projects.user_id', '=', $objUser->id)
@@ -870,7 +865,6 @@ class ProjectController extends Controller
             return redirect()->back()->with('error', __("You can't Add Task!"));
         }
     }
-
     public function taskOrderUpdate(Request $request, $slug, $projectID)
     {
         $currentWorkspace = Utility::getWorkspaceBySlug($slug);
@@ -2327,7 +2321,6 @@ class ProjectController extends Controller
                 $tasks->orderBy($sort[0], $sort[1]);
             }
         }
-
         if ($request->start_date && $request->end_date) {
             $tasks->whereBetween(
                 'tasks.due_date',
@@ -2339,7 +2332,6 @@ class ProjectController extends Controller
         }
         $tasks = $tasks->with('project')->get();
         $data = [];
-
         foreach ($tasks as $task) {
             $tmp = [];
             $tmp['title'] = '<a href="' . route(

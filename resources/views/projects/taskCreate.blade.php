@@ -28,7 +28,6 @@
                         @endforeach
                     </select>
                 </div>
-
                 <div class="form-group col-md-12">
                     <label class="col-form-label">{{ __('Title') }}</label>
                     <input type="text" class="form-control form-control-light" id="task-title"

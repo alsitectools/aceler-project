@@ -53,7 +53,6 @@
                                 </span>
                             @enderror
                         </div>
-
                         <div class="form-group mb-3">
                             <label for="password" class="form-label">{{ __('Password') }}</label>
                             <input type="password" class="form-control @error('password') is-invalid @enderror"
