@@ -85,7 +85,7 @@ class ProjectController extends Controller
 
         $post = $request->all();
         $post['ref_mo'] = $request->ref_mo;
-        $post['type'] = $request->type;
+        $post['project_type'] = $request->type;
 
         $post['start_date'] = $post['end_date'] = date('Y-m-d');
         $post['workspace'] = $currentWorkspace->id;
@@ -172,9 +172,15 @@ class ProjectController extends Controller
             //     return redirect()->back()->with('error', __('Webhook call failed.'));
             // }
         }
+        // echo "Nombre de proyecto: ";
+        // echo $request->name;
+        // echo "========================";
+        // echo "Tipo de proyecto: ";
+        // echo $request->type;
+        print_r($request->all());
 
-        return redirect()->route('projects.index', $currentWorkspace->slug)
-            ->with('success', __('Project Created Successfully!') . ((isset($smtp_error)) ? ' <br> <span class="text-danger">' . $smtp_error . '</span>' : ''));
+        // return redirect()->route('projects.index', $currentWorkspace->slug)
+        //     ->with('success', __('Project Created Successfully!') . ((isset($smtp_error)) ? ' <br> <span class="text-danger">' . $smtp_error . '</span>' : ''));
     }
 
     public function export()

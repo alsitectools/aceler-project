@@ -46,7 +46,6 @@
                     </div>
                 </div><!-- end col-->
             </div>
-
             <div class="filters-content">
                 <div class="row grid">
                     <?php $__currentLoopData = $projects; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $project): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
@@ -208,7 +207,6 @@
                             </div>
                         <?php endif; ?>
                     <?php endif; ?>
-
                 </div>
             </div>
         <?php else: ?>
@@ -237,11 +235,12 @@
                     </div>
                 </div>
             </div>
+        </section>
     <?php endif; ?>
 <?php $__env->stopSection(); ?>
 
 <?php $__env->startPush('css-page'); ?>
-<?php $__env->stopPush(); ?>
+<?php $__env->stopPush(); ?> 
 
 <?php $__env->startPush('scripts'); ?>
     <script src="<?php echo e(asset('assets/custom/js/isotope.pkgd.min.js')); ?>"></script>

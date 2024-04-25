@@ -8,21 +8,25 @@
                     placeholder="{{ __('Número master obra') }}">
             </div>
 
-            <div id="projectType" class="form-group col-md-6">
+            <div class="form-group col-md-6">
                 <label for="projectType" class="col-form-label">{{ __('Tipo de proyecto') }}</label>
                 <button id="opcionBtn" class="btn btn-primary dropdown-toggle col-md-12" type="button"
                     data-bs-toggle="dropdown" aria-expanded="false">Seleccionar Opción</button>
+
                 <ul class="dropdown-menu">
+
                     @foreach ($project_type as $type)
-                        <li><button class="dropdown-item">{{ $type->name }}</button></li>
-                        <li><button class="type" style="display:none"></button></li>
+                        <input class="dropdown-item" id="type" name="type" data-id="{{ $type->id }}">
+                        {{ $type->name }}
+
+                        >
                     @endforeach
                 </ul>
             </div>
 
             <div class="form-group col-md-12">
                 <label for="projectname" class="col-form-label">{{ __('Name') }}</label>
-                <input class="form-control" type="text" id="projectname" name="name" required=""
+                <input class="form-control" type="text" id="projectname" name="projectname" required=""
                     placeholder="{{ __('Project Name') }}">
                 <input class="form-control" type="text" id="name" name="name" required=""
                     placeholder="{{ __('Project Name') }}" style="display:none">
@@ -44,53 +48,46 @@
     @endforeach
 
     $(document).ready(function() {
+        let typeId = $('#type').data('id');
+
         $('#ref_mo').on('input', function() {
-            var moValue = $(this).val().trim();
+            let moValue = $(this).val().trim();
 
-            if (moValue === '') {
-                $('#opcionBtn').text('Seleccionar Opción');
-                $('#opcionBtn').prop('disabled', false);
-                $('#projectname').val('');
-                $('#projectname').prop('disabled', false);
-                $('#name').val('');
-
-            } else {
+            if (masterObras[moValue]) {
                 $('#projectType .dropdown-menu .dropdown-item:first').trigger('click');
                 $('#opcionBtn').prop('disabled', true);
+                $('#projectname').val(masterObras[moValue]);
+                $('#name').val(masterObras[moValue]);
+                $('#ref_mo').val(moValue);
+                $('#type').val(typeId);
+                $('#projectname').prop('disabled', true);
 
-                for (var ref_mo in masterObras) {
-                    if (moValue == ref_mo) {
-
-                        $('#projectname').val(masterObras[ref_mo]);
-                        $('#name').val(masterObras[ref_mo]);
-                        $('#ref_mo').val(ref_mo);
-                        $('#projectname').prop('disabled', true);
-                        break;
-                    }
-
-                }
+            } else {
+                $('#opcionBtn').text('Seleccionar Opción');
+                $('#opcionBtn').prop('disabled', false);
+                $('#projectname').prop('disabled', false);
+                $('#name').val('');
             }
         });
 
-        //================================ NO GUARDA EL PROYECTO CTM  los que son require no los recibe :(========================//
-
-        // Evento para actualizar el texto del botón cuando se selecciona una opción del dropdown
+        //un evento que solo mira el funcionamiento de menu deplegable
         $('.dropdown-item').on('click', function() {
-            var opcionSeleccionada = $(this).text();
+
+            let opcionSeleccionada = $(this).text();
             $('#opcionBtn').text(opcionSeleccionada);
 
-
             if (opcionSeleccionada === 'Obra') {
-                var selectedOption = $(this).data('name');
                 $('#ref_mo').prop('required', true);
-
-            } else {
-                $('#opcionBtn').prop('disabled', false);
-                $('#ref_mo').prop('required', false);
                 $('#projectname').val('');
-                $('#type').val(opcionSeleccionada);
+                $('#name').val('');
+                $('#optionBtn').val(opcionSeleccionada);
+                $('#ref_mo').prop('disabled', false);
+            } else {
+                $('#optionBtn').val(opcionSeleccionada);
+                $('#opcionBtn').prop('disabled', false);
+                $('#opcionBtn').prop('disabled', false);
+                $('#ref_mo').prop('disabled', true);
             }
-
         });
     });
 </script>
