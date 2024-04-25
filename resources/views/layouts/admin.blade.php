@@ -745,8 +745,7 @@
     @endif
     <script></script>
     @include('partials.footer')
-    {{-- @include('Chatify::layouts.footerLinks') --}}
-    
+    @include('Chatify::layouts.footerLinks')
 </body>
 
 </html>

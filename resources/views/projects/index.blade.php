@@ -45,6 +45,7 @@
                     </div>
                 </div><!-- end col-->
             </div>
+
             <div class="filters-content">
                 <div class="row grid">
                     @foreach ($projects as $project)
@@ -94,7 +95,7 @@
                                                             data-url="{{ route('projects.invite.popup', [$currentWorkspace->slug, $project->id]) }}">
                                                             <i class="ti ti-user-plus"></i>
                                                             <span>{{ __('Invite Users') }}</span>
-                                                         </a> --}}
+                                                        </a> --}}
                                                             <a href="#" class="dropdown-item" data-ajax-popup="true"
                                                                 data-size="lg" data-title="{{ __('Edit Project') }}"
                                                                 data-url="{{ route('projects.edit', [$currentWorkspace->slug, $project->id]) }}">
@@ -210,6 +211,7 @@
                             </div>
                         @endif
                     @endauth
+
                 </div>
             </div>
         @else
@@ -236,12 +238,11 @@
                     </div>
                 </div>
             </div>
-        </section>
     @endif
 @endsection
 
 @push('css-page')
-@endpush 
+@endpush
 
 @push('scripts')
     <script src="{{ asset('assets/custom/js/isotope.pkgd.min.js') }}"></script>
