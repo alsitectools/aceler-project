@@ -13,8 +13,6 @@
 @endsection
 
 @php
-    //$masterObra = @json($masterObras);
-    // $logo=\App\Models\Utility::get_file('users-avatar/');
     $logo = \App\Models\Utility::get_file('avatars/');
 @endphp
 @section('action-button')
