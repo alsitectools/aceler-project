@@ -14,6 +14,7 @@
 <?php $__env->stopSection(); ?>
 
 <?php
+    //$masterObra = @json($masterObras);
     // $logo=\App\Models\Utility::get_file('users-avatar/');
     $logo = \App\Models\Utility::get_file('avatars/');
 ?>
@@ -44,7 +45,7 @@
                                 data-filter=".OnHold"><?php echo e(__('OnHold')); ?></button>
                         </div>
                     </div>
-                </div><!-- end col-->
+                </div>
             </div>
 
             <div class="filters-content">
@@ -70,74 +71,50 @@
                                         <h5 class="mb-0">
                                             <?php if($project->is_active): ?>
                                                 <a href="<?php if(auth()->guard('web')->check()): ?><?php echo e(route('projects.show', [$currentWorkspace->slug, $project->id])); ?><?php endif; ?>"
-                                                    title="<?php echo e($project->name); ?>" class=""><?php echo e($project->name); ?><i
-                                                        class="ti ti-eye"></i></a></a>
+                                                    title="<?php echo e($project->name); ?>" class="">
+                                                    <p style="padding-left: 20px; padding-right:10px"><?php echo e($project->name); ?>
+
+                                                    </p>
+
+                                                </a></a>
                                             <?php else: ?>
                                                 <a href="#" title="<?php echo e(__('Locked')); ?>"
                                                     class=""><?php echo e($project->name); ?></a>
                                             <?php endif; ?>
                                         </h5>
                                     </div>
-                                    <div class="card-header-right">
-                                        <div class="btn-group card-option">
-                                            <?php if(auth()->guard('web')->check()): ?>
-                                                <button type="button" class="btn dropdown-toggle" data-bs-toggle="dropdown"
-                                                    aria-haspopup="true" aria-expanded="false">
-                                                    <i class="feather icon-more-vertical"></i>
-                                                </button>
-                                                <div class="dropdown-menu dropdown-menu-end">
+                                    <?php if($project->is_active && Auth::user()->type == 'admin'): ?>
+                                        <div class="card-header-right">
+                                            <div class="btn-group card-option">
+                                                <?php if(auth()->guard('web')->check()): ?>
+                                                    <button type="button" class="btn dropdown-toggle" data-bs-toggle="dropdown"
+                                                        aria-haspopup="true" aria-expanded="false">
+                                                        <i class="feather icon-more-vertical"></i>
+                                                    </button>
+                                                    <div class="dropdown-menu dropdown-menu-end">
 
-
-                                                    <?php if($project->is_active): ?>
-                                                        
-                                                        <?php if(\Auth::user()->type == 'admin'): ?>
-                                                            
-                                                            <a href="#" class="dropdown-item" data-ajax-popup="true"
-                                                                data-size="lg" data-title="<?php echo e(__('Edit Project')); ?>"
-                                                                data-url="<?php echo e(route('projects.edit', [$currentWorkspace->slug, $project->id])); ?>">
-                                                                <i class="ti ti-edit"></i> <span><?php echo e(__('Edit')); ?></span>
-                                                            </a>
-
-                                                            <a href="#" class="dropdown-item" data-ajax-popup="true"
-                                                                data-size="md" data-title="<?php echo e(__('Duplicate Project')); ?>"
-                                                                data-url="<?php echo e(route('project.copy', [$currentWorkspace->slug, $project->id])); ?>">
-                                                                <i class="ti ti-copy"></i> <span><?php echo e(__('Duplicate')); ?></span>
-                                                            </a>
-                                                            <a href="#"
-                                                                class="dropdown-item text-danger delete-popup bs-pass-para"
-                                                                data-confirm="<?php echo e(__('Are You Sure?')); ?>"
-                                                                data-text="<?php echo e(trans('messages.This_action_can_not_be_undone._Do_you_want_to_continue?')); ?>"
-                                                                data-confirm-yes="delete-form-<?php echo e($project->id); ?>">
-                                                                <i class="ti ti-trash"></i> <span><?php echo e(__('Delete')); ?></span>
-                                                            </a>
-                                                            <form id="delete-form-<?php echo e($project->id); ?>"
-                                                                action="<?php echo e(route('projects.destroy', [$currentWorkspace->slug, $project->id])); ?>"
-                                                                method="POST" style="display: none;">
-                                                                <?php echo csrf_field(); ?>
-                                                                <?php echo method_field('DELETE'); ?>
-                                                            </form>
-                                                        <?php else: ?>
-                                                            
-                                                            <a href="#" class="dropdown-item" data-ajax-popup="true"
-                                                                data-size="md" data-title="<?php echo e(__('Share to Clients')); ?>"
-                                                                data-url="<?php echo e(route('projects.share.popup', [$currentWorkspace->slug, $project->id])); ?>">
-                                                                <i class="ti ti-share"></i>
-                                                                <span><?php echo e(__('Share to Clients')); ?></span>
-                                                            </a>
-                                                        <?php endif; ?>
-                                                    <?php else: ?>
-                                                        <a href="#" class="dropdown-item" title="<?php echo e(__('Locked')); ?>">
-                                                            <i data-feather="lock"></i> <span><?php echo e(__('Locked')); ?></span>
+                                                        <a href="#"
+                                                            class="dropdown-item text-danger delete-popup bs-pass-para"
+                                                            data-confirm="<?php echo e(__('Are You Sure?')); ?>"
+                                                            data-text="<?php echo e(trans('messages.This_action_can_not_be_undone._Do_you_want_to_continue?')); ?>"
+                                                            data-confirm-yes="delete-form-<?php echo e($project->id); ?>">
+                                                            <i class="ti ti-trash"></i> <span><?php echo e(__('Delete')); ?></span>
                                                         </a>
-                                                    <?php endif; ?>
-
-                                                </div>
-                                            <?php endif; ?>
+                                                        <form id="delete-form-<?php echo e($project->id); ?>"
+                                                            action="<?php echo e(route('projects.destroy', [$currentWorkspace->slug, $project->id])); ?>"
+                                                            method="POST" style="display: none;">
+                                                            <?php echo csrf_field(); ?>
+                                                            <?php echo method_field('DELETE'); ?>
+                                                        </form>
+                                                    </div>
+                                                <?php endif; ?>
+                                            </div>
                                         </div>
-                                    </div>
+                                    <?php endif; ?>
                                 </div>
                                 <div class="card-body">
                                     <div class="row g-2 justify-content-between">
+
                                         <?php if($project->status == 'Finished'): ?>
                                             <div class="col-auto"><span
                                                     class="badge rounded-pill bg-success"><?php echo e(__('Finished')); ?></span>
@@ -156,6 +133,7 @@
                                             <p class="mb-0"><b><?php echo e(__('Due Date:')); ?></b> <?php echo e($project->end_date); ?></p>
                                         </div>
                                     </div>
+
                                     
                                     <p class="text-muted text-sm mt-3"><?php echo e($project->description); ?></p>
                                     <h6 class="text-muted"><?php echo e(trans('Members')); ?></h6>
@@ -171,16 +149,22 @@
                                         <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
 
                                     </div>
-                                    <div class="card mb-0 mt-3">
+                                    <div class="card mb-0 mt-3" style="background-color: #AA182C color: white; ">
                                         <div class="card-body p-3">
                                             <div class="row">
-                                                <div class="col-6">
-                                                    <h6 class="mb-0"><?php echo e($project->countTask()); ?></h6>
-                                                    <p class="text-muted text-sm mb-0"><?php echo e(trans('Tasks')); ?></p>
+                                                <div class="col-6 text" style="background-color: #AA182C color: white;">
+                                                    <?php if(isset($project_type[$project->project_type - 1]) &&
+                                                            $project_type[$project->project_type - 1]->id == $project->project_type): ?>
+                                                        <p aria-hidden="true">
+                                                            <span
+                                                                class="text-muted"><b><?php echo e($project_type[$project->project_type - 1]->name); ?></b></span>
+                                                        </p>
+                                                    <?php endif; ?>
                                                 </div>
-                                                <div class="col-6 text-end">
-                                                    <h6 class="mb-0"><?php echo e($project->countTaskComments()); ?></h6>
-                                                    <p class="text-muted text-sm mb-0"><?php echo e(__('Comments')); ?></p>
+                                                <div class="col-6 text">
+                                                    <p aria-hidden="true">
+                                                        <span class="text-muted"><b><?php echo e($project->ref_mo); ?></b></span>
+                                                    </p>
                                                 </div>
                                             </div>
                                         </div>

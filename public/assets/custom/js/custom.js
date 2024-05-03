@@ -16,46 +16,46 @@ function isEmail(email) {
     return regex.test(email);
 }
 
- function show_toastr(title, message, type) {
-        var o, i;
-        var icon = '';
-        var cls = '';
-        if (type == 'success') {
-            icon = 'fas fa-check-circle';
-            // cls = 'success';
-            cls = 'primary';
-        } else {
-            icon = 'fas fa-times-circle';
-            cls = 'danger';
-        }
-
-        console.log(type,cls);
-        $.notify({ icon: icon, title: " " + title, message: message, url: "" }, {
-            element: "body",
-            type: cls,
-            allow_dismiss: !0,
-            placement: {
-                from: 'top',
-                align: 'right'
-            },
-            offset: { x: 15, y: 15 },
-            spacing: 10,
-            z_index: 1080,
-            delay: 2500,
-            timer: 2000,
-            url_target: "_blank",
-            mouse_over: !1,
-            animate: { enter: o, exit: i },
-            // danger
-            template: '<div class="toast text-white bg-'+cls+' fade show" role="alert" aria-live="assertive" aria-atomic="true">'
-                    +'<div class="d-flex">'
-                        +'<div class="toast-body"> '+message+' </div>'
-                        +'<button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>'
-                    +'</div>'
-                +'</div>'
-            // template: '<div class="alert alert-{0} alert-icon alert-group alert-notify" data-notify="container" role="alert"><div class="alert-group-prepend alert-content"><span class="alert-group-icon"><i data-notify="icon"></i></span></div><div class="alert-content"><strong data-notify="title">{1}</strong><div data-notify="message">{2}</div></div><button type="button" class="close" data-notify="dismiss" aria-label="Close"><span aria-hidden="true">&times;</span></button></div>'
-        });
+function show_toastr(title, message, type) {
+    var o, i;
+    var icon = '';
+    var cls = '';
+    if (type == 'success') {
+        icon = 'fas fa-check-circle';
+        // cls = 'success';
+        cls = 'primary';
+    } else {
+        icon = 'fas fa-times-circle';
+        cls = 'danger';
     }
+
+    console.log(type, cls);
+    $.notify({ icon: icon, title: " " + title, message: message, url: "" }, {
+        element: "body",
+        type: cls,
+        allow_dismiss: !0,
+        placement: {
+            from: 'top',
+            align: 'right'
+        },
+        offset: { x: 15, y: 15 },
+        spacing: 10,
+        z_index: 1080,
+        delay: 2500,
+        timer: 2000,
+        url_target: "_blank",
+        mouse_over: !1,
+        animate: { enter: o, exit: i },
+        // danger
+        template: '<div class="toast text-white bg-' + cls + ' fade show" role="alert" aria-live="assertive" aria-atomic="true">'
+            + '<div class="d-flex">'
+            + '<div class="toast-body"> ' + message + ' </div>'
+            + '<button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>'
+            + '</div>'
+            + '</div>'
+        // template: '<div class="alert alert-{0} alert-icon alert-group alert-notify" data-notify="container" role="alert"><div class="alert-group-prepend alert-content"><span class="alert-group-icon"><i data-notify="icon"></i></span></div><div class="alert-content"><strong data-notify="title">{1}</strong><div data-notify="message">{2}</div></div><button type="button" class="close" data-notify="dismiss" aria-label="Close"><span aria-hidden="true">&times;</span></button></div>'
+    });
+}
 
 $(document).ready(function () {
     $(window).resize();
@@ -108,18 +108,18 @@ $(document).ready(function () {
 
 // Common Modal
 $(document).on('click', 'a[data-ajax-popup="true"],a[data_ajax_popup="true"], button[data-ajax-popup="true"], div[data-ajax-popup="true"], span[data-ajax-popup="true"]', function (e) {
-   
+
 
     var title = $(this).data('title');
     var size = ($(this).data('size') == '') ? 'md' : $(this).data('size');
     var url = $(this).data('url');
 
-    if(url == null){
+    if (url == null) {
         var title = $(this).attr('data_title');
         var url = $(this).attr('data_url');
         var size = $(this).attr('data_size');
     }
-    
+
     $("#commonModal .modal-dialog").addClass('modal-' + size);
     $("#commonModal .modal-footer").addClass('modal-footer');
 
@@ -129,7 +129,7 @@ $(document).on('click', 'a[data-ajax-popup="true"],a[data_ajax_popup="true"], bu
         success: function (data) {
             $('#commonModal .body').html(data);
             $("#commonModal").modal('show');
-              $("#commonModal .modal-title").html(title);
+            $("#commonModal .modal-title").html(title);
             commonLoader();
         },
         error: function (data) {
@@ -143,7 +143,7 @@ $(document).on('click', 'a[data-ajax-popup="true"],a[data_ajax_popup="true"], bu
 
 // Common Modal from right side
 $(document).on('click', 'a[data-ajax-popup-right="true"], button[data-ajax-popup-right="true"], div[data-ajax-popup-right="true"], span[data-ajax-popup-right="true"]', function (e) {
-  
+
     var url = $(this).data('url');
 
     $.ajax({
@@ -212,16 +212,16 @@ function commonLoader() {
 
 
     if ($(".multi-select").length > 0) {
-            $( $(".multi-select") ).each(function( index,element ) {
-                var id = $(element).attr('id');
-                   var multipleCancelButton = new Choices(
-                        '#'+id, {
-                            removeItemButton: true,
-                           
-                        }
-                    );
-            });
-       }
+        $($(".multi-select")).each(function (index, element) {
+            var id = $(element).attr('id');
+            var multipleCancelButton = new Choices(
+                '#' + id, {
+                removeItemButton: true,
+
+            }
+            );
+        });
+    }
 
     // if ($(".summernote-simple").length) {
     //     $('.summernote-simple').summernote({
@@ -237,7 +237,7 @@ function commonLoader() {
     //     });
     // }
 
-           (function () {
+    (function () {
         const d_week = new Datepicker(document.querySelector('#pc-datepicker-3'), {
             buttonClass: 'btn',
             todayBtn: true,
@@ -245,13 +245,13 @@ function commonLoader() {
         });
     })();
 
-   
+
 
 }
 
 function loadConfirm() {
     // $('[data-confirm]').each(function () {
-       
+
     //     var me = $(this),
     //         me_data = me.data('confirm');
 
@@ -284,7 +284,7 @@ function loadConfirm() {
 
 // document.querySelector('.delete-popup').addEventListener("click", function () {
 //     var id = $(this).data('id');
-    
+
 //     const swalWithBootstrapButtons = Swal.mixin({
 //         customClass: {
 //             confirmButton: 'btn btn-success',
@@ -302,19 +302,19 @@ function loadConfirm() {
 //         reverseButtons: true
 //     }).then((result) => {
 //         if (result.isConfirmed) {
-           
+
 //   var id = $(this).data('id');
 //           $('#delete-form-'+id).submit();
-           
+
 //          } 
-        
+
 
 
 
 //      })
 // });
 
-$(document).on("click", '.bs-pass-fn-call',function () {
+$(document).on("click", '.bs-pass-fn-call', function () {
     const swalWithBootstrapButtons = Swal.mixin({
         customClass: {
             confirmButton: 'btn btn-success',
@@ -327,12 +327,12 @@ $(document).on("click", '.bs-pass-fn-call',function () {
         text: $(this).data('text'),
         icon: 'warning',
         showCancelButton: true,
-    confirmButtonText: 'Yes',
+        confirmButtonText: 'Yes',
         cancelButtonText: 'No',
         reverseButtons: false,
     }).then((result) => {
         if (result.isConfirmed) {
-            removeImage($(this).data('id'));     
+            removeImage($(this).data('id'));
         } else if (
             result.dismiss === Swal.DismissReason.cancel
         ) {
@@ -353,8 +353,8 @@ function postAjax(url, data, cb) {
         type: 'POST',
         url: url,
         data: jdata,
-        success: function(data) {
-            if (typeof(data) === 'object') {
+        success: function (data) {
+            if (typeof (data) === 'object') {
                 cb(data);
             } else {
                 cb(data);
@@ -375,8 +375,8 @@ function deleteAjax(url, data, cb) {
         type: 'DELETE',
         url: url,
         data: jdata,
-        success: function(data) {
-            if (typeof(data) === 'object') {
+        success: function (data) {
+            if (typeof (data) === 'object') {
                 cb(data);
             } else {
                 cb(data);
@@ -386,7 +386,7 @@ function deleteAjax(url, data, cb) {
 }
 
 
-$(document).on('click', '.fc-day-grid-event', function(e) {
+$(document).on('click', '.fc-day-grid-event', function (e) {
     // if (!$(this).hasClass('project')) {
     e.preventDefault();
     var event = $(this);
@@ -397,12 +397,12 @@ $(document).on('click', '.fc-day-grid-event', function(e) {
     $("#commonModal .modal-dialog").addClass('modal-' + size);
     $.ajax({
         url: url,
-        success: function(data) {
+        success: function (data) {
             $('#commonModal .modal-body').html(data);
             $("#commonModal").modal('show');
             common_bind();
         },
-        error: function(data) {
+        error: function (data) {
             data = data.responseJSON;
             toastrs('Error', data.error, 'error')
         }

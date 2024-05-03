@@ -2,32 +2,31 @@
     <?php echo csrf_field(); ?>
     <div class="modal-body">
         <div class="row">
+
+            <div class="form-group col-md-6">
+                <label class="col-form-label"><?php echo e(__('Tipo de proyecto')); ?></label>
+                <select style="background-color:#AA182C; color:white;" class="form-control form-control-light"
+                    name="project_type" id="project_type" required="">
+                    <option style="background-color:white; color:black;"></option>
+                    <?php $__currentLoopData = $project_type; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $type): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                        <option style="background-color:white; color:black;" value="<?php echo e($type->id); ?>"
+                            data-type="<?php echo e($type->name); ?>"><?php echo e($type->name); ?></option>
+                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                </select>
+            </div>
+
             <div class="form-group col-md-6">
                 <label for="ref_mo" class="col-form-label"><?php echo e(__('Master Obra')); ?></label>
                 <input class="form-control" type="text" id="ref_mo" name="ref_mo"
                     placeholder="<?php echo e(__('Número master obra')); ?>">
+                <span class="text-danger"></span>
             </div>
-
-            <div id="projectType" class="form-group col-md-6">
-                <label for="projectType" class="col-form-label"><?php echo e(__('Tipo de proyecto')); ?></label>
-                <button id="opcionBtn" class="btn btn-primary dropdown-toggle col-md-12" type="button"
-                    data-bs-toggle="dropdown" aria-expanded="false">Seleccionar Opción</button>
-                <ul class="dropdown-menu">
-                    <?php $__currentLoopData = $project_type; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $type): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                        <li><button class="dropdown-item"><?php echo e($type->name); ?></button></li>
-                        <li><button class="type" style="display:none"></button></li>
-                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
-                </ul>
-            </div>
-
             <div class="form-group col-md-12">
                 <label for="projectname" class="col-form-label"><?php echo e(__('Name')); ?></label>
+
                 <input class="form-control" type="text" id="projectname" name="name" required=""
                     placeholder="<?php echo e(__('Project Name')); ?>">
-                <input class="form-control" type="text" id="name" name="name" required=""
-                    placeholder="<?php echo e(__('Project Name')); ?>" style="display:none">
             </div>
-
         </div>
     </div>
     <div class="modal-footer">
@@ -35,62 +34,57 @@
         <input type="submit" value="<?php echo e(__('Add New project')); ?>" class="btn btn-primary">
     </div>
 </form>
-
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
-    var masterObras = {};
-    <?php $__currentLoopData = $masterObras; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $masterObra): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-        masterObras['<?php echo e($masterObra->ref_mo); ?>'] = '<?php echo e($masterObra->name); ?>';
-    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
-
     $(document).ready(function() {
-        $('#ref_mo').on('input', function() {
-            var moValue = $(this).val().trim();
+        $('#project_type').change(function() {
+            var selectedType = $(this).find('option:selected').data('type');
+            var refMoInput = $('#ref_mo');
+            var nameInput = $('#projectname');
 
-            if (moValue === '') {
-                $('#opcionBtn').text('Seleccionar Opción');
-                $('#opcionBtn').prop('disabled', false);
-                $('#projectname').val('');
-                $('#projectname').prop('disabled', false);
-                $('#name').val('');
+            if (selectedType === 'Obra') {
+                
+                nameInput.val("");
+                refMoInput.val("");
+                refMoInput.prop('required', true);
+                refMoInput.prop('disabled', false);
+                $('#projectname').prop('readonly', true);
 
             } else {
-                $('#projectType .dropdown-menu .dropdown-item:first').trigger('click');
-                $('#opcionBtn').prop('disabled', true);
-
-                for (var ref_mo in masterObras) {
-                    if (moValue == ref_mo) {
-
-                        $('#projectname').val(masterObras[ref_mo]);
-                        $('#name').val(masterObras[ref_mo]);
-                        $('#ref_mo').val(ref_mo);
-                        $('#projectname').prop('disabled', true);
-                        break;
-                    }
-
-                }
+                nameInput.val("");
+                refMoInput.val("");
+                refMoInput.prop('required', false);
+                refMoInput.prop('disabled', true);
+                $('#projectname').prop('readonly', false);
             }
         });
 
-        //================================ NO GUARDA EL PROYECTO CTM  los que son require no los recibe :(========================//
+        $('#ref_mo').change(function() {
+            var refMo = $(this).val();
+            var masterObras = <?php echo json_encode($masterObras, 15, 512) ?>;
+            var projects = <?php echo json_encode($projects, 15, 512) ?>;
 
-        // Evento para actualizar el texto del botón cuando se selecciona una opción del dropdown
-        $('.dropdown-item').on('click', function() {
-            var opcionSeleccionada = $(this).text();
-            $('#opcionBtn').text(opcionSeleccionada);
+            var existingMasterObra = masterObras.find(function(masterObra) {
+                return masterObra.ref_mo === refMo;
+            });
+            var existingProject = projects.find(function(project) {
+                return project.ref_mo === refMo;
+            });
 
-
-            if (opcionSeleccionada === 'Obra') {
-                var selectedOption = $(this).data('name');
-                $('#ref_mo').prop('required', true);
-
+            if (!existingProject) {
+                if (existingMasterObra) {
+                    $('.text-danger').text("");
+                    $('#projectname').prop('readonly', true);
+                    $('#projectType').val();
+                    $('#projectname').val(existingMasterObra.name);
+                    $('#name').val(existingMasterObra.name);
+                    $('#ref_mo').val(refMo);
+                }
             } else {
-                $('#opcionBtn').prop('disabled', false);
-                $('#ref_mo').prop('required', false);
-                $('#projectname').val('');
-                $('#type').val(opcionSeleccionada);
+                $('.text-danger').text('El número de referencia ya existe.');
+                setTimeout(function() {
+                    $('.text-danger').text("");
+                }, 5000);
             }
-
         });
     });
 </script>

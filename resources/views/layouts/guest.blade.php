@@ -173,9 +173,7 @@
     @php
         $company_logo = App\Models\Utility::get_logo();
     @endphp
-    {{-- Opcion de fondo --}}
-    <div class="custom-login"
-        style="background-image: url('https://alsinadocs.piwigo.com/_datas/n/z/w/nzwsilkwfp/i/uploads/n/z/w/nzwsilkwfp//2021/02/25/20210225104025-91ec746b-xl.png'); background-repeat: no-repeat;">
+    <div class="custom-login">
         <div class="login-bg-img">
             <img src="{{ asset('assets/img/' . $color . '.svg') }}" class="login-bg-1">
             <img src="{{ asset('assets/img/user2.svg') }}" class="login-bg-2">
@@ -186,10 +184,10 @@
                 <nav class="navbar navbar-expand-md default">
                     <div class="container">
 
-                        {{-- <div class="navbar-brand d-none d-md-block" style="width: 620px; background:#AA182C; overflow: hidden;">
-                            <img style="width: 100%; margin: 0; padding: 0; border: 0; display: block;"
-                                src="{{ asset('assets/img/portada.jpg') }}" alt="Imagen de portada">
-                        </div> --}}
+                        <div class="navbar-brand d-none d-md-block"
+                            style="overflow: hidden; ">
+                            <img class="img-fluid rounded" width="200px" src="{{ asset('assets/img/favicon.png') }}" alt="Imagen de portada">
+                        </div>
 
                         <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
                             data-bs-target="#navbarlogin" aria-controls="navbarTogglerDemo01" aria-expanded="false"
@@ -236,9 +234,9 @@
                         <div class="row justify-content-center">
                             <div class=" col-6 col-md-4 rounded text-center" style="background: white; color: #AA182C;">
                                 <a href="#"> <span>
-                                    &copy; {{ date('Y') }}
-                                 {{ 'aCeler Project' }} ~@yield('page-title')   
-                                </span></a>
+                                        &copy; {{ date('Y') }}
+                                        {{ 'aCeler Project' }} ~@yield('page-title')
+                                    </span></a>
                             </div>
                         </div>
                     </div>
