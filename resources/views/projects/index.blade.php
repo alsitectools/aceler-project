@@ -13,6 +13,7 @@
 @endsection
 
 @php
+    //$masterObra = @json($masterObras);
     // $logo=\App\Models\Utility::get_file('users-avatar/');
     $logo = \App\Models\Utility::get_file('avatars/');
 @endphp
@@ -43,7 +44,7 @@
                                 data-filter=".OnHold">{{ __('OnHold') }}</button>
                         </div>
                     </div>
-                </div><!-- end col-->
+                </div>
             </div>
 
             <div class="filters-content">
@@ -69,79 +70,49 @@
                                         <h5 class="mb-0">
                                             @if ($project->is_active)
                                                 <a href="@auth('web'){{ route('projects.show', [$currentWorkspace->slug, $project->id]) }}@endauth"
-                                                    title="{{ $project->name }}" class="">{{ $project->name }}<i
-                                                        class="ti ti-eye"></i></a></a>
+                                                    title="{{ $project->name }}" class="">
+                                                    <p style="padding-left: 20px; padding-right:10px">{{ $project->name }}
+                                                    </p>
+
+                                                </a></a>
                                             @else
                                                 <a href="#" title="{{ __('Locked') }}"
                                                     class="">{{ $project->name }}</a>
                                             @endif
                                         </h5>
                                     </div>
-                                    <div class="card-header-right">
-                                        <div class="btn-group card-option">
-                                            @auth('web')
-                                                <button type="button" class="btn dropdown-toggle" data-bs-toggle="dropdown"
-                                                    aria-haspopup="true" aria-expanded="false">
-                                                    <i class="feather icon-more-vertical"></i>
-                                                </button>
-                                                <div class="dropdown-menu dropdown-menu-end">
+                                    @if ($project->is_active && Auth::user()->type == 'admin')
+                                        <div class="card-header-right">
+                                            <div class="btn-group card-option">
+                                                @auth('web')
+                                                    <button type="button" class="btn dropdown-toggle" data-bs-toggle="dropdown"
+                                                        aria-haspopup="true" aria-expanded="false">
+                                                        <i class="feather icon-more-vertical"></i>
+                                                    </button>
+                                                    <div class="dropdown-menu dropdown-menu-end">
 
-
-                                                    @if ($project->is_active)
-                                                        {{-- solo si eres admin podras borrar/editar/duplicar projects --}}
-                                                        @if (\Auth::user()->type == 'admin')
-                                                            {{-- <a href="#" class="dropdown-item" data-ajax-popup="true"
-                                                            data-size="md" data-title="{{ __('Invite Users') }}"
-                                                            data-url="{{ route('projects.invite.popup', [$currentWorkspace->slug, $project->id]) }}">
-                                                            <i class="ti ti-user-plus"></i>
-                                                            <span>{{ __('Invite Users') }}</span>
-                                                        </a> --}}
-                                                            <a href="#" class="dropdown-item" data-ajax-popup="true"
-                                                                data-size="lg" data-title="{{ __('Edit Project') }}"
-                                                                data-url="{{ route('projects.edit', [$currentWorkspace->slug, $project->id]) }}">
-                                                                <i class="ti ti-edit"></i> <span>{{ __('Edit') }}</span>
-                                                            </a>
-
-                                                            <a href="#" class="dropdown-item" data-ajax-popup="true"
-                                                                data-size="md" data-title="{{ __('Duplicate Project') }}"
-                                                                data-url="{{ route('project.copy', [$currentWorkspace->slug, $project->id]) }}">
-                                                                <i class="ti ti-copy"></i> <span>{{ __('Duplicate') }}</span>
-                                                            </a>
-                                                            <a href="#"
-                                                                class="dropdown-item text-danger delete-popup bs-pass-para"
-                                                                data-confirm="{{ __('Are You Sure?') }}"
-                                                                data-text="{{ trans('messages.This_action_can_not_be_undone._Do_you_want_to_continue?') }}"
-                                                                data-confirm-yes="delete-form-{{ $project->id }}">
-                                                                <i class="ti ti-trash"></i> <span>{{ __('Delete') }}</span>
-                                                            </a>
-                                                            <form id="delete-form-{{ $project->id }}"
-                                                                action="{{ route('projects.destroy', [$currentWorkspace->slug, $project->id]) }}"
-                                                                method="POST" style="display: none;">
-                                                                @csrf
-                                                                @method('DELETE')
-                                                            </form>
-                                                        @else
-                                                            {{-- sino solo ves los clientes/ vendedores añadidos --}}
-                                                            <a href="#" class="dropdown-item" data-ajax-popup="true"
-                                                                data-size="md" data-title="{{ __('Share to Clients') }}"
-                                                                data-url="{{ route('projects.share.popup', [$currentWorkspace->slug, $project->id]) }}">
-                                                                <i class="ti ti-share"></i>
-                                                                <span>{{ __('Share to Clients') }}</span>
-                                                            </a>
-                                                        @endif
-                                                    @else
-                                                        <a href="#" class="dropdown-item" title="{{ __('Locked') }}">
-                                                            <i data-feather="lock"></i> <span>{{ __('Locked') }}</span>
+                                                        <a href="#"
+                                                            class="dropdown-item text-danger delete-popup bs-pass-para"
+                                                            data-confirm="{{ __('Are You Sure?') }}"
+                                                            data-text="{{ trans('messages.This_action_can_not_be_undone._Do_you_want_to_continue?') }}"
+                                                            data-confirm-yes="delete-form-{{ $project->id }}">
+                                                            <i class="ti ti-trash"></i> <span>{{ __('Delete') }}</span>
                                                         </a>
-                                                    @endif
-
-                                                </div>
-                                            @endauth
+                                                        <form id="delete-form-{{ $project->id }}"
+                                                            action="{{ route('projects.destroy', [$currentWorkspace->slug, $project->id]) }}"
+                                                            method="POST" style="display: none;">
+                                                            @csrf
+                                                            @method('DELETE')
+                                                        </form>
+                                                    </div>
+                                                @endauth
+                                            </div>
                                         </div>
-                                    </div>
+                                    @endif
                                 </div>
                                 <div class="card-body">
                                     <div class="row g-2 justify-content-between">
+
                                         @if ($project->status == 'Finished')
                                             <div class="col-auto"><span
                                                     class="badge rounded-pill bg-success">{{ __('Finished') }}</span>
@@ -160,6 +131,7 @@
                                             <p class="mb-0"><b>{{ __('Due Date:') }}</b> {{ $project->end_date }}</p>
                                         </div>
                                     </div>
+
                                     {{-- mostrar los miembros del projecto actual --}}
                                     <p class="text-muted text-sm mt-3">{{ $project->description }}</p>
                                     <h6 class="text-muted">{{ trans('Members') }}</h6>
@@ -175,16 +147,22 @@
                                         @endforeach
 
                                     </div>
-                                    <div class="card mb-0 mt-3">
+                                    <div class="card mb-0 mt-3" style="background-color: #AA182C color: white; ">
                                         <div class="card-body p-3">
                                             <div class="row">
-                                                <div class="col-6">
-                                                    <h6 class="mb-0">{{ $project->countTask() }}</h6>
-                                                    <p class="text-muted text-sm mb-0">{{ trans('Tasks') }}</p>
+                                                <div class="col-6 text" style="background-color: #AA182C color: white;">
+                                                    @if (isset($project_type[$project->project_type - 1]) &&
+                                                            $project_type[$project->project_type - 1]->id == $project->project_type)
+                                                        <p aria-hidden="true">
+                                                            <span
+                                                                class="text-muted"><b>{{ $project_type[$project->project_type - 1]->name }}</b></span>
+                                                        </p>
+                                                    @endif
                                                 </div>
-                                                <div class="col-6 text-end">
-                                                    <h6 class="mb-0">{{ $project->countTaskComments() }}</h6>
-                                                    <p class="text-muted text-sm mb-0">{{ __('Comments') }}</p>
+                                                <div class="col-6 text">
+                                                    <p aria-hidden="true">
+                                                        <span class="text-muted"><b>{{ $project->ref_mo }}</b></span>
+                                                    </p>
                                                 </div>
                                             </div>
                                         </div>
