@@ -17,14 +17,14 @@ class CreateProjectsTable extends Migration
             $table->bigIncrements('id');
             $table->string('name');
             $table->string('ref_mo')->nullable();
-            $table->string('project_type');
-            $table->enum('status',['Ongoing','Finished','OnHold'])->default('Ongoing');
+            $table->string('type');
+            $table->enum('status', ['Ongoing', 'Finished', 'OnHold'])->default('Ongoing');
             $table->date('start_date')->nullable();
             $table->date('end_date')->nullable();
             $table->float('budget', 25, 2)->default('0.00')->nullable();
             $table->integer('workspace');
             $table->string('password');
-            $table->string('copylinksetting',100000);
+            $table->string('copylinksetting', 100000);
             $table->integer('created_by');
             $table->integer('is_active')->default(1);
             $table->timestamps();
