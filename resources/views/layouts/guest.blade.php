@@ -1,32 +1,32 @@
 @php
 
-    if (isset($currentWorkspace)) {
-        $setting = App\Models\Utility::getcompanySettings($currentWorkspace->id);
-        $SITE_RTL = $setting->site_rtl;
-        if ($setting->theme_color) {
-            $color = $setting->theme_color;
-        } else {
-            $color = 'theme-3';
-        }
-    } else {
-        $setting = App\Models\Utility::getAdminPaymentSettings();
-        // $SITE_RTL = env('SITE_RTL');
-        $SITE_RTL = $setting['site_rtl'];
-        if ($setting['color']) {
-            $color = $setting['color'];
-        } else {
-            $color = 'theme-3';
-        }
-    }
+if (isset($currentWorkspace)) {
+$setting = App\Models\Utility::getcompanySettings($currentWorkspace->id);
+$SITE_RTL = $setting->site_rtl;
+if ($setting->theme_color) {
+$color = $setting->theme_color;
+} else {
+$color = 'theme-3';
+}
+} else {
+$setting = App\Models\Utility::getAdminPaymentSettings();
+// $SITE_RTL = env('SITE_RTL');
+$SITE_RTL = $setting['site_rtl'];
+if ($setting['color']) {
+$color = $setting['color'];
+} else {
+$color = 'theme-3';
+}
+}
 
-    if (\App::getLocale() == 'ar' || \App::getLocale() == 'he') {
-        $SITE_RTL = 'on';
-    }
+if (\App::getLocale() == 'ar' || \App::getLocale() == 'he') {
+$SITE_RTL = 'on';
+}
 
-    $meta_setting = App\Models\Utility::getAdminPaymentSettings();
-    $meta_images = \App\Models\Utility::get_file('uploads/logo/');
-    $logo = \App\Models\Utility::get_file('logo/');
-    use App\Models\Utility;
+$meta_setting = App\Models\Utility::getAdminPaymentSettings();
+$meta_images = \App\Models\Utility::get_file('uploads/logo/');
+$logo = \App\Models\Utility::get_file('logo/');
+use App\Models\Utility;
 @endphp
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}" dir="{{ $SITE_RTL == 'on' ? 'rtl' : '' }}">
@@ -43,7 +43,7 @@
 
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website">
-    <meta property="og:url" content= "{{ env('APP_URL') }}">
+    <meta property="og:url" content="{{ env('APP_URL') }}">
     <meta property="og:title" content="{{ $meta_setting['meta_keywords'] }}">
     <meta property="og:description" content="{{ $meta_setting['meta_description'] }}">
     <meta property="og:image" content="{{ asset($meta_images . $meta_setting['meta_image']) }}">
@@ -62,30 +62,32 @@
     <link rel="shortcut icon" href="{{ $logo . 'favicon.png' . '?' . time() }}">
 
     @if ($setting['cust_darklayout'] == 'on')
-        @if (isset($SITE_RTL) && $SITE_RTL == 'on')
-            <link rel="stylesheet" href="{{ asset('assets/css/style-rtl.css') }}" id="main-style-link">
-        @endif
-        <link rel="stylesheet" href="{{ asset('assets/css/style-dark.css') }}">
+    @if (isset($SITE_RTL) && $SITE_RTL == 'on')
+    <link rel="stylesheet" href="{{ asset('assets/css/style-rtl.css') }}" id="main-style-link">
+    @endif
+    <link rel="stylesheet" href="{{ asset('assets/css/style-dark.css') }}">
     @else
-        @if (isset($SITE_RTL) && $SITE_RTL == 'on')
-            <link rel="stylesheet" href="{{ asset('assets/css/style-rtl.css') }}" id="main-style-link">
-        @else
-            <link rel="stylesheet" href="{{ asset('assets/css/style.css') }}" id="main-style-link">
-        @endif
+    @if (isset($SITE_RTL) && $SITE_RTL == 'on')
+    <link rel="stylesheet" href="{{ asset('assets/css/style-rtl.css') }}" id="main-style-link">
+    @else
+    <link rel="stylesheet" href="{{ asset('assets/css/style.css') }}" id="main-style-link">
+    @endif
     @endif
 
     @if (isset($SITE_RTL) && $SITE_RTL == 'on')
-        <link rel="stylesheet" href="{{ asset('assets/css/custom-auth-rtl.css') }}" id="main-style-link">
+    <link rel="stylesheet" href="{{ asset('assets/css/custom-auth-rtl.css') }}" id="main-style-link">
     @else
-        <link rel="stylesheet" href="{{ asset('assets/css/custom-auth.css') }}" id="main-style-link">
+    <link rel="stylesheet" href="{{ asset('assets/css/custom-auth.css') }}" id="main-style-link">
     @endif
     @if ($setting['cust_darklayout'] == 'on')
-        <link rel="stylesheet" href="{{ asset('assets/css/custom-dark.css') }}" id="main-style-link">
+    <link rel="stylesheet" href="{{ asset('assets/css/custom-dark.css') }}" id="main-style-link">
     @endif
+    <link rel="shortcut icon" href="{{ asset('assets/img/iconA.png') }}" type="image/png">
 </head>
 
 
 <body class="{{ $color }}">
+
     <?php
     $dir = base_path() . '/resources/lang/';
     $glob = glob($dir . '*', GLOB_ONLYDIR);
@@ -106,6 +108,7 @@
 
     <script>
         feather.replace();
+
     </script>
     <script>
         feather.replace();
@@ -166,12 +169,13 @@
                 }
             }
         }
+
     </script>
     @stack('custom-scripts')
     <!-- [ auth-signup ] start -->
 
     @php
-        $company_logo = App\Models\Utility::get_logo();
+    $company_logo = App\Models\Utility::get_logo();
     @endphp
     <div class="custom-login">
         <div class="login-bg-img">
@@ -184,14 +188,11 @@
                 <nav class="navbar navbar-expand-md default">
                     <div class="container">
 
-                        <div class="navbar-brand d-none d-md-block"
-                            style="overflow: hidden; ">
+                        <div class="navbar-brand d-none d-md-block" style="overflow: hidden; ">
                             <img class="img-fluid rounded" width="200px" src="{{ asset('assets/img/favicon.png') }}" alt="Imagen de portada">
                         </div>
 
-                        <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
-                            data-bs-target="#navbarlogin" aria-controls="navbarTogglerDemo01" aria-expanded="false"
-                            aria-label="Toggle navigation">
+                        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarlogin" aria-controls="navbarTogglerDemo01" aria-expanded="false" aria-label="Toggle navigation">
                             <span class="navbar-toggler-icon"></span>
                         </button>
 
@@ -216,14 +217,14 @@
             <div class="row justify-content-center">
                 <div class="col-md-4">
                     @if (session()->has('info'))
-                        <div class="alert alert-primary">
-                            {{ session()->get('info') }}
-                        </div>
+                    <div class="alert alert-primary">
+                        {{ session()->get('info') }}
+                    </div>
                     @endif
                     @if (session()->has('status'))
-                        <div class="alert alert-info">
-                            {{ session()->get('status') }}
-                        </div>
+                    <div class="alert alert-info">
+                        {{ session()->get('status') }}
+                    </div>
                     @endif
                 </div>
             </div>
@@ -247,7 +248,7 @@
     </div>
 
     @if ($meta_setting['enable_cookie'] == 'on')
-        @include('layouts.cookie_consent')
+    @include('layouts.cookie_consent')
     @endif
 </body>
 
