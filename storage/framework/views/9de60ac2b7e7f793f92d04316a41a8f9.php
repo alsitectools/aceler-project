@@ -5,27 +5,23 @@
 
             <div class="form-group col-md-6">
                 <label class="col-form-label"><?php echo e(__('Tipo de proyecto')); ?></label>
-                <select style="background-color:#AA182C; color:white;" class="form-control form-control-light"
-                    name="project_type" id="project_type" required="">
+                <select style="background-color:#AA182C; color:white;" class="form-control form-control-light" name="project_type" id="project_type" required="">
                     <option style="background-color:white; color:black;"></option>
                     <?php $__currentLoopData = $project_type; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $type): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                        <option style="background-color:white; color:black;" value="<?php echo e($type->id); ?>"
-                            data-type="<?php echo e($type->name); ?>"><?php echo e($type->name); ?></option>
+                    <option style="background-color:white; color:black;" value="<?php echo e($type->id); ?>" data-type="<?php echo e($type->name); ?>"><?php echo e($type->name); ?></option>
                     <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                 </select>
             </div>
 
             <div class="form-group col-md-6">
                 <label for="ref_mo" class="col-form-label"><?php echo e(__('Master Obra')); ?></label>
-                <input class="form-control" type="text" id="ref_mo" name="ref_mo"
-                    placeholder="<?php echo e(__('Número master obra')); ?>">
+                <input class="form-control" type="text" id="ref_mo" name="ref_mo" placeholder="<?php echo e(__('Número master obra')); ?>">
                 <span class="text-danger"></span>
             </div>
             <div class="form-group col-md-12">
                 <label for="projectname" class="col-form-label"><?php echo e(__('Name')); ?></label>
 
-                <input class="form-control" type="text" id="projectname" name="name" required=""
-                    placeholder="<?php echo e(__('Project Name')); ?>">
+                <input class="form-control" type="text" id="projectname" name="name" required="" placeholder="<?php echo e(__('Project Name')); ?>">
             </div>
         </div>
     </div>
@@ -42,7 +38,7 @@
             var nameInput = $('#projectname');
 
             if (selectedType === 'Obra') {
-                
+
                 nameInput.val("");
                 refMoInput.val("");
                 refMoInput.prop('required', true);
@@ -87,5 +83,6 @@
             }
         });
     });
+
 </script>
 <?php /**PATH C:\xampp\htdocs\ws-karla\laravel-api\main_task\resources\views/projects/create.blade.php ENDPATH**/ ?>

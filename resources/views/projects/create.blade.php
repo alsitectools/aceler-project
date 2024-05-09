@@ -5,27 +5,23 @@
 
             <div class="form-group col-md-6">
                 <label class="col-form-label">{{ __('Tipo de proyecto') }}</label>
-                <select style="background-color:#AA182C; color:white;" class="form-control form-control-light"
-                    name="project_type" id="project_type" required="">
+                <select style="background-color:#AA182C; color:white;" class="form-control form-control-light" name="project_type" id="project_type" required="">
                     <option style="background-color:white; color:black;"></option>
                     @foreach ($project_type as $type)
-                        <option style="background-color:white; color:black;" value="{{ $type->id }}"
-                            data-type="{{ $type->name }}">{{ $type->name }}</option>
+                    <option style="background-color:white; color:black;" value="{{ $type->id }}" data-type="{{ $type->name }}">{{ $type->name }}</option>
                     @endforeach
                 </select>
             </div>
 
             <div class="form-group col-md-6">
                 <label for="ref_mo" class="col-form-label">{{ __('Master Obra') }}</label>
-                <input class="form-control" type="text" id="ref_mo" name="ref_mo"
-                    placeholder="{{ __('Número master obra') }}">
+                <input class="form-control" type="text" id="ref_mo" name="ref_mo" placeholder="{{ __('Número master obra') }}">
                 <span class="text-danger"></span>
             </div>
             <div class="form-group col-md-12">
                 <label for="projectname" class="col-form-label">{{ __('Name') }}</label>
 
-                <input class="form-control" type="text" id="projectname" name="name" required=""
-                    placeholder="{{ __('Project Name') }}">
+                <input class="form-control" type="text" id="projectname" name="name" required="" placeholder="{{ __('Project Name') }}">
             </div>
         </div>
     </div>
@@ -42,7 +38,7 @@
             var nameInput = $('#projectname');
 
             if (selectedType === 'Obra') {
-                
+
                 nameInput.val("");
                 refMoInput.val("");
                 refMoInput.prop('required', true);
@@ -87,4 +83,5 @@
             }
         });
     });
+
 </script>

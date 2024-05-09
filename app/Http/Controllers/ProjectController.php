@@ -24,6 +24,7 @@ use App\Models\ProjectFile;
 use App\Models\Stage;
 use App\Models\SubTask;
 use App\Models\Task;
+use App\Models\TaskType;
 use App\Models\TaskFile;
 use App\Models\Timesheet;
 use App\Models\TimeTracker;
@@ -103,7 +104,7 @@ class ProjectController extends Controller
         $setting = Utility::getAdminPaymentSettings();
         $post = $request->all();
         $post['ref_mo'] = $request->ref_mo;
-        $post['project_type'] = $request->project_type;
+        $post['type'] = $request->project_type;
 
         $post['start_date'] = $post['end_date'] = date('Y-m-d');
         $post['workspace'] = $currentWorkspace->id;
@@ -669,6 +670,7 @@ class ProjectController extends Controller
 
         return redirect()->route('projects.index', $slug)->with('success', __('Project Leave Successfully!'));
     }
+
     public function collaborator($user, $project)
     {
         // Verifica si el usuario ya es un colaborador del proyecto
@@ -1313,9 +1315,11 @@ class ProjectController extends Controller
     {
         $currentWorkspace = Utility::getWorkspaceBySlug($slug);
         $project = Project::find($projectID);
+        $TaskType  = TaskType::all();
 
-        return view('projects.milestone', compact('currentWorkspace', 'project'));
+        return view('projects.milestone', compact('currentWorkspace', 'project', 'TaskType'));
     }
+
     public function milestoneTODO($slug, $projectID, Request $request)
     {
 
@@ -1476,6 +1480,7 @@ class ProjectController extends Controller
         $milestone->summary = $request->summary;
         $milestone->save();
 
+        //Funcion que crea AY QUE MIRARLOOOOOOOOOOOOO
         $this->employeesInProject(Auth::user()->id, $project->id);
 
         ActivityLog::create(
