@@ -1480,7 +1480,6 @@ class ProjectController extends Controller
         $milestone->summary = $request->summary;
         $milestone->save();
 
-        //Funcion que crea AY QUE MIRARLOOOOOOOOOOOOO
         $this->employeesInProject(Auth::user()->id, $project->id);
 
         ActivityLog::create(
