@@ -24,6 +24,7 @@ use App\Models\ProjectFile;
 use App\Models\Stage;
 use App\Models\SubTask;
 use App\Models\Task;
+use App\Models\TaskType;
 use App\Models\TaskFile;
 use App\Models\Timesheet;
 use App\Models\TimeTracker;
@@ -51,16 +52,12 @@ class ProjectController extends Controller
     {
         $objUser = Auth::user();
         $currentWorkspace = Utility::getWorkspaceBySlug($slug);
-        // if ($objUser->getGuard() == 'client') {
-        //     $projects = Project::select('projects.*')->join('client_projects', 'projects.id', '=', 'client_projects.project_id')->where('client_projects.client_id', '=', $objUser->id)->where('projects.workspace', '=', $currentWorkspace->id)->get();
-        // } else {
-        $projects = Project::select('projects.*')
-            // ->join('user_projects', 'projects.id', '=', 'user_projects.project_id')
-            // ->where('user_projects.user_id', '=', $objUser->id)
-            ->where('projects.workspace', '=', $currentWorkspace->id)->get();
-        // }
 
-        return view('projects.index', compact('currentWorkspace', 'projects'));
+        $projects = Project::select('projects.*')
+            ->where('projects.workspace', '=', $currentWorkspace->id)->get();
+        $project_type = ProjectType::select('id', 'name')->get();
+
+        return view('projects.index', compact('currentWorkspace', 'projects', 'project_type'));
     }
 
     public function tracker($slug, $id)
@@ -75,17 +72,39 @@ class ProjectController extends Controller
             return redirect()->back()->with('error', __('Tracker Not Found.'));
         }
     }
+
+    //Funcion que guarda en la BBDD que empleado a participado en el proyecto
+    public function employeesInProject($userID, $projectID)
+    {
+
+        $project = Project::find($projectID);
+        $user = UserProject::find($userID);
+
+        if (isset($user) && isset($project)  && $user->project_id != $project->id) {
+            // El usuario no existe, crear un nuevo registro en UserProject solo si el proyecto también existe
+
+            $arrData = [];
+            $arrData['user_id'] = $user->id;
+            $arrData['project_id'] = $project->id;
+            $arrData['permission'] = json_encode(Utility::getAllPermission());
+            UserProject::create($arrData);
+        }
+    }
+
     public function store($slug, Request $request)
     {
         $objUser = Auth::user();
         $currentWorkspace = Utility::getWorkspaceBySlug($slug);
         $user = $currentWorkspace->id;
-        $request->validate(['name' => 'required']);
+        $request->validate([
+            'project_type' => 'required',
+            'ref_mo' => 'nullable|string',
+            'name' => 'required|string',
+        ]);
         $setting = Utility::getAdminPaymentSettings();
-
         $post = $request->all();
         $post['ref_mo'] = $request->ref_mo;
-        $post['type'] = $request->type;
+        $post['type'] = $request->project_type;
 
         $post['start_date'] = $post['end_date'] = date('Y-m-d');
         $post['workspace'] = $currentWorkspace->id;
@@ -93,6 +112,14 @@ class ProjectController extends Controller
         $userList[] = $objUser->email;
         $userList = array_filter($userList);
         $objProject = Project::create($post);
+
+        //Comprueba que el masterObras existe y le añade el id del projecto con el que se a creado
+        $mo_id = MasterObra::where('ref_mo',  $request->ref_mo)->first();
+        if ($mo_id) {
+            $objMO = MasterObra::where('id', $mo_id->id)->first();
+            $objMO->project_id = $objProject->id;
+            $objMO->save();
+        }
 
         $data = [];
         $data['basic_details']  = 'on';
@@ -144,33 +171,20 @@ class ProjectController extends Controller
         ];
 
         if (isset($settings['project_notificaation']) && $settings['project_notificaation'] == 1) {
-
-            // $msg = $objProject->name . " created by " . \Auth::user()->name . '.';
             Utility::send_slack_msg('New Project', $user, $uArr);
         }
 
         if (isset($settings['telegram_project_notificaation']) && $settings['telegram_project_notificaation'] == 1) {
-            // $msg = $objProject->name . " created by " . \Auth::user()->name . '.';
             Utility::send_telegram_msg('New Project', $uArr, $user);
         }
 
         //webhook
         $module = 'New Project';
-        // $webhook=  Utility::webhookSetting($module);
         $webhook =  Utility::webhookSetting($module, $user);
 
         if ($webhook) {
             $parameter = json_encode($objProject);
-            // 1 parameter is  URL , 2 parameter is data , 3 parameter is method
             $status = Utility::WebhookCall($webhook['url'], $parameter, $webhook['method']);
-            // if($status == true)
-            // {
-            //     return redirect()->back()->with('success', __('Project successfully created!'));
-            // }
-            // else
-            // {
-            //     return redirect()->back()->with('error', __('Webhook call failed.'));
-            // }
         }
 
         return redirect()->route('projects.index', $currentWorkspace->slug)
@@ -487,10 +501,11 @@ class ProjectController extends Controller
     public function create($slug)
     {
         $currentWorkspace = Utility::getWorkspaceBySlug($slug);
-        $project_type = ProjectType::select('name')->get();
+        $project_type = ProjectType::select('id', 'name')->get();
         $masterObras = MasterObra::select('ref_mo', 'name')->get();
+        $projects = Project::select('projects.*')->where('projects.workspace', '=', $currentWorkspace->id)->get();
 
-        return view('projects.create', compact('currentWorkspace', 'project_type', 'masterObras'));
+        return view('projects.create', compact('currentWorkspace', 'project_type', 'masterObras', 'projects'));
     }
 
 
@@ -655,6 +670,7 @@ class ProjectController extends Controller
 
         return redirect()->route('projects.index', $slug)->with('success', __('Project Leave Successfully!'));
     }
+
     public function collaborator($user, $project)
     {
         // Verifica si el usuario ya es un colaborador del proyecto
@@ -1299,9 +1315,11 @@ class ProjectController extends Controller
     {
         $currentWorkspace = Utility::getWorkspaceBySlug($slug);
         $project = Project::find($projectID);
+        $TaskType  = TaskType::all();
 
-        return view('projects.milestone', compact('currentWorkspace', 'project'));
+        return view('projects.milestone', compact('currentWorkspace', 'project', 'TaskType'));
     }
+
     public function milestoneTODO($slug, $projectID, Request $request)
     {
 
@@ -1461,6 +1479,8 @@ class ProjectController extends Controller
         // $milestone->tasks = $request->tasks;
         $milestone->summary = $request->summary;
         $milestone->save();
+
+        $this->employeesInProject(Auth::user()->id, $project->id);
 
         ActivityLog::create(
             [

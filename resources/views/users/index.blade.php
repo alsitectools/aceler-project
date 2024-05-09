@@ -15,11 +15,7 @@
     @else
         <li class="breadcrumb-item"><a href="{{ route('home') }}">{{ __('Home') }}</a></li>
     @endif
-<<<<<<< HEAD
-    <li class="breadcrumb-item"> {{ __('company') }}</li>
-=======
     <li class="breadcrumb-item"> {{ __('messages.company') }}</li>
->>>>>>> production
 @endsection
 @section('action-button')
     @auth('web')
@@ -41,12 +37,7 @@
         @endif
     @endauth
 @endsection
-<<<<<<< HEAD
-
-=======
->>>>>>> production
 @section('content')
-
     @if ((isset($currentWorkspace) && $currentWorkspace) || Auth::user()->type == 'admin')
         <div class="row">
             @foreach ($users as $user)
@@ -58,9 +49,11 @@
                                 <h6 class="mb-0">
                                     @if (Auth::user()->type != 'admin')
                                         @if ($user->permission == 'Owner')
-                                            <div class="badge p-2 px-3 rounded bg-success">{{ __('Owner') }}</div>
+                                            <div class="badge p-2 px-3 rounded bg-success">{{ __('Owner') }}
+                                            </div>
                                         @else
-                                            <div class="badge p-2 px-3 rounded bg-warning">{{ __('Member') }}</div>
+                                            <div class="badge p-2 px-3 rounded bg-warning">{{ __('Member') }}
+                                            </div>
                                         @endif
                                     @endif
                                 </h6>
@@ -84,7 +77,8 @@
                                                     <a href="#" class="dropdown-item" data-ajax-popup="true"
                                                         data-size="md" data-title="{{ __('Edit') }}"
                                                         data-url="{{ route('users.edit', [$currentWorkspace->slug, $user->id]) }}"><i
-                                                            class="ti ti-edit"></i> <span>{{ __('Edit') }}</span></a>
+                                                            class="ti ti-edit"></i>
+                                                        <span>{{ __('Edit') }}</span></a>
 
                                                     <a href="#" class="dropdown-item" data-ajax-popup="true"
                                                         data-size="md" data-title="{{ __('Reset Password') }}"
@@ -175,16 +169,20 @@
                                             <div class="col-6 text-start">
 
                                                 <h6 class="mb-0 px-3">{{ $user->countWorkspace() }}</h6>
-                                                <p class="text-muted text-sm mb-0">{{ trans('messages.Workspaces') }}</p>
+                                                <p class="text-muted text-sm mb-0">
+                                                    {{ trans('messages.Workspaces') }}</p>
                                             </div>
                                             <div
                                                 class="col-6 {{ Auth::user()->type == 'admin' ? 'text-end' : 'text-start' }}  ">
                                                 <h6 class="mb-0 px-3">{{ $user->countUsers($workspace_id) }}</h6>
-                                                <p class="text-muted text-sm mb-0">{{ trans('messages.Users') }}</p>
+                                                <p class="text-muted text-sm mb-0">{{ trans('messages.Users') }}
+                                                </p>
                                             </div>
                                             <div class="col-6 text-start mt-2">
-                                                <h6 class="mb-0 px-3">{{ $user->countClients($workspace_id) }}</h6>
-                                                <p class="text-muted text-sm mb-0">{{ trans('messages.Clients') }}</p>
+                                                <h6 class="mb-0 px-3">{{ $user->countClients($workspace_id) }}
+                                                </h6>
+                                                <p class="text-muted text-sm mb-0">{{ trans('messages.Clients') }}
+                                                </p>
                                             </div>
                                         @endif
 
@@ -205,7 +203,8 @@
                                         @if (Auth::user()->type != 'admin')
                                             <div class="col-6 text-end">
                                                 <h6 class="mb-0 px-3">{{ $user->countTask($workspace_id) }}</h6>
-                                                <p class="text-muted text-sm mb-0">{{ trans('messages.Tasks') }}</p>
+                                                <p class="text-muted text-sm mb-0">{{ trans('messages.Tasks') }}
+                                                </p>
                                             </div>
                                         @endif
                                     </div>
@@ -238,7 +237,8 @@
                                 <i class="ti ti-plus"></i>
                             </div>
                             <h6 class="mt-4 mb-2">{{ trans('messages.Invite_New_User') }}</h6>
-                            <p class="text-muted text-center">{{ trans('messages.Clich_here_to_Invite_New_User') }}</p>
+                            <p class="text-muted text-center">{{ trans('messages.Clich_here_to_Invite_New_User') }}
+                            </p>
                         </a>
                     @endif
                 @endauth

@@ -24,25 +24,24 @@ class UsersTableSeeder extends Seeder
     public function run()
     {
         self::seedWorkspace();
-        $this->command->info('Tabla de workspace de test inicializada con datos!');
+        $this->command->info('Tabla de workspace inicializada con datos!');
 
         self::seedUsers();
-        $this->command->info('Tabla de usuarios de test inicializada con datos!');
+        $this->command->info('Tabla de usuarios inicializada con datos!');
         User::defaultEmail();
         User::seed_languages();
-        
+
         self::seedUserWorkspace();
-        $this->command->info('Tabla de user_workspace de test inicializada con datos!');
+        $this->command->info('Tabla de user_workspace inicializada con datos!');
 
         self::seedProjectType();
-        $this->command->info('Tabla de tipo de proyectos de test inicializada con datos!');
-
-        // self::seedTaskType();
-        // $this->command->info('Tabla de tipo de tareas de test inicializada con datos!');
-
+        $this->command->info('Tabla de tipo de proyectos inicializada con datos!');
 
         self::seedMO();
-        $this->command->info('Tabla de Master Obras de test inicializada con datos!');
+        $this->command->info('Tabla de Master Obras inicializada con datos!');
+
+        self::seedTaskType();
+        $this->command->info('Tabla de tipo de tareas inicializada con datos!');
     }
 
     function seedUsers()
@@ -51,8 +50,8 @@ class UsersTableSeeder extends Seeder
 
         foreach ($this->users as $user) {
 
-            // $currentWorkspace = Utility::getWorkspaceById($user['currant_workspace']);
-             $currentWorkspace = 9;
+            //workspace de Catalunya
+            $currentWorkspace = 9;
 
             $u = new User;
             $u->name = $user['name'];
@@ -118,24 +117,31 @@ class UsersTableSeeder extends Seeder
 
         foreach ($this->masterObras as $ref_mo => $name) {
             $MO = new MasterObra;
-
             $MO->ref_mo = $ref_mo;
             $MO->name = $name;
             $MO->save();
         }
     }
 
-    // function seedTaskType()
-    // {
-    //     TaskType::truncate();
+    function seedTaskType()
+    {
+        TaskType::truncate();
+        $objProjectTypes = ProjectType::all();
 
-    //     foreach ($this->nameTasks as $name) {
-    //         $projectType = new TaskType;
-    //         $projectType->name = $name;
-    //         $projectType->project_type = $id;
-    //         $projectType->save();
-    //     }
-    // }
+        // Iterar sobre los tipos de proyecto y sus tareas correspondientes
+        foreach ($this->nameTasks as $index => $tasks) {
+            $projectType = $objProjectTypes[$index];
+
+            foreach ($tasks as $name) {
+                $taskType = new TaskType;
+                $taskType->name = $name;
+
+                // Asignar el tipo de proyecto a la tarea
+                $taskType->project_type = $projectType->id;
+                $taskType->save();
+            }
+        }
+    }
 
     private $typeProjectname = [
         'Obra',
@@ -144,24 +150,30 @@ class UsersTableSeeder extends Seeder
         'Oficina'
     ];
 
-
     private $nameTasks = [
-        'Replanteo',
-        'Cálculo cargas',
-        'Visita obra',
-        'Informe cálculo',
-        'Diseño pieza especial',
-        'Anál isis requisitos',
-        'Prediseño',
-        'Diseño',
-        'Desarrollo y pruebas',
-        'Gestión de oficina',
-        'Formación',
-        'Análisis requisitos',
-        'Manuales',
+        [
+            'Replanteo',
+            'Cálculo cargas',
+            'Visita obra',
+            'Informe cálculo',
+            'Diseño pieza especial',
+        ],
+        [
+            'Análisis requisitos',
+            'Prediseño',
+            'Diseño',
+            'Desarrollo y pruebas',
+        ],
+        [
+            'Análisis requisitos',
+            'Manuales',
+            'Diseño',
+        ],
+        [
+            'Gestión de oficina',
+            'Formación',
+        ]
     ];
-
-
 
     private $prueba = [
         'ES0' => [
@@ -341,5 +353,4 @@ class UsersTableSeeder extends Seeder
         '2500062507' => 'Su Almacen',
         '2500062508' => 'Viv Con Fcc'
     );
-    
 }

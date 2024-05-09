@@ -15,6 +15,7 @@ return new class extends Migration
             $table->bigIncrements('id');
             $table->string('ref_mo');
             $table->string('name');
+            $table->integer('project_id')->default(0);
             $table->timestamps();
         });
     }
