@@ -39,7 +39,21 @@ class Project extends Model
     public function users()
     {
         return $this->belongsToMany('App\Models\User', 'user_projects', 'project_id', 'user_id')
+            // ->where('users.type', 'user') no muestra s los comerciales
+            ->withPivot('is_active')
+            ->orderBy('users.id', 'ASC');
+    }
+    public function technicians()
+    {
+        return $this->belongsToMany('App\Models\User', 'user_projects', 'project_id', 'user_id')
             ->where('users.type', 'user')
+            ->withPivot('is_active')
+            ->orderBy('users.id', 'ASC');
+    }
+    public function salesManager()
+    {
+        return $this->belongsToMany('App\Models\User', 'user_projects', 'project_id', 'user_id')
+            ->where('users.type', 'client')
             ->withPivot('is_active')
             ->orderBy('users.id', 'ASC');
     }
@@ -58,15 +72,6 @@ class Project extends Model
             ->pluck('client_id')
             ->orderBy('users.id', 'ASC');
     }
-
-    public function clients()
-    {
-        return $this->belongsToMany('App\Models\User', 'user_projects', 'project_id', 'user_id')
-            ->where('users.type', 'client')
-            ->withPivot('is_active')
-            ->orderBy('users.id', 'ASC');
-    }
-
 
     public function countTask()
     {

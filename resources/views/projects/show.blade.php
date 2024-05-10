@@ -96,7 +96,7 @@
                                     <div class="px-3">
                                         <span class="text-white text-sm">{{ trans('messages.Total_Members') }}:</span>
                                         <h5 class="text-white text-nowrap">
-                                            {{ (int) $project->users->count() + (int) $project->clients->count() }}</h5>
+                                            {{ (int) $project->technicians->count() + (int) $project->salesManager->count() }}</h5>
                                     </div>
                                     <div class="px-3">
 
@@ -340,7 +340,7 @@
                                         <div>
                                             {{-- team usuario/tecnicos --}}
                                             <h5 class="mb-0">{{ trans('messages.Team_Members') }}
-                                                ({{ count($project->users) }})
+                                                ({{ count($project->technicians) }})
                                             </h5>
                                         </div>
 
@@ -359,7 +359,7 @@
                                 </div>
                                 <div class="card-body">
                                     <div class="px-3 top-10-scroll" style="max-height: 300px;">
-                                        @foreach ($project->users as $user)
+                                        @foreach ($project->technicians as $user)
                                             <ul class="list-group list-group-flush">
                                                 <li class="list-group-item px-0">
                                                     <div class="row align-items-center justify-content-between">
@@ -421,7 +421,7 @@
                                         <div>
 
                                             <h5 class="mb-0">{{ trans('messages.Sales_manager') }}
-                                                ({{ count($project->clients) }})
+                                                ({{ count($project->salesManager) }})
                                             </h5>
                                         </div>
 
@@ -441,7 +441,7 @@
                                 </div>
                                 <div class="card-body">
                                     <div class=" px-3 top-10-scroll" style="max-height: 300px;">
-                                        @foreach ($project->clients as $client)
+                                        @foreach ($project->salesManager as $client)
                                             <ul class="list-group list-group-flush">
                                                 <li class="list-group-item px-0">
                                                     <div class="row align-items-center justify-content-between">
