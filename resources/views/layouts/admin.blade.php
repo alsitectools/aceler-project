@@ -204,6 +204,7 @@ $SITE_RTL = 'on';
     @endif
 
     <div class="bg-primary" id="color_chart"></div>
+
     <script>
         var element = document.querySelector('#color_chart');
         var style = getComputedStyle(element);
@@ -396,6 +397,13 @@ $SITE_RTL = 'on';
 
 
     <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            var debugBar = document.getElementsByClassName("phpdebugbar")[0];
+            if (debugBar) {
+                debugBar.remove();
+            }
+        });
+
         $(document).on("click", ".clear_all_notifications", function() {
 
             var chbox = $(this);
