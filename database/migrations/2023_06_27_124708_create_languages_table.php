@@ -16,7 +16,7 @@ return new class extends Migration
         Schema::create('languages', function (Blueprint $table) {
             $table->id();
             $table->string('lang_code', 100)->default('es');
-            $table->longText('lang_fullname')->default('Spanish');
+            $table->string('lang_fullname')->default('Spanish');
             $table->timestamps();
         });
     }

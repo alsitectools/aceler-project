@@ -46,7 +46,7 @@ $logo = \App\Models\Utility::get_file('avatars/');
                     <div class="card-header border-0 pb-0">
                         <div class="d-flex align-items-center">
                             @if ($project->is_active)
-                            <a href="@auth('web'){{ route('projects.show', [$currentWorkspace->slug, $project->id]) }}@endauth" class="">
+                            <a href="@auth('web'){{ route('projects.show', [$currentWorkspace->slug, $project->id]) }}@endauth" class="" data-toggle="tooltip" title="{{ $project->name }}">
                                 <img alt="{{ $project->name }}" class="img-fluid wid-30 me-2 fix_img" avatar="{{ $project->name }}">
                             </a>
                             @else
@@ -127,14 +127,11 @@ $logo = \App\Models\Utility::get_file('avatars/');
                                     @if (isset($project_type[$project->type - 1]) &&
                                     $project_type[$project->type - 1]->id == $project->type)
                                     <div class="col-6 text">
-                                        <span class="text-muted"><b>{{ $project_type[$project->type - 1]->name }}</b></span>
-                                        <span class="text-muted"><b>{{ $project->ref_mo }}</b></span>
+                                        <span class="text-muted" data-toggle="tooltip" title="Tipo de proyecto"><b>{{ $project_type[$project->type - 1]->name }}</b></span>
+                                        <span class="text-muted" data-toggle="tooltip" title="Referencia Master Obra"><b>{{ $project->ref_mo }}</b></span>
                                     </div>
-                                    <div class="col-6">
-                                        <p aria-hidden="true">
-                                            <img class="img-fluid" width="50px" src="{{ asset('assets/img/'.$project_type[$project->type - 1]->name .'.png') }}" alt="Project type">
-
-                                        </p>
+                                    <div class="col-6 d-flex justify-content-end">
+                                        <img class="img-fluid" width="40px" src="{{ asset('assets/img/'.$project_type[$project->type - 1]->name .'.png') }}" alt="Project type">
                                     </div>
                                     @endif
                                 </div>

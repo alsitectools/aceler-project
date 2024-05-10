@@ -815,22 +815,22 @@ class User extends Authenticatable implements MustVerifyEmail
         public static function seed_languages($new_arr = '')
         {
                 $lang_arr = [
-                        'ar' => 'Arabic',
-                        'da' => 'Danish',
-                        'de' => 'German',
+                        // 'ar' => 'Arabic',
+                        // 'da' => 'Danish',
+                        // 'de' => 'German',
                         'es' => 'Spanish',
-                        'fr' => 'French',
-                        'it' => 'Italian',
-                        'ja' => 'Japanese',
-                        'nl' => 'Dutch',
-                        'pl' => 'Polish',
-                        'ru' => 'Russian',
-                        'pt' => 'Portuguese',
+                        // 'fr' => 'French',
+                        // 'it' => 'Italian',
+                        // 'ja' => 'Japanese',
+                        // 'nl' => 'Dutch',
+                        // 'pl' => 'Polish',
+                        // 'ru' => 'Russian',
+                        // 'pt' => 'Portuguese',
                         'en' => 'English',
-                        'tr' => 'Turkish',
-                        'zh' => 'Chinese',
-                        'he' => 'Hebrew',
-                        'pt-br' => 'Portuguese(BR)',
+                        // 'tr' => 'Turkish',
+                        // 'zh' => 'Chinese',
+                        // 'he' => 'Hebrew',
+                        // 'pt-br' => 'Portuguese(BR)',
 
                 ];
 

@@ -14,23 +14,16 @@ $user = Auth::user();
             <div class="col-md-12">
                 <div class="form-group">
                     <button class="form-control form-control-light dropdown-toggle text-start" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                        Seleccionar encargo
+                        Seleccionar tipo
                     </button>
                     <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton">
                         @foreach($TaskType as $type)
                         @if($project->type == $type->project_type)
-                        <li><a class="dropdown-item" href="#" data-task-type-id="{{ $type->id }}">{{ $type->name }}</a></li>
+                        <li><a class="dropdown-item task-type" data-task-type-id="{{ $type->id }}">{{ $type->name }}</a></li>
                         @endif
                         @endforeach
                     </ul>
                 </div>
-            </div>
-
-            <div class="form-group col-md-12" style="display:none">
-                <label class="col-form-label">{{ __('Assign To') }}</label>
-                <select class=" multi-select" id="assign_to" name="assign_to[]" data-toggle="select2" multiple="multiple" data-placeholder="{{ __('Select Users ...') }}">
-                    <option value="{{ $user->id }}" selected></option>
-                </select>
             </div>
 
             <div class="row">
@@ -96,6 +89,16 @@ $user = Auth::user();
 @endif
 
 <script>
+    $(document).ready(function() {
+        $('.task-type').click(function() {
+            var selectedType = $(this).text();
+            $('.dropdown-toggle').text(selectedType);
+        });
+    });
+
+</script>
+
+<script>
     (function() {
         var locale = '{{ app()->getLocale() }}';
 
@@ -109,6 +112,8 @@ $user = Auth::user();
     })();
 
 </script>
+
+
 
 <script>
     (function() {

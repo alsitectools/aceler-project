@@ -1728,20 +1728,20 @@ Utility
         //     'pt-br' => 'PT-BR 🇵🇹',
         // ];
         $arr = [
-            'ar' => 'arabic 🇦🇪',
-            'da' => 'danish 🇩🇰',
-            'de' => 'german 🇩🇪',
+            // 'ar' => 'arabic 🇦🇪',
+            // 'da' => 'danish 🇩🇰',
+            // 'de' => 'german 🇩🇪',
             'en' => 'english 🇮🇳',
             'es' => 'spanish 🇪🇸',
             'fr' => 'french 🇫🇷',
-            'it' => 'italian 🇮🇹',
-            'ja' => 'japanese 🇯🇵',
-            'nl' => 'dutch 🇳🇱',
-            'pl' => 'polish 🇵🇱',
-            'ru' => 'russian 🇷🇺',
-            'pt' => 'portuguese 🇵🇹',
-            'tr' => 'turkish 🇹🇷',
-            'pt-br' => 'portuguese(BR) 🇵🇹',
+            // 'it' => 'italian 🇮🇹',
+            // 'ja' => 'japanese 🇯🇵',
+            // 'nl' => 'dutch 🇳🇱',
+            // 'pl' => 'polish 🇵🇱',
+            // 'ru' => 'russian 🇷🇺',
+            // 'pt' => 'portuguese 🇵🇹',
+            // 'tr' => 'turkish 🇹🇷',
+            // 'pt-br' => 'portuguese(BR) 🇵🇹',
         ];
         return $arr;
     }
@@ -1770,22 +1770,22 @@ Utility
     public static function langList()
     {
         $languages = [
-            "ar" => "Arabic",
-            "zh" => "Chinese",
-            "da" => "Danish",
-            "de" => "German",
+            // "ar" => "Arabic",
+            // "zh" => "Chinese",
+            // "da" => "Danish",
+            // "de" => "German",
             "en" => "English",
             "es" => "Spanish",
             "fr" => "French",
-            "he" => "Hebrew",
-            "it" => "Italian",
-            "ja" => "Japanese",
-            "nl" => "Dutch",
-            "pl" => "Polish",
-            "pt" => "Portuguese",
-            "ru" => "Russian",
-            "tr" => "Turkish",
-            "pt-br" => "Portuguese(BR)",
+            // "he" => "Hebrew",
+            // "it" => "Italian",
+            // "ja" => "Japanese",
+            // "nl" => "Dutch",
+            // "pl" => "Polish",
+            // "pt" => "Portuguese",
+            // "ru" => "Russian",
+            // "tr" => "Turkish",
+            // "pt-br" => "Portuguese(BR)",
         ];
         return $languages;
     }
