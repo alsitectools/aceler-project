@@ -76,20 +76,21 @@ class ProjectController extends Controller
     //Funcion que guarda en la BBDD que empleado a participado en el proyecto
     public function employeesInProject($userID, $projectID)
     {
-
         $project = Project::find($projectID);
-        $user = UserProject::find($userID);
+        $user = User::find($userID);
+        $existingRecord = UserProject::where('user_id', $user->id)->where('project_id', $project->id)->first();
 
-        if (isset($user) && isset($project)  && $user->project_id != $project->id) {
-            // El usuario no existe, crear un nuevo registro en UserProject solo si el proyecto también existe
+        if (!$existingRecord && $project && $user) {
+            $arrData = [
+                'user_id' => $user->id,
+                'project_id' => $project->id,
+                'permission' => json_encode(Utility::getAllPermission())
+            ];
 
-            $arrData = [];
-            $arrData['user_id'] = $user->id;
-            $arrData['project_id'] = $project->id;
-            $arrData['permission'] = json_encode(Utility::getAllPermission());
             UserProject::create($arrData);
         }
     }
+
 
     public function store($slug, Request $request)
     {
@@ -822,15 +823,15 @@ class ProjectController extends Controller
                     $a =  Utility::addCalendarData($request1, $type, $slug);
                 }
 
-                // ActivityLog::create(
-                //     [
-                //         'user_id' => Auth::user()->id,
-                //         'user_type' => get_class(Auth::user()),
-                //         'project_id' => $projectID,
-                //         'log_type' => 'Create Task',
-                //         'remark' => json_encode(['title' => $task->title]),
-                //     ]
-                // );
+                ActivityLog::create(
+                    [
+                        'user_id' => Auth::user()->id,
+                        'user_type' => get_class(Auth::user()),
+                        'project_id' => $projectID,
+                        'log_type' => 'Create Task',
+                        'remark' => json_encode(['title' => $task->title]),
+                    ]
+                );
 
                 $uArr = [
 
@@ -1473,12 +1474,13 @@ class ProjectController extends Controller
         $milestone = new Milestone();
         $milestone->project_id = $project->id;
         $milestone->title = $request->title;
-        // $milestone->created = $request->created;
+        $milestone->assign_to = Auth::user()->id;
         $milestone->start_date = date('Y-m-d');;
         $milestone->end_date = $request->end_date;
         // $milestone->tasks = $request->tasks;
         $milestone->summary = $request->summary;
         $milestone->save();
+
 
         $this->employeesInProject(Auth::user()->id, $project->id);
 

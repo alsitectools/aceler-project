@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class Milestone extends Model
 {
     protected $fillable = [
-        'project_id', 'title', 'status', /*'tasks' ,*/ 'start_date', 'end_date', 'summary'
+        'project_id', 'title', 'assign_to', 'tasks', 'status', 'order', 'start_date', 'end_date', 'summary'
     ];
     public function daysLeft()
     {
@@ -16,7 +16,7 @@ class Milestone extends Model
     // public function tasks() 
     // {
     //     $milestone = Task::all();
-        
+
     //     foreach ($tasks as $task) {
     //         if ($this->milestone_id =) {
     //         }
