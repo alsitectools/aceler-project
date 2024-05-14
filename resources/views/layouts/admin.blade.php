@@ -397,12 +397,14 @@ $SITE_RTL = 'on';
 
 
     <script>
+        /*============================BOTON DEBUGBAR================================*/
         document.addEventListener("DOMContentLoaded", function() {
             var debugBar = document.getElementsByClassName("phpdebugbar")[0];
             if (debugBar) {
                 debugBar.remove();
             }
         });
+        /*========================================================================*/
 
         $(document).on("click", ".clear_all_notifications", function() {
 

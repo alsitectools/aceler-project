@@ -233,12 +233,14 @@ class ProjectController extends Controller
             $customerData = new Project();
             // dd($customer[0]);
             $customerData->name = $customer[0];
-            $customerData->status = $customer[1];
-            $customerData->description = $customer[2];
-            $customerData->start_date = $customer[3];
+            $customerData->ref_mo = $customer[1];
+            $customerData->type = $customer[2];
+            $customerData->status = $customer[3];
+            $customerData->description = $customer[4];
+            $customerData->start_date = $customer[5];
 
-            $customerData->end_date = $customer[4];
-            $customerData->budget = $customer[5];
+            $customerData->end_date = $customer[6];
+            $customerData->budget = $customer[7];
             $customerData->workspace = $currentWorkspace->id;
 
             $customerData->created_by = $objUser->id;
@@ -652,7 +654,7 @@ class ProjectController extends Controller
         $objUser = Auth::user();
         $project = Project::find($projectID);
 
-        if ($project->created_by == $objUser->id) {
+        if ($project && ($objUser->type == 'admin')) {
             UserProject::where('project_id', '=', $projectID)->delete();
             ProjectFile::where('project_id', '=', $projectID)->delete();
             $project->delete();

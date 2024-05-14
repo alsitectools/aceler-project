@@ -6,20 +6,20 @@ use App\Models\Project;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 
-class projectsExport implements FromCollection,WithHeadings
+class projectsExport implements FromCollection, WithHeadings
 {
 
     public function collection()
     {
-        $data = Project::where('created_by',\Auth::user()->id)->where('workspace',\Auth::user()->currant_workspace)->get();
-        foreach($data as $k => $Projects)
-        {
-            unset($Projects->created_by, $Projects->is_active,$Projects->id);
+        $data = Project::where('workspace', \Auth::user()->currant_workspace)->get();
+        foreach ($data as $k => $Projects) {
+            unset($Projects->created_by, $Projects->is_active, $Projects->id);
 
 
             $data[$k]["name"]           = $Projects->name;
+            $data[$k]["ref_mo"]           = $Projects->ref_mo;
+            $data[$k]["type"]           = $Projects->type;
             $data[$k]["status"]          = $Projects->status;
-            $data[$k]["description"]     = $Projects->description;
             $data[$k]["start_date"]       = $Projects->start_date;
             $data[$k]["end_date"]         = $Projects->end_date;
             $data[$k]["budget"]          =  $Projects->budget;
@@ -33,15 +33,13 @@ class projectsExport implements FromCollection,WithHeadings
     {
         return [
             "Name",
-            "status",
-            'description',
-            "start_date",
-            "end_date",
-            "budget",
-            "workspace",
-            "Created At",
-            "Updated At",
+            "Ref_MO",
+            'Type',
+            'Status',
+            "Start_date",
+            "End_date",
+            "Budget",
+            "Workspace_id",
         ];
     }
-
 }

@@ -108,6 +108,8 @@ use App\Models\Utility;
 
     <script>
         feather.replace();
+        /*============================BOTON DEBUGBAR================================*/
+
         document.addEventListener("DOMContentLoaded", function() {
 
             var debugBar = document.getElementsByClassName("phpdebugbar")[0];
@@ -115,6 +117,7 @@ use App\Models\Utility;
                 debugBar.remove();
             }
         });
+        /*=======================================================================*/
 
     </script>
     <script>
