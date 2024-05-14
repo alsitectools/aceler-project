@@ -656,6 +656,7 @@ class ProjectController extends Controller
 
         if ($project && ($objUser->type == 'admin')) {
             UserProject::where('project_id', '=', $projectID)->delete();
+            MasterObra::where('project_id', $projectID)->update(['project_id' => 0]);
             ProjectFile::where('project_id', '=', $projectID)->delete();
             $project->delete();
 
