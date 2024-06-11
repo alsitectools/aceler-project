@@ -49,13 +49,8 @@
     <div class="navbar-wrapper">
         <div class="m-header main-logo">
             <a href="{{ route('home') }}" class="b-brand">
-                <!-- ========   change your logo hear   ============ -->
-                <img src="https://alsinadocs.piwigo.com/uploads/n/z/w/nzwsilkwfp//2021/03/01/20210301112409-8570106b.jpg"
-                    alt="logo" style="width: 100px ; heigth: 100px !important" />
-
-                {{-- <img src="{{ $logo . $company_logo . '?timestamp=' . strtotime(isset($currentWorkspace) ? $currentWorkspace->updated_at : '') }}"
-                    alt="logo" class="sidebar_logo_size" /> --}}
-                {{-- class="sidebar_logo_size"  --}}
+                <img class="img-fluid rounded" src="{{ asset('assets/img/sidebar.jpg') }}" alt="logo"
+                    style="width: 200px ; heigth: 200px !important" />
             </a>
         </div>
         <div class="navbar-content">
@@ -66,7 +61,6 @@
 
                         <span class="dash-micon"><i class="ti ti-user"></i></span>
                         <span class="dash-mtext">{{ trans('messages.Company') }}</span>
-
                     </a>
                 </li>
 
@@ -85,27 +79,26 @@
                     </a>
                 </li>
 
-
-
                 @if (isset($currentWorkspace) && $currentWorkspace)
                     @auth('web')
                         <li
                             class="dash-item {{ Request::route()->getName() == 'projects.index' || Request::segment(2) == 'projects' ? ' active' : '' }}">
-                            <a href="{{ route('projects.index', $currentWorkspace->slug) }}" class="dash-link"><span
-                                    class="dash-micon"> <i data-feather="briefcase"></i></span><span
+                            <a href="{{ route('projects.index', $currentWorkspace->slug) }}" class="dash-link">
+                                <span class="dash-micon"> <i data-feather="briefcase"></i></span><span
                                     class="dash-mtext">{{ __('Projects') }}</span></a>
                         </li>
                         <li class="dash-item {{ Request::route()->getName() == 'tasks.index' ? ' active' : '' }}">
-                            <a href="{{ route('tasks.index', $currentWorkspace->slug) }}" class="dash-link "><span
-                                    class="dash-micon"><i data-feather="list"></i></span><span
+                            <a href="{{ route('tasks.index', $currentWorkspace->slug) }}" class="dash-link ">
+                                <span class="dash-micon"><i data-feather="list"></i></span><span
                                     class="dash-mtext">{{ trans('messages.Tasks') }}</span></a>
                         </li>
 
                         <li class="dash-item {{ Request::route()->getName() == 'timesheet.index' ? ' active' : '' }}">
-                            <a href="{{ route('timesheet.index', $currentWorkspace->slug) }}" class="dash-link "><span
-                                    class="dash-micon"><i data-feather="clock"></i></span><span
+                            <a href="{{ route('timesheet.index', $currentWorkspace->slug) }}" class="dash-link ">
+                                <span class="dash-micon"><i data-feather="clock"></i></span><span
                                     class="dash-mtext">{{ trans('messages.Timesheets') }}</span></a>
                         </li>
+                        
 
                         @if (isset($currentWorkspace) &&
                                 $currentWorkspace &&
@@ -188,14 +181,14 @@
                     @endauth
                 @endif
                 {{-- colorAlsina #AA182C --}}
-                @if (\Auth::user()->type == 'admin')
+                {{-- @if (\Auth::user()->type == 'admin') --}}
                     <li class="dash-item {{ Request::route()->getName() == 'workspace.settings' ? ' active' : '' }}">
                         <a href="{{ route('workspace.settings', $currentWorkspace->slug) }}" class="dash-link "><span
                                 class="dash-micon"><i data-feather="settings"></i></span><span
                                 class="dash-mtext">{{ __('Settings') }}</span></a>
 
                     </li>
-                @endif
+                {{-- @endif --}}
 
         </div>
     </div>

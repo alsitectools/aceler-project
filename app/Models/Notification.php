@@ -93,6 +93,5 @@ class Notification extends Model
                 </a>';
 
         return $html;
-
     }
 }

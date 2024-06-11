@@ -75,14 +75,14 @@
                                     class="list-group-item list-group-item-action border-0 ">{{ trans('messages.Workspace_Settings') }}
                                     <div class="float-end"><i class="ti ti-chevron-right"></i></div>
                                 </a>
-                                <a href="#task-stage-settings"
+                                {{-- <a href="#task-stage-settings"
                                     class="list-group-item list-group-item-action border-0 ">{{ trans('messages.Task_Stage_Settings') }}
                                     <div class="float-end"><i class="ti ti-chevron-right"></i></div>
-                                </a>
-                                <a href="#bug-stage-settings"
+                                </a> --}}
+                                {{-- <a href="#bug-stage-settings"
                                     class="list-group-item list-group-item-action border-0">{{ __('Bug Stage Settings') }}
                                     <div class="float-end"><i class="ti ti-chevron-right"></i></div>
-                                </a>
+                                </a> --}}
                                 <a href="#tax-settings"
                                     class="list-group-item list-group-item-action border-0">{{ trans('messages.Tax_Settings') }}
                                     <div class="float-end"><i class="ti ti-chevron-right"></i></div>
@@ -129,10 +129,10 @@
                                    class="list-group-item list-group-item-action border-0">{{ __('Webhook Settings') }}
                                 <div class="float-end"><i class="ti ti-chevron-right"></i></div></a> --}}
 
-                                <a href="#email-settings"
+                                {{-- <a href="#email-settings"
                                     class="list-group-item list-group-item-action dash-link border-0">{{ __('Email Settings') }}
                                     <div class="float-end"><i class="ti ti-chevron-right"></i></div>
-                                </a>
+                                </a> --}}
                             @endif
                         </div>
                     </div>
@@ -157,8 +157,8 @@
                                                         </div>
                                                         <div class="card-body">
                                                             <div class="logo-content">
-                                                                {{-- <img src="@if ($currentWorkspace->logo) {{ $logo . $currentWorkspace->logo  .'?timestamp='.strtotime(isset($currentWorkspace) ? $currentWorkspace->updated_at : '')}} @else{{ $logo . 'logo-light.png' }} @endif"
-                                                                    class="small_logo" id="dark_logo" style="filter: drop-shadow(2px 3px 7px #011c4b);"/> --}}
+                                                                <img src="@if ($currentWorkspace->logo) {{ $logo . $currentWorkspace->logo  .'?timestamp='.strtotime(isset($currentWorkspace) ? $currentWorkspace->updated_at : '')}} @else{{ $logo . 'logo-light.png' }} @endif"
+                                                                    class="small_logo" id="dark_logo" style="filter: drop-shadow(2px 3px 7px #011c4b);"/>
                                                             </div>
                                                             <div class="choose-file mt-5 ">
                                                                 <label for="logo">
@@ -187,8 +187,8 @@
                                                         </div>
                                                         <div class="card-body">
                                                             <div class="logo-content">
-                                                                {{-- <img src="@if ($currentWorkspace->logo_white) {{ $logo . $currentWorkspace->logo_white .'?timestamp='.strtotime(isset($currentWorkspace) ? $currentWorkspace->updated_at : '') }} @else{{ $logo . 'logo-dark.png' }} @endif"
-                                                                    id="image" class="small_logo" style="filter: drop-shadow(2px 3px 7px #011c4b);" /> --}}
+                                                                <img src="@if ($currentWorkspace->logo_white) {{ $logo . $currentWorkspace->logo_white .'?timestamp='.strtotime(isset($currentWorkspace) ? $currentWorkspace->updated_at : '') }} @else{{ $logo . 'logo-dark.png' }} @endif"
+                                                                    id="image" class="small_logo" style="filter: drop-shadow(2px 3px 7px #011c4b);" />
                                                             </div>
                                                             <div class="choose-file mt-5 ">
                                                                 <label for="logo_white">
@@ -217,9 +217,9 @@
                                                         </div>
                                                         <div class="card-body">
                                                             <div class="logo-content">
-                                                                {{-- <img src="@if ($currentWorkspace->favicon) {{ $logo . $currentWorkspace->favicon.'?timestamp='.strtotime(isset($currentWorkspace) ? $currentWorkspace->updated_at : '') }} @else{{ $logo . 'favicon.png' }} @endif"
+                                                                <img src="@if ($currentWorkspace->favicon) {{ $logo . $currentWorkspace->favicon.'?timestamp='.strtotime(isset($currentWorkspace) ? $currentWorkspace->updated_at : '') }} @else{{ $logo . 'favicon.png' }} @endif"
                                                                     id="favicon" class="favicon"
-                                                                    style="width:60px !important" /> --}}
+                                                                    style="width:60px !important" />
                                                             </div>
                                                             <div class="choose-file mt-5 ">
                                                                 <label for="small-favicon">
@@ -256,29 +256,13 @@
                                             <div class="col-sm-4">
                                                 @php
                                                     $DEFAULT_LANG = $currentWorkspace->lang ? $currentWorkspace->lang : 'en';
-                                                @endphp
+                                                @endphp 
                                                 <div class="form-group">
                                                     {{ Form::label('default_language', __('Default Language'), ['class' => 'form-label']) }}
                                                     <div class="changeLanguage">
-                                                        {{-- <select name="default_language" id="default_language"
-                                                            class="form-control select2">
-                                                            @foreach (\App\Models\Utility::languages() as $lang)
-                                                                <option value="{{ $lang }}"
-                                                                    @if ($DEFAULT_LANG == $lang) selected @endif>
-                                                                    {{ ucfirst( \App\Models\Utility::getlang_fullname($lang)) }}
-                                                                </option>
-                                                            @endforeach
-                                                        </select> --}}
 
                                                         <select name="default_language" id="default_language"
-                                                            class="form-control select2">
-                                                            {{-- @foreach (\App\Models\Utility::languages() as $lang)
-                                                            <option value="{{ $lang }}"
-                                                                @if ($DEFAULT_LANG == $lang) selected @endif>
-                                                                {{ ucfirst( \App\Models\Utility::getlang_fullname($lang)) }}
-                                                            </option>
-                                                        @endforeach --}}
-
+                                                           class="form-control select2">
                                                             @foreach ($languages as $languageCode => $languageFullName)
                                                                 <option value="{{ $languageCode }}"
                                                                     @if ($DEFAULT_LANG == $languageCode) selected @endif>
@@ -425,10 +409,10 @@
                                 </div>
                             </div>
                         </div>
-                        {{ Form::close() }}
-                    </div>
+                            {{ Form::close() }}
+                        </div>
 
-                    <div id="task-stage-settings" class="">
+                        {{-- <div id="task-stage-settings" class="">
                         <div class="">
                             <div class="col-md-12">
                                 <div class="card task-stages" data-value="{{ json_encode($stages) }}"
@@ -501,9 +485,9 @@
                                 </div>
                             </div>
                         </div>
-                    </div>
+                    </div> --}}
 
-                    <div id="bug-stage-settings" class="tab-pane">
+                        {{-- <div id="bug-stage-settings" class="tab-pane">
                         <div class="row justify-content-center">
                             <div class="col-md-12">
                                 <div class="card bug-stages" data-value="{{ json_encode($bugStages) }}"
@@ -573,148 +557,151 @@
                                 </div>
                             </div>
                         </div>
-                    </div>
+                    </div> --}}
 
-                    <div id="tax-settings" class="">
-                        <div class="row justify-content-center">
-                            <div class="col-md-12">
-                                <div class="card">
-                                    <div class="card-header">
-                                        <div class="row">
-                                            <div class="col-11">
-                                                <h5 class="">
-                                                    {{ trans('messages.Tax_Settings') }}
-                                                </h5>
-                                            </div>
-                                            <div class="text-end  col-auto">
-                                                <button class="btn-submit btn btn-sm btn-primary" type="button"
-                                                    data-ajax-popup="true" data-title="{{ __('Add Tax') }}"
-                                                    data-url="{{ route('tax.create', $currentWorkspace->slug) }}"
-                                                    data-toggle="tooltip" title="{{ __('Add Tax') }}">
-                                                    <i class="ti ti-plus"></i>
-                                                </button>
+                        <div id="tax-settings" class="">
+                            <div class="row justify-content-center">
+                                <div class="col-md-12">
+                                    <div class="card">
+                                        <div class="card-header">
+                                            <div class="row">
+                                                <div class="col-11">
+                                                    <h5 class="">
+                                                        {{ trans('messages.Tax_Settings') }}
+                                                    </h5>
+                                                </div>
+                                                <div class="text-end  col-auto">
+                                                    <button class="btn-submit btn btn-sm btn-primary" type="button"
+                                                        data-ajax-popup="true" data-title="{{ __('Add Tax') }}"
+                                                        data-url="{{ route('tax.create', $currentWorkspace->slug) }}"
+                                                        data-toggle="tooltip" title="{{ __('Add Tax') }}">
+                                                        <i class="ti ti-plus"></i>
+                                                    </button>
+                                                </div>
                                             </div>
                                         </div>
-                                    </div>
-                                    <div class="card-body">
-                                        <div class="table-responsive">
+                                        <div class="card-body">
+                                            <div class="table-responsive">
 
-                                            <table id="" class="table table-bordered px-2">
-                                                <thead>
-                                                    <tr>
-                                                        <th>{{ __('Name') }}</th>
-                                                        <th>{{ __('Rate') }}</th>
-                                                        <th width="200px" class="text-right">{{ __('Action') }}</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody>
-                                                    @foreach ($taxes as $tax)
+                                                <table id="" class="table table-bordered px-2">
+                                                    <thead>
                                                         <tr>
-                                                            <td>{{ $tax->name }}</td>
-                                                            <td>{{ $tax->rate }}%</td>
-                                                            <td class="text-right">
-                                                                <a href="#"
-                                                                    class="action-btn btn-info  btn btn-sm d-inline-flex align-items-center"
-                                                                    data-ajax-popup="true"
-                                                                    data-title="{{ __('Edit Tax') }}"
-                                                                    data-url="{{ route('tax.edit', [$currentWorkspace->slug, $tax->id]) }}"
-                                                                    data-toggle="tooltip" title="{{ __('Edit Tax') }}">
-                                                                    <i class="ti ti-pencil text-white"></i>
-                                                                </a>
-                                                                <a href="#"
-                                                                    class="action-btn btn-danger  btn btn-sm d-inline-flex align-items-center bs-pass-para"
-                                                                    data-confirm="{{ __('Are You Sure?') }}"
-                                                                    data-text="{{ __('This action can not be undone. Do you want to continue?') }}"
-                                                                    data-confirm-yes="delete-form-{{ $tax->id }}"data-toggle="tooltip"
-                                                                    title="{{ __('Delete') }}">
-                                                                    <i class="ti ti-trash text-white"></i>
-                                                                </a>
-                                                                <form id="delete-form-{{ $tax->id }}"
-                                                                    action="{{ route('tax.destroy', [$currentWorkspace->slug, $tax->id]) }}"
-                                                                    method="POST" style="display: none;">
-                                                                    @csrf
-                                                                    @method('DELETE')
-                                                                </form>
-                                                            </td>
+                                                            <th>{{ __('Name') }}</th>
+                                                            <th>{{ __('Rate') }}</th>
+                                                            <th width="200px" class="text-right">{{ __('Action') }}</th>
                                                         </tr>
-                                                    @endforeach
-                                                </tbody>
-                                            </table>
+                                                    </thead>
+                                                    <tbody>
+                                                        @foreach ($taxes as $tax)
+                                                            <tr>
+                                                                <td>{{ $tax->name }}</td>
+                                                                <td>{{ $tax->rate }}%</td>
+                                                                <td class="text-right">
+                                                                    <a href="#"
+                                                                        class="action-btn btn-info  btn btn-sm d-inline-flex align-items-center"
+                                                                        data-ajax-popup="true"
+                                                                        data-title="{{ __('Edit Tax') }}"
+                                                                        data-url="{{ route('tax.edit', [$currentWorkspace->slug, $tax->id]) }}"
+                                                                        data-toggle="tooltip" title="{{ __('Edit Tax') }}">
+                                                                        <i class="ti ti-pencil text-white"></i>
+                                                                    </a>
+                                                                    <a href="#"
+                                                                        class="action-btn btn-danger  btn btn-sm d-inline-flex align-items-center bs-pass-para"
+                                                                        data-confirm="{{ __('Are You Sure?') }}"
+                                                                        data-text="{{ __('This action can not be undone. Do you want to continue?') }}"
+                                                                        data-confirm-yes="delete-form-{{ $tax->id }}"data-toggle="tooltip"
+                                                                        title="{{ __('Delete') }}">
+                                                                        <i class="ti ti-trash text-white"></i>
+                                                                    </a>
+                                                                    <form id="delete-form-{{ $tax->id }}"
+                                                                        action="{{ route('tax.destroy', [$currentWorkspace->slug, $tax->id]) }}"
+                                                                        method="POST" style="display: none;">
+                                                                        @csrf
+                                                                        @method('DELETE')
+                                                                    </form>
+                                                                </td>
+                                                            </tr>
+                                                        @endforeach
+                                                    </tbody>
+                                                </table>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
 
-                    <div id="company-settings" class="tab-pane">
-                        <div class="row justify-content-center">
-                            <div class="col-md-12">
-                                <div class="card">
-                                    <div class="card-header">
-                                        <h5 class="">
-                                            {{ __('Company Settings') }}
-                                        </h5>
-                                    </div>
-                                    <div class="card-body p-4">
-                                        <form method="post"
-                                            action="{{ route('workspace.settings.store', $currentWorkspace->slug) }}"
-                                            class="payment-form">
-                                            @csrf
-                                            <div class="row mt-3">
-                                                <div class="form-group col-md-6">
-                                                    <label for="company" class="form-label">{{ __('Name') }}</label>
-                                                    <input type="text" name="company" id="company"
-                                                        class="form-control" value="{{ $currentWorkspace->company }}"
-                                                        required="required" />
+                        <div id="company-settings" class="tab-pane">
+                            <div class="row justify-content-center">
+                                <div class="col-md-12">
+                                    <div class="card">
+                                        <div class="card-header">
+                                            <h5 class="">
+                                                {{ __('Company Settings') }}
+                                            </h5>
+                                        </div>
+                                        <div class="card-body p-4">
+                                            <form method="post"
+                                                action="{{ route('workspace.settings.store', $currentWorkspace->slug) }}"
+                                                class="payment-form">
+                                                @csrf
+                                                <div class="row mt-3">
+                                                    <div class="form-group col-md-6">
+                                                        <label for="company"
+                                                            class="form-label">{{ __('Name') }}</label>
+                                                        <input type="text" name="company" id="company"
+                                                            class="form-control" value="{{ $currentWorkspace->company }}"
+                                                            required="required" />
+                                                    </div>
+                                                    <div class="form-group col-md-6">
+                                                        <label for="address"
+                                                            class="form-label">{{ trans('messages.Address') }}</label>
+                                                        <input type="text" name="address" id="address"
+                                                            class="form-control" value="{{ $currentWorkspace->address }}"
+                                                            required="required" />
+                                                    </div>
+                                                    <div class="form-group col-md-6">
+                                                        <label for="city"
+                                                            class="form-label">{{ __('City') }}</label>
+                                                        <input class="form-control" name="city" type="text"
+                                                            value="{{ $currentWorkspace->city }}" id="city">
+                                                    </div>
+                                                    <div class="form-group col-md-6">
+                                                        <label for="state"
+                                                            class="form-label">{{ trans('messages.State') }}</label>
+                                                        <input class="form-control" name="state" type="text"
+                                                            value="{{ $currentWorkspace->state }}" id="state">
+                                                    </div>
+                                                    <div class="form-group col-md-6">
+                                                        <label for="zipcode"
+                                                            class="form-label">{{ trans('messages.Zip/Post_Code') }}</label>
+                                                        <input class="form-control" name="zipcode" type="text"
+                                                            value="{{ $currentWorkspace->zipcode }}" id="zipcode">
+                                                    </div>
+                                                    <div class="form-group  col-md-6">
+                                                        <label for="country"
+                                                            class="form-label">{{ __('Country') }}</label>
+                                                        <input class="form-control" name="country" type="text"
+                                                            value="{{ $currentWorkspace->country }}" id="country">
+                                                    </div>
+                                                    <div class="form-group col-md-6">
+                                                        <label for="telephone"
+                                                            class="form-label">{{ trans('messages.Telephone') }}</label>
+                                                        <input class="form-control" name="telephone" type="text"
+                                                            value="{{ $currentWorkspace->telephone }}" id="telephone">
+                                                    </div>
                                                 </div>
-                                                <div class="form-group col-md-6">
-                                                    <label for="address"
-                                                        class="form-label">{{ trans('messages.Address') }}</label>
-                                                    <input type="text" name="address" id="address"
-                                                        class="form-control" value="{{ $currentWorkspace->address }}"
-                                                        required="required" />
+                                                <div class="text-end">
+                                                    <button type="submit"
+                                                        class="btn-submit btn btn-primary">{{ __('Save Changes') }}</button>
                                                 </div>
-                                                <div class="form-group col-md-6">
-                                                    <label for="city" class="form-label">{{ __('City') }}</label>
-                                                    <input class="form-control" name="city" type="text"
-                                                        value="{{ $currentWorkspace->city }}" id="city">
-                                                </div>
-                                                <div class="form-group col-md-6">
-                                                    <label for="state"
-                                                        class="form-label">{{ trans('messages.State') }}</label>
-                                                    <input class="form-control" name="state" type="text"
-                                                        value="{{ $currentWorkspace->state }}" id="state">
-                                                </div>
-                                                <div class="form-group col-md-6">
-                                                    <label for="zipcode"
-                                                        class="form-label">{{ trans('messages.Zip/Post_Code') }}</label>
-                                                    <input class="form-control" name="zipcode" type="text"
-                                                        value="{{ $currentWorkspace->zipcode }}" id="zipcode">
-                                                </div>
-                                                <div class="form-group  col-md-6">
-                                                    <label for="country" class="form-label">{{ __('Country') }}</label>
-                                                    <input class="form-control" name="country" type="text"
-                                                        value="{{ $currentWorkspace->country }}" id="country">
-                                                </div>
-                                                <div class="form-group col-md-6">
-                                                    <label for="telephone"
-                                                        class="form-label">{{ trans('messages.Telephone') }}</label>
-                                                    <input class="form-control" name="telephone" type="text"
-                                                        value="{{ $currentWorkspace->telephone }}" id="telephone">
-                                                </div>
-                                            </div>
-                                            <div class="text-end">
-                                                <button type="submit"
-                                                    class="btn-submit btn btn-primary">{{ __('Save Changes') }}</button>
-                                            </div>
-                                        </form>
+                                            </form>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
-                    {{-- 
+                        {{-- 
                     <div class="" id="email-notification-settings">
                         <div class="card">
                             <div class="card-header">
@@ -890,36 +877,36 @@
                                                 </div>
                                                 <div class=" text-end">
                                                     {{ Form::submit(__('Save Changes'), ['class' => 'btn btn-primary']) }}
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
+                                {{ Form::close() }}
                             </div>
-                            {{ Form::close() }}
-                        </div>
-                    @endif
+                        @endif
 
 
-                    @if (Auth::user()->type == 'user' || Auth::user()->type == 'admin')
-                        <div class="" id="google-calender">
-                            <div class="card">
-                                {{ Form::open(['route' => ['google.calender.settings', $currentWorkspace->slug], 'method' => 'post', 'enctype' => 'multipart/form-data']) }}
-                                <div class="card-header">
-                                    <div class="row justify-content-between">
-                                        <div class="col-10">
-                                            <h5 class="">{{ __('Google Calendar') }}</h5>
-                                        </div>
-                                        <div class=" text-end  col-auto">
-                                            <div class="col switch-width">
-                                                <div class="form-group ml-2 mr-3 ">
-                                                    <div class="custom-control custom-switch">
+                        @if (Auth::user()->type == 'user' || Auth::user()->type == 'admin')
+                            <div class="" id="google-calender">
+                                <div class="card">
+                                    {{ Form::open(['route' => ['google.calender.settings', $currentWorkspace->slug], 'method' => 'post', 'enctype' => 'multipart/form-data']) }}
+                                    <div class="card-header">
+                                        <div class="row justify-content-between">
+                                            <div class="col-10">
+                                                <h5 class="">{{ __('Google Calendar') }}</h5>
+                                            </div>
+                                            <div class=" text-end  col-auto">
+                                                <div class="col switch-width">
+                                                    <div class="form-group ml-2 mr-3 ">
+                                                        <div class="custom-control custom-switch">
 
-                                                        <input type="checkbox" data-toggle="switchbutton"
-                                                            data-onstyle="primary" class=""
-                                                            name="is_googlecalendar_enabled"
-                                                            id="is_googlecalendar_enabled"
-                                                            {{ isset($currentWorkspace->is_googlecalendar_enabled) && $currentWorkspace->is_googlecalendar_enabled == 'on' ? 'checked' : '' }}>
+                                                            <input type="checkbox" data-toggle="switchbutton"
+                                                                data-onstyle="primary" class=""
+                                                                name="is_googlecalendar_enabled"
+                                                                id="is_googlecalendar_enabled"
+                                                                {{ isset($currentWorkspace->is_googlecalendar_enabled) && $currentWorkspace->is_googlecalendar_enabled == 'on' ? 'checked' : '' }}>
                                                     </div>
                                                 </div>
                                             </div>
@@ -934,23 +921,23 @@
                                         </div>
                                         <div class="col-lg-6 col-md-6 col-sm-12 form-group">
                                             {{ Form::label('Google calendar json file', __('Google Calendar json File'), ['class' => 'col-form-label']) }}
-                                            <input type="file" class="form-control" name="google_calender_json_file"
-                                                id="google_calender_json_file">
+                                                <input type="file" class="form-control"
+                                                    name="google_calender_json_file" id="google_calender_json_file">
+                                            </div>
                                         </div>
                                     </div>
+                                    <div class="card-footer text-end">
+                                        <button class="btn-submit btn btn-primary" type="submit">
+                                            {{ __('Save Changes') }}
+                                        </button>
+                                    </div>
+                                    {{ Form::close() }}
                                 </div>
-                                <div class="card-footer text-end">
-                                    <button class="btn-submit btn btn-primary" type="submit">
-                                        {{ __('Save Changes') }}
-                                    </button>
-                                </div>
-                                {{ Form::close() }}
                             </div>
-                        </div>
-                    @endif
+                        @endif
 
 
-                    <div id="email-settings" class="tab-pane">
+                        {{-- <div id="email-settings" class="tab-pane">
                         <div class="col-md-12">
 
                             <div class="card">
@@ -1061,343 +1048,343 @@
                         </div>
                     </div>
 
+                </div> --}}
+                    </div>
+                    <!-- [ sample-page ] end -->
                 </div>
+                <!-- [ Main Content ] end -->
             </div>
-            <!-- [ sample-page ] end -->
-        </div>
-        <!-- [ Main Content ] end -->
-    </div>
-@endsection
+        @endsection
 
-@push('scripts')
-    <script src="{{ asset('assets/custom/js/jquery-ui.min.js') }}"></script>
-    <script src="{{ asset('assets/custom/js/repeater.js') }}"></script>
-    <script src="{{ asset('assets/custom/js/colorPick.js') }}"></script>
-    <script>
-        var scrollSpy = new bootstrap.ScrollSpy(document.body, {
-            target: '#useradd-sidenav',
-            offset: 300
-        })
-    </script>
-    <script>
-        function check_theme(color_val) {
-            $('input[value="' + color_val + '"]').prop('checked', true);
-            $('input[value="' + color_val + '"]').attr('checked', true);
-            $('a[data-value]').removeClass('active_color');
-            $('a[data-value="' + color_val + '"]').addClass('active_color');
-        }
-        var scrollSpy = new bootstrap.ScrollSpy(document.body, {
-            target: '#useradd-sidenav',
-            offset: 300
-        })
-    </script>
+        @push('scripts')
+            <script src="{{ asset('assets/custom/js/jquery-ui.min.js') }}"></script>
+            <script src="{{ asset('assets/custom/js/repeater.js') }}"></script>
+            <script src="{{ asset('assets/custom/js/colorPick.js') }}"></script>
+            <script>
+                var scrollSpy = new bootstrap.ScrollSpy(document.body, {
+                    target: '#useradd-sidenav',
+                    offset: 300
+                })
+            </script>
+            <script>
+                function check_theme(color_val) {
+                    $('input[value="' + color_val + '"]').prop('checked', true);
+                    $('input[value="' + color_val + '"]').attr('checked', true);
+                    $('a[data-value]').removeClass('active_color');
+                    $('a[data-value="' + color_val + '"]').addClass('active_color');
+                }
+                var scrollSpy = new bootstrap.ScrollSpy(document.body, {
+                    target: '#useradd-sidenav',
+                    offset: 300
+                })
+            </script>
 
-    <script>
-        $(document).on("click", '.send_email', function(e) {
-            e.preventDefault();
-            var title = $(this).attr('data-title');
+            <script>
+                $(document).on("click", '.send_email', function(e) {
+                    e.preventDefault();
+                    var title = $(this).attr('data-title');
 
-            var size = 'md';
-            var url = $(this).attr('data-url');
-            if (typeof url != 'undefined') {
-                $("#commonModal .modal-title").html(title);
-                $("#commonModal .modal-dialog").addClass('modal-' + size);
-                $("#commonModal").modal('show');
+                    var size = 'md';
+                    var url = $(this).attr('data-url');
+                    if (typeof url != 'undefined') {
+                        $("#commonModal .modal-title").html(title);
+                        $("#commonModal .modal-dialog").addClass('modal-' + size);
+                        $("#commonModal").modal('show');
 
-                $.post(url, {
-                    mail_driver: $("#mail_driver").val(),
-                    mail_host: $("#mail_host").val(),
-                    mail_port: $("#mail_port").val(),
-                    mail_username: $("#mail_username").val(),
-                    mail_password: $("#mail_password").val(),
-                    mail_encryption: $("#mail_encryption").val(),
-                    mail_from_address: $("#mail_from_address").val(),
-                    mail_from_name: $("#mail_from_name").val(),
-                }, function(data) {
-                    $('#commonModal .body').html(data);
+                        $.post(url, {
+                            mail_driver: $("#mail_driver").val(),
+                            mail_host: $("#mail_host").val(),
+                            mail_port: $("#mail_port").val(),
+                            mail_username: $("#mail_username").val(),
+                            mail_password: $("#mail_password").val(),
+                            mail_encryption: $("#mail_encryption").val(),
+                            mail_from_address: $("#mail_from_address").val(),
+                            mail_from_name: $("#mail_from_name").val(),
+                        }, function(data) {
+                            $('#commonModal .body').html(data);
+                        });
+                    }
                 });
-            }
-        });
-        $(document).on('submit', '#test_email', function(e) {
-            e.preventDefault();
-            $("#email_sending").show();
-            var post = $(this).serialize();
-            var url = $(this).attr('action');
-            $.ajax({
-                type: "post",
-                url: url,
-                data: post,
-                cache: false,
-                beforeSend: function() {
-                    $('#test_email .btn-create').attr('disabled', 'disabled');
-                },
-                success: function(data) {
-                    if (data.is_success) {
-                        show_toastr('Success', data.message, 'success');
+                $(document).on('submit', '#test_email', function(e) {
+                    e.preventDefault();
+                    $("#email_sending").show();
+                    var post = $(this).serialize();
+                    var url = $(this).attr('action');
+                    $.ajax({
+                        type: "post",
+                        url: url,
+                        data: post,
+                        cache: false,
+                        beforeSend: function() {
+                            $('#test_email .btn-create').attr('disabled', 'disabled');
+                        },
+                        success: function(data) {
+                            if (data.is_success) {
+                                show_toastr('Success', data.message, 'success');
+                            } else {
+                                show_toastr('Error', data.message, 'error');
+                            }
+                            $("#email_sending").hide();
+                        },
+                        complete: function() {
+                            $('#test_email .btn-create').removeAttr('disabled');
+                        },
+                    });
+                })
+            </script>
+
+            <script src="{{ asset('assets/js/pages/wow.min.js') }}"></script>
+            <script>
+                // Start [ Menu hide/show on scroll ]
+                let ost = 0;
+                document.addEventListener("scroll", function() {
+                    let cOst = document.documentElement.scrollTop;
+                    if (cOst == 0) {
+                        //   document.querySelector(".navbar").classList.add("top-nav-collapse");
+                    } else if (cOst > ost) {
+                        document.querySelector(".navbar").classList.add("top-nav-collapse");
+                        document.querySelector(".navbar").classList.remove("default");
                     } else {
-                        show_toastr('Error', data.message, 'error');
+                        document.querySelector(".navbar").classList.add("default");
+                        document
+                            .querySelector(".navbar")
+                            .classList.remove("top-nav-collapse");
                     }
-                    $("#email_sending").hide();
-                },
-                complete: function() {
-                    $('#test_email .btn-create').removeAttr('disabled');
-                },
-            });
-        })
-    </script>
+                    ost = cOst;
+                });
+                // End [ Menu hide/show on scroll ]
+                var wow = new WOW({
+                    animateClass: "animate__animated", // animation css class (default is animated)
+                });
+                wow.init();
+                // var scrollSpy = new bootstrap.ScrollSpy(document.body, {
+                //   target: "#navbar-example",
+                // });
+            </script>
+            <script>
+                $(document).on("change", "select[name='invoice_template'], input[name='invoice_color']", function() {
+                    var template = $("select[name='invoice_template']").val();
+                    var color = $("input[name='invoice_color']:checked").val();
+                    $('iframe').attr('src', '{{ url($currentWorkspace->slug . '/invoices/preview') }}/' + template + '/' +
+                        color);
+                });
 
-    <script src="{{ asset('assets/js/pages/wow.min.js') }}"></script>
-    <script>
-        // Start [ Menu hide/show on scroll ]
-        let ost = 0;
-        document.addEventListener("scroll", function() {
-            let cOst = document.documentElement.scrollTop;
-            if (cOst == 0) {
-                //   document.querySelector(".navbar").classList.add("top-nav-collapse");
-            } else if (cOst > ost) {
-                document.querySelector(".navbar").classList.add("top-nav-collapse");
-                document.querySelector(".navbar").classList.remove("default");
-            } else {
-                document.querySelector(".navbar").classList.add("default");
-                document
-                    .querySelector(".navbar")
-                    .classList.remove("top-nav-collapse");
-            }
-            ost = cOst;
-        });
-        // End [ Menu hide/show on scroll ]
-        var wow = new WOW({
-            animateClass: "animate__animated", // animation css class (default is animated)
-        });
-        wow.init();
-        // var scrollSpy = new bootstrap.ScrollSpy(document.body, {
-        //   target: "#navbar-example",
-        // });
-    </script>
-    <script>
-        $(document).on("change", "select[name='invoice_template'], input[name='invoice_color']", function() {
-            var template = $("select[name='invoice_template']").val();
-            var color = $("input[name='invoice_color']:checked").val();
-            $('iframe').attr('src', '{{ url($currentWorkspace->slug . '/invoices/preview') }}/' + template + '/' +
-                color);
-        });
+                $(document).ready(function() {
 
-        $(document).ready(function() {
+                    var $dragAndDrop = $("body .task-stages tbody").sortable({
+                        handle: '.sort-handler'
+                    });
 
-            var $dragAndDrop = $("body .task-stages tbody").sortable({
-                handle: '.sort-handler'
-            });
+                    var $repeater = $('.task-stages').repeater({
+                        initEmpty: true,
+                        defaultValues: {},
+                        show: function() {
+                            $(this).slideDown();
+                        },
+                        hide: function(deleteElement) {
+                            if (confirm('{{ __('Are you sure ?') }}')) {
+                                $(this).slideUp(deleteElement);
+                            }
+                        },
+                        ready: function(setIndexes) {
+                            $dragAndDrop.on('drop', setIndexes);
+                        },
+                        isFirstItemUndeletable: true
+                    });
 
-            var $repeater = $('.task-stages').repeater({
-                initEmpty: true,
-                defaultValues: {},
-                show: function() {
-                    $(this).slideDown();
-                },
-                hide: function(deleteElement) {
-                    if (confirm('{{ __('Are you sure ?') }}')) {
-                        $(this).slideUp(deleteElement);
+
+                    var value = $(".task-stages").attr('data-value');
+                    if (typeof value != 'undefined' && value.length != 0) {
+                        value = JSON.parse(value);
+                        $repeater.setList(value);
                     }
-                },
-                ready: function(setIndexes) {
-                    $dragAndDrop.on('drop', setIndexes);
-                },
-                isFirstItemUndeletable: true
-            });
+
+                    var $dragAndDropBug = $("body .bug-stages tbody").sortable({
+                        handle: '.sort-handler'
+                    });
+
+                    var $repeaterBug = $('.bug-stages').repeater({
+                        initEmpty: true,
+                        defaultValues: {},
+                        show: function() {
+                            $(this).slideDown();
+                        },
+                        hide: function(deleteElement) {
+                            if (confirm('{{ __('Are you sure ?') }}')) {
+                                $(this).slideUp(deleteElement);
+                            }
+                        },
+                        ready: function(setIndexes) {
+                            $dragAndDropBug.on('drop', setIndexes);
+                        },
+                        isFirstItemUndeletable: true
+                    });
 
 
-            var value = $(".task-stages").attr('data-value');
-            if (typeof value != 'undefined' && value.length != 0) {
-                value = JSON.parse(value);
-                $repeater.setList(value);
-            }
-
-            var $dragAndDropBug = $("body .bug-stages tbody").sortable({
-                handle: '.sort-handler'
-            });
-
-            var $repeaterBug = $('.bug-stages').repeater({
-                initEmpty: true,
-                defaultValues: {},
-                show: function() {
-                    $(this).slideDown();
-                },
-                hide: function(deleteElement) {
-                    if (confirm('{{ __('Are you sure ?') }}')) {
-                        $(this).slideUp(deleteElement);
+                    var valuebug = $(".bug-stages").attr('data-value');
+                    if (typeof valuebug != 'undefined' && valuebug.length != 0) {
+                        valuebug = JSON.parse(valuebug);
+                        $repeaterBug.setList(valuebug);
                     }
-                },
-                ready: function(setIndexes) {
-                    $dragAndDropBug.on('drop', setIndexes);
-                },
-                isFirstItemUndeletable: true
-            });
+                    $(document).on('click', '.list-group-item', function() {
+                        $('.list-group-item').removeClass('active');
+                        $('.list-group-item').removeClass('text-primary');
+                        setTimeout(() => {
+                            $(this).addClass('active').removeClass('text-primary');
+                        }, 10);
+                    });
+
+                    var type = window.location.hash.substr(1);
+                    $('.list-group-item').removeClass('active');
+                    $('.list-group-item').removeClass('text-primary');
+                    if (type != '') {
+                        $('a[href="#' + type + '"]').addClass('active').removeClass('text-primary');
+                    } else {
+                        $('.list-group-item:eq(0)').addClass('active').removeClass('text-primary');
+                    }
+                });
+            </script>
 
 
-            var valuebug = $(".bug-stages").attr('data-value');
-            if (typeof valuebug != 'undefined' && valuebug.length != 0) {
-                valuebug = JSON.parse(valuebug);
-                $repeaterBug.setList(valuebug);
-            }
-            $(document).on('click', '.list-group-item', function() {
-                $('.list-group-item').removeClass('active');
-                $('.list-group-item').removeClass('text-primary');
-                setTimeout(() => {
-                    $(this).addClass('active').removeClass('text-primary');
-                }, 10);
-            });
+            <script>
+                $('#logo').change(function() {
 
-            var type = window.location.hash.substr(1);
-            $('.list-group-item').removeClass('active');
-            $('.list-group-item').removeClass('text-primary');
-            if (type != '') {
-                $('a[href="#' + type + '"]').addClass('active').removeClass('text-primary');
-            } else {
-                $('.list-group-item:eq(0)').addClass('active').removeClass('text-primary');
-            }
-        });
-    </script>
+                    let reader = new FileReader();
+                    reader.onload = (e) => {
+                        $('#dark_logo').attr('src', e.target.result);
+                    }
+                    reader.readAsDataURL(this.files[0]);
 
+                });
 
-    <script>
-        $('#logo').change(function() {
+                $('#logo_white').change(function() {
 
-            let reader = new FileReader();
-            reader.onload = (e) => {
-                $('#dark_logo').attr('src', e.target.result);
-            }
-            reader.readAsDataURL(this.files[0]);
+                    let reader = new FileReader();
+                    reader.onload = (e) => {
+                        $('#image').attr('src', e.target.result);
+                    }
+                    reader.readAsDataURL(this.files[0]);
 
-        });
+                });
 
-        $('#logo_white').change(function() {
+                $('#small-favicon').change(function() {
 
-            let reader = new FileReader();
-            reader.onload = (e) => {
-                $('#image').attr('src', e.target.result);
-            }
-            reader.readAsDataURL(this.files[0]);
+                    let reader = new FileReader();
+                    reader.onload = (e) => {
+                        $('#favicon').attr('src', e.target.result);
+                    }
+                    reader.readAsDataURL(this.files[0]);
 
-        });
+                });
+            </script>
 
-        $('#small-favicon').change(function() {
-
-            let reader = new FileReader();
-            reader.onload = (e) => {
-                $('#favicon').attr('src', e.target.result);
-            }
-            reader.readAsDataURL(this.files[0]);
-
-        });
-    </script>
-
-    <script>
-        $(document).ready(function() {
-            if ($('.gdpr_fulltime').is(':checked')) {
-                $('.fulltime').show();
-            } else {
-                $('.fulltime').hide();
-            }
-            $('#gdpr_cookie').on('change', function() {
-                if ($('.gdpr_fulltime').is(':checked')) {
-                    $('.fulltime').show();
-                } else {
-                    $('.fulltime').hide();
-                }
-            });
-        });
-
-        var scrollSpy = new bootstrap.ScrollSpy(document.body, {
-            target: '#useradd-sidenav',
-            offset: 300
-        })
-
-        $('.themes-color-change').on('click', function() {
-            var color_val = $(this).data('value');
-            $('.theme-color').prop('checked', false);
-            $('.themes-color-change').removeClass('active_color');
-            $(this).addClass('active_color');
-            $(`input[value=${color_val}]`).prop('checked', true);
-
-        });
-
-        function check_theme(color_val) {
-            $('.theme-color').prop('checked', false);
-            $('input[value="' + color_val + '"]').prop('checked', true);
-            $('#color_value').val(color_val);
-        }
-    </script>
-
-    <script>
-        $(document).on("click", ".email-template-checkbox", function() {
-            var chbox = $(this);
-            $.ajax({
-                url: chbox.attr('data-url'),
-                data: {
-                    _token: $('meta[name="csrf-token"]').attr('content'),
-                    status: chbox.val()
-                },
-                type: 'POST',
-                success: function(response) {
-                    if (response.is_success) {
-                        show_toastr('{{ __('Success') }}', response.success, 'success');
-                        if (chbox.val() == 1) {
-                            $('#' + chbox.attr('id')).val(0);
+            <script>
+                $(document).ready(function() {
+                    if ($('.gdpr_fulltime').is(':checked')) {
+                        $('.fulltime').show();
+                    } else {
+                        $('.fulltime').hide();
+                    }
+                    $('#gdpr_cookie').on('change', function() {
+                        if ($('.gdpr_fulltime').is(':checked')) {
+                            $('.fulltime').show();
                         } else {
-                            $('#' + chbox.attr('id')).val(1);
+                            $('.fulltime').hide();
                         }
-                    } else {
-                        show_toastr('{{ __('Error') }}', response.error, 'error');
-                    }
-                },
-                error: function(response) {
-                    response = response.responseJSON;
-                    if (response.is_success) {
-                        show_toastr('{{ __('Error') }}', response.error, 'error');
-                    } else {
-                        show_toastr('{{ __('Error') }}', response, 'error');
-                    }
+                    });
+                });
+
+                var scrollSpy = new bootstrap.ScrollSpy(document.body, {
+                    target: '#useradd-sidenav',
+                    offset: 300
+                })
+
+                $('.themes-color-change').on('click', function() {
+                    var color_val = $(this).data('value');
+                    $('.theme-color').prop('checked', false);
+                    $('.themes-color-change').removeClass('active_color');
+                    $(this).addClass('active_color');
+                    $(`input[value=${color_val}]`).prop('checked', true);
+
+                });
+
+                function check_theme(color_val) {
+                    $('.theme-color').prop('checked', false);
+                    $('input[value="' + color_val + '"]').prop('checked', true);
+                    $('#color_value').val(color_val);
                 }
-            })
-        });
-    </script>
-    <script>
-        function cust_theme_bg() {
-            var custthemebg = document.querySelector("#cust-theme-bg");
+            </script>
 
-            if (custthemebg.checked) {
-                document.querySelector(".dash-sidebar").classList.add("transprent-bg");
-                document
-                    .querySelector(".dash-header:not(.dash-mob-header)")
-                    .classList.add("transprent-bg");
-            } else {
-                document.querySelector(".dash-sidebar").classList.remove("transprent-bg");
-                document
-                    .querySelector(".dash-header:not(.dash-mob-header)")
-                    .classList.remove("transprent-bg");
-            }
+            <script>
+                $(document).on("click", ".email-template-checkbox", function() {
+                    var chbox = $(this);
+                    $.ajax({
+                        url: chbox.attr('data-url'),
+                        data: {
+                            _token: $('meta[name="csrf-token"]').attr('content'),
+                            status: chbox.val()
+                        },
+                        type: 'POST',
+                        success: function(response) {
+                            if (response.is_success) {
+                                show_toastr('{{ __('Success') }}', response.success, 'success');
+                                if (chbox.val() == 1) {
+                                    $('#' + chbox.attr('id')).val(0);
+                                } else {
+                                    $('#' + chbox.attr('id')).val(1);
+                                }
+                            } else {
+                                show_toastr('{{ __('Error') }}', response.error, 'error');
+                            }
+                        },
+                        error: function(response) {
+                            response = response.responseJSON;
+                            if (response.is_success) {
+                                show_toastr('{{ __('Error') }}', response.error, 'error');
+                            } else {
+                                show_toastr('{{ __('Error') }}', response, 'error');
+                            }
+                        }
+                    })
+                });
+            </script>
+            <script>
+                function cust_theme_bg() {
+                    var custthemebg = document.querySelector("#cust-theme-bg");
 
-        }
+                    if (custthemebg.checked) {
+                        document.querySelector(".dash-sidebar").classList.add("transprent-bg");
+                        document
+                            .querySelector(".dash-header:not(.dash-mob-header)")
+                            .classList.add("transprent-bg");
+                    } else {
+                        document.querySelector(".dash-sidebar").classList.remove("transprent-bg");
+                        document
+                            .querySelector(".dash-header:not(.dash-mob-header)")
+                            .classList.remove("transprent-bg");
+                    }
 
-        function cust_darklayout() {
-            var custdarklayout = document.querySelector("#cust-darklayout");
+                }
 
-            if (custdarklayout.checked) {
-                document
-                    .querySelector(".m-header > .b-brand > .logo-lg")
-                    .setAttribute("src", "{{ asset('assets/images/logo.svg') }}");
-                document
-                    .querySelector("#main-style-link")
-                    .setAttribute("href", "{{ asset('assets/css/style-dark.css') }}");
-            } else {
-                document
-                    .querySelector(".m-header > .b-brand > .logo-lg")
-                    .setAttribute("src", "{{ asset('assets/images/logo-dark.svg') }}");
-                document
-                    .querySelector("#main-style-link")
-                    .setAttribute("href", "{{ asset('assets/css/style.css') }}");
-            }
+                function cust_darklayout() {
+                    var custdarklayout = document.querySelector("#cust-darklayout");
 
-        }
-    </script>
-@endpush
+                    if (custdarklayout.checked) {
+                        document
+                            .querySelector(".m-header > .b-brand > .logo-lg")
+                            .setAttribute("src", "{{ asset('assets/images/logo.svg') }}");
+                        document
+                            .querySelector("#main-style-link")
+                            .setAttribute("href", "{{ asset('assets/css/style-dark.css') }}");
+                    } else {
+                        document
+                            .querySelector(".m-header > .b-brand > .logo-lg")
+                            .setAttribute("src", "{{ asset('assets/images/logo-dark.svg') }}");
+                        document
+                            .querySelector("#main-style-link")
+                            .setAttribute("href", "{{ asset('assets/css/style.css') }}");
+                    }
+
+                }
+            </script>
+        @endpush

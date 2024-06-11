@@ -8,20 +8,20 @@
 (function () {
     var kb = function (eb) {
         var e = {
-                mode: "opt-in",
-                current_lang: "en",
-                auto_language: null,
-                autorun: !0,
-                cookie_name: "cc_cookie",
-                cookie_expiration: 182,
-                cookie_domain: window.location.hostname,
-                cookie_path: "/",
-                cookie_same_site: "Lax",
-                use_rfc_cookie: !1,
-                autoclear_cookies: !0,
-                revision: 0,
-                script_selector: "data-cookiecategory"
-            },
+            mode: "opt-in",
+            current_lang: "en",
+            auto_language: null,
+            autorun: !0,
+            cookie_name: "cc_cookie",
+            cookie_expiration: 182,
+            cookie_domain: window.location.hostname,
+            cookie_path: "/",
+            cookie_same_site: "Lax",
+            use_rfc_cookie: !1,
+            autoclear_cookies: !0,
+            revision: 0,
+            script_selector: "data-cookiecategory"
+        },
             m = {},
             g, t = {},
             C = null,
@@ -138,9 +138,9 @@
                 }
 
                 d && (S || (S = k("button"), S.id = "c-s-bn", S.className = "c-bn c_link", "accept_necessary" === d.role ? z(S, "click", function () {
-                        m.hide();
-                        m.accept([])
-                    }) :
+                    m.hide();
+                    m.accept([])
+                }) :
                     z(S, "click", function () {
                         m.showSettings(0)
                     })), S.textContent = g.languages[a].consent_modal.secondary_btn.text);
@@ -329,43 +329,43 @@
                 typeof a) return a = za(a, g.languages), a !== e.current_lang || !0 === b ? (e.current_lang = a, Q && (La(a), Va(ba)), ab(a), !0) : !1
         };
         var cb = function (a) {
-                var b = U.length,
-                    c = -1;
-                xa = !1;
-                var d = wa("", "all"),
-                    f = [e.cookie_domain, "." + e.cookie_domain];
-                if ("www." === e.cookie_domain.slice(0, 4)) {
-                    var l = e.cookie_domain.substr(4);
-                    f.push(l);
-                    f.push("." + l)
-                }
-                for (l = 0; l < b; l++) {
-                    var q = U[l];
-                    if (Object.prototype.hasOwnProperty.call(q, "toggle")) {
-                        var h = -1 < H(V, q.toggle.value);
-                        if (!R[++c] && Object.prototype.hasOwnProperty.call(q, "cookie_table") && (a || h)) {
-                            var n =
-                                q.cookie_table,
-                                p = va(Y[0])[0],
-                                F = n.length;
-                            "on_disable" === q.toggle.reload && h && (xa = !0);
-                            for (h = 0; h < F; h++) {
-                                var w = n[h],
-                                    A = [],
-                                    u = w[p],
-                                    r = w.is_regex || !1,
-                                    B = w.domain || null;
-                                w = w.path || !1;
-                                B && (f = [B, "." + B]);
-                                if (r)
-                                    for (r = 0; r < d.length; r++) d[r].match(u) && A.push(d[r]);
-                                else u = H(d, u), -1 < u && A.push(d[u]);
-                                0 < A.length && (bb(A, w, f), "on_clear" === q.toggle.reload && (xa = !0))
-                            }
+            var b = U.length,
+                c = -1;
+            xa = !1;
+            var d = wa("", "all"),
+                f = [e.cookie_domain, "." + e.cookie_domain];
+            if ("www." === e.cookie_domain.slice(0, 4)) {
+                var l = e.cookie_domain.substr(4);
+                f.push(l);
+                f.push("." + l)
+            }
+            for (l = 0; l < b; l++) {
+                var q = U[l];
+                if (Object.prototype.hasOwnProperty.call(q, "toggle")) {
+                    var h = -1 < H(V, q.toggle.value);
+                    if (!R[++c] && Object.prototype.hasOwnProperty.call(q, "cookie_table") && (a || h)) {
+                        var n =
+                            q.cookie_table,
+                            p = va(Y[0])[0],
+                            F = n.length;
+                        "on_disable" === q.toggle.reload && h && (xa = !0);
+                        for (h = 0; h < F; h++) {
+                            var w = n[h],
+                                A = [],
+                                u = w[p],
+                                r = w.is_regex || !1,
+                                B = w.domain || null;
+                            w = w.path || !1;
+                            B && (f = [B, "." + B]);
+                            if (r)
+                                for (r = 0; r < d.length; r++) d[r].match(u) && A.push(d[r]);
+                            else u = H(d, u), -1 < u && A.push(d[u]);
+                            0 < A.length && (bb(A, w, f), "on_clear" === q.toggle.reload && (xa = !0))
                         }
                     }
                 }
-            },
+            }
+        },
             gb = function (a) {
                 V = [];
                 var b = document.querySelectorAll(".c-tgl") || [];
@@ -429,7 +429,7 @@
                 function c(f, l, q, h, n, p, F) {
                     p = p && p.split(" ") || [];
                     if (-1 < H(l, n) && (J(f, n), ("bar" !== n || "middle" !== p[0]) &&
-                            -1 < H(q, p[0])))
+                        -1 < H(q, p[0])))
                         for (l = 0; l < p.length; l++) J(f, p[l]); - 1 < H(h, F) && J(f, F)
                 }
                 if ("object" === typeof a) {
@@ -449,17 +449,17 @@
                     (e.cookie_name = g.cookie_name), "function" === typeof g.onAccept && (pa = g.onAccept), "function" === typeof g.onFirstAction && (Ea = g.onFirstAction), "function" === typeof g.onChange && (Da = g.onChange), "opt-out" === g.mode && (e.mode = "opt-out"), "number" === typeof g.revision && (-1 < g.revision && (e.revision = g.revision), Fa = !0), "boolean" === typeof g.autoclear_cookies && (e.autoclear_cookies = g.autoclear_cookies), !0 === g.use_rfc_cookie && (e.use_rfc_cookie = !0), !0 === g.hide_from_bots && (Ua = navigator && (navigator.userAgent && /bot|crawl|spider|slurp|teoma/i.test(navigator.userAgent) ||
                         navigator.webdriver)), e.page_scripts = !0 === g.page_scripts, e.page_scripts_order = !1 !== g.page_scripts_order, "browser" === g.auto_language || !0 === g.auto_language ? e.auto_language = "browser" : "document" === g.auto_language && (e.auto_language = "document"), e.current_lang = ib(g.languages, g.current_lang), !Ua))
                 if (t = JSON.parse(wa(e.cookie_name, "one", !0) || "{}"), K = void 0 !== t.level, C = void 0 !== t.data ? t.data : null, Z = "number" === typeof a.revision ? K ? -1 < a.revision ? t.revision === e.revision : !0 : !0 : !0, Q = !K || !Z, fb(), hb(a.theme_css, function () {
-                        Wa();
-                        db(a.gui_options);
-                        Va();
-                        e.autorun && Q && m.show(a.delay || 0);
-                        setTimeout(function () {
-                            J(L, "c--anim")
-                        }, 30);
-                        setTimeout(function () {
-                            jb()
-                        }, 100)
-                    }), K && Z) {
+                    Wa();
+                    db(a.gui_options);
+                    Va();
+                    e.autorun && Q && m.show(a.delay || 0);
+                    setTimeout(function () {
+                        J(L, "c--anim")
+                    }, 30);
+                    setTimeout(function () {
+                        jb()
+                    }, 100)
+                }), K && Z) {
                     var b = "boolean" === typeof t.rfc_cookie;
                     if (!b || b && t.rfc_cookie !== e.use_rfc_cookie) t.rfc_cookie = e.use_rfc_cookie, Ra(e.cookie_name, JSON.stringify(t));
                     Ga = Pa(Qa());
@@ -544,15 +544,15 @@
             return e[a] || g[a]
         };
         var Qa = function () {
-                Ha = t.level || [];
-                Ta = I.filter(function (a) {
-                    return -1 === H(Ha, a)
-                });
-                return {
-                    accepted: Ha,
-                    rejected: Ta
-                }
-            },
+            Ha = t.level || [];
+            Ta = I.filter(function (a) {
+                return -1 === H(Ha, a)
+            });
+            return {
+                accepted: Ha,
+                rejected: Ta
+            }
+        },
             Pa = function (a) {
                 var b = "custom",
                     c = ya.filter(function (d) {
@@ -645,18 +645,18 @@
             bb(d, b, c)
         };
         var Ra = function (a, b) {
-                var c = e.cookie_expiration;
-                "number" === typeof e.cookie_necessary_only_expiration && "necessary" === Ga && (c = e.cookie_necessary_only_expiration);
-                b = e.use_rfc_cookie ? encodeURIComponent(b) : b;
-                var d = new Date;
-                d.setTime(d.getTime() + 864E5 * c);
-                c = "; expires=" + d.toUTCString();
-                a = a + "=" + (b || "") +
-                    c + "; Path=" + e.cookie_path + ";";
-                a += " SameSite=" + e.cookie_same_site + ";"; - 1 < window.location.hostname.indexOf(".") && (a += " Domain=" + e.cookie_domain + ";");
-                "https:" === window.location.protocol && (a += " Secure;");
-                document.cookie = a
-            },
+            var c = e.cookie_expiration;
+            "number" === typeof e.cookie_necessary_only_expiration && "necessary" === Ga && (c = e.cookie_necessary_only_expiration);
+            b = e.use_rfc_cookie ? encodeURIComponent(b) : b;
+            var d = new Date;
+            d.setTime(d.getTime() + 864E5 * c);
+            c = "; expires=" + d.toUTCString();
+            a = a + "=" + (b || "") +
+                c + "; Path=" + e.cookie_path + ";";
+            a += " SameSite=" + e.cookie_same_site + ";"; - 1 < window.location.hostname.indexOf(".") && (a += " Domain=" + e.cookie_domain + ";");
+            "https:" === window.location.protocol && (a += " Secure;");
+            document.cookie = a
+        },
             wa = function (a, b, c) {
                 var d;
                 if ("one" === b) {
@@ -686,10 +686,10 @@
             return "" !== wa(a, "one", !0)
         };
         var z = function (a, b, c, d) {
-                a.addEventListener ? !0 === d ? a.addEventListener(b, c, {
-                    passive: !0
-                }) : a.addEventListener(b, c, !1) : a.attachEvent("on" + b, c)
-            },
+            a.addEventListener ? !0 === d ? a.addEventListener(b, c, {
+                passive: !0
+            }) : a.addEventListener(b, c, !1) : a.attachEvent("on" + b, c)
+        },
             va = function (a) {
                 if ("object" === typeof a) {
                     var b = [],

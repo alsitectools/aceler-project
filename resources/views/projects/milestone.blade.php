@@ -1,18 +1,19 @@
+@php
+    $user = Auth::user();
+@endphp
 @if ($project && $currentWorkspace)
     <form class="" method="post"
-        action="@auth('web'){{ route('projects.milestone.store', [$currentWorkspace->slug, $project->id]) }}@elseauth{{ route('client.projects.milestone.store', [$currentWorkspace->slug, $project->id]) }}@endauth">
+        action="@auth('web'){{ route('projects.milestone.store', [$currentWorkspace->slug, $project->id]) }}@endauth">
         @csrf
         <div class="modal-body">
             <div class="row">
                 <div class="col-md-12">
                     <div class="form-group">
-                        <label for="milestone-title" class="col-form-label">{{ __('Milestone Title') }}</label>
                         <input type="text" class="form-control form-control-light" id="milestone-title"
                             placeholder="{{ __('Enter Title') }}" name="title" required>
                     </div>
                 </div>
 
-                {{-- Quitado coste y añadido fecha de creación--}}
                 <div class="row">
                     <div class="col-md-6">
                         <div class="form-group ">
@@ -50,7 +51,7 @@
                 <button type="button" class="btn  btn-light" data-bs-dismiss="modal">{{ __('Close') }}</button>
                 <input type="submit" value="{{ __('Save Changes') }}" class="btn  btn-primary">
             </div>
-
+        </div>
     </form>
 @else
     <div class="container mt-5">
@@ -64,7 +65,8 @@
                         </div>
                         <div class="page-search">
                             <p class="text-muted mt-3">
-                                {{ __("It's looking like you may have taken a wrong turn. Don't worry... it happens to the best of us. Here's a little tip that might help you get back on track.") }}
+                                {{ __("It's looking like you may have taken a wrong turn. Don't worry... it happens to the
+                                                                                                                                                                                                                            best of us. Here's a little tip that might help you get back on track.") }}
                             </p>
                             <div class="mt-3">
                                 <a class="btn-return-home badge-blue" href="{{ route('home') }}"><i
@@ -81,7 +83,6 @@
 <script>
     (function() {
         var locale = '{{ app()->getLocale() }}';
-
         const d_week = new Datepicker(document.querySelector('.datepicker22'), {
             locale: locale,
             buttonClass: 'btn',
@@ -91,17 +92,19 @@
         });
     })();
 </script>
-
 <script>
     (function() {
-
         var locale = '{{ app()->getLocale() }}';
-        const d_week = new Datepicker(document.querySelector('.datepicker23'), {
+        var dateInput = document.querySelector('.datepicker23');
+        var datepicker = new Datepicker(dateInput, {
             locale: locale,
             buttonClass: 'btn',
-            todayBtn: true,
-            clearBtn: true,
             format: 'yyyy-mm-dd',
+        });
+
+        // Evento para cerrar el datepicker cuando se selecciona una fecha
+        dateInput.addEventListener('changeDate', function() {
+            datepicker.hide();
         });
     })();
 </script>

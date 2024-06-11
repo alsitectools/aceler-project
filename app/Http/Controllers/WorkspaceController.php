@@ -359,7 +359,7 @@ class WorkspaceController extends Controller
                     $dir = base_path() . '/resources/lang/en';
                 }
             } else {
-                $currantLang = env('DEFAULT_LANG') ?? 'en';
+                $currantLang = env('DEFAULT_LANG') ?? 'es';
                 $dir         = base_path() . '/resources/lang/' . $currantLang;
             }
 
@@ -486,7 +486,7 @@ class WorkspaceController extends Controller
 
     public function destroyLang($lang)
     {
-        $default_lang = env('DEFAULT_LANG') ?? 'en';
+        $default_lang = env('DEFAULT_LANG') ?? 'es';
 
         $langDir = base_path() . '/resources/lang/';
         if (is_dir($langDir)) {

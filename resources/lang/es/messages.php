@@ -126,5 +126,7 @@ return [
     'to'=>'a',
     'Write_message'=>'Escribir comentario',
     'Submit'=> 'Enviar',
+    'Milestone_Board'=> 'Tablón de encargos',
+    
     
 ];

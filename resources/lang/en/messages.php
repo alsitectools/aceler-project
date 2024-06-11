@@ -124,4 +124,5 @@ return [
     'to'=> 'to',
     'Write_message' => 'Write message',
     'Submit'=> 'Submit',
+    'Milestone_Board'=> 'Milestone board',
 ];

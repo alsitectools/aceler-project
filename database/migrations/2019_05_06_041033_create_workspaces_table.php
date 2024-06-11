@@ -19,10 +19,11 @@ class CreateWorkspacesTable extends Migration
             $table->string('slug');
             $table->integer('created_by');
             $table->string('lang',5)->default('es');
-            $table->string('currency')->default('$');
+            $table->string('currency')->default('€');
+            $table->string('company')->nullable();
+            $table->string('branch');
             $table->integer('interval_time')->default(10);
             $table->string('currency_code')->nullable();
-            $table->string('company')->nullable();
             $table->string('address')->nullable();
             $table->string('city')->nullable();
             $table->string('state')->nullable();

@@ -39,14 +39,16 @@
         $SITE_RTL = 'on';
     }
 
+    \Carbon\Carbon::setLocale('es');
+
 @endphp
 {{-- <html lang="{{ str_replace('_', '-', app()->getLocale()) }}" dir="{{ $SITE_RTL == 'on' ? 'rtl' : '' }}"> --}}
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 
 <head>
-
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="shortcut icon" href="{{ asset('assets/img/iconA.png') }}" type="image/png">
 
     <!-- CSRF Token -->
     <meta name="csrf-token" content="{{ csrf_token() }}">
@@ -56,7 +58,7 @@
 
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website">
-    <meta property="og:url" content= "{{ env('APP_URL') }}">
+    <meta property="og:url" content="{{ env('APP_URL') }}">
     <meta property="og:title" content="{{ $meta_setting['meta_keywords'] }}">
     <meta property="og:description" content="{{ $meta_setting['meta_description'] }}">
     <meta property="og:image" content="{{ asset($meta_images . $meta_setting['meta_image']) }}">
@@ -70,10 +72,9 @@
 
     <title>
         @if (trim($__env->yieldContent('page-title')) && Auth::user()->type == 'admin')
-            {{ config('app.name', 'Taskly') }} -@yield('page-title')
+            {{ 'aCeler Project' }} ~@yield('page-title')
         @else
-            {{ isset($currentWorkspace->company) && $currentWorkspace->company != '' ? $currentWorkspace->company : config('app.name', 'Taskly') }}
-            -@yield('page-title')
+            {{ 'aCeler Project' }} ~@yield('page-title')
         @endif
     </title>
 
@@ -206,6 +207,7 @@
     @endif
 
     <div class="bg-primary" id="color_chart"></div>
+
     <script>
         var element = document.querySelector('#color_chart');
         var style = getComputedStyle(element);
@@ -331,7 +333,6 @@
                 </div>
                 <div class="modal-body">
                 </div>
-
             </div>
         </div>
     </div>
@@ -400,6 +401,15 @@
 
 
     <script>
+        /*============================BOTON DEBUGBAR================================*/
+        document.addEventListener("DOMContentLoaded", function() {
+            var debugBar = document.getElementsByClassName("phpdebugbar")[0];
+            if (debugBar) {
+                debugBar.remove();
+            }
+        });
+        /*========================================================================*/
+
         $(document).on("click", ".clear_all_notifications", function() {
 
             var chbox = $(this);
@@ -454,8 +464,10 @@
                     // Enable pusher logging - don't include this in production
                     Pusher.logToConsole = false;
 
-                    var pusher = new Pusher('{{ env('PUSHER_APP_KEY') }}', {
-                        cluster: '{{ env('PUSHER_APP_CLUSTER') }}',
+                    var pusher = new Pusher('{{ env('
+                                    PUSHER_APP_KEY ') }}', {
+                        cluster: '{{ env('
+                                            PUSHER_APP_CLUSTER ') }}',
                         forceTLS: true
                     });
 
@@ -476,7 +488,8 @@
 
                 function getChat() {
                     $.ajax({
-                        url: '{{ route('message.data') }}',
+                        url: '{{ route('
+                                        message.data ') }}',
                         cache: false,
                         dataType: 'html',
                         success: function(data) {
@@ -493,7 +506,11 @@
 
                 $(document).on("click", ".mark_all_as_read", function() {
                     $.ajax({
-                        url: '{{ route('notification.seen', $currentWorkspace->slug) }}',
+                        url: '{{ route(
+                            '
+                                        notification.seen ',
+                            $currentWorkspace->slug,
+                        ) }}',
                         type: "get",
                         cache: false,
                         success: function(data) {
@@ -504,7 +521,11 @@
                 });
                 $(document).on("click", ".mark_all_as_read_message", function() {
                     $.ajax({
-                        url: '{{ route('message.seen', $currentWorkspace->slug) }}',
+                        url: '{{ route(
+                            '
+                                        message.seen ',
+                            $currentWorkspace->slug,
+                        ) }}',
                         type: "get",
                         cache: false,
                         success: function(data) {
@@ -610,35 +631,48 @@
         var date_picker_locale = {
             format: 'YYYY-MM-DD',
             daysOfWeek: [
-                "{{ trans('messages.Sun') }}",
-                "{{ trans('messages.Mon') }}",
-                "{{ trans('messages.Tue') }}",
-                "{{ trans('messages.Wed') }}",
-                "{{ trans('messages.Thu') }}",
-                "{{ trans('messages.Fri') }}",
+                "{{ trans('messages.Sun') }}", "{{ trans('messages.Mon') }}", "{{ trans('messages.Tue') }}",
+                "{{ trans('messages.Wed') }}", "{{ trans('messages.Thu') }}", "{{ trans('messages.Fri') }}",
                 "{{ trans('messages.Sat') }}"
             ],
             monthNames: [
-                '{{ trans('messages.January') }}',
-                '{{ trans('messages.February') }}',
-                ' {{ trans('messages.March') }}',
-                '{{ trans('messages.April') }}',
-                '{{ trans('messages.May') }}',
-                '{{ trans('messages.June') }}',
-                '{{ trans('messages.July') }}',
-                '{{ trans('messages.August') }}',
-                '{{ trans('messages.September') }}',
-                '{{ trans('messages.October') }}',
-                '{{ trans('messages.November') }}',
-                ' {{ trans('messages.December') }}'
+                '{{ trans('
+                                messages.January ') }}',
+                '{{ trans('
+                                messages.February ') }}',
+                ' {{ trans('
+                                messages.March ') }}',
+                '{{ trans('
+                                messages.April ') }}',
+                '{{ trans('
+                                messages.May ') }}',
+                '{{ trans('
+                                messages.June ') }}',
+                '{{ trans('
+                                messages.July ') }}',
+                '{{ trans('
+                                messages.August ') }}',
+                '{{ trans('
+                                messages.September ') }}',
+                '{{ trans('
+                                messages.October ') }}',
+                '{{ trans('
+                                messages.November ') }}',
+                ' {{ trans('
+                                messages.December ') }}'
             ],
         };
         var calender_header = {
-            today: '{{ __('today') }}',
-            month: '{{ __('month') }}',
-            week: '{{ __('week') }}',
-            day: '{{ __('day') }}',
-            list: '{{ __('list') }}'
+            today: '{{ __('
+                        today ') }}',
+            month: '{{ __('
+                        month ') }}',
+            week: '{{ __('
+                        week ') }}',
+            day: '{{ __('
+                        day ') }}',
+            list: '{{ __('
+                        list ') }}'
         };
     </script>
 
@@ -657,19 +691,19 @@
 
     },
     'buttonLocales': {
-        'en': 'Ok'
+    'en': 'Ok'
     },
     'cookieNoticePosition': 'bottom',
     'learnMoreLinkEnabled': false,
     'learnMoreLinkHref': '/cookie-banner-information.html',
     'learnMoreLinkText': {
-      'it': 'Saperne di più',
-      'en': 'Learn more',
-      'de': 'Mehr erfahren',
-      'fr': 'En savoir plus'
+    'it': 'Saperne di più',
+    'en': 'Learn more',
+    'de': 'Mehr erfahren',
+    'fr': 'En savoir plus'
     },
     'buttonLocales': {
-      'en': 'Ok'
+    'en': 'Ok'
     },
     'expiresIn': 30,
     'buttonBgColor': '#d35400',
@@ -677,10 +711,10 @@
     'noticeBgColor': '#000000',
     'noticeTextColor': '#fff',
     'linkColor': '#009fdd'
-};
-</script>
-<script src="{{ asset('assets/custom/js/cookie.notice.js')}}"></script>
-@endif --}}
+    };
+    </script>
+    <script src="{{ asset('assets/custom/js/cookie.notice.js')}}"></script>
+    @endif --}}
 
     @if (isset($currentWorkspace) && $currentWorkspace)
         <script src="{{ asset('assets/custom/js/jquery.easy-autocomplete.min.js') }}"></script>
@@ -691,14 +725,12 @@
                         phrase;
                 },
                 categories: [{
-                        listLocation: "Projects",
-                        header: "{{ __('Projects') }}"
-                    },
-                    {
-                        listLocation: "Tasks",
-                        header: "{{ __('Tasks') }}"
-                    }
-                ],
+                    listLocation: "Projects",
+                    header: "{{ __('Projects') }}"
+                }, {
+                    listLocation: "Tasks",
+                    header: "{{ __('messages.Tasks') }}"
+                }],
                 getValue: "text",
                 template: {
                     type: "links",
@@ -738,12 +770,16 @@
     {{-- @stack('script-page') --}}
     @if (Session::has('success'))
         <script>
-            show_toastr('{{ __('Success') }}', '{!! session('success') !!}', 'success');
+            show_toastr('{{ __('
+                        Success ') }}', '{!! session('
+                        success ') !!}', 'success');
         </script>
     @endif
     @if (Session::has('error'))
         <script>
-            show_toastr('{{ __('Error') }}', '{!! session('error') !!}', 'error');
+            show_toastr('{{ __('
+                        Error ') }}', '{!! session('
+                        error ') !!}', 'error');
         </script>
     @endif
     <script></script>

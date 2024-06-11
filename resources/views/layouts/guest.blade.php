@@ -1,32 +1,32 @@
 @php
 
-    if (isset($currentWorkspace)) {
-        $setting = App\Models\Utility::getcompanySettings($currentWorkspace->id);
-        $SITE_RTL = $setting->site_rtl;
-        if ($setting->theme_color) {
-            $color = $setting->theme_color;
-        } else {
-            $color = 'theme-3';
-        }
-    } else {
-        $setting = App\Models\Utility::getAdminPaymentSettings();
-        // $SITE_RTL = env('SITE_RTL');
-        $SITE_RTL = $setting['site_rtl'];
-        if ($setting['color']) {
-            $color = $setting['color'];
-        } else {
-            $color = 'theme-3';
-        }
-    }
+if (isset($currentWorkspace)) {
+$setting = App\Models\Utility::getcompanySettings($currentWorkspace->id);
+$SITE_RTL = $setting->site_rtl;
+if ($setting->theme_color) {
+$color = $setting->theme_color;
+} else {
+$color = 'theme-3';
+}
+} else {
+$setting = App\Models\Utility::getAdminPaymentSettings();
+// $SITE_RTL = env('SITE_RTL');
+$SITE_RTL = $setting['site_rtl'];
+if ($setting['color']) {
+$color = $setting['color'];
+} else {
+$color = 'theme-3';
+}
+}
 
-    if (\App::getLocale() == 'ar' || \App::getLocale() == 'he') {
-        $SITE_RTL = 'on';
-    }
+if (\App::getLocale() == 'ar' || \App::getLocale() == 'he') {
+$SITE_RTL = 'on';
+}
 
-    $meta_setting = App\Models\Utility::getAdminPaymentSettings();
-    $meta_images = \App\Models\Utility::get_file('uploads/logo/');
-    $logo = \App\Models\Utility::get_file('logo/');
-    use App\Models\Utility;
+$meta_setting = App\Models\Utility::getAdminPaymentSettings();
+$meta_images = \App\Models\Utility::get_file('uploads/logo/');
+$logo = \App\Models\Utility::get_file('logo/');
+use App\Models\Utility;
 @endphp
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}" dir="{{ $SITE_RTL == 'on' ? 'rtl' : '' }}">
@@ -43,7 +43,7 @@
 
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website">
-    <meta property="og:url" content= "{{ env('APP_URL') }}">
+    <meta property="og:url" content="{{ env('APP_URL') }}">
     <meta property="og:title" content="{{ $meta_setting['meta_keywords'] }}">
     <meta property="og:description" content="{{ $meta_setting['meta_description'] }}">
     <meta property="og:image" content="{{ asset($meta_images . $meta_setting['meta_image']) }}">
@@ -56,61 +56,38 @@
     <meta property="twitter:image" content="{{ asset($meta_images . $meta_setting['meta_image']) }}">
 
     <title>
-        {{ config('app.name', 'Taskly') }} - @yield('page-title')
+        {{ 'aCeler Project' }} ~@yield('page-title')
     </title>
     <!-- Favicon -->
     <link rel="shortcut icon" href="{{ $logo . 'favicon.png' . '?' . time() }}">
 
-
-    <!--  <link rel="icon" href="{{ asset('assets/images/favicon.svg') }}" type="image/x-icon" /> -->
-
-    {{-- @if ($setting['cust_darklayout'] == 'on')
-        @if (isset($SITE_RTL) && $SITE_RTL == 'on')
-            <link rel="stylesheet" href="{{ asset('assets/css/style-rtl.css') }}" id="main-style-link">
-        @endif
-        <link rel="stylesheet" href="{{ asset('assets/css/style-dark.css') }}">
+    @if ($setting['cust_darklayout'] == 'on')
+    @if (isset($SITE_RTL) && $SITE_RTL == 'on')
+    <link rel="stylesheet" href="{{ asset('assets/css/style-rtl.css') }}" id="main-style-link">
+    @endif
+    <link rel="stylesheet" href="{{ asset('assets/css/style-dark.css') }}">
     @else
-        @if (isset($SITE_RTL) && $SITE_RTL == 'on')
-            <link rel="stylesheet" href="{{ asset('assets/css/style-rtl.css') }}" id="main-style-link">
-        @else
-            <link rel="stylesheet" href="{{ asset('assets/css/style.css') }}" id="main-style-link">
-        @endif
+    @if (isset($SITE_RTL) && $SITE_RTL == 'on')
+    <link rel="stylesheet" href="{{ asset('assets/css/style-rtl.css') }}" id="main-style-link">
+    @else
+    <link rel="stylesheet" href="{{ asset('assets/css/style.css') }}" id="main-style-link">
+    @endif
     @endif
 
+    @if (isset($SITE_RTL) && $SITE_RTL == 'on')
+    <link rel="stylesheet" href="{{ asset('assets/css/custom-auth-rtl.css') }}" id="main-style-link">
+    @else
     <link rel="stylesheet" href="{{ asset('assets/css/custom-auth.css') }}" id="main-style-link">
-    @if (isset($SITE_RTL) && $SITE_RTL == 'on')
-        <link rel="stylesheet" href="{{ asset('assets/css/custom-auth-rtl.css') }}" id="main-style-link">
-    @endif
-
-    @if ($setting['cust_darklayout'] == 'on')
-        <link rel="stylesheet" href="{{ asset('assets/css/custom-dark.css') }}" id="main-style-link">
-    @endif --}}
-
-    @if ($setting['cust_darklayout'] == 'on')
-        @if (isset($SITE_RTL) && $SITE_RTL == 'on')
-            <link rel="stylesheet" href="{{ asset('assets/css/style-rtl.css') }}" id="main-style-link">
-        @endif
-        <link rel="stylesheet" href="{{ asset('assets/css/style-dark.css') }}">
-    @else
-        @if (isset($SITE_RTL) && $SITE_RTL == 'on')
-            <link rel="stylesheet" href="{{ asset('assets/css/style-rtl.css') }}" id="main-style-link">
-        @else
-            <link rel="stylesheet" href="{{ asset('assets/css/style.css') }}" id="main-style-link">
-        @endif
-    @endif
-
-    @if (isset($SITE_RTL) && $SITE_RTL == 'on')
-        <link rel="stylesheet" href="{{ asset('assets/css/custom-auth-rtl.css') }}" id="main-style-link">
-    @else
-        <link rel="stylesheet" href="{{ asset('assets/css/custom-auth.css') }}" id="main-style-link">
     @endif
     @if ($setting['cust_darklayout'] == 'on')
-        <link rel="stylesheet" href="{{ asset('assets/css/custom-dark.css') }}" id="main-style-link">
+    <link rel="stylesheet" href="{{ asset('assets/css/custom-dark.css') }}" id="main-style-link">
     @endif
+    <link rel="shortcut icon" href="{{ asset('assets/img/iconA.png') }}" type="image/png">
 </head>
 
 
 <body class="{{ $color }}">
+
     <?php
     $dir = base_path() . '/resources/lang/';
     $glob = glob($dir . '*', GLOB_ONLYDIR);
@@ -131,21 +108,20 @@
 
     <script>
         feather.replace();
+        /*============================BOTON DEBUGBAR================================*/
+
+        document.addEventListener("DOMContentLoaded", function() {
+
+            var debugBar = document.getElementsByClassName("phpdebugbar")[0];
+            if (debugBar) {
+                debugBar.remove();
+            }
+        });
+        /*=======================================================================*/
+
     </script>
     <script>
         feather.replace();
-        // var pctoggle = document.querySelector("#pct-toggler");
-        // if (pctoggle) {
-        //     pctoggle.addEventListener("click", function() {
-        //         if (
-        //             !document.querySelector(".pct-customizer").classList.contains("active")
-        //         ) {
-        //             document.querySelector(".pct-customizer").classList.add("active");
-        //         } else {
-        //             document.querySelector(".pct-customizer").classList.remove("active");
-        //         }
-        //     });
-        // }
 
         var themescolors = document.querySelectorAll(".themes-color > a");
         for (var h = 0; h < themescolors.length; h++) {
@@ -203,12 +179,13 @@
                 }
             }
         }
+
     </script>
     @stack('custom-scripts')
     <!-- [ auth-signup ] start -->
 
     @php
-        $company_logo = App\Models\Utility::get_logo();
+    $company_logo = App\Models\Utility::get_logo();
     @endphp
     <div class="custom-login">
         <div class="login-bg-img">
@@ -220,14 +197,12 @@
             <header class="dash-header">
                 <nav class="navbar navbar-expand-md default">
                     <div class="container">
-                        <div class="navbar-brand">
-                            <a class="" href="#">
-                                <img src="{{ asset($logo . $company_logo) }}" class="" alt="logo">
-                            </a>
+
+                        <div class="navbar-brand d-none d-md-block" style="overflow: hidden; ">
+                            <img class="img-fluid rounded" width="200px" src="{{ asset('assets/img/favicon.png') }}" alt="Imagen de portada">
                         </div>
-                        <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
-                            data-bs-target="#navbarlogin" aria-controls="navbarTogglerDemo01" aria-expanded="false"
-                            aria-label="Toggle navigation">
+
+                        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarlogin" aria-controls="navbarTogglerDemo01" aria-expanded="false" aria-label="Toggle navigation">
                             <span class="navbar-toggler-icon"></span>
                         </button>
 
@@ -252,99 +227,38 @@
             <div class="row justify-content-center">
                 <div class="col-md-4">
                     @if (session()->has('info'))
-                        <div class="alert alert-primary">
-                            {{ session()->get('info') }}
-                        </div>
+                    <div class="alert alert-primary">
+                        {{ session()->get('info') }}
+                    </div>
                     @endif
                     @if (session()->has('status'))
-                        <div class="alert alert-info">
-                            {{ session()->get('status') }}
-                        </div>
+                    <div class="alert alert-info">
+                        {{ session()->get('status') }}
+                    </div>
                     @endif
                 </div>
             </div>
 
-            <footer>
+            <footer class="text-center">
                 <div class="auth-footer">
                     <div class="container">
-                        <div class="row">
-                            <div class="col-12">
-                                {{-- <span class=""> {{ env('FOOTER_TEXT') }}</span> --}}
-                                <span>
-                                    &copy; {{ date('Y') }}
-                                    {{ Utility::getValByName('footer_text') ? Utility::getValByName('footer_text') : config('app.name', 'Taskly') }}
-                                </span>
+                        <div class="row justify-content-center">
+                            <div class=" col-6 col-md-4 rounded text-center" style="background: white; color: #AA182C;">
+                                <a href="#"> <span>
+                                        &copy; {{ date('Y') }}
+                                        {{ 'aCeler Project' }} ~@yield('page-title')
+                                    </span></a>
                             </div>
                         </div>
                     </div>
                 </div>
             </footer>
-            {{-- @yield('content') --}}
 
         </div>
-        {{-- <div class="auth-footer">
-            <div class="container-fluid">
-                <div class="row">
-
-                    <div class="col-12">
-                        <ul class="list-inline mb-1">
-
-                        </ul>
-                        <p class=""> {{ env('FOOTER_TEXT') }}</p>
-                    </div>
-
-                </div>
-            </div>
-        </div> --}}
     </div>
-    </div>
-    <!-- [ auth-signup ] end -->
 
-    <!-- Required Js -->
-
-    {{-- <div class="pct-customizer">
-        <div class="pct-c-btn">
-            <button class="btn btn-primary" id="pct-toggler">
-                <i data-feather="settings"></i>
-            </button>
-        </div>
-        <div class="pct-c-content">
-            <div class="pct-header bg-primary">
-                <h5 class="mb-0 text-white f-w-500">Theme Customizer</h5>
-            </div>
-            <div class="pct-body">
-                <h6 class="mt-2">
-                    <i data-feather="credit-card" class="me-2"></i>Primary color settings
-                </h6>
-                <hr class="my-2" />
-                <div class="theme-color themes-color">
-                    <a href="#!" class="" data-value="theme-1"></a>
-                    <a href="#!" class="" data-value="theme-2"></a>
-                    <a href="#!" class="" data-value="theme-3"></a>
-                    <a href="#!" class="" data-value="theme-4"></a>
-                </div>
-
-                <h6 class="mt-4">
-                    <i data-feather="layout" class="me-2"></i>Sidebar settings
-                </h6>
-                <hr class="my-2" />
-                <div class="form-check form-switch">
-                    <input type="checkbox" class="form-check-input" id="cust-theme-bg" checked />
-                    <label class="form-check-label f-w-600 pl-1" for="cust-theme-bg">Transparent layout</label>
-                </div>
-                <h6 class="mt-4">
-                    <i data-feather="sun" class="me-2"></i>Layout settings
-                </h6>
-                <hr class="my-2" />
-                <div class="form-check form-switch mt-2">
-                    <input type="checkbox" class="form-check-input" id="cust-darklayout" />
-                    <label class="form-check-label f-w-600 pl-1" for="cust-darklayout">Dark Layout</label>
-                </div>
-            </div>
-        </div>
-    </div> --}}
     @if ($meta_setting['enable_cookie'] == 'on')
-        @include('layouts.cookie_consent')
+    @include('layouts.cookie_consent')
     @endif
 </body>
 

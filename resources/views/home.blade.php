@@ -3,10 +3,22 @@
 @section('page-title')
     {{ __('Dashboard') }}
 @endsection
+{{-- <script>
+    //No se mmuestran alerts
+
+    window.onload = function() {
+        // Guardar la función alert() original
+        var alertOriginal = window.alert;
+
+        // Anular la función alert()
+        window.alert = function() {};
+    };
+
+    // Restaurar la función alert() original
+    //window.alert = alertOriginal;
+</script> --}}
 @section('content')
-
     <section class="section">
-
         @if (Auth::user()->type == 'admin')
             <div class="row">
                 <div class="col-12">
@@ -194,7 +206,7 @@
                                                         {{ $task->project->name }}</div>
                                                 </td>
 
-                                                @if ($currentWorkspace->permission == 'Owner' || Auth::user()->getGuard() == 'client')
+                                                @if ($currentWorkspace->permission == 'Owner')
                                                     <td>
                                                         <span class="text-muted font-13">{{ __('Assigned to') }}</span>
                                                         <div class="font-14 mt-1 font-weight-normal">
@@ -293,14 +305,13 @@
             </div>
         @endif
     </section>
-
 @endsection
 
 
 @push('scripts')
     <script src="{{ asset('assets/custom/js/apexcharts.min.js') }}"></script>
 
-    @if (Auth::user()->type == 'admin'  || Auth::user()->type == 'user' || Auth::user()->type == 'client'/**/)
+    @if (Auth::user()->type == 'admin' || Auth::user()->type == 'user' || Auth::user()->type == 'client' /**/)
     @elseif(isset($currentWorkspace) && $currentWorkspace)
         <script>
             (function() {
@@ -380,7 +391,7 @@
 
 
     <script src="{{ asset('assets/js/plugins/apexcharts.min.js') }}"></script>
-    @if (Auth::user()->type == 'admin'/* || Auth::user()->type == 'user' || Auth::user()->type == 'client' */)
+    @if (Auth::user()->type == 'admin' /*|| Auth::user()->type == 'user'  || Auth::user()->type == 'client' */)
         <script>
             (function() {
                 var options = {

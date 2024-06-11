@@ -301,10 +301,16 @@ class UserController extends Controller
             $objUser->currant_workspace = $objWorkspace->id;
             $objUser->save();
 
+            if (Auth::user()->type == 'admin') {
+                $permission     =   'Owner';
+            } else {
+                $permission =    'Member';
+            }
+
             UserWorkspace::create([
                 'user_id' => $objUser->id,
                 'workspace_id' => $objWorkspace->id,
-                'permission' => 'Owner'
+                'permission' => $permission
             ]);
 
 
@@ -695,7 +701,11 @@ class UserController extends Controller
     public function getUserJson($workspace_id)
     {
         $return = [];
-        $objdata = UserWorkspace::select('user.email')->join('users', 'users.id', '=', 'user_workspaces.user_id')->where('user_workspaces.is_active', '=', 1)->where('users.id', '!=', auth()->id())->get();
+        $objdata = UserWorkspace::select('user.email')
+            ->join('users', 'users.id', '=', 'user_workspaces.user_id')
+            ->where('user_workspaces.is_active', '=', 1)
+            ->where('users.id', '!=', auth()->id())->get();
+
         foreach ($objdata as $data) {
             $return[] = $data->email;
         }
@@ -867,7 +877,9 @@ class UserController extends Controller
             $objUser = Auth::user();
             $currentWorkspace = Utility::getWorkspaceBySlug($slug);
             if ($currentWorkspace) {
-                $users = User::select('users.*', 'user_workspaces.permission', 'user_workspaces.is_active')->join('user_workspaces', 'user_workspaces.user_id', '=', 'users.id');
+                $users = User::select('users.*', 'user_workspaces.permission', 'user_workspaces.is_active')
+                    ->join('user_workspaces', 'user_workspaces.user_id', '=', 'users.id');
+
                 $users->where('user_workspaces.workspace_id', '=', $currentWorkspace->id)->where('users.id', '!=', $objUser->id);
                 $users = $users->get();
             } else {

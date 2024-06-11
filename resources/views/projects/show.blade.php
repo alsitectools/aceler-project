@@ -4,27 +4,12 @@
     {{ __('Project Detail') }}
 @endsection
 @section('links')
-    {{-- @if (\Auth::guard('client')->check())
-        <li class="breadcrumb-item">
-            <a href="{{ route('client.home') }}">{{ __('Home') }}</a>
-        </li>
-    @else
-        <li class="breadcrumb-item"><a href="{{ route('home') }}">{{ __('Home') }}</a></li>
-    @endif --}}
-    {{-- @if (\Auth::guard('client')->check())
-        <li class="breadcrumb-item"><a
-                href="{{ route('client.projects.index', $currentWorkspace->slug) }}">{{ __('Project') }}</a></li>
-    @else
-      
-    @endif --}}
     <li class="breadcrumb-item"><a href="{{ route('projects.index', $currentWorkspace->slug) }}">{{ __('Project') }}</a>
     </li>
     <li class="breadcrumb-item">{{ $project->name }}</li>
 @endsection
 @php
-    // $permissions = Auth::user()->getPermission($project->id);
-    $client_keyword = Auth::user()->getGuard() == 'client' ? 'client.' : '';
-    // $logo = \App\Models\Utility::get_file('users-avatar/');
+    $objUser = Auth::user();
     $logo = \App\Models\Utility::get_file('avatars/');
     $logo_project_files = \App\Models\Utility::get_file('project_files/');
 @endphp
@@ -45,7 +30,7 @@
         (isset($currentWorkspace) && $currentWorkspace->permission == 'Member') ||
             (isset($currentWorkspace) && $currentWorkspace->permission == 'Owner'))
         <div class="col-md-auto col-sm-4 pb-3">
-            <a href="{{ route($client_keyword . 'projects.timesheet.index', [$currentWorkspace->slug, $project->id]) }}"
+            <a href="{{ route('projects.timesheet.index', [$currentWorkspace->slug, $project->id]) }}"
                 class="btn btn-xs btn-primary btn-icon-only col-12 ">{{ trans('messages.Timesheet') }}</a>
         </div>
     @endif
@@ -54,13 +39,13 @@
         (isset($currentWorkspace) && $currentWorkspace->permission == 'Member') ||
             (isset($currentWorkspace) && $currentWorkspace->permission == 'Owner'))
         <div class="col-md-auto col-sm-4 pb-3">
-            <a href="{{ route($client_keyword . 'projects.task.board', [$currentWorkspace->slug, $project->id]) }}"
-                class="btn btn-xs btn-primary btn-icon-only col-12 ">{{ trans('messages.Task_Board') }}</a>
+            <a href="{{ route('projects.milestone.board', [$currentWorkspace->slug, $project->id]) }}"
+                class="btn btn-xs btn-primary btn-icon-only col-12 ">{{ trans('messages.Milestone_Board') }}</a>
         </div>
     @endif
 
     <div class="col-md-auto col-sm-6 pb-3">
-        <a href="{{ route($client_keyword . 'projecttime.tracker', [$currentWorkspace->slug, $project->id]) }}"
+        <a href="{{ route('projecttime.tracker', [$currentWorkspace->slug, $project->id]) }}"
             class="btn btn-xs btn-primary btn-icon-only col-12 ">{{ trans('messages.Tracker') }}</a>
     </div>
 @endsection
@@ -94,11 +79,12 @@
                             <div class="d-block d-sm-flex align-items-center justify-content-between">
                                 <h4 class="text-white"> {{ $project->name }}</h4>
                                 <div class="d-flex  align-items-center row1">
+                                    @if($project->ref_mo != null)
                                     <div class="px-3">
-                                        <span class="text-white text-sm">{{ __('[REF] MasterObras') }}:</span>
-                                        <h5 class="text-white text-nowrap">
-                                            {{ 'M1234234654 ' }}</h5>
+                                        <span class="text-white text-sm">{{ __('MasterObras') }}:</span>
+                                        <h5 class="text-white text-nowrap"> {{ $project->ref_mo }}</h5>
                                     </div>
+                                    @endif
                                     <div class="px-3">
                                         <span class="text-white text-sm">{{ trans('messages.Start_Date') }}:</span>
                                         <h5 class="text-white text-nowrap">
@@ -112,7 +98,7 @@
                                     <div class="px-3">
                                         <span class="text-white text-sm">{{ trans('messages.Total_Members') }}:</span>
                                         <h5 class="text-white text-nowrap">
-                                            {{ (int) $project->users->count() + (int) $project->clients->count() }}</h5>
+                                            {{ (int) $project->technicians->count() + (int) $project->salesManager->count() }}</h5>
                                     </div>
                                     <div class="px-3">
 
@@ -136,7 +122,7 @@
                                 @else
                                     @auth('web')
                                         {{-- modificado --}}
-                                        @if (\Auth::user()->type == 'admin')
+                                        @if ($objUser->type == 'admin')
                                             <div class="d-flex align-items-center ">
 
                                                 <a href="#" class=""
@@ -236,10 +222,10 @@
                                             </h5>
                                         </div>
                                         <div class="float-end">
-                                            @if ($currentWorkspace->permission == 'Member' || $currentWorkspace->permission == 'Owner')
+                                            @if ($objUser->type == 'client' || $currentWorkspace->permission == 'Owner')
                                                 <a href="#" class="btn btn-sm btn-primary" data-ajax-popup="true"
                                                     data-title="{{ __('Create Milestone') }}"
-                                                    data-url="{{ route($client_keyword . 'projects.milestone', [$currentWorkspace->slug, $project->id]) }}"
+                                                    data-url="{{ route('projects.milestone', [$currentWorkspace->slug, $project->id]) }}"
                                                     data-toggle="popover" title="{{ __('Create') }}"><i
                                                         class="ti ti-plus"></i></a>
                                             @endif
@@ -257,7 +243,9 @@
                                                     <th>{{ __('messages.Desired_delivery_date') }}</th>
                                                     <th>{{ __('Fecha de inicio') }}</th>
                                                     <th>{{ __('Fecha final') }}</th>
-                                                    <th>{{ __('Action') }}</th>
+                                                    @if ($objUser->type == 'client' || $currentWorkspace->permission == 'Owner')
+                                                        <th>{{ __('Action') }}</th>
+                                                    @endif
                                                 </tr>
                                             </thead>
                                             <tbody>
@@ -266,7 +254,7 @@
                                                         <td><a href="#" class="d-block font-weight-500 mb-0"
                                                                 data-ajax-popup="true"
                                                                 data-title="{{ __('Milestone Details') }}"
-                                                                data-url="{{ route($client_keyword . 'projects.milestone.show', [$currentWorkspace->slug, $milestone->id]) }}">
+                                                                data-url="{{ route('projects.milestone.show', [$currentWorkspace->slug, $milestone->id]) }}">
                                                                 <h5 class="m-0"> {{ $milestone->title }} </h5>
                                                             </a></td>
                                                         <td>
@@ -284,7 +272,7 @@
                                                         <td></td>
                                                         <td class="text-right">
                                                             <div class="col-auto">
-                                                                @if ($currentWorkspace->permission == 'Owner')
+                                                                @if ($objUser->type == 'client' || $currentWorkspace->permission == 'Owner')
                                                                     <a href="#"
                                                                         class="action-btn btn-info mx-1  btn btn-sm d-inline-flex align-items-center"
                                                                         data-ajax-popup="true" data-size="lg"
@@ -305,13 +293,13 @@
                                                                         @csrf
                                                                         @method('DELETE')
                                                                     </form>
-                                                                @elseif($currentWorkspace->permission == 'Member' || $currentWorkspace->permission == 'Owner')
+                                                                @elseif($objUser->type == 'client' || $currentWorkspace->permission == 'Owner')
                                                                     <a href="#"
                                                                         class="action-btn btn-info mx-1  btn btn-sm d-inline-flex align-items-center bs-pass-para"
                                                                         data-ajax-popup="true" data-size="lg"
                                                                         data-title="{{ __('Edit Milestone') }}"
                                                                         data-toggle="popover" title="{{ __('Edit') }}"
-                                                                        data-url="{{ route($client_keyword . 'projects.milestone.edit', [$currentWorkspace->slug, $milestone->id]) }}"><i
+                                                                        data-url="{{ route('projects.milestone.edit', [$currentWorkspace->slug, $milestone->id]) }}"><i
                                                                             class="ti ti-edit"></i></a>
 
                                                                     @if ($currentWorkspace->permission == 'Owner')
@@ -324,7 +312,7 @@
                                                                             data-confirm-yes="delete-form1-{{ $milestone->id }}"><i
                                                                                 class="ti ti-trash"></i></a>
                                                                         <form id="delete-form1-{{ $milestone->id }}"
-                                                                            action="{{ route($client_keyword . 'projects.milestone.destroy', [$currentWorkspace->slug, $milestone->id]) }}"
+                                                                            action="{{ route('projects.milestone.destroy', [$currentWorkspace->slug, $milestone->id]) }}"
                                                                             method="POST" style="display: none;">
                                                                             @csrf
                                                                             @method('DELETE')
@@ -354,7 +342,7 @@
                                         <div>
                                             {{-- team usuario/tecnicos --}}
                                             <h5 class="mb-0">{{ trans('messages.Team_Members') }}
-                                                ({{ count($project->users) }})
+                                                ({{ count($project->technicians) }})
                                             </h5>
                                         </div>
 
@@ -373,7 +361,7 @@
                                 </div>
                                 <div class="card-body">
                                     <div class="px-3 top-10-scroll" style="max-height: 300px;">
-                                        @foreach ($project->users as $user)
+                                        @foreach ($project->technicians as $user)
                                             <ul class="list-group list-group-flush">
                                                 <li class="list-group-item px-0">
                                                     <div class="row align-items-center justify-content-between">
@@ -435,7 +423,7 @@
                                         <div>
 
                                             <h5 class="mb-0">{{ trans('messages.Sales_manager') }}
-                                                ({{ count($project->clients) }})
+                                                ({{ count($project->salesManager) }})
                                             </h5>
                                         </div>
 
@@ -455,7 +443,7 @@
                                 </div>
                                 <div class="card-body">
                                     <div class=" px-3 top-10-scroll" style="max-height: 300px;">
-                                        @foreach ($project->clients as $client)
+                                        @foreach ($project->salesManager as $client)
                                             <ul class="list-group list-group-flush">
                                                 <li class="list-group-item px-0">
                                                     <div class="row align-items-center justify-content-between">
@@ -653,9 +641,9 @@
 @endpush
 @push('scripts')
     <!--
-                                                                                                            <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+                                                                                                                            <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
 
-                                                                                                             -->
+                                                                                                                             -->
     <script src="{{ asset('assets/js/plugins/apexcharts.min.js') }}"></script>
     <script>
         (function() {
