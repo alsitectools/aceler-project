@@ -1,43 +1,45 @@
 <!DOCTYPE html>
 @php
-$logo = \App\Models\Utility::get_file('logo/');
-if (Auth::user()->type == 'admin') {
-$setting = App\Models\Utility::getAdminPaymentSettings();
-$color = 'theme-5';
-$dark_mode = $setting['cust_darklayout'];
-$cust_theme_bg = $setting['cust_theme_bg'];
-$SITE_RTL = $setting['site_rtl'];
-} else {
-$setting = App\Models\Utility::getcompanySettings($currentWorkspace->id);
+    $logo = \App\Models\Utility::get_file('logo/');
+    if (Auth::user()->type == 'admin') {
+        $setting = App\Models\Utility::getAdminPaymentSettings();
+        $color = 'theme-5';
+        $dark_mode = $setting['cust_darklayout'];
+        $cust_theme_bg = $setting['cust_theme_bg'];
+        $SITE_RTL = $setting['site_rtl'];
+    } else {
+        $setting = App\Models\Utility::getcompanySettings($currentWorkspace->id);
 
-$color = $setting->theme_color;
-$dark_mode = $setting->cust_darklayout;
-$SITE_RTL = $setting->site_rtl;
-$cust_theme_bg = $setting->cust_theme_bg;
-}
+        $color = $setting->theme_color;
+        $dark_mode = $setting->cust_darklayout;
+        $SITE_RTL = $setting->site_rtl;
+        $cust_theme_bg = $setting->cust_theme_bg;
+    }
 
-$meta_setting = App\Models\Utility::getAdminPaymentSettings();
-$meta_images = \App\Models\Utility::get_file('uploads/logo/');
+    $meta_setting = App\Models\Utility::getAdminPaymentSettings();
+    $meta_images = \App\Models\Utility::get_file('uploads/logo/');
 
-if ($color == '' || $color == null) {
-$settings = App\Models\Utility::getAdminPaymentSettings();
-$color = $settings['color'];
-}
+    if ($color == '' || $color == null) {
+        $settings = App\Models\Utility::getAdminPaymentSettings();
+        $color = $settings['color'];
+    }
 
-if ($dark_mode == '' || $dark_mode == null) {
-$dark_mode = $settings['cust_darklayout'];
-}
+    if ($dark_mode == '' || $dark_mode == null) {
+        $dark_mode = $settings['cust_darklayout'];
+    }
 
-if ($cust_theme_bg == '' || $dark_mode == null) {
-$cust_theme_bg = $settings['cust_theme_bg'];
-}
+    if ($cust_theme_bg == '' || $dark_mode == null) {
+        $cust_theme_bg = $settings['cust_theme_bg'];
+    }
 
-if ($SITE_RTL == '' || $SITE_RTL == null) {
-$SITE_RTL = env('SITE_RTL');
-}
-if (\App::getLocale() == 'ar' || \App::getLocale() == 'he') {
-$SITE_RTL = 'on';
-}
+    if ($SITE_RTL == '' || $SITE_RTL == null) {
+        $SITE_RTL = env('SITE_RTL');
+    }
+    if (\App::getLocale() == 'ar' || \App::getLocale() == 'he') {
+        $SITE_RTL = 'on';
+    }
+
+    \Carbon\Carbon::setLocale('es');
 
 @endphp
 {{-- <html lang="{{ str_replace('_', '-', app()->getLocale()) }}" dir="{{ $SITE_RTL == 'on' ? 'rtl' : '' }}"> --}}
@@ -70,17 +72,18 @@ $SITE_RTL = 'on';
 
     <title>
         @if (trim($__env->yieldContent('page-title')) && Auth::user()->type == 'admin')
-        {{ 'aCeler Project' }} ~@yield('page-title')
+            {{ 'aCeler Project' }} ~@yield('page-title')
         @else
-        {{ 'aCeler Project' }} ~@yield('page-title')
+            {{ 'aCeler Project' }} ~@yield('page-title')
         @endif
     </title>
 
 
     @if (Auth::user()->type == 'admin')
-    <link rel="shortcut icon" href="{{ asset($logo . 'favicon.png' . '?' . time()) }}">
+        <link rel="shortcut icon" href="{{ asset($logo . 'favicon.png' . '?' . time()) }}">
     @else
-    <link rel="shortcut icon" href="@if ($currentWorkspace->favicon) {{ asset($logo . $currentWorkspace->favicon . '?' . time()) }}@else{{ asset($logo . 'favicon.png' . '?' . time()) }} @endif">
+        <link rel="shortcut icon"
+            href="@if ($currentWorkspace->favicon) {{ asset($logo . $currentWorkspace->favicon . '?' . time()) }}@else{{ asset($logo . 'favicon.png' . '?' . time()) }} @endif">
     @endif
     <link rel="stylesheet" href="{{ asset('assets/css/plugins/style.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/css/plugins/flatpickr.min.css') }}">
@@ -115,33 +118,32 @@ $SITE_RTL = 'on';
  -->
 
     @if ($SITE_RTL == 'on')
-    <link rel="stylesheet" href="{{ asset('assets/css/style-rtl.css') }}">
+        <link rel="stylesheet" href="{{ asset('assets/css/style-rtl.css') }}">
     @endif
     @if ($dark_mode == 'on')
-    <link rel="stylesheet" href="{{ asset('assets/css/style-dark.css') }}">
+        <link rel="stylesheet" href="{{ asset('assets/css/style-dark.css') }}">
     @else
-    <link rel="stylesheet" href="{{ asset('assets/css/style.css') }}" id="main-style-link">
+        <link rel="stylesheet" href="{{ asset('assets/css/style.css') }}" id="main-style-link">
     @endif
 
-    <meta name="url" content="{{ url('') . '/' . config('chatify.routes.prefix') }}" data-user="{{ Auth::user()->id }}">
+    <meta name="url" content="{{ url('') . '/' . config('chatify.routes.prefix') }}"
+        data-user="{{ Auth::user()->id }}">
     <script src='https://unpkg.com/nprogress@0.2.0/nprogress.js'></script>
 
 </head>
 
 @if ($dark_mode == 'on')
-<style type="text/css">
-    .list-group-item.active {
-        border-color: #000 !important;
-    }
-
-</style>
+    <style type="text/css">
+        .list-group-item.active {
+            border-color: #000 !important;
+        }
+    </style>
 @else
-<style type="text/css">
-    .list-group-item.active {
-        border-color: #ffff !important;
-    }
-
-</style>
+    <style type="text/css">
+        .list-group-item.active {
+            border-color: #ffff !important;
+        }
+    </style>
 @endif
 
 <style type="text/css">
@@ -183,7 +185,6 @@ $SITE_RTL = 'on';
     [dir="rtl"] #calender_type {
         float: left !important;
     }
-
 </style>
 
 
@@ -198,9 +199,11 @@ $SITE_RTL = 'on';
 
     <!-- <div class="container-fluid container-application"> -->
     @if (Auth::user()->getGuard() == 'client')
-    <input type="hidden" id="path_admin" value="{{ url(isset($currentWorkspace) ? 'client/' . $currentWorkspace->slug : '') }}">
+        <input type="hidden" id="path_admin"
+            value="{{ url(isset($currentWorkspace) ? 'client/' . $currentWorkspace->slug : '') }}">
     @else
-    <input type="hidden" id="path_admin" value="{{ url(isset($currentWorkspace) ? $currentWorkspace->slug : '') }}">
+        <input type="hidden" id="path_admin"
+            value="{{ url(isset($currentWorkspace) ? $currentWorkspace->slug : '') }}">
     @endif
 
     <div class="bg-primary" id="color_chart"></div>
@@ -208,25 +211,23 @@ $SITE_RTL = 'on';
     <script>
         var element = document.querySelector('#color_chart');
         var style = getComputedStyle(element);
-
     </script>
     <script>
         var dataTableLang = {
             paginate: {
-                previous: "<i class='fas fa-angle-left'>"
-                , next: "<i class='fas fa-angle-right'>"
-            }
-            , lengthMenu: "{{ trans('messages.Show') }} _MENU_ {{ __('entries') }}"
-            , zeroRecords: "{{ __('No data available in table.') }}"
-            , info: "{{ trans('messages.Showing') }} _START_ {{ trans('messages.to') }} _END_ {{ __('of') }} _TOTAL_ {{ __('entries') }}"
-            , infoEmpty: "{{ trans('messages.Showing_0_to_0_of_0_entries') }}"
-            , infoFiltered: "{{ __('(filtered from _MAX_ total entries)') }}"
-            , search: "{{ __('Search:') }}"
-            , thousands: ","
-            , loadingRecords: "{{ __('Loading...') }}"
-            , processing: "{{ __('Processing...') }}"
+                previous: "<i class='fas fa-angle-left'>",
+                next: "<i class='fas fa-angle-right'>"
+            },
+            lengthMenu: "{{ trans('messages.Show') }} _MENU_ {{ __('entries') }}",
+            zeroRecords: "{{ __('No data available in table.') }}",
+            info: "{{ trans('messages.Showing') }} _START_ {{ trans('messages.to') }} _END_ {{ __('of') }} _TOTAL_ {{ __('entries') }}",
+            infoEmpty: "{{ trans('messages.Showing_0_to_0_of_0_entries') }}",
+            infoFiltered: "{{ __('(filtered from _MAX_ total entries)') }}",
+            search: "{{ __('Search:') }}",
+            thousands: ",",
+            loadingRecords: "{{ __('Loading...') }}",
+            processing: "{{ __('Processing...') }}"
         }
-
     </script>
     @include('partials.sidebar')
 
@@ -242,9 +243,9 @@ $SITE_RTL = 'on';
                             <div class="row mb-1">
                                 <div class="col-auto header_breadcrumb">
                                     @if (trim($__env->yieldContent('page-title')))
-                                    <div class="page-header-title">
-                                        <h4 class="m-b-10">@yield('page-title')</h4>
-                                    </div>
+                                        <div class="page-header-title">
+                                            <h4 class="m-b-10">@yield('page-title')</h4>
+                                        </div>
                                     @endif
                                     <ul class="breadcrumb mt-1">
                                         @yield('links')
@@ -252,14 +253,15 @@ $SITE_RTL = 'on';
                                 </div>
                                 <div class="col header_breadcrumb">
                                     @if (trim($__env->yieldContent('action-button')))
-                                    <!-- <div class="col-xl-6 col-lg-2 col-md-4 col-sm-6 col-6 pt-lg-3 pt-xl-2"> -->
-                                    <div class="text-end  all-button-box justify-content-md-end justify-content-center ">
-                                        @yield('action-button')
-                                    </div>
-                                    <!-- </div> -->
+                                        <!-- <div class="col-xl-6 col-lg-2 col-md-4 col-sm-6 col-6 pt-lg-3 pt-xl-2"> -->
+                                        <div
+                                            class="text-end  all-button-box justify-content-md-end justify-content-center ">
+                                            @yield('action-button')
+                                        </div>
+                                        <!-- </div> -->
                                     @elseif(trim($__env->yieldContent('multiple-action-button')))
-                                    <div class=" row text-end row d-flex justify-content-end col-auto ">
-                                        @yield('multiple-action-button')</div>
+                                        <div class=" row text-end row d-flex justify-content-end col-auto ">
+                                            @yield('multiple-action-button')</div>
                                     @endif
                                 </div>
                             </div>
@@ -272,39 +274,43 @@ $SITE_RTL = 'on';
     </div>
 
     @if (Auth::user()->type == 'admin')
-    <div class="modal fade" id="modelCreateWorkspace" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
-        <div class="modal-dialog " role="document">
-            <div class="modal-content">
-                <div class="modal-header">
+        <div class="modal fade" id="modelCreateWorkspace" tabindex="-1" role="dialog"
+            aria-labelledby="exampleModalLabel" aria-hidden="true">
+            <div class="modal-dialog " role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
 
-                    <h5 class="modal-title" id="exampleModalLabel"> {{ __('Create Your Workspace') }}</h5>
-                    <button type="button" class="btn-close" data-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="body">
-                    <div class="modal-body">
-                        <form class="" method="post" action="{{ route('add-workspace') }}">
-                            @csrf
-                            <div class="row">
-                                <div class="col-md-12">
-                                    <label for="workspacename" class="col-form-label">{{ __('Name') }}</label>
-                                    <input class="form-control" type="text" id="workspacename" name="name" required="" placeholder="{{ __('Workspace Name') }}">
+                        <h5 class="modal-title" id="exampleModalLabel"> {{ __('Create Your Workspace') }}</h5>
+                        <button type="button" class="btn-close" data-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="body">
+                        <div class="modal-body">
+                            <form class="" method="post" action="{{ route('add-workspace') }}">
+                                @csrf
+                                <div class="row">
+                                    <div class="col-md-12">
+                                        <label for="workspacename" class="col-form-label">{{ __('Name') }}</label>
+                                        <input class="form-control" type="text" id="workspacename" name="name"
+                                            required="" placeholder="{{ __('Workspace Name') }}">
+                                    </div>
                                 </div>
-                            </div>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn  btn-light text-end" data-dismiss="modal">{{ __('Close') }}</button>
-                        <!-- <button type="button" class="btn  btn-light" data-bs-dismiss="modal">{{ __('Close') }}</button> -->
-                        <input type="submit" value="{{ __('Create') }}" class="btn  btn-primary">
-                    </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn  btn-light text-end"
+                                data-dismiss="modal">{{ __('Close') }}</button>
+                            <!-- <button type="button" class="btn  btn-light" data-bs-dismiss="modal">{{ __('Close') }}</button> -->
+                            <input type="submit" value="{{ __('Create') }}" class="btn  btn-primary">
+                        </div>
 
-                    </form>
+                        </form>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
     @endif
 
-    <div class="modal fade" id="commonModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal fade" id="commonModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+        aria-hidden="true">
         <div class="modal-dialog" role="document">
             <div class="modal-content">
                 <div class="modal-header">
@@ -317,7 +323,8 @@ $SITE_RTL = 'on';
             </div>
         </div>
     </div>
-    <div class="modal fade" id="commonModalOver" tabindex="1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal fade" id="commonModalOver" tabindex="1" role="dialog" aria-labelledby="exampleModalLabel"
+        aria-hidden="true">
         <div class="modal-dialog" role="document">
             <div class="modal-content">
                 <div class="modal-header">
@@ -350,26 +357,24 @@ $SITE_RTL = 'on';
     <script>
         $('.summernote').summernote({
             toolbar: [
-                ['style', ['style']]
-                , ['font', ['bold', 'italic', 'underline', 'strikethrough']]
-                , ['list', ['ul', 'ol', 'paragraph']]
-                , ['insert', ['link', 'unlink']]
-            , ]
-            , height: 250
-        , });
-
+                ['style', ['style']],
+                ['font', ['bold', 'italic', 'underline', 'strikethrough']],
+                ['list', ['ul', 'ol', 'paragraph']],
+                ['insert', ['link', 'unlink']],
+            ],
+            height: 250,
+        });
     </script>
 
 
     <script>
         (function() {
             const d_week = new Datepicker(document.querySelector('.datepicker'), {
-                buttonClass: 'btn'
-                , todayBtn: true
-                , clearBtn: true
+                buttonClass: 'btn',
+                todayBtn: true,
+                clearBtn: true
             });
         })();
-
     </script>
 
 
@@ -392,7 +397,6 @@ $SITE_RTL = 'on';
             $(".view_less").hide();
 
         });
-
     </script>
 
 
@@ -410,12 +414,12 @@ $SITE_RTL = 'on';
 
             var chbox = $(this);
             $.ajax({
-                url: chbox.attr('data-url')
-                , data: {
+                url: chbox.attr('data-url'),
+                data: {
                     _token: $('meta[name="csrf-token"]').attr('content')
-                }
-                , type: 'POST'
-                , success: function(response) {
+                },
+                type: 'POST',
+                success: function(response) {
                     if (response.is_success) {
                         show_toastr('success', response.success, 'success');
 
@@ -426,8 +430,8 @@ $SITE_RTL = 'on';
                     } else {
                         show_toastr('error', response.error, 'error');
                     }
-                }
-                , error: function(response) {
+                },
+                error: function(response) {
                     response = response.responseJSON;
                     if (response.is_success) {
                         show_toastr('error', response.error, 'error');
@@ -437,98 +441,102 @@ $SITE_RTL = 'on';
                 }
             })
         });
-
     </script>
 
     @if (env('CHAT_MODULE') == 'yes' && isset($currentWorkspace) && $currentWorkspace)
-    @auth('web')
-    {{-- Pusher JS --}}
-    <script src="https://js.pusher.com/5.0/pusher.min.js"></script>
-    <script>
-        $(document).ready(function() {
-            pushNotification('{{ Auth::id() }}');
-        });
-
-        function pushNotification(id) {
-
-            // ajax setup form csrf token
-            $.ajaxSetup({
-                headers: {
-                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                }
-            });
-
-            // Enable pusher logging - don't include this in production
-            Pusher.logToConsole = false;
-
-            var pusher = new Pusher('{{ env('
-                PUSHER_APP_KEY ') }}', {
-                    cluster: '{{ env('
-                    PUSHER_APP_CLUSTER ') }}'
-                    , forceTLS: true
+        @auth('web')
+            {{-- Pusher JS --}}
+            <script src="https://js.pusher.com/5.0/pusher.min.js"></script>
+            <script>
+                $(document).ready(function() {
+                    pushNotification('{{ Auth::id() }}');
                 });
 
-            var channel = pusher.subscribe('{{ $currentWorkspace->slug }}');
-            channel.bind('notification', function(data) {
+                function pushNotification(id) {
 
-                if (id == data.user_id) {
-                    $(".notification-toggle").addClass('beep');
-                    $(".notification-dropdown .dropdown-list-icons").prepend(data.html);
-                }
-            });
-            channel.bind('chat', function(data) {
-                if (id == data.to) {
-                    getChat();
-                }
-            });
-        }
+                    // ajax setup form csrf token
+                    $.ajaxSetup({
+                        headers: {
+                            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                        }
+                    });
 
-        function getChat() {
-            $.ajax({
-                url: '{{ route('
-                message.data ') }}'
-                , cache: false
-                , dataType: 'html'
-                , success: function(data) {
-                    if (data.length) {
-                        $(".message-toggle").addClass('beep');
-                        $(".dropdown-list-message").html(data);
-                        LetterAvatar.transform();
-                    }
-                }
-            })
-        }
+                    // Enable pusher logging - don't include this in production
+                    Pusher.logToConsole = false;
 
-        getChat();
+                    var pusher = new Pusher('{{ env('
+                                    PUSHER_APP_KEY ') }}', {
+                        cluster: '{{ env('
+                                            PUSHER_APP_CLUSTER ') }}',
+                        forceTLS: true
+                    });
 
-        $(document).on("click", ".mark_all_as_read", function() {
-            $.ajax({
-                url: '{{ route('
-                notification.seen ', $currentWorkspace->slug) }}'
-                , type: "get"
-                , cache: false
-                , success: function(data) {
-                    $('.notification-dropdown .dropdown-list-icons').html('');
-                    $(".notification-toggle").removeClass('beep');
-                }
-            })
-        });
-        $(document).on("click", ".mark_all_as_read_message", function() {
-            $.ajax({
-                url: '{{ route('
-                message.seen ', $currentWorkspace->slug) }}'
-                , type: "get"
-                , cache: false
-                , success: function(data) {
-                    $('.dropdown-list-message').html('');
-                    $(".message-toggle").removeClass('beep');
-                }
-            })
-        });
+                    var channel = pusher.subscribe('{{ $currentWorkspace->slug }}');
+                    channel.bind('notification', function(data) {
 
-    </script>
-    {{-- End  Pusher JS --}}
-    @endauth
+                        if (id == data.user_id) {
+                            $(".notification-toggle").addClass('beep');
+                            $(".notification-dropdown .dropdown-list-icons").prepend(data.html);
+                        }
+                    });
+                    channel.bind('chat', function(data) {
+                        if (id == data.to) {
+                            getChat();
+                        }
+                    });
+                }
+
+                function getChat() {
+                    $.ajax({
+                        url: '{{ route('
+                                        message.data ') }}',
+                        cache: false,
+                        dataType: 'html',
+                        success: function(data) {
+                            if (data.length) {
+                                $(".message-toggle").addClass('beep');
+                                $(".dropdown-list-message").html(data);
+                                LetterAvatar.transform();
+                            }
+                        }
+                    })
+                }
+
+                getChat();
+
+                $(document).on("click", ".mark_all_as_read", function() {
+                    $.ajax({
+                        url: '{{ route(
+                            '
+                                        notification.seen ',
+                            $currentWorkspace->slug,
+                        ) }}',
+                        type: "get",
+                        cache: false,
+                        success: function(data) {
+                            $('.notification-dropdown .dropdown-list-icons').html('');
+                            $(".notification-toggle").removeClass('beep');
+                        }
+                    })
+                });
+                $(document).on("click", ".mark_all_as_read_message", function() {
+                    $.ajax({
+                        url: '{{ route(
+                            '
+                                        message.seen ',
+                            $currentWorkspace->slug,
+                        ) }}',
+                        type: "get",
+                        cache: false,
+                        success: function(data) {
+                            $('.dropdown-list-message').html('');
+                            $(".message-toggle").removeClass('beep');
+                        }
+                    })
+                });
+            </script>
+            {{-- End  Pusher JS --}}
+        @endauth
     @endif
     <script>
         feather.replace();
@@ -604,7 +612,6 @@ $SITE_RTL = 'on';
                 }
             }
         }
-
     </script>
     <!-- Site JS -->
 
@@ -616,68 +623,62 @@ $SITE_RTL = 'on';
     <script src="{{ asset('assets/js/plugins/simple-datatables.js') }}"></script>
     <script>
         const dataTable = new simpleDatatables.DataTable("#selection-datatable");
-
     </script>
 
 
 
     <script>
         var date_picker_locale = {
-            format: 'YYYY-MM-DD'
-            , daysOfWeek: [
-                "{{ trans('messages.Sun') }}"
-                , "{{ trans('messages.Mon') }}"
-                , "{{ trans('messages.Tue') }}"
-                , "{{ trans('messages.Wed') }}"
-                , "{{ trans('messages.Thu') }}"
-                , "{{ trans('messages.Fri') }}"
-                , "{{ trans('messages.Sat') }}"
-            ]
-            , monthNames: [
+            format: 'YYYY-MM-DD',
+            daysOfWeek: [
+                "{{ trans('messages.Sun') }}", "{{ trans('messages.Mon') }}", "{{ trans('messages.Tue') }}",
+                "{{ trans('messages.Wed') }}", "{{ trans('messages.Thu') }}", "{{ trans('messages.Fri') }}",
+                "{{ trans('messages.Sat') }}"
+            ],
+            monthNames: [
                 '{{ trans('
-                messages.January ') }}'
-                , '{{ trans('
-                messages.February ') }}'
-                , ' {{ trans('
-                messages.March ') }}'
-                , '{{ trans('
-                messages.April ') }}'
-                , '{{ trans('
-                messages.May ') }}'
-                , '{{ trans('
-                messages.June ') }}'
-                , '{{ trans('
-                messages.July ') }}'
-                , '{{ trans('
-                messages.August ') }}'
-                , '{{ trans('
-                messages.September ') }}'
-                , '{{ trans('
-                messages.October ') }}'
-                , '{{ trans('
-                messages.November ') }}'
-                , ' {{ trans('
-                messages.December ') }}'
-            ]
-        , };
+                                messages.January ') }}',
+                '{{ trans('
+                                messages.February ') }}',
+                ' {{ trans('
+                                messages.March ') }}',
+                '{{ trans('
+                                messages.April ') }}',
+                '{{ trans('
+                                messages.May ') }}',
+                '{{ trans('
+                                messages.June ') }}',
+                '{{ trans('
+                                messages.July ') }}',
+                '{{ trans('
+                                messages.August ') }}',
+                '{{ trans('
+                                messages.September ') }}',
+                '{{ trans('
+                                messages.October ') }}',
+                '{{ trans('
+                                messages.November ') }}',
+                ' {{ trans('
+                                messages.December ') }}'
+            ],
+        };
         var calender_header = {
             today: '{{ __('
-            today ') }}'
-            , month: '{{ __('
-            month ') }}'
-            , week: '{{ __('
-            week ') }}'
-            , day: '{{ __('
-            day ') }}'
-            , list: '{{ __('
-            list ') }}'
+                        today ') }}',
+            month: '{{ __('
+                        month ') }}',
+            week: '{{ __('
+                        week ') }}',
+            day: '{{ __('
+                        day ') }}',
+            list: '{{ __('
+                        list ') }}'
         };
-
     </script>
 
 
     @if ($meta_setting['enable_cookie'] == 'on')
-    @include('layouts.cookie_consent')
+        @include('layouts.cookie_consent')
     @endif
     {{-- @if (env('gdpr_cookie') == 'on')
 
@@ -716,45 +717,41 @@ $SITE_RTL = 'on';
     @endif --}}
 
     @if (isset($currentWorkspace) && $currentWorkspace)
-    <script src="{{ asset('assets/custom/js/jquery.easy-autocomplete.min.js') }}"></script>
-    <script>
-        var options = {
-            url: function(phrase) {
-                return "@auth('web'){{ route('search.json', $currentWorkspace->slug) }}@elseauth{{ route('client.search.json', $currentWorkspace->slug) }}@endauth/" +
-                    phrase;
-            }
-            , categories: [{
-                    listLocation: "Projects"
-                    , header: "{{ __('Projects') }}"
+        <script src="{{ asset('assets/custom/js/jquery.easy-autocomplete.min.js') }}"></script>
+        <script>
+            var options = {
+                url: function(phrase) {
+                    return "@auth('web'){{ route('search.json', $currentWorkspace->slug) }}@elseauth{{ route('client.search.json', $currentWorkspace->slug) }}@endauth/" +
+                        phrase;
+                },
+                categories: [{
+                    listLocation: "Projects",
+                    header: "{{ __('Projects') }}"
+                }, {
+                    listLocation: "Tasks",
+                    header: "{{ __('messages.Tasks') }}"
+                }],
+                getValue: "text",
+                template: {
+                    type: "links",
+                    fields: {
+                        link: "link"
+                    }
                 }
-                , {
-                    listLocation: "Tasks"
-                    , header: "{{ __('messages.Tasks') }}"
-                }
-            ]
-            , getValue: "text"
-            , template: {
-                type: "links"
-                , fields: {
-                    link: "link"
-                }
-            }
-        };
-        $(".search-element input").easyAutocomplete(options);
-
-    </script>
+            };
+            $(".search-element input").easyAutocomplete(options);
+        </script>
     @endif
 
     <!--  for setting scroling Active -->
     <script>
         var multipleCancelButton = new Choices('#choices-multiple-remove-button', {
-            removeItemButton: true
-        , });
+            removeItemButton: true,
+        });
         var scrollSpy = new bootstrap.ScrollSpy(document.body, {
-            target: '#useradd-sidenav'
-            , offset: 300
+            target: '#useradd-sidenav',
+            offset: 300
         })
-
     </script>
     <script>
         (function() {
@@ -768,25 +765,22 @@ $SITE_RTL = 'on';
                 }
             });
         })();
-
     </script>
     @stack('scripts')
     {{-- @stack('script-page') --}}
     @if (Session::has('success'))
-    <script>
-        show_toastr('{{ __('
-            Success ') }}', '{!! session('
-            success ') !!}', 'success');
-
-    </script>
+        <script>
+            show_toastr('{{ __('
+                        Success ') }}', '{!! session('
+                        success ') !!}', 'success');
+        </script>
     @endif
     @if (Session::has('error'))
-    <script>
-        show_toastr('{{ __('
-            Error ') }}', '{!! session('
-            error ') !!}', 'error');
-
-    </script>
+        <script>
+            show_toastr('{{ __('
+                        Error ') }}', '{!! session('
+                        error ') !!}', 'error');
+        </script>
     @endif
     <script></script>
     @include('partials.footer')
