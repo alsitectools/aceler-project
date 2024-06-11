@@ -13,7 +13,6 @@ class Project extends Model
         'ref_mo',
         'type',
         'status',
-        'description',
         'start_date',
         'end_date',
         'budget',
@@ -60,7 +59,6 @@ class Project extends Model
 
     public function task()
     {
-
         return $this->hasMany('App\Models\Task', 'project_id', 'id');
     }
 
@@ -85,7 +83,6 @@ class Project extends Model
 
     public function user_tasks($user_id)
     {
-
         return Task::where('project_id', $this->id)->whereRaw('FIND_IN_SET(?, assign_to)', [$user_id])->get();
     }
 
@@ -94,7 +91,8 @@ class Project extends Model
     // }
     public function user_done_tasks($user_id)
     {
-        return Task::join('stages', 'stages.id', '=', 'tasks.status')->where('project_id', '=', $this->id)->where('assign_to', '=', $user_id)->where('stages.complete', '=', '1')->get();
+        return Task::where('project_id', '=', $this->id)->where('assign_to', '=', $user_id)->get();
+        // return Task::join('stages', 'stages.id', '=', 'tasks.status')->where('project_id', '=', $this->id)->where('assign_to', '=', $user_id)->where('stages.complete', '=', '1')->get();
     }
 
     public function timesheet()
@@ -110,6 +108,7 @@ class Project extends Model
 
     public function getProgress()
     {
+        // La logica que se debe aplicar con los milestone para que un proyecto este acabado es cuando ya tiene todos los encargos acabados
 
         $total     = Task::where('project_id', '=', $this->id)->count();
         $totalDone = Task::where('project_id', '=', $this->id)->where('status', '=', 'done')->count();
@@ -138,27 +137,12 @@ class Project extends Model
 
     public static function getProjectAssignedTimesheetHTML($currentWorkspace, $timesheets = [], $days = [], $project_id = null, $seeAsOwner = false)
     {
+
         $project = Project::find($project_id);
+        $objUser         = Auth::user();
 
-        if (Auth::user() != null) {
-            $objUser         = Auth::user();
-        } else {
-            $objUser         = User::where('id', $currentWorkspace->created_by)->first();
-        }
-
-        if ($objUser->getGuard() != 'client') {
-
-            $permission =  UserWorkspace::where('user_id', $objUser->id)->where('workspace_id', $objUser->currant_workspace)->first()->permission;
-
-            if ($permission == 'Sub Owner') {
-                $user_id = $currentWorkspace->created_by;
-            } else {
-                $user_id = $objUser->id;
-            }
-        } else {
-            $user_id = $objUser->id;
-        }
-
+        $typesName = [];
+        $user_id = $objUser->id;
         $i              = $k = 0;
         $allProjects    = false;
         $timesheetArray = $totaltaskdatetimes = [];
@@ -166,45 +150,54 @@ class Project extends Model
         if ($project_id == '-1') {
             $allProjects = true;
 
-            if ($objUser->getGuard() == 'client') {
-                $project_timesheets = Timesheet::select('timesheets.*')->join('projects', 'projects.id', '=', 'timesheets.project_id')->join('tasks', 'tasks.id', '=', 'timesheets.task_id')->join('client_projects', 'projects.id', '=', 'client_projects.project_id')->where('client_projects.client_id', '=', $objUser->id)->where('projects.workspace', '=', $currentWorkspace->id)->where('client_projects.permission', 'LIKE', '%show timesheet%');
-            } elseif ($currentWorkspace->permission == 'Owner') {
-                $project_timesheets = Timesheet::select('timesheets.*')->join('projects', 'projects.id', '=', 'timesheets.project_id')->join('tasks', 'tasks.id', '=', 'timesheets.task_id')->where('projects.workspace', '=', $currentWorkspace->id);
+            //Para mostrar los timesheets al admin
+            if ($currentWorkspace->permission == 'Owner') {
+                $project_timesheets = Timesheet::select('timesheets.*')
+                    ->join('projects', 'projects.id', '=', 'timesheets.project_id')
+                    ->join('tasks', 'tasks.id', '=', 'timesheets.task_id')
+                    ->where('projects.workspace', '=', $currentWorkspace->id);
             } else {
-                //                $project_timesheets = Timesheet::select('timesheets.*')->join('projects', 'projects.id', '=', 'timesheets.project_id')->join('tasks', 'timesheets.task_id', '=', 'tasks.id')->where('projects.workspace', '=', $currentWorkspace->id)->whereRaw("find_in_set('" . $objUser->id . "',tasks.assign_to)");
-                $project_timesheets = Timesheet::select('timesheets.*')->join('projects', 'projects.id', '=', 'timesheets.project_id')->join('tasks', 'timesheets.task_id', '=', 'tasks.id')->where('projects.workspace', '=', $currentWorkspace->id)->whereRaw("find_in_set('" . $user_id . "',tasks.assign_to)");
+                //sino te muestra los tuyos 
+                $project_timesheets = Timesheet::select('timesheets.*')
+                    ->join('projects', 'projects.id', '=', 'timesheets.project_id')
+                    ->join('tasks', 'timesheets.task_id', '=', 'tasks.id')
+                    ->where('projects.workspace', '=', $currentWorkspace->id)
+                    ->where('tasks.assign_to', $user_id);
             }
+
             foreach ($timesheets as $project_id => $timesheet) {
-                $project = Project::find($project_id);
+
                 if ($project) {
                     $timesheetArray[$k]['project_id']   = $project->id;
                     $timesheetArray[$k]['project_name'] = $project->name;
+
                     foreach ($timesheet as $task_id => $tasktimesheet) {
                         $task = Task::find($task_id);
-                        if ($task) {
-                            $timesheetArray[$k]['taskArray'][$i]['task_id']   = $task->id;
-                            $timesheetArray[$k]['taskArray'][$i]['task_name'] = $task->title;
 
+                        if ($task) {
+                            $typesName = TaskType::select('id', 'name')->where('project_type', '=', $project->id)->get();
+
+                            $timesheetArray[$k]['taskArray'][$i]['task_id']   = $task->id;
+                            $name = "";
+
+                            foreach ($typesName as $type) {
+                                if ($task->type_id == $type->id) {
+                                    $name = $type->name;
+                                    break;
+                                }else{
+                                    $name = "unknow";
+                                }
+                            }
+                            $timesheetArray[$k]['taskArray'][$i]['task_type'] = $name;
+                            
                             $new_projects_timesheet = clone $project_timesheets;
 
-                            // $users = $new_projects_timesheet->where('timesheets.task_id', $task->id)->pluck('created_by')->toArray();
-
                             $users = $new_projects_timesheet->where('timesheets.task_id', $task->id)->groupBy('timesheets.created_by')->with('getUser')->get();
-                            // $users = $new_projects_timesheet
-                            //     ->where('timesheets.task_id', $task->id)
-                            //     ->groupBy('timesheets.created_by')
-                            //     ->with(['getUser' => function ($query) {
-                            //         $query->select('id', 'name')->distinct();
-                            //     }])
-                            //     ->get();
-
 
                             foreach ($users as $count => $user_id) {
                                 $user = $user_id->getUser;
                                 $userId = $user->id;
-
                                 $times = [];
-
                                 for ($j = 0; $j < 7; $j++) {
                                     $date = $days['datePeriod'][$j]->format('Y-m-d');
 
@@ -212,7 +205,6 @@ class Project extends Model
                                         return ($val['created_by'] == $userId and $val['date'] == $date);
                                     });
                                     $key            = array_keys($filtered_array);
-
 
                                     $timesheetArray[$k]['taskArray'][$i]['dateArray'][$count]['user_id']          = $user != null ? $user->id : '';
                                     $timesheetArray[$k]['taskArray'][$i]['dateArray'][$count]['user_name']        = $user != null ? $user->name : '';
@@ -238,7 +230,6 @@ class Project extends Model
                                         ]);
                                     }
                                 }
-
                                 $calculatedtasktime                                                    = Utility::calculateTimesheetHours($times);
                                 $totaltaskdatetimes[]                                                  = $calculatedtasktime;
                                 $timesheetArray[$k]['taskArray'][$i]['dateArray'][$count]['totaltime'] = $calculatedtasktime;
@@ -250,15 +241,37 @@ class Project extends Model
                 $k++;
             }
         } else {
-            foreach ($timesheets as $task_id => $timesheet) {
 
+            foreach ($timesheets as $task_id => $timesheet) {
                 $times = [];
-                $task  = Task::find($task_id);
+                $task = Task::find($task_id);
 
                 if ($task) {
+                    $timesheetArray[$i]['task_id'] = $task->id;
 
-                    $timesheetArray[$i]['task_id']   = $task->id;
-                    $timesheetArray[$i]['task_name'] = $task->title;
+                    // Encontrar el nombre del tipo de tarea correspondiente                 
+                    $typesName = TaskType::select('id', 'name')->where('project_type', '=', $project->id)->get();
+                    $name = "";
+
+                    foreach ($typesName as $type) {
+                        if ($task->type_id == $type->id) {
+                            $name = $type->name;
+                            break;
+                        }
+                    }
+                    $timesheetArray[$i]['task_type'] = $name;
+
+                    //mostrar creador de este timesheet
+                    $idUser = Timesheet::select('created_by')->where('task_id', $task_id)->first();
+
+                    if ($idUser) {
+                        $user = User::find($idUser->created_by);
+                        if ($user) {
+                            $timesheetArray[$i]['employee'] = $user->name;
+                        }
+                    } else {
+                        $timesheetArray[$i]['employee'] = "Unknown";
+                    }
 
                     for ($j = 0; $j < 7; $j++) {
                         $date = $days['datePeriod'][$j]->format('Y-m-d');
@@ -280,7 +293,10 @@ class Project extends Model
 
                             foreach ($timesheet as $timesheets) {
 
-                                if (($date == $timesheets['date']) && ($timesheets['project_id'] == $project_id) && ($timesheets['task_id'] == $task_id)) {
+                                if (($date == $timesheets['date'])
+                                    && ($timesheets['project_id'] == $project_id)
+                                    && ($timesheets['task_id'] == $task_id)
+                                ) {
                                     $total_task_time    = Carbon::parse($timesheets['time'])->format('H:i');
                                     $total_task_times[] = $total_task_time;
                                 }
@@ -300,7 +316,11 @@ class Project extends Model
                         } else {
                             $timesheetArray[$i]['dateArray'][$j]['time'] = '00:00';
                             $timesheetArray[$i]['dateArray'][$j]['type'] = 'create';
-                            $timesheetArray[$i]['dateArray'][$j]['url']  = route('project.timesheet.create', ['slug' => $currentWorkspace->slug, 'project_id' => $project_id]);
+                            $timesheetArray[$i]['dateArray'][$j]['url']  =
+                                route('project.timesheet.create', [
+                                    'slug' => $currentWorkspace->slug,
+                                    'project_id' => $project_id
+                                ]);
                         }
                     }
                     $calculatedtasktime              = Utility::calculateTimesheetHours($times);
@@ -316,24 +336,37 @@ class Project extends Model
         foreach ($days['datePeriod'] as $key => $date) {
             $dateperioddate = $date->format('Y-m-d');
 
-            if ($objUser->getGuard() == 'client') {
-                $new_projects_timesheet = Timesheet::select('timesheets.*')->join('projects', 'projects.id', '=', 'timesheets.project_id')->join('tasks', 'tasks.id', '=', 'timesheets.task_id')->join('client_projects', 'projects.id', '=', 'client_projects.project_id')->where('client_projects.client_id', '=', $objUser->id)->where('projects.workspace', '=', $currentWorkspace->id)->where('client_projects.permission', 'LIKE', '%show timesheet%');
-            } elseif ($currentWorkspace->permission == 'Owner') {
-                $new_projects_timesheet = Timesheet::select('timesheets.*')->join('projects', 'projects.id', '=', 'timesheets.project_id')->join('tasks', 'tasks.id', '=', 'timesheets.task_id')->where('projects.workspace', '=', $currentWorkspace->id);
+            if ($currentWorkspace->permission == 'Owner') {
+                $new_projects_timesheet = Timesheet::select('timesheets.*')
+                    ->join('projects', 'projects.id', '=', 'timesheets.project_id')
+                    ->join('tasks', 'tasks.id', '=', 'timesheets.task_id')
+                    ->where('projects.workspace', '=', $currentWorkspace->id);
             } else {
-                //                $new_projects_timesheet = Timesheet::select('timesheets.*')->join('projects', 'projects.id', '=', 'timesheets.project_id')->join('tasks', 'timesheets.task_id', '=', 'tasks.id')->where('projects.workspace', '=', $currentWorkspace->id)->whereRaw("find_in_set('" . $objUser->id . "',tasks.assign_to)");
-                $new_projects_timesheet = Timesheet::select('timesheets.*')->join('projects', 'projects.id', '=', 'timesheets.project_id')->join('tasks', 'timesheets.task_id', '=', 'tasks.id')->where('projects.workspace', '=', $currentWorkspace->id)->whereRaw("find_in_set('" . $user_id . "',tasks.assign_to)");
+                $new_projects_timesheet = Timesheet::select('timesheets.*')
+                    ->join('projects', 'projects.id', '=', 'timesheets.project_id')
+                    ->join('tasks', 'timesheets.task_id', '=', 'tasks.id')
+                    ->where('projects.workspace', '=', $currentWorkspace->id)
+                    ->where('tasks.assign_to', $user_id);
             }
 
             $totalDateTimes[$dateperioddate] = Utility::calculateTimesheetHours($new_projects_timesheet->where('date', $dateperioddate)->pluck('time')->toArray());
         }
 
-        $returnHTML = view('projects.timesheet-week', compact('currentWorkspace', 'timesheetArray', 'totalDateTimes', 'calculatedtotaltaskdatetime', 'days', 'seeAsOwner', 'allProjects'))->render();
+        $returnHTML = view(
+            'projects.timesheet-week',
+            compact(
+                'currentWorkspace',
+                'timesheetArray',
+                'totalDateTimes',
+                'calculatedtotaltaskdatetime',
+                'days',
+                'seeAsOwner',
+                'allProjects'
+            )
+        )->render();
 
         return $returnHTML;
     }
-
-
 
     public function project_progress()
     {
