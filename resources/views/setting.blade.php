@@ -3,7 +3,6 @@
     {{ __('Settings') }}
 @endsection
 @php
-
     $setting = App\Models\Utility::getAdminPaymentSettings();
     $languages = \App\Models\Utility::languages();
     $color = isset($settings['theme_color']) ? $settings['theme_color'] : 'theme-4';
@@ -220,14 +219,16 @@
                                             <div class="col-sm-4">
                                                 {{-- @dd($setting); --}}
                                                 @php
-                                                    $DEFAULT_LANG = $setting['default_lang'] ? $setting['default_lang'] : 'en';
+                                                    $DEFAULT_LANG = $setting['default_lang']
+                                                        ? $setting['default_lang']
+                                                        : 'en';
                                                 @endphp
                                                 <div class="form-group">
                                                     {{ Form::label('default_language', __('Default Language'), ['class' => 'form-label']) }}
                                                     <div class="changeLanguage">
                                                         <select name="default_language" id="default_language"
                                                             class="form-control select2">
-                                                 
+
                                                             @foreach ($languages as $languageCode => $languageFullName)
                                                                 <option value="{{ $languageCode }}"
                                                                     @if ($DEFAULT_LANG == $languageCode) selected @endif>
@@ -1578,3 +1579,4 @@
             });
         </script>
     @endpush
+@endsection

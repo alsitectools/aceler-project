@@ -5,29 +5,27 @@
                 <tr>
                     <th class="text-muted">{{ __('messages.Task') }}</th>
                     @foreach ($days['datePeriod'] as $key => $perioddate)
-                        <th class="text-dark m-0 ">{{ $perioddate->format('D d M') }}</th>
+                        <th class="text-dark m-0 ">{{ $perioddate->isoFormat('ddd DD MMM') }}</th>
                     @endforeach
                     <th class="th-sm">
-                        <span class="pr-1" style="color:white !important;">{{ __('Total') }}</span>
+                        <span class="pr-1" style="color:black !important;">{{ __('Total') }}</span>
                     </th>
                 </tr>
             </thead>
             <tbody>
 
                 @if (isset($allProjects) && $allProjects == true)
-
                     @foreach ($timesheetArray as $key => $timesheet)
                         <tr class="">
                             <td colspan="9"><span data-tooltip="Project"
                                     class="project-name pad_row custom-tooltip">{{ $timesheet['project_name'] }}</span>
                             </td>
                         </tr>
-
                         @foreach ($timesheet['taskArray'] as $key => $taskTimesheet)
                             <tr>
                                 <td colspan="9">
                                     <div data-tooltip="Task" class="task-name  ml-3 pad_row custom-tooltip">
-                                        {{ $taskTimesheet['task_name'] }}
+                                        {{ $taskTimesheet['task_type'] }}
                                     </div>
                                 </td>
                             </tr>
@@ -38,6 +36,9 @@
                                         <div data-tooltip="User" class="task blue ml-5 custom-tooltip">
                                             {{ $dateTimeArray['user_name'] }}
                                         </div>
+                                        {{-- <div data-tooltip="Task" class="task-name  ml-3 pad_row custom-tooltip">
+                                            {{ $taskTimesheet['task_type'] }}
+                                        </div> --}}
                                     </td>
 
                                     @foreach ($dateTimeArray['week'] as $dateSubArray)
@@ -84,8 +85,18 @@
                     @foreach ($timesheetArray as $key => $timesheet)
                         <tr>
                             <td>
+                                <div data-tooltip="User" class="task blue ml-5 custom-tooltip">
+                                    {{ $timesheet['employee'] }}
+                                </div>
+
+                            </td>
+                        </tr>
+
+                        <tr>
+
+                            <td>
                                 <div class="task-name ml-3">
-                                    {{ $timesheet['task_name'] }}
+                                    {{ $timesheet['task_type'] }}
                                 </div>
                             </td>
 
@@ -125,8 +136,8 @@
 
             </tbody>
             <tfoot>
-                <tr class="footer-total bg-primary" style="color: white !important;">
-                    <td>{{ __('Total') }}</td>
+                <tr class="footer-total bg-primary">
+                    <td style="color:white !important">{{ __('Total') }}</td>
 
                     @foreach ($totalDateTimes as $key => $totaldatetime)
                         <td>
@@ -145,18 +156,21 @@
 
             </tfoot>
 
-
         </table>
     </div>
 </div>
 <div class="text-center d-flex align-items-center justify-content-center  mt-4 mb-5">
     <h5 class="f-w-900 me-2 mb-0">{{ __('Time Logged:') }}</h5>
-    <span class="p-2  f-w-900 rounded  bg-primary d-inline-block border border-dark" style="color: white !important;">
+    <span class="p-2  f-w-900 rounded  bg-primary d-inline-block border border-dark span">
         {{ $calculatedtotaltaskdatetime }}</span>
 </div>
 
 <style type="text/css">
     .table thead {
         line-height: 30px !important;
+    }
+
+    .span {
+        color: white !important;
     }
 </style>

@@ -7,8 +7,17 @@ use Illuminate\Database\Eloquent\Model;
 class Milestone extends Model
 {
     protected $fillable = [
-        'project_id', 'title', 'assign_to', 'tasks', 'status', 'order', 'start_date', 'end_date', 'summary'
+        'project_id',
+        'title',
+        'assign_to',
+        'tasks',
+        'status',
+        'order',
+        'start_date',
+        'end_date',
+        'summary'
     ];
+
     public function daysLeft()
     {
         return  round((strtotime($this->end_date) - strtotime(date('Y-m-d'))) /   24 / 60 / 60,);

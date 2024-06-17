@@ -79,10 +79,12 @@
                             <div class="d-block d-sm-flex align-items-center justify-content-between">
                                 <h4 class="text-white"> {{ $project->name }}</h4>
                                 <div class="d-flex  align-items-center row1">
+                                    @if($project->ref_mo != null)
                                     <div class="px-3">
-                                        <span class="text-white text-sm">{{ __('[REF] MasterObras') }}:</span>
+                                        <span class="text-white text-sm">{{ __('MasterObras') }}:</span>
                                         <h5 class="text-white text-nowrap"> {{ $project->ref_mo }}</h5>
                                     </div>
+                                    @endif
                                     <div class="px-3">
                                         <span class="text-white text-sm">{{ trans('messages.Start_Date') }}:</span>
                                         <h5 class="text-white text-nowrap">

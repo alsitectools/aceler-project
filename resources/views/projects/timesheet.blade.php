@@ -12,19 +12,9 @@
         <li class="breadcrumb-item"><a href="{{ route('home') }}">{{ __('Home') }}</a></li>
     @endif
     @if ($project_id != '-1')
-        @if (\Auth::guard('client')->check())
-            <li class="breadcrumb-item"><a
-                    href="{{ route('client.projects.index', $currentWorkspace->slug) }}">{{ __('Project') }}</a></li>
-        @else
-            <li class="breadcrumb-item"><a
-                    href="{{ route('projects.index', $currentWorkspace->slug) }}">{{ __('Project') }}</a></li>
-        @endif
-        <li class="breadcrumb-item"><a
-                href="{{ route($client_keyword . 'projects.show', [$currentWorkspace->slug, $project_id]) }}">{{ __('Project Details') }}</a>
+        <li class="breadcrumb-item"><a href="{{ route('projects.index', $currentWorkspace->slug) }}">{{ __('Project') }}</a>
         </li>
 
-        <li class="breadcrumb-item"> {{ trans('messages.Timesheet') }}</li>
-    @else
         <li class="breadcrumb-item"> {{ trans('messages.Timesheet') }}</li>
     @endif
 @endsection
@@ -33,11 +23,12 @@
 @section('action-button')
     <div class="d-flex justify-content-end row1">
         @if (isset($currentWorkspace) && $currentWorkspace)
-            @if ($project_id != '-1' && Auth::user()->getGuard() != 'client')
-                <div class="form-group col-auto mx-2">
-                    <select class="btn btn-success w-100" id="project_tasks">
-                        <option value="">{{ __('Add Task on Timesheet') }}</option>
-                    </select>
+            @if ($project_id == -1)
+                <div class="d-flex add_task">
+                    <a id="add_task" href="#" class="btn btn-primary" data-ajax-popup="true" data-size="lg"
+                        data-title="{{ __('Create New Task') }}"
+                        data-url="{{ route('timesheet.create', $currentWorkspace->slug) }}" data-toggle="tooltip"
+                        title="{{ __('Add Task') }}"><i class="ti ti-plus"></i> Agregar tarea</a>
                 </div>
             @endif
         @endif
@@ -53,6 +44,7 @@
                 <i role="button" class="fa fa-arrow-right next"></i>
             </div>
         </div>
+
 
         @if ($project_id != '-1')
             <div class="col-auto">
@@ -110,6 +102,8 @@
 @endpush
 @push('scripts')
     <script>
+        let typesNames = @json($typesNames);
+
         function ajaxFilterTimesheetTableView() {
 
             var mainEle = $('#timesheet-table-view');
@@ -124,13 +118,9 @@
             };
 
             $.ajax({
-                @if (Auth::user()->getGuard() == 'client')
-                    url: '{{ route('client.filter.timesheet.table.view', '__slug') }}'.replace('__slug',
-                        '{{ $currentWorkspace->slug }}'),
-                @else
-                    url: '{{ route('filter.timesheet.table.view', '__slug') }}'.replace('__slug',
-                        '{{ $currentWorkspace->slug }}'),
-                @endif
+                url: '{{ route('filter.timesheet.table.view', '__slug') }}'.replace('__slug',
+                    '{{ $currentWorkspace->slug }}'),
+
                 data: data,
                 success: function(data) {
 
@@ -142,8 +132,9 @@
                     $.each(data.tasks, function(i, item) {
                         $('#project_tasks').append($("<option></option>")
                             .attr("value", i)
-                            .text(item));
+                            .text(typesNames[item].name));
                     });
+
 
                     if (data.totalrecords == 0) {
                         mainEle.hide();
@@ -152,7 +143,6 @@
                         notfound.hide();
                         mainEle.show();
                     }
-
                     mainEle.html(data.html);
                 }
             });
@@ -161,6 +151,7 @@
         $(function() {
             ajaxFilterTimesheetTableView();
         });
+
 
         $(document).on('click', '.weekly-dates-div i', function() {
 
@@ -224,36 +215,6 @@
             });
         });
 
-        $(document).on('click', '#project_tasks', function(e) {
-            var mainEle = $('#timesheet-table-view');
-            var notfound = $('.notfound-timesheet');
-
-            var selectEle = $(this).children("option:selected");
-            var task_id = selectEle.val();
-            var selected_dates = $('#selected_dates').val();
-
-            if (task_id != '') {
-
-                $.ajax({
-                    url: '{{ route('append.timesheet.task.html', '__slug') }}'.replace('__slug',
-                        '{{ $currentWorkspace->slug }}'),
-                    data: {
-                        project_id: '{{ $project_id }}',
-                        task_id: task_id,
-                        selected_dates: selected_dates,
-                    },
-                    success: function(data) {
-
-                        notfound.hide();
-                        mainEle.show();
-
-                        $('#timesheet-table-view tbody').append(data.html);
-                        selectEle.remove();
-                    }
-                });
-            }
-        });
-
         $(document).on('change', '#time_hour, #time_minute', function() {
 
             var hour = $('#time_hour').children("option:selected").val();
@@ -287,6 +248,10 @@
 <style type="text/css">
     .weekly-dates-div {
         padding: 8px 12px 8px 5px !important;
+    }
+
+    #add_task {
+        margin-right: 20px;
     }
 
     @media (max-width: 1300px) {

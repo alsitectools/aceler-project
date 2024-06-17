@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\Mail;
 use Pusher\Pusher;
 use App\Models\Workspace;
 use Illuminate\Support\Facades\App;
+use Illuminate\Support\Facades\Lang;
 use Spatie\GoogleCalendar\Event;
 
 

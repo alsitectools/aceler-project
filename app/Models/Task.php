@@ -7,15 +7,13 @@ use Illuminate\Database\Eloquent\Model;
 class Task extends Model
 {
     protected $fillable = [
-        'title',
-        'description',
-        'start_date',
-        'due_date',
-        'assign_to',
         'project_id',
         'milestone_id',
-        'status',
-        'order',
+        'type_id',
+        'assign_to',
+        // 'description',
+        'start_date',
+        'estimated_date',
     ];
     // use for invoice details
     public function invoiceproject()
@@ -33,9 +31,9 @@ class Task extends Model
         return User::whereIn('id', explode(',', $this->assign_to))->get();
     }
     public function taskUsers()
-    {  
+    {
         // User::select('users.*')->join('projects','projects.workspace', '=', 'users.currant_workspace');  
-        return User::whereIn('id', explode(',', $this->assign_to))->get(); 
+        return User::whereIn('id', explode(',', $this->assign_to))->get();
     }
 
     public function comments()

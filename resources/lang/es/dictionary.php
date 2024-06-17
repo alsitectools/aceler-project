@@ -131,5 +131,6 @@ return [
     'DontAccount?'=>'¿No tienes cuenta?',
     'SignUp'=>'Regístrate',
     'Delegation'=>'Delegación',
-
+    'Title'=>'Titulo',
+    'Task_type'=>'Tipo de tarea',
 ];
