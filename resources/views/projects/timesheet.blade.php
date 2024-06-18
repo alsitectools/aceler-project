@@ -6,20 +6,14 @@
     {{ trans('messages.Timesheet') }}
 @endsection
 @section('links')
-    @if (\Auth::guard('client')->check())
-        <li class="breadcrumb-item"><a href="{{ route('client.home') }}">{{ __('Home') }}</a></li>
-    @else
-        <li class="breadcrumb-item"><a href="{{ route('home') }}">{{ __('Home') }}</a></li>
-    @endif
+    <li class="breadcrumb-item"><a href="{{ route('home') }}">{{ __('Home') }}</a></li>
+
     @if ($project_id != '-1')
         <li class="breadcrumb-item"><a href="{{ route('projects.index', $currentWorkspace->slug) }}">{{ __('Project') }}</a>
         </li>
-
         <li class="breadcrumb-item"> {{ trans('messages.Timesheet') }}</li>
     @endif
 @endsection
-
-
 @section('action-button')
     <div class="d-flex justify-content-end row1">
         @if (isset($currentWorkspace) && $currentWorkspace)
@@ -37,15 +31,12 @@
                 <i role="button" class="fa fa-arrow-left previous"></i>
 
                 <span class="weekly-dates"></span>
-
                 <input type="hidden" id="weeknumber" value="0">
                 <input type="hidden" id="selected_dates">
 
                 <i role="button" class="fa fa-arrow-right next"></i>
             </div>
         </div>
-
-
         @if ($project_id != '-1')
             <div class="col-auto">
                 <a href="{{ route($client_keyword . 'projects.show', [$currentWorkspace->slug, $project_id]) }}"
@@ -56,7 +47,6 @@
         @endif
     </div>
 @endsection
-
 @section('content')
     <section class="section">
         @if ($currentWorkspace)
@@ -100,10 +90,9 @@
 
 @push('css-page')
 @endpush
+
 @push('scripts')
     <script>
-        let typesNames = @json($typesNames);
-
         function ajaxFilterTimesheetTableView() {
 
             var mainEle = $('#timesheet-table-view');
@@ -127,14 +116,11 @@
                     $('.weekly-dates-div .weekly-dates').text(data.onewWeekDate);
                     $('.weekly-dates-div #selected_dates').val(data.selectedDate);
 
-                    $('#project_tasks').find('option').not(':first').remove();
-
                     $.each(data.tasks, function(i, item) {
                         $('#project_tasks').append($("<option></option>")
                             .attr("value", i)
-                            .text(typesNames[item].name));
+                            .text(item));
                     });
-
 
                     if (data.totalrecords == 0) {
                         mainEle.hide();
@@ -158,12 +144,10 @@
             var weeknumber = parseInt($('#weeknumber').val());
 
             if ($(this).hasClass('previous')) {
-
                 weeknumber--;
                 $('#weeknumber').val(weeknumber);
 
             } else if ($(this).hasClass('next')) {
-
                 weeknumber++;
                 $('#weeknumber').val(weeknumber);
             }

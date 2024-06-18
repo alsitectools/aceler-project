@@ -95,21 +95,16 @@ class HomeController extends Controller
                 //     ->where('projects.workspace', '=', $currentWorkspace->id)
                 //     ->where('tasks.status', '=', $doneStage->id)->count();
 
-                $tasks = Task::join("user_projects", "tasks.project_id", "=", "user_projects.project_id")
+                $tasks = Task::select([
+                    'tasks.*',
+                    // 'stages.name as status',
+                    // 'stages.complete',
+                ])->join("user_projects", "tasks.project_id", "=", "user_projects.project_id")
+                    ->join("projects", "projects.id", "=", "user_projects.project_id")
+                    // ->join("stages", "stages.id", "=", "tasks.status")
                     ->where("user_id", "=", $userObj->id)
-                    ->where('projects.workspace', '=', $currentWorkspace->id);
-                    
-                //     ->join("projects", "projects.id", "=", "user_projects.project_id")
-                // $tasks = Task::select([
-                //     'tasks.*',
-                //     'stages.name as status',
-                //     'stages.complete',
-                // ])->join("user_projects", "tasks.project_id", "=", "user_projects.project_id")
-                //     ->join("projects", "projects.id", "=", "user_projects.project_id")
-                //     ->join("stages", "stages.id", "=", "tasks.status")
-                //     ->where("user_id", "=", $userObj->id)
-                //     ->where('projects.workspace', '=', $currentWorkspace->id)
-                //     ->orderBy('tasks.id', 'desc')->with('project')->limit(5)->get();
+                    ->where('projects.workspace', '=', $currentWorkspace->id)->limit(5)->get();
+                    // ->orderBy('tasks.id', 'desc')->with('project')->limit(5)->get();
             } else {
                 $totalBugs = UserProject::join("bug_reports", "bug_reports.project_id", "=", "user_projects.project_id")
                     ->join("projects", "projects.id", "=", "user_projects.project_id")
@@ -141,14 +136,14 @@ class HomeController extends Controller
 
                 $tasks = Task::select([
                     'tasks.*',
-                    'stages.name as status',
-                    'stages.complete',
+                    // 'stages.name as status',
+                    // 'stages.complete',
                 ])->join("user_projects", "tasks.project_id", "=", "user_projects.project_id")
                     ->join("projects", "projects.id", "=", "user_projects.project_id")
                     // ->join("stages", "stages.id", "=", "tasks.status")
                     ->where("user_id", "=", $userObj->id)
-                    ->where('projects.workspace', '=', $currentWorkspace->id);
-                // ->whereRaw("find_in_set('" . $userObj->id . "',tasks.assign_to)")
+                    ->where('projects.workspace', '=', $currentWorkspace->id)
+                ->whereRaw("find_in_set('" . $userObj->id . "',tasks.assign_to)")->limit(5)->get();
                 // ->orderBy('tasks.id', 'desc')->with('project')->limit(5)->get();
             }
 
