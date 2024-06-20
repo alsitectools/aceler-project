@@ -11,7 +11,7 @@ class Timesheet extends Model
         'task_id',
         'date',
         'time',
-        'description',
+        // 'description',
         'created_by',
     ];
 

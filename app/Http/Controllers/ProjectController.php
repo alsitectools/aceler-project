@@ -1854,7 +1854,7 @@ class ProjectController extends Controller
             $timesheet->task_id = $task->id;
             $timesheet->date = $request->date;
             $timesheet->time = $request->time;
-            $timesheet->description = $request->description;
+            // $timesheet->description = $request->description;
             $timesheet->created_by = $user->id;
             $timesheet->save();
 
@@ -2313,9 +2313,7 @@ class ProjectController extends Controller
     public function projectsTimesheet(Request $request, $slug, $project_id = 0)
     {
         $currentWorkspace = Utility::getWorkspaceBySlug($slug);
-        $typesNames = TaskType::select('id', 'name')->where('project_type', '=', $project_id)->get();
-
-        return view('projects.timesheet', compact('currentWorkspace', 'project_id', 'typesNames'));
+        return view('projects.timesheet', compact('currentWorkspace', 'project_id'));
     }
 
     public function ajax_tasks($slug, Request $request)
@@ -2555,13 +2553,14 @@ class ProjectController extends Controller
 
     public function filterTimesheetTableView(Request $request, $slug)
     {
-        $project = Project::find($request->project_id);
         $tasks = [];
         $week = $request->week;
         $project_id = $request->project_id;
+        $project = Project::find($request->project_id);
 
         $currentWorkspace = Utility::getWorkspaceBySlug($slug);
         $objUser = Auth::user();
+
         $user_id = $objUser->id;
 
         if ($request->has('week')) {
@@ -2572,38 +2571,41 @@ class ProjectController extends Controller
                     ->join('tasks', 'tasks.id', '=', 'timesheets.task_id')
                     ->where('projects.workspace', '=', $currentWorkspace->id);
             } else {
+
                 $timesheets = Timesheet::select('timesheets.*')
                     ->join('projects', 'projects.id', '=', 'timesheets.project_id')
                     ->join('tasks', 'timesheets.task_id', '=', 'tasks.id')
                     ->where('projects.workspace', '=', $currentWorkspace->id)
+                    // ->where('timesheets.created_by', '=', 'taskis.assign_to')
                     ->where('tasks.assign_to', $user_id);
             }
 
             $days = Utility::getFirstSeventhWeekDay($week);
-
             $first_day = $days['first_day'];
             $seventh_day = $days['seventh_day'];
 
-            $onewWeekDate = $first_day->format('M d') . ' - ' . $seventh_day->format('M d, Y');
+            $onewWeekDate = $first_day->format('Y-m-d') . ' - ' . $seventh_day->format('Y-m-d');
             $selectedDate = $first_day->format('Y-m-d') . ' - ' . $seventh_day->format('Y-m-d');
 
-            $timesheets = $timesheets->whereDate('date', '>=', $first_day->format('Y-m-d'))->whereDate('date', '<=', $seventh_day->format('Y-m-d'));
+            $timesheets = $timesheets->whereDate('date', '>=', $first_day->format('Y-m-d'))
+                ->whereDate('date', '<=', $seventh_day->format('Y-m-d'));
 
             if ($project_id == '-1') {
                 $timesheets = $timesheets->get()->groupBy([
                     'project_id',
-                    'task_id',
+                    'task_id'
                 ])->toArray();
-
             } else {
-                $timesheets = $timesheets->where('projects.id', $project_id)->get()->groupBy('task_id')->toArray();
+                $timesheets = $timesheets->where('projects.id', $project_id)
+                    ->get()->groupBy('task_id')->toArray();
             }
 
             $task_ids = array_keys($timesheets);
             $returnHTML = Project::getProjectAssignedTimesheetHTML($currentWorkspace, $timesheets, $days, $project_id);
 
             $totalrecords = count($timesheets);
-            if ($project_id == '-1') {
+
+            if ($project_id != '-1') {
 
                 $projects = Project::select('projects.*')
                     ->join('user_projects', 'projects.id', '=', 'user_projects.project_id')
@@ -2625,6 +2627,7 @@ class ProjectController extends Controller
             ]);
         }
     }
+
 
     public function appendTimesheetTaskHTML(Request $request, $slug)
     {

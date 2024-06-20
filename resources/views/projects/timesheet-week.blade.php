@@ -1,64 +1,73 @@
 <div class="card-body table-border-style">
     <div class="table-responsive">
         <table class="table mb-0">
-            <thead>
+            <thead class="head-table">
                 <tr>
-                    <th class="text-dark m-0" style="padding-left: 80px !important;">
+                    <th class="nom-project">
                         {{ isset($allProjects) && $allProjects == true ? __('Projects') : __('dictionary.Tasks') }}
                     </th>
                     @foreach ($days['datePeriod'] as $key => $perioddate)
-                        <th class="text-dark m-0">{{ $perioddate->isoFormat('ddd DD MMM') }}</th>
+                        <th>{{ $perioddate->isoFormat('ddd DD MMM') }}</th>
                     @endforeach
-                    <th class="th-sm">
-                        <span class="pr-1">{{ __('Total') }}</span>
+                    <th class="text-start">
+                        {{ __('Total') }}
                     </th>
                 </tr>
             </thead>
             <tbody>
                 @foreach ($timesheetArray as $key => $timesheet)
-                    <tr>
-                        <td colspan="10">
-                            <div class="accordion" id="accordionExample">
-                                <div class="accordion-item">
-                                    <h2 class="accordion-header">
-                                        <button class="accordion-button" type="button" data-bs-toggle="collapse"
-                                            data-bs-target="#collapseOne{{ $key }}" aria-expanded="true"
-                                            aria-controls="collapseOne{{ $key }}">
-                                            <span data-tooltip="Project" class="project-name pad_row custom-tooltip">
-                                                {{ isset($allProjects) && $allProjects == true ? $timesheet['project_name'] : $timesheet['employee'] }}
-                                            </span> 
-                                        </button>
-                                    </h2>
-                                    <div id="collapseOne{{ $key }}" class="accordion-collapse collapse show"
-                                        data-bs-parent="#accordionExample">
-                                        <div class="accordion-body">
-                                            @if (isset($allProjects) && $allProjects == true)
+                    @if (isset($allProjects) && $allProjects == true)
+                        <tr>
+                            <td colspan="10">
+                                <div class="accordion" id="accordionExample">
+                                    <div class="accordion-item">
+                                        <h2 class="accordion-header">
+                                            <button class="accordion-button" type="button" data-bs-toggle="collapse"
+                                                data-bs-target="#collapseOne{{ $key }}" aria-expanded="true"
+                                                aria-controls="collapseOne{{ $key }}">
+                                                <span data-tooltip="Project"
+                                                    class="project-name pad_row custom-tooltip">
+                                                    {{ $timesheet['project_name'] }}
+                                                </span>
+                                            </button>
+                                        </h2>
+                                        <div id="collapseOne{{ $key }}"
+                                            class="accordion-collapse collapse show" data-bs-parent="#accordionExample">
+                                            <div class="accordion-body">
+
                                                 @foreach ($timesheet['taskArray'] as $taskKey => $taskTimesheet)
                                                     <table class="table mb-0">
+                                                        <td colspan="9" class="text-center">
+                                                            <div data-tooltip="Milestone"
+                                                                class="ml-3 pad_row custom-tooltip milestone-name"
+                                                                data-milestone-name="{{ $taskTimesheet['milestone'] }}">
+                                                                <b>{{ $taskTimesheet['milestone'] }}</b>
+                                                            </div>
+                                                        </td>
                                                         <tr>
-                                                            <td colspan="9" class="text-center">
-                                                                <div data-tooltip="Task"
-                                                                    class="task-name ml-3 pad_row custom-tooltip">
-                                                                    <b>{{ $taskTimesheet['task_name'] }}</b>
-                                                                </div>
-                                                            </td>
-                                                        </tr>
-                                                        @foreach ($taskTimesheet['dateArray'] as $dateTimeArray)
-                                                            <tr>
+                                                            @if (Auth::user()->type != 'admin')
                                                                 <td>
-                                                                    <div data-tooltip="User"
-                                                                        class="task blue ml-5 custom-tooltip">
-                                                                        {{ $dateTimeArray['user_name'] }}
+                                                                    <div data-tooltip="Task"
+                                                                        class="ml-3 pad_row custom-tooltip task-name"
+                                                                        data-task-name="{{ $taskTimesheet['task_name'] }}">
+                                                                        <b>{{ $taskTimesheet['task_name'] }}</b>
                                                                     </div>
                                                                 </td>
+                                                            @endif
+                                                            @foreach ($taskTimesheet['dateArray'] as $dateTimeArray)
+                                                                @if (Auth::user()->type == 'admin')
+                                                                    <td>
+                                                                        <div data-tooltip="{{ $taskTimesheet['task_name'] }}"
+                                                                            class="blue ml-5 custom-tooltip task-name">
+                                                                            {{ $dateTimeArray['user_name'] }}
+                                                                        </div>
+                                                                    </td>
+                                                                @endif
                                                                 @foreach ($dateTimeArray['week'] as $dateSubArray)
                                                                     <td>
-                                                                        @if (
-                                                                            (Auth::user()->currant_workspace == $currentWorkspace->id && $currentWorkspace->created_by == Auth::user()->id) ||
-                                                                                Auth::user()->id == $dateTimeArray['user_id']
-                                                                        )
+                                                                        @if (Auth::user()->currant_workspace == $currentWorkspace->id && Auth::user()->id == $dateTimeArray['user_id'])
                                                                             <div role="button"
-                                                                                class="form-control border-dark wid-120"
+                                                                                class="form-control border-dark wid-110"
                                                                                 title="{{ $dateSubArray['type'] == 'edit' ? __('Click to Edit/Delete Timesheet') : __('Click to Add Timesheet') }}"
                                                                                 data-ajax-timesheet-popup="true"
                                                                                 data-type="{{ $dateSubArray['type'] }}"
@@ -71,7 +80,7 @@
                                                                             </div>
                                                                         @else
                                                                             <div
-                                                                                class="form-control border-dark wid-120">
+                                                                                class="form-control border-dark wid-110">
                                                                                 {{ $dateSubArray['time'] != '00:00' ? $dateSubArray['time'] : '00:00' }}
                                                                             </div>
                                                                         @endif
@@ -79,83 +88,116 @@
                                                                 @endforeach
                                                                 <td>
                                                                     <div
-                                                                        class="total form-control bg-transparent border-dark wid-120">
+                                                                        class="total form-control bg-transparent border-dark wid-100">
                                                                         {{ $dateTimeArray['totaltime'] }}
                                                                     </div>
                                                                 </td>
-                                                            </tr>
-                                                        @endforeach
+                                                            @endforeach
+                                                        </tr>
+
                                                     </table>
                                                 @endforeach
-                                            @else
-                                                <table class="table mb-0">
-                                                    <tr>
-                                                        <td>
-                                                            <div class="task-name ml-3">
-                                                                {{ $timesheet['task_name'] }}
-                                                            </div>
-                                                        </td>
-                                                        @foreach ($timesheet['dateArray'] as $day => $datetime)
-                                                            <td>
-                                                                @if (Auth::user()->currant_workspace == $currentWorkspace->id && $currentWorkspace->created_by == Auth::user()->id)
-                                                                    <div role="button"
-                                                                        class="form-control border-dark wid-120"
-                                                                        title="{{ $datetime['type'] == 'edit' ? __('Click to Edit/Delete Timesheet') : __('Click to Add Timesheet') }}"
-                                                                        data-ajax-timesheet-popup="true"
-                                                                        data-type="{{ $datetime['type'] }}"
-                                                                        data-task-id="{{ $timesheet['task_id'] }}"
-                                                                        data-date="{{ $datetime['date'] }}"
-                                                                        data-url="{{ $datetime['url'] }}">
-                                                                        {{ isset($datetime['total_task_time']) ? $datetime['total_task_time'] : '00:00' }}
-                                                                    </div>
-                                                                @else
-                                                                    <div role="button"
-                                                                        class="form-control border-dark wid-120"
-                                                                        title="{{ $datetime['type'] == 'edit' ? __('Click to Edit/Delete Timesheet') : __('Click to Add Timesheet') }}"
-                                                                        data-ajax-timesheet-popup="true"
-                                                                        data-type="{{ $datetime['type'] }}"
-                                                                        data-task-id="{{ $timesheet['task_id'] }}"
-                                                                        data-date="{{ $datetime['date'] }}"
-                                                                        data-url="{{ $datetime['url'] }}">
-                                                                        {{ $datetime['time'] != '00:00' ? $datetime['time'] : '00:00' }}
-                                                                    </div>
-                                                                @endif
-                                                            </td>
-                                                        @endforeach
-                                                        <td>
-                                                            <div
-                                                                class="total form-control bg-transparent border-dark wid-120">
-                                                                {{ $timesheet['totaltime'] }}
-                                                            </div>
-                                                        </td>
-                                                    </tr>
-                                                </table>
-                                            @endif
+
+                                            </div>
                                         </div>
                                     </div>
+
                                 </div>
-                            </div>
-                        </td>
-                    </tr>
+                            </td>
+                        </tr>
+                    @else
+                        <tr>
+                            <td colspan="10">
+                                <div class="accordion" id="accordionExample">
+                                    <div class="accordion-item">
+                                        <h2 class="accordion-header">
+                                            <button class="accordion-button" type="button" data-bs-toggle="collapse"
+                                                data-bs-target="#collapseOne{{ $key }}" aria-expanded="true"
+                                                aria-controls="collapseOne{{ $key }}">
+                                                <span data-tooltip="Milestone"
+                                                    class="milestone-name pad_row custom-tooltip">
+                                                    {{ $timesheet['milestone'] }}
+                                                </span>
+                                            </button>
+                                        </h2>
+                                        <div id="collapseOne{{ $key }}"
+                                            class="accordion-collapse collapse show" data-bs-parent="#accordionExample">
+                                            <div class="accordion-body">
+
+                                                @foreach ($timesheetArray as $timesheet)
+                                                    <table class="table mb-0">
+                                                        <tr>
+                                                            <td>
+                                                                <div class="ml-3 task-name">
+                                                                    {{ $timesheet['task_name'] }}
+                                                                </div>
+                                                            </td>
+
+                                                            @foreach ($timesheet['dateArray'] as $datetime)
+                                                                <td>
+                                                                    @if (Auth::user()->id == $timesheet['employee_id'])
+                                                                        <div role="button"
+                                                                            class="form-control border-dark wid-110"
+                                                                            title="{{ $datetime['type'] == 'edit' ? __('Click to Edit/Delete Timesheet') : __('Click to Add Timesheet') }}"
+                                                                            data-ajax-timesheet-popup="true"
+                                                                            data-type="{{ $datetime['type'] }}"
+                                                                            data-task-id="{{ $timesheet['task_id'] }}"
+                                                                            data-date="{{ $datetime['date'] }}"
+                                                                            data-url="{{ $datetime['url'] }}">
+                                                                            {{ isset($datetime['total_task_time']) ? $datetime['total_task_time'] : '00:00' }}
+                                                                        </div>
+                                                                    @else
+                                                                        <div role="button"
+                                                                            class="form-control border-dark wid-110"
+                                                                            title="{{ $datetime['type'] == 'edit' ? __('Click to Edit/Delete Timesheet') : __('Click to Add Timesheet') }}"
+                                                                            data-ajax-timesheet-popup="true"
+                                                                            data-type="{{ $datetime['type'] }}"
+                                                                            data-task-id="{{ $timesheet['task_id'] }}"
+                                                                            data-date="{{ $datetime['date'] }}"
+                                                                            data-url="{{ $datetime['url'] }}">
+                                                                            {{ $datetime['time'] != '00:00' ? $datetime['time'] : '00:00' }}
+                                                                        </div>
+                                                                    @endif
+                                                                </td>
+                                                            @endforeach
+                                                            <td>
+                                                                <div
+                                                                    class="total form-control bg-transparent border-dark wid-110">
+                                                                    {{ $timesheet['totaltime'] ?? '00:00' }}
+                                                                </div>
+                                                            </td>
+                                                        </tr>
+                                                    </table>
+                                                @endforeach
+
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                </div>
+                            </td>
+                        </tr>
+                    @endif
                 @endforeach
             </tbody>
             <tfoot>
                 <tr class="bg-primary">
-                    <td style="color:white; text-align: center !important; width: 10px;">{{ __('Total') }}</td>
+                    <td style="color:white;" class="text-center">{{ __('Total') }}</td>
                     @foreach ($totalDateTimes as $key => $totaldatetime)
-                        <td style="align-items: center">
-                            <div class="form-control border-dark wid-120">
+                        <td class="footer-item">
+                            <div class="form-control border-dark footer-item wid-110">
                                 {{ $totaldatetime != '00:00' ? $totaldatetime : '00:00' }}
                             </div>
                         </td>
                     @endforeach
                     <td>
-                        <div class="form-control border-dark wid-120">
+                        <div class="form-control border-dark footer-item wid-110">
                             {{ $calculatedtotaltaskdatetime }}
                         </div>
                     </td>
                 </tr>
             </tfoot>
+
         </table>
     </div>
 </div>
@@ -165,8 +207,50 @@
         {{ $calculatedtotaltaskdatetime }}
     </span>
 </div>
+<script>
+    $(document).ready(function() {
+        var previousTaskName = null;
 
+        $('.task-name[data-task-name]').each(function() {
+            var currentTaskName = $(this).data('task-name');
+            if (currentTaskName === previousTaskName) {
+                $(this).closest('tr')
+                    .remove(); // Remove the row if the task name is the same as the previous one
+            } else {
+                previousTaskName = currentTaskName;
+            }
+        });
+        $('.milestone-name[data-milestone-name]').each(function() {
+            var currentTaskName = $(this).data('milestone-name');
+            if (currentTaskName === previousTaskName) {
+                $(this).closest('tr')
+                    .remove(); // Remove the row if the task name is the same as the previous one
+            } else {
+                previousTaskName = currentTaskName;
+            }
+        });
+    });
+</script>
 <style type="text/css">
+    .table-responsive {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .nom-project {
+        text-align: left !important;
+        padding-left: 100px !important;
+        padding-right: 50px !important;
+    }
+
+    .head-table th {
+        padding-top: 10px;
+        min-width: 90px;
+        margin: auto;
+        justify-content: center;
+        align-content: center;
+    }
+
     .table thead {
         line-height: 30px !important;
         align-content: center;
@@ -188,14 +272,31 @@
     }
 
     .table td {
-        padding-top: 20px;
-        padding-left: 8px;
-        padding-right: 8px;
+        padding-left: 0%;
+        padding-right: 0%;
         border-bottom: none;
         align-content: center;
         align-items: center;
-        text-align: center;
+
     }
 
+    .task-name {
+        padding-right: 0%;
+        /* text-align: left; */
+        max-width: 145px;
+        min-width: 145px;
+    }
+
+    /* Asegúrate de tener un ancho mínimo y que los elementos sean flexibles */
+    .footer-item {
+        padding-right: 1px !important;
+    }
+
+    /* #footer{
+        padding-left: 20px !important;
+        text-align: center;
+        width: 110px;
+         padding-right: 15px;
+    } */
     .table th {}
 </style>

@@ -47,8 +47,8 @@
 
                 <div class="form-group col-md-6">
                     <label for="time" class="col-form-label">{{ __('Time') }}</label>
-                    <input onclick="this.showPicker()" type="time" class="form-control form-control-light"
-                        id="time" value="" placeholder="{{ __('Time') }}" name="time" required>
+                    <input type="time" class="form-control form-control-light" id="time" value=""
+                        placeholder="{{ __('Time') }}" name="time" required min="00:00" max="08:00">
                 </div>
                 <div class="form-group col-md-6">
                     <label for="date" class="col-form-label">{{ __('Date') }}</label>
@@ -93,6 +93,14 @@
 <link rel="stylesheet" href="{{ asset('assets/custom/libs/bootstrap-daterangepicker/daterangepicker.css') }}">
 <script src="{{ asset('assets/custom/libs/bootstrap-daterangepicker/daterangepicker.js') }}"></script>
 <script>
+    $(document).ready(function() {
+        $('#time').on('click', function() {
+            if (!$(this).val()) {
+                $(this).val('00:00');
+            }
+            this.showPicker();
+        });
+    });
     $(document).ready(function() {
         $('#project_id').on('change', function() {
             var selectedOption = $(this).find('option:selected');

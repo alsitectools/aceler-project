@@ -51,16 +51,16 @@
                         <div class="col-xl-3 col-lg-4 col-sm-6 All {{ $project->status }}">
                             <div class="card">
                                 <div class="card-header border-0 pb-0">
-                                    <div class="d-flex align-items-center">
+                                    <div class="d-flex align-items-center" style="min-width: 100px;">
                                         @if ($project->is_active)
                                             <a href="@auth('web'){{ route('projects.show', [$currentWorkspace->slug, $project->id]) }}@endauth"
                                                 class="" data-toggle="tooltip" title="{{ $project->name }}">
-                                                <img alt="{{ $project->name }}" class="img-fluid wid-30 me-2 fix_img"
+                                                <img alt="{{ $project->name }}" class="me-2 fix_img" style="padding-right: 5px"
                                                     avatar="{{ $project->name }}">
                                             </a>
                                         @else
                                             <a href="#" class="">
-                                                <img alt="{{ $project->name }}" class="img-fluid wid-30 me-2 fix_img"
+                                                <img alt="{{ $project->name }}" class="me-2 fix_img"
                                                     avatar="{{ $project->name }}">
                                             </a>
                                         @endif
@@ -75,15 +75,16 @@
                                             @endif
                                         </h5>
                                     </div>
-                                    <div class="card-header-right">
-                                        <div class="btn-group card-option">
-                                            @auth('web')
-                                                <button type="button" class="btn dropdown-toggle" data-bs-toggle="dropdown"
-                                                    aria-haspopup="true" aria-expanded="false">
-                                                    <i class="feather icon-more-vertical"></i>
-                                                </button>
-                                                <div class="dropdown-menu dropdown-menu-end">
-                                                    @if ($project->is_active && Auth::user()->type == 'admin')
+                                    @if ($project->is_active && Auth::user()->type == 'admin' || $project->created_by == Auth::user()->id)
+                                        <div class="card-header-right">
+                                            <div class="btn-group card-option">
+                                                @auth('web')
+                                                    <button type="button" class="btn dropdown-toggle" data-bs-toggle="dropdown"
+                                                        aria-haspopup="true" aria-expanded="false">
+                                                        <i class="feather icon-more-vertical"></i>
+                                                    </button>
+                                                    <div class="dropdown-menu dropdown-menu-end">
+
                                                         <a href="#"
                                                             class="dropdown-item text-danger delete-popup bs-pass-para"
                                                             data-confirm="{{ __('Are You Sure?') }}"
@@ -97,11 +98,11 @@
                                                             @csrf
                                                             @method('DELETE')
                                                         </form>
-                                                    @endif
-                                                </div>
-                                            @endauth
+                                                    </div>
+                                                @endauth
+                                            </div>
                                         </div>
-                                    </div>
+                                    @endif
                                 </div>
                                 <div class="card-body">
                                     <div class="row g-2 justify-content-between">
@@ -206,9 +207,9 @@
     </section>
 @endsection
 
-@push('css-page')
-@endpush
-
+{{-- @push('css-page')
+@endpush --}}
+{{-- 
 @push('scripts')
     <script src="{{ asset('assets/custom/js/isotope.pkgd.min.js') }}"></script>
     <script>
@@ -233,4 +234,4 @@
             })
         });
     </script>
-@endpush
+@endpush --}}

@@ -22,7 +22,7 @@
                     <a id="add_task" href="#" class="btn btn-primary" data-ajax-popup="true" data-size="lg"
                         data-title="{{ __('Create New Task') }}"
                         data-url="{{ route('timesheet.create', $currentWorkspace->slug) }}" data-toggle="tooltip"
-                        title="{{ __('Add Task') }}"><i class="ti ti-plus"></i> Agregar tarea</a>
+                        title="{{ __('Add Task') }}"><i class="ti ti-plus"></i> {{__(' Agregar tarea en la hoja de horas')}}</a>
                 </div>
             @endif
         @endif
@@ -67,14 +67,9 @@
                                         <p class="text-muted mt-3">
                                             {{ trans("messages.Sorry_we_can't_find_any_timesheet_records_on_this_week.") }}
                                             <br>
-                                            @if ($project_id != '-1' && Auth::user()->getGuard() != 'client')
+                                            @if ($project_id != '-1')
                                                 {{ trans('messages.To_add_timesheet_record_go_to ') }}
                                                 <b>{{ __('Add Task on Timesheet.') }}</b>
-                                            @else
-                                                {{ trans('messages.To_add_timesheet_record_go_to ') }}
-                                                <a class="btn-home badge-blue"
-                                                    href="{{ route($client_keyword . 'projects.index', $currentWorkspace->slug) }}"><i
-                                                        class="fas fa-reply"></i> {{ __('Projects') }}</a>
                                             @endif
                                         </p>
                                     </div>

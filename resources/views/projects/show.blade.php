@@ -79,11 +79,11 @@
                             <div class="d-block d-sm-flex align-items-center justify-content-between">
                                 <h4 class="text-white"> {{ $project->name }}</h4>
                                 <div class="d-flex  align-items-center row1">
-                                    @if($project->ref_mo != null)
-                                    <div class="px-3">
-                                        <span class="text-white text-sm">{{ __('MasterObras') }}:</span>
-                                        <h5 class="text-white text-nowrap"> {{ $project->ref_mo }}</h5>
-                                    </div>
+                                    @if ($project->ref_mo != null)
+                                        <div class="px-3">
+                                            <span class="text-white text-sm">{{ __('MasterObras') }}:</span>
+                                            <h5 class="text-white text-nowrap"> {{ $project->ref_mo }}</h5>
+                                        </div>
                                     @endif
                                     <div class="px-3">
                                         <span class="text-white text-sm">{{ trans('messages.Start_Date') }}:</span>
@@ -98,7 +98,8 @@
                                     <div class="px-3">
                                         <span class="text-white text-sm">{{ trans('messages.Total_Members') }}:</span>
                                         <h5 class="text-white text-nowrap">
-                                            {{ (int) $project->technicians->count() + (int) $project->salesManager->count() }}</h5>
+                                            {{ (int) $project->technicians->count() + (int) $project->salesManager->count() }}
+                                        </h5>
                                     </div>
                                     <div class="px-3">
 
@@ -222,13 +223,13 @@
                                             </h5>
                                         </div>
                                         <div class="float-end">
-                                            @if ($objUser->type == 'client' || $currentWorkspace->permission == 'Owner')
+                                            {{-- @if ($objUser->type == 'client' || $currentWorkspace->permission == 'Owner') --}}
                                                 <a href="#" class="btn btn-sm btn-primary" data-ajax-popup="true"
-                                                    data-title="{{ __('Create Milestone') }}"
+                                                    data-title="{{ __('Hoja de encargo') }}"
                                                     data-url="{{ route('projects.milestone', [$currentWorkspace->slug, $project->id]) }}"
                                                     data-toggle="popover" title="{{ __('Create') }}"><i
                                                         class="ti ti-plus"></i></a>
-                                            @endif
+                                            {{-- @endif --}}
                                         </div>
                                     </div>
                                 </div>
@@ -641,9 +642,9 @@
 @endpush
 @push('scripts')
     <!--
-                                                                                                                            <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+                                                                                                                                <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
 
-                                                                                                                             -->
+                                                                                                                                 -->
     <script src="{{ asset('assets/js/plugins/apexcharts.min.js') }}"></script>
     <script>
         (function() {
