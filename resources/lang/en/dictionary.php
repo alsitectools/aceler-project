@@ -130,4 +130,5 @@ return [
     'SignUp' => 'Sign up',
     'Delegation' => 'Delegation',
     'Task_type' => 'Task Type',
+    'Time'=>'Time',
 ];

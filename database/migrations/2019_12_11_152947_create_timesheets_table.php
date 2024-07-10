@@ -21,7 +21,6 @@ class CreateTimesheetsTable extends Migration
                 $table->integer('task_id');
                 $table->date('date');
                 $table->time('time');
-                // $table->text('description')->nullable();
                 $table->integer('created_by')->default('0');
                 $table->timestamps();
             }

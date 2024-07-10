@@ -13,20 +13,25 @@ use Illuminate\Support\Facades\Validator;
 
 class LanguagesController extends Controller
 {
-    public function disableLang(Request $request){
+    public function switchLang($lang)
+    {
+        \Session::put('locale', $lang);
+        return redirect()->back();
+    }
+    public function disableLang(Request $request)
+    {
 
-        if(\Auth::user()->type == 'admin'){
+        if (\Auth::user()->type == 'admin') {
             $settings = Utility::getAdminPaymentSettings();
             $disablelang  = '';
             $created_at = date('Y-m-d H:i:s');
             $updated_at = date('Y-m-d H:i:s');
-            if($request->mode == 'off'){
+            if ($request->mode == 'off') {
 
-                if(!empty($settings['disable_lang'])){
+                if (!empty($settings['disable_lang'])) {
                     $disablelang = $settings['disable_lang'];
-                    $disablelang=$disablelang.','. $request->lang;
-                }
-                else{
+                    $disablelang = $disablelang . ',' . $request->lang;
+                } else {
                     $disablelang = $request->lang;
                 }
 
@@ -36,15 +41,15 @@ class LanguagesController extends Controller
                     $created_at,
                     $updated_at,
                 ]);
-                
+
                 $data['message'] = __('Language Disabled Successfully');
                 $data['status'] = 200;
                 return $data;
-           }else{
+            } else {
 
                 $disablelang = $settings['disable_lang'];
                 $parts = explode(',', $disablelang);
-                while(($i = array_search($request->lang,$parts)) !== false) {
+                while (($i = array_search($request->lang, $parts)) !== false) {
                     unset($parts[$i]);
                 }
 
@@ -58,8 +63,7 @@ class LanguagesController extends Controller
                 $data['message'] = __('Language Enabled Successfully');
                 $data['status'] = 200;
                 return $data;
-           }
-           
+            }
         }
     }
 }

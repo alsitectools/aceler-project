@@ -224,11 +224,11 @@
                                         </div>
                                         <div class="float-end">
                                             {{-- @if ($objUser->type == 'client' || $currentWorkspace->permission == 'Owner') --}}
-                                                <a href="#" class="btn btn-sm btn-primary" data-ajax-popup="true"
-                                                    data-title="{{ __('Hoja de encargo') }}"
-                                                    data-url="{{ route('projects.milestone', [$currentWorkspace->slug, $project->id]) }}"
-                                                    data-toggle="popover" title="{{ __('Create') }}"><i
-                                                        class="ti ti-plus"></i></a>
+                                            <a href="#" class="btn btn-sm btn-primary" data-ajax-popup="true"
+                                                data-title="{{ __('Hoja de encargo') }}"
+                                                data-url="{{ route('projects.milestone', [$currentWorkspace->slug, $project->id]) }}"
+                                                data-toggle="popover" title="{{ __('Create') }}"><i
+                                                    class="ti ti-plus"></i></a>
                                             {{-- @endif --}}
                                         </div>
                                     </div>
@@ -332,9 +332,7 @@
                             </div>
                         @endif
                     </div>
-
                     {{-- ======================================================================================== --}}
-
                     <div class="row">
                         <div class="col-md-6">
                             <div class="card ">
@@ -642,9 +640,9 @@
 @endpush
 @push('scripts')
     <!--
-                                                                                                                                <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+                                                                                                                                    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
 
-                                                                                                                                 -->
+                                                                                                                                     -->
     <script src="{{ asset('assets/js/plugins/apexcharts.min.js') }}"></script>
     <script>
         (function() {
@@ -871,8 +869,8 @@
             myDropzone.emit("complete", mockFile);
 
             dropzoneBtn(mockFile, {
-                download: "{{ route($client_keyword . 'projects.file.download', [$currentWorkspace->slug, $project->id, $file->id]) }}",
-                delete: "{{ route($client_keyword . 'projects.file.delete', [$currentWorkspace->slug, $project->id, $file->id]) }}"
+                download: "{{ route('projects.file.download', [$currentWorkspace->slug, $project->id, $file->id]) }}",
+                delete: "{{ route('projects.file.delete', [$currentWorkspace->slug, $project->id, $file->id]) }}"
             });
         @endforeach
     </script>

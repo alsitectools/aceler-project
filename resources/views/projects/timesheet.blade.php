@@ -19,10 +19,10 @@
         @if (isset($currentWorkspace) && $currentWorkspace)
             @if ($project_id == -1)
                 <div class="d-flex add_task">
-                    <a id="add_task" href="#" class="btn btn-primary" data-ajax-popup="true" data-size="lg"
+                    <a  id="add_task" href="#" class="btn btn-primary" data-ajax-popup="true" data-size="lg"
                         data-title="{{ __('Create New Task') }}"
                         data-url="{{ route('timesheet.create', $currentWorkspace->slug) }}" data-toggle="tooltip"
-                        title="{{ __('Add Task') }}"><i class="ti ti-plus"></i> {{__(' Agregar tarea en la hoja de horas')}}</a>
+                        title="{{ __('Add Task') }}"><i class="fa-solid fa-calendar-day"></i> {{__(' Agregar tarea en la hoja de horas')}}</a>
                 </div>
             @endif
         @endif
@@ -53,7 +53,7 @@
             <div class="row">
                 <div class="col-md-12">
 
-                    <div class="card shadow-none  border">
+                    <div class="card border">
                         <div id="timesheet-table-view"></div>
                     </div>
                     <div class="card notfound-timesheet text-center">
@@ -116,7 +116,7 @@
                             .attr("value", i)
                             .text(item));
                     });
-
+                    
                     if (data.totalrecords == 0) {
                         mainEle.hide();
                         notfound.css('display', 'block');
@@ -177,7 +177,7 @@
                 var title = '{{ __('Edit Timesheet') }}';
             }
 
-            $("#commonModal .modal-title").html(title + ` <small>(` + moment(date).format("ddd, Do MMM YYYY") +
+            $("#commonModal .modal-title").html(title + ` <small>(` + moment(date).format("ddd DD MMM") +
                 `)</small>`);
 
             $.ajax({

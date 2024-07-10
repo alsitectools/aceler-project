@@ -133,4 +133,5 @@ return [
     'Delegation'=>'Delegación',
     'Title'=>'Titulo',
     'Task_type'=>'Tipo de tarea',
+    'Time'=>'Tiempo',
 ];

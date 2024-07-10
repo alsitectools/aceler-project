@@ -50,6 +50,11 @@ class Task extends Model
     {
         return $this->milestone_id ? Milestone::find($this->milestone_id) : null;
     }
+    public function milestoneTitle()
+    {
+        $milestone = $this->milestone_id ? Milestone::find($this->milestone_id) : null;
+        return $milestone ? $milestone->title : null;
+    }
 
     public function sub_tasks()
     {

@@ -45,12 +45,12 @@
     }
 @endphp
 
-<nav class="dash-sidebar light-sidebar {{ isset($cust_theme_bg) && $cust_theme_bg == 'on' ? 'transprent-bg' : '' }}">
+<nav style="padding-left: 1%; padding-top: 2%;" class="dash-sidebar light-sidebar {{ isset($cust_theme_bg) && $cust_theme_bg == 'on' ? 'transprent-bg' : '' }}">
     <div class="navbar-wrapper">
         <div class="m-header main-logo">
             <a href="{{ route('home') }}" class="b-brand">
                 <img class="img-fluid rounded" src="{{ asset('assets/img/sidebar.jpg') }}" alt="logo"
-                    style="width: 200px ; heigth: 200px !important" />
+                    style="width: 200px ; heigth: 200px !important; padding-bottom: 20%" />
             </a>
         </div>
         <div class="navbar-content">

@@ -22,15 +22,20 @@ class Milestone extends Model
     {
         return  round((strtotime($this->end_date) - strtotime(date('Y-m-d'))) /   24 / 60 / 60,);
     }
-    // public function tasks() 
-    // {
-    //     $milestone = Task::all();
 
-    //     foreach ($tasks as $task) {
-    //         if ($this->milestone_id =) {
-    //         }
-    //     }
+    function tasks()
+    {
+        return Timesheet::join('tasks', 'timesheets.task_id', '=', 'tasks.id')
+            ->where('tasks.milestone_id', $this->id)
+            ->get();
+    }
 
-    //     return $this->id ? Milestone::find($this->milestone_id) : null;
-    // }
+
+    public function milestone()
+    {
+        $milestone = Milestone::join('tasks', 'milestones.id', '=', 'tasks.milestone_id')
+            ->where('milestone_id', $this->id)->first();
+
+        return $milestone ? $milestone->title : null;
+    }
 }

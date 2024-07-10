@@ -6,13 +6,6 @@
 <input type="hidden" id="totaltasktime" value="{{ $parseArray['totaltaskhour'] . ':' . $parseArray['totaltaskminute'] }}">
 
 
-@if ($currentWorkspace->is_chagpt_enable())
-<div class="text-end col-12">
-    <a href="#" data-size="lg" data-ajax-popup-over="true" class="btn btn-sm btn-primary" data-url="{{ route('generate',['timesheet']) }}" data-bs-toggle="tooltip" data-bs-placement="top" title="{{ __('Generate with AI') }}" data-title="{{ __('Generate Timesheet Description') }}">
-        <i class="fas fa-robot px-1"></i>{{ __('Generate with AI') }}</a>
-</div>
-@endif
-
 <div class="form-group">
     <label class="col-form-label">{{ __('Project')}}</label>
     <input type="text" class="form-control" value="{{ $parseArray['project_name'] }}" disabled="disabled">

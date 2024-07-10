@@ -2,7 +2,7 @@
 <div class="modal-body">
     <input type="hidden" name="project_id" value="{{ $parseArray['project_id'] }}">
     <input type="hidden" name="task_id" value="{{ $parseArray['task_id'] }}">
-    <input type="hidden" name="date" value="{{ $parseArray['date'] }}">
+    <input type="hidden" name="date" value="{{ $parseArray['date']}}">
     <input type="hidden" id="totaltasktime"
         value="{{ $parseArray['totaltaskhour'] . ':' . $parseArray['totaltaskminute'] }}">
 
@@ -12,13 +12,13 @@
     </div>
 
     <div class="form-group">
-        <label class="col-form-label">{{ __('Task') }}</label>
+        <label class="col-form-label">{{ __('Dictionary.Task') }}</label>
         <input type="text" class="form-control" value="{{ $parseArray['task_name'] }}" readonly>
     </div>
 
     <div class="row">
         <div class="col-md-12">
-            <label for="time" class="col-form-label">{{ __('Time') }}</label>
+            <label for="time" class="col-form-label">{{ __('Dictionary.Time') }}</label>
         </div>
         <div class="col-md-6">
             <select class="form-control select2" name="time_hour" id="time_hour" required="">
@@ -45,11 +45,6 @@
 
             </select>
         </div>
-    </div>
-
-    <div class="form-group py-4">
-        <label for="description">{{ __('Description') }}</label>
-        <textarea class="form-control" id="description" rows="3" name="description"></textarea>
     </div>
 
     <div class="display-total-time">
