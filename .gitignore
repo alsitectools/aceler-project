@@ -7,3 +7,4 @@ storage/logs/laravel.log
 storage/debugbar
 storage/framework
 routes/probas.php
+routes/probas.blade.php

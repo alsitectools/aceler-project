@@ -1,5 +1,6 @@
 @if ($currentWorkspace)
     <form class="" method="post" action="{{ route('timesheet.store', $currentWorkspace->slug) }}">
+        {{-- <form class="" method="post" action="{{ route('tasks.store', $currentWorkspace->slug) }}"> --}}
         @csrf
         <div class="modal-body">
             <div class="row">
@@ -43,20 +44,16 @@
                     </div>
                 </div>
                 <div id="estimated_date_feedback" class="text-danger" style="display: none;"></div>
-                {{-- quitado assing_to porque se puede guardar en el controlador --}}
-
-                <div class="form-group col-md-6">
+                <div class="form-group col-md-6" style="display: none;">
                     <label for="time" class="col-form-label">{{ __('Time') }}</label>
-                    <input type="time" class="form-control form-control-light" id="time" value=""
-                        placeholder="{{ __('Time') }}" name="time" required min="00:00" max="08:00">
+                    <input type="time" class="form-control form-control-light" id="time" value="00:00"
+                        placeholder="{{ __('Time') }}" name="time">
                 </div>
-                <div class="form-group col-md-6">
+                {{-- <div class="form-group col-md-6">
                     <label for="date" class="col-form-label">{{ __('Date') }}</label>
                     <input onclick="this.showPicker()" type="date" class="form-control form-control-light date"
                         id="date" value="" placeholder="{{ __('Date') }}" name="date" required>
-                </div>
-
-
+                </div> --}}
             </div>
         </div>
         <div class=" modal-footer">
@@ -93,14 +90,14 @@
 <link rel="stylesheet" href="{{ asset('assets/custom/libs/bootstrap-daterangepicker/daterangepicker.css') }}">
 <script src="{{ asset('assets/custom/libs/bootstrap-daterangepicker/daterangepicker.js') }}"></script>
 <script>
-    $(document).ready(function() {
-        $('#time').on('click', function() {
-            if (!$(this).val()) {
-                $(this).val('00:00');
-            }
-            this.showPicker();
-        });
-    });
+    // $(document).ready(function() {
+    //     $('#time').on('click', function() {
+    //         if (!$(this).val()) {
+    //             $(this).val('00:00');
+    //         }
+    //         this.showPicker();
+    //     });
+    // });
     $(document).ready(function() {
         $('#project_id').on('change', function() {
             var selectedOption = $(this).find('option:selected');

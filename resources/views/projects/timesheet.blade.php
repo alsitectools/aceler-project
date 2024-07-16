@@ -19,10 +19,11 @@
         @if (isset($currentWorkspace) && $currentWorkspace)
             @if ($project_id == -1)
                 <div class="d-flex add_task">
-                    <a  id="add_task" href="#" class="btn btn-primary" data-ajax-popup="true" data-size="lg"
+                    <a id="add_task" href="#" class="btn btn-primary" data-ajax-popup="true" data-size="lg"
                         data-title="{{ __('Create New Task') }}"
                         data-url="{{ route('timesheet.create', $currentWorkspace->slug) }}" data-toggle="tooltip"
-                        title="{{ __('Add Task') }}"><i class="fa-solid fa-calendar-day"></i> {{__(' Agregar tarea en la hoja de horas')}}</a>
+                        title="{{ __('Add Task') }}"><i class="fa-regular fa-calendar-days"></i>
+                        {{ __(' Agregar tarea en la hoja de horas') }}</a>
                 </div>
             @endif
         @endif
@@ -116,7 +117,7 @@
                             .attr("value", i)
                             .text(item));
                     });
-                    
+
                     if (data.totalrecords == 0) {
                         mainEle.hide();
                         notfound.css('display', 'block');

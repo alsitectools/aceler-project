@@ -2,18 +2,18 @@
 <div class="modal-body">
     <input type="hidden" name="project_id" value="{{ $parseArray['project_id'] }}">
     <input type="hidden" name="task_id" value="{{ $parseArray['task_id'] }}">
-    <input type="hidden" name="date" value="{{ $parseArray['date']}}">
+    <input type="hidden" name="date" value="{{ $parseArray['date'] }}">
     <input type="hidden" id="totaltasktime"
         value="{{ $parseArray['totaltaskhour'] . ':' . $parseArray['totaltaskminute'] }}">
 
     <div class="form-group">
         <label class="col-form-label">{{ __('Project') }}</label>
-        <input type="text" class="form-control" value="{{ $parseArray['project_name'] }}" readonly>
+        <input type="text" class="form-control" value="{{ $parseArray['project_name'] }}" disabled>
     </div>
 
     <div class="form-group">
         <label class="col-form-label">{{ __('Dictionary.Task') }}</label>
-        <input type="text" class="form-control" value="{{ $parseArray['task_name'] }}" readonly>
+        <input type="text" class="form-control" value="{{ $parseArray['task_name'] }}" disabled>
     </div>
 
     <div class="row">
@@ -25,9 +25,7 @@
                 <option value="">{{ __('Hours') }}</option>
 
                 <?php for ($i = 0; $i < 23; $i++) { $i = $i < 10 ? '0' . $i : $i; ?>
-
                 <option value="{{ $i }}">{{ $i }}</option>
-
                 <?php } ?>
 
             </select>

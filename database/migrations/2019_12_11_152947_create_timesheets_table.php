@@ -19,8 +19,8 @@ class CreateTimesheetsTable extends Migration
                 $table->bigIncrements('id');
                 $table->integer('project_id');
                 $table->integer('task_id');
-                $table->date('date');
-                $table->time('time');
+                $table->date('date')->nullable();
+                $table->time('time')->default('00:00');
                 $table->integer('created_by')->default('0');
                 $table->timestamps();
             }

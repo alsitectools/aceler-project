@@ -46,10 +46,10 @@
         </select>
     </div>
 
-    <div class="col-md-12 mt-1">
+    {{-- <div class="col-md-12 mt-1">
         <label for="description" class="col-form-label">{{ __('Description')}}</label>
         <textarea class="form-control " id="description" rows="3" name="description">{{ $timesheet->description }}</textarea>
-    </div>
+    </div> --}}
     <div class="col-md-12">
         <div class="display-total-time">
             <i class="fas fa-clock"></i>
