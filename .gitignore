@@ -3,7 +3,7 @@
 /.vscode
 vendor/srmklive/paypal/tests/Mocks/samples/sample2.pdf
 vendor/srmklive/paypal/tests/Mocks/samples/sample.pdf
-storage/logs/laravel.log
+storage/logs
 storage/debugbar
 storage/framework
 routes/probas.php
