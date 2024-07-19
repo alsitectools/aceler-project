@@ -240,11 +240,13 @@ class UserController extends Controller
         $currentWorkspace = Utility::getWorkspaceBySlug($slug);
 
         if ($currentWorkspace) {
-            $users = User::select('users.*', 'user_workspaces.permission', 'user_workspaces.is_active')
-                ->join('user_workspaces', 'user_workspaces.user_id', '=', 'users.id');
-            $users->where('user_workspaces.workspace_id', '=', $currentWorkspace->id);
-            $users->where('type', 'user')/*->orWhere('type', 'admin') */;
-            $users = $users->get();
+            $users =  User::where('currant_workspace','=',$currentWorkspace->id)->where('type','=','user');
+
+            // $users = User::select('users.*', 'user_workspaces.permission', 'user_workspaces.is_active')
+            //     ->join('user_workspaces', 'user_workspaces.user_id', '=', 'users.id');
+            // $users->where('user_workspaces.workspace_id', '=', $currentWorkspace->id);
+            // $users->where('type', 'user')/*->orWhere('type', 'admin') */;
+             $users = $users->get();
         } else {
             $users = User::select('users.*')->join('user_workspaces', 'user_workspaces.user_id', '=', 'users.id')
                 ->where('user_workspaces.permission', '=', 'Owner')->distinct()->get();

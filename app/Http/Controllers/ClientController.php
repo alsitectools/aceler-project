@@ -40,11 +40,14 @@ class ClientController extends Controller
 
         if ($currentWorkspace) {
 
-            $clients = User::select('users.*', 'user_workspaces.permission', 'user_workspaces.is_active')
-                ->join('user_workspaces', 'user_workspaces.user_id', '=', 'users.id');
-            $clients->where('user_workspaces.workspace_id', '=', $currentWorkspace->id);
-            $clients->where('type', 'client');
-            $clients = $clients->get();
+            $clients =  User::where('currant_workspace', '=', $currentWorkspace->id)->where('type', '=', 'client')->get();
+
+            // $clients = User::select('users.*', 'user_workspaces.permission', 'user_workspaces.is_active')
+            //     ->join('user_workspaces', 'user_workspaces.user_id', '=', 'users.id');
+            // $clients->where('user_workspaces.workspace_id', '=', $currentWorkspace->id);
+            // $clients->where('type', 'client');
+            // $clients = $clients->get();
+
             // $currentWorkspace = Utility::getWorkspaceBySlug($slug);
             // if ($currentWorkspace->creater->id == \Auth::user()->id) {
             //     $clients = Client::select(

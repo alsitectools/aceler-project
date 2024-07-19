@@ -24,14 +24,14 @@ class HomeController extends Controller
         }
         $setting = Utility::getAdminPaymentSettings();
 
-        if ($setting['display_landing'] == 'on'  && Schema::hasTable('landing_page_settings')) {
+        // if ($setting['display_landing'] == 'on'  && Schema::hasTable('landing_page_settings')) {
 
-            return view('landingpage::layouts.landingpage');
-            // return view('layouts.landing');
+        //     return view('landingpage::layouts.landingpage');
+        //     // return view('layouts.landing');
 
-        } else {
+        // } else {
             return redirect('login');
-        }
+        // }
     }
     public function LoginWithAdmin(Request $request, User $user,  $id)
     {

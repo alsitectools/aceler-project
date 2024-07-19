@@ -45,12 +45,13 @@
     }
 @endphp
 
-<nav style="padding-left: 1%; padding-top: 2%;" class="dash-sidebar light-sidebar {{ isset($cust_theme_bg) && $cust_theme_bg == 'on' ? 'transprent-bg' : '' }}">
+<nav style="padding-top: 2%;"
+    class="dash-sidebar light-sidebar {{ isset($cust_theme_bg) && $cust_theme_bg == 'on' ? 'transprent-bg' : '' }}">
     <div class="navbar-wrapper">
         <div class="m-header main-logo">
             <a href="{{ route('home') }}" class="b-brand">
-                <img class="img-fluid rounded" src="{{ asset('assets/img/sidebar.jpg') }}" alt="logo"
-                    style="width: 200px ; heigth: 200px !important; padding-bottom: 20%" />
+                <img class="img-fluid" src="{{ asset('assets/img/sidebar.jpg') }}" alt="logo"
+                    style="width: 200px ; heigth: 200px !important; border-radius: 7px !important;" />
             </a>
         </div>
         <div class="navbar-content">
@@ -100,10 +101,10 @@
                     </li>
 
 
-                    @if (isset($currentWorkspace) &&
+                    @if (Auth::user()->type == 'admin' &&
+                            isset($currentWorkspace) &&
                             $currentWorkspace &&
-                            $currentWorkspace->creater->id == Auth::user()->id &&
-                            Auth::user()->type == 'admin')
+                            $currentWorkspace->creater->id == Auth::user()->id)
                         <li
                             class="dash-item dash-hasmenu {{ Request::route()->getName() == 'contracts.index' || Request::route()->getName() == 'contracts.show' ? ' active' : '' }}">
                             <a href="#" class="dash-link"><span class="dash-micon"><i
