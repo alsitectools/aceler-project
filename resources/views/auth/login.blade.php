@@ -82,9 +82,13 @@
                                 class="btn btn-primary btn-block mt-2">{{ __('Login') }}</button>
                         </div>
                         <p class="my-4 text-center">{{ __('dictionary.DontAccount?') }}
-                            <a href="{{ route('register', $lang) }}" class="my-4 text-center text-primary">
+                            <a href="#" onclick="mostrarMensaje(event)" class="my-4 text-center text-primary">
                                 {{ __('dictionary.SignUp') }}</a>
                         </p>
+                        {{-- <p class="my-4 text-center">{{ __('dictionary.DontAccount?') }}
+                            <a href="{{ route('register', $lang) }}" class="my-4 text-center text-primary">
+                                {{ __('dictionary.SignUp') }}</a>
+                        </p> --}}
                     </div>
                 </form>
                 {{-- <div class="d-grid mt-3">
@@ -97,6 +101,10 @@
         @push('custom-scripts')
             <script src="{{ asset('assets/custom/libs/jquery/dist/jquery.min.js') }}"></script>
             <script>
+                function mostrarMensaje(event) {
+                    event.preventDefault();
+                    alert("Ups! Esta opción no esta disponible.");
+                }
                 $(document).ready(function() {
                     $("#form_data").submit(function(e) {
                         $("#login_button").attr("disabled", true);

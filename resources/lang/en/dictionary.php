@@ -131,4 +131,8 @@ return [
     'Delegation' => 'Delegation',
     'Task_type' => 'Task Type',
     'Time'=>'Time',
+    'about' => 'About Us',
+    'terms' => 'Terms and Conditions',
+    'privacy' => 'Privacy Policy',
+
 ];
