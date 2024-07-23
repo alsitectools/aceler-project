@@ -207,9 +207,9 @@
     </section>
 @endsection
 
-{{-- @push('css-page')
-@endpush --}}
-{{-- 
+@push('css-page')
+@endpush
+
 @push('scripts')
     <script src="{{ asset('assets/custom/js/isotope.pkgd.min.js') }}"></script>
     <script>
@@ -234,4 +234,4 @@
             })
         });
     </script>
-@endpush --}}
+@endpush

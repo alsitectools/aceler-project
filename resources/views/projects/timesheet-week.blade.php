@@ -36,7 +36,7 @@
                                                 </span>
                                             </button>
                                         </h2>
-                                        <div id="collapseOne{{ $key }}" class="accordion-collapse collapse"
+                                        <div id="collapseOne{{ $key }}" class="accordion-collapse collapse show"
                                             data-bs-parent="#accordionExample">
                                             <div class="accordion-body mb-0">
                                                 <div class="table-responsive">

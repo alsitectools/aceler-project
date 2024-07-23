@@ -81,14 +81,14 @@ class HomeController extends Controller
 
                 $completeTask = 0; // inicializar el contador a cero por defecto
 
-                if ($doneStage) { // Verificar si $doneStage no es nulo
-                    $completeTask = ClientProject::join("tasks", "tasks.project_id", "=", "client_projects.project_id")
-                        ->join("projects", "projects.id", "=", "client_projects.project_id")
-                        ->where('projects.workspace', '=', $currentWorkspace->id)
-                        ->where("client_id", "=", $userObj->id)
-                        ->where('tasks.status', '=', $doneStage->id)
-                        ->count();
-                }
+                // if ($doneStage) { // Verificar si $doneStage no es nulo
+                //     $completeTask = ClientProject::join("tasks", "tasks.project_id", "=", "client_projects.project_id")
+                //         ->join("projects", "projects.id", "=", "client_projects.project_id")
+                //         ->where('projects.workspace', '=', $currentWorkspace->id)
+                //         ->where("client_id", "=", $userObj->id)
+                //         ->where('tasks.status', '=', $doneStage->id)
+                //         ->count();
+                // }
                 // $completeTask = UserProject::join("tasks", "tasks.project_id", "=", "user_projects.project_id")
                 //     ->join("projects", "projects.id", "=", "user_projects.project_id")
                 //     ->where("user_id", "=", $userObj->id)

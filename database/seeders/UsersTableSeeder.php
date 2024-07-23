@@ -23,8 +23,8 @@ class UsersTableSeeder extends Seeder
      */
     public function run()
     {
-        self::seedWorkspace();
-        $this->command->info('Tabla de workspace inicializada con datos!');
+        // self::seedWorkspace();
+        // $this->command->info('Tabla de workspace inicializada con datos!');
 
         self::seedUsers();
         $this->command->info('Tabla de usuarios inicializada con datos!');
@@ -85,22 +85,22 @@ class UsersTableSeeder extends Seeder
     }
 
 
-    function seedWorkspace()
-    {
-        Workspace::truncate();
-        foreach ($this->workspaces as $workspace) {
-            foreach ($workspace['branch'] as $name => $slug) {
-                $w = new Workspace;
-                $w->created_by = 1;
-                $w->name = $name;
-                $w->slug = $slug;
-                $w->lang = $setting['default_lang'] ?? 'es';
-                $w->branch = $name;
-                $w->company = $workspace['company'];
-                $w->save();
-            }
-        }
-    }
+    // function seedWorkspace()
+    // {
+    //     Workspace::truncate();
+    //     foreach ($this->workspaces as $workspace) {
+    //         foreach ($workspace['branch'] as $name => $slug) {
+    //             $w = new Workspace;
+    //             $w->created_by = 1;
+    //             $w->name = $name;
+    //             $w->slug = $slug;
+    //             $w->lang = $setting['default_lang'] ?? 'es';
+    //             $w->branch = $name;
+    //             $w->company = $workspace['company'];
+    //             $w->save();
+    //         }
+    //     }
+    // }
     function seedProjectType()
     {
         ProjectType::truncate();
@@ -196,31 +196,31 @@ class UsersTableSeeder extends Seeder
     ];
 
 
-    private $workspaces = array(
-        array(
-            'company' => 'ES0',
-            'branch' => array(
-                'Tenerife' => 'TF',
-                'Las palmas' => 'LP',
-                'Alicante' => 'AL',
-                'Valencia' => 'VA',
-                'Baleares' => 'BA',
-                'Aragón' => 'AR',
-                'Asturias' => 'MI',
-                'Galicia' => 'GA',
-                'Cataluña' => 'EN',
-                'País Vasco' => 'PV',
-            ),
-        ),
-        array(
-            'company' => 'ES1',
-            'branch' => array(
-                'Centro' => 'MD',
-                'Sevilla' => 'SE',
-                'Málaga' => 'MS'
-            ),
-        ),
-    );
+    // private $workspaces = array(
+    //     array(
+    //         'company' => 'ES0',
+    //         'branch' => array(
+    //             'Tenerife' => 'TF',
+    //             'Las palmas' => 'LP',
+    //             'Alicante' => 'AL',
+    //             'Valencia' => 'VA',
+    //             'Baleares' => 'BA',
+    //             'Aragón' => 'AR',
+    //             'Asturias' => 'MI',
+    //             'Galicia' => 'GA',
+    //             'Cataluña' => 'EN',
+    //             'País Vasco' => 'PV',
+    //         ),
+    //     ),
+    //     array(
+    //         'company' => 'ES1',
+    //         'branch' => array(
+    //             'Centro' => 'MD',
+    //             'Sevilla' => 'SE',
+    //             'Málaga' => 'MS'
+    //         ),
+    //     ),
+    // );
 
     private $users = array(
         array(
@@ -228,7 +228,7 @@ class UsersTableSeeder extends Seeder
             'email' => 'admin@alsina.com',
             'password' => 'Alsina2024',
             'type' => 'admin',
-            'currant_workspace' => 'EN',
+            'currant_workspace' => 'ES',
             'lang' => 'es'
         ),
         array(
@@ -236,7 +236,7 @@ class UsersTableSeeder extends Seeder
             'email' => 'mforte@alsina.com',
             'password' => 'Alsina2024',
             'type' => 'user',
-            'currant_workspace' => 'EN',
+            'currant_workspace' => 'ES',
             'lang' => 'es'
         ),
         array(
@@ -244,7 +244,7 @@ class UsersTableSeeder extends Seeder
             'email' => 'alexp@alsina.com',
             'password' => 'Alsina2024',
             'type' => 'user',
-            'currant_workspace' => 'EN',
+            'currant_workspace' => 'ES',
             'lang' => 'es'
         ),
         array(
@@ -252,7 +252,7 @@ class UsersTableSeeder extends Seeder
             'email' => 'mgascon@alsina.com',
             'password' => 'Alsina2024',
             'type' => 'client',
-            'currant_workspace' => 'EN',
+            'currant_workspace' => 'ES',
             'lang' => 'es'
         ),
         array(
@@ -260,7 +260,7 @@ class UsersTableSeeder extends Seeder
             'email' => 'dpoch@alsina.com',
             'password' => 'Alsina2024',
             'type' => 'user',
-            'currant_workspace' => 'EN',
+            'currant_workspace' => 'ES',
             'lang' => 'es'
         ),
         array(
@@ -268,7 +268,7 @@ class UsersTableSeeder extends Seeder
             'email' => 'dribo@alsina.com',
             'password' => 'Alsina2024',
             'type' => 'user',
-            'currant_workspace' => 'EN',
+            'currant_workspace' => 'ES',
             'lang' => 'es'
         ),
         array(
@@ -276,7 +276,7 @@ class UsersTableSeeder extends Seeder
             'email' => 'mallepuz@alsina.com',
             'password' => 'Alsina2024',
             'type' => 'user',
-            'currant_workspace' => 'EN',
+            'currant_workspace' => 'ES',
             'lang' => 'es'
         ),
         array(
@@ -284,7 +284,7 @@ class UsersTableSeeder extends Seeder
             'email' => 'kcubias@alsina.com',
             'password' => 'Alsina2024',
             'type' => 'user',
-            'currant_workspace' => 'EN',
+            'currant_workspace' => 'ES',
             'lang' => 'es'
         ),
         array(
@@ -292,7 +292,7 @@ class UsersTableSeeder extends Seeder
             'email' => 'xzhao@alsina.com',
             'password' => 'Alsina2024',
             'type' => 'client',
-            'currant_workspace' => 'EN',
+            'currant_workspace' => 'ES',
             'lang' => 'es'
         ),
     );
