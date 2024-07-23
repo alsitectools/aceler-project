@@ -50,8 +50,8 @@
     <div class="navbar-wrapper">
         <div class="m-header main-logo">
             <a href="{{ route('home') }}" class="b-brand">
-                <img class="img-fluid" src="{{ asset('assets/img/sidebar.jpg') }}" alt="logo"
-                    style="width: 200px ; heigth: 200px !important; border-radius: 7px !important;" />
+                <img class="img-fluid" src="{{ asset('assets/img/acelerProject.png') }}" alt="logo"
+                    style="width: 220px; border-radius: 7px !important;" />
             </a>
         </div>
         <div class="navbar-content">

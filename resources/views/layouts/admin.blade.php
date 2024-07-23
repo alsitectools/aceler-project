@@ -147,6 +147,23 @@
 @endif
 
 <style type="text/css">
+    /*------------ tipo de fuente coorporativa -------------- */
+    /* @font-face {
+
+        font-family: 'Nexa-ExtraLight';
+        src: url("./public/assets/fonts/nexa/Nexa-ExtraLight.otf") format("opentype");
+        font-weight: normal;
+        font-style: normal;
+    }
+
+    * {
+        font-family: 'Nexa-ExtraLight' !important;
+        font-size: 18px;
+    } */
+
+    /* ----------------------------------------------------- */
+
+
     [dir="rtl"] .dash-sidebar {
         left: auto !important;
     }
@@ -464,12 +481,13 @@
                     // Enable pusher logging - don't include this in production
                     Pusher.logToConsole = false;
 
-                    var pusher = new Pusher('{{ env('
-                                                        PUSHER_APP_KEY ') }}', {
-                        cluster: '{{ env('
-                                                                    PUSHER_APP_CLUSTER ') }}',
-                        forceTLS: true
-                    });
+                    var pusher = new Pusher(
+                        '{{ env('
+                                                                                                                                                                                                                                                                                                        PUSHER_APP_KEY ') }}', {
+                            cluster: '{{ env('
+                                                                                                                                                                                                                                                                                                                                                            PUSHER_APP_CLUSTER ') }}',
+                            forceTLS: true
+                        });
 
                     var channel = pusher.subscribe('{{ $currentWorkspace->slug }}');
                     channel.bind('notification', function(data) {
@@ -489,7 +507,7 @@
                 function getChat() {
                     $.ajax({
                         url: '{{ route('
-                                                                message.data ') }}',
+                                                                                                                                                                                                                                                                                                                message.data ') }}',
                         cache: false,
                         dataType: 'html',
                         success: function(data) {
@@ -508,7 +526,7 @@
                     $.ajax({
                         url: '{{ route(
                             '
-                                                                notification.seen ',
+                                                                                                                                                                                                                                                                                                                notification.seen ',
                             $currentWorkspace->slug,
                         ) }}',
                         type: "get",
@@ -523,7 +541,7 @@
                     $.ajax({
                         url: '{{ route(
                             '
-                                                                message.seen ',
+                                                                                                                                                                                                                                                                                                                message.seen ',
                             $currentWorkspace->slug,
                         ) }}',
                         type: "get",
@@ -614,7 +632,7 @@
         }
     </script>
     <!-- Site JS -->
-     <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/locale/es.min.js"></script> {{--CDN locale de fecha--}}
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/locale/es.min.js"></script> {{-- CDN locale de fecha --}}
     <script src="{{ asset('assets/js/plugins/sweetalert2.all.min.js') }}"></script>
     <script src="{{ asset('assets/custom/js/ac-alert.js') }}"></script>
     <script src="{{ asset('assets/custom/js/letter.avatar.js') }}"></script>
@@ -637,42 +655,42 @@
             ],
             monthNames: [
                 '{{ trans('
-                                                messages.January ') }}',
+                                                                                                                                                                                                                messages.January ') }}',
                 '{{ trans('
-                                                messages.February ') }}',
+                                                                                                                                                                                                                messages.February ') }}',
                 ' {{ trans('
-                                                messages.March ') }}',
+                                                                                                                                                                                                                messages.March ') }}',
                 '{{ trans('
-                                                messages.April ') }}',
+                                                                                                                                                                                                                messages.April ') }}',
                 '{{ trans('
-                                                messages.May ') }}',
+                                                                                                                                                                                                                messages.May ') }}',
                 '{{ trans('
-                                                messages.June ') }}',
+                                                                                                                                                                                                                messages.June ') }}',
                 '{{ trans('
-                                                messages.July ') }}',
+                                                                                                                                                                                                                messages.July ') }}',
                 '{{ trans('
-                                                messages.August ') }}',
+                                                                                                                                                                                                                messages.August ') }}',
                 '{{ trans('
-                                                messages.September ') }}',
+                                                                                                                                                                                                                messages.September ') }}',
                 '{{ trans('
-                                                messages.October ') }}',
+                                                                                                                                                                                                                messages.October ') }}',
                 '{{ trans('
-                                                messages.November ') }}',
+                                                                                                                                                                                                                messages.November ') }}',
                 ' {{ trans('
-                                                messages.December ') }}'
+                                                                                                                                                                                                                messages.December ') }}'
             ],
         };
         var calender_header = {
             today: '{{ __('
-                                    today ') }}',
+                                                                                                                                                            today ') }}',
             month: '{{ __('
-                                    month ') }}',
+                                                                                                                                                            month ') }}',
             week: '{{ __('
-                                    week ') }}',
+                                                                                                                                                            week ') }}',
             day: '{{ __('
-                                    day ') }}',
+                                                                                                                                                            day ') }}',
             list: '{{ __('
-                                    list ') }}'
+                                                                                                                                                            list ') }}'
         };
     </script>
 
@@ -770,16 +788,22 @@
     {{-- @stack('script-page') --}}
     @if (Session::has('success'))
         <script>
-            show_toastr('{{ __('
-                                    Success ') }}', '{!! session('
-                                    success ') !!}', 'success');
+            show_toastr(
+                '{{ __('
+                                                                                                                                                                                    Success ') }}',
+                '{!! session('
+                                                                                                                                                                                            success ') !!}',
+                'success');
         </script>
     @endif
     @if (Session::has('error'))
         <script>
-            show_toastr('{{ __('
-                                    Error ') }}', '{!! session('
-                                    error ') !!}', 'error');
+            show_toastr(
+                '{{ __('
+                                                                                                                                                                                    Error ') }}',
+                '{!! session('
+                                                                                                                                                                                            error ') !!}',
+                'error');
         </script>
     @endif
     <script></script>

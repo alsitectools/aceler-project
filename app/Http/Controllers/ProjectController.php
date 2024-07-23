@@ -655,7 +655,7 @@ class ProjectController extends Controller
         $objUser = Auth::user();
         $project = Project::find($projectID);
 
-        if ($project && ($objUser->type == 'admin')) {
+        if ($project && $objUser->id == $project->created_by) {
             UserProject::where('project_id', '=', $projectID)->delete();
             MasterObra::where('project_id', $projectID)->update(['project_id' => 0]);
             ProjectFile::where('project_id', '=', $projectID)->delete();
@@ -1846,6 +1846,7 @@ class ProjectController extends Controller
             $task->estimated_date = $request->estimated_date;
             // $task->description = $request->description ? $request->description : "";
             $task->start_date = date('Y-m-d'); //cuando la crean es porque se estañadiendo hora
+            dd( date('Y-m-d'));
             $task->assign_to = $user->id;
             $task->save();
 

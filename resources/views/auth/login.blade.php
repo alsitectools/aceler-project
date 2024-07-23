@@ -76,7 +76,9 @@
                                 @enderror
                             </div>
                         @endif
-
+                        {{-- <a href="{{ route('azure.login') }}" class="btn btn-primary btn-block mt-2 officeButton"
+                            style="color: white">{{ __('Login Azure') }}</a> --}}
+                            {{-- <i class="fa-brands fa-windows" style="color: #aa182c;"> </i> --}}
                         <div class="d-grid">
                             <button type="submit" id="login_button"
                                 class="btn btn-primary btn-block mt-2">{{ __('Login') }}</button>

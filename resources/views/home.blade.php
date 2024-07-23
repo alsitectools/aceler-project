@@ -184,7 +184,7 @@
                                                             href="{{ route('projects.task.board', [$currentWorkspace->slug, $task->project_id]) }}"
                                                             class="text-body">{{ $task->title }}</a></div>
 
-                                                    @php($due_date = '<span class="text-' . ($task->due_date < date('Y-m-d') ? 'danger' : 'success') . '">' . date('Y-m-d', strtotime($task->due_date)) . '</span> ')
+                                                    @php($due_date = '<span class="text-' . ($task->estimated_date < date('Y-m-d') ? 'danger' : 'success') . '">' . date('Y-m-d', strtotime($task->estimated_date)) . '</span> ')
 
                                                     <span class="text-muted font-13">{{ __('Due Date') }} :
                                                         {!! $due_date !!}</span>
