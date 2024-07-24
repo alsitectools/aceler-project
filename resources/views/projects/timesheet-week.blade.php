@@ -11,7 +11,7 @@
                         <b>{{ isset($allProjects) && $allProjects == true ? __('Projects') : __('dictionary.Tasks') }}</b>
                     </td>
                     @foreach ($days['datePeriod'] as $key => $perioddate)
-                        <td class="wid-110 header-days"><b>{{ $perioddate->isoFormat('ddd DD MMM') }}</b></td>
+                        <td class="wid-110 header-days"><b>{{ ucfirst($perioddate->isoFormat('ddd DD MMM')) }}</b></td>
                     @endforeach
                     <td class="wid-110 header-days">
                         <b>{{ __('Total') }}</b>

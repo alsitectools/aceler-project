@@ -1,10 +1,10 @@
 <?php
 return [
     'Add_Project' => 'Añadir proyecto',
-    'Total_Users' => 'Técnicos Totales',
-    'Total_User' => 'Técnicos Totales',
-    'Total_Task' => 'Tareas Totales',
-    'Total_Project' => 'Proyectos Totales',
+    'Total_Users' => 'Técnicos',
+    'Total_User' => 'Técnicos',
+    'Total_Task' => 'Tareas',
+    'Total_Project' => 'Proyectos',
     'Status' => 'Estado',
     'status' => 'Estado',
     'Tasks' => 'Tareas',
@@ -137,4 +137,5 @@ return [
     'about' => 'Sobre nosotros',
     'terms' => 'Términos y condiciones',
     'privacy' => 'Política de privacidad',
+    'Total_sales' => 'Comerciales',
 ];

@@ -134,5 +134,6 @@ return [
     'about' => 'About Us',
     'terms' => 'Terms and Conditions',
     'privacy' => 'Privacy Policy',
+    'Total_sales' => 'Total Sales manager',
 
 ];

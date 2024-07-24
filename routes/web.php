@@ -80,7 +80,6 @@ Route::get('/', function () {
 
 require __DIR__ . '/auth.php';
 
-
 //-----------------------AZURE --------------------------------------//
 Route::get('/login/azure', '\RootInc\LaravelAzureMiddleware\Azure@azure')
   ->name('azure.login');

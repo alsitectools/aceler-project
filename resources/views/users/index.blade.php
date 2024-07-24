@@ -215,12 +215,11 @@
                 </div>
             @endforeach
 
-
-
+            {{-- No tiene sentido crear un nuevo usuario dentro de otro
             <div class="col-xl-3 col-lg-4 col-sm-6">
                 @auth('web')
                     @if (Auth::user()->type == 'admin')
-                        {{-- No tiene sentido crear un nuevo usuario SOLO DEJA INVITAR A USUARIOS YA CREADOS
+                        
                         <a href="#" class="btn-addnew-project" data-ajax-popup="true" data-size="md"
                             data-title="{{ __('Add User') }}" data-url="{{ route('users.create') }}">
                             <div class="bg-primary proj-add-icon">
@@ -229,7 +228,7 @@
                             <h6 class="mt-4 mb-2">New User</h6>
                             <p class="text-muted text-center">Click here to add New User</p>
                         </a>
-                    @elseif(isset($currentWorkspace) && $currentWorkspace->creater->id == Auth::id()) --}}
+                    @elseif(isset($currentWorkspace) && $currentWorkspace->creater->id == Auth::id())
                         <a href="#" class="btn-addnew-project" data-ajax-popup="true" data-size="md"
                             data-title="{{ __('Invite New User') }}"
                             data-url="{{ route('users.invite', $currentWorkspace->slug) }}">
@@ -242,7 +241,7 @@
                         </a>
                     @endif
                 @endauth
-            </div>
+            </div> --}}
         @else
             <div class="container mt-5">
                 <div class="card">

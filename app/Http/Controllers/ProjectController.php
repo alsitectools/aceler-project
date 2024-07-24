@@ -473,11 +473,10 @@ class ProjectController extends Controller
 
         // Prepare the result array
         $arrTask = [
-            'label' => array_map(fn ($date) => __($date), array_keys($taskCounts)),
+            'label' => array_map(fn($date) => ucfirst(Carbon::parse($date)->isoFormat('ddd')), array_keys($taskCounts)),
             'stages' => $stageNames,
             'color' => $stageColors,
         ];
-        // dd($stages,$stageNames,$stageColors,$arrTask);
 
         foreach ($taskCounts as $date => $counts) {
             foreach ($stages as $stage) {
@@ -1844,9 +1843,7 @@ class ProjectController extends Controller
             $task->milestone_id = $request->milestone_id;
             $task->type_id = $request->type_id;
             $task->estimated_date = $request->estimated_date;
-            // $task->description = $request->description ? $request->description : "";
-            $task->start_date = date('Y-m-d'); //cuando la crean es porque se estañadiendo hora
-            dd( date('Y-m-d'));
+            // $task->description = $request->description ? $request->description : "";   
             $task->assign_to = $user->id;
             $task->save();
 

@@ -1,5 +1,4 @@
 @extends('layouts.admin')
-
 @section('page-title')
     {{ __('Projects') }}
 @endsection
@@ -51,11 +50,11 @@
                         <div class="col-xl-3 col-lg-4 col-sm-6 All {{ $project->status }}">
                             <div class="card">
                                 <div class="card-header border-0 pb-0">
-                                    <div class="d-flex align-items-center" style="min-width: 100px;">
+                                     <div class="d-flex align-items-center" {{--style="min-width: 100px;" --}}>
                                         @if ($project->is_active)
                                             <a href="@auth('web'){{ route('projects.show', [$currentWorkspace->slug, $project->id]) }}@endauth"
                                                 class="" data-toggle="tooltip" title="{{ $project->name }}">
-                                                <img alt="{{ $project->name }}" class="me-2 fix_img" style="padding-right: 5px"
+                                                <img alt="{{ $project->name }}" class="me-2 fix_img"
                                                     avatar="{{ $project->name }}">
                                             </a>
                                         @else
@@ -67,15 +66,14 @@
                                         <h5 class="mb-0">
                                             @if ($project->is_active)
                                                 <a href="@auth('web'){{ route('projects.show', [$currentWorkspace->slug, $project->id]) }}@endauth"
-                                                    title="{{ $project->name }}" class="">{{ $project->name }}<i
-                                                        class="ti ti-eye"></i></a></a>
+                                                    title="{{ $project->name }}" class="">{{ $project->name }}</a>
                                             @else
                                                 <a href="#" title="{{ __('Locked') }}"
                                                     class="">{{ $project->name }}</a>
                                             @endif
                                         </h5>
                                     </div>
-                                    @if ($project->is_active && Auth::user()->type == 'admin' || $project->created_by == Auth::user()->id)
+                                    @if (($project->is_active && Auth::user()->type == 'admin') || $project->created_by == Auth::user()->id)
                                         <div class="card-header-right">
                                             <div class="btn-group card-option">
                                                 @auth('web')

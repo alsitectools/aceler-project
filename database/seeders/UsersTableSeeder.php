@@ -26,13 +26,13 @@ class UsersTableSeeder extends Seeder
         // self::seedWorkspace();
         // $this->command->info('Tabla de workspace inicializada con datos!');
 
-        self::seedUsers();
-        $this->command->info('Tabla de usuarios inicializada con datos!');
-        User::defaultEmail();
-        User::seed_languages();
+        // self::seedUsers();
+        // $this->command->info('Tabla de usuarios inicializada con datos!');
+        // User::defaultEmail();
+        // User::seed_languages();
 
-        self::seedUserWorkspace();
-        $this->command->info('Tabla de user_workspace inicializada con datos!');
+        // self::seedUserWorkspace();
+        // $this->command->info('Tabla de user_workspace inicializada con datos!');
 
         self::seedProjectType();
         $this->command->info('Tabla de tipo de proyectos inicializada con datos!');

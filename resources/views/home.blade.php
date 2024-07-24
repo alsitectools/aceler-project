@@ -3,20 +3,9 @@
 @section('page-title')
     {{ __('Dashboard') }}
 @endsection
-{{-- <script>
-    //No se mmuestran alerts
-
-    window.onload = function() {
-        // Guardar la función alert() original
-        var alertOriginal = window.alert;
-
-        // Anular la función alert()
-        window.alert = function() {};
-    };
-
-    // Restaurar la función alert() original
-    //window.alert = alertOriginal;
-</script> --}}
+@php
+    $client_keyword = Auth::user()->getGuard() == 'client' ? 'client.' : '';
+@endphp
 @section('content')
     <section class="section">
         @if (Auth::user()->type == 'admin')
@@ -52,7 +41,7 @@
                                     </div>
                                     <p class="text-muted text-sm mt-4 mb-2">
                                         {{ __('Paid User') }} : <strong>{{ $totalPaidUsers }}</strong></p>
-                                    <h6 class="mb-3">{{ trans('messages.Total Users') }}</h6>
+                                    <h6 class="mb-3">{{ __('Total Users') }}</h6>
                                     <h3 class="mb-0">{{ $totalUsers }} <span class="text-success text-sm"></span></h3>
                                 </div>
                             </div>
@@ -118,51 +107,64 @@
             <div class="row">
                 <div class="col-lg-7 col-md-7 ">
                     <div class="row mt-3">
-                        <div class="col-xl-4 col-md-6 col-sm-6">
+                        <div class="col-xl-3 col-md-6 col-sm-6">
                             <div class="card">
                                 <div class="card-body">
-                                    <div class="theme-avtar bg-primary">
-                                        <i class="fas fa-tasks bg-primary text-white"></i>
+                                    <div class="theme-avtar bg-success">
+                                        <i class="fas fa-tasks bg-success text-white"></i>
                                     </div>
                                     <p class="text-muted text-sm"></p>
-                                    <h6 class="">{{ trans('messages.Total_Project') }}</h6>
+                                    <h6 class="">{{ __('dictionary.Total_Project') }}</h6>
                                     <h3 class="mb-0">{{ $totalProject }} <span class="text-success text-sm"></span></h3>
                                 </div>
                             </div>
                         </div>
-                        <div class="col-xl-4 col-md-6 col-sm-6">
+                        <div class="col-xl-3 col-md-6 col-sm-6">
                             <div class="card">
                                 <div class="card-body">
                                     <div class="theme-avtar bg-info">
-                                        <i class="fas fa-tag bg-info text-white"></i>
+
+                                        <i class="fa-solid fa-thumbtack  bg-info text-white"></i>
                                     </div>
                                     <p class="text-muted text-sm "></p>
-                                    <h6 class="">{{ trans('messages.Total_Task') }}</h6>
+                                    <h6 class="">{{ __('dictionary.Total_Task') }}</h6>
                                     <h3 class="mb-0">{{ $totalTask }} <span class="text-success text-sm"></span></h3>
                                 </div>
                             </div>
                         </div>
 
-                        <div class="col-xl-4 col-md-6 col-sm-6">
+                        <div class="col-xl-3 col-md-6 col-sm-6">
                             <div class="card">
                                 <div class="card-body">
-                                    <div class="theme-avtar bg-success">
-                                        <i class="fas fa-users bg-success text-white"></i>
+                                    <div class="theme-avtar bg-danger">
+                                        <i class="fa-solid fa-user-tie bg-danger text-white"></i>
                                     </div>
                                     <p class="text-muted text-sm"></p>
-                                    <h6 class="">{{ trans('messages.Total_User') }}</h6>
-                                    <h3 class="mb-0">{{ $totalMembers }} <span class="text-success text-sm"></span></h3>
+                                    <h6 class="">{{ __('dictionary.Total_sales') }}</h6>
+                                    <h3 class="mb-0">{{ $totalSales }} <span class="text-success text-sm"></span></h3>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-xl-3 col-md-6 col-sm-6">
+                            <div class="card">
+                                <div class="card-body">
+                                    <div class="theme-avtar bg-primary">
+                                        <i class="fa-solid fa-helmet-safety bg-primary text-white"></i>
+                                    </div>
+                                    <p class="text-muted text-sm"></p>
+                                    <h6 class="">{{ __('dictionary.Total_User') }}</h6>
+                                    <h3 class="mb-0">{{ $totalTechni }} <span class="text-success text-sm"></span></h3>
                                 </div>
                             </div>
                         </div>
                     </div>
-
                     <div class="card ">
                         <div class="card-header">
                             <div class="row">
                                 <div class="col-9">
                                     <h5 class="">
-                                        {{ trans('messages.Tasks') }}
+                                        {{ __('dictionary.Tasks') }}
                                     </h5>
                                 </div>
                                 <div class="col-auto d-flex justify-content-end">
@@ -182,41 +184,28 @@
                                                 <td>
                                                     <div class="font-14 my-1"><a
                                                             href="{{ route('projects.task.board', [$currentWorkspace->slug, $task->project_id]) }}"
-                                                            class="text-body">{{ $task->title }}</a></div>
+                                                            class="text-body">{{ $taskTypes[$task->type_id]['name'] }}</a>
+                                                    </div>
 
                                                     @php($due_date = '<span class="text-' . ($task->estimated_date < date('Y-m-d') ? 'danger' : 'success') . '">' . date('Y-m-d', strtotime($task->estimated_date)) . '</span> ')
-
+                                                    {{-- Se debe mostrar la fecha de finalizacion que pone el tecnico --}}
                                                     <span class="text-muted font-13">{{ __('Due Date') }} :
                                                         {!! $due_date !!}</span>
-                                                </td>
-                                                <td>
-                                                    <span class="text-muted font-13">{{ trans('messages.Status') }}</span>
-                                                    <br />
-                                                    @if ($task->complete == '1')
-                                                        <span
-                                                            class="status_badge_dash badge bg-success p-2 px-3 rounded">{{ __($task->status) }}</span>
-                                                    @else
-                                                        <span
-                                                            class="status_badge_dash badge bg-primary p-2 px-3 rounded">{{ __($task->status) }}</span>
-                                                    @endif
                                                 </td>
                                                 <td>
                                                     <span class="text-muted font-13">{{ __('Project') }}</span>
                                                     <div class="font-14 mt-1 font-weight-normal">
                                                         {{ $task->project->name }}</div>
                                                 </td>
-
-                                                @if ($currentWorkspace->permission == 'Owner')
-                                                    <td>
-                                                        <span class="text-muted font-13">{{ __('Assigned to') }}</span>
-                                                        <div class="font-14 mt-1 font-weight-normal">
-                                                            @foreach ($task->taskUsers() as $user)
-                                                                <span
-                                                                    class="badge p-2 px-2 rounded bg-secondary">{{ isset($tasksUsers[$user]) ? $tasksUsers[$user] : '-' }}</span>
-                                                            @endforeach
-                                                        </div>
-                                                    </td>
-                                                @endif
+                                                <td>
+                                                    <span class="text-muted font-13">{{ __('Assigned to') }}</span>
+                                                    <div class="font-14 mt-1 font-weight-normal">
+                                                        @foreach ($task->users() as $user)
+                                                            <span
+                                                                class="badge p-2 px-2 rounded bg-secondary">{{ $user->name }}</span>
+                                                        @endforeach
+                                                    </div>
+                                                </td>
                                             </tr>
                                         @endforeach
                                     </tbody>
@@ -225,8 +214,6 @@
                         </div>
                     </div>
                 </div>
-
-
                 <div class="col-lg-5 col-md-5 ">
                     <div class="card">
                         <div class="card-header">
@@ -237,14 +224,12 @@
                             <div id="task-area-chart"></div>
                         </div>
                     </div>
-
                     <div class="card">
                         <div class="card-header">
                             <div class="float-end">
                                 <a href="#" data-bs-toggle="tooltip" data-bs-placement="top" title="Refferals"><i
                                         class=""></i></a>
                             </div>
-
                             <h5>{{ __('Project Status') }}</h5>
                         </div>
                         <div class="card-body">
@@ -256,25 +241,23 @@
                                     <div class="col-12 col-sm-10">
                                         <span class="d-flex justify-content-center align-items-center mb-2">
                                             <i class="f-10 lh-1 fas fa-circle" style="color:#545454;"></i>
-                                            <span class="ms-2 text-sm">{{ trans('messages.On_Going') }}</span>
+                                            <span class="ms-2 text-sm">On Going</span>
                                         </span>
                                     </div>
                                     <div class="col-12 col-sm-10">
                                         <span class="d-flex justify-content-center align-items-center mb-2">
                                             <i class="f-10 lh-1 fas fa-circle" style="color: #3cb8d9;"></i>
-                                            <span class="ms-2 text-sm">{{ trans('messages.On_hold') }}</span>
+                                            <span class="ms-2 text-sm">On Hold</span>
                                         </span>
                                     </div>
                                     <div class="col-12 col-sm-10">
                                         <span class="d-flex justify-content-center align-items-center mb-2">
                                             <i class="f-10 lh-1 fas fa-circle" style="color: #6095c1; "></i>
-                                            <span class="ms-2 text-sm">{{ trans('messages.Finished') }}</span>
+                                            <span class="ms-2 text-sm">Finished</span>
                                         </span>
                                     </div>
                                 </div>
-
                                 <div class="row text-center">
-
                                     @foreach ($arrProcessPer as $index => $value)
                                         <div class="col-4">
                                             <i class="fas fa-chart {{ $arrProcessClass[$index] }}  h3"></i>
@@ -306,12 +289,10 @@
         @endif
     </section>
 @endsection
-
-
 @push('scripts')
     <script src="{{ asset('assets/custom/js/apexcharts.min.js') }}"></script>
 
-    @if (Auth::user()->type == 'admin' || Auth::user()->type == 'user' || Auth::user()->type == 'client' /**/)
+    @if (Auth::user()->type == 'admin')
     @elseif(isset($currentWorkspace) && $currentWorkspace)
         <script>
             (function() {
@@ -348,7 +329,7 @@
                         show: false
                     }
                 };
-                var chart = new ApexCharts(document.querySelector("#projects-chart"), options);
+                var chart = new ApexCharts(document.querySelector("#project-status-chart"), options);
                 chart.render();
             })();
 
@@ -361,8 +342,8 @@
                 series: {!! json_encode($arrProcessPer) !!},
 
                 chart: {
-                    height: '350px',
-                    width: '450px',
+                    height: '300px',
+                    width: '400px',
                     type: 'pie',
                 },
                 colors: ["#00B8D9", "#36B37E", "#2359ee"],
@@ -370,11 +351,12 @@
 
                 plotOptions: {
                     pie: {
-                        dataLabels: {
-                            offset: -5
+                        donut: {
+                            size: '70%',
                         }
                     }
                 },
+
                 title: {
                     text: ""
                 },
@@ -384,14 +366,12 @@
                 },
 
             };
-            var projectStatusChart = new ApexCharts(document.querySelector("#project-status-chart"), projectStatusOptions);
+            var projectStatusChart = new ApexCharts(document.querySelector("#projects-chart"), projectStatusOptions);
             projectStatusChart.render();
         </script>
     @endif
-
-
     <script src="{{ asset('assets/js/plugins/apexcharts.min.js') }}"></script>
-    @if (Auth::user()->type == 'admin' /*|| Auth::user()->type == 'user'  || Auth::user()->type == 'client' */)
+    @if (Auth::user()->type == 'admin')
         <script>
             (function() {
                 var options = {

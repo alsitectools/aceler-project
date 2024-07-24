@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\ClientProject;
 use App\Models\Stage;
 use App\Models\Task;
+use App\Models\TaskType;
 use App\Models\User;
 use App\Models\UserProject;
 use App\Models\UserWorkspace;
@@ -21,17 +22,11 @@ class HomeController extends Controller
         if (!file_exists(storage_path() . "/installed")) {
             header('location:install');
             die;
+        } else {
+
+            return redirect('login');
         }
         $setting = Utility::getAdminPaymentSettings();
-
-        // if ($setting['display_landing'] == 'on'  && Schema::hasTable('landing_page_settings')) {
-
-        //     return view('landingpage::layouts.landingpage');
-        //     // return view('layouts.landing');
-
-        // } else {
-            return redirect('login');
-        // }
     }
     public function LoginWithAdmin(Request $request, User $user,  $id)
     {
@@ -47,7 +42,7 @@ class HomeController extends Controller
 
     public function ExitAdmin(Request $request)
     {
-        Auth::user()->leaveImpersonation($request->user());
+        \Auth::user()->leaveImpersonation($request->user());
         return redirect('/home');
     }
 
@@ -56,7 +51,7 @@ class HomeController extends Controller
         $userObj = Auth::user();
         if ($userObj->type == 'admin') {
             $users = User::select('users.*')->join('user_workspaces', 'user_workspaces.user_id', '=', 'users.id')
-                ->where('user_workspaces.permission', '=', 'Owner')->distinct()->get();
+                ->where('user_workspaces.permission', '=', 'Member')->distinct()->get();
             return view('users.index', compact('users'));
         }
 
@@ -147,7 +142,8 @@ class HomeController extends Controller
                 // ->orderBy('tasks.id', 'desc')->with('project')->limit(5)->get();
             }
 
-            $totalMembers = UserWorkspace::where('workspace_id', '=', $currentWorkspace->id)->count();
+            $totalTechni = User::where('currant_workspace', '=', $currentWorkspace->id)->where('type','=','user')->count();
+            $totalSales = User::where('currant_workspace', '=', $currentWorkspace->id)->where('type','=','client')->count();
 
             $projectProcess = UserProject::join("projects", "projects.id", "=", "user_projects.project_id")
                 ->where("user_id", "=", $userObj->id)
@@ -194,7 +190,25 @@ class HomeController extends Controller
                 ->pluck('name', 'id')
                 ->toArray();
 
-            return view('home', compact('currentWorkspace', 'totalProject', 'totalBugs', 'totalTask', 'totalMembers', 'arrProcessLabel', 'arrProcessPer', 'arrProcessClass', 'completeTask', 'tasks', 'chartData', 'tasksUsers'));
+            $taskTypes = TaskType::all()->toArray();
+
+            return view('home', compact(
+                'currentWorkspace',
+                'totalProject',
+                'totalBugs',
+                'totalTask',
+                'totalTechni',
+                'totalSales',
+                'arrProcessLabel',
+                'arrProcessPer',
+                'arrProcessClass',
+                'completeTask',
+                'tasks',
+                'chartData',
+                'tasksUsers',
+                'taskTypes'
+            ));
+
             // }
         } else {
             return view('home', compact('currentWorkspace'));
