@@ -101,6 +101,8 @@
                 <li class="dropdown dash-h-item drp-company">
                     <a class="dash-head-link dropdown-toggle arrow-none me-0" data-bs-toggle="dropdown" href="#"
                         role="button" aria-haspopup="false" aria-expanded="false">
+                        {{-- <img src="{{ \App\Utils\Utility::get_file($this->user->avatar) }}" alt="{{ $this->user->name }}" class="rounded-full h-20 w-20 object-cover"> --}}
+                   
                         <img class="theme-avtar"
                             @if (\Auth::user()->avatar) src="{{ asset($logo . Auth::user()->avatar) }}" @else avatar="{{ Auth::user()->name }}" @endif
                             alt="{{ Auth::user()->name }}">

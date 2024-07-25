@@ -1828,7 +1828,6 @@ class ProjectController extends Controller
 
             return redirect()->back()->with('error', $messages->first());
         }
-
         $project = Project::where('id', $request->project_id)
             ->where('workspace', $currentWorkspace->id)
             ->first();

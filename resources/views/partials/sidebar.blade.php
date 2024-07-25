@@ -91,13 +91,13 @@
                     <li class="dash-item {{ Request::route()->getName() == 'tasks.index' ? ' active' : '' }}">
                         <a href="{{ route('tasks.index', $currentWorkspace->slug) }}" class="dash-link ">
                             <span class="dash-micon"><i data-feather="list"></i></span><span
-                                class="dash-mtext">{{ trans('messages.Tasks') }}</span></a>
+                                class="dash-mtext">{{ trans('Encargos') }}</span></a>
                     </li>
 
                     <li class="dash-item {{ Request::route()->getName() == 'timesheet.index' ? ' active' : '' }}">
                         <a href="{{ route('timesheet.index', $currentWorkspace->slug) }}" class="dash-link ">
                             <span class="dash-micon"><i data-feather="clock"></i></span><span
-                                class="dash-mtext">{{ trans('messages.Timesheets') }}</span></a>
+                                class="dash-mtext">{{ trans('messages.Tasks') }}</span></a>
                     </li>
 
 
@@ -135,7 +135,7 @@
                     </li>
 
                 @endif
-                @if (isset($currentWorkspace) && $currentWorkspace)
+                {{-- @if (isset($currentWorkspace) && $currentWorkspace)
                     @auth('web')
                         <li
                             class="dash-item {{ Request::route()->getName() == 'project_report.index' || Request::segment(2) == 'project_report' ? ' active' : '' }}">
@@ -144,7 +144,7 @@
                                     class="dash-mtext">{{ __('Project Report') }}</span></a>
                         </li>
                     @endauth
-                @endif
+                @endif --}}
                 {{-- colorAlsina #AA182C --}}
                 @if (\Auth::user()->type == 'admin')
                     <li class="dash-item {{ Request::route()->getName() == 'workspace.settings' ? ' active' : '' }}">
