@@ -64,7 +64,10 @@
                                 <a href="{{ route('password.request', $lang) }}"
                                     tabindex="0">{{ trans('dictionary.Forgot_Password?') }}</a>
                             </span>
+
                         </div>
+
+                        <a href="{{ route('azure.login') }}">{{ __('dictionary.Login_azure') }}</a>
 
                         @if ($setting['recaptcha_module'] == 'on')
                             <div class="form-group col-lg-12 col-md-12 mt-3">
@@ -76,28 +79,18 @@
                                 @enderror
                             </div>
                         @endif
-                        {{-- <a href="{{ route('azure.login') }}" class="btn btn-primary btn-block mt-2 officeButton"
-                            style="color: white">{{ __('Login Azure') }}</a> --}}
-                            {{-- <i class="fa-brands fa-windows" style="color: #aa182c;"> </i> --}}
+
                         <div class="d-grid">
                             <button type="submit" id="login_button"
                                 class="btn btn-primary btn-block mt-2">{{ __('Login') }}</button>
+
                         </div>
                         <p class="my-4 text-center">{{ __('dictionary.DontAccount?') }}
                             <a href="#" onclick="mostrarMensaje(event)" class="my-4 text-center text-primary">
                                 {{ __('dictionary.SignUp') }}</a>
                         </p>
-                        {{-- <p class="my-4 text-center">{{ __('dictionary.DontAccount?') }}
-                            <a href="{{ route('register', $lang) }}" class="my-4 text-center text-primary">
-                                {{ __('dictionary.SignUp') }}</a>
-                        </p> --}}
                     </div>
                 </form>
-                {{-- <div class="d-grid mt-3">
-                    <button type="button" id="" class="btn btn-primary btn-block  "><a
-                            href="{{ route('client.login', $lang) }}" class="" style="color:#fff">
-                            {{ __('Client Login') }}</a></button>
-                 --}}
             </div>
         @endsection
         @push('custom-scripts')

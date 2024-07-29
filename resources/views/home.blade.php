@@ -159,7 +159,7 @@
                             </div>
                         </div>
                     </div>
-                    <div class="card ">
+                    {{-- <div class="card ">
                         <div class="card-header">
                             <div class="row">
                                 <div class="col-9">
@@ -188,7 +188,7 @@
                                                     </div>
 
                                                     @php($due_date = '<span class="text-' . ($task->estimated_date < date('Y-m-d') ? 'danger' : 'success') . '">' . date('Y-m-d', strtotime($task->estimated_date)) . '</span> ')
-                                                    {{-- Se debe mostrar la fecha de finalizacion que pone el tecnico --}}
+                                               
                                                     <span class="text-muted font-13">{{ __('Due Date') }} :
                                                         {!! $due_date !!}</span>
                                                 </td>
@@ -212,9 +212,9 @@
                                 </table>
                             </div>
                         </div>
-                    </div>
+                    </div> --}}
                 </div>
-                <div class="col-lg-5 col-md-5 ">
+                {{-- <div class="col-lg-5 col-md-5 ">
                     <div class="card">
                         <div class="card-header">
                             <h5>{{ trans('messages.Tasks_Overview') }}</h5>
@@ -272,7 +272,7 @@
                             </div>
                         </div>
                     </div>
-                </div>
+                </div> --}}
             </div>
         @else
             <div class="row">

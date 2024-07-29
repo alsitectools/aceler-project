@@ -473,7 +473,7 @@ class ProjectController extends Controller
 
         // Prepare the result array
         $arrTask = [
-            'label' => array_map(fn($date) => ucfirst(Carbon::parse($date)->isoFormat('ddd')), array_keys($taskCounts)),
+            'label' => array_map(fn ($date) => ucfirst(Carbon::parse($date)->isoFormat('ddd')), array_keys($taskCounts)),
             'stages' => $stageNames,
             'color' => $stageColors,
         ];
@@ -696,34 +696,52 @@ class ProjectController extends Controller
 
 
     //================================ MILESTONE BOARD ===================================//
-    public function milestoneBoard($slug, $projectID)
+    public function milestoneBoard($slug, $projectID = null)
     {
+
+        // dd($slug, $id); // Esto imprimirá los valores recibidos
+        // // Resto del código
+
+
         $currentWorkspace = Utility::getWorkspaceBySlug($slug);
         $objUser = Auth::user();
-        $project = Project::select('projects.*')
-            ->join('user_projects', 'projects.id', '=', 'user_projects.project_id')
-            ->where('projects.workspace', '=', $currentWorkspace->id)
-            ->where('projects.id', '=', $projectID)->first();
 
-        if ($objUser && $currentWorkspace) {
+        if ($currentWorkspace && $projectID != -1) {
+            $project_id = PRoject::find($projectID);
+
+            $projects = Project::select('projects.*')
+                ->join('user_projects', 'projects.id', '=', 'user_projects.project_id')
+                ->where('projects.workspace', '=', $currentWorkspace->id)
+                ->where('projects.id', '=', $project_id)->first();
+
+
             //guardo los milestone de ese proyecto
             $milestones = Milestone::select('milestones.*')
                 ->join('projects', 'milestones.project_id', '=', 'projects.id')
                 ->where('projects.workspace', '=', $currentWorkspace->id)
-                ->where('projects.id', '=', $projectID)->get();
+                ->where('projects.id', '=', $project_id)->get();
 
-            if ($milestones) {
 
-                //guardo tas tareas de todo el proyecto 
-                $tasks = Task::select('tasks.*')->where('project_id', '=', $projectID)->get();
+            //guardo tas tareas de todo el proyecto 
+            $tasks = Task::select('tasks.*')->where('project_id', '=', $projectID)->get();
 
-                return view('projects.milestoneboard', compact('currentWorkspace', 'project', 'milestones', 'tasks'));
-            } else {
-
-                return redirect()->back()->with('error', __('Milestone Not Found.'));
-            }
+            return view('project.milestone.board', compact('currentWorkspace', 'project', 'milestones', 'tasks'));
         } else {
-            return redirect()->back()->with('error', __('Workspace Not Found.'));
+            $project_id = -1;
+
+            $projects = Project::select('projects.*')
+                ->join('user_projects', 'projects.id', '=', 'user_projects.project_id')
+                ->where('projects.workspace', '=', $currentWorkspace->id)
+                ->where('user_projects.user_id', '=', $objUser->id)->get();
+
+            $milestones = Milestone::select('milestones.*')
+                ->join('projects', 'milestones.project_id', '=', 'projects.id')
+                ->where('projects.workspace', '=', $currentWorkspace->id)
+                ->where('user_projects.user_id', '=', $objUser->id)->get();
+
+            $tasks = Task::select('tasks.*')->where('assign_to', '=', $objUser->id)->get();
+
+            return view('milestones.board', compact('currentWorkspace', 'project_id', 'projects', 'milestones', 'tasks'));
         }
     }
     //===================================================================================//

@@ -15,21 +15,19 @@
 @section('links')
     <li class="breadcrumb-item"><a href="{{ route('projects.index', $currentWorkspace->slug) }}">{{ __('Project') }}</a>
     </li>
-    <li class="breadcrumb-item"><a
-            href="{{ route('projects.show', [$currentWorkspace->slug, $project->id]) }}">{{ __('Project Details') }}</a>
-    </li>
+    @if (isset($project))
+        <li class="breadcrumb-item"><a
+                href="{{ route('projects.show', [$currentWorkspace->slug, $project->id]) }}">{{ __('Project Details') }}</a>
+        </li>
+    @endif
     <li class="breadcrumb-item">{{ __('messages.Milestone_Board') }}</li>
-
 @endsection
-
-
 @section('action-button')
     <a href="{{ route('projects.show', [$currentWorkspace->slug, $project->id]) }}"
         class="btn-submit btn btn-sm btn-primary mx-1" data-toggle="tooltip" title="{{ __('Back') }}">
         <i class=" ti ti-arrow-back-up"></i>
     </a>
-@endsection
-
+@endsection1
 @section('content')
     <section class="section">
         @if ($project && $currentWorkspace)
@@ -124,7 +122,7 @@
                                                 </div>
                                                 {{-- No devuelve las tareas porque en las migraciones cambiaron las querys
                                                 <div class="user-group d-flex justify-content-end" style="margin: 10px;">
-                                                    @if ( $usersAssignedToTask = $tasks->taskUsers())
+                                                    @if ($usersAssignedToTask = $tasks->taskUsers())
                                                         @foreach ($usersAssignedToTask as $key => $user)
                                                             @if ($key < 3)
                                                                 <a href="#" class="img_group">

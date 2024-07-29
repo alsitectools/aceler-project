@@ -39,10 +39,11 @@
         $SITE_RTL = 'on';
     }
 
-    \Carbon\Carbon::setLocale('es');
+    $lang = app()->getLocale();
+    // En conde su usa calendario traduce los dias
+    \Carbon\Carbon::setLocale($lang);
 
 @endphp
-{{-- <html lang="{{ str_replace('_', '-', app()->getLocale()) }}" dir="{{ $SITE_RTL == 'on' ? 'rtl' : '' }}"> --}}
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 
 <head>
@@ -162,16 +163,10 @@
     } */
 
     /* ----------------------------------------------------- */
-
-
     [dir="rtl"] .dash-sidebar {
         left: auto !important;
     }
 
-    /* [dir="rtl"] .dash-header {
-    left: 0;
-    right: 280px;
-} */
     [dir="rtl"] .dash-header:not(.transprent-bg) .header-wrapper {
         padding: 0 0 0 30px;
     }
@@ -203,7 +198,9 @@
         float: left !important;
     }
 </style>
-
+{{-- --------- CHATBOT ------------ --}}
+@include('layouts.chatbot');
+{{-- ---------------------------- --}}
 
 <body class="{{ $color }}">
 
@@ -213,8 +210,6 @@
             <div class="loader-fill"></div>
         </div>
     </div>
-
-    <!-- <div class="container-fluid container-application"> -->
     @if (Auth::user()->getGuard() == 'client')
         <input type="hidden" id="path_admin"
             value="{{ url(isset($currentWorkspace) ? 'client/' . $currentWorkspace->slug : '') }}">
@@ -290,6 +285,7 @@
         </div>
     </div>
 
+
     @if (Auth::user()->type == 'admin')
         <div class="modal fade" id="modelCreateWorkspace" tabindex="-1" role="dialog"
             aria-labelledby="exampleModalLabel" aria-hidden="true">
@@ -315,7 +311,6 @@
                         <div class="modal-footer">
                             <button type="button" class="btn  btn-light text-end"
                                 data-dismiss="modal">{{ __('Close') }}</button>
-                            <!-- <button type="button" class="btn  btn-light" data-bs-dismiss="modal">{{ __('Close') }}</button> -->
                             <input type="submit" value="{{ __('Create') }}" class="btn  btn-primary">
                         </div>
 
@@ -483,9 +478,9 @@
 
                     var pusher = new Pusher(
                         '{{ env('
-                                                                                                                                                                                                                                                                                                        PUSHER_APP_KEY ') }}', {
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        PUSHER_APP_KEY ') }}', {
                             cluster: '{{ env('
-                                                                                                                                                                                                                                                                                                                                                            PUSHER_APP_CLUSTER ') }}',
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            PUSHER_APP_CLUSTER ') }}',
                             forceTLS: true
                         });
 
@@ -507,7 +502,7 @@
                 function getChat() {
                     $.ajax({
                         url: '{{ route('
-                                                                                                                                                                                                                                                                                                                message.data ') }}',
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                message.data ') }}',
                         cache: false,
                         dataType: 'html',
                         success: function(data) {
@@ -526,7 +521,7 @@
                     $.ajax({
                         url: '{{ route(
                             '
-                                                                                                                                                                                                                                                                                                                notification.seen ',
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                notification.seen ',
                             $currentWorkspace->slug,
                         ) }}',
                         type: "get",
@@ -541,7 +536,7 @@
                     $.ajax({
                         url: '{{ route(
                             '
-                                                                                                                                                                                                                                                                                                                message.seen ',
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                message.seen ',
                             $currentWorkspace->slug,
                         ) }}',
                         type: "get",
@@ -649,48 +644,31 @@
         var date_picker_locale = {
             format: 'YYYY-MM-DD',
             daysOfWeek: [
-                "{{ trans('messages.Sun') }}", "{{ trans('messages.Mon') }}", "{{ trans('messages.Tue') }}",
-                "{{ trans('messages.Wed') }}", "{{ trans('messages.Thu') }}", "{{ trans('messages.Fri') }}",
-                "{{ trans('messages.Sat') }}"
+                "{{ __('Sun') }}", "{{ __('Mon') }}", "{{ __('Tue') }}",
+                "{{ __('Wed') }}", "{{ __('Thu') }}", "{{ __('Fri') }}",
+                "{{ __('Sat') }}"
             ],
             monthNames: [
-                '{{ trans('
-                                                                                                                                                                                                                messages.January ') }}',
-                '{{ trans('
-                                                                                                                                                                                                                messages.February ') }}',
-                ' {{ trans('
-                                                                                                                                                                                                                messages.March ') }}',
-                '{{ trans('
-                                                                                                                                                                                                                messages.April ') }}',
-                '{{ trans('
-                                                                                                                                                                                                                messages.May ') }}',
-                '{{ trans('
-                                                                                                                                                                                                                messages.June ') }}',
-                '{{ trans('
-                                                                                                                                                                                                                messages.July ') }}',
-                '{{ trans('
-                                                                                                                                                                                                                messages.August ') }}',
-                '{{ trans('
-                                                                                                                                                                                                                messages.September ') }}',
-                '{{ trans('
-                                                                                                                                                                                                                messages.October ') }}',
-                '{{ trans('
-                                                                                                                                                                                                                messages.November ') }}',
-                ' {{ trans('
-                                                                                                                                                                                                                messages.December ') }}'
+                '{{ __('January') }}',
+                '{{ __('February ') }}',
+                ' {{ __('March ') }}',
+                '{{ __('April ') }}',
+                '{{ __('May ') }}',
+                '{{ __('June ') }}',
+                '{{ __('July ') }}',
+                '{{ __('August ') }}',
+                '{{ __('September ') }}',
+                '{{ __('October ') }}',
+                '{{ __('November ') }}',
+                ' {{ __('December ') }}'
             ],
         };
         var calender_header = {
-            today: '{{ __('
-                                                                                                                                                            today ') }}',
-            month: '{{ __('
-                                                                                                                                                            month ') }}',
-            week: '{{ __('
-                                                                                                                                                            week ') }}',
-            day: '{{ __('
-                                                                                                                                                            day ') }}',
-            list: '{{ __('
-                                                                                                                                                            list ') }}'
+            today: '{{ __('today ') }}',
+            month: '{{ __(' month ') }}',
+            week: '{{ __('week ') }}',
+            day: '{{ __(' day ') }}',
+            list: '{{ __('list ') }}'
         };
     </script>
 
@@ -790,9 +768,9 @@
         <script>
             show_toastr(
                 '{{ __('
-                                                                                                                                                                                    Success ') }}',
+                                                                                                                                                                                                                                                                                                                                                                                    Success ') }}',
                 '{!! session('
-                                                                                                                                                                                            success ') !!}',
+                                                                                                                                                                                                                                                                                                                                                                                            success ') !!}',
                 'success');
         </script>
     @endif
@@ -800,9 +778,9 @@
         <script>
             show_toastr(
                 '{{ __('
-                                                                                                                                                                                    Error ') }}',
+                                                                                                                                                                                                                                                                                                                                                                                    Error ') }}',
                 '{!! session('
-                                                                                                                                                                                            error ') !!}',
+                                                                                                                                                                                                                                                                                                                                                                                            error ') !!}',
                 'error');
         </script>
     @endif

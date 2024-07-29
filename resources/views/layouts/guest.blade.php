@@ -28,6 +28,10 @@
     $logo = \App\Models\Utility::get_file('logo/');
     use App\Models\Utility;
 @endphp
+{{----------- CHATBOT --------------}}
+@include('layouts.chatbot');
+{{-- ---------------------------- --}}
+
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}" dir="{{ $SITE_RTL == 'on' ? 'rtl' : '' }}">
 

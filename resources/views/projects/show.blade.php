@@ -29,25 +29,17 @@
     @if (
         (isset($currentWorkspace) && $currentWorkspace->permission == 'Member') ||
             (isset($currentWorkspace) && $currentWorkspace->permission == 'Owner'))
-        <div class="col-md-auto col-sm-4 pb-3">
-            <a href="{{ route('projects.timesheet.index', [$currentWorkspace->slug, $project->id]) }}"
-                class="btn btn-xs btn-primary btn-icon-only col-12 ">{{ trans('messages.Timesheet') }}</a>
-        </div>
-    @endif
-
-    @if (
-        (isset($currentWorkspace) && $currentWorkspace->permission == 'Member') ||
-            (isset($currentWorkspace) && $currentWorkspace->permission == 'Owner'))
-        <div class="col-md-auto col-sm-4 pb-3">
+        <div class="col-lg-auto pb-3">
             <a href="{{ route('projects.milestone.board', [$currentWorkspace->slug, $project->id]) }}"
-                class="btn btn-xs btn-primary btn-icon-only col-12 ">{{ trans('messages.Milestone_Board') }}</a>
+                class="btn btn-primary" title="{{ __('Milestones') }}"><i class="fas fa-tasks text-white"
+                    style="padding-right: 10px"></i>{{ __('Milestones') }}</a>
+        </div>
+        <div class="col-lg-auto pb-3">
+            <a href="{{ route('projects.timesheet.index', [$currentWorkspace->slug, $project->id]) }}"
+                class="btn btn-primary" title="{{ __('dictionary.Tasks') }}"><i class="fa-solid fa-thumbtack text-white"
+                    style="padding-right: 10px"></i>{{ __('dictionary.Tasks') }}</a>
         </div>
     @endif
-
-    <div class="col-md-auto col-sm-6 pb-3">
-        <a href="{{ route('projecttime.tracker', [$currentWorkspace->slug, $project->id]) }}"
-            class="btn btn-xs btn-primary btn-icon-only col-12 ">{{ trans('messages.Tracker') }}</a>
-    </div>
 @endsection
 
 <style type="text/css">
@@ -577,26 +569,10 @@
                                                         <span
                                                             class="timeline-step timeline-step-sm border border-success text-white">
                                                             <i class="fas fa-tasks"></i></span>
-                                                    @elseif($activity->log_type == 'Create Bug')
-                                                        <span
-                                                            class="timeline-step timeline-step-sm border border-warning text-white">
-                                                            <i class="fas fa-bug"></i></span>
-                                                    @elseif($activity->log_type == 'Move' || $activity->log_type == 'Move Bug')
-                                                        <span
-                                                            class="timeline-step timeline-step-sm border round border-danger text-white">
-                                                            <i class="fas fa-align-justify"></i></span>
-                                                    @elseif($activity->log_type == 'Create Invoice')
-                                                        <span
-                                                            class="timeline-step timeline-step-sm border border-bg-dark text-white">
-                                                            <i class="fas fa-file-invoice"></i></span>
                                                     @elseif($activity->log_type == 'Invite User')
                                                         <span
                                                             class="timeline-step timeline-step-sm border border-success text-white">
                                                             <i class="fas fa-plus"></i></span>
-                                                    @elseif($activity->log_type == 'Share with Client')
-                                                        <span
-                                                            class="timeline-step timeline-step-sm border border-info text-white">
-                                                            <i class="fas fa-share"></i></span>
                                                     @elseif($activity->log_type == 'Create Timesheet')
                                                         <span
                                                             class="timeline-step timeline-step-sm border border-success text-white">
@@ -633,16 +609,11 @@
     </div>
 @endsection
 
-{{-- @dd(filesize('storage/logo/1_logo-light.png' )) --}}
-
 @push('css-page')
     <link rel="stylesheet" href="{{ asset('assets/custom/css/dropzone.min.css') }}">
 @endpush
 @push('scripts')
-    <!--
-                                                                                                                                    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
-
-                                                                                                                                     -->
+    <!-- <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script> -->
     <script src="{{ asset('assets/js/plugins/apexcharts.min.js') }}"></script>
     <script>
         (function() {

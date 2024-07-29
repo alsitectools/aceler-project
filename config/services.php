@@ -45,5 +45,14 @@ return [
         'secret' => '',
         'url' => 'https://sandbox.cashfree.com/pg/orders',
     ],
+    
+    'azure' => [
+        'client_id' => env('AZURE_CLIENT_ID'),
+        'redirect' => env('AZURE_REDIRECT_URI'),
+        'authority' => env('AZURE_AUTHORITY'),
+        'post_logout_redirect_uri' => env('AZURE_POST_LOGOUT_REDIRECT_URI'),
+        'navigate_to_login_request_url' => env('AZURE_NAVIGATE_TO_LOGIN_REQUEST_URL', true),
+    ],
+
 
 ];

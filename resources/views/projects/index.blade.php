@@ -15,42 +15,35 @@
     $logo = \App\Models\Utility::get_file('avatars/');
 @endphp
 @section('action-button')
-    @auth('web')
-        <a href="{{ route('project.export') }}" class="btn btn-sm btn-primary " data-toggle="tooltip" title="{{ __('Export') }}">
-            <i class="ti ti-file-x"></i></a>
-
-        <a href="#" class="btn btn-sm btn-primary mx-1" data-ajax-popup="true" data-title="{{ __('Import Project') }}"
-            data-url="{{ route('project.file.import', $currentWorkspace->slug) }}" data-toggle="tooltip"
-            title="{{ __('Import') }}"><i class="ti ti-file-import"></i> </a>
-    @endauth
+    @if ($projects && $currentWorkspace)
+        <div class="row mb-2">
+            <div class="col-xl-12 col-lg-12 col-md-12 col-12 d-flex align-items-center justify-content-end">
+                <div class="text-sm-right status-filter">
+                    <div class="btn-group mb-3">
+                        <button type="button" class="btn btn-light  text-white btn_tab  bg-primary active" data-filter="*"
+                            data-status="All">{{ __('All') }}</button>
+                        <button type="button" class="btn btn-light bg-primary text-white btn_tab"
+                            data-filter=".Ongoing">{{ __('Ongoing') }}</button>
+                        <button type="button" class="btn btn-light bg-primary text-white btn_tab"
+                            data-filter=".Finished">{{ __('Finished') }}</button>
+                        <button type="button" class="btn btn-light bg-primary text-white btn_tab"
+                            data-filter=".OnHold">{{ __('OnHold') }}</button>
+                    </div>
+                </div>
+            </div><!-- end col-->
+        </div>
+    @endif
 @endsection
 @section('content')
     <section class="section">
         @if ($projects && $currentWorkspace)
-            <div class="row mb-2">
-                <div class="col-xl-12 col-lg-12 col-md-12 col-12 d-flex align-items-center justify-content-end">
-                    <div class="text-sm-right status-filter">
-                        <div class="btn-group mb-3">
-                            <button type="button" class="btn btn-light  text-white btn_tab  bg-primary active"
-                                data-filter="*" data-status="All">{{ __('All') }}</button>
-                            <button type="button" class="btn btn-light bg-primary text-white btn_tab"
-                                data-filter=".Ongoing">{{ __('Ongoing') }}</button>
-                            <button type="button" class="btn btn-light bg-primary text-white btn_tab"
-                                data-filter=".Finished">{{ __('Finished') }}</button>
-                            <button type="button" class="btn btn-light bg-primary text-white btn_tab"
-                                data-filter=".OnHold">{{ __('OnHold') }}</button>
-                        </div>
-                    </div>
-                </div><!-- end col-->
-            </div>
-
             <div class="filters-content">
                 <div class="row grid">
                     @foreach ($projects as $project)
                         <div class="col-xl-3 col-lg-4 col-sm-6 All {{ $project->status }}">
                             <div class="card">
                                 <div class="card-header border-0 pb-0">
-                                     <div class="d-flex align-items-center" {{--style="min-width: 100px;" --}}>
+                                    <div class="d-flex align-items-center" style="min-width: 100px;">
                                         @if ($project->is_active)
                                             <a href="@auth('web'){{ route('projects.show', [$currentWorkspace->slug, $project->id]) }}@endauth"
                                                 class="" data-toggle="tooltip" title="{{ $project->name }}">

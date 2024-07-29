@@ -135,5 +135,7 @@ return [
     'terms' => 'Terms and Conditions',
     'privacy' => 'Privacy Policy',
     'Total_sales' => 'Total Sales manager',
+    'Summary' =>'Summary',
+    'Login_azure' => 'Login Azure',
 
 ];

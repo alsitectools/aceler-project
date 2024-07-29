@@ -138,4 +138,6 @@ return [
     'terms' => 'Términos y condiciones',
     'privacy' => 'Política de privacidad',
     'Total_sales' => 'Comerciales',
+    'Summary' => 'Resumen',
+    'Login_azure' => 'Iniciar sesión con Azure',
 ];

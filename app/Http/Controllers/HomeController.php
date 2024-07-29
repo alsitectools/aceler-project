@@ -142,8 +142,8 @@ class HomeController extends Controller
                 // ->orderBy('tasks.id', 'desc')->with('project')->limit(5)->get();
             }
 
-            $totalTechni = User::where('currant_workspace', '=', $currentWorkspace->id)->where('type','=','user')->count();
-            $totalSales = User::where('currant_workspace', '=', $currentWorkspace->id)->where('type','=','client')->count();
+            $totalTechni = User::where('currant_workspace', '=', $currentWorkspace->id)->where('type', '=', 'user')->count();
+            $totalSales = User::where('currant_workspace', '=', $currentWorkspace->id)->where('type', '=', 'client')->count();
 
             $projectProcess = UserProject::join("projects", "projects.id", "=", "user_projects.project_id")
                 ->where("user_id", "=", $userObj->id)

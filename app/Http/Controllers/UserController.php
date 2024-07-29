@@ -240,6 +240,7 @@ class UserController extends Controller
         $currentWorkspace = Utility::getWorkspaceBySlug($slug);
 
         if ($currentWorkspace) {
+            //añadido
             $users =  User::where('currant_workspace','=',$currentWorkspace->id)->where('type','=','user');
 
             // $users = User::select('users.*', 'user_workspaces.permission', 'user_workspaces.is_active')
@@ -248,9 +249,9 @@ class UserController extends Controller
             // $users->where('type', 'user')/*->orWhere('type', 'admin') */;
              $users = $users->get();
         } else {
+            //añadido
             $users = User::select('users.*')->join('user_workspaces', 'user_workspaces.user_id', '=', 'users.id')
                 ->where('user_workspaces.permission', '=', 'Owner')->distinct()->get();
-            // $users = User::where('type', '!=', 'admin')->get();
         }
 
         return view('users.index', compact('currentWorkspace', 'users'));
