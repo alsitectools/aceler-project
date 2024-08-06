@@ -68,7 +68,7 @@
 </style>
 <header class="dash-header {{ isset($cust_theme_bg) && $cust_theme_bg == 'on' ? 'transprent-bg' : '' }}">
 
-    <div class="header-wrapper">
+    <div class="header-wrapper p-0">
         <div class="dash-mob-drp">
             <ul class="list-unstyled">
                 <li class="dash-h-item mob-hamburger">

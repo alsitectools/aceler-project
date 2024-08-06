@@ -199,7 +199,7 @@
     }
 </style>
 {{-- --------- CHATBOT ------------ --}}
-@include('layouts.chatbot');
+@include('layouts.chatbot')
 {{-- ---------------------------- --}}
 
 <body class="{{ $color }}">

@@ -13,20 +13,6 @@
                             required disabled>
                     </div>
                 </div>
-
-                {{-- <div class="col-md-4">
-                    <div class="form-group">
-                        <label for="milestone-status" class="col-form-label">{{ __('messages.Status') }}</label>
-                        <select class="form-control select2" name="status" id="milestone-status" required>
-                            <option value="incomplete" @if ($milestone->status == 'incomplete') selected @endif>
-                                {{ __('Incomplete') }}</option>
-                            <option value="complete" @if ($milestone->status == 'complete') selected @endif>
-                                {{ __('Complete') }}</option>
-                        </select>
-                    </div>
-                </div>
-            </div> --}}
-
                 <div class="row">
                     <div class="col-md-6">
                         <div class="form-group ">
@@ -41,27 +27,10 @@
                             </div>
                         </div>
                     </div>
-                    <div class="col-md-6">
-                        <div class="form-group">
-                            <label class="form-label">{{ __('messages.Desired_delivery_date') }}</label>
-                            <div class="input-group date ">
-                                <input class="form-control datepicker23" type="text" id="end_date" name="end_date"
-                                    value="{{ $milestone->end_date }}" autocomplete="off">
-                                <span class="input-group-text">
-                                    <i class="feather icon-calendar"></i>
-                                </span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-12">
-                    <div class="form-group">
-                        <select class="form-select" aria-label="Default select example">
-                            <option selected>Seleccione la tarea a realizar</option>
-                            <option value="1">T1</option>
-                            <option value="2">T2</option>
-                            <option value="3">T3</option>
-                        </select>
+                    <div class="form-group col-md-6 ">
+                        <label for="end_date" class="col-form-label">{{ __('Fecha Estimada') }}</label>
+                        <input onclick="this.showPicker()" type="date" class="form-control form-control-light date"
+                            id="end_date" value="" placeholder="{{ __('End date') }}" name="end_date" required>
                     </div>
                 </div>
                 <div class="form-group col-md-12">
@@ -100,26 +69,3 @@
         </div>
     </div>
 @endif
-
-
-<script>
-    (function() {
-        const d_week = new Datepicker(document.querySelector('.datepicker22'), {
-            buttonClass: 'btn',
-            todayBtn: true,
-            clearBtn: true,
-            format: 'yyyy-mm-dd',
-        });
-    })();
-</script>
-
-<script>
-    (function() {
-        const d_week = new Datepicker(document.querySelector('.datepicker23'), {
-            buttonClass: 'btn',
-            todayBtn: true,
-            clearBtn: true,
-            format: 'yyyy-mm-dd',
-        });
-    })();
-</script>

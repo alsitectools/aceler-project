@@ -10,7 +10,6 @@ class Milestone extends Model
         'project_id',
         'title',
         'assign_to',
-        'tasks',
         'status',
         'order',
         'start_date',
@@ -29,7 +28,6 @@ class Milestone extends Model
             ->where('tasks.milestone_id', $this->id)
             ->get();
     }
-
 
     public function milestone()
     {

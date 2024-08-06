@@ -1,6 +1,7 @@
 <?php
 return [
     'Add_Project' => 'Add Project',
+    'Project_name' => 'Project name',
     'Total_Users' => 'Total Users',
     'Total_User' => 'Total User',
     'Total_Task' => 'Total Tasks',
@@ -137,5 +138,11 @@ return [
     'Total_sales' => 'Total Sales manager',
     'Summary' =>'Summary',
     'Login_azure' => 'Login Azure',
+    'Todo' => 'To Do',
+    'In_Progress' => 'In Progress',
+    'Review' => 'Review',
+    'Done' => 'Done',
+    'End_Date' =>'End date',
+    'Edit_milestone'=>'Edit milestone',
 
 ];

@@ -44,7 +44,7 @@
         $SITE_RTL = env('SITE_RTL');
     }
 @endphp
-<nav style="padding-top: 2%;"
+<nav style="padding-top: 5px; padding-left: 5px;"
     class="dash-sidebar light-sidebar {{ isset($cust_theme_bg) && $cust_theme_bg == 'on' ? 'transprent-bg' : '' }}">
     <div class="navbar-wrapper">
         <div class="m-header main-logo">
@@ -70,17 +70,17 @@
                             <span class="dash-micon"> <i data-feather="briefcase"></i></span><span
                                 class="dash-mtext">{{ __('Projects') }}</span></a>
                     </li>
-                       {{-- si mostramos todos los proyectos enviamos -1, sino el proyecto en especifico --}}
-                    {{-- <li class="dash-item {{ Request::route()->getName() == 'milestones.board' ? ' active' : '' }}">
-                     
-                        <a href="{{ route('milestones.board', [$currentWorkspace->slug, -1]) }}" class="dash-link ">
+                    {{-- si mostramos todos los proyectos enviamos al tecnico/comercial, sino el proyecto en especifico --}}
+                    <li class="dash-item">
+                        <a href="{{ route('projects.milestone.board', [$currentWorkspace->slug, Auth::user()->id]) }}"
+                            class="dash-link ">
                             <span class="dash-micon"><i data-feather="list"></i></span><span
                                 class="dash-mtext">{{ __('Milestones') }}</span></a>
-                    </li> --}}
+                    </li>
                     {{-- @php
                     \Log::info("URL generada:", route('projects.milestone.board', [$currentWorkspace->slug, -1]));
                 @endphp --}}
-                
+
                     <li class="dash-item {{ Request::route()->getName() == 'timesheet.index' ? ' active' : '' }}">
                         <a href="{{ route('timesheet.index', $currentWorkspace->slug) }}" class="dash-link ">
                             <span class="dash-micon"><i data-feather="clock"></i></span><span

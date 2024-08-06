@@ -29,7 +29,7 @@
     use App\Models\Utility;
 @endphp
 {{----------- CHATBOT --------------}}
-@include('layouts.chatbot');
+@include('layouts.chatbot')
 {{-- ---------------------------- --}}
 
 <!DOCTYPE html>

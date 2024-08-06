@@ -123,7 +123,6 @@
                             <div class="card">
                                 <div class="card-body">
                                     <div class="theme-avtar bg-info">
-
                                         <i class="fa-solid fa-thumbtack  bg-info text-white"></i>
                                     </div>
                                     <p class="text-muted text-sm "></p>
@@ -159,7 +158,7 @@
                             </div>
                         </div>
                     </div>
-                    {{-- <div class="card ">
+                    <div class="card ">
                         <div class="card-header">
                             <div class="row">
                                 <div class="col-9">
@@ -212,7 +211,7 @@
                                 </table>
                             </div>
                         </div>
-                    </div> --}}
+                    </div>
                 </div>
                 {{-- <div class="col-lg-5 col-md-5 ">
                     <div class="card">
@@ -272,8 +271,8 @@
                             </div>
                         </div>
                     </div>
-                </div> --}}
-            </div>
+                </div>
+            </div> --}}
         @else
             <div class="row">
                 <div class="col-md-12">

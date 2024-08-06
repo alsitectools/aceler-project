@@ -22,8 +22,8 @@
                     <a id="add_task" href="#" class="btn btn-primary" data-ajax-popup="true" data-size="lg"
                         data-title="{{ __('Create New Task') }}"
                         data-url="{{ route('timesheet.create', $currentWorkspace->slug) }}" data-toggle="tooltip"
-                        title="{{ __('Add Task') }}"><i class="fa-regular fa-calendar-days"></i>
-                        {{ __(' Agregar tarea en la hoja de horas') }}</a>
+                        title="{{ __('Add Task') }}"> 
+                        {{ __('Add Task on Timesheet') }}<i class="fa-solid fa-thumbtack" style="padding-left: 10px"></i></a>
                 </div>
             @endif
         @endif

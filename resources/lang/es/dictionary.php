@@ -1,6 +1,7 @@
 <?php
 return [
     'Add_Project' => 'Añadir proyecto',
+    'Project_name' => 'Nombre del proyecto',
     'Total_Users' => 'Técnicos',
     'Total_User' => 'Técnicos',
     'Total_Task' => 'Tareas',
@@ -11,6 +12,7 @@ return [
     'Task' => 'Tarea',
     'tasks' => 'tareas',
     'Timesheets' => 'Hoja de horas',
+    'Milestone' =>'Encargo',
     'TASKS' => 'TAREAS',
     'STATUS' => 'ESTADO',
     'MEMBERS' => 'MIEMBROS',
@@ -140,4 +142,10 @@ return [
     'Total_sales' => 'Comerciales',
     'Summary' => 'Resumen',
     'Login_azure' => 'Iniciar sesión con Azure',
+    'Todo' => 'Por hacer',
+    'In_Progress' => 'En curso',
+    'Review' => 'Revisar',
+    'Done' => 'Hecho',
+    'End_Date' => 'Fecha finalización',
+    'Edit_milestone'=> 'Editar encargo',
 ];

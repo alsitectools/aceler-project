@@ -20,8 +20,8 @@ class CreateMilestonesTable extends Migration
             /* Hay que hacer la migracion, determinar nombre de Task ¿En plural o no?*/
             $table->integer('assign_to');
             $table->string('tasks')->nullable();
-            $table->string('status')->default('todo');
-            $table->string('order')->default(0);
+            $table->string('status')->default(1);
+            $table->string('order')->default(1);
             $table->date('end_date');
             $table->date('start_date')->nullable();
             $table->text('summary');

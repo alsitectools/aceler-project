@@ -12,33 +12,15 @@ class Workspace extends Model
         'created_by',
         'lang',
         'currency',
-        // 'currency_code',
-        // 'company',
-        // 'address',
-        // 'city',
-        // 'state',
-        // 'zipcode',
-        // 'country',
-        // 'telephone',
-        // 'logo',
         'is_stripe_enabled',
         'stripe_key',
         'stripe_secret',
         'is_paypal_enabled',
-        // 'paypal_mode',
-        // 'paypal_client_id',
-        // 'paypal_secret_key',
-        // 'invoice_template',
-        // 'invoice_color',
-        // 'invoice_footer_title',
-        // 'invoice_footer_notes',
         'is_active',
     ];
 
     public static function create($data)
     {
-        // $obj          = new Utility();
-        // $table        = with(new Workspace)->getTable();
         $data['slug'] =  $data['name'];
         $workspace    = static::query()->create($data);
 
@@ -63,12 +45,13 @@ class Workspace extends Model
         }
 
         $defaultStages = [
-            '#AA182C' => __('Unconfirmed'),
-            '#AA182C' => __('Confirmed'),
-            '#AA182C' => __('In Progress'),
-            '#AA182C' => __('Resolved'),
-            '#AA182C' => __('Verified'),
+            '#77b6ea' => __('Unconfirmed'),
+            '#6e00ff' => __('Confirmed'),
+            '#3cb8d9' => __('In Progress'),
+            '#37b37e' => __('Resolved'),
+            '#545454' => __('Verified'),
         ];
+
         $key = 0;
 
         $lastKey       = count($defaultStages) - 1;

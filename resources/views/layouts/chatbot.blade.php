@@ -62,56 +62,48 @@
                 }
 
                 // Create the notification container
-                var notification = document.createElement('div');
-                notification.className = 'notification';
+                // var notification = document.createElement('div');
+                // notification.className = 'notification';
 
-                // Create the text element
-                var notificationText = document.createElement('span');
-                var userLang = <?php echo $currentUserLang; ?>;
-                if (userLang == 1) {
-                    notificationText.textContent = 'Soy CofriAI, tu asistente virtual';
-                } else if (userLang == 3) {
-                    notificationText.textContent = "I'm CofriAI, your virtual assistant";
-                } else if (userLang == 4) {
-                    notificationText.textContent = "Je suis CofriAI, votre assistante virtuelle";
-                } else if (userLang == 5) {
-                    notificationText.textContent = "Jestem CofriAI, Twój wirtualny asystent";
-                } else if (userLang == 6) {
-                    notificationText.textContent = "Sono CofriAI, la vostra assistente virtuale";
-                } else if (userLang == 7) {
-                    notificationText.textContent = "Sou CofriAI, o seu assistente virtual";
-                } else if (userLang == 9) {
-                    notificationText.textContent = "Eu sunt CofriAI, asistentul tău virtual";
-                }
+                // // Create the text element
+                // var notificationText = document.createElement('span');
+                // var userLang = <?php echo $currentUserLang; ?>;
+                // if (userLang == 'es') {
+                //     notificationText.textContent = 'Soy CofriAI, tu asistente virtual';
+                // } else if (userLang == 'en') {
+                //     notificationText.textContent = "I'm CofriAI, your virtual assistant";
+                // } else if (userLang == 'fr') {
+                //     notificationText.textContent = "Je suis CofriAI, votre assistante virtuelle";
+                // } 
 
                 // Create the close button
-                var closeButton = document.createElement('button');
-                closeButton.className = 'close-btn';
-                closeButton.textContent = '×';
+                // var closeButton = document.createElement('button');
+                // closeButton.className = 'close-btn';
+                // closeButton.textContent = '×';
 
-                // Append the text and close button to the notification
-                notification.appendChild(notificationText);
-                notification.appendChild(closeButton);
+                // // Append the text and close button to the notification
+                // notification.appendChild(notificationText);
+                // notification.appendChild(closeButton);
 
-                // Append the notification to the body
-                document.body.appendChild(notification);
+                // // Append the notification to the body
+                // document.body.appendChild(notification);
 
-                // Add event listener to the close button
-                closeButton.addEventListener('click', function() {
-                    notification.style.display = 'none';
-                    localStorage.setItem('notificationClosedTimestamp', new Date().getTime());
-                });
+                // // Add event listener to the close button
+                // closeButton.addEventListener('click', function() {
+                //     notification.style.display = 'none';
+                //     localStorage.setItem('notificationClosedTimestamp', new Date().getTime());
+                // });
 
-                // Add event listener to the chat button to toggle position
-                chatbaseBubbleButton.addEventListener('click', function() {
-                    if (chatbaseBubbleButton.style.bottom === '30px') {
-                        chatbaseBubbleButton.style.bottom = '6px';
-                    } else {
-                        chatbaseBubbleButton.style.bottom = '30px';
-                    }
-                });
+                // // Add event listener to the chat button to toggle position
+                // chatbaseBubbleButton.addEventListener('click', function() {
+                //     if (chatbaseBubbleButton.style.bottom === '30px') {
+                //         chatbaseBubbleButton.style.bottom = '6px';
+                //     } else {
+                //         chatbaseBubbleButton.style.bottom = '30px';
+                //     }
+                // });
 
-                clearInterval(interval);
+                // clearInterval(interval);
             }
         }, 100);
     });

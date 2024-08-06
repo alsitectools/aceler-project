@@ -11,7 +11,6 @@ class Task extends Model
         'milestone_id',
         'type_id',
         'assign_to',
-        // 'description',
         'start_date',
         'estimated_date',
     ];
