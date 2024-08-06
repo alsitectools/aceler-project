@@ -745,70 +745,75 @@ class ProjectController extends Controller
                 // Crear un array para milestones en el estatus actual
                 $milestones[$status->id] = [];
 
-                foreach ($allmilestones as $oneMilestone) {
-                    // Encontrar el milestone actual
-                    $milestone = Milestone::find($oneMilestone->id);
+                if ($allmilestones) {
+                    foreach ($allmilestones as $oneMilestone) {
+                        // Encontrar el milestone actual
+                        $milestone = Milestone::find($oneMilestone->id);
 
-                    // Comercial
-                    $sales = User::find($milestone->assign_to);
+                        // Comercial
+                        $sales = User::find($milestone->assign_to);
+                        
+                        if ($milestone && $milestone->status == $status->id) {
+                            $project = Project::find($milestone->project_id);
+                            $projectType = ProjectType::where('id', $project->type)->value('name');
 
-                    if ($milestone && $milestone->status == $status->id) {
-                        $project = Project::find($milestone->project_id);
-                        $projectType = ProjectType::where('id', $project->type)->value('name');
-
-                        $tasksOfmilestone = Task::where('milestone_id', $milestone->id)
-                            ->where('assign_to', $id)
-                            ->get();
+                            $tasksOfmilestone = Task::where('milestone_id', $milestone->id)
+                                ->where('assign_to', $id)
+                                ->get();
 
 
-                        if (!empty($tasksOfmilestone)) {
-                            $taskData = []; // Inicializar el array de tareas para cada hito
+                            if (!empty($tasksOfmilestone)) {
+                                $taskData = []; // Inicializar el array de tareas para cada hito
 
-                            foreach ($tasksOfmilestone as $task) {
-                                $taskType = TaskType::find($task['type_id']);
-                                $objUser = User::find($task['assign_to']);
+                                foreach ($tasksOfmilestone as $task) {
+                                    $taskType = TaskType::find($task['type_id']);
+                                    $objUser = User::find($task['assign_to']);
 
-                                if ($taskType) {
-                                    $taskData[] = [
-                                        'id' => $task['id'],
-                                        'name' => $taskType->name,
-                                    ];
+                                    if ($taskType) {
+                                        $taskData[] = [
+                                            'id' => $task['id'],
+                                            'name' => $taskType->name,
+                                        ];
+                                    }
                                 }
+
+                                $milestones[$status->id][] = [
+                                    'id' => $milestone->id,
+                                    'title' => $milestone->title,
+                                    'start_date' => $milestone->start_date,
+                                    'end_date' => $milestone->end_date,
+                                    'daysleft' => round((strtotime($milestone->end_date) - strtotime(date('Y-m-d'))) / 86400),
+                                    'project_id' => $project->id,
+                                    'project_name' => $project->name,
+                                    'project_type' => $projectType,
+                                    'project_ref' => $project->ref_mo ? '- ' . $project->ref_mo : '',
+                                    'tasks' => $taskData,
+                                    'technician' => $objUser,
+                                    'sales' => $sales,
+                                ];
+                            } else {
+
+
+                                $milestones[$status->id][] = [
+                                    'id' => $milestone->id,
+                                    'title' => $milestone->title,
+                                    'start_date' => $milestone->start_date,
+                                    'end_date' => $milestone->end_date,
+                                    'daysleft' => round((strtotime($milestone->end_date) - strtotime(date('Y-m-d'))) / 86400),
+                                    'project_id' => $project->id,
+                                    'project_name' => $project->name,
+                                    'project_type' => $projectType,
+                                    'project_ref' => $project->ref_mo ? '- ' . $project->ref_mo : '',
+                                    'sales' => $sales,
+                                ];
                             }
-
-                            $milestones[$status->id][] = [
-                                'id' => $milestone->id,
-                                'title' => $milestone->title,
-                                'start_date' => $milestone->start_date,
-                                'end_date' => $milestone->end_date,
-                                'daysleft' => round((strtotime($milestone->end_date) - strtotime(date('Y-m-d'))) / 86400),
-                                'project_id' => $project->id,
-                                'project_name' => $project->name,
-                                'project_type' => $projectType,
-                                'project_ref' => $project->ref_mo ? '- ' . $project->ref_mo : '',
-                                'tasks' => $taskData,
-                                'technician' => $objUser,
-                            ];
-                        } else {
-
-                            $milestones[$status->id][] = [
-                                'id' => $milestone->id,
-                                'title' => $milestone->title,
-                                'start_date' => $milestone->start_date,
-                                'end_date' => $milestone->end_date,
-                                'daysleft' => round((strtotime($milestone->end_date) - strtotime(date('Y-m-d'))) / 86400),
-                                'project_id' => $project->id,
-                                'project_name' => $project->name,
-                                'project_type' => $projectType,
-                                'project_ref' => $project->ref_mo ? '- ' . $project->ref_mo : '',
-                            ];
                         }
                     }
                 }
             }
 
             // Pasar los datos a la vista
-            return view('projects.milestoneboard', compact('currentWorkspace', 'milestones', 'stages', 'statusClass', 'sales'));
+            return view('projects.milestoneboard', compact('currentWorkspace', 'milestones', 'stages', 'statusClass'));
         }
     }
     //===================================================================================//

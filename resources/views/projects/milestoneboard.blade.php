@@ -74,112 +74,121 @@
                                 data-status="{{ $status->id }}" class="card-body kanban-box">
                                 @if (isset($milestones[$status->id]))
                                     @foreach ($milestones[$status->id] as $milestone)
-                                        <div class="card" id="{{ $milestone['id'] }}" data-status="{{ $status->id }}"
-                                            data-project-id="{{ $milestone['project_id'] }}">
-                                            <div class="card-header border-0 pb-0 col-sm-12">
-                                                <div class="d-flex">
-                                                    <div class="col-sm-9 text-center"
-                                                        title="{{ __('dictionary.Milestone') }}">
-                                                        <b>{{ $milestone['title'] }}</b>
+                                        @if (isset($milestone))
+                                            <div class="card" id="{{ $milestone['id'] }}"
+                                                data-status="{{ $status->id }}"
+                                                data-project-id="{{ $milestone['project_id'] }}">
+                                                <div class="card-header border-0 pb-0 col-sm-12">
+                                                    <div class="d-flex">
+                                                        <div class="col-sm-9 text-center"
+                                                            title="{{ __('dictionary.Milestone') }}">
+                                                            <b>{{ $milestone['title'] }}</b>
+                                                        </div>
+                                                     
+                                                        <div class="col-sm-2 pt-1 text-center"
+                                                            title="{{ $milestone['sales']->name }}">
+                                                            <i class="fa-solid fa-user-tie fa-xl"
+                                                                style="color: #CFCECE; padding-top: 25%;"></i>
+                                                        </div>
+                                                     
                                                     </div>
-                                                    <div class="col-sm-2 pt-1 text-center" title="{{ $sales->name }}">
-                                                        <i class="fa-solid fa-user-tie fa-xl"
-                                                            style="color: #CFCECE; padding-top: 25%;"></i>
+                                                    <hr class="border border-2 opacity-50">
+                                                    <div class="card-header-right col-sm-1 text-end">
+                                                        <div class="btn-group card-option">
+                                                            @if ($currentWorkspace->permission == 'Owner' || $currentWorkspace->permission == 'Member')
+                                                                <button type="button" class="btn dropdown-toggle"
+                                                                    data-bs-toggle="dropdown" aria-haspopup="true"
+                                                                    aria-expanded="false">
+                                                                    <i class="feather icon-more-vertical"></i>
+                                                                </button>
+                                                                <div class="dropdown-menu dropdown-menu-end">
+                                                                    <a href="#" class="dropdown-item"
+                                                                        data-ajax-popup="true"
+                                                                        title="{{ __('messages.View') }}"
+                                                                        data-title="{{ __('Milestone Details') }}"
+                                                                        data-url="{{ route('projects.milestone.show', [$currentWorkspace->slug, $milestone['id']]) }}">
+                                                                        <i class="ti ti-eye pr-1"></i>
+                                                                        {{ __('messages.View') }}
+                                                                    </a>
+                                                                    @if (
+                                                                        $currentWorkspace->permission == 'Owner' ||
+                                                                            ($currentWorkspace->permission == 'Member' && Auth::user()->type == 'user'))
+                                                                        <a href="#" class="dropdown-item"
+                                                                            data-ajax-popup="true" data-size="lg"
+                                                                            data-toggle="popover"
+                                                                            title="{{ __('Edit') }}"
+                                                                            data-title="{{ __('dictionary.Edit_milestone') }}"
+                                                                            data-url="{{ route('projects.milestone.edit', [$currentWorkspace->slug, $milestone['id']]) }}">
+                                                                            <i
+                                                                                class="ti ti-edit pr-1">{{ __('Edit') }}</i>
+                                                                        </a>
+                                                                    @endif
+                                                                </div>
+                                                            @endif
+                                                        </div>
                                                     </div>
                                                 </div>
+                                                <div class="card-body">
+                                                    <div class="row">
+                                                        @if ($milestone['tasks'])
+                                                            <div class="col-sm-12" title="{{ __('messages.Tasks') }}">
+                                                                @foreach ($milestone['tasks'] as $task)
+                                                                    <div class="taskList p-target col-sm-12">
 
-                                                <hr class="border border-2 opacity-50">
-                                                <div class="card-header-right col-sm-1 text-end">
-                                                    <div class="btn-group card-option">
-                                                        @if ($currentWorkspace->permission == 'Owner' || $currentWorkspace->permission == 'Member')
-                                                            <button type="button" class="btn dropdown-toggle"
-                                                                data-bs-toggle="dropdown" aria-haspopup="true"
-                                                                aria-expanded="false">
-                                                                <i class="feather icon-more-vertical"></i>
-                                                            </button>
-                                                            <div class="dropdown-menu dropdown-menu-end">
-                                                                <a href="#" class="dropdown-item"
-                                                                    data-ajax-popup="true"
-                                                                    title="{{ __('messages.View') }}"
-                                                                    data-title="{{ __('Milestone Details') }}"
-                                                                    data-url="{{ route('projects.milestone.show', [$currentWorkspace->slug, $milestone['id']]) }}">
-                                                                    <i class="ti ti-eye pr-1"></i>
-                                                                    {{ __('messages.View') }}
-                                                                </a>
-                                                                @if (
-                                                                    $currentWorkspace->permission == 'Owner' ||
-                                                                        ($currentWorkspace->permission == 'Member' && Auth::user()->type == 'user'))
-                                                                    <a href="#" class="dropdown-item"
-                                                                        data-ajax-popup="true" data-size="lg"
-                                                                        data-toggle="popover" title="{{ __('Edit') }}"
-                                                                        data-title="{{ __('dictionary.Edit_milestone') }}"
-                                                                        data-url="{{ route('projects.milestone.edit', [$currentWorkspace->slug, $milestone['id']]) }}">
-                                                                        <i class="ti ti-edit pr-1">{{ __('Edit') }}</i>
-                                                                    </a>
-                                                                @endif
+                                                                        <p><i class="fa-solid fa-thumbtack m-1"
+                                                                                style="color: #CFCECE"></i>
+                                                                            {{ $task['name'] }} </p>
+
+                                                                    </div>
+                                                                @endforeach
+                                                                <div class="col-sm-12"
+                                                                    title="{{ $milestone['technician']->name }}">
+                                                                    <i class="fa-solid fa-helmet-safety fa-xl m-1"
+                                                                        style="color: #CFCECE; padding-left: 78%; padding-top: 5%;"></i>
+                                                                </div>
+                                                            </div>
+                                                        @else
+                                                            <div class="text-muted text-center">
+                                                                {{ 'No hay tareas en curso...' }}
                                                             </div>
                                                         @endif
                                                     </div>
-                                                </div>
-                                            </div>
-                                            <div class="card-body">
-                                                <div class="row">
-                                                    @if ($milestone['tasks'])
-                                                        <div class="col-sm-12" title="{{ __('messages.Tasks') }}">
-                                                            @foreach ($milestone['tasks'] as $task)
-                                                                <div class="taskList p-target col-sm-12">
-                                                                  
-                                                                    <p><i class="fa-solid fa-thumbtack m-1"
-                                                                        style="color: #CFCECE"></i> {{ $task['name'] }} </p>
+                                                    <div class="card mb-0 mt-3">
+                                                        <div class="card-body p-3">
+                                                            <div class="row">
+                                                                <div class="foot-milestone">
+                                                                    <div class="col-6 text-center">
+                                                                        <div class="text-center"
+                                                                            title="{{ __('Project') }}">
+                                                                            <div>
+                                                                                <img class="img-fluid p-1" width="40px"
+                                                                                    src="{{ asset('assets/img/' . $milestone['project_type'] . '.png') }}"
+                                                                                    alt="Project type">
+                                                                            </div>
+                                                                            <b
+                                                                                style="font-size: 12px">{{ $milestone['project_name'] }}</b>
+                                                                            <span class="text-muted" data-toggle="tooltip"
+                                                                                title="Referencia MO"><b>{{ $milestone['project_ref'] }}</b></span>
 
-                                                                </div>
-                                                            @endforeach
-                                                            <div class="col-sm-12"
-                                                                title="{{ $milestone['technician']->name }}">
-                                                                <i class="fa-solid fa-helmet-safety fa-xl m-1"
-                                                                    style="color: #CFCECE; padding-left: 78%; padding-top: 5%;"></i>
-                                                            </div>
-                                                        </div>
-                                                    @else
-                                                        <div class="text-muted text-center">
-                                                            {{ 'No hay tareas en curso...' }}
-                                                        </div>
-                                                    @endif
-                                                </div>
-                                                <div class="card mb-0 mt-3">
-                                                    <div class="card-body p-3">
-                                                        <div class="row">
-                                                            <div class="foot-milestone">
-                                                                <div class="col-6 text-center">
-                                                                    <div class="text-center" title="{{ __('Project') }}">
-                                                                        <div>
-                                                                            <img class="img-fluid p-1" width="40px"
-                                                                                src="{{ asset('assets/img/' . $milestone['project_type'] . '.png') }}"
-                                                                                alt="Project type">
                                                                         </div>
-                                                                        <b
-                                                                            style="font-size: 12px">{{ $milestone['project_name'] }}</b>
-                                                                        <span class="text-muted" data-toggle="tooltip"
-                                                                            title="Referencia MO"><b>{{ $milestone['project_ref'] }}</b></span>
-
                                                                     </div>
-                                                                </div>
-                                                                <div class="col-6 text-center"
-                                                                    title="{{ __('dictionary.End_Date') }}">
-                                                                    @if ($milestone['daysleft'] < 1)
-                                                                        <i class="fa-solid fa-calendar-check fa-beat-fade m-1 pb-1 fa-2xl"
-                                                                            style="color: red;"></i>
-                                                                    @elseif($milestone['daysleft'] < 3)
-                                                                        <i class="fa-solid fa-calendar-check fa-2xl m-1"
-                                                                            style="color: #db8d33;"></i>
-                                                                    @else
-                                                                        <i class="fa-solid fa-calendar-check fa-2xl m-1"
-                                                                            style="color: #53b446;"></i>
-                                                                    @endif
-                                                                    <div class="text-center"
-                                                                        style="padding-top: 15%; font-size: 12px;">
-                                                                        <b style="font-size: 12px">
-                                                                            {{ \App\Models\Utility::dateFormat($milestone['end_date']) }}</b>
+                                                                    <div class="col-6 text-center"
+                                                                        title="{{ __('dictionary.End_Date') }}">
+                                                                        @if ($milestone['daysleft'] < 1)
+                                                                            <i class="fa-solid fa-calendar-check fa-beat-fade m-1 pb-1 fa-2xl"
+                                                                                style="color: red;"></i>
+                                                                        @elseif($milestone['daysleft'] < 3)
+                                                                            <i class="fa-solid fa-calendar-check fa-2xl m-1"
+                                                                                style="color: #db8d33;"></i>
+                                                                        @else
+                                                                            <i class="fa-solid fa-calendar-check fa-2xl m-1"
+                                                                                style="color: #53b446;"></i>
+                                                                        @endif
+                                                                        <div class="text-center"
+                                                                            style="padding-top: 15%; font-size: 12px;">
+                                                                            <b style="font-size: 12px">
+                                                                                {{ \App\Models\Utility::dateFormat($milestone['end_date']) }}</b>
+                                                                        </div>
                                                                     </div>
                                                                 </div>
                                                             </div>
@@ -187,8 +196,9 @@
                                                     </div>
                                                 </div>
                                             </div>
-                                        </div>
-                                        <span class="empty-container" data-placeholder="Empty"></span>
+                                        @else
+                                            <span class="empty-container" data-placeholder="Empty"></span>
+                                        @endif
                                     @endforeach
                                 @endif
                             </div>
