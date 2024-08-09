@@ -12,7 +12,7 @@
 @section('links')
     <li class="breadcrumb-item"><a href="{{ route('home') }}">{{ __('Home') }}</a></li>
 
-    <li class="breadcrumb-item"> {{ __('messages.company') }}</li>
+    <li class="breadcrumb-item"> {{ __('messages.Technicians') }}</li>
 @endsection
 @section('action-button')
     @auth('web')

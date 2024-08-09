@@ -8,22 +8,23 @@
 @section('links')
     <li class="breadcrumb-item"><a href="{{ route('home') }}">{{ __('Home') }}</a></li>
 
-    @if ($project_id != '-1')
-        <li class="breadcrumb-item"><a href="{{ route('projects.index', $currentWorkspace->slug) }}">{{ __('Project') }}</a>
+    @if ($project_id != -1)
+        <li class="breadcrumb-item"><a
+                href="{{ route('projects.show', [$currentWorkspace->slug, $project_id]) }}">{{ __('Project Details') }}</a>
         </li>
-        <li class="breadcrumb-item"> {{ trans('messages.Timesheet') }}</li>
     @endif
+    <li class="breadcrumb-item"> {{ trans('messages.Timesheet') }}</li>
 @endsection
 @section('action-button')
     <div class="d-flex justify-content-end row1">
         @if (isset($currentWorkspace) && $currentWorkspace)
             @if ($project_id == -1)
-                <div class="d-flex add_task">
-                    <a id="add_task" href="#" class="btn btn-primary" data-ajax-popup="true" data-size="lg"
-                        data-title="{{ __('Create New Task') }}"
-                        data-url="{{ route('timesheet.create', $currentWorkspace->slug) }}" data-toggle="tooltip"
-                        title="{{ __('Add Task') }}"> 
-                        {{ __('Add Task on Timesheet') }}<i class="fa-solid fa-thumbtack" style="padding-left: 10px"></i></a>
+                <div class="col-sm-auto">
+                    <button id="add_task" type="button" class="btn btn-primary add_task" data-ajax-popup="true"
+                    data-size="lg" data-title="{{ __('Create New Task') }}"
+                        data-url="{{ route('timesheet.create', $currentWorkspace->slug) }}" title="{{ __('Add Task') }}"><i
+                            class="fa-solid fa-thumbtack"></i>
+                        {{ __('Add Task on Timesheet') }}</button>
                 </div>
             @endif
         @endif
@@ -231,7 +232,10 @@
     }
 
     #add_task {
-        margin-right: 20px;
+        display: flex !important;
+        align-items: center;
+        justify-content: space-around !important;
+        width: 320px;
     }
 
     @media (max-width: 1300px) {

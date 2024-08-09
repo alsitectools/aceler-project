@@ -1,12 +1,35 @@
 @php
     $user = Auth::user();
+    $actionUrl =
+        $project_id == -1
+            ? route('projects.milestone.store', [$currentWorkspace->slug, 'PLACEHOLDER'])
+            : route('projects.milestone.store', [$currentWorkspace->slug, $project->id]);
+
 @endphp
-@if ($project && $currentWorkspace)
-    <form class="" method="post"
-        action="@auth('web'){{ route('projects.milestone.store', [$currentWorkspace->slug, $project->id]) }}@endauth">
-        @csrf
-        <div class="modal-body">
+@if ($currentWorkspace)
+    <form class="" id="project-form" method="POST" action="{{ $actionUrl }}">
+
+        @csrf <div class="modal-body">
             <div class="row">
+                @if (isset($project_id) && $project_id == -1)
+                    <div class="col-md-12">
+                        <div class="form-group">
+                            <label class="col-form-label">
+                                {{ __('Projects') }}
+                            </label>
+                            <select class="form-control form-control-light select2" name="project_id" id="project_id"
+                                required>
+                                <option value="" disabled selected>{{ __('Select Project') }}</option>
+                                @foreach ($project as $proj)
+                                    <option value="{{ $proj->id }}" data-project='{{ json_encode($proj) }}'>
+                                        {{ $proj->name }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+                    </div>
+                @endif
+
                 <div class="col-md-12">
                     <div class="form-group">
                         <input type="text" class="form-control form-control-light" id="milestone-title"
@@ -30,14 +53,10 @@
                     </div>
                     <div class="col-md-6">
                         <div class="form-group">
-                            <label class="form-label">{{ trans('messages.Desired_delivery_date') }}</label>
-                            <div class="input-group date ">
-                                <input class="form-control datepicker23" type="text" id="end_date" name="end_date"
-                                    autocomplete="off">
-                                <span class="input-group-text">
-                                    <i class="feather icon-calendar"></i>
-                                </span>
-                            </div>
+                            <label class="form-label">{{ __('messages.Desired_delivery_date') }}</label>
+                            <input onclick="this.showPicker()" type="date"
+                                class="form-control form-control-light date" id="end_date" value=""
+                                placeholder="{{ __('Date') }}" name="end_date" required>
                         </div>
                     </div>
                 </div>
@@ -66,7 +85,7 @@
                         <div class="page-search">
                             <p class="text-muted mt-3">
                                 {{ __("It's looking like you may have taken a wrong turn. Don't worry... it happens to the
-                                                                                                                                                                                                                                                                                            best of us. Here's a little tip that might help you get back on track.") }}
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            best of us. Here's a little tip that might help you get back on track.") }}
                             </p>
                             <div class="mt-3">
                                 <a class="btn-return-home badge-blue" href="{{ route('home') }}"><i
@@ -79,31 +98,40 @@
         </div>
     </div>
 @endif
-<script>
-    (function() {
-        var locale = '{{ app()->getLocale() }}';
-        const d_week = new Datepicker(document.querySelector('.datepicker22'), {
-            locale: locale,
-            buttonClass: 'btn',
-            todayBtn: true,
-            clearBtn: true,
-            format: 'yyyy-mm-dd',
-        });
-    })();
-</script>
-<script>
-    (function() {
-        var locale = '{{ app()->getLocale() }}';
-        var dateInput = document.querySelector('.datepicker23');
-        var datepicker = new Datepicker(dateInput, {
-            locale: locale,
-            buttonClass: 'btn',
-            format: 'yyyy-mm-dd',
-        });
+@if (isset($project_id) && $project_id == -1)
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            $('#project_id').on('change', function() {
+                var selectedProjectId = $(this).val();
+                var currentWorkspaceSlug = "{{ $currentWorkspace->slug }}";
 
-        // Evento para cerrar el datepicker cuando se selecciona una fecha
-        dateInput.addEventListener('changeDate', function() {
-            datepicker.hide();
+                // Construir la URL con el projectId seleccionado
+                var actionUrl =
+                    `{{ route('projects.milestone.store', [$currentWorkspace->slug, 'PLACEHOLDER']) }}`;
+                actionUrl = actionUrl.replace('PLACEHOLDER', selectedProjectId);
+                console.log(actionUrl);
+                // Actualizar el atributo action del formulario
+                $('#project-form').attr('action', actionUrl);
+            });
         });
-    })();
-</script>
+    </script>
+
+
+    {{-- <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            $('#project_id').on('change', function() {
+                var selectedOption = $(this).find('option:selected');
+                var projectId = selectedOption.val();
+
+                // Asignar el project ID a una variable
+                var selectedProjectId = projectId;
+
+                // Puedes hacer algo con selectedProjectId aquí
+                console.log('Selected Project ID:', selectedProjectId);
+            });
+        });
+        
+    </script> --}}
+@endif

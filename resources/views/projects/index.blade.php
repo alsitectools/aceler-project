@@ -10,17 +10,25 @@
     @endif
     <li class="breadcrumb-item"> {{ __('Projects') }}</li>
 @endsection
-
 @php
     $logo = \App\Models\Utility::get_file('avatars/');
 @endphp
 @section('action-button')
-    @if ($projects && $currentWorkspace)
-        <div class="row mb-2">
-            <div class="col-xl-12 col-lg-12 col-md-12 col-12 d-flex align-items-center justify-content-end">
+    <div class="d-flex justify-content-end">
+        @auth('web')
+            <div class="col-sm-auto" style="padding-right: 1%">
+                <button type="button" class="add_project btn btn-primary" data-ajax-popup="true"
+                    data-title="{{ __('Create New Project') }}"
+                    data-url="{{ route('projects.create', $currentWorkspace->slug) }}"> <i class="fa-solid fa-plus"
+                        style="color: #ffffff;"></i>
+                    {{ __('messages.Add_Project') }}
+
+                </button>
+            </div>
+            <div class="col-sm-auto">
                 <div class="text-sm-right status-filter">
-                    <div class="btn-group mb-3">
-                        <button type="button" class="btn btn-light  text-white btn_tab  bg-primary active" data-filter="*"
+                    <div class="btn-group status-filter">
+                        <button type="button" class="btn btn-light text-white btn_tab bg-primary active" data-filter="*"
                             data-status="All">{{ __('All') }}</button>
                         <button type="button" class="btn btn-light bg-primary text-white btn_tab"
                             data-filter=".Ongoing">{{ __('Ongoing') }}</button>
@@ -30,9 +38,10 @@
                             data-filter=".OnHold">{{ __('OnHold') }}</button>
                     </div>
                 </div>
-            </div><!-- end col-->
+            </div>
+
         </div>
-    @endif
+    @endauth
 @endsection
 @section('content')
     <section class="section">
@@ -43,10 +52,26 @@
                         <div class="col-xl-3 col-lg-4 col-sm-6 All {{ $project->status }}">
                             <div class="card">
                                 <div class="card-header border-0 pb-0">
+                                    <div style="padding-left: 68%">
+                                        @if ($project->status == 'Finished')
+                                            <span title="{{ __('dictionary.Status') }}" data-toggle="tooltip"
+                                                data-placement="top"
+                                                class="badge rounded-pill bg-success">{{ __('Finished') }}</span>
+                                        @elseif($project->status == 'Ongoing')
+                                            <span data-toggle="tooltip" data-placement="top"
+                                                title="{{ __('dictionary.Status') }}"
+                                                class="badge rounded-pill bg-secondary">{{ __('Ongoing') }}</span>
+                                        @else
+                                            <span data-toggle="tooltip" data-placement="top"
+                                                title="{{ __('dictionary.Status') }}"
+                                                class="badge rounded-pill bg-warning">{{ __('OnHold') }}</span>
+                                        @endif
+                                    </div>
                                     <div class="d-flex align-items-center" style="min-width: 100px;">
                                         @if ($project->is_active)
                                             <a href="@auth('web'){{ route('projects.show', [$currentWorkspace->slug, $project->id]) }}@endauth"
-                                                class="" data-toggle="tooltip" title="{{ $project->name }}">
+                                                class="" data-toggle="tooltip" data-placement="top"
+                                                title="{{ $project->name }}">
                                                 <img alt="{{ $project->name }}" class="me-2 fix_img"
                                                     avatar="{{ $project->name }}">
                                             </a>
@@ -56,9 +81,10 @@
                                                     avatar="{{ $project->name }}">
                                             </a>
                                         @endif
-                                        <h5 class="mb-0">
+                                        <h5 class="mb-0 mt-0">
                                             @if ($project->is_active)
-                                                <a href="@auth('web'){{ route('projects.show', [$currentWorkspace->slug, $project->id]) }}@endauth"
+                                                <a data-toggle="tooltip" title="{{ $project->name }}" data-placement="top"
+                                                    href="@auth('web'){{ route('projects.show', [$currentWorkspace->slug, $project->id]) }}@endauth"
                                                     title="{{ $project->name }}" class="">{{ $project->name }}</a>
                                             @else
                                                 <a href="#" title="{{ __('Locked') }}"
@@ -66,6 +92,7 @@
                                             @endif
                                         </h5>
                                     </div>
+
                                     @if (($project->is_active && Auth::user()->type == 'admin') || $project->created_by == Auth::user()->id)
                                         <div class="card-header-right">
                                             <div class="btn-group card-option">
@@ -95,53 +122,60 @@
                                         </div>
                                     @endif
                                 </div>
-                                <div class="card-body">
-                                    <div class="row g-2 justify-content-between">
-                                        @if ($project->status == 'Finished')
-                                            <div class="col-auto"><span
-                                                    class="badge rounded-pill bg-success">{{ __('Finished') }}</span>
-                                            </div>
-                                        @elseif($project->status == 'Ongoing')
-                                            <div class="col-auto"><span
-                                                    class="badge rounded-pill bg-secondary">{{ __('Ongoing') }}</span>
-                                            </div>
-                                        @else
-                                            <div class="col-auto"><span
-                                                    class="badge rounded-pill bg-warning">{{ __('OnHold') }}</span>
-                                            </div>
-                                        @endif
-
-                                        <div class="col-auto">
-                                            <p class="mb-0"><b>{{ __('Due Date:') }}</b> {{ $project->end_date }}</p>
+                                <div class="card-body pb-3 pt-3">
+                                    <div class="text-center d-flex">
+                                        <div class="mb-0 mt-0 mr-0 ml-0 col-3 location text-m" data-toggle="tooltip"
+                                            data-placement="top" title="{{ __('dictionary.Company') }}">
+                                            <i class="fa-regular fa-building fa-xl"
+                                                style="color: #aa182c; margin: 10px;"></i>
+                                            {{ $currentWorkspace->name }}
+                                        </div>
+                                        <div class="mb-1 mt-0 col-5 location text-m" data-toggle="tooltip"
+                                            data-placement="top" title="{{ __('dictionary.Branch') }}">
+                                            <i class="fa-solid fa-location-dot fa-xl"
+                                                style="color: #aa182c; margin: 10px;"></i>
+                                            {{ 'Montacada i Reixach' }}
+                                        </div>
+                                        {{-- mostrar 3 de los miembros del projecto actual --}}
+                                        <div class="col-4 user-group">
+                                            @if ($users = $project->users)
+                                                @foreach ($users as $key => $user)
+                                                    @if ($key < 2)
+                                                        <a href="#" class="img_group" data-toggle="tooltip"
+                                                            data-placement="top" title="{{ $user->name }}">
+                                                            <img alt="{{ $user->name }}" class="iconUSer"
+                                                                @if ($user->avatar) src="{{ asset($logo . $user->avatar) }}" @else avatar="{{ $user->name }}" @endif>
+                                                        </a>
+                                                    @endif
+                                                @endforeach
+                                                @if (count($users) > 2)
+                                                    <a href="#" class="img_group">
+                                                        <img alt="image" data-toggle="tooltip"
+                                                            data-original-title="{{ count($users) - 2 }} {{ __('more') }}"
+                                                            avatar="+ {{ count($users) - 2 }}">
+                                                    </a>
+                                                @endif
+                                            @endif
                                         </div>
                                     </div>
-                                    {{-- mostrar los miembros del projecto actual --}}
-                                    <p class="text-muted text-sm mt-3">{{ $project->description }}</p>
-                                    <h6 class="text-muted">{{ trans('Members') }}</h6>
-                                    <div class="user-group mx-2">
-                                        @foreach ($project->users as $user)
-                                            @if ($user->pivot->is_active)
-                                                <a href="#" class="img_group" data-toggle="tooltip"
-                                                    data-placement="top" title="{{ $user->name }}">
-                                                    <img alt="{{ $user->name }}"
-                                                        @if ($user->avatar) src="{{ asset($logo . $user->avatar) }}" @else avatar="{{ $user->name }}" @endif>
-                                                </a>
-                                            @endif
-                                        @endforeach
-                                    </div>
-                                    <div class="card mb-0 mt-3">
+
+                                    <div class="card mb-0 mt-1">
                                         <div class="card-body p-3">
                                             <div class="row">
                                                 @if (isset($project_type[$project->type - 1]) && $project_type[$project->type - 1]->id == $project->type)
-                                                    <div class="col-6 text">
+                                                    <div class="col-6">
                                                         <h6 class="text-muted mb-0" data-toggle="tooltip"
-                                                            title="Tipo de proyecto">
+                                                            data-placement="top"
+                                                            title="{{ __('dictionary.Project_type') }}">
                                                             <b>{{ $project_type[$project->type - 1]->name }}</b>
                                                         </h6>
                                                         <span class="text-muted" data-toggle="tooltip"
-                                                            title="Referencia Master Obra"><b>{{ $project->ref_mo }}</b></span>
+                                                            data-placement="top"
+                                                            title="{{ __('Ref. M.O') }}"><b>{{ $project->ref_mo }}</b></span>
                                                     </div>
-                                                    <div class="col-6 text-end">
+                                                    <div class="col-6 text-end" data-toggle="tooltip"
+                                                        data-placement="top"
+                                                        title="{{ $project_type[$project->type - 1]->name }}">
                                                         <img class="img-fluid" width="40px"
                                                             src="{{ asset('assets/img/' . $project_type[$project->type - 1]->name . '.png') }}"
                                                             alt="Project type">
@@ -154,20 +188,6 @@
                             </div>
                         </div>
                     @endforeach
-                    @auth('web')
-                        <div class="col-xl-3 col-lg-4 col-sm-6 All add_projects">
-                            <a href="#" class="btn-addnew-project " style="padding: 90px 10px;" data-ajax-popup="true"
-                                data-size="md" data-title="{{ __('Create New Project') }}"
-                                data-url="{{ route('projects.create', $currentWorkspace->slug) }}">
-                                <div class="bg-primary proj-add-icon">
-                                    <i class="ti ti-plus"></i>
-                                </div>
-                                <h6 class="mt-4 mb-2">{{ trans('messages.Add_Project') }}</h6>
-                                <p class="text-muted text-center">
-                                    {{ trans('messages.Click_here_to_add_New_Project') }}</p>
-                            </a>
-                        </div>
-                    @endauth
                 </div>
             </div>
         @else
@@ -200,20 +220,55 @@
 
 @push('css-page')
 @endpush
+<style>
+    .btn_tab:not(.active) {
+        opacity: 0.7;
+    }
+
+    .add_project {
+        justify-items: center;
+        height: 37px;
+        width: 200px;
+        text-align: center;
+        border-radius: 7px;
+        font-weight: bold;
+        display: flex !important;
+        justify-content: space-evenly !important;
+        align-items: center;
+    }
+
+    .location {
+        display: flex;
+        flex-direction: column;
+        flex-wrap: wrap;
+        align-items: center;
+        margin: 2%;
+        min-height: 60px;
+    }
+
+    .iconUser {
+        border-radius: 50%;
+        width: 30px;
+        height: 30px;
+        padding-bottom: 2%;
+
+    }
+</style>
 
 @push('scripts')
     <script src="{{ asset('assets/custom/js/isotope.pkgd.min.js') }}"></script>
     <script>
         $(document).ready(function() {
+            var $buttons = $('.status-filter button');
 
-            $('.status-filter button').click(function() {
-                $('.status-filter button').removeClass('active');
+            $buttons.click(function() {
+                $buttons.removeClass('active');
                 $(this).addClass('active');
 
                 var data = $(this).attr('data-filter');
                 $grid.isotope({
                     filter: data
-                })
+                });
             });
 
             var $grid = $(".grid").isotope({
@@ -222,7 +277,7 @@
                 masonry: {
                     columnWidth: ".All"
                 }
-            })
+            });
         });
     </script>
 @endpush

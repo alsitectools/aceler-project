@@ -81,6 +81,16 @@ class Project extends Model
         return Task::where('project_id', '=', $this->id)->get();
     }
 
+    public function milestones()
+    {
+        return $this->hasMany(Milestone::class, 'project_id');
+    }
+
+    public function milestonesCount()
+    {
+        return $this->milestones()->count();
+    }
+    
     public function user_tasks($user_id)
     {
         return Task::where('project_id', $this->id)->whereRaw('FIND_IN_SET(?, assign_to)', [$user_id])->get();
@@ -118,10 +128,10 @@ class Project extends Model
         return round(($totalDone * 100) / $total);
     }
 
-    public function milestones()
-    {
-        return $this->hasMany('App\Models\Milestone', 'project_id', 'id');
-    }
+    // public function milestones()
+    // {
+    //     return $this->hasMany('App\Models\Milestone', 'project_id', 'id');
+    // }
 
     public function files()
     {

@@ -57,9 +57,13 @@
             <ul class="dash-navbar">
                 <li class="dash-item dash-hasmenu">
                     <a href="{{ route('home') }}"
-                        class="dash-link  {{ Request::route()->getName() == 'home' || Request::route()->getName() == null || Request::route()->getName() == 'client.home' ? ' active' : '' }}">
+                        class="dash-link  {{ Request::route()->getName() == 'home' ||
+                        Request::route()->getName() == null ||
+                        Request::route()->getName() == 'client.home'
+                            ? ' active'
+                            : '' }}">
 
-                        <span class="dash-micon"><i class="ti ti-user"></i></span>
+                        <span class="dash-micon"><i class="fa-solid fa-bookmark"></i></span>
                         <span class="dash-mtext">{{ __('dictionary.Summary') }}</span>
                     </a>
                 </li>
@@ -67,41 +71,38 @@
                     <li
                         class="dash-item {{ Request::route()->getName() == 'projects.index' || Request::segment(2) == 'projects' ? ' active' : '' }}">
                         <a href="{{ route('projects.index', $currentWorkspace->slug) }}" class="dash-link">
-                            <span class="dash-micon"> <i data-feather="briefcase"></i></span><span
+                            <span class="dash-micon"><i class="fa-solid fa-diagram-project"></i></span><span
                                 class="dash-mtext">{{ __('Projects') }}</span></a>
                     </li>
                     {{-- si mostramos todos los proyectos enviamos al tecnico/comercial, sino el proyecto en especifico --}}
                     <li class="dash-item">
                         <a href="{{ route('projects.milestone.board', [$currentWorkspace->slug, Auth::user()->id]) }}"
                             class="dash-link ">
-                            <span class="dash-micon"><i data-feather="list"></i></span><span
+                            <span class="dash-micon"><i class="fa-solid fa-file-lines"></i></span><span
                                 class="dash-mtext">{{ __('Milestones') }}</span></a>
                     </li>
-                    {{-- @php
-                    \Log::info("URL generada:", route('projects.milestone.board', [$currentWorkspace->slug, -1]));
-                @endphp --}}
-
                     <li class="dash-item {{ Request::route()->getName() == 'timesheet.index' ? ' active' : '' }}">
                         <a href="{{ route('timesheet.index', $currentWorkspace->slug) }}" class="dash-link ">
-                            <span class="dash-micon"><i data-feather="clock"></i></span><span
-                                class="dash-mtext">{{ __('messages.Tasks') }}</span></a>
+                            <span class="dash-micon"><i class="fas fa-tasks"></i></span><span
+                                class="dash-mtext">{{ __('dictionary.Tasks') }}</span></a>
                     </li>
                     <li class="dash-item {{ Request::route()->getName() == 'calender.index' ? ' active' : '' }}">
                         <a href="{{ route('calender.google.calendar', $currentWorkspace->slug) }}"
-                            class="dash-link "><span class="dash-micon"><i data-feather="calendar"></i></span><span
+                            class="dash-link "><span class="dash-micon"><i
+                                    class="fa-regular fa-calendar"></i></span><span
                                 class="dash-mtext">{{ __('Calendar') }}</span></a>
                     </li>
                     <li class="dash-item dash-hasmenu">
                         <a href="{{ route('clients.index', $currentWorkspace->slug) }}"
                             class="dash-link {{ Request::route()->getName() == 'clients.index' ? ' active' : '' }} "><span
-                                class="dash-micon"> <i class="ti ti-brand-python"></i></span><span class="dash-mtext">
-                                {{ trans('messages.Sales_manager') }}</span></a>
+                                class="dash-micon"> <i class="fa-solid fa-user-tie"></i></span><span class="dash-mtext">
+                                {{ trans('dictionary.Sales_manager') }}</span></a>
                     </li>
                     <li
                         class="dash-item {{ Request::route()->getName() == 'users.index' || Request::route()->getName() == 'users_logs.index' ? ' active' : '' }}">
                         <a href="{{ route('users.index', $currentWorkspace->slug) }}" class="dash-link ">
-                            <span class="dash-micon"> <i data-feather="user"></i></span>
-                            <span class="dash-mtext">{{ trans('messages.Technicians') }}</span>
+                            <span class="dash-micon"> <i class="fa-solid fa-helmet-safety"></i></span>
+                            <span class="dash-mtext">{{ trans('dictionary.Technicians') }}</span>
                         </a>
                     </li>
                 @endif

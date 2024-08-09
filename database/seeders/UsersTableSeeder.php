@@ -44,63 +44,6 @@ class UsersTableSeeder extends Seeder
         $this->command->info('Tabla de tipo de tareas inicializada con datos!');
     }
 
-    function seedUsers()
-    {
-        User::truncate();
-
-        foreach ($this->users as $user) {
-
-            //workspace de Catalunya
-            $currentWorkspace = 9;
-
-            $u = new User;
-            $u->name = $user['name'];
-            $u->email = $user['email'];
-            $u->password = bcrypt($user['password']);
-            $u->type = $user['type'];
-            $u->currant_workspace = $currentWorkspace;
-            $u->email_verified_at = date('Y-m-d i:h:s');
-            $u->lang = $user['lang'];
-            $u->save();
-        }
-    }
-
-    function seedUserWorkspace()
-    {
-        UserWorkspace::truncate();
-        $consultUser = User::select(['users.*'])->get()->toArray();
-
-        foreach ($consultUser as $user) {
-            $userWorkspace = new UserWorkspace;
-            $userWorkspace->user_id = $user['id'];
-            $userWorkspace->workspace_id = $user['currant_workspace'];
-            if ($user['type'] == 'admin') {
-                $permission = 'Owner';
-            } else {
-                $permission = 'Member';
-            }
-            $userWorkspace->permission = $permission;
-            $userWorkspace->save();
-        }
-    }
-
-
-    // function seedWorkspace()
-    // {
-    //     Workspace::truncate();
-    //     foreach ($this->workspaces as $workspace) {
-    //         foreach ($workspace['branch'] as $name => $slug) {
-    //             $w = new Workspace;
-    //             $w->created_by = 1;
-    //             $w->name = $name;
-    //             $w->slug = $slug;
-    //             $w->lang = $setting['default_lang'] ?? 'es';
-    //             $w->branch = $name;
-    //             $w->company = $workspace['company'];
-    //             $w->save();
-    //         }
-    //     }
-    // }
     function seedProjectType()
     {
         ProjectType::truncate();

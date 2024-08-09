@@ -3493,13 +3493,13 @@ fieldset:disabled .btn {
     --bs-btn-bg: #AA182C;
     --bs-btn-border-color: #AA182C;
     --bs-btn-hover-color: #ffffff;
-    --bs-btn-hover-bg: #5eb839;
-    --bs-btn-hover-border-color: #59ae36;
+    --bs-btn-hover-bg: #982131;
+    --bs-btn-hover-border-color: #982131;
     --bs-btn-focus-shadow-rgb: 133, 223, 95;
     --bs-btn-active-color: #ffffff;
-    --bs-btn-active-bg: #59ae36;
-    --bs-btn-active-border-color: #53a332;
-    --bs-btn-active-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.125);
+    --bs-btn-active-bg: #982131;
+    --bs-btn-active-border-color: #982131;
+    --bs-btn-active-shadow: inset 0 3px 5px rgb(0 0 0 / 23%);
     --bs-btn-disabled-color: #ffffff;
     --bs-btn-disabled-bg: #AA182C;
     --bs-btn-disabled-border-color: #AA182C;
@@ -7781,7 +7781,7 @@ fieldset:disabled .btn {
 
 .link-success:hover,
 .link-success:focus {
-    color: #59ae36 !important;
+    color: #982131 !important;
 }
 
 .link-info {
@@ -15381,7 +15381,7 @@ fieldset:disabled .btn {
 
 .bg-green-600 {
     color: #ffffff;
-    background: #59ae36;
+    background: #982131;
 }
 
 .bg-green-700 {
@@ -16478,7 +16478,7 @@ body.theme-3 .dash-sidebar .dash-navbar>.dash-item:focus>.dash-link,
 body.theme-3 .dash-sidebar .dash-navbar>.dash-item:hover>.dash-link {
     background: linear-gradient(141.55deg, #AA182C 3.46%, #AA182C 99.86%), #AA182C;
     color: #fff;
-    /* box-shadow: 0 5px 7px -1px rgba(111, 217, 67, 0.3); */
+    box-shadow: 0 3px 5px rgb(0 0 0 / 23%);
 }
 
 body.theme-3 .dash-sidebar.light-sidebar .dash-navbar>.dash-item.active>.dash-link i,
@@ -16530,11 +16530,11 @@ body.theme-3 .btn-primary {
     --bs-btn-bg: #AA182C;
     --bs-btn-border-color: #AA182C;
     --bs-btn-hover-color: #ffffff;
-    --bs-btn-hover-bg: #5eb839;
-    --bs-btn-hover-border-color: #59ae36;
+    --bs-btn-hover-bg: #b9515f;
+    --bs-btn-hover-border-color: #b9515f;
     --bs-btn-focus-shadow-rgb: 133, 223, 95;
     --bs-btn-active-color: #ffffff;
-    --bs-btn-active-bg: #59ae36;
+    --bs-btn-active-bg: #982131;
     --bs-btn-active-border-color: #53a332;
     --bs-btn-active-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.125);
     --bs-btn-disabled-color: #ffffff;
@@ -16546,8 +16546,8 @@ body.theme-3 .btn-outline-primary {
     --bs-btn-color: #AA182C;
     --bs-btn-border-color: #AA182C;
     --bs-btn-hover-color: #ffffff;
-    --bs-btn-hover-bg: #AA182C;
-    --bs-btn-hover-border-color: #AA182C;
+    --bs-btn-hover-bg: #b9515f;
+    --bs-btn-hover-border-color: #b9515f;
     --bs-btn-focus-shadow-rgb: 111, 217, 67;
     --bs-btn-active-color: #ffffff;
     --bs-btn-active-bg: #AA182C;
@@ -16701,7 +16701,7 @@ body.theme-4 {
 
 body.theme-4 .bg-primary {
     /* background: linear-gradient(141.55deg, #AA182C 3.46%, #AA182C 99.86%), #AA182C !important; */
-    background-color:  #AA182C !important;
+    background-color: #AA182C !important;
 }
 
 body.theme-4 .dash-header .drp-language .drp-text,
@@ -16942,7 +16942,7 @@ body.theme-4 .card .card-header .h5:after {
 }
 
 body.theme-5 {
-    
+
     background: linear-gradient(141.55deg, rgba(240, 244, 243, 0) 3.46%, #f0f4f3 99.86%);
 }
 
@@ -16970,7 +16970,7 @@ body.theme-5 .dash-sidebar .dash-navbar>.dash-item:focus>.dash-link,
 body.theme-5 .dash-sidebar .dash-navbar>.dash-item:hover>.dash-link {
     background: linear-gradient(141.55deg, #AA182C 3.46%, #AA182C 99.86%), #AA182C;
     color: #fff;
-    /* box-shadow: 0 5px 7px -1px rgba(185, 64, 107, 0.3); */
+    box-shadow: 0 5px 7px -1px rgba(185, 64, 107, 0.3);
 }
 
 body.theme-5 .dash-sidebar.light-sidebar .dash-navbar>.dash-item.active>.dash-link i,
@@ -17215,7 +17215,7 @@ body.theme-6 .dash-sidebar .dash-navbar>.dash-item:focus>.dash-link,
 body.theme-6 .dash-sidebar .dash-navbar>.dash-item:hover>.dash-link {
     background: linear-gradient(141.55deg, #008ECC 3.46%, #008ECC 99.86%), #008ECC;
     color: #fff;
-    /* box-shadow: 0 5px 7px -1px rgba(0, 142, 204, 0.3); */
+    box-shadow: 0 5px 7px -1px rgba(0, 142, 204, 0.3);
 }
 
 body.theme-6 .dash-sidebar.light-sidebar .dash-navbar>.dash-item.active>.dash-link i,
@@ -17460,7 +17460,7 @@ body.theme-7 .dash-sidebar .dash-navbar>.dash-item:focus>.dash-link,
 body.theme-7 .dash-sidebar .dash-navbar>.dash-item:hover>.dash-link {
     background: linear-gradient(141.55deg, #922C88 3.46%, #922C88 99.86%), #922C88;
     color: #fff;
-    /* box-shadow: 0 5px 7px -1px rgba(146, 44, 136, 0.3); */
+    box-shadow: 0 5px 7px -1px rgba(146, 44, 136, 0.3);
 }
 
 body.theme-7 .dash-sidebar.light-sidebar .dash-navbar>.dash-item.active>.dash-link i,
@@ -18117,7 +18117,7 @@ body.theme-9 .custom-select:focus,
 body.theme-9 .dataTable-selector:focus,
 body.theme-9 .dataTable-input:focus {
     border-color: #48494B;
-    box-shadow: 0 0 0 0.2rem rgba(72, 73, 75, 0.25);
+    /* box-shadow: 0 0 0 0.2rem rgba(72, 73, 75, 0.25); */
 }
 
 body.theme-9 .form-check-input:checked {
