@@ -16,7 +16,7 @@
                 <div class="row">
                     <div class="col-md-6">
                         <div class="form-group ">
-                            <label class="form-label">{{ __('messages.Created_date') }}</label>
+                            <label class="form-label">{{ __('Created date') }}</label>
 
                             <div class="input-group date ">
                                 <input class="form-control datepicker22" type="text" id="start_date"
@@ -28,13 +28,13 @@
                         </div>
                     </div>
                     <div class="form-group col-md-6 ">
-                        <label for="end_date" class="col-form-label">{{ __('Fecha Estimada') }}</label>
+                        <label for="end_date" class="col-form-label">{{ __('Estimated date') }}</label>
                         <input onclick="this.showPicker()" type="date" class="form-control form-control-light date"
                             id="end_date" value="" placeholder="{{ __('End date') }}" name="end_date" required>
                     </div>
                 </div>
                 <div class="form-group col-md-12">
-                    <label for="task-summary" class="col-form-label">{{ __('messages.Summary') }}</label>
+                    <label for="task-summary" class="col-form-label">{{ __('Description') }}</label>
                     <textarea class="form-control form-control-light" id="task-summary" rows="3" name="summary">{{ $milestone->summary }}</textarea>
                 </div>
 

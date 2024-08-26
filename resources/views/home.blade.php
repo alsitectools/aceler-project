@@ -155,7 +155,6 @@
                             <div class="card">
                                 <div class="card-body">
                                     <div class="theme-avtar" style="background-color: #B197FC !important;">
-
                                         <i class="fa-solid fa-file-lines fa-xl text-white" style="color: #B197FC;"></i>
                                     </div>
                                     <p class="text-muted text-sm"></p>

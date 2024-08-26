@@ -10,7 +10,7 @@ class Stage extends Model
     public static function getTaskCountsForDate($workspaceId, $projectId, $date)
     // public static function getMilestoneCountsForDate($workspaceId, $projectId, $date)
     {
-        return static::leftJoin('milestones', 'stages.id', '=', 'milestones.project_id')
+        return static::leftJoin('milestones', 'stages.id', '=', 'milestones.status')
             ->whereDate('milestones.updated_at', $date)
             ->when($projectId !== null, function ($query) use ($projectId) {
                 return $query->where('milestones.project_id', $projectId);

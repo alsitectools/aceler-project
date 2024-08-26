@@ -4,7 +4,7 @@
     {{ __('Project Detail') }}
 @endsection
 @section('links')
-    <li class="breadcrumb-item"><a href="{{ route('projects.index', $currentWorkspace->slug) }}">{{ __('Project') }}</a>
+    <li class="breadcrumb-item"><a href="{{ route('projects.index', $currentWorkspace->slug) }}">{{ __('Projects') }}</a>
     </li>
     <li class="breadcrumb-item">{{ $project->name }}</li>
 @endsection
@@ -44,7 +44,7 @@
     <div class="col-lg-auto pb-3">
         <a href="{{ route('projects.timesheet.index', [$currentWorkspace->slug, $project->id]) }}"
             class="btn btn-primary btn-task-milestone" title="{{ __('dictionary.Tasks') }}"><i
-                class="fas fa-tasks text-white"></i>{{ __('dictionary.Tasks') }}</a>
+                class="fas fa-tasks text-white"></i>{{ __('Tasks') }}</a>
     </div>
 @endsection
 
@@ -74,46 +74,47 @@
                 <div class="col-xxl-12">
                     <div class="card bg-primary">
                         <div class="card-body">
-                            <div class="d-block d-sm-flex align-items-center m-2">
+                            <div class="d-block d-sm-flex align-items-center">
                                 <div class="col-sm-3">
-                                    <h2 class="text-white"> {{ $project->name }}</h2>
+                                    <h3 class="text-white"> {{ $project->name }}</h3>
                                 </div>
-                                <div style="font-size: 17px;"
-                                    class="col-sm-5 d-flex align-items-center align-items-end row1 text-white text-center">
-                                    <div class="col-7" data-toggle="tooltip" data-placement="top"
-                                        title="{{ __('dictionary.Company') }}">
-                                        <i class="fa-regular fa-building fa-xl" style="margin: 10px;"></i>
+                                <div style="font-size: 12px;"
+                                    class="col-sm-9 d-flex align-items-center align-items-end row1 text-white text-center">
+                                    <div class="col-2" data-toggle="tooltip" data-placement="top"
+                                        title="{{ __('Company') }}">
+                                        <i class="fa-regular fa-building fa-xl" style="margin: 5px;"></i>
                                         {{ $currentWorkspace->name }}
                                     </div>
-                                    <div class="col-4" data-toggle="tooltip" data-placement="top"
-                                        title="{{ __('dictionary.Branch') }}">
-                                        <i class="fa-solid fa-location-dot fa-xl" style="margin: 10px;"></i>
+                                    <div class="col-3" data-toggle="tooltip" data-placement="top"
+                                        title="{{ __('Branch') }}">
+                                        <i class="fa-solid fa-location-dot fa-xl" style="margin: 5px;"></i>
                                         {{ 'Montacada i Reixach' }}
                                     </div>
                                     @if ($project->ref_mo != null)
-                                        <div class="col-4 text-white m-0 p-0">
+                                        <div class="col-2 text-white m-0 p-0">
                                             <img class="img-fluid" src="{{ asset('assets/img/moicon.png') }}"
                                                 alt="logo" style="width: 45px; height: 45px;" />
                                             {{ $project->ref_mo }}
                                         </div>
                                     @endif
-                                    <div class="col-4">
-                                        <i class="fa-solid fa-calendar-check fa-xl text-white" style="margin: 10px;"></i>
-
+                                    <div class="col-2">
+                                        <i class="fa-solid fa-calendar-check fa-xl text-white" style="margin: 5px;"></i>
                                         {{ App\Models\Utility::dateFormat($project->start_date) }}
                                     </div>
-                                    <div class="col-4 d-inline">
-                                        <i class="fa-solid fa-users fa-xl" style="margin: 10px;"></i>
-
+                                    <div class="col-1 d-inline">
+                                        <i class="fa-solid fa-users fa-xl" style="margin: 5px;"></i>
                                         {{ (int) $project->technicians->count() + (int) $project->salesManager->count() }}
-
                                     </div>
-                                    <div class="justify-content-center align-items-center align-content-center pr-0 mr-0" >
+                                    <div
+                                        class="justify-content-center align-items-center align-content-center pr-0 mr-0 col-2">
                                         @if ($project->status == 'Finished')
-                                            <div class="badge  bg-success rounded"> {{ __('Finished') }}
+                                            <div class="badge bg-success rounded"> {{ __('Finished') }}
                                             </div>
                                         @elseif($project->status == 'Ongoing')
-                                            <div class="badge  bg-secondary rounded" style="width: 80px !important; height: 25px !important;">{{ __('Ongoing') }}</div>
+                                            <div class="badge bg-secondary rounded"
+                                                style="width: 75px !important; height: 25px !important;">
+                                                {{ __('Ongoing') }}
+                                            </div>
                                         @else
                                             <div class="badge bg-warning rounded">{{ __('OnHold') }}</div>
                                         @endif
@@ -190,7 +191,7 @@
                                             <i class="fas fa-tasks text-white"></i>
                                         </div>
                                         <div class="col text-end">
-                                            <h6 class="text-muted mb-1">{{ trans('messages.Tasks') }}</h6>
+                                            <h6 class="text-muted mb-1">{{ __('Tasks') }}</h6>
                                             <span class="h6 font-weight-bold mb-0 ">{{ $project->countTask() }}</span>
                                         </div>
                                     </div>
@@ -201,11 +202,12 @@
                             <div class="card">
                                 <div class="card-body">
                                     <div class="row">
-                                        <div class="theme-avtar bg-success">
-                                            <i class="fa-solid fa-file-lines"></i>
+                                        <div class="theme-avtar" style="background-color: #B197FC;">
+                                            <i class="fa-solid fa-file-lines fa-xl text-white"
+                                                style="color: #B197FC;"></i>
                                         </div>
                                         <div class="col text-end">
-                                            <h6 class="text-muted mb-1">{{ __('dictionary.Milestones') }}</h6>
+                                            <h6 class="text-muted mb-1">{{ __('Milestones') }}</h6>
                                             <span
                                                 class="h6 font-weight-bold mb-0 ">{{ $project->milestonescount() }}</span>
                                         </div>
@@ -226,7 +228,7 @@
                                         <div class="float-end">
                                             {{-- @if ($objUser->type == 'client' || $currentWorkspace->permission == 'Owner') --}}
                                             <a href="#" class="btn btn-sm btn-primary" data-ajax-popup="true"
-                                                data-title="{{ __('Hoja de encargo') }}"
+                                                data-title="{{ __('Milestone order') }}"
                                                 data-url="{{ route('projects.milestone', [$currentWorkspace->slug, $project->id]) }}"
                                                 data-toggle="popover" title="{{ __('Create') }}"><i
                                                     class="ti ti-plus"></i></a>
@@ -341,7 +343,7 @@
                                     <div class="d-flex justify-content-between align-items-center">
                                         <div>
                                             {{-- team usuario/tecnicos --}}
-                                            <h5 class="mb-0">{{ trans('messages.Team_Members') }}
+                                            <h5 class="mb-0">{{ __('Technicians') }}
                                                 ({{ count($project->technicians) }})
                                             </h5>
                                         </div>
@@ -420,7 +422,7 @@
                                 <div class="card-header">
                                     <div class="d-flex justify-content-between align-items-center">
                                         <div>
-                                            <h5 class="mb-0">{{ trans('messages.Sales_manager') }}
+                                            <h5 class="mb-0">{{ __('Sales managers') }}
                                                 ({{ count($project->salesManager) }})
                                             </h5>
                                         </div>
@@ -533,7 +535,7 @@
                                     <div class="d-flex justify-content-between align-items-center">
                                         <div class="row">
                                             <h5 class="mb-0">{{ __('Progress') }}<span class="text-end">
-                                                    ({{ trans('messages.Last_Week_Tasks') }}) </span></h5>
+                                                    ({{ __('Last week tasks') }}) </span></h5>
                                         </div>
                                     </div>
                                 </div>
@@ -610,6 +612,9 @@
     </div>
 @endsection
 
+@php
+    //   dd($chartData);
+@endphp
 @push('css-page')
     <link rel="stylesheet" href="{{ asset('assets/custom/css/dropzone.min.css') }}">
 @endpush
