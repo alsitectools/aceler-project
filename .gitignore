@@ -9,3 +9,4 @@ storage/framework
 routes/probas.php
 routes/probas.blade.php
 storage/logs/laravel.log
+node_modules

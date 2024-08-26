@@ -30,24 +30,22 @@
                                                 data-bs-toggle="collapse"
                                                 data-bs-target="#collapseOne{{ $key }}" aria-expanded="true"
                                                 aria-controls="collapseOne{{ $key }}">
-                                                <span data-tooltip="Project"
-                                                    class="project-name pad_row custom-tooltip">
+                                                <div class="project-name pad_row tooltipCus"   data-title="{{ __('Project') }}">
                                                     {{ $timesheet['project_name'] }}
-                                                </span>
+                                        </div>
                                             </button>
                                         </h2>
-                                        <div id="collapseOne{{ $key }}" class="accordion-collapse collapse show"
-                                            data-bs-parent="#accordionExample">
+                                        <div id="collapseOne{{ $key }}"
+                                            class="accordion-collapse collapse show" data-bs-parent="#accordionExample">
                                             <div class="accordion-body mb-0">
                                                 <div class="table-responsive">
                                                     <table class="table">
                                                         @foreach ($timesheet['milestoneArray'] as $milestoneKey => $milestone)
                                                             <td colspan="10" class="text-center">
-                                                                <div data-tooltip="Milestone"
-                                                                    class="custom-tooltip milestone-name"
+                                                                <div class="milestone-name justify-content-center align-items-center"
                                                                     data-milestone-name="{{ $milestone['milestone_name'] }}">
-                                                                    <div class="text-dark"
-                                                                        style="margin-top: 12% !important;">
+                                                                    <div data-title="{{ __('Milestone') }}"
+                                                                        class="tooltipCus text-dark mt-4">
                                                                         {{ $milestone['milestone_name'] }}
                                                                     </div>
                                                                 </div>
@@ -57,8 +55,8 @@
                                                                 <tr>
                                                                     @if (Auth::user()->type != 'admin')
                                                                         <td class="task-name">
-                                                                            <div data-tooltip="{{ __('Task') }}"
-                                                                                class="custom-tooltip task-name"
+                                                                            <div data-title="{{ __('Task') }}"
+                                                                                class="tooltipCus task-name"
                                                                                 data-task-name="{{ $taskTimesheet['task_name'] }}">
                                                                                 {{ $taskTimesheet['task_name'] }}
                                                                             </div>
@@ -67,8 +65,8 @@
                                                                     @foreach ($taskTimesheet['dateArray'] as $dateTimeArray)
                                                                         @if (Auth::user()->type == 'admin')
                                                                             <td class="user-name">
-                                                                                <div data-tooltip="{{ $taskTimesheet['user_name'] }}"
-                                                                                    class="custom-tooltip task-name">
+                                                                                <div data-title="{{ $taskTimesheet['user_name'] }}"
+                                                                                    class="tooltipCus task-name">
                                                                                     {{ $taskTimesheet['user_name'] }}
                                                                                 </div>
                                                                             </td>
@@ -125,8 +123,8 @@
                                                 data-bs-target="#collapseOne{{ $key }}" aria-expanded="true"
                                                 aria-controls="collapseOne{{ $key }}"
                                                 style=" background-color: #F8F9FD; font-weight: bold;">
-                                                <span data-tooltip="Milestone"
-                                                    class="milestone-name pad_row custom-tooltip">
+                                                <span data-title="{{ __('Milestone') }}" style="width: 200px !important"
+                                                    class="milestone-name pad_row tooltipCus">
                                                     {{ $timesheet['milestone_name'] }}
                                                 </span>
                                             </button>
@@ -138,11 +136,9 @@
                                                     <table class="table">
                                                         @foreach ($timesheet['usersArray'] as $userKey => $user)
                                                             <td colspan="10" class="text-center">
-                                                                <div data-tooltip="User"
-                                                                    class="custom-tooltip user-name"
-                                                                    data-milestone-name="{{ $user['user_name'] }}">
-                                                                    <div class="text-dark"
-                                                                        style="margin-top: 12% !important;">
+                                                                <div class="tooltipCus user-name"
+                                                                    data-title="{{ $user['user_name'] }}">
+                                                                    <div class="text-dark">
                                                                         {{ $user['user_name'] }}
                                                                     </div>
                                                                 </div>
@@ -152,8 +148,8 @@
                                                                 <tr>
                                                                     @if (Auth::user()->type != 'admin')
                                                                         <td class="task-name">
-                                                                            <div data-tooltip="{{ __('Task') }}"
-                                                                                class="custom-tooltip task-name"
+                                                                            <div class="task-name tooltipCus"
+                                                                                data-title="{{ __('Task') }}"
                                                                                 data-task-name="{{ $taskTimesheet['task_name'] }}">
                                                                                 {{ $taskTimesheet['task_name'] }}
                                                                             </div>
@@ -162,8 +158,9 @@
                                                                     @foreach ($taskTimesheet['dateArray'] as $dateTimeArray)
                                                                         @if (Auth::user()->type == 'admin')
                                                                             <td class="user-name">
-                                                                                <div data-tooltip="{{ $taskTimesheet['user_name'] }}"
-                                                                                    class="custom-tooltip user-name">
+                                                                                <div class="tooltipCus"
+                                                                                    data-title="{{ $taskTimesheet['user_name'] }}"
+                                                                                    class="user-name">
                                                                                     {{ $dateTimeArray['user_name'] }}
                                                                                 </div>
                                                                             </td>
@@ -256,13 +253,33 @@
     </div>
 </div>
 <style>
-    /* .accordion-header {
-        background-color: #F8F9FD;
-        
+    .tooltipCus {
+        position: relative;
+        cursor: pointer;
     }
-    .accordion-header:not(.collapsed) {
-        background-color: transparent;
-    } */
+
+    .tooltipCus::after {
+        content: attr(data-title);
+        visibility: hidden;
+        background-color: black;
+        color: #fff;
+        text-align: center;
+        border-radius: 10px;
+        position: absolute;
+        z-index: 1;
+        bottom: 100%;
+        left: 50%;
+        transform: translateX(-50%);
+        opacity: 0;
+        transition: opacity 0.3s;
+        white-space: nowrap;
+        padding: 4px 8px;
+    }
+
+    .tooltipCus:hover::after {
+        visibility: visible;
+        opacity: 1;
+    }
 
     .custom-accordion-button {
         background-color: transparent;
