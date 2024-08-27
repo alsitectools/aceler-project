@@ -7,7 +7,7 @@
     <link rel="shortcut icon" href="{{ asset('assets/img/iconA.png') }}" type="image/png">
 
 
-    <title>{{ config('app.name', 'Taskly - SaaS') }}</title>
+    <title>{{ config('app.name', 'aCeler Project') }}</title>
 
     <!-- Fonts -->
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&display=swap">

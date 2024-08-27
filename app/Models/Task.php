@@ -11,7 +11,6 @@ class Task extends Model
         'milestone_id',
         'type_id',
         'assign_to',
-        // 'description',
         'start_date',
         'estimated_date',
     ];
@@ -49,6 +48,11 @@ class Task extends Model
     public function milestone()
     {
         return $this->milestone_id ? Milestone::find($this->milestone_id) : null;
+    }
+    public function milestoneTitle()
+    {
+        $milestone = $this->milestone_id ? Milestone::find($this->milestone_id) : null;
+        return $milestone ? $milestone->title : null;
     }
 
     public function sub_tasks()

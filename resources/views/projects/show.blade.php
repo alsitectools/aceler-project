@@ -4,7 +4,7 @@
     {{ __('Project Detail') }}
 @endsection
 @section('links')
-    <li class="breadcrumb-item"><a href="{{ route('projects.index', $currentWorkspace->slug) }}">{{ __('Project') }}</a>
+    <li class="breadcrumb-item"><a href="{{ route('projects.index', $currentWorkspace->slug) }}">{{ __('Projects') }}</a>
     </li>
     <li class="breadcrumb-item">{{ $project->name }}</li>
 @endsection
@@ -13,7 +13,17 @@
     $logo = \App\Models\Utility::get_file('avatars/');
     $logo_project_files = \App\Models\Utility::get_file('project_files/');
 @endphp
+<style>
+    .btn-task-milestone {
+        display: flex !important;
+        justify-content: space-evenly !important;
+        align-content: center;
+        width: 180px;
+        text-align: center;
+        align-items: center;
 
+    }
+</style>
 @section('multiple-action-button')
     @if (isset($currentWorkspace) && $currentWorkspace->permission == 'Owner')
         <div class="col-md-auto col-sm-4 pb-3">
@@ -26,27 +36,15 @@
             </a>
         </div>
     @endif
-    @if (
-        (isset($currentWorkspace) && $currentWorkspace->permission == 'Member') ||
-            (isset($currentWorkspace) && $currentWorkspace->permission == 'Owner'))
-        <div class="col-md-auto col-sm-4 pb-3">
-            <a href="{{ route('projects.timesheet.index', [$currentWorkspace->slug, $project->id]) }}"
-                class="btn btn-xs btn-primary btn-icon-only col-12 ">{{ trans('messages.Timesheet') }}</a>
-        </div>
-    @endif
-
-    @if (
-        (isset($currentWorkspace) && $currentWorkspace->permission == 'Member') ||
-            (isset($currentWorkspace) && $currentWorkspace->permission == 'Owner'))
-        <div class="col-md-auto col-sm-4 pb-3">
-            <a href="{{ route('projects.milestone.board', [$currentWorkspace->slug, $project->id]) }}"
-                class="btn btn-xs btn-primary btn-icon-only col-12 ">{{ trans('messages.Milestone_Board') }}</a>
-        </div>
-    @endif
-
-    <div class="col-md-auto col-sm-6 pb-3">
-        <a href="{{ route('projecttime.tracker', [$currentWorkspace->slug, $project->id]) }}"
-            class="btn btn-xs btn-primary btn-icon-only col-12 ">{{ trans('messages.Tracker') }}</a>
+    <div class="col-lg-auto pb-3">
+        <a href="{{ route('projects.milestone.board', [$currentWorkspace->slug, $project->id]) }}"
+            class="btn btn-primary btn-task-milestone" title="{{ __('Milestones') }}"><i
+                class="fa-solid fa-file-lines"></i>{{ __('Milestones') }}</a>
+    </div>
+    <div class="col-lg-auto pb-3">
+        <a href="{{ route('projects.timesheet.index', [$currentWorkspace->slug, $project->id]) }}"
+            class="btn btn-primary btn-task-milestone" title="{{ __('dictionary.Tasks') }}"><i
+                class="fas fa-tasks text-white"></i>{{ __('Tasks') }}</a>
     </div>
 @endsection
 
@@ -76,41 +74,50 @@
                 <div class="col-xxl-12">
                     <div class="card bg-primary">
                         <div class="card-body">
-                            <div class="d-block d-sm-flex align-items-center justify-content-between">
-                                <h4 class="text-white"> {{ $project->name }}</h4>
-                                <div class="d-flex  align-items-center row1">
-                                    @if($project->ref_mo != null)
-                                    <div class="px-3">
-                                        <span class="text-white text-sm">{{ __('MasterObras') }}:</span>
-                                        <h5 class="text-white text-nowrap"> {{ $project->ref_mo }}</h5>
+                            <div class="d-block d-sm-flex align-items-center">
+                                <div class="col-sm-3">
+                                    <h3 class="text-white"> {{ $project->name }}</h3>
+                                </div>
+                                <div style="font-size: 12px;"
+                                    class="col-sm-9 d-flex align-items-center align-items-end row1 text-white text-center">
+                                    <div class="col-2" data-toggle="tooltip" data-placement="top"
+                                        title="{{ __('dictionary.Company') }}">
+                                        <i class="fa-regular fa-building fa-xl" style="margin: 5px;"></i>
+                                        {{ $currentWorkspace->name }}
                                     </div>
+                                    <div class="col-3" data-toggle="tooltip" data-placement="top"
+                                        title="{{ __('dictionary.Branch') }}">
+                                        <i class="fa-solid fa-location-dot fa-xl" style="margin: 5px;"></i>
+                                        {{ 'Montacada i Reixach' }}
+                                    </div>
+                                    @if ($project->ref_mo != null)
+                                        <div class="col-2 text-white m-0 p-0">
+                                            <img class="img-fluid" src="{{ asset('assets/img/moicon.png') }}"
+                                                alt="logo" style="width: 45px; height: 45px;" />
+                                            {{ $project->ref_mo }}
+                                        </div>
                                     @endif
-                                    <div class="px-3">
-                                        <span class="text-white text-sm">{{ trans('messages.Start_Date') }}:</span>
-                                        <h5 class="text-white text-nowrap">
-                                            {{ App\Models\Utility::dateFormat($project->start_date) }}</h5>
+                                    <div class="col-2">
+                                        <i class="fa-solid fa-calendar-check fa-xl text-white" style="margin: 5px;"></i>
+                                        {{ App\Models\Utility::dateFormat($project->start_date) }}
                                     </div>
-                                    <div class="px-3">
-                                        <span class="text-white text-sm">{{ __('Due Date') }}:</span>
-                                        <h5 class="text-white">{{ App\Models\Utility::dateFormat($project->end_date) }}
-                                        </h5>
+                                    <div class="col-1 d-inline">
+                                        <i class="fa-solid fa-users fa-xl" style="margin: 5px;"></i>
+                                        {{ (int) $project->technicians->count() + (int) $project->salesManager->count() }}
                                     </div>
-                                    <div class="px-3">
-                                        <span class="text-white text-sm">{{ trans('messages.Total_Members') }}:</span>
-                                        <h5 class="text-white text-nowrap">
-                                            {{ (int) $project->technicians->count() + (int) $project->salesManager->count() }}</h5>
-                                    </div>
-                                    <div class="px-3">
-
+                                    <div
+                                        class="justify-content-center align-items-center align-content-center pr-0 mr-0 col-2">
                                         @if ($project->status == 'Finished')
-                                            <div class="badge  bg-success p-2 px-3 rounded"> {{ __('Finished') }}
+                                            <div class="badge bg-success rounded"> {{ __('Finished') }}
                                             </div>
                                         @elseif($project->status == 'Ongoing')
-                                            <div class="badge  bg-secondary p-2 px-3 rounded">{{ __('Ongoing') }}</div>
+                                            <div class="badge bg-secondary rounded"
+                                                style="width: 75px !important; height: 25px !important;">
+                                                {{ __('Ongoing') }}
+                                            </div>
                                         @else
-                                            <div class="badge bg-warning p-2 px-3 rounded">{{ __('OnHold') }}</div>
+                                            <div class="badge bg-warning rounded">{{ __('OnHold') }}</div>
                                         @endif
-
                                     </div>
                                 </div>
 
@@ -121,7 +128,6 @@
                                         </a></button>
                                 @else
                                     @auth('web')
-                                        {{-- modificado --}}
                                         @if ($objUser->type == 'admin')
                                             <div class="d-flex align-items-center ">
 
@@ -162,7 +168,7 @@
                         </div>
                     </div>
                     <div class="row">
-                        <div class="col-lg-4 col-sm-6">
+                        <div class="col-lg-3 col-sm-6">
                             <div class="card">
                                 <div class="card-body">
                                     <div class="row">
@@ -177,41 +183,39 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="col-lg-4 col-sm-6">
+                        <div class="col-lg-3 col-sm-6">
                             <div class="card">
                                 <div class="card-body">
                                     <div class="row">
                                         <div class="theme-avtar bg-danger">
-                                            <i class="fas fa-check-double"></i>
+                                            <i class="fas fa-tasks text-white"></i>
                                         </div>
                                         <div class="col text-end">
-                                            <h6 class="text-muted mb-1">{{ trans('messages.Total_Task') }}</h6>
+                                            <h6 class="text-muted mb-1">{{ __('Tasks') }}</h6>
                                             <span class="h6 font-weight-bold mb-0 ">{{ $project->countTask() }}</span>
                                         </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
-                        <div class="col-lg-4 col-sm-6">
+                        <div class="col-lg-3 col-sm-6">
                             <div class="card">
                                 <div class="card-body">
                                     <div class="row">
-                                        <div class="theme-avtar bg-success">
-                                            <i class="fas fa-comments"></i>
+                                        <div class="theme-avtar" style="background-color: #B197FC;">
+                                            <i class="fa-solid fa-file-lines fa-xl text-white"
+                                                style="color: #B197FC;"></i>
                                         </div>
                                         <div class="col text-end">
-                                            <h6 class="text-muted mb-1">{{ __('Comment') }}</h6>
+                                            <h6 class="text-muted mb-1">{{ __('Milestones') }}</h6>
                                             <span
-                                                class="h6 font-weight-bold mb-0 ">{{ $project->countTaskComments() }}</span>
+                                                class="h6 font-weight-bold mb-0 ">{{ $project->milestonescount() }}</span>
                                         </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </div>
-
-                    {{-- ======================================================================================== --}}
-
                     <div class="col-lg-12">
                         @if ($currentWorkspace->permission == 'Member' || $currentWorkspace->permission == 'Owner')
                             <div class="card">
@@ -222,13 +226,13 @@
                                             </h5>
                                         </div>
                                         <div class="float-end">
-                                            @if ($objUser->type == 'client' || $currentWorkspace->permission == 'Owner')
-                                                <a href="#" class="btn btn-sm btn-primary" data-ajax-popup="true"
-                                                    data-title="{{ __('Create Milestone') }}"
-                                                    data-url="{{ route('projects.milestone', [$currentWorkspace->slug, $project->id]) }}"
-                                                    data-toggle="popover" title="{{ __('Create') }}"><i
-                                                        class="ti ti-plus"></i></a>
-                                            @endif
+                                            {{-- @if ($objUser->type == 'client' || $currentWorkspace->permission == 'Owner') --}}
+                                            <a href="#" class="btn btn-sm btn-primary" data-ajax-popup="true"
+                                                data-title="{{ __('Milestone order') }}"
+                                                data-url="{{ route('projects.milestone', [$currentWorkspace->slug, $project->id]) }}"
+                                                data-toggle="popover" title="{{ __('Create') }}"><i
+                                                    class="ti ti-plus"></i></a>
+                                            {{-- @endif --}}
                                         </div>
                                     </div>
                                 </div>
@@ -331,9 +335,7 @@
                             </div>
                         @endif
                     </div>
-
                     {{-- ======================================================================================== --}}
-
                     <div class="row">
                         <div class="col-md-6">
                             <div class="card ">
@@ -341,7 +343,7 @@
                                     <div class="d-flex justify-content-between align-items-center">
                                         <div>
                                             {{-- team usuario/tecnicos --}}
-                                            <h5 class="mb-0">{{ trans('messages.Team_Members') }}
+                                            <h5 class="mb-0">{{ __('Technicians') }}
                                                 ({{ count($project->technicians) }})
                                             </h5>
                                         </div>
@@ -417,16 +419,13 @@
                         </div>
                         <div class="col-md-6">
                             <div class="card">
-
                                 <div class="card-header">
                                     <div class="d-flex justify-content-between align-items-center">
                                         <div>
-
-                                            <h5 class="mb-0">{{ trans('messages.Sales_manager') }}
+                                            <h5 class="mb-0">{{ __('Sales manager') }}
                                                 ({{ count($project->salesManager) }})
                                             </h5>
                                         </div>
-
                                         <div class="float-end">
                                             <p class="text-muted d-none d-sm-flex align-items-center mb-0">
                                                 {{-- modificado --}}
@@ -498,9 +497,7 @@
                             </div>
                         </div>
                     </div>
-
                 </div>
-
                 <div class="col-xxl-12">
                     <div class="row">
                         <div class="col-md-4">
@@ -532,15 +529,13 @@
                                 @endif
                             </div>
                         </div>
-
                         <div class="col-md-4">
                             <div class="card">
                                 <div class="card-header" style="padding: 25px 35px !important;">
                                     <div class="d-flex justify-content-between align-items-center">
                                         <div class="row">
                                             <h5 class="mb-0">{{ __('Progress') }}<span class="text-end">
-                                                    ({{ trans('messages.Last_Week_Tasks') }}) </span></h5>
-
+                                                    ({{ __('Last week tasks') }}) </span></h5>
                                         </div>
                                     </div>
                                 </div>
@@ -578,26 +573,10 @@
                                                         <span
                                                             class="timeline-step timeline-step-sm border border-success text-white">
                                                             <i class="fas fa-tasks"></i></span>
-                                                    @elseif($activity->log_type == 'Create Bug')
-                                                        <span
-                                                            class="timeline-step timeline-step-sm border border-warning text-white">
-                                                            <i class="fas fa-bug"></i></span>
-                                                    @elseif($activity->log_type == 'Move' || $activity->log_type == 'Move Bug')
-                                                        <span
-                                                            class="timeline-step timeline-step-sm border round border-danger text-white">
-                                                            <i class="fas fa-align-justify"></i></span>
-                                                    @elseif($activity->log_type == 'Create Invoice')
-                                                        <span
-                                                            class="timeline-step timeline-step-sm border border-bg-dark text-white">
-                                                            <i class="fas fa-file-invoice"></i></span>
                                                     @elseif($activity->log_type == 'Invite User')
                                                         <span
                                                             class="timeline-step timeline-step-sm border border-success text-white">
                                                             <i class="fas fa-plus"></i></span>
-                                                    @elseif($activity->log_type == 'Share with Client')
-                                                        <span
-                                                            class="timeline-step timeline-step-sm border border-info text-white">
-                                                            <i class="fas fa-share"></i></span>
                                                     @elseif($activity->log_type == 'Create Timesheet')
                                                         <span
                                                             class="timeline-step timeline-step-sm border border-success text-white">
@@ -615,7 +594,6 @@
                                                             <p>{{ $activity->created_at->diffForHumans() }}</p>
                                                         </div>
                                                     </div>
-
                                                 </div>
                                             @endforeach
                                         @endif
@@ -634,16 +612,14 @@
     </div>
 @endsection
 
-{{-- @dd(filesize('storage/logo/1_logo-light.png' )) --}}
-
+@php
+    //   dd($chartData);
+@endphp
 @push('css-page')
     <link rel="stylesheet" href="{{ asset('assets/custom/css/dropzone.min.css') }}">
 @endpush
 @push('scripts')
-    <!--
-                                                                                                                            <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
-
-                                                                                                                             -->
+    <!-- <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script> -->
     <script src="{{ asset('assets/js/plugins/apexcharts.min.js') }}"></script>
     <script>
         (function() {
@@ -870,8 +846,8 @@
             myDropzone.emit("complete", mockFile);
 
             dropzoneBtn(mockFile, {
-                download: "{{ route($client_keyword . 'projects.file.download', [$currentWorkspace->slug, $project->id, $file->id]) }}",
-                delete: "{{ route($client_keyword . 'projects.file.delete', [$currentWorkspace->slug, $project->id, $file->id]) }}"
+                download: "{{ route('projects.file.download', [$currentWorkspace->slug, $project->id, $file->id]) }}",
+                delete: "{{ route('projects.file.delete', [$currentWorkspace->slug, $project->id, $file->id]) }}"
             });
         @endforeach
     </script>

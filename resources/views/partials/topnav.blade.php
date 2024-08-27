@@ -67,8 +67,7 @@
     }
 </style>
 <header class="dash-header {{ isset($cust_theme_bg) && $cust_theme_bg == 'on' ? 'transprent-bg' : '' }}">
-
-    <div class="header-wrapper">
+    <div class="header-wrapper p-0  me-2">
         <div class="dash-mob-drp">
             <ul class="list-unstyled">
                 <li class="dash-h-item mob-hamburger">
@@ -80,24 +79,6 @@
                         </div>
                     </a>
                 </li>
-                @if (\Auth::user()->type != 'admin')
-                    <li class="dropdown dash-h-item">
-                        <a class="dash-head-link dropdown-toggle arrow-none ms-0" data-bs-toggle="dropdown"
-                            href="#" role="button" aria-haspopup="false" aria-expanded="false">
-                            <i class="ti ti-search"></i>
-                        </a>
-                        <div class="dropdown-menu dash-h-dropdown drp-search drp-search-custom">
-                            <form class="form-inline mr-auto mb-0">
-                                <div class="search-element">
-                                    <input class="" type="type here" placeholder="Search here. . ."
-                                        aria-label="Search">
-
-                                    <div class="search-backdrop"></div>
-                                </div>
-                            </form>
-                        </div>
-                    </li>
-                @endif
                 <li class="dropdown dash-h-item drp-company">
                     <a class="dash-head-link dropdown-toggle arrow-none me-0" data-bs-toggle="dropdown" href="#"
                         role="button" aria-haspopup="false" aria-expanded="false">
@@ -108,45 +89,7 @@
                         <i class="ti ti-chevron-down drp-arrow nocolor hide-mob"></i>
                     </a>
                     <div class="dropdown-menu dash-h-dropdown">
-                        {{-- @if (Auth::user()->type == 'user')
-                            @endif
-                            @foreach (Auth::user()->workspace as $workspace)
-                                @if ($workspace->is_active)
-                                    <a href="@if ($currentWorkspace->id == $workspace->id) #@else @auth('web'){{ route('change-workspace', $workspace->id) }}@elseauth{{ route('client.change-workspace', $workspace->id) }}@endauth @endif"
-                                        title="{{ $workspace->name }}" class="dropdown-item">
-                                        @if ($currentWorkspace->id == $workspace->id)
-                                            <i class="ti ti-checks text-success"></i>
-                                        @endif
-                                        <span>{{ $workspace->name }}</span>
-
-                                        @if (isset($workspace->pivot->permission))
-                                            @if ($workspace->pivot->permission == 'Owner')
-                                                <span
-                                                    class="badge bg-primary">{{ __($workspace->pivot->permission) }}</span>
-                                            @else
-                                                <span class="badge bg-dark">{{ __('Shared') }}</span>
-                                            @endif
-                                        @endif
-                                    </a>
-                                @else
-                                    <a href="#" class="dropdown-item" title="{{ __('Locked') }}">
-                                        <i class="ti ti-lock"></i>
-                                        <span>{{ $workspace->name }}</span>
-                                        @if (isset($workspace->pivot->permission))
-                                            @if ($workspace->pivot->permission == 'Owner')
-                                                <span
-                                                    class="badge badge-success-primary">{{ __($workspace->pivot->permission) }}</span>
-                                            @else
-                                                <span class="badge bg-dark">{{ __('Shared') }}</span>
-                                            @endif
-                                        @endif
-                                    </a>
-                                @endif
-                            @endforeach 
-                            --}}
-                        @php
-                            $login_status = false;
-                        @endphp
+                        @php $login_status = false; @endphp
 
                         @foreach (Auth::user()->workspace as $workspace)
                             {{-- @dump($workspace)  --}}
@@ -236,55 +179,24 @@
 
                         @endif
 
-                        @if (\Auth::user()->type == 'admin')
+                        @if (isset($currentWorkspace) && $currentWorkspace)
                             @auth('web')
-                                @foreach (Auth::user()->workspace as $workspace)
-                                    @if ($currentWorkspace->id == $workspace->id)
-                                        @if ($workspace->pivot->permission == 'Owner')
-                                            <a href="#!" class="dropdown-item" data-toggle="modal"
-                                                data-target="#modelCreateWorkspace">
-                                                <i class="ti ti-circle-plus"></i>
-                                                <span>{{ __('Create New Workspace') }}</span>
-                                            </a>
-                                        @endif
-                                    @endif
-                                @endforeach
+                                @if (Auth::user()->id == 'admin')
+                                    <a href="#" class="dropdown-item bs-pass-para"
+                                        data-confirm="{{ __('Are You Sure?') }}"
+                                        data-text="{{ __('messages.This_action_can_not_be_undone._Do_you_want_to_continue?') }}"
+                                        data-confirm-yes="remove-workspace-form">
+                                        <i class="ti ti-circle-x"></i>
+                                        <span>{{ __('Remove Me From This Workspace') }}</span>
+                                    </a>
+                                    <form id="remove-workspace-form"
+                                        action="{{ route('delete-workspace', ['id' => $currentWorkspace->id]) }}"
+                                        method="POST" style="display: none;">
+                                        @csrf
+                                        @method('DELETE')
+                                    </form>
+                                @endif
                             @endauth
-
-                            @if (isset($currentWorkspace) && $currentWorkspace)
-                                @auth('web')
-                                    @if (Auth::user()->id == $currentWorkspace->created_by)
-                                        <a href="#" class="dropdown-item bs-pass-para"
-                                            data-confirm="{{ __('Are You Sure?') }}"
-                                            data-text="{{ __('messages.This_action_can_not_be_undone._Do_you_want_to_continue?') }}"
-                                            data-confirm-yes="remove-workspace-form">
-                                            <i class="ti ti-circle-x"></i>
-                                            <span>{{ __('Remove Me From This Workspace') }}</span>
-                                        </a>
-                                        <form id="remove-workspace-form"
-                                            action="{{ route('delete-workspace', ['id' => $currentWorkspace->id]) }}"
-                                            method="POST" style="display: none;">
-                                            @csrf
-                                            @method('DELETE')
-                                        </form>
-                                    @else
-                                        <a href="#" class="dropdown-item bs-pass-para"
-                                            data-confirm="{{ __('Are You Sure?') }}"
-                                            data-text="{{ __('messages.This_action_can_not_be_undone._Do_you_want_tocontinue?') }}"
-                                            data-confirm-yes="remove-workspace-form">
-                                            <i class="ti ti-circle-x"></i>
-                                            <span>{{ __('Leave Me From This Workspace') }}</span>
-                                        </a>
-                                        <form id="remove-workspace-form"
-                                            action="{{ route('leave-workspace', ['id' => $currentWorkspace->id]) }}"
-                                            method="POST" style="display: none;">
-                                            @csrf
-                                            @method('DELETE')
-                                        </form>
-                                    @endif
-                                @endauth
-                            @endif
-
                         @endif
                         <a href="@auth('web'){{ route('users.my.account') }}@elseauth{{ route('client.users.my.account') }}@endauth"
                             class="dropdown-item">
@@ -311,7 +223,7 @@
         <!-- Brand + Toggler (for mobile devices) -->
 
         <div class="ms-auto">
-            <ul class="list-unstyled">
+            <ul class="list-unstyled" style="padding-right: 15px;">
                 @if (Auth::user()->type == 'admin')
                     @impersonating($guard = null)
                         <li class="dropdown dash-h-item drp-company">
@@ -342,7 +254,6 @@
                             @auth('web')
                                 @php
                                     $notifications = Auth::user()->notifications($currentWorkspace->id);
-                                    // $all_notifications = Auth::user()->all_notifications($currentWorkspace->id);
                                 @endphp
                                 <a class="dash-head-link dropdown-toggle arrow-none me-0" data-bs-toggle="dropdown"
                                     href="#" role="button" aria-haspopup="false" aria-expanded="false">
@@ -354,10 +265,10 @@
                                 </a>
                                 <div class="dropdown-menu dash-h-dropdown dropdown-menu-end notification_menu_all">
                                     <div class="noti-header">
-                                        <h5 class="m-0">Notification</h5>
+                                        <h5 class="m-0">{{ __('dictionary.Notification') }}</h5>
                                         <a href="#"
                                             data-url="{{ route('delete_all.notifications', $currentWorkspace->slug) }}"
-                                            class="dash-head-link clear_all_notifications">Clear All</a>
+                                            class="dash-head-link clear_all_notifications">{{ __('dictionary.Clear_All') }}</a>
                                     </div>
                                     <div class="noti-body">
                                         <div class="limited">
@@ -409,7 +320,6 @@
                                                                 $project->name .
                                                                 '</b>';
                                                             $icon = 'fa fa-clock-o';
-    
                                                         } else {
                                                             return '';
                                                         }
@@ -441,11 +351,11 @@
                                                                 $project->name .
                                                                 '</b>';
                                                             $icon = 'fa fa-bug';
-                                                         //   if ($data->priority == 'Low') {
-                                                         //       $icon_color = 'bg-success';
-                                                         //   } elseif ($data->priority == 'High') {
-                                                         //       $icon_color = 'bg-danger';
-                                                         //   }
+                                                            //   if ($data->priority == 'Low') {
+                                                            //       $icon_color = 'bg-success';
+                                                            //   } elseif ($data->priority == 'High') {
+                                                            //       $icon_color = 'bg-danger';
+                                                            //   }
                                                         }
                                                     @endphp
                                                 @endif
@@ -500,42 +410,6 @@
                     </li>
                 @endif
 
-
-
-                {{-- @dd($currantLang) --}}
-                {{-- <li class="dropdown dash-h-item drp-language">
-                    <a class="dash-head-link dropdown-toggle arrow-none me-0" data-bs-toggle="dropdown"
-                        href="#" role="button" aria-haspopup="false" aria-expanded="false">
-                        <i class="ti ti-world nocolor"></i>
-                        <span class="drp-text hide-mob">{{ Str::upper($currantLang) }}</span>
-                <i class="ti ti-chevron-down drp-arrow nocolor"></i>
-                </a>
-                <div class="dropdown-menu dash-h-dropdown dropdown-menu-end">
-                    @if (\Auth::guard('client')->check())
-                    @foreach (\App\Models\Utility::languages() as $lang)
-                    <a href="{{ route('change_lang_workspace1', [$currentWorkspace->id, $lang]) }}" class="dropdown-item {{ $currantLang == $lang ? 'text-danger' : '' }}">
-                        <span>{{ Str::upper($lang) }}</span>
-                    </a>
-                    @endforeach
-                    @endif
-                    @if (\Auth::user()->type == 'admin')
-                    @foreach (\App\Models\Utility::languages() as $lang)
-                    <a href="{{ route('change_lang_admin', $lang) }}" class="dropdown-item {{ $currantLang == $lang ? 'text-danger' : '' }}">
-                        <span>{{ Str::upper($lang) }}</span>
-                    </a>
-                    @endforeach
-                    <div class="dropdown-divider m-0"></div>
-                    <a href="{{ route('lang_workspace') }}" class="dropdown-item text-primary"><span class="dash-mtext">{{ __('Manage Language') }}</span></a>
-                    @elseif(isset($currentWorkspace) && $currentWorkspace && (\Auth::guard('web')->check()))
-                    @foreach (\App\Models\Utility::languages() as $lang)
-                    <a href="{{ route('change_lang_workspace', [$currentWorkspace->id, $lang]) }}" class="dropdown-item {{ $currantLang == $lang ? 'text-danger' : '' }}">
-                        <span>{{ Str::upper($lang) }}</span>
-                        @endforeach
-                        @endif
-                    </a>
-                </div>
-                </li> --}}
-
                 <li class="dropdown dash-h-item drp-language">
                     <a class="dash-head-link dropdown-toggle arrow-none me-0" data-bs-toggle="dropdown"
                         href="#" role="button" aria-haspopup="false" aria-expanded="false">
@@ -546,13 +420,6 @@
                     </a>
                     <div class="dropdown-menu dash-h-dropdown dropdown-menu-end">
                         @if (\Auth::guard('client')->check())
-                            {{-- @foreach (\App\Models\Utility::languages() as $lang)
-                                    <a href="{{ route('change_lang_workspace1', [$currentWorkspace->id, $lang]) }}"
-                        class="dropdown-item {{ $currantLang == $lang ? 'text-danger' : '' }}">
-                        <span>{{ ucfirst( \App\Models\Utility::getlang_fullname($lang))  }}</span>
-                        </a>
-                        @endforeach --}}
-
                             @foreach ($languages as $languageCode => $languageFullName)
                                 <a href="{{ route('change_lang_workspace1', [$currentWorkspace->id, $languageCode]) }}"
                                     class="dropdown-item {{ $currantLang == $languageCode ? 'text-danger' : '' }}">
@@ -561,11 +428,6 @@
                             @endforeach
                         @endif
                         @if (\Auth::user()->type == 'admin')
-                            {{-- @foreach (\App\Models\Utility::languages() as $lang)
-                                        <a href="{{ route('change_lang_admin', $lang) }}"
-                        class="dropdown-item {{ $currantLang == $lang ? 'text-danger' : '' }}">
-                        <span>{{ ucfirst( \App\Models\Utility::getlang_fullname($lang))  }}</span></a>
-                        @endforeach --}}
                             @foreach ($languages as $languageCode => $languageFullName)
                                 <a href="{{ route('change_lang_admin', $languageCode) }}"
                                     class="dropdown-item {{ $currantLang == $languageCode ? 'text-danger' : '' }}">
@@ -581,11 +443,6 @@
                             <a href="{{ route('lang_workspace') }}" class="dropdown-item text-primary"><span
                                     class="dash-mtext">{{ __('Manage Language') }}</span></a>
                         @elseif(isset($currentWorkspace) && $currentWorkspace && \Auth::guard('web')->check())
-                            {{-- @foreach (\App\Models\Utility::languages() as $lang)
-                                    <a href="{{ route('change_lang_workspace', [$currentWorkspace->id, $lang]) }}"
-                        class="dropdown-item {{ $currantLang == $lang ? 'text-danger' : '' }}">
-                        <span>{{ ucfirst( \App\Models\Utility::getlang_fullname($lang))  }}</span>
-                        @endforeach --}}
                             @foreach ($languages as $languageCode => $languageFullName)
                                 <a href="{{ route('change_lang_workspace', [$currentWorkspace->id, $languageCode]) }}"
                                     class="dropdown-item {{ $currantLang == $languageCode ? 'text-danger' : '' }}">

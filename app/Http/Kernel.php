@@ -41,6 +41,7 @@ class Kernel extends HttpKernel
             \Illuminate\Http\Middleware\AddLinkHeadersForPreloadedAssets::class,
             \App\Http\Middleware\XSS::class,
             \App\Http\Middleware\HandleInertiaRequests::class,
+            \App\Http\Middleware\SetLocale::class,
         ],
 
         'api' => [
@@ -68,8 +69,8 @@ class Kernel extends HttpKernel
         'signed' => \Illuminate\Routing\Middleware\ValidateSignature::class,
         'throttle' => \Illuminate\Routing\Middleware\ThrottleRequests::class,
         'verified' => \Illuminate\Auth\Middleware\EnsureEmailIsVerified::class,
-        'XSS'=>\App\Http\Middleware\XSS::class,
-        'CheckPlan' => \App\Http\Middleware\CheckPlan::class,
+        'XSS' => \App\Http\Middleware\XSS::class,
+        'azure' => \App\Http\Middleware\AzureMiddleware::class,
         // 'pusher_config' => \App\Http\Middleware\pusher_config::class,
     ];
 }

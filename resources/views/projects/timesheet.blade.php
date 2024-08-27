@@ -6,29 +6,25 @@
     {{ trans('messages.Timesheet') }}
 @endsection
 @section('links')
-    @if (\Auth::guard('client')->check())
-        <li class="breadcrumb-item"><a href="{{ route('client.home') }}">{{ __('Home') }}</a></li>
-    @else
-        <li class="breadcrumb-item"><a href="{{ route('home') }}">{{ __('Home') }}</a></li>
-    @endif
-    @if ($project_id != '-1')
-        <li class="breadcrumb-item"><a href="{{ route('projects.index', $currentWorkspace->slug) }}">{{ __('Project') }}</a>
+    <li class="breadcrumb-item"><a href="{{ route('home') }}">{{ __('Home') }}</a></li>
+
+    @if ($project_id != -1)
+        <li class="breadcrumb-item"><a
+                href="{{ route('projects.show', [$currentWorkspace->slug, $project_id]) }}">{{ __('Project Details') }}</a>
         </li>
-
-        <li class="breadcrumb-item"> {{ trans('messages.Timesheet') }}</li>
     @endif
+    <li class="breadcrumb-item"> {{ trans('messages.Timesheet') }}</li>
 @endsection
-
-
 @section('action-button')
     <div class="d-flex justify-content-end row1">
         @if (isset($currentWorkspace) && $currentWorkspace)
             @if ($project_id == -1)
-                <div class="d-flex add_task">
-                    <a id="add_task" href="#" class="btn btn-primary" data-ajax-popup="true" data-size="lg"
-                        data-title="{{ __('Create New Task') }}"
-                        data-url="{{ route('timesheet.create', $currentWorkspace->slug) }}" data-toggle="tooltip"
-                        title="{{ __('Add Task') }}"><i class="ti ti-plus"></i> Agregar tarea</a>
+                <div class="col-sm-auto">
+                    <button id="add_task" type="button" class="btn btn-primary add_task" data-ajax-popup="true"
+                    data-size="lg" data-title="{{ __('Create New Task') }}"
+                        data-url="{{ route('timesheet.create', $currentWorkspace->slug) }}" title="{{ __('Add Task') }}"><i
+                            class="fa-solid fa-thumbtack"></i>
+                        {{ __('Add Task on Timesheet') }}</button>
                 </div>
             @endif
         @endif
@@ -37,15 +33,12 @@
                 <i role="button" class="fa fa-arrow-left previous"></i>
 
                 <span class="weekly-dates"></span>
-
                 <input type="hidden" id="weeknumber" value="0">
                 <input type="hidden" id="selected_dates">
 
                 <i role="button" class="fa fa-arrow-right next"></i>
             </div>
         </div>
-
-
         @if ($project_id != '-1')
             <div class="col-auto">
                 <a href="{{ route($client_keyword . 'projects.show', [$currentWorkspace->slug, $project_id]) }}"
@@ -56,14 +49,13 @@
         @endif
     </div>
 @endsection
-
 @section('content')
     <section class="section">
         @if ($currentWorkspace)
             <div class="row">
                 <div class="col-md-12">
 
-                    <div class="card shadow-none  border">
+                    <div class="card border">
                         <div id="timesheet-table-view"></div>
                     </div>
                     <div class="card notfound-timesheet text-center">
@@ -77,14 +69,9 @@
                                         <p class="text-muted mt-3">
                                             {{ trans("messages.Sorry_we_can't_find_any_timesheet_records_on_this_week.") }}
                                             <br>
-                                            @if ($project_id != '-1' && Auth::user()->getGuard() != 'client')
+                                            @if ($project_id != '-1')
                                                 {{ trans('messages.To_add_timesheet_record_go_to ') }}
                                                 <b>{{ __('Add Task on Timesheet.') }}</b>
-                                            @else
-                                                {{ trans('messages.To_add_timesheet_record_go_to ') }}
-                                                <a class="btn-home badge-blue"
-                                                    href="{{ route($client_keyword . 'projects.index', $currentWorkspace->slug) }}"><i
-                                                        class="fas fa-reply"></i> {{ __('Projects') }}</a>
                                             @endif
                                         </p>
                                     </div>
@@ -100,10 +87,9 @@
 
 @push('css-page')
 @endpush
+
 @push('scripts')
     <script>
-        let typesNames = @json($typesNames);
-
         function ajaxFilterTimesheetTableView() {
 
             var mainEle = $('#timesheet-table-view');
@@ -127,14 +113,11 @@
                     $('.weekly-dates-div .weekly-dates').text(data.onewWeekDate);
                     $('.weekly-dates-div #selected_dates').val(data.selectedDate);
 
-                    $('#project_tasks').find('option').not(':first').remove();
-
                     $.each(data.tasks, function(i, item) {
                         $('#project_tasks').append($("<option></option>")
                             .attr("value", i)
-                            .text(typesNames[item].name));
+                            .text(item));
                     });
-
 
                     if (data.totalrecords == 0) {
                         mainEle.hide();
@@ -158,12 +141,10 @@
             var weeknumber = parseInt($('#weeknumber').val());
 
             if ($(this).hasClass('previous')) {
-
                 weeknumber--;
                 $('#weeknumber').val(weeknumber);
 
             } else if ($(this).hasClass('next')) {
-
                 weeknumber++;
                 $('#weeknumber').val(weeknumber);
             }
@@ -198,7 +179,7 @@
                 var title = '{{ __('Edit Timesheet') }}';
             }
 
-            $("#commonModal .modal-title").html(title + ` <small>(` + moment(date).format("ddd, Do MMM YYYY") +
+            $("#commonModal .modal-title").html(title + ` <small>(` + moment(date).format("ddd DD MMM") +
                 `)</small>`);
 
             $.ajax({
@@ -251,7 +232,10 @@
     }
 
     #add_task {
-        margin-right: 20px;
+        display: flex !important;
+        align-items: center;
+        justify-content: space-around !important;
+        width: 320px;
     }
 
     @media (max-width: 1300px) {

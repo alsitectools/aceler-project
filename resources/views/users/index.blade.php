@@ -10,150 +10,27 @@
 @endphp
 
 @section('links')
-    @if (\Auth::guard('client')->check())
-        <li class="breadcrumb-item"><a href="{{ route('client.home') }}">{{ __('Home') }}</a></li>
-    @else
-        <li class="breadcrumb-item"><a href="{{ route('home') }}">{{ __('Home') }}</a></li>
-    @endif
-    <li class="breadcrumb-item"> {{ __('messages.company') }}</li>
+    <li class="breadcrumb-item"><a href="{{ route('home') }}">{{ __('Home') }}</a></li>
+
+    <li class="breadcrumb-item"> {{ __('messages.Technicians') }}</li>
 @endsection
 @section('action-button')
     @auth('web')
         @if (Auth::user()->type == 'admin')
-            <a href="{{ route('user.export') }}" class="btn btn-sm btn-primary" data-toggle="tooltip" title="{{ __('Export') }}">
-
-                <i class="ti ti-file-x"></i>
-            </a>
-            <a href="#" class="btn btn-sm btn-primary mx-1" data-ajax-popup="true" data-size="md"
-                data-title="{{ __('Add User') }}" data-url="{{ route('user.file.import') }}" data-toggle="tooltip"
-                title="{{ __('Import') }}">
-                <i class="ti ti-file-import"></i>
-            </a>
-            <a href="#" class="btn btn-sm btn-primary" data-ajax-popup="true" data-size="md"
-                data-title="{{ __('Invite') }}" data-url="{{ route('users.invite', $currentWorkspace->slug) }}"
-                data-toggle="tooltip" title="{{ __('Invite') }}">
+            <a href="#" class="btn btn-sm btn-primary" data-ajax-popup="true" data-size="md" data-title="{{ __('Invite') }}"
+                data-url="{{ route('users.invite', $currentWorkspace->slug) }}" data-toggle="tooltip" title="{{ __('Invite') }}">
                 <i class="ti ti-plus"></i>
             </a>
         @endif
     @endauth
 @endsection
 @section('content')
-    @if ((isset($currentWorkspace) && $currentWorkspace) || Auth::user()->type == 'admin')
+    @if (isset($currentWorkspace) && $currentWorkspace)
         <div class="row">
             @foreach ($users as $user)
                 @php($workspace_id = isset($currentWorkspace) && $currentWorkspace ? $currentWorkspace->id : '')
                 <div class="col-xl-3 col-lg-4 col-sm-6">
-                    <div class="card   text-center">
-                        <div class="card-header border-0 pb-0">
-                            <div class="d-flex justify-content-between align-items-center">
-                                <h6 class="mb-0">
-                                    @if (Auth::user()->type != 'admin')
-                                        @if ($user->permission == 'Owner')
-                                            <div class="badge p-2 px-3 rounded bg-success">{{ __('Owner') }}
-                                            </div>
-                                        @else
-                                            <div class="badge p-2 px-3 rounded bg-warning">{{ __('Member') }}
-                                            </div>
-                                        @endif
-                                    @endif
-                                </h6>
-                            </div>
-                            @if (isset($currentWorkspace) &&
-                                    $currentWorkspace &&
-                                    $currentWorkspace->permission == 'Owner' &&
-                                    Auth::user()->id != $user->id)
-                                @if ($user->is_active == 1)
-                                    <div class="card-header-right">
-                                        <div class="btn-group card-option">
-                                            <button type="button" class="btn dropdown-toggle" data-bs-toggle="dropdown"
-                                                aria-haspopup="true" aria-expanded="false">
-                                                <i class="feather icon-more-vertical"></i>
-                                            </button>
-                                            <div class="dropdown-menu dropdown-menu-end">
-                                                @if (isset($currentWorkspace) &&
-                                                        $currentWorkspace &&
-                                                        $currentWorkspace->permission == 'Owner' &&
-                                                        Auth::user()->id != $user->id)
-                                                    <a href="#" class="dropdown-item" data-ajax-popup="true"
-                                                        data-size="md" data-title="{{ __('Edit') }}"
-                                                        data-url="{{ route('users.edit', [$currentWorkspace->slug, $user->id]) }}"><i
-                                                            class="ti ti-edit"></i>
-                                                        <span>{{ __('Edit') }}</span></a>
-
-                                                    <a href="#" class="dropdown-item" data-ajax-popup="true"
-                                                        data-size="md" data-title="{{ __('Reset Password') }}"
-                                                        data-url="{{ route('users.reset.password', $user->id) }}"><i
-                                                            class="ti ti-pencil"></i>
-                                                        <span>{{ __('Reset Password') }}</span></a>
-
-                                                    <a href="#" class="dropdown-item text-danger bs-pass-para"
-                                                        data-confirm="{{ __('Are You Sure?') }}"
-                                                        data-text="{{ __('This action can not be undone. Do you want to continue?') }}"
-                                                        data-confirm-yes="remove_user_{{ $user->id }}"><i
-                                                            class="ti ti-trash"></i>
-                                                        <span>{{ __('Remove User From Workspace') }}</span></a>
-                                                    <form
-                                                        action="{{ route('users.remove', [$currentWorkspace->slug, $user->id]) }}"
-                                                        method="post" id="remove_user_{{ $user->id }}"
-                                                        style="display: none;">
-                                                        @csrf
-                                                        @method('DELETE')
-                                                    </form>
-                                                @endif
-
-                                            </div>
-                                        </div>
-                                    </div>
-                                @else
-                                    <div class="card-header-right">
-                                        <div class="btn-group card-option">
-                                            <button type="button" class="btn dropdown-toggle" data-bs-toggle="dropdown"
-                                                aria-haspopup="true" aria-expanded="false">
-                                                <i class="ti ti-lock"></i>
-                                            </button>
-                                        </div>
-
-                                    </div>
-                                @endif
-                            @endif
-                        </div>
-
-                        @if (Auth::user()->type == 'admin' && Auth::user()->id != $user->id)
-                            <div class="text-end"
-                                @if (Auth::user()->type == 'admin') style="margin: -10px -10px -30px;" @endif>
-                                <div class="btn-group card-option">
-                                    <button type="button" class="btn " data-bs-toggle="dropdown" aria-haspopup="true"
-                                        aria-expanded="false">
-                                        <i class="feather icon-more-vertical"></i>
-                                    </button>
-                                    <div class="dropdown-menu dropdown-menu-end">
-
-                                        <a href="#" class="dropdown-item" data-ajax-popup="true" data-size="md"
-                                            data-title="{{ __('Reset Password') }}"
-                                            data-url="{{ route('users.reset.password', $user->id) }}"><i
-                                                class="ti ti-edit"></i>
-                                            <span>{{ __('Reset Password') }}</span></a>
-
-                                        <a href="{{ route('login.with.admin', $user->id) }}" class="dropdown-item">
-                                            <i class="ti ti-replace py-1"></i>
-                                            <span>{{ trans('messages.Login_As_Admin') }}</span>
-
-                                            <a href="#" class="dropdown-item bs-pass-para "
-                                                data-confirm="{{ __('Are You Sure?') }}"
-                                                data-text="{{ trans('messages.This_action_can_not_be_undone._Do_you_want_to_continue?') }}"
-                                                data-confirm-yes="delete_user_{{ $user->id }}"><i
-                                                    class="ti ti-trash"></i><span>{{ __('Delete') }}</span></a>
-                                            <form action="{{ route('users.delete', $user->id) }}" method="post"
-                                                id="delete_user_{{ $user->id }}" style="display: none;">
-                                                @csrf
-                                                @method('DELETE')
-                                            </form>
-                                    </div>
-                                </div>
-                            </div>
-                        @endif
-
-
+                    <div class="card text-center">
                         <div class="card-body">
                             <div class="avatar">
                                 <img alt="user-image" class=" rounded-circle img_users_fix_size"
@@ -215,21 +92,10 @@
                 </div>
             @endforeach
 
-
-
+            {{-- INVITAR USER
             <div class="col-xl-3 col-lg-4 col-sm-6">
                 @auth('web')
                     @if (Auth::user()->type == 'admin')
-                        {{-- No tiene sentido crear un nuevo usuario SOLO DEJA INVITAR A USUARIOS YA CREADOS
-                        <a href="#" class="btn-addnew-project" data-ajax-popup="true" data-size="md"
-                            data-title="{{ __('Add User') }}" data-url="{{ route('users.create') }}">
-                            <div class="bg-primary proj-add-icon">
-                                <i class="ti ti-plus"></i>
-                            </div>
-                            <h6 class="mt-4 mb-2">New User</h6>
-                            <p class="text-muted text-center">Click here to add New User</p>
-                        </a>
-                    @elseif(isset($currentWorkspace) && $currentWorkspace->creater->id == Auth::id()) --}}
                         <a href="#" class="btn-addnew-project" data-ajax-popup="true" data-size="md"
                             data-title="{{ __('Invite New User') }}"
                             data-url="{{ route('users.invite', $currentWorkspace->slug) }}">
@@ -242,7 +108,7 @@
                         </a>
                     @endif
                 @endauth
-            </div>
+            </div> --}}
         @else
             <div class="container mt-5">
                 <div class="card">
@@ -267,11 +133,9 @@
                     </div>
                 </div>
             </div>
+        </div>
     @endif
-
     </div>
-    </div>
-
     <!-- [ sample-page ] end -->
     </div>
 @endsection

@@ -24,8 +24,10 @@
 @endsection
 
 @php
+    use App\Models\TaskType;
     $logo = \App\Models\Utility::get_file('avatars/');
     $logo_tasks = \App\Models\Utility::get_file('tasks/');
+    $taskType = TaskType::select('id', 'name')->get();
 @endphp
 
 @section('multiple-action-button')
@@ -59,7 +61,6 @@
                     </div>
                 </div>
                 <div class="card-body">
-
                     <div id='calendar' class='calendar'></div>
                 </div>
             </div>
@@ -67,21 +68,24 @@
         <div class="col-lg-4">
             <div class="card">
                 <div class="card-body">
-                    <h4 class="mb-4">{{ trans('messages.Tasks') }}</h4>
+                    <h4 class="mb-4">{{ __('dictionary.Tasks') }}</h4>
                     <ul class="event-cards list-group list-group-flush mt-3 w-100">
                         @php
                             $date = Carbon\Carbon::now()->format('m');
                             $date1 = Carbon\Carbon::now()->format('y');
-                            $this_month_task = App\Models\project::where('workspace', $currentWorkspace->id)->get();
+                            $this_month_task = App\Models\Project::where('workspace', $currentWorkspace->id)->get();
                         @endphp
                         @foreach ($this_month_task as $task)
                             @php
-                                $task_get = App\Models\task::where('project_id', $task->id)->get();
+                                $task_get = App\Models\Task::where('project_id', $task->id)->get();
                             @endphp
                             @foreach ($task_get as $t)
                                 @php
                                     $month = date('m', strtotime($t->start_date));
                                     $year = date('y', strtotime($t->start_date));
+
+                                    // $startDate = \Carbon\Carbon::parse($t->start_date);
+                                    $dueDate = \Carbon\Carbon::parse($t->estimated_date);
                                 @endphp
                                 @if ($date == $month && $date1 == $year)
                                     <li class="list-group-item card mb-3">
@@ -93,9 +97,9 @@
                                                     </div>
                                                     <div class="ms-3">
 
-                                                        <h6 class="m-0">{{ $t->title }}</h6>
-                                                        <small class="text-muted">{{ $t->start_date }} to
-                                                            {{ $t->due_date }}</small>
+                                                        <h6 class="m-0">{{ $taskType[$t->type_id - 1]->name }}</h6>
+                                                        <small class="text-muted">
+                                                            {{ $dueDate->isoFormat('ddd DD MMM') }}</small>
                                                     </div>
                                                 </div>
                                             </div>
@@ -113,7 +117,6 @@
 @if ($currentWorkspace)
     @push('scripts')
         {{-- <script src='public/assets/js/locale/es.js'></script> --}}
-
         <script>
             $(document).ready(function() {
                 get_data();
@@ -160,7 +163,7 @@
                                 buttonText: {
                                     today: "{{ trans('messages.today') }}",
                                     timeGridDay: "{{ __('Day') }}",
-                                    timeGridWeek: "{{ trans('messages.Week') }}",
+                                    timeGridWeek: "{{ __('Week') }}",
                                     dayGridMonth: "{{ __('Month') }}"
                                 },
 
@@ -216,7 +219,7 @@
                                     "                </li>";
                             } else {
                                 var avatar = (data.user.avatar) ? "src='{{ $logo }}/" + data.user
-                                    .avatar + "'" : "avatar='" + data.user.name +"'";
+                                    .avatar + "'" : "avatar='" + data.user.name + "'";
                                 var html = "<li class='media border-bottom mb-3'>" +
                                     "                    <img class='mr-3 avatar-sm rounded-circle img-thumbnail' width='60' " +
                                     avatar + " alt='" + data.user.name + "'>" +

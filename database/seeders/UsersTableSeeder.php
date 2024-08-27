@@ -23,16 +23,16 @@ class UsersTableSeeder extends Seeder
      */
     public function run()
     {
-        self::seedWorkspace();
-        $this->command->info('Tabla de workspace inicializada con datos!');
+        // self::seedWorkspace();
+        // $this->command->info('Tabla de workspace inicializada con datos!');
 
-        self::seedUsers();
-        $this->command->info('Tabla de usuarios inicializada con datos!');
-        User::defaultEmail();
-        User::seed_languages();
+        // self::seedUsers();
+        // $this->command->info('Tabla de usuarios inicializada con datos!');
+        // User::defaultEmail();
+        // User::seed_languages();
 
-        self::seedUserWorkspace();
-        $this->command->info('Tabla de user_workspace inicializada con datos!');
+        // self::seedUserWorkspace();
+        // $this->command->info('Tabla de user_workspace inicializada con datos!');
 
         self::seedProjectType();
         $this->command->info('Tabla de tipo de proyectos inicializada con datos!');
@@ -44,63 +44,6 @@ class UsersTableSeeder extends Seeder
         $this->command->info('Tabla de tipo de tareas inicializada con datos!');
     }
 
-    function seedUsers()
-    {
-        User::truncate();
-
-        foreach ($this->users as $user) {
-
-            //workspace de Catalunya
-            $currentWorkspace = 9;
-
-            $u = new User;
-            $u->name = $user['name'];
-            $u->email = $user['email'];
-            $u->password = bcrypt($user['password']);
-            $u->type = $user['type'];
-            $u->currant_workspace = $currentWorkspace;
-            $u->email_verified_at = date('Y-m-d i:h:s');
-            $u->lang = $user['lang'];
-            $u->save();
-        }
-    }
-
-    function seedUserWorkspace()
-    {
-        UserWorkspace::truncate();
-        $consultUser = User::select(['users.*'])->get()->toArray();
-
-        foreach ($consultUser as $user) {
-            $userWorkspace = new UserWorkspace;
-            $userWorkspace->user_id = $user['id'];
-            $userWorkspace->workspace_id = $user['currant_workspace'];
-            if ($user['type'] == 'admin') {
-                $permission = 'Owner';
-            } else {
-                $permission = 'Member';
-            }
-            $userWorkspace->permission = $permission;
-            $userWorkspace->save();
-        }
-    }
-
-
-    function seedWorkspace()
-    {
-        Workspace::truncate();
-        foreach ($this->workspaces as $workspace) {
-            foreach ($workspace['branch'] as $name => $slug) {
-                $w = new Workspace;
-                $w->created_by = 1;
-                $w->name = $name;
-                $w->slug = $slug;
-                $w->lang = $setting['default_lang'] ?? 'es';
-                $w->branch = $name;
-                $w->company = $workspace['company'];
-                $w->save();
-            }
-        }
-    }
     function seedProjectType()
     {
         ProjectType::truncate();
@@ -196,31 +139,31 @@ class UsersTableSeeder extends Seeder
     ];
 
 
-    private $workspaces = array(
-        array(
-            'company' => 'ES0',
-            'branch' => array(
-                'Tenerife' => 'TF',
-                'Las palmas' => 'LP',
-                'Alicante' => 'AL',
-                'Valencia' => 'VA',
-                'Baleares' => 'BA',
-                'Aragón' => 'AR',
-                'Asturias' => 'MI',
-                'Galicia' => 'GA',
-                'Cataluña' => 'EN',
-                'País Vasco' => 'PV',
-            ),
-        ),
-        array(
-            'company' => 'ES1',
-            'branch' => array(
-                'Centro' => 'MD',
-                'Sevilla' => 'SE',
-                'Málaga' => 'MS'
-            ),
-        ),
-    );
+    // private $workspaces = array(
+    //     array(
+    //         'company' => 'ES0',
+    //         'branch' => array(
+    //             'Tenerife' => 'TF',
+    //             'Las palmas' => 'LP',
+    //             'Alicante' => 'AL',
+    //             'Valencia' => 'VA',
+    //             'Baleares' => 'BA',
+    //             'Aragón' => 'AR',
+    //             'Asturias' => 'MI',
+    //             'Galicia' => 'GA',
+    //             'Cataluña' => 'EN',
+    //             'País Vasco' => 'PV',
+    //         ),
+    //     ),
+    //     array(
+    //         'company' => 'ES1',
+    //         'branch' => array(
+    //             'Centro' => 'MD',
+    //             'Sevilla' => 'SE',
+    //             'Málaga' => 'MS'
+    //         ),
+    //     ),
+    // );
 
     private $users = array(
         array(
@@ -228,7 +171,7 @@ class UsersTableSeeder extends Seeder
             'email' => 'admin@alsina.com',
             'password' => 'Alsina2024',
             'type' => 'admin',
-            'currant_workspace' => 'EN',
+            'currant_workspace' => 'ES',
             'lang' => 'es'
         ),
         array(
@@ -236,7 +179,7 @@ class UsersTableSeeder extends Seeder
             'email' => 'mforte@alsina.com',
             'password' => 'Alsina2024',
             'type' => 'user',
-            'currant_workspace' => 'EN',
+            'currant_workspace' => 'ES',
             'lang' => 'es'
         ),
         array(
@@ -244,7 +187,7 @@ class UsersTableSeeder extends Seeder
             'email' => 'alexp@alsina.com',
             'password' => 'Alsina2024',
             'type' => 'user',
-            'currant_workspace' => 'EN',
+            'currant_workspace' => 'ES',
             'lang' => 'es'
         ),
         array(
@@ -252,7 +195,7 @@ class UsersTableSeeder extends Seeder
             'email' => 'mgascon@alsina.com',
             'password' => 'Alsina2024',
             'type' => 'client',
-            'currant_workspace' => 'EN',
+            'currant_workspace' => 'ES',
             'lang' => 'es'
         ),
         array(
@@ -260,7 +203,7 @@ class UsersTableSeeder extends Seeder
             'email' => 'dpoch@alsina.com',
             'password' => 'Alsina2024',
             'type' => 'user',
-            'currant_workspace' => 'EN',
+            'currant_workspace' => 'ES',
             'lang' => 'es'
         ),
         array(
@@ -268,7 +211,7 @@ class UsersTableSeeder extends Seeder
             'email' => 'dribo@alsina.com',
             'password' => 'Alsina2024',
             'type' => 'user',
-            'currant_workspace' => 'EN',
+            'currant_workspace' => 'ES',
             'lang' => 'es'
         ),
         array(
@@ -276,7 +219,7 @@ class UsersTableSeeder extends Seeder
             'email' => 'mallepuz@alsina.com',
             'password' => 'Alsina2024',
             'type' => 'user',
-            'currant_workspace' => 'EN',
+            'currant_workspace' => 'ES',
             'lang' => 'es'
         ),
         array(
@@ -284,7 +227,7 @@ class UsersTableSeeder extends Seeder
             'email' => 'kcubias@alsina.com',
             'password' => 'Alsina2024',
             'type' => 'user',
-            'currant_workspace' => 'EN',
+            'currant_workspace' => 'ES',
             'lang' => 'es'
         ),
         array(
@@ -292,7 +235,7 @@ class UsersTableSeeder extends Seeder
             'email' => 'xzhao@alsina.com',
             'password' => 'Alsina2024',
             'type' => 'client',
-            'currant_workspace' => 'EN',
+            'currant_workspace' => 'ES',
             'lang' => 'es'
         ),
     );

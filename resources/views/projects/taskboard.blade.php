@@ -7,7 +7,6 @@
     $logo_tasks = \App\Models\Utility::get_file('tasks/');
     use App\Models\User;
     use App\Models\Milestone;
-
 @endphp
 @section('page-title')
     {{ __('messages.Task_Board') }}
@@ -23,15 +22,12 @@
     <li class="breadcrumb-item">{{ __('messages.Task_Board') }}</li>
 @endsection
 
-
 @section('action-button')
-    {{-- @if (
-        ($currentWorkspace && $currentWorkspace->permission == 'Owner') ||
-            ($currentWorkspace->permission == 'Member' && Auth::user()->type == 'user')) --}}
-        <a href="#" class="btn btn-sm btn-primary" data-ajax-popup="true" data-size="lg"
-            data-title="{{ __('Create New Task') }}"
-            data-url="{{ route('tasks.create', [$currentWorkspace->slug, $project->id]) }}" data-toggle="tooltip"
-            title="{{ __('Add Task') }}"><i class="ti ti-plus"></i></a>
+    {{-- @if (($currentWorkspace && $currentWorkspace->permission == 'Owner') || ($currentWorkspace->permission == 'Member' && Auth::user()->type == 'user')) --}}
+    <a href="#" class="btn btn-sm btn-primary" data-ajax-popup="true" data-size="lg"
+        data-title="{{ __('Create New Task') }}"
+        data-url="{{ route('tasks.create', [$currentWorkspace->slug, $project->id]) }}" data-toggle="tooltip"
+        title="{{ __('Add Task') }}"><i class="ti ti-plus"></i></a>
     {{-- @endif --}}
     <a href="{{ route('projects.show', [$currentWorkspace->slug, $project->id]) }}"
         class="btn-submit btn btn-sm btn-primary mx-1" data-toggle="tooltip" title="{{ __('Back') }}">
@@ -71,7 +67,6 @@
                                                             </div>
                                                         </div>
                                                     </div>
-
                                                     <div class="card-header-right">
                                                         <div class="btn-group card-option">
                                                             @if ($currentWorkspace->permission == 'Owner' || $currentWorkspace->permission == 'Member')

@@ -8,6 +8,7 @@ use Carbon\Carbon;
 
 class Project extends Model
 {
+    public $timestamps = true;
     protected $fillable = [
         'name',
         'ref_mo',
@@ -23,7 +24,7 @@ class Project extends Model
 
     public function getCollaborators()
     {
-        //mostrara a los que hayan participado en el proyecto
+        //mostrara a los que hayan participado en el proyecto user_project ->where project_id
     }
     public function creater()
     {
@@ -81,6 +82,16 @@ class Project extends Model
         return Task::where('project_id', '=', $this->id)->get();
     }
 
+    public function milestones()
+    {
+        return $this->hasMany(Milestone::class, 'project_id');
+    }
+
+    public function milestonesCount()
+    {
+        return $this->milestones()->count();
+    }
+
     public function user_tasks($user_id)
     {
         return Task::where('project_id', $this->id)->whereRaw('FIND_IN_SET(?, assign_to)', [$user_id])->get();
@@ -100,7 +111,6 @@ class Project extends Model
         return Timesheet::where('project_id', '=', $this->id)->get();
     }
 
-
     public function countTaskComments()
     {
         return Task::join('comments', 'comments.task_id', '=', 'tasks.id')->where('project_id', '=', $this->id)->count();
@@ -119,10 +129,10 @@ class Project extends Model
         return round(($totalDone * 100) / $total);
     }
 
-    public function milestones()
-    {
-        return $this->hasMany('App\Models\Milestone', 'project_id', 'id');
-    }
+    // public function milestones()
+    // {
+    //     return $this->hasMany('App\Models\Milestone', 'project_id', 'id');
+    // }
 
     public function files()
     {
@@ -134,222 +144,250 @@ class Project extends Model
         return $this->hasMany('App\Models\ActivityLog', 'project_id', 'id')->orderBy('id', 'desc');
     }
 
-
-    public static function getProjectAssignedTimesheetHTML($currentWorkspace, $timesheets = [], $days = [], $project_id = null, $seeAsOwner = false)
+    // public static function getProjectAssignedTimesheetHTML($currentWorkspace, $timesheets = [], $days = [], $project_id = null, $seeAsOwner = false)
+    public static function getProjectAssignedTimesheetHTML($currentWorkspace, $timesheets = [], $milestones = [], $days = [], $project_id = null, $seeAsOwner = false)
     {
+        $objUser = Auth::user();
+        $user_id = Auth::user()->id;
+        $userId = Auth::user()->id;
 
-        $project = Project::find($project_id);
-        $objUser         = Auth::user();
 
-        $typesName = [];
-        $user_id = $objUser->id;
-        $i              = $k = 0;
-        $allProjects    = false;
+        $i = $k = 0;
+        $allProjects = false;
         $timesheetArray = $totaltaskdatetimes = [];
 
         if ($project_id == '-1') {
             $allProjects = true;
 
-            //Para mostrar los timesheets al admin
             if ($currentWorkspace->permission == 'Owner') {
                 $project_timesheets = Timesheet::select('timesheets.*')
                     ->join('projects', 'projects.id', '=', 'timesheets.project_id')
                     ->join('tasks', 'tasks.id', '=', 'timesheets.task_id')
                     ->where('projects.workspace', '=', $currentWorkspace->id);
             } else {
-                //sino te muestra los tuyos 
+                //Cuando hace el bucle para recorrer todos los usuarios, es interesante que sea cuando hay varios usuarios
                 $project_timesheets = Timesheet::select('timesheets.*')
                     ->join('projects', 'projects.id', '=', 'timesheets.project_id')
                     ->join('tasks', 'timesheets.task_id', '=', 'tasks.id')
                     ->where('projects.workspace', '=', $currentWorkspace->id)
                     ->where('tasks.assign_to', $user_id);
             }
+            // Son tdos los proyectos
+            // dd($timesheets);
 
-            foreach ($timesheets as $project_id => $timesheet) {
+            $k = 0; // Inicializamos el índice del proyecto fuera del bucle principal
+            foreach ($timesheets as $project_id => $milestones) {
+                $project = Project::find($project_id);
 
                 if ($project) {
-                    $timesheetArray[$k]['project_id']   = $project->id;
+
+                    // Inicializamos las entradas del proyecto en el array
+                    $timesheetArray[$k]['project_id'] = $project->id;
                     $timesheetArray[$k]['project_name'] = $project->name;
 
-                    foreach ($timesheet as $task_id => $tasktimesheet) {
-                        $task = Task::find($task_id);
+                    $count = 0;
+                    $m = 0; // Inicializamos el índice del hito para cada proyecto
+                    foreach ($milestones as $milestone_id => $tasksmilestones) {
 
-                        if ($task) {
-                            $typesName = TaskType::select('id', 'name')->where('project_type', '=', $project->id)->get();
+                        $milestone = Milestone::find($milestone_id);
+                        $timesheetArray[$k]['milestoneArray'][$m]['milestone_name'] = $milestone ? $milestone->title : 'unknow';
 
-                            $timesheetArray[$k]['taskArray'][$i]['task_id']   = $task->id;
-                            $name = "";
+                        $i = 0; // Reiniciamos el índice de tareas para cada hito
+                        foreach ($tasksmilestones as  $tasktimesheet) {
+                            $task = Task::find($tasktimesheet[0]['task_id']);
+                            $taskId = $task->id;
+                            $timesheet = Timesheet::find($tasktimesheet[0]['id']);
 
-                            foreach ($typesName as $type) {
-                                if ($task->type_id == $type->id) {
-                                    $name = $type->name;
-                                    break;
-                                }else{
-                                    $name = "unknow";
-                                }
-                            }
-                            $timesheetArray[$k]['taskArray'][$i]['task_type'] = $name;
-                            
-                            $new_projects_timesheet = clone $project_timesheets;
+                            if ($task) {
+                                $timesheetArray[$k]['milestoneArray'][$m]['taskArray'][$i]['task_id'] = $timesheet->task_id;
 
-                            $users = $new_projects_timesheet->where('timesheets.task_id', $task->id)->groupBy('timesheets.created_by')->with('getUser')->get();
+                                $typesName = TaskType::select('id', 'name')
+                                    ->where('project_type', '=', $project->type)
+                                    ->where('id', $task->type_id)
+                                    ->first();
+                                $timesheetArray[$k]['milestoneArray'][$m]['taskArray'][$i]['task_name'] = $typesName ? $typesName->name : 'unknow';
 
-                            foreach ($users as $count => $user_id) {
-                                $user = $user_id->getUser;
-                                $userId = $user->id;
+                                $user = User::find($task->assign_to);
+                                $timesheetArray[$k]['milestoneArray'][$m]['taskArray'][$i]['user_id'] = $user ? $user->id : null;
+                                $timesheetArray[$k]['milestoneArray'][$m]['taskArray'][$i]['user_name'] = $user ? $user->name : 'unknow name';
+
+                                // $new_projects_timesheet = clone $project_timesheets;
+
+                                // $users = $new_projects_timesheet
+                                //     ->where('timesheets.task_id', $timesheet->task_id)
+                                //     ->groupBy('timesheets.created_by')
+                                //     ->with('getUser')
+                                //     ->get();
+
+                                // foreach ($users as $count => $user_id) {
+                                //     $user = $user_id->getUser;
+                                //     $userId = $user->id;
+
                                 $times = [];
+
                                 for ($j = 0; $j < 7; $j++) {
                                     $date = $days['datePeriod'][$j]->format('Y-m-d');
 
-                                    $filtered_array = array_filter($tasktimesheet, function ($val) use ($userId, $date) {
-                                        return ($val['created_by'] == $userId and $val['date'] == $date);
+                                    $filtered_array = array_filter($tasktimesheet, function ($val) use ($userId, $date, $taskId) {
+                                        if (isset($val['created_by']) && isset($val['date'])) {
+                                            return ($val['created_by'] == $userId && $val['date'] == $date && $val['task_id'] == $taskId);
+                                        }
                                     });
-                                    $key            = array_keys($filtered_array);
 
-                                    $timesheetArray[$k]['taskArray'][$i]['dateArray'][$count]['user_id']          = $user != null ? $user->id : '';
-                                    $timesheetArray[$k]['taskArray'][$i]['dateArray'][$count]['user_name']        = $user != null ? $user->name : '';
-                                    $timesheetArray[$k]['taskArray'][$i]['dateArray'][$count]['week'][$j]['date'] = $date;
+                                    $key = array_keys($filtered_array);
+                                    $timesheetArray[$k]['milestoneArray'][$m]['taskArray'][$i]['dateArray'][$count]['week'][$j]['date'] = $date;
 
-                                    if (!empty($key) && count($key) > 0) {
-                                        $time    = Carbon::parse($tasktimesheet[$key[0]]['time'])->format('H:i');
+                                    if (count($key) > 0) {
+                                        $time = Carbon::parse($tasktimesheet[$key[0]]['time'])->format('H:i');
+
                                         $times[] = $time;
 
-                                        $timesheetArray[$k]['taskArray'][$i]['dateArray'][$count]['week'][$j]['time'] = $time;
-                                        $timesheetArray[$k]['taskArray'][$i]['dateArray'][$count]['week'][$j]['type'] = 'edit';
-                                        $timesheetArray[$k]['taskArray'][$i]['dateArray'][$count]['week'][$j]['url']  = route('project.timesheet.edit', [
+                                        $timesheetArray[$k]['milestoneArray'][$m]['taskArray'][$i]['dateArray'][$count]['week'][$j]['time'] = $time;
+                                        $timesheetArray[$k]['milestoneArray'][$m]['taskArray'][$i]['dateArray'][$count]['week'][$j]['type'] = 'edit';
+                                        $timesheetArray[$k]['milestoneArray'][$m]['taskArray'][$i]['dateArray'][$count]['week'][$j]['url'] = route('project.timesheet.edit', [
                                             'slug' => $currentWorkspace->slug,
                                             'timesheet_id' => $tasktimesheet[$key[0]]['id'],
                                             'project_id' => $project_id,
                                         ]);
                                     } else {
-                                        $timesheetArray[$k]['taskArray'][$i]['dateArray'][$count]['week'][$j]['time'] = '00:00';
-                                        $timesheetArray[$k]['taskArray'][$i]['dateArray'][$count]['week'][$j]['type'] = 'create';
-                                        $timesheetArray[$k]['taskArray'][$i]['dateArray'][$count]['week'][$j]['url']  = route('project.timesheet.create', [
+                                        $timesheetArray[$k]['milestoneArray'][$m]['taskArray'][$i]['dateArray'][$count]['week'][$j]['time'] = '00:00';
+                                        $timesheetArray[$k]['milestoneArray'][$m]['taskArray'][$i]['dateArray'][$count]['week'][$j]['type'] = 'create';
+                                        $timesheetArray[$k]['milestoneArray'][$m]['taskArray'][$i]['dateArray'][$count]['week'][$j]['url'] = route('project.timesheet.create', [
                                             'slug' => $currentWorkspace->slug,
                                             'project_id' => $project_id,
                                         ]);
                                     }
                                 }
-                                $calculatedtasktime                                                    = Utility::calculateTimesheetHours($times);
-                                $totaltaskdatetimes[]                                                  = $calculatedtasktime;
-                                $timesheetArray[$k]['taskArray'][$i]['dateArray'][$count]['totaltime'] = $calculatedtasktime;
+                                $calculatedtasktime = Utility::calculateTimesheetHours($times);
+                                $totaltaskdatetimes[] = $calculatedtasktime;
+                                $timesheetArray[$k]['milestoneArray'][$m]['taskArray'][$i]['dateArray'][$count]['totaltime'] = $calculatedtasktime;
+                                // }
                             }
+                            $i++;
                         }
-                        $i++;
+                        $m++; // Incrementamos el índice del hito aquí para cada hito procesado
                     }
+                    $k++; // Incrementamos el índice del proyecto aquí para cada proyecto procesado 
                 }
-                $k++;
             }
-        } else {
+            $calculatedtotaltaskdatetime = Utility::calculateTimesheetHours($totaltaskdatetimes);
 
-            foreach ($timesheets as $task_id => $timesheet) {
-                $times = [];
-                $task = Task::find($task_id);
+            foreach ($days['datePeriod'] as $key => $date) {
+                $dateperioddate = $date->format('Y-m-d');
 
-                if ($task) {
-                    $timesheetArray[$i]['task_id'] = $task->id;
-
-                    // Encontrar el nombre del tipo de tarea correspondiente                 
-                    $typesName = TaskType::select('id', 'name')->where('project_type', '=', $project->id)->get();
-                    $name = "";
-
-                    foreach ($typesName as $type) {
-                        if ($task->type_id == $type->id) {
-                            $name = $type->name;
-                            break;
-                        }
-                    }
-                    $timesheetArray[$i]['task_type'] = $name;
-
-                    //mostrar creador de este timesheet
-                    $idUser = Timesheet::select('created_by')->where('task_id', $task_id)->first();
-
-                    if ($idUser) {
-                        $user = User::find($idUser->created_by);
-                        if ($user) {
-                            $timesheetArray[$i]['employee'] = $user->name;
-                        }
-                    } else {
-                        $timesheetArray[$i]['employee'] = "Unknown";
-                    }
-
-                    for ($j = 0; $j < 7; $j++) {
-                        $date = $days['datePeriod'][$j]->format('Y-m-d');
-
-                        $filtered_array = array_filter($timesheet, function ($val) use ($user_id, $date) {
-                            return ($val['created_by'] == $user_id and $val['date'] == $date);
-                        });
-                        $key            = array_keys($filtered_array);
-
-                        // $key  = array_search($date, array_column($timesheet, 'date'));
-
-                        $timesheetArray[$i]['dateArray'][$j]['date'] = $date;
-
-                        if ($key !== false && count($key) > 0) {
-
-                            $time    = Carbon::parse($timesheet[$key[0]]['time'])->format('H:i');
-                            $times[] = $time;
-
-
-                            foreach ($timesheet as $timesheets) {
-
-                                if (($date == $timesheets['date'])
-                                    && ($timesheets['project_id'] == $project_id)
-                                    && ($timesheets['task_id'] == $task_id)
-                                ) {
-                                    $total_task_time    = Carbon::parse($timesheets['time'])->format('H:i');
-                                    $total_task_times[] = $total_task_time;
-                                }
-                            }
-
-                            $total_task_time              = Utility::calculateTimesheetHours($total_task_times);
-
-                            $timesheetArray[$i]['dateArray'][$j]['total_task_time'] = $total_task_time;
-                            $timesheetArray[$i]['dateArray'][$j]['time'] = $time;
-                            $timesheetArray[$i]['dateArray'][$j]['type'] = 'edit';
-                            $timesheetArray[$i]['dateArray'][$j]['url']  =
-                                route('project.timesheet.edit', [
-                                    'slug' => $currentWorkspace->slug,
-                                    'timesheet_id' => $timesheet[$key[0]]['id'],
-                                    'project_id' => $project_id
-                                ]);
-                        } else {
-                            $timesheetArray[$i]['dateArray'][$j]['time'] = '00:00';
-                            $timesheetArray[$i]['dateArray'][$j]['type'] = 'create';
-                            $timesheetArray[$i]['dateArray'][$j]['url']  =
-                                route('project.timesheet.create', [
-                                    'slug' => $currentWorkspace->slug,
-                                    'project_id' => $project_id
-                                ]);
-                        }
-                    }
-                    $calculatedtasktime              = Utility::calculateTimesheetHours($times);
-                    $totaltaskdatetimes[]            = $calculatedtasktime;
-                    $timesheetArray[$i]['totaltime'] = $calculatedtasktime;
-                }
-                $i++;
-            }
-        }
-
-        $calculatedtotaltaskdatetime = Utility::calculateTimesheetHours($totaltaskdatetimes);
-
-        foreach ($days['datePeriod'] as $key => $date) {
-            $dateperioddate = $date->format('Y-m-d');
-
-            if ($currentWorkspace->permission == 'Owner') {
-                $new_projects_timesheet = Timesheet::select('timesheets.*')
-                    ->join('projects', 'projects.id', '=', 'timesheets.project_id')
-                    ->join('tasks', 'tasks.id', '=', 'timesheets.task_id')
-                    ->where('projects.workspace', '=', $currentWorkspace->id);
-            } else {
                 $new_projects_timesheet = Timesheet::select('timesheets.*')
                     ->join('projects', 'projects.id', '=', 'timesheets.project_id')
                     ->join('tasks', 'timesheets.task_id', '=', 'tasks.id')
                     ->where('projects.workspace', '=', $currentWorkspace->id)
-                    ->where('tasks.assign_to', $user_id);
-            }
+                    ->where('tasks.assign_to', '=', Auth::user()->id)->get();
 
-            $totalDateTimes[$dateperioddate] = Utility::calculateTimesheetHours($new_projects_timesheet->where('date', $dateperioddate)->pluck('time')->toArray());
+                $totalDateTimes[$dateperioddate] = Utility::calculateTimesheetHours($new_projects_timesheet->where('date', $dateperioddate)->pluck('time')->toArray());
+            }
+        } else {
+
+            $userId = Auth::user()->id;
+            // dd($timesheets);
+            $project_timesheets = Timesheet::select('timesheets.*')
+                ->join('projects', 'projects.id', '=', 'timesheets.project_id')
+                ->join('tasks', 'tasks.id', '=', 'timesheets.task_id')
+                ->where('projects.workspace', '=', $currentWorkspace->id);
+
+            $project = Project::find($project_id);
+
+
+            $k = 0; // Inicializamos el índice del milestone fuera del bucle principal
+            foreach ($timesheets as $milestone_id => $users) {
+                $milestone = Milestone::find($milestone_id);
+
+                if ($milestone) {
+                    // Inicializamos las entradas del milestone en el array
+                    $timesheetArray[$k]['project_id'] = $project ? $project->id : null;
+                    $timesheetArray[$k]['milestone_id'] = $milestone ? $milestone->id : null;
+                    $timesheetArray[$k]['milestone_name'] = $milestone ? $milestone->title : 'unknow title';
+
+                    $count = 0;
+                    $m = 0; // Inicializamos el índice de los usuarios para cada milestone
+                    foreach ($users as $user_id => $userTask) {
+                        $user = User::find($user_id);
+                        $timesheetArray[$k]['usersArray'][$m]['user_id'] = $user ? $user->id : null;
+                        $timesheetArray[$k]['usersArray'][$m]['user_name'] = $user ? $user->name : 'unknow name';
+
+                        $i = 0; // Reiniciamos el índice de tareas para cada usuario
+                        foreach ($userTask as $tasktimesheet) {
+                            $task = Task::find($tasktimesheet[0]['task_id']);
+                            $taskId = $task->id;
+                            $timesheet = Timesheet::find($tasktimesheet[0]['id']);
+                            // $project = Project::find($task->project_id);
+
+                            if ($task) {
+                                $timesheetArray[$k]['usersArray'][$m]['taskArray'][$i]['task_id'] = $timesheet->task_id;
+
+                                $typesName = TaskType::select('id', 'name')
+                                    ->where('project_type', '=', $project->type)
+                                    ->where('id', $task->type_id)
+                                    ->first();
+                                $timesheetArray[$k]['usersArray'][$m]['taskArray'][$i]['task_name'] = $typesName ? $typesName->name : 'unknow';
+
+                                $times = [];
+
+                                for ($j = 0; $j < 7; $j++) {
+                                    $date = $days['datePeriod'][$j]->format('Y-m-d');
+
+                                    $filtered_array = array_filter($tasktimesheet, function ($val) use ($userId, $date, $taskId) {
+                                        if (isset($val['created_by']) && isset($val['date'])) {
+                                            return $val['created_by'] == $userId && $val['date'] == $date && $val['task_id'] == $taskId;
+                                        }
+                                    });
+
+                                    $key = array_keys($filtered_array);
+                                    $timesheetArray[$k]['usersArray'][$m]['taskArray'][$i]['dateArray'][$count]['week'][$j]['date'] = $date;
+
+                                    if (count($key) > 0) {
+                                        $time = Carbon::parse($tasktimesheet[$key[0]]['time'])->format('H:i');
+
+                                        $times[] = $time;
+
+                                        $timesheetArray[$k]['usersArray'][$m]['taskArray'][$i]['dateArray'][$count]['week'][$j]['time'] = $time;
+                                        $timesheetArray[$k]['usersArray'][$m]['taskArray'][$i]['dateArray'][$count]['week'][$j]['type'] = 'edit';
+                                        $timesheetArray[$k]['usersArray'][$m]['taskArray'][$i]['dateArray'][$count]['week'][$j]['url'] = route('project.timesheet.edit', [
+                                            'slug' => $currentWorkspace->slug,
+                                            'timesheet_id' => $tasktimesheet[$key[0]]['id'],
+                                            'project_id' => $project_id,
+                                        ]);
+                                    } else {
+                                        $timesheetArray[$k]['usersArray'][$m]['taskArray'][$i]['dateArray'][$count]['week'][$j]['time'] = '00:00';
+                                        $timesheetArray[$k]['usersArray'][$m]['taskArray'][$i]['dateArray'][$count]['week'][$j]['type'] = 'create';
+                                        $timesheetArray[$k]['usersArray'][$m]['taskArray'][$i]['dateArray'][$count]['week'][$j]['url'] = route('project.timesheet.create', [
+                                            'slug' => $currentWorkspace->slug,
+                                            'project_id' => $project_id,
+                                        ]);
+                                    }
+                                }
+
+                                $calculatedtasktime = Utility::calculateTimesheetHours($times);
+                                $totaltaskdatetimes[] = $calculatedtasktime;
+                                $timesheetArray[$k]['usersArray'][$m]['taskArray'][$i]['dateArray'][$count]['totaltime'] = $calculatedtasktime;
+                            }
+
+                            $i++; // Incrementamos el índice de la tarea
+                        }
+                        $m++; // Incrementamos el índice del encargo
+                    }
+                    $k++; // Incrementamos el índice del proyecto
+                }
+            }
+            $calculatedtotaltaskdatetime = Utility::calculateTimesheetHours($totaltaskdatetimes);
+
+            foreach ($days['datePeriod'] as $key => $date) {
+                $dateperioddate = $date->format('Y-m-d');
+                $new_projects_timesheet = Timesheet::select('timesheets.*')
+                    ->join('projects', 'projects.id', '=', 'timesheets.project_id')
+                    ->join('tasks', 'timesheets.task_id', '=', 'tasks.id')
+                    ->where('projects.workspace', '=', $currentWorkspace->id)
+                    ->where('projects.id', '=', $project_id)->get();
+
+                $totalDateTimes[$dateperioddate] = Utility::calculateTimesheetHours($new_projects_timesheet->where('date', $dateperioddate)->pluck('time')->toArray());
+            }
         }
 
         $returnHTML = view(
@@ -367,6 +405,7 @@ class Project extends Model
 
         return $returnHTML;
     }
+
 
     public function project_progress()
     {
