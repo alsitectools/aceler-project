@@ -64,7 +64,7 @@
                             : '' }}">
 
                         <span class="dash-micon"><i class="fa-solid fa-bookmark"></i></span>
-                        <span class="dash-mtext">{{ __('dictionary.Summary') }}</span>
+                        <span class="dash-mtext">{{ __('Summary') }}</span>
                     </a>
                 </li>
                 @if (isset($currentWorkspace) && $currentWorkspace)
@@ -74,9 +74,9 @@
                             <span class="dash-micon"><i class="fa-solid fa-diagram-project"></i></span><span
                                 class="dash-mtext">{{ __('Projects') }}</span></a>
                     </li>
-                    {{-- si mostramos todos los proyectos enviamos al tecnico/comercial, sino el proyecto en especifico --}}
+                    {{-- si mostramos todos los proyectos enviamos -1 o proyecto en especifico --}}
                     <li class="dash-item">
-                        <a href="{{ route('projects.milestone.board', [$currentWorkspace->slug, Auth::user()->id]) }}"
+                        <a href="{{ route('projects.milestone.board', [$currentWorkspace->slug, -1]) }}"
                             class="dash-link ">
                             <span class="dash-micon"><i class="fa-solid fa-file-lines"></i></span><span
                                 class="dash-mtext">{{ __('Milestones') }}</span></a>
@@ -84,7 +84,7 @@
                     <li class="dash-item {{ Request::route()->getName() == 'timesheet.index' ? ' active' : '' }}">
                         <a href="{{ route('timesheet.index', $currentWorkspace->slug) }}" class="dash-link ">
                             <span class="dash-micon"><i class="fas fa-tasks"></i></span><span
-                                class="dash-mtext">{{ __('dictionary.Tasks') }}</span></a>
+                                class="dash-mtext">{{ __('Tasks') }}</span></a>
                     </li>
                     <li class="dash-item {{ Request::route()->getName() == 'calender.index' ? ' active' : '' }}">
                         <a href="{{ route('calender.google.calendar', $currentWorkspace->slug) }}"
@@ -96,13 +96,13 @@
                         <a href="{{ route('clients.index', $currentWorkspace->slug) }}"
                             class="dash-link {{ Request::route()->getName() == 'clients.index' ? ' active' : '' }} "><span
                                 class="dash-micon"> <i class="fa-solid fa-user-tie"></i></span><span class="dash-mtext">
-                                {{ trans('dictionary.Sales_manager') }}</span></a>
+                                {{ __('Sales manager') }}</span></a>
                     </li>
                     <li
                         class="dash-item {{ Request::route()->getName() == 'users.index' || Request::route()->getName() == 'users_logs.index' ? ' active' : '' }}">
                         <a href="{{ route('users.index', $currentWorkspace->slug) }}" class="dash-link ">
                             <span class="dash-micon"> <i class="fa-solid fa-helmet-safety"></i></span>
-                            <span class="dash-mtext">{{ trans('dictionary.Technicians') }}</span>
+                            <span class="dash-mtext">{{ __('Technicians') }}</span>
                         </a>
                     </li>
                 @endif

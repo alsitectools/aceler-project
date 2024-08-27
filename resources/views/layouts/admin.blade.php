@@ -47,6 +47,7 @@
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 
 <head>
+
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="shortcut icon" href="{{ asset('assets/img/iconA.png') }}" type="image/png">
@@ -98,7 +99,19 @@
     <link rel="stylesheet" href="{{ asset('assets/css/plugins/animate.min.css') }}" />
     <link rel="stylesheet" href="{{ asset('assets/custom/libs/summernote/summernote-bs4.css') }}">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    <!-- Select2 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-beta.1/dist/css/select2.min.css" rel="stylesheet" />
 
+    <!-- jQuery (requerido para Select2) -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+    <!-- Select2 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-beta.1/dist/js/select2.min.js"></script>
+    
+
+    <!-- Importa Select2 CSS -->
+
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
     <!-- vendor css -->
     @stack('css-page')
 
@@ -252,8 +265,8 @@
                 <div class="page-block">
                     <div class="row align-items-center">
                         <div class="col-md-12">
-                            <div class="row mb-1">
-                                <div class="col-auto header_breadcrumb">
+                            <div class="row">
+                                <div class="col-auto header_breadcrumb pr-4 pt-0">
                                     @if (trim($__env->yieldContent('page-title')))
                                         <div class="page-header-title">
                                             <h4 class="m-b-10">@yield('page-title')</h4>
@@ -263,7 +276,7 @@
                                         @yield('links')
                                     </ul>
                                 </div>
-                                <div class="col header_breadcrumb">
+                                <div class="col header_breadcrumb me-3">
                                     @if (trim($__env->yieldContent('action-button')))
                                         <!-- <div class="col-xl-6 col-lg-2 col-md-4 col-sm-6 col-6 pt-lg-3 pt-xl-2"> -->
                                         <div
@@ -478,9 +491,9 @@
 
                     var pusher = new Pusher(
                         '{{ env('
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        PUSHER_APP_KEY ') }}', {
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        PUSHER_APP_KEY ') }}', {
                             cluster: '{{ env('
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            PUSHER_APP_CLUSTER ') }}',
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            PUSHER_APP_CLUSTER ') }}',
                             forceTLS: true
                         });
 
@@ -502,7 +515,7 @@
                 function getChat() {
                     $.ajax({
                         url: '{{ route('
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                message.data ') }}',
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                message.data ') }}',
                         cache: false,
                         dataType: 'html',
                         success: function(data) {
@@ -521,7 +534,7 @@
                     $.ajax({
                         url: '{{ route(
                             '
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                notification.seen ',
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                notification.seen ',
                             $currentWorkspace->slug,
                         ) }}',
                         type: "get",
@@ -536,7 +549,7 @@
                     $.ajax({
                         url: '{{ route(
                             '
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                message.seen ',
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                message.seen ',
                             $currentWorkspace->slug,
                         ) }}',
                         type: "get",
@@ -638,8 +651,6 @@
         const dataTable = new simpleDatatables.DataTable("#selection-datatable");
     </script>
 
-
-
     <script>
         var date_picker_locale = {
             format: 'YYYY-MM-DD',
@@ -725,7 +736,7 @@
                     header: "{{ __('Projects') }}"
                 }, {
                     listLocation: "Tasks",
-                    header: "{{ __('messages.Tasks') }}"
+                    header: "{{ __('Tasks') }}"
                 }],
                 getValue: "text",
                 template: {
@@ -767,21 +778,15 @@
     @if (Session::has('success'))
         <script>
             show_toastr(
-                '{{ __('
-                                                                                                                                                                                                                                                                                                                                                                                    Success ') }}',
-                '{!! session('
-                                                                                                                                                                                                                                                                                                                                                                                            success ') !!}',
-                'success');
+                '{{ __(' Success ') }}',
+                '{!! session('success ') !!}', 'success');
         </script>
     @endif
     @if (Session::has('error'))
         <script>
             show_toastr(
-                '{{ __('
-                                                                                                                                                                                                                                                                                                                                                                                    Error ') }}',
-                '{!! session('
-                                                                                                                                                                                                                                                                                                                                                                                            error ') !!}',
-                'error');
+                '{{ __('Error ') }}',
+                '{!! session('error ') !!}', 'error');
         </script>
     @endif
     <script></script>

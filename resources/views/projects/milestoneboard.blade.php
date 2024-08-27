@@ -9,24 +9,59 @@
     // dd($milestones);
 @endphp
 @section('page-title')
-    {{ __('messages.Milestone_Board') }}
+    {{ __('Milestoneboard') }}
 @endsection
 <style>
+    .hight_img {
+        max-width: 30px !important;
+        max-height: 30px !important;
+    }
+
+    .tooltipCus {
+        position: relative;
+        cursor: pointer;
+    }
+
+    .tooltipCus::after {
+        content: attr(data-title);
+        visibility: hidden;
+        background-color: black;
+        color: #fff;
+        text-align: center;
+        border-radius: 10px;
+        padding: 10px;
+        position: absolute;
+        z-index: 1;
+        bottom: 100%;
+        left: 60%;
+        transform: translateX(-5%);
+        opacity: 0;
+        transition: opacity 0.3s;
+        white-space: nowrap;
+    }
+
+    .tooltipCus:hover::after {
+        visibility: visible;
+        opacity: 1;
+
+    }
+
     .foot-milestone {
         display: flex !important;
         flex-direction: row;
         flex-wrap: nowrap;
-        justify-content: space-around;
-        align-items: baseline;
+        justify-content: center;
+        align-items: center;
     }
 
     .taskList {
         height: 20px;
         display: flex;
-        flex-direction: column;
+        flex-direction: row;
         flex-wrap: nowrap;
-        align-content: space-around;
-        align-items: flex-start;
+        align-items: baseline;
+        justify-content: space-evenly;
+
     }
 
     .statusDate {
@@ -37,9 +72,10 @@
         margin: 5%;
     }
 
-    .p-target {
+    /* .p-target {
         padding-left: 10%;
-    }
+
+    } */
 
     .addMilestone {
         display: flex !important;
@@ -52,13 +88,14 @@
     }
 </style>
 @section('links')
-    <li class="breadcrumb-item"><a href="{{ route('home') }}">{{ __('Home') }}</a></li>
     @if (isset($project_id) && $project_id != -1)
         <li class="breadcrumb-item"><a
                 href="{{ route('projects.show', [$currentWorkspace->slug, $project_id]) }}">{{ __('Project Details') }}</a>
         </li>
+    @else
+        <li class="breadcrumb-item"><a href="{{ route('home') }}">{{ __('Home') }}</a></li>
     @endif
-    <li class="breadcrumb-item">{{ __('messages.Milestone_Board') }}</li>
+    <li class="breadcrumb-item">{{ __('Milestoneboard') }}</li>
 @endsection
 
 @section('action-button')
@@ -66,10 +103,10 @@
         @if (isset($currentWorkspace) && $currentWorkspace)
             <div class="col-sm-auto">
                 <button type="button" class="btn btn-primary addMilestone" data-ajax-popup="true"
-                    data-title="{{ __('dictionary.Milestone_order') }}"
-                    data-url="{{ route('projects.milestone', [$currentWorkspace->slug, -1]) }}" data-toggle="popover"
+                    data-title="{{ __('Milestone order') }}"
+                    data-url="{{ route('projects.milestone', [$currentWorkspace->slug, $project_id]) }}" data-toggle="popover"
                     title="{{ __('Create') }}"><i class="fa-solid fa-file-lines" style="color: #ffffff;"></i>
-                    {{ __('dictionary.Milestone_create') }}
+                    {{ __('Create milestone') }}
                 </button>
             </div>
         @endif
@@ -92,7 +129,7 @@
                                     </button>
                                 </div>
                                 <h4 class="mb-0">
-                                    {{ __($status->name != 'Todo' ? $status->name : 'Por hacer') }}
+                                    {{ __($status->name) }}
                                 </h4>
                             </div>
                             <div id="{{ 'milestone-list-' . str_replace(' ', '_', $status->id) }}"
@@ -103,20 +140,18 @@
                                             data-project-id="{{ $milestone['project_id'] }}">
                                             <div class="card-header border-0 pb-0 col-sm-12">
                                                 <div class="d-flex">
-                                                    <div class="col-sm-9 text-center" data-toggle="tooltip"
-                                                        data-placement="top" title="{{ __('dictionary.Milestone') }}">
+                                                    <div class="col-sm-9 text-center tooltipCus"
+                                                        data-title="{{ __('Milestone') }}">
                                                         <b>{{ $milestone['title'] }}</b>
                                                     </div>
-
                                                     <div class="col-sm-2 pt-1 text-center">
-                                                        <a href="#" data-toggle="tooltip" data-placement="top"
-                                                            title="{{ $milestone['sales']->name }}">
+                                                        <a href="#" class=" tooltipCus"
+                                                            data-title="{{ $milestone['sales']->name }}">
                                                             <i class="fa-solid fa-user-tie fa-xl"
-                                                                style="color: #2B3141; padding-top: 25%;"></i>
+                                                                style="color: #0000009a; padding-top: 25%;"></i>
                                                         </a>
 
                                                     </div>
-
                                                 </div>
                                                 <hr class="border border-2 opacity-50">
                                                 <div class="card-header-right col-sm-1 text-end">
@@ -129,12 +164,11 @@
                                                             </button>
                                                             <div class="dropdown-menu dropdown-menu-end">
                                                                 <a href="#" class="dropdown-item"
-                                                                    data-ajax-popup="true"
-                                                                    title="{{ __('messages.View') }}"
+                                                                    data-ajax-popup="true" title="{{ __('View') }}"
                                                                     data-title="{{ __('Milestone Details') }}"
                                                                     data-url="{{ route('projects.milestone.show', [$currentWorkspace->slug, $milestone['id']]) }}">
                                                                     <i class="ti ti-eye pr-1"></i>
-                                                                    {{ __('messages.View') }}
+                                                                    {{ __('View') }}
                                                                 </a>
                                                                 @if (
                                                                     $currentWorkspace->permission == 'Owner' ||
@@ -142,7 +176,7 @@
                                                                     <a href="#" class="dropdown-item"
                                                                         data-ajax-popup="true" data-size="lg"
                                                                         data-toggle="popover" title="{{ __('Edit') }}"
-                                                                        data-title="{{ __('dictionary.Edit_milestone') }}"
+                                                                        data-title="{{ __('Edit Milestone') }}"
                                                                         data-url="{{ route('projects.milestone.edit', [$currentWorkspace->slug, $milestone['id']]) }}">
                                                                         <i class="ti ti-edit pr-1"></i>{{ __('Edit') }}
                                                                     </a>
@@ -152,11 +186,11 @@
                                                     </div>
                                                 </div>
                                             </div>
-                                            <div class="card-body">
+                                            <div class="card-body pt-1">
                                                 <div class="row">
                                                     @if ($milestone['tasks'])
-                                                        <div class="col-sm-12" title="{{ __('messages.Tasks') }}"
-                                                            data-toggle="tooltip" data-placement="top">
+                                                        <div class="col-sm-12  tooltipCus"
+                                                            data-title="{{ __('Tasks') }}">
                                                             @foreach ($milestone['tasks'] as $task)
                                                                 <div class="taskList p-target col-sm-12">
                                                                     @php
@@ -169,38 +203,37 @@
                                                                                 ? '<i class="fa-solid fa-hourglass-end fa-xs text-' .
                                                                                     $dateClass .
                                                                                     '"></i>'
-                                                                                : '<i class="fa-solid fa-hourglass-start fa-xs text-' .
+                                                                                : '<i class="fa-solid fa-hourglass-start fa-xs p-0 m-0 text-' .
                                                                                     $dateClass .
                                                                                     '"></i>';
                                                                     @endphp
-                                                                    <p>
-                                                                        {!! $icon !!} {{ $task['name'] }}
-                                                                    </p>
+
+                                                                    {!! $icon !!} <p class="mb-1 col-md-8">
+                                                                        {{ $task['name'] }} </p>
 
                                                                     @if ($project_id != -1)
-                                                                        <div class="user-group d-flex"
-                                                                            style="padding-left: 80%;"
-                                                                            title="{{ $milestone['technician']->name }}">
-                                                                            <a href="#" class="img_group">
-                                                                                <img alt="image" data-toggle="tooltip"
-                                                                                    data-placement="top"
-                                                                                    title="{{ $milestone['technician']->name }}"
-                                                                                    @if ($milestone['technician']->avatar) src="{{ asset($logo . $milestone['technician']->avatar) }}" @else avatar="{{ $milestone['technician']->name }}" @endif>
+                                                                        <div class="user-group col-sm-2 tooltipCus"
+                                                                            data-title="{{ $task['technician']->name }}">
+                                                                            <a href="#">
+                                                                                <img alt="image" class="tooltipCus"
+                                                                                    data-title="{{ $task['technician']->name }}"
+                                                                                    @if ($task['technician']->avatar) src="{{ asset($logo . $task['technician']->avatar) }}" @else avatar="{{ $task['technician']->name }}" @endif>
                                                                             </a>
                                                                         </div>
                                                                     @endif
                                                                 </div>
                                                             @endforeach
+                                                            @if ($project_id == -1)
+                                                                <div class="user-group col-sm-11 tooltipCus text-end"
+                                                                    data-title="{{ $task['technician']->name }}">
+                                                                    <a href="#">
+                                                                        <img alt="image" class="tooltipCus"
+                                                                            data-title="{{ $task['technician']->name }}"
+                                                                            @if ($task['technician']->avatar) src="{{ asset($logo . $task['technician']->avatar) }}" @else avatar="{{ $task['technician']->name }}" @endif>
+                                                                    </a>
+                                                                </div>
+                                                            @endif
                                                         </div>
-                                                        {{-- <div class="user-group d-flex" style="padding-left: 80%;"
-                                                            title="{{ $milestone['technician']->name }}">
-                                                            <a href="#" class="img_group">
-                                                                <img alt="image" data-toggle="tooltip"
-                                                                    data-placement="top"
-                                                                    title="{{ $milestone['technician']->name }}"
-                                                                    @if ($milestone['technician']->avatar) src="{{ asset($logo . $milestone['technician']->avatar) }}" @else avatar="{{ $milestone['technician']->name }}" @endif>
-                                                            </a>
-                                                        </div> --}}
                                                     @else
                                                         <div class="text-muted text-center">
                                                             {{ __('dictionary.No_tasks') . '...' }}
@@ -212,8 +245,8 @@
                                                         <div class="row">
                                                             <div class="foot-milestone">
                                                                 <div class="col-6 text-center">
-                                                                    <div class="text-center" data-toggle="tooltip"
-                                                                        title="{{ __('Project') }}">
+                                                                    <div class="text-center tooltipCus"
+                                                                        data-title="{{ __('Project') }}">
                                                                         <div>
                                                                             <img class="img-fluid p-1" width="40px"
                                                                                 src="{{ asset('assets/img/' . $milestone['project_type'] . '.png') }}"
@@ -221,14 +254,12 @@
                                                                         </div>
                                                                         <b
                                                                             style="font-size: 12px">{{ $milestone['project_name'] }}</b>
-
-                                                                        <span class="text-muted" data-toggle="tooltip"
-                                                                            title="{{ __('Ref. M.O') }}"><b>{{ $milestone['project_ref'] }}</b></span>
-
+                                                                        <span class="text-muted"
+                                                                            data-title="{{ __('Ref. M.O') }}"><b>{{ $milestone['project_ref'] }}</b></span>
                                                                     </div>
                                                                 </div>
-                                                                <div class="col-6 text-center" data-toggle="tooltip"
-                                                                    title="{{ __('dictionary.End_Date') }}">
+                                                                <div class="col-6 text-center tooltipCus"
+                                                                    data-title="{{ __('End Date') }}">
                                                                     @if ($milestone['daysleft'] < 1)
                                                                         <i class="fa-solid fa-calendar-check fa-beat-fade m-1 pb-1 fa-2xl"
                                                                             style="color: red;"></i>
@@ -262,113 +293,103 @@
         </div>
     </div>
 @endsection
-<script>
-    $(document).ready(function() {
-        $('.card-list [data-toggle="tooltip"]').tooltip({
-            container: '.card-list'
-        });
-    });
-</script>
-<script src="{{ asset('assets/custom/js/dragula.min.js') }}"></script>
-@if ($milestones != null)
-    @push('scripts')
-        <script>
-            ! function(a) {
-                "use strict";
 
-                var t = function() {
-                    this.$body = a("body");
-                };
-
-                t.prototype.init = function() {
-                    a('[data-toggle="dragula"]').each(function() {
-                        var containers = a(this).data("containers");
-                        var containersArray = [];
-
-                        if (containers && containers.length) {
-                            for (var i = 0; i < containers.length; i++) {
-                                var container = a("#" + containers[i] + " .kanban-box")[0];
-                                if (container) {
-                                    containersArray.push(container);
-                                } else {
-                                    console.error('Contenedor no encontrado:', containers[i]);
-                                }
-                            }
-                        } else {
-                            containersArray = [a(this)[0]];
-                        }
-                        var handleClass = a(this).data("handleclass");
-                        dragula(containersArray, {
-                            moves: function(el, container, handle) {
-
-                                return el.classList.contains('card');
-                            }
-                        }).on('drop', handleDrop);
-                    });
-                };
-
-                function handleDrop(el, target, source, sibling) {
-
-                    var sort = [];
-                    a(target).find(".card").each(function(key) {
-                        var cardId = a(this).attr('id');
-                        if (cardId) {
-                            console.log('Card ID at index', key, ':', cardId);
-                            sort.push(cardId);
-                        } else {
-                            console.warn('Card at index', key, 'does not have an ID');
-                        }
-                    });
-                    var id = el.id;
-                    var oldStatus = a(source).data('status');
-                    var newStatus = a(target).data('status');
-                    var project_id = a(el).data('project-id');
-
-                    updateTaskCount(source);
-                    updateTaskCount(target);
-
-                    a.ajax({
-                        url: '{{ route('milestone.update.order', [$currentWorkspace->slug, $milestone['project_id']]) }}',
-                        type: 'POST',
-                        data: {
-                            id: id,
-                            sort: sort,
-                            new_status: newStatus,
-                            old_status: oldStatus,
-                            project_id: project_id
-                        },
-                        success: function(data) {
-                            console.log('AJAX success:');
-                        },
-                        error: function(xhr, status, error) {
-                            console.error('Error al actualizar el orden:', error);
-                        }
-                    });
-                }
-
-                function updateTaskCount(container) {
-                    var parentCardList = a(container).parents('.card-list');
-                    var count = a(container).children('.card').length;
-                    parentCardList.find('.count').text(count);
-                }
-
-                a.Dragula = new t;
-                a.Dragula.Constructor = t;
-
-            }(window.jQuery);
-
-            ! function(a) {
-                "use strict";
-                a.Dragula.init();
-            }(window.jQuery);
-        </script>
-    @endpush
-@endif
 @push('css-page')
+    <link rel="stylesheet" href="{{ asset('assets/custom/css/dropzone.min.css') }}">
 @endpush
-<style type="text/css">
-    .hight_img {
-        max-width: 30px !important;
-        max-height: 30px !important;
-    }
-</style>
+@push('scripts')
+    <script src="{{ asset('assets/custom/js/dragula.min.js') }}"></script>
+    @if ($milestones != null)
+        @push('scripts')
+            <script>
+                ! function(a) {
+                    "use strict";
+
+                    var t = function() {
+                        this.$body = a("body");
+                    };
+
+                    t.prototype.init = function() {
+                        a('[data-toggle="dragula"]').each(function() {
+                            var containers = a(this).data("containers");
+                            var containersArray = [];
+
+                            if (containers && containers.length) {
+                                for (var i = 0; i < containers.length; i++) {
+                                    var container = a("#" + containers[i] + " .kanban-box")[0];
+                                    if (container) {
+                                        containersArray.push(container);
+                                    } else {
+                                        console.error('Contenedor no encontrado:', containers[i]);
+                                    }
+                                }
+                            } else {
+                                containersArray = [a(this)[0]];
+                            }
+                            var handleClass = a(this).data("handleclass");
+                            dragula(containersArray, {
+                                moves: function(el, container, handle) {
+
+                                    return el.classList.contains('card');
+                                }
+                            }).on('drop', handleDrop);
+                        });
+                    };
+
+                    function handleDrop(el, target, source, sibling) {
+
+                        var sort = [];
+                        a(target).find(".card").each(function(key) {
+                            var cardId = a(this).attr('id');
+                            if (cardId) {
+                                console.log('Card ID at index', key, ':', cardId);
+                                sort.push(cardId);
+                            } else {
+                                console.warn('Card at index', key, 'does not have an ID');
+                            }
+                        });
+                        var id = el.id;
+                        var oldStatus = a(source).data('status');
+                        var newStatus = a(target).data('status');
+                        var project_id = a(el).data('project-id');
+
+                        updateTaskCount(source);
+                        updateTaskCount(target);
+
+                        a.ajax({
+                            url: '{{ route('milestone.update.order', [$currentWorkspace->slug, $milestone['project_id']]) }}',
+                            type: 'POST',
+                            data: {
+                                id: id,
+                                sort: sort,
+                                new_status: newStatus,
+                                old_status: oldStatus,
+                                project_id: project_id
+                            },
+                            success: function(data) {
+                                console.log('AJAX success');
+                            },
+                            error: function(xhr, status, error) {
+                                console.error('Error al actualizar el orden:', error);
+                            }
+                        });
+                    }
+
+                    function updateTaskCount(container) {
+                        var parentCardList = a(container).parents('.card-list');
+                        var count = a(container).children('.card').length;
+                        parentCardList.find('.count').text(count);
+                    }
+
+                    a.Dragula = new t;
+                    a.Dragula.Constructor = t;
+
+                }(window.jQuery);
+
+                ! function(a) {
+                    "use strict";
+                    a.Dragula.init();
+                }(window.jQuery);
+            </script>
+        @endpush
+    @endif

@@ -67,8 +67,7 @@
     }
 </style>
 <header class="dash-header {{ isset($cust_theme_bg) && $cust_theme_bg == 'on' ? 'transprent-bg' : '' }}">
-
-    <div class="header-wrapper p-0">
+    <div class="header-wrapper p-0  me-2">
         <div class="dash-mob-drp">
             <ul class="list-unstyled">
                 <li class="dash-h-item mob-hamburger">
@@ -224,7 +223,7 @@
         <!-- Brand + Toggler (for mobile devices) -->
 
         <div class="ms-auto">
-            <ul class="list-unstyled"  style="padding-right: 15px;">
+            <ul class="list-unstyled" style="padding-right: 15px;">
                 @if (Auth::user()->type == 'admin')
                     @impersonating($guard = null)
                         <li class="dropdown dash-h-item drp-company">
@@ -266,10 +265,10 @@
                                 </a>
                                 <div class="dropdown-menu dash-h-dropdown dropdown-menu-end notification_menu_all">
                                     <div class="noti-header">
-                                        <h5 class="m-0">{{__('dictionary.Notification')}}</h5>
+                                        <h5 class="m-0">{{ __('dictionary.Notification') }}</h5>
                                         <a href="#"
                                             data-url="{{ route('delete_all.notifications', $currentWorkspace->slug) }}"
-                                            class="dash-head-link clear_all_notifications">{{__('dictionary.Clear_All')}}</a>
+                                            class="dash-head-link clear_all_notifications">{{ __('dictionary.Clear_All') }}</a>
                                     </div>
                                     <div class="noti-body">
                                         <div class="limited">
@@ -393,6 +392,18 @@
                                             @endforeach
                                         </div> --}}
                                     </div>
+                                    {{-- <div class="noti-footer">
+                                        <div class="d-grid">
+                                            <a href="#"
+                                                class="btn dash-head-link justify-content-center text-primary mx-0 view_all_notification"
+                                                data-limit="3">View
+                                                all</a>
+                                            <a href="#"
+                                                class="btn dash-head-link justify-content-center text-primary mx-0 view_less"
+                                                style="display:none !important;">View less</a>
+
+                                        </div>
+                                    </div> --}}
                                 </div>
                             @endauth
                         @endif
