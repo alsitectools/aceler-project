@@ -44,16 +44,12 @@ use Jenssegers\Date\Date;
 use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Support\Facades\Auth;
 
+
 class ProjectController extends Controller
 {
 
     public function index($slug)
     {
-        /* Cuando actualizamos la columna de ultima actualizacion del proyecto?
-            $project = Project::find($project_id);
-            $project->updated_at = now(); // Establece `updated_at` a la fecha y hora actuales
-            $project->save(); */
-
         $objUser = Auth::user();
         $currentWorkspace = Utility::getWorkspaceBySlug($slug);
 
@@ -63,36 +59,6 @@ class ProjectController extends Controller
 
         return view('projects.index', compact('currentWorkspace', 'projects', 'project_type'));
     }
-
-    // public function search(Request $request)
-    // {
-    //     $query = $request->input('query');
-
-    //     // Buscar proyectos basados en el término de búsqueda
-    //     $projects = Project::where('name', 'LIKE', "%$query%")
-    //         ->orWhere('ref_mo', 'LIKE', "%$query%") // Incluye búsqueda por 'reference_mo'
-    //         ->get();
-
-    //     return redirect()->back()->with('projects', $projects)->with('query', $query);
-    // }
-
-    public function autocomplete(Request $request)
-    {
-        $query = $request->input('query');
-        $workspace = $request->input('workspace');
-
-        // Realiza la consulta
-        $projects = Project::where('name', 'LIKE', "%{$query}%")
-            ->where('workspace', $workspace)
-            ->get(['id', 'name']);
-
-
-        // Depuración: Verifica los resultados de la consulta
-        \Log::info('Projects: ' . $projects->toJson());
-
-        return response()->json($projects);
-    }
-
 
     public function tracker($slug, $id)
     {
@@ -616,7 +582,6 @@ class ProjectController extends Controller
         $authusername  = User::where('id', '=', $authuser->id)->first();
         $project = Project::find($projectID);
         $setting = Utility::getAdminPaymentSettings();
-
         foreach ($request->clients as $client_id) {
             $client = Client::find($client_id);
             $user = Client::find($client_id);
@@ -809,6 +774,7 @@ class ProjectController extends Controller
     //             $project_id = -1;
     //         }
     //     }
+
     //     return view('projects.milestoneboard', compact('currentWorkspace', 'milestones', 'stages', 'statusClass', 'project_id'));
     // }
 
@@ -822,16 +788,9 @@ class ProjectController extends Controller
         // Función para obtener datos de un milestone
         $getMilestoneData = function ($milestone, $project, $objUser) {
             $projectType = ProjectType::where('id', $project->type)->value('name');
-
-            if ($objUser) {
-                $tasksOfmilestone = Task::where('milestone_id', $milestone->id)
-                    ->where('project_id', $project->id)
-                    ->where('assign_to', $objUser->id)
-                    ->get();
-            } else {
-                $tasksOfmilestone = Task::where('milestone_id', $milestone->id)
-                    ->where('project_id', $project->id)->get();
-            }
+            $tasksOfmilestone = Task::where('milestone_id', $milestone->id)
+                ->where('project_id', $project->id)
+                ->get();
 
             $taskData = $tasksOfmilestone->map(function ($task) {
                 $taskType = TaskType::find($task->type_id);
@@ -839,7 +798,6 @@ class ProjectController extends Controller
                     'id' => $task->id,
                     'name' => $taskType->name,
                     'estimated_date' => $task->estimated_date,
-                    'technician' => User::find($task->assign_to),
                 ] : null;
             })->filter()->values()->toArray();
 
@@ -854,19 +812,33 @@ class ProjectController extends Controller
                 'project_type' => $projectType,
                 'project_ref' => $project->ref_mo ? '- ' . $project->ref_mo : '',
                 'tasks' => $taskData,
+                'technician' => $objUser,
                 'sales' => User::find($milestone->assign_to),
             ];
         };
+        if ($id == -1) {
+            $getUserTasks = function ($userId) {
+                return Task::join('milestones', 'tasks.milestone_id', '=', 'milestones.id')
+                    ->where('tasks.assign_to', $userId)
+                    ->select('tasks.*', 'milestones.title as milestone_title', 'milestones.start_date as milestone_start_date', 'milestones.end_date as milestone_end_date')
+                    ->get();
+            };
+        } else {
+            $getUserTasks = function ($userId) {
+                return Task::join('milestones', 'tasks.milestone_id', '=', 'milestones.id')
+                    ->select('tasks.*', 'milestones.title as milestone_title', 'milestones.start_date as milestone_start_date', 'milestones.end_date as milestone_end_date')
+                    ->get();
+            };
+        }
 
         // Función para agrupar hitos por estado
-        $groupMilestonesByStatus = function ($allmilestones, $objUser = null) use ($stages, $getMilestoneData) {
+        $groupMilestonesByStatus = function ($allmilestones) use ($stages, $getMilestoneData) {
             $milestones = [];
-            $objUser != null ? $objUser->id : null;
             foreach ($stages as $status) {
                 $filteredMilestones = $allmilestones->filter(fn($milestone) => $milestone->status == $status->id);
                 if ($filteredMilestones->isNotEmpty()) {
                     $milestones[$status->id] = $filteredMilestones
-                        ->map(fn($milestone) => $getMilestoneData($milestone, Project::find($milestone->project_id), $objUser))
+                        ->map(fn($milestone) => $getMilestoneData($milestone, Project::find($milestone->project_id), User::find(Auth::user()->id)))
                         ->toArray();
                 } else {
                     $milestones[$status->id] = [];
@@ -878,16 +850,9 @@ class ProjectController extends Controller
 
         if ($id == -1) {
             // Mostrar todas las tareas del usuario logueado
-            $objUser = Auth::user();
-            $allmilestones = $objUser->type == 'client'
-                ? Milestone::where('assign_to', $objUser->id)->get()
-                : Milestone::join('tasks', 'tasks.milestone_id', 'milestones.id')
-                ->where('tasks.assign_to', $objUser->id)
-                ->select('milestones.*')
-                ->distinct()
-                ->get();
-
-            $milestones = $groupMilestonesByStatus($allmilestones, $objUser);
+            $userId = Auth::user()->id;
+            $userTasks = $getUserTasks($userId);
+            $milestones = $groupMilestonesByStatus($userTasks, null, Auth::user());
             $project_id = -1;
         } else {
             // Mostrar hitos de un proyecto específico o de un usuario
@@ -898,6 +863,19 @@ class ProjectController extends Controller
                 $allmilestones = Milestone::where('project_id', $project->id)->get();
                 $milestones = $groupMilestonesByStatus($allmilestones);
                 $project_id = $project->id;
+            } else {
+                // Datos del usuario
+                $objUser = User::find($id);
+
+                $allmilestones = $objUser->type == 'client'
+                    ? Milestone::where('assign_to', $id)->get()
+                    : Milestone::join('tasks', 'tasks.milestone_id', '=', 'milestones.id')
+                    ->where('tasks.assign_to', $objUser->id)
+                    ->select('milestones.*')
+                    ->get();
+
+                $milestones = $groupMilestonesByStatus($allmilestones);
+                $project_id = -1;
             }
         }
 
@@ -1363,31 +1341,108 @@ class ProjectController extends Controller
     {
         $user = Auth::user();
         $currentWorkspace = Utility::getWorkspaceBySlug($slug);
-
-        $objProject = Project::select(
-            [
-                'projects.id',
-                'projects.name',
-            ]
-        )->where('projects.workspace', '=', $currentWorkspace->id)
-            ->where('projects.name', 'LIKE', $search . "%")
-            ->orwhere('projects.ref_mo', 'LIKE', $search . "%")->get();
-        $arrProject = [];
-        foreach ($objProject as $project) {
-            $arrProject[] = [
-                'text' => $project->name,
-                'link' => route(
-                    'projects.show',
-                    [
-                        $currentWorkspace->slug,
-                        $project->id,
-                    ]
-                ),
-            ];
+        if ($user->getGuard() == 'client') {
+            $objProject = Project::select(
+                [
+                    'projects.id',
+                    'projects.name',
+                ]
+            )->join('client_projects', 'client_projects.project_id', '=', 'projects.id')
+                ->where('client_projects.client_id', '=', $user->id)
+                ->where('projects.workspace', '=', $currentWorkspace->id)
+                ->where('projects.name', 'LIKE', $search . "%")->get();
+            $arrProject = [];
+            foreach ($objProject as $project) {
+                $arrProject[] = [
+                    'text' => $project->name,
+                    'link' => route(
+                        'client.projects.show',
+                        [
+                            $currentWorkspace->slug,
+                            $project->id,
+                        ]
+                    ),
+                ];
+            }
+        } else {
+            $objProject = Project::select(
+                [
+                    'projects.id',
+                    'projects.name',
+                ]
+            )->join('user_projects', 'user_projects.project_id', '=', 'projects.id')
+                ->where('user_projects.user_id', '=', $user->id)
+                ->where('projects.workspace', '=', $currentWorkspace->id)
+                ->where('projects.name', 'LIKE', $search . "%")->get();
+            $arrProject = [];
+            foreach ($objProject as $project) {
+                $arrProject[] = [
+                    'text' => $project->name,
+                    'link' => route(
+                        'projects.show',
+                        [
+                            $currentWorkspace->slug,
+                            $project->id,
+                        ]
+                    ),
+                ];
+            }
         }
+
+        if ($user->getGuard() == 'client') {
+            $arrTask = [];
+            $objTask = Task::select(
+                [
+                    'tasks.project_id',
+                    'tasks.title',
+                ]
+            )->join('projects', 'tasks.project_id', '=', 'projects.id')
+                ->join('client_projects', 'client_projects.project_id', '=', 'projects.id')
+                ->where('client_projects.client_id', '=', $user->id)
+                ->where('projects.workspace', '=', $currentWorkspace->id)
+                ->where('tasks.title', 'LIKE', $search . "%")->get();
+            foreach ($objTask as $task) {
+                $arrTask[] = [
+                    'text' => $task->title,
+                    'link' => route(
+                        'client.projects.task.board',
+                        [
+                            $currentWorkspace->slug,
+                            $task->project_id,
+                        ]
+                    ),
+                ];
+            }
+        } else {
+            $objTask = Task::select(
+                [
+                    'tasks.project_id',
+                    'tasks.title',
+                ]
+            )->join('projects', 'tasks.project_id', '=', 'projects.id')
+                ->join('user_projects', 'user_projects.project_id', '=', 'projects.id')
+                ->where('user_projects.user_id', '=', $user->id)
+                ->where('projects.workspace', '=', $currentWorkspace->id)
+                ->where('tasks.title', 'LIKE', $search . "%")->get();
+            $arrTask = [];
+            foreach ($objTask as $task) {
+                $arrTask[] = [
+                    'text' => $task->title,
+                    'link' => route(
+                        'projects.task.board',
+                        [
+                            $currentWorkspace->slug,
+                            $task->project_id,
+                        ]
+                    ),
+                ];
+            }
+        }
+
         return json_encode(
             [
                 'Projects' => $arrProject,
+                'Tasks' => $arrTask,
             ]
         );
     }
