@@ -124,7 +124,7 @@
                                                 <i class="fa-solid fa-diagram-project bg-success text-white"></i>
                                             </div>
                                             <p class="text-muted text-sm"></p>
-                                            <h6 class="">{{ __('dictionary.Total_Project') }}</h6>
+                                            <h6 class="">{{ __('Projects') }}</h6>
                                             <h3 class="mb-0">{{ $totalProject }} <span
                                                     class="text-success text-sm"></span></h3>
                                         </div>
@@ -158,7 +158,7 @@
                                         <i class="fa-solid fa-file-lines fa-xl text-white" style="color: #B197FC;"></i>
                                     </div>
                                     <p class="text-muted text-sm"></p>
-                                    <h6 class="">{{ __('dictionary.Milestones') }}</h6>
+                                    <h6 class="">{{ __('Milestones') }}</h6>
                                     <h3 class="mb-0">{{ $totalMilestones }} <span class="text-success text-sm"></span>
                                     </h3>
                                 </div>
@@ -171,7 +171,7 @@
                                         <i class="fas fa-tasks bg-info text-white"></i>
                                     </div>
                                     <p class="text-muted text-sm "></p>
-                                    <h6 class="">{{ __('dictionary.Total_Task') }}</h6>
+                                    <h6 class="">{{ __('Tasks') }}</h6>
                                     <h3 class="mb-0">{{ $totalTask }} <span class="text-success text-sm"></span></h3>
                                 </div>
                             </div>
@@ -184,7 +184,7 @@
                                         <i class="fa-solid fa-user-tie bg-danger text-white"></i>
                                     </div>
                                     <p class="text-muted text-sm"></p>
-                                    <h6 class="">{{ __('dictionary.Total_sales') }}</h6>
+                                    <h6 class="">{{ __('Sales managers') }}</h6>
                                     <h3 class="mb-0">{{ $totalSales }} <span class="text-success text-sm"></span></h3>
                                 </div>
                             </div>
@@ -197,7 +197,7 @@
                                         <i class="fa-solid fa-helmet-safety bg-primary text-white"></i>
                                     </div>
                                     <p class="text-muted text-sm"></p>
-                                    <h6 class="">{{ __('dictionary.Total_User') }}</h6>
+                                    <h6 class="">{{ __('Technicians') }}</h6>
                                     <h3 class="mb-0">{{ $totalTechni }} <span class="text-success text-sm"></span>
                                     </h3>
                                 </div>
@@ -211,13 +211,13 @@
                                     <div class="row">
                                         <div class="col-9">
                                             <h5 class="">
-                                                {{ __('dictionary.Tasks') }}
+                                                {{ __('Tasks') }}
                                             </h5>
                                         </div>
                                         <div class="col-auto d-flex justify-content-end">
                                             <div class="">
                                                 <small><b>{{ $completeTask }}</b>
-                                                    {{ trans('messages.Tasks_completed_out_of') }}
+                                                    {{ __('Tasks completed out of') }}
                                                     {{ $totalTask }}</small>
                                             </div>
                                         </div>

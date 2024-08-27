@@ -109,17 +109,14 @@
                                                     <div class="btn-group card-option">
                                                         <div class="mt-3 me-5">
                                                             @if ($project->status == 'Finished')
-                                                                <span title="{{ __('Status') }}" data-toggle="tooltip"
-                                                                    data-placement="top"
-                                                                    class="badge rounded-pill bg-success">{{ __('Finished') }}</span>
+                                                                <span data-title="{{ __('Status') }}"
+                                                                    class="badge rounded-pill bg-success tooltipCus">{{ __('Finished') }}</span>
                                                             @elseif($project->status == 'Ongoing')
-                                                                <span data-toggle="tooltip" data-placement="top"
-                                                                    title="{{ __('Status') }}"
-                                                                    class="badge rounded-pill bg-secondary">{{ __('Ongoing') }}</span>
+                                                                <span data-title="{{ __('Status') }}"
+                                                                    class="badge rounded-pill bg-secondary tooltipCus">{{ __('Ongoing') }}</span>
                                                             @else
-                                                                <span data-toggle="tooltip" data-placement="top"
-                                                                    title="{{ __('Status') }}"
-                                                                    class="badge rounded-pill bg-warning">{{ __('OnHold') }}</span>
+                                                                <span data-title="{{ __('Status') }}"
+                                                                    class="badge rounded-pill bg-warning tooltipCus">{{ __('OnHold') }}</span>
                                                             @endif
                                                         </div>
                                                         @if ($project->is_active && $project->created_by == Auth::user()->id)

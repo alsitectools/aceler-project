@@ -236,7 +236,7 @@
                                                         </div>
                                                     @else
                                                         <div class="text-muted text-center">
-                                                            {{ __('dictionary.No_tasks') . '...' }}
+                                                            {{ __('No tasks in progress') . '...' }}
                                                         </div>
                                                     @endif
                                                 </div>

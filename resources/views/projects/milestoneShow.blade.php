@@ -11,7 +11,7 @@
                      <div class="form-control-label"><b>{{ __('Milestone Summary') }} </b></div>
                      <p class="mt-1">{{ $milestone->summary }}</p>
 
-                     <div class="form-control-label"><b>{{ __('Comercial') }} </b></div>
+                     <div class="form-control-label"><b>{{ __('Sales manager') }} </b></div>
                      <p class="mt-1">{{ $milestone->salesManager() }}</p>
                  </div>
                  <hr class="col-md-1" style="border: none; border-left: 1px solid #33333328;">

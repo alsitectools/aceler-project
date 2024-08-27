@@ -70,9 +70,7 @@ class Kernel extends HttpKernel
         'throttle' => \Illuminate\Routing\Middleware\ThrottleRequests::class,
         'verified' => \Illuminate\Auth\Middleware\EnsureEmailIsVerified::class,
         'XSS' => \App\Http\Middleware\XSS::class,
-        'CheckPlan' => \App\Http\Middleware\CheckPlan::class,
-        'azure' => \RootInc\LaravelAzureMiddleware\Azure::class, //el que viene por defecto
-        // 'azure' => \App\Http\Middleware\AppAzure::class, mi middleware
+        'azure' => \App\Http\Middleware\AzureMiddleware::class,
         // 'pusher_config' => \App\Http\Middleware\pusher_config::class,
     ];
 }

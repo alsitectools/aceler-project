@@ -49,6 +49,7 @@ use App\Http\Controllers\PaytabController;
 use App\Http\Controllers\BenefitPaymentController;
 use App\Http\Controllers\CashfreeController;
 use App\Http\Controllers\AamarpayController;
+use App\Http\Controllers\AzureController;
 use App\Http\Controllers\PaytrController;
 use App\Http\Controllers\MidtransController;
 use App\Http\Controllers\XenditPaymentController;
@@ -73,17 +74,10 @@ Route::get('/', function () {
 require __DIR__ . '/auth.php';
 
 //-----------------------AZURE --------------------------------------//
-Route::get('/login/azure', '\RootInc\LaravelAzureMiddleware\Azure@azure')
-  ->name('azure.login');
-Route::get('/login/azurecallback', '\RootInc\LaravelAzureMiddleware\Azure@azurecallback')
-  ->name('azure.callback');
-
-Route::get('/login/azure', '\RootInc\LaravelAzureMiddleware\Azure@azure')->name('azure.login');
-Route::get('/login/azurecallback', '\RootInc\LaravelAzureMiddleware\Azure@azurecallback')->name('azure.callback');
-Route::get('/logout/azure', '\RootInc\LaravelAzureMiddleware\Azure@azurelogout')->name('azure.logout');
+Route::get('/login/azure', [AzureController::class, 'login'])->name('azure.login');
+Route::get('/login/azurecallback', [AzureController::class, 'callback'])->name('azure.callback');
 
 /* version extendida, si queremos cambiar el comportamiento por defecto
-
 Route::get('/login/azure', '\App\Http\Middleware\AppAzure@azure')
   ->name('azure.login');
 Route::get('/login/azurecallback', '\App\Http\Middleware\AppAzure@azurecallback')

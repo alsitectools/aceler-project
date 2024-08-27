@@ -58,4 +58,5 @@ return [
     |
     */
     'scope' => env('AZURE_SCOPE', 'User.Read'),
+
 ];
