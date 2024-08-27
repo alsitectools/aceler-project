@@ -10,7 +10,7 @@ return [
     | portal
     |
     */
-    'tenant_id' => env('AZURE_TENANT_ID', '0c589ca1-4ef4-4632-a97f-69301c649eda'),
+    'tenant_id' => env('AZURE_TENANT_ID', ''),
 
     /*
     |--------------------------------------------------------------------------
@@ -22,8 +22,8 @@ return [
     |
     */
     'client' => [
-        'id' => env('AZURE_CLIENT_ID', '130aafe0-2117-499c-8db7-05879d8aa772'),
-        'secret' => env('AZURE_CLIENT_SECRET', 'Yd48Q~qcebZrpxFWAOjy3EJyQ5SdR~fxrur6kaxm'),
+        'id' => env('AZURE_CLIENT_ID', ''),
+        'secret' => env('AZURE_CLIENT_SECRET', ''),
     ],
 
     /*

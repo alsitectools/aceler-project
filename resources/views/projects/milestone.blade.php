@@ -4,18 +4,19 @@
         $project_id == -1
             ? route('projects.milestone.store', [$currentWorkspace->slug, 'PLACEHOLDER'])
             : route('projects.milestone.store', [$currentWorkspace->slug, $project->id]);
+
 @endphp
 @if ($currentWorkspace)
     <form class="" id="project-form" method="POST" action="{{ $actionUrl }}">
+
         @csrf <div class="modal-body">
             <div class="row">
-
-                <div class="form-group">
-                    <label class="col-form-label">
-                        {{ __('Projects') }}
-                    </label>
+                @if (isset($project_id) && $project_id == -1)
                     <div class="col-md-12">
-                        @if (isset($project_id) && $project_id == -1)
+                        <div class="form-group">
+                            <label class="col-form-label">
+                                {{ __('Projects') }}
+                            </label>
                             <select class="form-control form-control-light select2" name="project_id" id="project_id"
                                 required>
                                 <option value="" disabled selected>{{ __('Select Project') }}</option>
@@ -25,16 +26,10 @@
                                     </option>
                                 @endforeach
                             </select>
-                        @else
-                            <input class="form-control" type="text" value="{{ $project->name }}" disabled>
-
-                            <input class="form-control" type="text" id="project_id" name="project_id"
-                                value="{{ $project->name }}" autocomplete="off" style="display: none;">
-
-                        @endif
-
+                        </div>
                     </div>
-                </div>
+                @endif
+
                 <div class="col-md-12">
                     <div class="form-group">
                         <input type="text" class="form-control form-control-light" id="milestone-title"
@@ -67,7 +62,7 @@
                 </div>
 
                 <div class="form-group">
-                    <label for="task-summary" class="col-form-label">{{ __('Description') }}</label>
+                    <label for="task-summary" class="col-form-label">{{ trans('messages.Summary') }}</label>
                     <textarea class="form-control form-control-light" id="task-summary" rows="3" name="summary"></textarea>
                 </div>
             </div>
@@ -90,7 +85,7 @@
                         <div class="page-search">
                             <p class="text-muted mt-3">
                                 {{ __("It's looking like you may have taken a wrong turn. Don't worry... it happens to the
-                                                                                                                                                                                                                                                                                                                                                                                                 best of us. Here's a little tip that might help you get back on track.") }}
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            best of us. Here's a little tip that might help you get back on track.") }}
                             </p>
                             <div class="mt-3">
                                 <a class="btn-return-home badge-blue" href="{{ route('home') }}"><i
@@ -121,13 +116,22 @@
             });
         });
     </script>
-@endif
 
-<style>
-    .disabled {
-        color: black !important;
-        /* gris típico para elementos deshabilitados */
-        background-color: #6c757d !important;
-        /* fondo claro */
-    }
-</style>
+
+    {{-- <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            $('#project_id').on('change', function() {
+                var selectedOption = $(this).find('option:selected');
+                var projectId = selectedOption.val();
+
+                // Asignar el project ID a una variable
+                var selectedProjectId = projectId;
+
+                // Puedes hacer algo con selectedProjectId aquí
+                console.log('Selected Project ID:', selectedProjectId);
+            });
+        });
+        
+    </script> --}}
+@endif

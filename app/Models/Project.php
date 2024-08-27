@@ -8,7 +8,6 @@ use Carbon\Carbon;
 
 class Project extends Model
 {
-    public $timestamps = true;
     protected $fillable = [
         'name',
         'ref_mo',
@@ -91,7 +90,7 @@ class Project extends Model
     {
         return $this->milestones()->count();
     }
-
+    
     public function user_tasks($user_id)
     {
         return Task::where('project_id', $this->id)->whereRaw('FIND_IN_SET(?, assign_to)', [$user_id])->get();
