@@ -47,7 +47,7 @@
         <div class="dropdown dash-h-item me-5 col-md-6 justify-content-start">
             <a class="dash-head-link dropdown-toggle arrow-none ms-0" data-bs-toggle="dropdown" href="#" role="button"
                 aria-haspopup="false" aria-expanded="false">
-                <img src="{{ asset('assets/img/search.png') }}" style="width: 30px; height: 30px;" class="m-1"
+                <img src="{{ asset('assets/img/search.png') }}" style="width: 40px; height: 40px;" class="m-1"
                     alt="{{ __('Search') }}">
             </a>
             <div class="dropdown-menu dash-h-dropdown drp-search drp-search-custom">
@@ -218,7 +218,7 @@
 
                         </div>
                         <div class="mt-4 ms-4">
-                            <h5>{{ __('Group by') }}</h5>
+                            <h5>{{ __('Sort by') }}</h5>
                             @foreach ($project_type as $types)
                                 <div class="d-flex">
                                     <a href="#" class="zoom m-2" style="background-color: transparent;">
