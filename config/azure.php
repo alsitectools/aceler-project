@@ -34,19 +34,7 @@ return [
     | This value is equal to the 'Object ID' as found in the Azure portal
     |
     */
-    'resource' => env('AZURE_RESOURCE', ''),
-
-    /*
-    |--------------------------------------------------------------------------
-    | Domain Hint
-    |--------------------------------------------------------------------------
-    |
-    | This value can be used to help users know which email address they
-    | should login with.
-    | https://azure.microsoft.com/en-us/updates/app-service-auth-and-azure-ad-domain-hints/
-    |
-    */
-    'domain_hint' => env('AZURE_DOMAIN_HINT', ''),
+    'resource' => env('AZURE_RESOURCE', 'https://graph.microsoft.com'),
 
     /*
     |--------------------------------------------------------------------------
@@ -58,5 +46,13 @@ return [
     |
     */
     'scope' => env('AZURE_SCOPE', 'User.Read'),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Redirect
+    |--------------------------------------------------------------------------
+    |
+    */
+    'AZURE_REDIRECT_URI' => env('AZURE_REDIRECT_URI', 'https://stagingacelerproject.alsina.com/login'),
 
 ];
