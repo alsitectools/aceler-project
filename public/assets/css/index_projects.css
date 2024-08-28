@@ -1,0 +1,108 @@
+.tooltipCus {
+    position: relative;
+    cursor: pointer;
+}
+
+.tooltipCus::after {
+    content: attr(data-title);
+    visibility: hidden;
+    background-color: black;
+    color: #fff;
+    text-align: center;
+    border-radius: 10px;
+    padding: 10px;
+    position: absolute;
+    z-index: 1;
+    bottom: 100%;
+    left: 60%;
+    transform: translateX(-5%);
+    opacity: 0;
+    transition: opacity 0.3s;
+    white-space: nowrap;
+}
+
+.tooltipCus:hover::after {
+    visibility: visible;
+    opacity: 1;
+
+}
+
+.btn-addnew {
+    border: 1px solid rgba(0, 0, 0, 0.151);
+    border-radius: 15px;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 95%;
+    height: calc(30% - 24px);
+    justify-content: center;
+}
+
+.iconaddproject {
+    width: 35px;
+    height: 35px;
+    border-radius: 10px;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+}
+
+.zoom {
+    width: 97%;
+    background-color: #f0f0f0;
+    transition: transform 0.3s ease-in-out;
+    box-sizing: border-box;
+}
+
+.zoom:hover {
+    transform: scale(1.05);
+}
+
+.project-type {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+
+}
+
+.btn_tab:not(.active) {
+    opacity: 0.7;
+}
+
+.add_project {
+    justify-items: center;
+    height: 37px;
+    width: 200px;
+    text-align: center;
+    border-radius: 7px;
+    font-weight: bold;
+    display: flex !important;
+    justify-content: space-evenly !important;
+    align-items: center;
+}
+
+.location {
+    display: flex;
+    flex-direction: column;
+    flex-wrap: wrap;
+    align-items: center;
+    margin: 2%;
+    min-height: 60px;
+}
+
+.iconUser {
+    border-radius: 50%;
+    width: 30px;
+    height: 30px;
+    padding-bottom: 2%;
+
+}
+
+.iconFilter {
+    width: 35px;
+    height: 35px;
+}

@@ -15,7 +15,7 @@ use App\Models\LoginDetail;
 use App\Models\Client;
 use App\Models\UserWorkspace;
 use App\Models\ClientWorkspace;
-
+use Laravel\Socialite\Facades\Socialite;
 
 class AuthenticatedSessionController extends Controller
 {
@@ -42,6 +42,24 @@ class AuthenticatedSessionController extends Controller
     {
         // return view('auth.login');
     }
+
+    public function redirectToAzure()
+    {
+        return Socialite::driver('azure')->redirect();
+    }
+
+    public function handleAzureCallback()
+    {
+        $user = Socialite::driver('azure')->stateless()->user();
+
+        // Lógica para encontrar o crear el usuario en la base de datos
+        // $authUser = $this->findOrCreateUser($user);
+
+        Auth::login($authUser, true);
+
+        return redirect()->intended('/home');
+    }
+
 
     public function store(LoginRequest $request)
     {

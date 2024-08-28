@@ -87,29 +87,29 @@ class User extends Authenticatable implements MustVerifyEmail
 
         public function countUsers($workspace_id)
         {
-                $count = UserWorkspace::join('workspaces', 'workspaces.id', '=', 'user_workspaces.workspace_id');
-                if (!empty($workspace_id)) {
-                        $count->where('workspaces.id', '=', $workspace_id);
-                } else {
-                        $count->whereIn('workspaces.id', function ($query) {
-                                $query->select('workspace_id')->from('user_workspaces')->where('permission', '=', 'Owner')->where('user_id', '=', $this->id);
-                        });
-                }
-
+                $count = User::where('currant_workspace', '=', $workspace_id)->where('type', '=', 'user');
+                // $count = UserWorkspace::join('workspaces', 'workspaces.id', '=', 'user_workspaces.workspace_id');
+                // if (!empty($workspace_id)) {
+                //         $count->where('workspaces.id', '=', $workspace_id);
+                // } else {
+                //         $count->whereIn('workspaces.id', function ($query) {
+                //                 $query->select('workspace_id')->from('user_workspaces')->where('permission', '=', 'Owner')->where('user_id', '=', $this->id);
+                //         });
+                // }
                 return $count->count();
         }
 
         public function countClients($workspace_id)
         {
-                $count = ClientWorkspace::join('workspaces', 'workspaces.id', '=', 'client_workspaces.workspace_id');
-                if (!empty($workspace_id)) {
-                        $count->where('workspaces.id', '=', $workspace_id);
-                } else {
-                        $count->whereIn('workspaces.id', function ($query) {
-                                $query->select('workspace_id')->from('user_workspaces')->where('permission', '=', 'Owner')->where('user_id', '=', $this->id);
-                        });
-                }
-
+                $count = User::where('currant_workspace', '=', $workspace_id)->where('type', '=', 'client');
+                // $count = ClientWorkspace::join('workspaces', 'workspaces.id', '=', 'client_workspaces.workspace_id');
+                // if (!empty($workspace_id)) {
+                //         $count->where('workspaces.id', '=', $workspace_id);
+                // } else {
+                //         $count->whereIn('workspaces.id', function ($query) {
+                //                 $query->select('workspace_id')->from('user_workspaces')->where('permission', '=', 'Owner')->where('user_id', '=', $this->id);
+                //         });
+                // }
                 return $count->count();
         }
 

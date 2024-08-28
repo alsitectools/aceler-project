@@ -64,6 +64,7 @@ class CalenderController extends Controller
           $events = $events->get();
 
         $arrayJson = [];
+        
         foreach($tasks as $task)
         {
             $arrayJson[] = [
@@ -117,22 +118,58 @@ class CalenderController extends Controller
             $currentWorkspace = Utility::getWorkspaceBySlug($slug);
 
             if ($objUser->getGuard() == 'client') {
-                $tasks    = Task::select('tasks.*')->join('projects', 'projects.id', '=', 'tasks.project_id')->join('client_projects', 'projects.id', '=', 'client_projects.project_id')->where('client_projects.client_id', '=', $objUser->id)->where('client_projects.permission', 'LIKE', '%show task%')->where('projects.workspace', '=', $currentWorkspace->id);
-                $projects = Project::select('projects.*')->join('client_projects', 'projects.id', '=', 'client_projects.project_id')->where('client_projects.client_id', '=', $objUser->id)->where('projects.workspace', '=', $currentWorkspace->id)->get();
+                $tasks    = Task::select('tasks.*')
+                ->join('projects', 'projects.id', '=', 'tasks.project_id')
+                ->join('client_projects', 'projects.id', '=', 'client_projects.project_id')
+                ->where('client_projects.client_id', '=', $objUser->id)
+                ->where('client_projects.permission', 'LIKE', '%show task%')
+                ->where('projects.workspace', '=', $currentWorkspace->id);
+
+                $projects = Project::select('projects.*')
+                ->join('client_projects', 'projects.id', '=', 'client_projects.project_id')
+                ->where('client_projects.client_id', '=', $objUser->id)
+                ->where('projects.workspace', '=', $currentWorkspace->id)->get();
+
             } elseif ($currentWorkspace && $currentWorkspace->permission == 'Owner') {
-                $tasks    = Task::select('tasks.*')->join('projects', 'projects.id', '=', 'tasks.project_id')->where('projects.workspace', '=', $currentWorkspace->id);
-                $projects = Project::select('projects.*')->join('user_projects', 'projects.id', '=', 'user_projects.project_id')->where('user_projects.user_id', '=', $objUser->id)->where('projects.workspace', '=', $currentWorkspace->id)->get();
+                $tasks    = Task::select('tasks.*')
+                ->join('projects', 'projects.id', '=', 'tasks.project_id')
+                ->where('projects.workspace', '=', $currentWorkspace->id);
+
+                $projects = Project::select('projects.*')
+                ->join('user_projects', 'projects.id', '=', 'user_projects.project_id')
+                ->where('user_projects.user_id', '=', $objUser->id)
+                ->where('projects.workspace', '=', $currentWorkspace->id)->get();
+
             } else {
-                $tasks    = Task::select('tasks.*')->join('projects', 'projects.id', '=', 'tasks.project_id')->where('projects.workspace', '=', $currentWorkspace->id)->whereRaw("find_in_set('" . Auth::user()->id . "',tasks.assign_to)");
-                $projects = Project::select('projects.*')->join('user_projects', 'projects.id', '=', 'user_projects.project_id')->where('user_projects.user_id', '=', $objUser->id)->where('projects.workspace', '=', $currentWorkspace->id)->get();
+                $tasks    = Task::select('tasks.*')
+                ->join('projects', 'projects.id', '=', 'tasks.project_id')
+                ->where('projects.workspace', '=', $currentWorkspace->id)
+                ->whereRaw("find_in_set('" . Auth::user()->id . "',tasks.assign_to)");
+
+                $projects = Project::select('projects.*')
+                ->join('user_projects', 'projects.id', '=', 'user_projects.project_id')
+                ->where('user_projects.user_id', '=', $objUser->id)
+                ->where('projects.workspace', '=', $currentWorkspace->id)->get();
             }
 
             if($objUser->getGuard() == 'client') {
-                $events    = Task::select('tasks.*')->join('projects', 'projects.id', '=', 'tasks.project_id')->join('client_projects', 'projects.id', '=', 'client_projects.project_id')->where('client_projects.client_id', '=', $objUser->id)->where('client_projects.permission', 'LIKE', '%show task%')->where('projects.workspace', '=', $currentWorkspace->id)->limit(8);
+                $events    = Task::select('tasks.*')
+                ->join('projects', 'projects.id', '=', 'tasks.project_id')
+                ->join('client_projects', 'projects.id', '=', 'client_projects.project_id')
+                ->where('client_projects.client_id', '=', $objUser->id)
+                ->where('client_projects.permission', 'LIKE', '%show task%')
+                ->where('projects.workspace', '=', $currentWorkspace->id)->limit(8);
+
             } elseif ($currentWorkspace->permission == 'Owner') {
-                $events    = Task::select('tasks.*')->join('projects', 'projects.id', '=', 'tasks.project_id')->where('projects.workspace', '=', $currentWorkspace->id)->limit(8);
+                $events    = Task::select('tasks.*')
+                ->join('projects', 'projects.id', '=', 'tasks.project_id')
+                
+                ->where('projects.workspace', '=', $currentWorkspace->id)->limit(8);
             } else {
-                $events    = Task::select('tasks.*')->join('projects', 'projects.id', '=', 'tasks.project_id')->where('projects.workspace', '=', $currentWorkspace->id)->whereRaw("find_in_set('" . Auth::user()->id . "',tasks.assign_to)")->limit(8);
+                $events    = Task::select('tasks.*')
+                ->join('projects', 'projects.id', '=', 'tasks.project_id')
+                ->where('projects.workspace', '=', $currentWorkspace->id)
+                ->whereRaw("find_in_set('" . Auth::user()->id . "',tasks.assign_to)")->limit(8);
             }
 
             $project_id = $request->get('project_id');

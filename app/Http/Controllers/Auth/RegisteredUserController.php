@@ -87,8 +87,7 @@ class RegisteredUserController extends Controller
 
         $user = User::create([
             'name' => $request->name,
-            // añadido FUNCIONAAAAAAAAAAAAAAA
-            'type' => $request->type,
+            'type' => 'user',
             'email' => $request->email,
             'currant_workspace' => $request->currant_workspace,
             'password' => Hash::make($request->password),
@@ -97,7 +96,7 @@ class RegisteredUserController extends Controller
         ]);
 
         //añadido, solo si eres admin o el workspace aun no a sido creado. Crea uno nuevo
-        $workspaceExist = DB::table('workspaces')->where('name', $request->currant_workspace)->exists();
+        $workspaceExist = DB::table('workspaces')->where('slug', $request->currant_workspace)->exists();
 
         if ($request->type == 'admin' || !$workspaceExist) {
             $objWorkspace = Workspace::create(['created_by' => $user->id, 'name' => $user->currant_workspace, 'currency_code' => 'USD', 'paypal_mode' => 'sandbox']);
@@ -106,7 +105,7 @@ class RegisteredUserController extends Controller
 
         //==========AÑADIDO ==========//
         $workspace = DB::table('workspaces')
-            ->where('name', $user->currant_workspace)
+            ->where('slug', $request->currant_workspace)
             ->first();
 
         if ($workspace) {

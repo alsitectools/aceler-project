@@ -3,7 +3,7 @@
         @csrf
         <div class="modal-body">
             <div class="row">
-                <div class="form-group col-md-12 ">
+                <div class="form-group col-md-6 ">
                     <label class="col-form-label">
                         {{ __('Projects') }}
                     </label>
@@ -29,34 +29,19 @@
                         <option value="">{{ __('Select Task') }}</option>
                     </select>
                 </div>
-                <div class="form-group col-md-12 needs-validation d-flex">
-                    <div class="form-group col-md-6 ">
-                        <label for="estimated_date" class="col-form-label">{{ __('Fecha Estimada') }}</label>
-                        <input onclick="this.showPicker()" type="date" class="form-control form-control-light date"
-                            id="estimated_date" value="" placeholder="{{ __('Date') }}" name="estimated_date"
-                            required>
-                    </div>
-                    <div class="form-group col-md-6 estimated_date">
-                        <p class="text-muted">*Se recomienda
-                            que la fecha de entrega de una tarea, no sea mayor
-                            a la de finalización de un encargo.</p>
-                    </div>
-                </div>
-                <div id="estimated_date_feedback" class="text-danger" style="display: none;"></div>
-                {{-- quitado assing_to porque se puede guardar en el controlador --}}
 
-                <div class="form-group col-md-6">
-                    <label for="time" class="col-form-label">{{ __('Time') }}</label>
-                    <input onclick="this.showPicker()" type="time" class="form-control form-control-light"
-                        id="time" value="" placeholder="{{ __('Time') }}" name="time" required>
-                </div>
-                <div class="form-group col-md-6">
-                    <label for="date" class="col-form-label">{{ __('Date') }}</label>
+                <div class="form-group col-md-6 ">
+                    <label for="estimated_date" class="col-form-label">{{ __('Fecha Estimada') }}</label>
                     <input onclick="this.showPicker()" type="date" class="form-control form-control-light date"
-                        id="date" value="" placeholder="{{ __('Date') }}" name="date" required>
+                        id="estimated_date" value="" placeholder="{{ __('Date') }}" name="estimated_date"
+                        required>
                 </div>
 
-
+                <div class="form-group col-md-6" style="display: none;">
+                    <label for="time" class="col-form-label">{{ __('Time') }}</label>
+                    <input type="time" class="form-control form-control-light" id="time" value="00:00"
+                        placeholder="{{ __('Time') }}" name="time">
+                </div>
             </div>
         </div>
         <div class=" modal-footer">
@@ -123,30 +108,6 @@
                         value: milestone.id,
                         text: milestone.title
                     }));
-                }
-            });
-
-            // Evento para validar la fecha introducida en estimated_date
-            $('#estimated_date').on('change', function() {
-                let inputDate = new Date($(this).val());
-                let selectedMilestoneId = $('#milestone_id').val();
-                let milestone = milestones.find(m => m.id == selectedMilestoneId);
-
-                if (milestone) {
-                    let endDate = new Date(milestone.end_date);
-
-                    console.log('Fecha end_date: ', endDate);
-                    if (inputDate > endDate) {
-                        console.log('inputDate: la fecha que recoge del formulario ',
-                            inputDate);
-                        $('#estimated_date_feedback').text(
-                            'La fecha introducida (' + inputDate.toLocaleDateString() +
-                            ') es mayor que la fecha de finalización del encargo (' +
-                            endDate.toLocaleDateString() + ').'
-                        ).show();
-                    } else {
-                        $('#estimated_date_feedback').hide();
-                    }
                 }
             });
         });

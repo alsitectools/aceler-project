@@ -39,13 +39,15 @@
         $SITE_RTL = 'on';
     }
 
-    \Carbon\Carbon::setLocale('es');
+    $lang = app()->getLocale();
+    // En conde su usa calendario traduce los dias
+    \Carbon\Carbon::setLocale($lang);
 
 @endphp
-{{-- <html lang="{{ str_replace('_', '-', app()->getLocale()) }}" dir="{{ $SITE_RTL == 'on' ? 'rtl' : '' }}"> --}}
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 
 <head>
+
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="shortcut icon" href="{{ asset('assets/img/iconA.png') }}" type="image/png">
@@ -97,7 +99,19 @@
     <link rel="stylesheet" href="{{ asset('assets/css/plugins/animate.min.css') }}" />
     <link rel="stylesheet" href="{{ asset('assets/custom/libs/summernote/summernote-bs4.css') }}">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    <!-- Select2 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-beta.1/dist/css/select2.min.css" rel="stylesheet" />
 
+    <!-- jQuery (requerido para Select2) -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+    <!-- Select2 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-beta.1/dist/js/select2.min.js"></script>
+    
+
+    <!-- Importa Select2 CSS -->
+
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
     <!-- vendor css -->
     @stack('css-page')
 
@@ -147,14 +161,25 @@
 @endif
 
 <style type="text/css">
+    /*------------ tipo de fuente coorporativa -------------- */
+    /* @font-face {
+
+        font-family: 'Nexa-ExtraLight';
+        src: url("./public/assets/fonts/nexa/Nexa-ExtraLight.otf") format("opentype");
+        font-weight: normal;
+        font-style: normal;
+    }
+
+    * {
+        font-family: 'Nexa-ExtraLight' !important;
+        font-size: 18px;
+    } */
+
+    /* ----------------------------------------------------- */
     [dir="rtl"] .dash-sidebar {
         left: auto !important;
     }
 
-    /* [dir="rtl"] .dash-header {
-    left: 0;
-    right: 280px;
-} */
     [dir="rtl"] .dash-header:not(.transprent-bg) .header-wrapper {
         padding: 0 0 0 30px;
     }
@@ -186,7 +211,9 @@
         float: left !important;
     }
 </style>
-
+{{-- --------- CHATBOT ------------ --}}
+@include('layouts.chatbot')
+{{-- ---------------------------- --}}
 
 <body class="{{ $color }}">
 
@@ -196,8 +223,6 @@
             <div class="loader-fill"></div>
         </div>
     </div>
-
-    <!-- <div class="container-fluid container-application"> -->
     @if (Auth::user()->getGuard() == 'client')
         <input type="hidden" id="path_admin"
             value="{{ url(isset($currentWorkspace) ? 'client/' . $currentWorkspace->slug : '') }}">
@@ -240,8 +265,8 @@
                 <div class="page-block">
                     <div class="row align-items-center">
                         <div class="col-md-12">
-                            <div class="row mb-1">
-                                <div class="col-auto header_breadcrumb">
+                            <div class="row">
+                                <div class="col-auto header_breadcrumb pr-4 pt-0">
                                     @if (trim($__env->yieldContent('page-title')))
                                         <div class="page-header-title">
                                             <h4 class="m-b-10">@yield('page-title')</h4>
@@ -251,7 +276,7 @@
                                         @yield('links')
                                     </ul>
                                 </div>
-                                <div class="col header_breadcrumb">
+                                <div class="col header_breadcrumb me-3">
                                     @if (trim($__env->yieldContent('action-button')))
                                         <!-- <div class="col-xl-6 col-lg-2 col-md-4 col-sm-6 col-6 pt-lg-3 pt-xl-2"> -->
                                         <div
@@ -272,6 +297,7 @@
             @yield('content')
         </div>
     </div>
+
 
     @if (Auth::user()->type == 'admin')
         <div class="modal fade" id="modelCreateWorkspace" tabindex="-1" role="dialog"
@@ -298,7 +324,6 @@
                         <div class="modal-footer">
                             <button type="button" class="btn  btn-light text-end"
                                 data-dismiss="modal">{{ __('Close') }}</button>
-                            <!-- <button type="button" class="btn  btn-light" data-bs-dismiss="modal">{{ __('Close') }}</button> -->
                             <input type="submit" value="{{ __('Create') }}" class="btn  btn-primary">
                         </div>
 
@@ -464,12 +489,13 @@
                     // Enable pusher logging - don't include this in production
                     Pusher.logToConsole = false;
 
-                    var pusher = new Pusher('{{ env('
-                                    PUSHER_APP_KEY ') }}', {
-                        cluster: '{{ env('
-                                            PUSHER_APP_CLUSTER ') }}',
-                        forceTLS: true
-                    });
+                    var pusher = new Pusher(
+                        '{{ env('
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        PUSHER_APP_KEY ') }}', {
+                            cluster: '{{ env('
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            PUSHER_APP_CLUSTER ') }}',
+                            forceTLS: true
+                        });
 
                     var channel = pusher.subscribe('{{ $currentWorkspace->slug }}');
                     channel.bind('notification', function(data) {
@@ -489,7 +515,7 @@
                 function getChat() {
                     $.ajax({
                         url: '{{ route('
-                                        message.data ') }}',
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                message.data ') }}',
                         cache: false,
                         dataType: 'html',
                         success: function(data) {
@@ -508,7 +534,7 @@
                     $.ajax({
                         url: '{{ route(
                             '
-                                        notification.seen ',
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                notification.seen ',
                             $currentWorkspace->slug,
                         ) }}',
                         type: "get",
@@ -523,7 +549,7 @@
                     $.ajax({
                         url: '{{ route(
                             '
-                                        message.seen ',
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                message.seen ',
                             $currentWorkspace->slug,
                         ) }}',
                         type: "get",
@@ -614,7 +640,7 @@
         }
     </script>
     <!-- Site JS -->
-
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/locale/es.min.js"></script> {{-- CDN locale de fecha --}}
     <script src="{{ asset('assets/js/plugins/sweetalert2.all.min.js') }}"></script>
     <script src="{{ asset('assets/custom/js/ac-alert.js') }}"></script>
     <script src="{{ asset('assets/custom/js/letter.avatar.js') }}"></script>
@@ -625,54 +651,35 @@
         const dataTable = new simpleDatatables.DataTable("#selection-datatable");
     </script>
 
-
-
     <script>
         var date_picker_locale = {
             format: 'YYYY-MM-DD',
             daysOfWeek: [
-                "{{ trans('messages.Sun') }}", "{{ trans('messages.Mon') }}", "{{ trans('messages.Tue') }}",
-                "{{ trans('messages.Wed') }}", "{{ trans('messages.Thu') }}", "{{ trans('messages.Fri') }}",
-                "{{ trans('messages.Sat') }}"
+                "{{ __('Sun') }}", "{{ __('Mon') }}", "{{ __('Tue') }}",
+                "{{ __('Wed') }}", "{{ __('Thu') }}", "{{ __('Fri') }}",
+                "{{ __('Sat') }}"
             ],
             monthNames: [
-                '{{ trans('
-                                messages.January ') }}',
-                '{{ trans('
-                                messages.February ') }}',
-                ' {{ trans('
-                                messages.March ') }}',
-                '{{ trans('
-                                messages.April ') }}',
-                '{{ trans('
-                                messages.May ') }}',
-                '{{ trans('
-                                messages.June ') }}',
-                '{{ trans('
-                                messages.July ') }}',
-                '{{ trans('
-                                messages.August ') }}',
-                '{{ trans('
-                                messages.September ') }}',
-                '{{ trans('
-                                messages.October ') }}',
-                '{{ trans('
-                                messages.November ') }}',
-                ' {{ trans('
-                                messages.December ') }}'
+                '{{ __('January') }}',
+                '{{ __('February ') }}',
+                ' {{ __('March ') }}',
+                '{{ __('April ') }}',
+                '{{ __('May ') }}',
+                '{{ __('June ') }}',
+                '{{ __('July ') }}',
+                '{{ __('August ') }}',
+                '{{ __('September ') }}',
+                '{{ __('October ') }}',
+                '{{ __('November ') }}',
+                ' {{ __('December ') }}'
             ],
         };
         var calender_header = {
-            today: '{{ __('
-                        today ') }}',
-            month: '{{ __('
-                        month ') }}',
-            week: '{{ __('
-                        week ') }}',
-            day: '{{ __('
-                        day ') }}',
-            list: '{{ __('
-                        list ') }}'
+            today: '{{ __('today ') }}',
+            month: '{{ __(' month ') }}',
+            week: '{{ __('week ') }}',
+            day: '{{ __(' day ') }}',
+            list: '{{ __('list ') }}'
         };
     </script>
 
@@ -729,7 +736,7 @@
                     header: "{{ __('Projects') }}"
                 }, {
                     listLocation: "Tasks",
-                    header: "{{ __('messages.Tasks') }}"
+                    header: "{{ __('Tasks') }}"
                 }],
                 getValue: "text",
                 template: {
@@ -770,16 +777,16 @@
     {{-- @stack('script-page') --}}
     @if (Session::has('success'))
         <script>
-            show_toastr('{{ __('
-                        Success ') }}', '{!! session('
-                        success ') !!}', 'success');
+            show_toastr(
+                '{{ __(' Success ') }}',
+                '{!! session('success ') !!}', 'success');
         </script>
     @endif
     @if (Session::has('error'))
         <script>
-            show_toastr('{{ __('
-                        Error ') }}', '{!! session('
-                        error ') !!}', 'error');
+            show_toastr(
+                '{{ __('Error ') }}',
+                '{!! session('error ') !!}', 'error');
         </script>
     @endif
     <script></script>

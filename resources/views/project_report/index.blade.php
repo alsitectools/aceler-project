@@ -21,19 +21,7 @@
 @endphp
 
 @section('content')
-
-    <!--  <div class="col-lg-12 projectreportdata p-0">
-                     </div> -->
-
     <div class="row  display-none" id="show_filter">
-        <!--       <div class=" form-group col-3">
-                                <select class=" form-select" name="project" id="project">
-                                    <option value="">{{ __('All Projects') }}</option>
-                                    @foreach ($projects as $project)
-    <option value="{{ $project->id }}">{{ $project->name }}</option>
-    @endforeach
-                                </select>
-                            </div> -->
         @if ($currentWorkspace->permission == 'Owner' || Auth::user()->getGuard() == 'client')
             <div class="col-md-2 col-sm-6 pb-3">
                 <select class="select2 form-select" name="all_users" id="all_users">
@@ -48,11 +36,9 @@
         <div class="col-md-2 col-sm-6 pb-3">
             <select class="select2 form-select" name="status" id="status">
                 <option value="" class="px-4">{{ __('All Status') }}</option>
-
                 <option value="Ongoing">{{ trans('Ongoing') }}</option>
                 <option value="Finished">{{ trans('Finished') }}</option>
                 <option value="OnHold">{{ trans('OnHold') }}</option>
-
             </select>
         </div>
 
@@ -107,7 +93,6 @@
         </div>
     </div>
     </div>
-
 
 
 @endsection

@@ -6,19 +6,31 @@ use Illuminate\Database\Eloquent\Model;
 
 class Stage extends Model
 {
-    protected $fillable = ['name','color','complete','workspace_id','order'];
+    protected $fillable = ['name', 'color', 'complete', 'workspace_id', 'order'];
     public static function getTaskCountsForDate($workspaceId, $projectId, $date)
+    // public static function getMilestoneCountsForDate($workspaceId, $projectId, $date)
     {
-        return static::leftJoin('tasks', 'stages.id', '=', 'tasks.project_id')
-            ->where('stages.workspace_id', $workspaceId)
-            ->whereDate('tasks.updated_at', $date)
+        return static::leftJoin('milestones', 'stages.id', '=', 'milestones.status')
+            ->whereDate('milestones.updated_at', $date)
             ->when($projectId !== null, function ($query) use ($projectId) {
-                return $query->where('tasks.project_id', $projectId);
+                return $query->where('milestones.project_id', $projectId);
             })
             ->groupBy('stages.id')
-            ->select('stages.id', \DB::raw('count(tasks.id) as task_count'))
+            ->select('stages.id', \DB::raw('count(milestones.id) as milestones_count'))
             ->get()
-            ->pluck('task_count', 'id')
+            ->pluck('milestones_count', 'id')
             ->toArray();
+
+        // return static::leftJoin('tasks', 'stages.id', '=', 'tasks.project_id')
+        //     ->where('stages.workspace_id', $workspaceId)
+        //     ->whereDate('tasks.updated_at', $date)
+        //     ->when($projectId !== null, function ($query) use ($projectId) {
+        //         return $query->where('tasks.project_id', $projectId);
+        //     })
+        //     ->groupBy('stages.id')
+        //     ->select('stages.id', \DB::raw('count(tasks.id) as task_count'))
+        //     ->get()
+        //     ->pluck('task_count', 'id')
+        //     ->toArray();
     }
 }

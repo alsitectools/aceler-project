@@ -64,8 +64,9 @@
                                 <a href="{{ route('password.request', $lang) }}"
                                     tabindex="0">{{ trans('dictionary.Forgot_Password?') }}</a>
                             </span>
-                        </div>
 
+                        </div>
+                        <a href="{{ route('azure.login') }}">{{ __('dictionary.Login_azure') }}</a>
                         @if ($setting['recaptcha_module'] == 'on')
                             <div class="form-group col-lg-12 col-md-12 mt-3">
                                 {!! NoCaptcha::display($setting['cust_darklayout'] == 'on' ? ['data-theme' => 'dark'] : []) !!}
@@ -76,27 +77,26 @@
                                 @enderror
                             </div>
                         @endif
-
                         <div class="d-grid">
                             <button type="submit" id="login_button"
-                                class="btn btn-primary btn-block mt-2">{{ __('Login') }}</button>
+                                class="btn btn-primary btn-block mt-2">{{ __('Login') }}
+                            </button>
                         </div>
                         <p class="my-4 text-center">{{ __('dictionary.DontAccount?') }}
-                            <a href="{{ route('register', $lang) }}" class="my-4 text-center text-primary">
+                            <a href="#" onclick="mostrarMensaje(event)" class="my-4 text-center text-primary">
                                 {{ __('dictionary.SignUp') }}</a>
                         </p>
                     </div>
                 </form>
-                {{-- <div class="d-grid mt-3">
-                    <button type="button" id="" class="btn btn-primary btn-block  "><a
-                            href="{{ route('client.login', $lang) }}" class="" style="color:#fff">
-                            {{ __('Client Login') }}</a></button>
-                 --}}
             </div>
         @endsection
         @push('custom-scripts')
             <script src="{{ asset('assets/custom/libs/jquery/dist/jquery.min.js') }}"></script>
             <script>
+                function mostrarMensaje(event) {
+                    event.preventDefault();
+                    alert("Ups! Esta opción no esta disponible.");
+                }
                 $(document).ready(function() {
                     $("#form_data").submit(function(e) {
                         $("#login_button").attr("disabled", true);

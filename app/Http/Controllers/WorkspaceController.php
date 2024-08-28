@@ -44,8 +44,7 @@ class WorkspaceController extends Controller
             [
                 'created_by' => $objUser->id,
                 'name' => $request->name,
-                'currency_code' => 'USD',
-                'paypal_mode' => 'sandbox',
+                'currency' => 'USD',
             ]
         );
 

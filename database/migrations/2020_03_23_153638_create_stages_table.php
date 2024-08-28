@@ -18,7 +18,6 @@ class CreateStagesTable extends Migration
             $table->string('name');
             $table->string('color')->default('#051c4b');
             $table->boolean('complete');
-            $table->unsignedBigInteger('workspace_id');
             $table->integer('order');
             $table->timestamps();
         });

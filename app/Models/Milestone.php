@@ -10,7 +10,6 @@ class Milestone extends Model
         'project_id',
         'title',
         'assign_to',
-        'tasks',
         'status',
         'order',
         'start_date',
@@ -22,15 +21,31 @@ class Milestone extends Model
     {
         return  round((strtotime($this->end_date) - strtotime(date('Y-m-d'))) /   24 / 60 / 60,);
     }
-    // public function tasks() 
-    // {
-    //     $milestone = Task::all();
 
-    //     foreach ($tasks as $task) {
-    //         if ($this->milestone_id =) {
-    //         }
-    //     }
+    function tasks()
+    {
+        return Task::join('task_types', 'task_types.id', 'tasks.type_id')
+            ->where('tasks.milestone_id', $this->id)->pluck('task_types.name');
+    }
 
-    //     return $this->id ? Milestone::find($this->milestone_id) : null;
-    // }
+    public function salesManager()
+    {
+
+        $sales_manager = User::join('milestones', 'milestones.assign_to', '=', 'users.id')
+            ->where('milestones.assign_to', $this->assign_to)
+            ->select('users.*')
+            ->first();
+
+
+
+        return $sales_manager ? $sales_manager->name : "Hola";
+    }
+
+    public function milestone()
+    {
+        $milestone = Milestone::join('tasks', 'milestones.id', '=', 'tasks.milestone_id')
+            ->where('milestone_id', $this->id)->first();
+
+        return $milestone ? $milestone->title : null;
+    }
 }

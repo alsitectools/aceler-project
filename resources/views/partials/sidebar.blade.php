@@ -44,152 +44,78 @@
         $SITE_RTL = env('SITE_RTL');
     }
 @endphp
-
-<nav class="dash-sidebar light-sidebar {{ isset($cust_theme_bg) && $cust_theme_bg == 'on' ? 'transprent-bg' : '' }}">
+<nav style="padding-top: 5px; padding-left: 5px;"
+    class="dash-sidebar light-sidebar {{ isset($cust_theme_bg) && $cust_theme_bg == 'on' ? 'transprent-bg' : '' }}">
     <div class="navbar-wrapper">
         <div class="m-header main-logo">
             <a href="{{ route('home') }}" class="b-brand">
-                <img class="img-fluid rounded" src="{{ asset('assets/img/sidebar.jpg') }}" alt="logo"
-                    style="width: 200px ; heigth: 200px !important" />
+                <img class="img-fluid" src="{{ asset('assets/img/acelerProject.png') }}" alt="logo"
+                    style="width: 220px; border-radius: 7px !important;" />
             </a>
         </div>
         <div class="navbar-content">
             <ul class="dash-navbar">
                 <li class="dash-item dash-hasmenu">
                     <a href="{{ route('home') }}"
-                        class="dash-link  {{ Request::route()->getName() == 'home' || Request::route()->getName() == null || Request::route()->getName() == 'client.home' ? ' active' : '' }}">
+                        class="dash-link  {{ Request::route()->getName() == 'home' ||
+                        Request::route()->getName() == null ||
+                        Request::route()->getName() == 'client.home'
+                            ? ' active'
+                            : '' }}">
 
-                        <span class="dash-micon"><i class="ti ti-user"></i></span>
-                        <span class="dash-mtext">{{ trans('messages.Company') }}</span>
+                        <span class="dash-micon"><i class="fa-solid fa-bookmark"></i></span>
+                        <span class="dash-mtext">{{ __('Summary') }}</span>
                     </a>
                 </li>
-
-                <li class="dash-item dash-hasmenu">
-                    <a href="{{ route('clients.index', $currentWorkspace->slug) }}"
-                        class="dash-link {{ Request::route()->getName() == 'clients.index' ? ' active' : '' }} "><span
-                            class="dash-micon"> <i class="ti ti-brand-python"></i></span><span class="dash-mtext">
-                            {{ trans('messages.Sales_manager') }}</span></a>
-                </li>
-
-                <li
-                    class="dash-item {{ Request::route()->getName() == 'users.index' || Request::route()->getName() == 'users_logs.index' ? ' active' : '' }}">
-                    <a href="{{ route('users.index', $currentWorkspace->slug) }}" class="dash-link ">
-                        <span class="dash-micon"> <i data-feather="user"></i></span>
-                        <span class="dash-mtext">{{ trans('messages.Technicians') }}</span>
-                    </a>
-                </li>
-
                 @if (isset($currentWorkspace) && $currentWorkspace)
-                    @auth('web')
-                        <li
-                            class="dash-item {{ Request::route()->getName() == 'projects.index' || Request::segment(2) == 'projects' ? ' active' : '' }}">
-                            <a href="{{ route('projects.index', $currentWorkspace->slug) }}" class="dash-link">
-                                <span class="dash-micon"> <i data-feather="briefcase"></i></span><span
-                                    class="dash-mtext">{{ __('Projects') }}</span></a>
-                        </li>
-                        <li class="dash-item {{ Request::route()->getName() == 'tasks.index' ? ' active' : '' }}">
-                            <a href="{{ route('tasks.index', $currentWorkspace->slug) }}" class="dash-link ">
-                                <span class="dash-micon"><i data-feather="list"></i></span><span
-                                    class="dash-mtext">{{ trans('messages.Tasks') }}</span></a>
-                        </li>
-
-                        <li class="dash-item {{ Request::route()->getName() == 'timesheet.index' ? ' active' : '' }}">
-                            <a href="{{ route('timesheet.index', $currentWorkspace->slug) }}" class="dash-link ">
-                                <span class="dash-micon"><i data-feather="clock"></i></span><span
-                                    class="dash-mtext">{{ trans('messages.Timesheets') }}</span></a>
-                        </li>
-                        
-
-                        @if (isset($currentWorkspace) &&
-                                $currentWorkspace &&
-                                $currentWorkspace->creater->id == Auth::user()->id &&
-                                Auth::user()->type == 'admin')
-                            <li
-                                class="dash-item dash-hasmenu {{ Request::route()->getName() == 'contracts.index' || Request::route()->getName() == 'contracts.show' ? ' active' : '' }}">
-                                <a href="#" class="dash-link"><span class="dash-micon"><i
-                                            class="ti ti-device-floppy"></i></span><span
-                                        class="dash-mtext">{{ __('Contratos') }}</span><span class="dash-arrow"><i
-                                            data-feather="chevron-right"></i></span></a>
-                                <ul
-                                    class="dash-submenu collapse  {{ Request::route()->getName() == 'contracts.index' ? ' active' : '' }}">
-
-                                    <li
-                                        class="dash-item {{ Request::route()->getName() == 'contracts.index' || Request::route()->getName() == 'contracts.show' ? 'active' : '' }}">
-                                        <a class="dash-link"
-                                            href="{{ route('contracts.index', $currentWorkspace->slug) }}">{{ __('Contratos') }}</a>
-                                    </li>
-
-                                    <li class="dash-item ">
-                                        <a class="dash-link"
-                                            href="{{ route('contract_type.index', $currentWorkspace->slug) }}">{{ __('Tipo de contratos') }}</a>
-                                    </li>
-                                </ul>
-                            </li>
-                        @endif
-
-                        <li class="dash-item {{ Request::route()->getName() == 'calender.index' ? ' active' : '' }}">
-                            <a href="{{ route('calender.google.calendar', $currentWorkspace->slug) }}"
-                                class="dash-link "><span class="dash-micon"><i data-feather="calendar"></i></span><span
-                                    class="dash-mtext">{{ __('Calendar') }}</span></a>
-                        </li>
-
-                        @elseauth
-                        <li
-                            class="dash-item {{ Request::route()->getName() == 'client.projects.index' || Request::segment(3) == 'projects' ? ' active' : '' }}">
-                            <a href="{{ route('client.projects.index', $currentWorkspace->slug) }}"
-                                class="dash-link "><span class="dash-micon"><i data-feather="briefcase"></i></span><span
-                                    class="dash-mtext">{{ __('Projects') }}</span></a>
-                        </li>
-
-                        <li
-                            class="dash-item {{ Request::route()->getName() == 'client.timesheet.index' ? ' active' : '' }}">
-                            <a href="{{ route('client.timesheet.index', $currentWorkspace->slug) }}"
-                                class="dash-link "><span class="dash-micon"><i data-feather="clock"></i></span><span
-                                    class="dash-mtext">{{ __('Timesheet') }}</span></a>
-                        </li>
-
-                        <li
-                            class="dash-item {{ Request::route()->getName() == 'client.contracts.index' || Request::route()->getName() == 'client.contracts.show' ? 'active' : '' }}">
-                            <a href="{{ route('client.contracts.index', $currentWorkspace->slug) }}"
-                                class="dash-link "><span class="dash-micon"><i class="ti ti-device-floppy"></i></span><span
-                                    class="dash-mtext">{{ __('Contracts') }}</span></a>
-                        </li>
-
-                        <li
-                            class="dash-item {{ Request::route()->getName() == 'client.project_report.index' || Request::segment(3) == 'project_report' ? ' active' : '' }}">
-                            <a href="{{ route('client.project_report.index', $currentWorkspace->slug) }}"
-                                class="dash-link "><span class="dash-micon"><i class="ti ti-chart-line"></i></span><span
-                                    class="dash-mtext">{{ __('Project Report') }}</span></a>
-                        </li>
-
-                        <li
-                            class="dash-item {{ Request::route()->getName() == 'client.calender.index' ? ' active' : '' }}">
-                            <a href="{{ route('client.calender.index', $currentWorkspace->slug) }}"
-                                class="dash-link "><span class="dash-micon"><i data-feather="calendar"></i></span><span
-                                    class="dash-mtext">{{ __('Calendar') }}</span></a>
-                        </li>
-                    @endauth
-                @endif
-                @if (isset($currentWorkspace) && $currentWorkspace)
-                    @auth('web')
-                        <li
-                            class="dash-item {{ Request::route()->getName() == 'project_report.index' || Request::segment(2) == 'project_report' ? ' active' : '' }}">
-                            <a href="{{ route('project_report.index', $currentWorkspace->slug) }}"
-                                class="dash-link "><span class="dash-micon"><i class="ti ti-chart-line"></i></span><span
-                                    class="dash-mtext">{{ __('Project Report') }}</span></a>
-                        </li>
-                    @endauth
+                    <li
+                        class="dash-item {{ Request::route()->getName() == 'projects.index' || Request::segment(2) == 'projects' ? ' active' : '' }}">
+                        <a href="{{ route('projects.index', $currentWorkspace->slug) }}" class="dash-link">
+                            <span class="dash-micon"><i class="fa-solid fa-diagram-project"></i></span><span
+                                class="dash-mtext">{{ __('Projects') }}</span></a>
+                    </li>
+                    {{-- si mostramos todos los proyectos enviamos -1 o proyecto en especifico --}}
+                    <li class="dash-item">
+                        <a href="{{ route('projects.milestone.board', [$currentWorkspace->slug, -1]) }}"
+                            class="dash-link ">
+                            <span class="dash-micon"><i class="fa-solid fa-file-lines"></i></span><span
+                                class="dash-mtext">{{ __('Milestones') }}</span></a>
+                    </li>
+                    <li class="dash-item {{ Request::route()->getName() == 'timesheet.index' ? ' active' : '' }}">
+                        <a href="{{ route('timesheet.index', $currentWorkspace->slug) }}" class="dash-link ">
+                            <span class="dash-micon"><i class="fas fa-tasks"></i></span><span
+                                class="dash-mtext">{{ __('Tasks') }}</span></a>
+                    </li>
+                    <li class="dash-item {{ Request::route()->getName() == 'calender.index' ? ' active' : '' }}">
+                        <a href="{{ route('calender.google.calendar', $currentWorkspace->slug) }}"
+                            class="dash-link "><span class="dash-micon"><i
+                                    class="fa-regular fa-calendar"></i></span><span
+                                class="dash-mtext">{{ __('Calendar') }}</span></a>
+                    </li>
+                    <li class="dash-item dash-hasmenu">
+                        <a href="{{ route('clients.index', $currentWorkspace->slug) }}"
+                            class="dash-link {{ Request::route()->getName() == 'clients.index' ? ' active' : '' }} "><span
+                                class="dash-micon"> <i class="fa-solid fa-user-tie"></i></span><span class="dash-mtext">
+                                {{ __('Sales manager') }}</span></a>
+                    </li>
+                    <li
+                        class="dash-item {{ Request::route()->getName() == 'users.index' || Request::route()->getName() == 'users_logs.index' ? ' active' : '' }}">
+                        <a href="{{ route('users.index', $currentWorkspace->slug) }}" class="dash-link ">
+                            <span class="dash-micon"> <i class="fa-solid fa-helmet-safety"></i></span>
+                            <span class="dash-mtext">{{ __('Technicians') }}</span>
+                        </a>
+                    </li>
                 @endif
                 {{-- colorAlsina #AA182C --}}
-                {{-- @if (\Auth::user()->type == 'admin') --}}
+                @if (\Auth::user()->type == 'admin')
                     <li class="dash-item {{ Request::route()->getName() == 'workspace.settings' ? ' active' : '' }}">
                         <a href="{{ route('workspace.settings', $currentWorkspace->slug) }}" class="dash-link "><span
                                 class="dash-micon"><i data-feather="settings"></i></span><span
-                                class="dash-mtext">{{ __('Settings') }}</span></a>
-
+                                class="dash-mtext">{{ __('Settings') }}</span>
+                        </a>
                     </li>
-                {{-- @endif --}}
-
+                @endif
+            </ul>
         </div>
     </div>
 </nav>
