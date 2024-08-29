@@ -58,6 +58,8 @@ return array(
     'Spatie\\GoogleCalendar\\' => array($vendorDir . '/spatie/laravel-google-calendar/src'),
     'Spatie\\FlareClient\\' => array($vendorDir . '/spatie/flare-client-php/src'),
     'Spatie\\Backtrace\\' => array($vendorDir . '/spatie/backtrace/src'),
+    'SocialiteProviders\\Manager\\' => array($vendorDir . '/socialiteproviders/manager/src'),
+    'SocialiteProviders\\Azure\\' => array($vendorDir . '/socialiteproviders/microsoft-azure'),
     'RootInc\\LaravelAzureMiddleware\\' => array($vendorDir . '/rootinc/laravel-azure-middleware/src'),
     'Rize\\' => array($vendorDir . '/rize/uri-template/src/Rize'),
     'Ramsey\\Uuid\\' => array($vendorDir . '/ramsey/uuid/src'),

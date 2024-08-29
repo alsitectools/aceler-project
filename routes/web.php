@@ -74,23 +74,19 @@ Route::get('/', function () {
 require __DIR__ . '/auth.php';
 
 //-----------------------AZURE --------------------------------------//
-Route::get('/login/azure', [AzureController::class, 'login'])->name('azure.login');
-Route::get('/login/azurecallback', [AzureController::class, 'callback'])->name('azure.callback');
+// Route::get('/login/azure', [AzureController::class, 'login'])->name('azure.login');
+// Route::get('/login/azurecallback', [AzureController::class, 'callback'])->name('azure.callback');
 
-/* version extendida, si queremos cambiar el comportamiento por defecto
-Route::get('/login/azure', '\App\Http\Middleware\AppAzure@azure')
-  ->name('azure.login');
-Route::get('/login/azurecallback', '\App\Http\Middleware\AppAzure@azurecallback')
-  ->name('azure.callback');
-Route::get('/logout/azure', '\App\Http\Middleware\AppAzure@azurelogout')
-  ->name('azure.logout');
- */
-
+/* version extendida, si queremos cambiar el comportamiento por defecto */
+Route::get('/login/azure', [AzureController::class, 'azure'])->name('azure.login');
+Route::get('/login/azurecallback', [AzureController::class, 'azurecallback'])->name('azure.callback');
+Route::get('/logout/azure', [AzureController::class, 'azurelogout'])->name('azure.logout');
 //----------------------- FIN AZURE --------------------------------------//
 
 Route::get('/verify-email/{lang?}', [AuthenticatedSessionController::class, 'showVerifcation'])->name('verification.notice')->middleware('auth', 'XSS');
 Route::get('/verify-email/{id}/{hash}', [VerifyEmailController::class, '__invoke',])->name('verification.verify')->middleware('auth', 'XSS');
 Route::get('/email/verification-notification', [EmailVerificationNotificationController::class, 'store',])->name('verification.send')->middleware('auth', 'XSS');
+Route::get('/home', [HomeController::class, 'index'])->name('home');
 
 Route::get('/', [HomeController::class, 'landingPage'])->middleware(['XSS']);
 Route::get('/{slug}/invoices/{id}/pay', [InvoiceController::class, 'payinvoice'])->name('pay.invoice');

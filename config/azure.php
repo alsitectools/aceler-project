@@ -34,7 +34,7 @@ return [
     | This value is equal to the 'Object ID' as found in the Azure portal
     |
     */
-    'resource' => env('AZURE_RESOURCE', 'https://graph.microsoft.com'),
+    'resource' => env('AZURE_RESOURCE', ''),
 
     /*
     |--------------------------------------------------------------------------
@@ -45,7 +45,7 @@ return [
     | https://docs.microsoft.com/en-us/graph/api/resources/users?view=graph-rest-1.0
     |
     */
-    'scope' => env('AZURE_SCOPE', 'User.Read'),
+    'scope' => env('AZURE_SCOPE', ''),
 
     /*
     |--------------------------------------------------------------------------
@@ -53,6 +53,6 @@ return [
     |--------------------------------------------------------------------------
     |
     */
-    'AZURE_REDIRECT_URI' => env('AZURE_REDIRECT_URI', 'https://stagingacelerproject.alsina.com/login'),
+    'redirect' => env('AZURE_REDIRECT_URI', ''),
 
 ];

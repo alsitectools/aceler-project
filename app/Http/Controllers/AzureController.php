@@ -2,35 +2,51 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Laravel\Socialite\Facades\Socialite;
 use RootInc\LaravelAzureMiddleware\Azure;
 
 class AzureController extends Controller
 {
-    /**
-     * Redirige al usuario a la página de login de Azure.
-     */
-    public function login(Request $request)
+    public function azure()
     {
-        $azure = new Azure();
-        // dd($azure);
-        return $azure->azure($request);
-        // dd($azure->azure($request));
+        return Socialite::driver('azure')->redirect();
     }
 
-    /**
-     * Maneja la respuesta de Azure después de la autenticación.
-     */
-    public function callback(Request $request)
+    public function azurecallback()
     {
-        $azure = new Azure();
-        $user = $azure->azurecallback($request);
+        try {
+            // Obtener la información del usuario autenticado por Azure AD
+            $azureUser = Socialite::driver('azure')->user();
 
-        if ($user) {
-            auth()->login($user);
-            return redirect('/');
+            // Encuentra o crea el usuario en tu base de datos
+            $authUser = $this->findOrCreateUser($azureUser);
+
+            // Autenticar al usuario en Laravel
+            Auth::login($authUser, true);
+
+            // Redirigir al usuario a la página de inicio
+            return redirect()->route('home');
+        } catch (\Exception $e) {
+            // En caso de error, redirigir al login y mostrar un mensaje de error
+            return redirect()->route('azure.login')->withErrors('Failed to login with Azure AD');
         }
+    }
 
-        return redirect('/login');  // Redirigir si no se puede autenticar al usuario
+    public function azurelogout()
+    {
+        Auth::logout();
+        return redirect()->away(config('services.azure.redirect'));
+    }
+
+    protected function findOrCreateUser($azureUser)
+    {
+        // Encuentra o crea un usuario en tu base de datos basado en el correo electrónico de Azure AD
+        return User::firstOrCreate(
+            ['email' => $azureUser->getEmail()],
+            ['name' => $azureUser->getName()]
+        );
     }
 }
