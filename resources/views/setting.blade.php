@@ -1394,6 +1394,7 @@
                         }
                         $("#email_sending").hide();
                     },
+                    
                     complete: function() {
                         $('#test_email .btn-create').removeAttr('disabled');
                     },

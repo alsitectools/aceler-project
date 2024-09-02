@@ -50,6 +50,14 @@ class User extends Authenticatable implements MustVerifyEmail
                 'email_verified_at' => 'datetime',
         ];
 
+        public function projects()
+        {
+                // Projects en los que trabaja
+                return Project::join('user_projects', 'projects.id', '=', 'user_projects.project_id')
+                        ->where('user_projects.user_id', '=', $this->id)
+                        ->select('projects.*')
+                        ->get();
+        }
         public function getGuard()
         {
                 return $this->guard;

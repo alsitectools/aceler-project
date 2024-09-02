@@ -87,6 +87,7 @@
         <link rel="shortcut icon"
             href="@if ($currentWorkspace->favicon) {{ asset($logo . $currentWorkspace->favicon . '?' . time()) }}@else{{ asset($logo . 'favicon.png' . '?' . time()) }} @endif">
     @endif
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <link rel="stylesheet" href="{{ asset('assets/css/plugins/style.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/css/plugins/flatpickr.min.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/css/plugins/main.css') }}">
@@ -107,7 +108,7 @@
 
     <!-- Select2 JS -->
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-beta.1/dist/js/select2.min.js"></script>
-    
+
 
     <!-- Importa Select2 CSS -->
 
@@ -298,7 +299,6 @@
         </div>
     </div>
 
-
     @if (Auth::user()->type == 'admin')
         <div class="modal fade" id="modelCreateWorkspace" tabindex="-1" role="dialog"
             aria-labelledby="exampleModalLabel" aria-hidden="true">
@@ -468,6 +468,7 @@
         });
     </script>
 
+
     @if (env('CHAT_MODULE') == 'yes' && isset($currentWorkspace) && $currentWorkspace)
         @auth('web')
             {{-- Pusher JS --}}
@@ -485,15 +486,11 @@
                             'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                         }
                     });
-
-                    // Enable pusher logging - don't include this in production
                     Pusher.logToConsole = false;
 
                     var pusher = new Pusher(
-                        '{{ env('
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        PUSHER_APP_KEY ') }}', {
-                            cluster: '{{ env('
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            PUSHER_APP_CLUSTER ') }}',
+                        '{{ env(' PUSHER_APP_KEY ') }}', {
+                            cluster: '{{ env('PUSHER_APP_CLUSTER ') }}',
                             forceTLS: true
                         });
 
@@ -514,8 +511,7 @@
 
                 function getChat() {
                     $.ajax({
-                        url: '{{ route('
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                message.data ') }}',
+                        url: '{{ route('message.data') }}',
                         cache: false,
                         dataType: 'html',
                         success: function(data) {
@@ -532,11 +528,7 @@
 
                 $(document).on("click", ".mark_all_as_read", function() {
                     $.ajax({
-                        url: '{{ route(
-                            '
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                notification.seen ',
-                            $currentWorkspace->slug,
-                        ) }}',
+                        url: '{{ route('notification.seen ', $currentWorkspace->slug) }}',
                         type: "get",
                         cache: false,
                         success: function(data) {
@@ -547,11 +539,7 @@
                 });
                 $(document).on("click", ".mark_all_as_read_message", function() {
                     $.ajax({
-                        url: '{{ route(
-                            '
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                message.seen ',
-                            $currentWorkspace->slug,
-                        ) }}',
+                        url: '{{ route('message.seen ', $currentWorkspace->slug) }}',
                         type: "get",
                         cache: false,
                         success: function(data) {
@@ -683,45 +671,9 @@
         };
     </script>
 
-
     @if ($meta_setting['enable_cookie'] == 'on')
         @include('layouts.cookie_consent')
     @endif
-    {{-- @if (env('gdpr_cookie') == 'on')
-
-<script type="text/javascript">
-    
-    var defaults = {
-    'messageLocales': {
-        /*'en': 'We use cookies to make sure you can have the best experience on our website. If you continue to use this site we assume that you will be happy with it.'*/
-        'en': '{{env('cookie_text')}}'
-
-    },
-    'buttonLocales': {
-    'en': 'Ok'
-    },
-    'cookieNoticePosition': 'bottom',
-    'learnMoreLinkEnabled': false,
-    'learnMoreLinkHref': '/cookie-banner-information.html',
-    'learnMoreLinkText': {
-    'it': 'Saperne di più',
-    'en': 'Learn more',
-    'de': 'Mehr erfahren',
-    'fr': 'En savoir plus'
-    },
-    'buttonLocales': {
-    'en': 'Ok'
-    },
-    'expiresIn': 30,
-    'buttonBgColor': '#d35400',
-    'buttonTextColor': '#fff',
-    'noticeBgColor': '#000000',
-    'noticeTextColor': '#fff',
-    'linkColor': '#009fdd'
-    };
-    </script>
-    <script src="{{ asset('assets/custom/js/cookie.notice.js')}}"></script>
-    @endif --}}
 
     @if (isset($currentWorkspace) && $currentWorkspace)
         <script src="{{ asset('assets/custom/js/jquery.easy-autocomplete.min.js') }}"></script>

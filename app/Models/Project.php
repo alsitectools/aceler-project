@@ -211,18 +211,6 @@ class Project extends Model
                                 $timesheetArray[$k]['milestoneArray'][$m]['taskArray'][$i]['user_id'] = $user ? $user->id : null;
                                 $timesheetArray[$k]['milestoneArray'][$m]['taskArray'][$i]['user_name'] = $user ? $user->name : 'unknow name';
 
-                                // $new_projects_timesheet = clone $project_timesheets;
-
-                                // $users = $new_projects_timesheet
-                                //     ->where('timesheets.task_id', $timesheet->task_id)
-                                //     ->groupBy('timesheets.created_by')
-                                //     ->with('getUser')
-                                //     ->get();
-
-                                // foreach ($users as $count => $user_id) {
-                                //     $user = $user_id->getUser;
-                                //     $userId = $user->id;
-
                                 $times = [];
 
                                 for ($j = 0; $j < 7; $j++) {
@@ -286,7 +274,6 @@ class Project extends Model
         } else {
 
             $userId = Auth::user()->id;
-            // dd($timesheets);
             $project_timesheets = Timesheet::select('timesheets.*')
                 ->join('projects', 'projects.id', '=', 'timesheets.project_id')
                 ->join('tasks', 'tasks.id', '=', 'timesheets.task_id')

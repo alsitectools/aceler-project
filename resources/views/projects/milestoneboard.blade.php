@@ -6,7 +6,7 @@
     use App\Models\User;
     use App\Models\Milestone;
     use App\Models\Task;
-    // dd($milestones);
+    //  dd($milestones);
 @endphp
 @section('page-title')
     {{ __('Milestoneboard') }}

@@ -247,8 +247,8 @@
         </svg>
         <h5>{{ __('Período') }}</h5>
         <span>
-            <b>{{ $days['first_day']->isoFormat('ddd DD MMM') }} -
-                {{ $days['seventh_day']->isoFormat('ddd DD MMM') }}</b>
+            <b>{{ ucfirst($days['first_day']->isoFormat('ddd DD MMM')) }} -
+                {{ ucfirst($days['seventh_day']->isoFormat('ddd DD MMM')) }}</b>
         </span>
     </div>
 </div>
