@@ -67,7 +67,7 @@
     }
 </style>
 <header class="dash-header {{ isset($cust_theme_bg) && $cust_theme_bg == 'on' ? 'transprent-bg' : '' }}">
-    <div class="header-wrapper p-0  me-2">
+    <div class="header-wrapper p-0  me-1">
         <div class="dash-mob-drp">
             <ul class="list-unstyled">
                 <li class="dash-h-item mob-hamburger">
@@ -80,7 +80,7 @@
                     </a>
                 </li>
                 <li class="dropdown dash-h-item drp-company">
-                    <a class="dash-head-link dropdown-toggle arrow-none me-0" data-bs-toggle="dropdown" href="#"
+                    <a class="dash-head-link dropdown-toggle arrow-none" data-bs-toggle="dropdown" href="#"
                         role="button" aria-haspopup="false" aria-expanded="false">
                         <img class="theme-avtar"
                             @if (\Auth::user()->avatar) src="{{ asset($logo . Auth::user()->avatar) }}" @else avatar="{{ Auth::user()->name }}" @endif

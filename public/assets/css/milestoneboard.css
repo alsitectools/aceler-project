@@ -1,0 +1,69 @@
+.hight_img {
+    max-width: 30px !important;
+    max-height: 30px !important;
+}
+
+.tooltipCus {
+    position: relative;
+    cursor: pointer;
+}
+
+.tooltipCus::after {
+    content: attr(data-title);
+    visibility: hidden;
+    background-color: black;
+    color: #fff;
+    text-align: center;
+    border-radius: 10px;
+    padding: 10px;
+    position: absolute;
+    z-index: 1;
+    bottom: 100%;
+    left: 60%;
+    transform: translateX(-5%);
+    opacity: 0;
+    transition: opacity 0.3s;
+    white-space: nowrap;
+}
+
+.tooltipCus:hover::after {
+    visibility: visible;
+    opacity: 1;
+
+}
+
+.foot-milestone {
+    display: flex !important;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    justify-content: center;
+    align-items: center;
+
+}
+
+.taskList {
+    height: 20px;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    align-items: baseline;
+    justify-content: space-evenly;
+
+}
+
+.statusDate {
+    display: flex;
+    flex-wrap: nowrap;
+    align-items: center;
+    flex-direction: column;
+    margin: 5%;
+}
+
+.addMilestone {
+    display: flex !important;
+    justify-content: space-evenly !important;
+    width: 200px;
+    text-align: center;
+    padding-right: 1%;
+    align-items: center;
+}

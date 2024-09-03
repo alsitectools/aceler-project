@@ -34,7 +34,6 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    width: 95%;
     height: 200px;
     justify-content: center;
 }
@@ -51,7 +50,7 @@
 }
 
 .zoom {
-    width: 97%;
+    width: 95%;
     background-color: #f0f0f0;
     transition: transform 0.3s ease-in-out;
     box-sizing: border-box;

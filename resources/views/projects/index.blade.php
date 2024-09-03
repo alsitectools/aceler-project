@@ -49,7 +49,6 @@
                     </div>
                 </div>
             </div>
-
         @endauth
     </div>
 @endsection
@@ -62,7 +61,7 @@
                         @foreach ($projects as $project)
                             <div class="card mb-3 zoom mt-0 ml-0 m-2 All  {{ $project->status }} type-{{ $project->type }}"
                                 style="border-radius: 10px;">
-                                <div class="row">
+                                <div class="row ms-2">
                                     <div class="col-md-2 project-type text-center m-2">
                                         <img src="{{ asset('assets/img/' . $project_type[$project->type - 1]->name . '.png') }}"
                                             style="width: 45px; height: 45px;" alt="...">
@@ -242,7 +241,7 @@
                                     <div class="page-search">
                                         <p class="text-muted mt-3">
                                             {{ __("It's looking like you may have taken a wrong turn. Don't worry...
-                                                                                                                                                                                                                                                                                                                                                                                                            it happens to the best of us. Here's a little tip that might help you get back on track.") }}
+                                                                                                                                                                                                                                                                                                                                                                                                                                                        it happens to the best of us. Here's a little tip that might help you get back on track.") }}
                                         </p>
                                         <div class="mt-3">
                                             <a class="btn-return-home badge-blue" href="{{ route('home') }}"><i

@@ -267,7 +267,7 @@
                     <div class="row align-items-center">
                         <div class="col-md-12">
                             <div class="row">
-                                <div class="col-auto header_breadcrumb pr-4 pt-0">
+                                <div class="col-auto header_breadcrumb ms-2 pr-4 pt-0">
                                     @if (trim($__env->yieldContent('page-title')))
                                         <div class="page-header-title">
                                             <h4 class="m-b-10">@yield('page-title')</h4>

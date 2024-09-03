@@ -6,87 +6,14 @@
     use App\Models\User;
     use App\Models\Milestone;
     use App\Models\Task;
-    //  dd($milestones);
 @endphp
 @section('page-title')
     {{ __('Milestoneboard') }}
 @endsection
-<style>
-    .hight_img {
-        max-width: 30px !important;
-        max-height: 30px !important;
-    }
 
-    .tooltipCus {
-        position: relative;
-        cursor: pointer;
-    }
-
-    .tooltipCus::after {
-        content: attr(data-title);
-        visibility: hidden;
-        background-color: black;
-        color: #fff;
-        text-align: center;
-        border-radius: 10px;
-        padding: 10px;
-        position: absolute;
-        z-index: 1;
-        bottom: 100%;
-        left: 60%;
-        transform: translateX(-5%);
-        opacity: 0;
-        transition: opacity 0.3s;
-        white-space: nowrap;
-    }
-
-    .tooltipCus:hover::after {
-        visibility: visible;
-        opacity: 1;
-
-    }
-
-    .foot-milestone {
-        display: flex !important;
-        flex-direction: row;
-        flex-wrap: nowrap;
-        justify-content: center;
-        align-items: center;
-    }
-
-    .taskList {
-        height: 20px;
-        display: flex;
-        flex-direction: row;
-        flex-wrap: nowrap;
-        align-items: baseline;
-        justify-content: space-evenly;
-
-    }
-
-    .statusDate {
-        display: flex;
-        flex-wrap: nowrap;
-        align-items: center;
-        flex-direction: column;
-        margin: 5%;
-    }
-
-    /* .p-target {
-        padding-left: 10%;
-
-    } */
-
-    .addMilestone {
-        display: flex !important;
-        justify-content: space-evenly !important;
-        width: 200px;
-        text-align: center;
-        padding-right: 1%;
-        align-items: center;
-
-    }
-</style>
+<head>
+    <link rel="stylesheet" href="{{ asset('assets/css/milestoneboard.css') }}">
+</head>
 @section('links')
     @if (isset($project_id) && $project_id != -1)
         <li class="breadcrumb-item"><a
@@ -104,8 +31,9 @@
             <div class="col-sm-auto">
                 <button type="button" class="btn btn-primary addMilestone" data-ajax-popup="true"
                     data-title="{{ __('Milestone order') }}"
-                    data-url="{{ route('projects.milestone', [$currentWorkspace->slug, $project_id]) }}" data-toggle="popover"
-                    title="{{ __('Create') }}"><i class="fa-solid fa-file-lines" style="color: #ffffff;"></i>
+                    data-url="{{ route('projects.milestone', [$currentWorkspace->slug, $project_id]) }}"
+                    data-toggle="popover" title="{{ __('Create') }}"><i class="fa-solid fa-file-lines"
+                        style="color: #ffffff;"></i>
                     {{ __('Create milestone') }}
                 </button>
             </div>
@@ -118,7 +46,7 @@
             <div class="row kanban-wrapper horizontal-scroll-cards" data-toggle="dragula"
                 data-containers='{{ json_encode($statusClass) }}' data-handleclass="handleclass">
                 @foreach ($stages as $status)
-                    <div class="col-3" id="{{ 'milestone-list-' . str_replace(' ', '_', $status->id) }}">
+                    <div class="col-3 ps-1 pe-1" id="{{ 'milestone-list-' . str_replace(' ', '_', $status->id) }}">
                         <div class="card card-list">
                             <div class="card-header">
                                 <div class="float-end">
@@ -200,15 +128,15 @@
                                                                         $dateClass = $isLate ? 'danger' : 'success';
                                                                         $icon =
                                                                             $dateClass == 'danger'
-                                                                                ? '<i class="fa-solid fa-hourglass-end fa-xs text-' .
+                                                                                ? '<i class="fa-solid fa-hourglass-end ms-1 fa-xs text-' .
                                                                                     $dateClass .
                                                                                     '"></i>'
-                                                                                : '<i class="fa-solid fa-hourglass-start fa-xs p-0 m-0 text-' .
+                                                                                : '<i class="fa-solid fa-hourglass-start fa-xs ms-1 p-0 m-0 text-' .
                                                                                     $dateClass .
                                                                                     '"></i>';
                                                                     @endphp
 
-                                                                    {!! $icon !!} <p class="mb-1 col-md-8">
+                                                                    {!! $icon !!} <p class="mb-2 col-md-8 ms-2">
                                                                         {{ $task['name'] }} </p>
 
                                                                     @if ($project_id != -1)
@@ -241,7 +169,7 @@
                                                     @endif
                                                 </div>
                                                 <div class="card mb-0 mt-3">
-                                                    <div class="card-body p-3">
+                                                    <div class="card-body p-2">
                                                         <div class="row">
                                                             <div class="foot-milestone">
                                                                 <div class="col-6 text-center">
