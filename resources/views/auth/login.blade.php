@@ -31,63 +31,32 @@
 
         @section('content')
             <div class="card-body">
-                <div class="">
-                    <h2 class="mb-3 f-w-600">{{ __('Login') }}</h2>
-                </div>
+
                 @if (session()->has('error'))
                     <div>
                         <p class="text-danger">{{ session('error') }}</p>
                     </div>
                 @endif
-                <form method="POST" id="form_data" action="{{ route('login') }}">
-                    @csrf
-                    <div class="">
-                        <div class="form-group mb-3">
-                            <label for="email" class="form-label">{{ __('Email') }}</label>
-                            <input type="email" class="form-control  @error('email') is-invalid @enderror" name="email"
-                                id="emailaddress" value="{{ old('email') }}" required autocomplete="email" autofocus
-                                placeholder="{{ __('Enter Your Email') }}">
-                            @error('email')
-                                <span class="error invalid-email text-danger" role="alert">
-                                    <small>{{ $message }}</small>
-                                </span>
-                            @enderror
-                        </div>
-                        <div class="form-group mb-3">
-                            <label for="password" class="form-label">{{ __('Password') }}</label>
-                            <input type="password" class="form-control @error('password') is-invalid @enderror"
-                                name="password" required autocomplete="current-password" id="password"
-                                placeholder="{{ __('Enter Your Password') }}">
-                        </div>
-                        <div class="form-group mb-3 text-start">
-                            <span>
-                                <a href="{{ route('password.request', $lang) }}"
-                                    tabindex="0">{{ __('Forgot Your Password?') }}</a>
-                            </span>
+                {{-- LOGO PROJECT --}}
+                <div class="navbar-brand d-none d-md-block text-center mt-5 mb-5">
+                    <img width="100%" src="{{ asset('assets/img/logoRed.png') }}" alt="Logo Alsina Project">
+                </div>
 
-                        </div>
-                        <a href="{{ route('azure.login') }}">{{ __('Login azure') }}</a>
-                        {{-- @if ($setting['recaptcha_module'] == 'on') --}}
-                        <div class="form-group col-lg-12 col-md-12 mt-3">
-                            {!! NoCaptcha::display($setting['cust_darklayout'] == 'on' ? ['data-theme' => 'dark'] : []) !!}
-                            @error('g-recaptcha-response')
-                                <span class="small text-danger" role="alert">
-                                    <strong>{{ $message }}</strong>
-                                </span>
-                            @enderror
-                        </div>
-                        {{-- @endif --}}
-                        <div class="d-grid">
-                            <button type="submit" id="login_button"
-                                class="btn btn-primary btn-block mt-2">{{ __('Login') }}
-                            </button>
-                        </div>
-                        <p class="my-4 text-center">{{ __('Don\'t have an account?') }}
-                            <a href="#" onclick="mostrarMensaje(event)" class="my-4 text-center text-primary">
-                                {{ __('Sign up') }}</a>
-                        </p>
-                    </div>
-                </form>
+                <div class="text-center">
+                    <h2 class="text-muted m-1">{{ __('Login') }}</h2>
+                    <p class="text-muted m-2">{{__('To access aCeler Project, you will be automatically redirected to the Azure login page.')}}</p>
+                </div>
+                <div class="d-grid mt-5 mb-5">
+                    <a href="{{ route('azure.login') }}" class="btn btn-primary text-white" title="{{ __('Login azure') }}">
+                        <img class="me-2 azureIcon" src="{{ asset('assets/img/azureIcon.png') }}"
+                            alt="login with microsoft">{{ __('Sign in') }}</a>
+                </div>
+                <div class="text-center text-primary mt-5">
+                    <a href="#"> <span>
+                            &copy; {{ date('Y') }}
+                            {{ 'aCeler Project' }} ~@yield('page-title')
+                        </span></a>
+                </div>
             </div>
         @endsection
         @push('custom-scripts')
@@ -104,13 +73,15 @@
                     });
                 });
             </script>
-            {{-- @if ($setting['recaptcha_module'] == 'on')
-                {!! NoCaptcha::renderJs() !!}
-            @endif --}}
         @endpush
     </x-auth-card>
 </x-guest-layout>
 <style>
+    .azureIcon {
+        width: 20px;
+        filter: drop-shadow(0px 0px 1.2px #ffffff);
+    }
+
     .login-deafult {
         width: 139px !important;
     }

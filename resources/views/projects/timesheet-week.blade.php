@@ -1,14 +1,11 @@
-@php
-    //  dd($timesheetArray);
-    // dd($project_id);
-@endphp
+
 <div class="card-body table-border-style">
     <div class="table-responsive">
         <table class="table table-borderless mb-0">
             <thead>
                 <tr colspan="9" class="d-flex text-center padding-r">
                     <td class="wid">
-                        <b>{{ isset($allProjects) && $allProjects == true ? __('Projects') : __('dictionary.Tasks') }}</b>
+                        <b>{{ isset($allProjects) && $allProjects == true ? __('Projects') : __('Tasks') }}</b>
                     </td>
                     @foreach ($days['datePeriod'] as $key => $perioddate)
                         <td class="wid-110 header-days"><b>{{ ucfirst($perioddate->isoFormat('ddd DD MMM')) }}</b></td>

@@ -10,7 +10,6 @@
         }
     } else {
         $setting = App\Models\Utility::getAdminPaymentSettings();
-        // $SITE_RTL = env('SITE_RTL');
         $SITE_RTL = $setting['site_rtl'];
         if ($setting['color']) {
             $color = $setting['color'];
@@ -28,7 +27,7 @@
     $logo = \App\Models\Utility::get_file('logo/');
     use App\Models\Utility;
 @endphp
-{{----------- CHATBOT --------------}}
+{{-- --------- CHATBOT ------------ --}}
 @include('layouts.chatbot')
 {{-- ---------------------------- --}}
 
@@ -63,7 +62,7 @@
         {{ 'aCeler Project' }} ~@yield('page-title')
     </title>
     <!-- Favicon -->
-    <link rel="shortcut icon" href="{{ $logo . 'favicon.png' . '?' . time() }}">
+    <link rel="shortcut icon" href="{{ asset('assets/img/iconA.png') }}" type="image/png">
 
     @if ($setting['cust_darklayout'] == 'on')
         @if (isset($SITE_RTL) && $SITE_RTL == 'on')
@@ -86,9 +85,8 @@
     @if ($setting['cust_darklayout'] == 'on')
         <link rel="stylesheet" href="{{ asset('assets/css/custom-dark.css') }}" id="main-style-link">
     @endif
-    <link rel="shortcut icon" href="{{ asset('assets/img/iconA.png') }}" type="image/png">
-</head>
 
+</head>
 
 <body class="{{ $color }}">
 
@@ -199,13 +197,6 @@
             <header class="dash-header">
                 <nav class="navbar navbar-expand-md default">
                     <div class="container">
-
-                        {{-- LOGO PROJECT --}}
-                        <div class="navbar-brand d-none d-md-block" style="overflow: hidden; ">
-                            <img class="img-fluid rounded" width="350px" src="{{ asset('assets/img/acelerProject.png') }}"
-                                alt="Imagen de portada">
-                        </div>
-
                         <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
                             data-bs-target="#navbarlogin" aria-controls="navbarTogglerDemo01" aria-expanded="false"
                             aria-label="Toggle navigation">
@@ -249,12 +240,6 @@
                 <div class="auth-footer">
                     <div class="container">
                         <div class="row justify-content-center">
-                            <div class=" col-6 col-md-4 rounded text-center" style="background: white; color: #AA182C;">
-                                <a href="#"> <span>
-                                        &copy; {{ date('Y') }}
-                                        {{ 'aCeler Project' }} ~@yield('page-title')
-                                    </span></a>
-                            </div>
                         </div>
                     </div>
                 </div>
