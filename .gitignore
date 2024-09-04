@@ -11,3 +11,4 @@ routes/probas.blade.php
 storage/logs/laravel.log
 node_modules/
 storage/logs
+.env
