@@ -12,5 +12,5 @@ storage/logs/laravel.log
 node_modules/
 storage/logs
 .env
-/.env
-/laravel.log
+C:/xampp/htdocs/project/.env
+C:/xampp/htdocs/project/storage/logs/laravel.log
