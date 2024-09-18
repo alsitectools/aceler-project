@@ -104,7 +104,7 @@
                                                                     <a href="#"
                                                                         class="dropdown-item text-danger delete-popup bs-pass-para"
                                                                         data-confirm="{{ __('Are You Sure?') }}"
-                                                                        data-text="{{ trans('messages.This_action_can_not_be_undone._Do_you_want_to_continue?') }}"
+                                                                        data-text="{{ trans('This action can not be undone. Do you want to continue?') }}"
                                                                         data-confirm-yes="delete-form-{{ $project->id }}">
                                                                         <i class="ti ti-trash"></i>
                                                                         <span>{{ __('Delete') }}</span>
@@ -191,7 +191,7 @@
                             <div class="type-filter">
                                 @foreach ($project_type as $type)
                                     <div class="d-flex">
-                                        <a href="#" class="zoom m-2 filter-link"
+                                        <a href="#" class="types m-2 filter-link"
                                             data-filter=".type-{{ $type->id }}"
                                             style="background-color: transparent;">
 
@@ -241,7 +241,7 @@
                                     <div class="page-search">
                                         <p class="text-muted mt-3">
                                             {{ __("It's looking like you may have taken a wrong turn. Don't worry...
-                                                                                                                                                                                                                                                                                                                                                                                                                                                        it happens to the best of us. Here's a little tip that might help you get back on track.") }}
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    it happens to the best of us. Here's a little tip that might help you get back on track.") }}
                                         </p>
                                         <div class="mt-3">
                                             <a class="btn-return-home badge-blue" href="{{ route('home') }}"><i
@@ -286,7 +286,18 @@
 @push('scripts')
     <script src="{{ asset('assets/custom/js/isotope.pkgd.min.js') }}"></script>
     <script>
+        // $(document).ready(function() {
+        //     $('.types').click(function() {
+        //         $(this).toggleClass('selected');
+        //     });
+        // });
         $(document).ready(function() {
+            // Verificar si Isotope está disponible
+            if (typeof $.fn.isotope === 'undefined') {
+                console.error('Isotope is not loaded');
+                return;
+            }
+
             // Inicializar Isotope
             var $grid = $(".grid").isotope({
                 itemSelector: ".All",
@@ -295,8 +306,10 @@
                     columnWidth: ".All"
                 }
             });
+
             var filterStatus = '*';
             var filterType = '*';
+
             // Función para aplicar el filtro combinado
             function applyFilter() {
                 var filterValue = filterStatus + filterType;
@@ -304,18 +317,30 @@
                     filter: filterValue
                 });
             }
+
+            // Función para alternar la clase activa y la clase de selección
+            function toggleActiveClass($element, groupSelector, zoomClass, selectedClass) {
+                var isActive = $element.hasClass('active');
+                $(groupSelector).removeClass('active').removeClass(zoomClass).removeClass(selectedClass);
+                if (!isActive) {
+                    $element.addClass('active').addClass(zoomClass).addClass(selectedClass);
+                } else {
+                    $element.removeClass(selectedClass);
+                }
+            }
+
             // Filtrado por estado
             $('.status-filter button').click(function() {
-                $('.status-filter button').removeClass('active');
-                $(this).addClass('active');
+                var $this = $(this);
+                // Alternar clase activa y zoom en el botón de estado
+                toggleActiveClass($this, '.status-filter button');
 
-                filterStatus = $(this).attr('data-filter');
+                filterStatus = $this.hasClass('active') ? $this.attr('data-filter') : '*';
 
                 // Si el filtro de estado es 'All', reiniciar el filtro de tipo
                 if (filterStatus === '*') {
-                    filterType = '*'; // Limpiar el filtro de tipos
-                    $('.type-filter a').removeClass(
-                        'active');
+                    filterType = '*';
+                    $('.type-filter a').removeClass('active').removeClass('types selected');
                 }
                 applyFilter();
             });
@@ -323,11 +348,12 @@
             // Filtrado por tipo usando los enlaces dentro de .type-filter
             $('.type-filter a').click(function(e) {
                 e.preventDefault();
-                $('.type-filter a').removeClass('active');
-                $(this).addClass('active');
+                var $this = $(this);
 
-                var selectedFilter = $(this).attr('data-filter');
-                filterType = selectedFilter || '*';
+                // Alternar clase activa y zoom en el enlace de tipo
+                toggleActiveClass($this, '.type-filter a', 'types', 'selected');
+
+                filterType = $this.hasClass('active') ? $this.attr('data-filter') : '*';
                 applyFilter();
             });
         });

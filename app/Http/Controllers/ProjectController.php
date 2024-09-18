@@ -806,6 +806,7 @@ class ProjectController extends Controller
 
             $milestones = $groupMilestonesByStatus($allmilestones, $objUser);
             $project_id = -1;
+
         } else {
             // Mostrar hitos de un proyecto específico o de un usuario
             $project = Project::find($id);
@@ -817,7 +818,6 @@ class ProjectController extends Controller
                 $project_id = $project->id;
             }
         }
-
 
         return view('projects.milestoneboard', compact('currentWorkspace', 'milestones', 'stages', 'statusClass', 'project_id'));
     }
@@ -1970,11 +1970,11 @@ class ProjectController extends Controller
         );
 
         $timesheet = Timesheet::find($timesheetID);
-        // $timesheet->project_id = $request->project_id;
+        $timesheet->project_id = $request->project_id;
         // $timesheet->task_id = $request->task_id;
         $timesheet->date = $request->date;
         $timesheet->time = $request->time;
-        // $timesheet->description = $request->description;
+        $timesheet->description = $request->description;
         $timesheet->save();
 
         return redirect()->back()->with('success', __('Timesheet Updated Successfully!'));

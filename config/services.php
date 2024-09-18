@@ -51,7 +51,7 @@ return [
         'client_secret' => env('AZURE_CLIENT_SECRET'),
         'redirect' => env('AZURE_REDIRECT_URI'),
         'tenant' => env('AZURE_TENANT_ID', 'common'),
-        'scope' => 'openid profile email User.Read',
+        'scopes' => ['openid', 'profile', 'User.Read','User.Read.All'],
     ],
 
 ];

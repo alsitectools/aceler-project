@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 @php
+    // dd($currentWorkspace);
     $logo = \App\Models\Utility::get_file('logo/');
     if (Auth::user()->type == 'admin') {
         $setting = App\Models\Utility::getAdminPaymentSettings();
@@ -44,7 +45,8 @@
     \Carbon\Carbon::setLocale($lang);
 
 @endphp
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+{{-- <html lang="{{ str_replace('_', '-', app()->getLocale()) }}"> --}}
+<html lang="{{ config('app.locale') }}">
 
 <head>
 

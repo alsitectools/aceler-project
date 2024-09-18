@@ -56,6 +56,20 @@
     box-sizing: border-box;
 }
 
+.types {
+    width: 95%;
+    background-color: #f0f0f0;
+    transition: transform 0.3s ease-in-out;
+    box-sizing: border-box;
+}
+
+.types.selected {
+    transform: scale(1.5);
+    transform-origin: left;
+    font-weight: bold;
+}
+
+
 .zoom:hover {
     transform: scale(1.05);
 }

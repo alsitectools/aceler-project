@@ -46,7 +46,7 @@
             <div class="row kanban-wrapper horizontal-scroll-cards" data-toggle="dragula"
                 data-containers='{{ json_encode($statusClass) }}' data-handleclass="handleclass">
                 @foreach ($stages as $status)
-                    <div class="col-3 ps-1 pe-1" id="{{ 'milestone-list-' . str_replace(' ', '_', $status->id) }}">
+                    <div class="col-3 pe-1" id="{{ 'milestone-list-' . str_replace(' ', '_', $status->id) }}">
                         <div class="card card-list">
                             <div class="card-header">
                                 <div class="float-end">
@@ -128,15 +128,15 @@
                                                                         $dateClass = $isLate ? 'danger' : 'success';
                                                                         $icon =
                                                                             $dateClass == 'danger'
-                                                                                ? '<i class="fa-solid fa-hourglass-end ms-1 fa-xs text-' .
+                                                                                ? '<i class="fa-solid fa-hourglass-end fa-xs text-' .
                                                                                     $dateClass .
                                                                                     '"></i>'
-                                                                                : '<i class="fa-solid fa-hourglass-start fa-xs ms-1 p-0 m-0 text-' .
+                                                                                : '<i class="fa-solid fa-hourglass-start fa-xs p-0 m-0 text-' .
                                                                                     $dateClass .
                                                                                     '"></i>';
                                                                     @endphp
 
-                                                                    {!! $icon !!} <p class="mb-2 col-md-8 ms-2">
+                                                                    {!! $icon !!} <p class="mb-2 col-md-8">
                                                                         {{ $task['name'] }} </p>
 
                                                                     @if ($project_id != -1)
