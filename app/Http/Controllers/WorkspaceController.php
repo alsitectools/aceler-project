@@ -44,7 +44,7 @@ class WorkspaceController extends Controller
             [
                 'created_by' => $objUser->id,
                 'name' => $request->name,
-                'currency' => 'USD',
+                'currency' => 'EUR',
             ]
         );
 
@@ -55,105 +55,12 @@ class WorkspaceController extends Controller
                 'permission' => 'Owner',
             ]
         );
-
         $objUser->currant_workspace = $objWorkspace->id;
         $objUser->save();
 
         return redirect()->route('home', $objWorkspace->slug)->with('success', __('Workspace Created Successfully!'));
     }
 
-
-    //    public function destroy($workspaceID)
-    // { 
-    //     $objUser   = Auth::user();
-    //     $workspace = Workspace::find($workspaceID);
-    //     $all_workspaces = Workspace::get();
-
-
-    //     if($workspace->created_by == $objUser->id)
-    //     {
-
-    //       if(count($all_workspaces) > 1)
-    //        {
-    //         UserWorkspace::where('workspace_id', '=', $workspaceID)->delete();
-    //         Stage::where('workspace_id', '=', $workspaceID)->delete(); 
-    //         $workspace->delete();
-    //         $work_space = Workspace::first();
-
-    //          UserWorkspace::create(
-    //                 [
-    //                     'user_id' => $objUser->id,
-    //                     'workspace_id' => $work_space->id,
-    //                     'permission' => 'Owner',
-    //                 ]
-    //             );
-    //          $objUser->currant_workspace = $work_space->id;
-    //          $objUser->save();
-
-    //        }
-    //     else
-    //     {
-    //       return redirect()->back()->with('error', __("You can't delete Workspace!"));
-    //     }
-    //         return redirect()->route('home')->with('success', __('Workspace Deleted Successfully!'));
-    //     }
-    //     else
-    //     {
-    //         return redirect()->route('home')->with('error', __("You can't delete Workspace!"));
-    //     }
-    // }
-
-    // Old 
-    // public function destroy($workspaceID)
-    // {
-    //     $objUser   = Auth::user();
-    //     $workspace = Workspace::find($workspaceID);
-    //     $all_workspaces = Workspace::get();
-
-
-    //     if ($workspace->created_by == $objUser->id) {
-    //         if (count($all_workspaces) > 1) {
-
-    //             UserWorkspace::where('workspace_id', '=', $workspaceID)->delete();
-    //             Stage::where('workspace_id', '=', $workspaceID)->delete();
-    //             $workspace->delete();
-    //             $work_space = Workspace::first();
-
-    //             $objUser->currant_workspace = $work_space->id;
-    //             $objUser->save();
-    //         } else {
-    //             return redirect()->back()->with('error', __("You can't delete Workspace!"));
-    //         }
-    //         return redirect()->route('home')->with('success', __('Workspace Deleted Successfully!'));
-    //     } else {
-    //         return redirect()->route('home')->with('error', __("You can't delete Workspace!"));
-    //     }
-    // }
-
-    // public function destroy($workspaceID)
-    // {
-    //     $objUser   = Auth::user();
-    //     $workspace = Workspace::find($workspaceID);
-    //     $all_workspaces = Workspace::where('created_by','=',Auth::user()->id)->get();
-    //     if ($workspace->created_by == $objUser->id) {
-
-    //         if (count($all_workspaces) > 1) {
-
-    //             UserWorkspace::where('workspace_id', '=', $workspaceID)->delete();
-    //             Stage::where('workspace_id', '=', $workspaceID)->delete();
-    //             $workspace->delete();
-    //             $work_space = Workspace::where('created_by','=',Auth::user()->id)->first();
-
-    //             $objUser->currant_workspace = $work_space->id;
-    //             $objUser->save();
-    //         } else {
-    //             return redirect()->back()->with('error', __("You can't delete Workspace!"));
-    //         }
-    //         return redirect()->route('home')->with('success', __('Workspace Deleted Successfully!'));
-    //     } else {
-    //         return redirect()->route('home')->with('error', __("You can't delete Workspace!"));
-    //     }
-    // }
 
     public function destroy($workspaceID)
     {
@@ -190,56 +97,6 @@ class WorkspaceController extends Controller
             return redirect()->route('home')->with('error', __("You can't delete Workspace!"));
         }
     }
-
-
-    //  Old
-    // public function leave($workspaceID)
-    // {
-
-    //     $objUser = Auth::user();
-    //     $all_workspaces = Workspace::get();
-    //     $userProjects = Project::where('workspace', '=', $workspaceID)->get();
-    //     // dd(count($all_workspaces));
-
-
-    //     if (count($all_workspaces) > 1) {
-            
-    //         $work_space = Workspace::first();
-
-    //         $user_Project = Project::where('workspace', '=', $work_space->id)->get();
-
-    //         foreach ($userProjects as $userProject) {
-    //             UserProject::where('project_id', '=', $userProject->id)->where('user_id', '=', $objUser->id)->delete();
-    //         }
-
-    //         UserWorkspace::where('workspace_id', '=', $workspaceID)->where('user_id', '=', $objUser->id)->delete();
-
-
-    //         foreach ($user_Project as $userProject_s) {
-    //             UserProject::create(
-    //                 [
-    //                     'user_id' => $objUser->id,
-    //                     'project_id' => $userProject_s->id,
-
-    //                 ]
-    //             );
-    //         }
-
-    //         UserWorkspace::create(
-    //             [
-    //                 'user_id' => $objUser->id,
-    //                 'workspace_id' => $work_space->id,
-    //                 'permission' => 'Owner',
-    //             ]
-    //         );
-    //         $objUser->currant_workspace = $work_space->id;
-    //         $objUser->save();
-    //     } else {
-    //         return redirect()->back()->with('error', __("You can't delete Workspace!"));
-    //     }
-
-    //     return redirect()->route('home')->with('success', __('Workspace Leave Successfully!'));
-    // }
 
     public function leave($workspaceID)
     {

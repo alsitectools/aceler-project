@@ -43,7 +43,7 @@
     </div>
     <div class="col-lg-auto pb-3">
         <a href="{{ route('projects.timesheet.index', [$currentWorkspace->slug, $project->id]) }}"
-            class="btn btn-primary btn-task-milestone" title="{{ __('dictionary.Tasks') }}"><i
+            class="btn btn-primary btn-task-milestone" title="{{ __('Tasks') }}"><i
                 class="fas fa-tasks text-white"></i>{{ __('Tasks') }}</a>
     </div>
 @endsection

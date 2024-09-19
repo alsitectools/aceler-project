@@ -657,6 +657,7 @@ progress {
     border-radius: 10px;
     max-width: 100%;
     height: auto;
+    margin-left: 15% !important;
 }
 
 .figure {
