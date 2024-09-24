@@ -22,7 +22,7 @@
         "laravel/framework": "^10.10",
         "laravel/jetstream": "^2.12",
         "laravel/sanctum": "^3.3",
-        "laravel/socialite": "^5.15",
+        "laravel/socialite": "^5.16",
         "laravel/tinker": "^2.8",
         "laravel/ui": "^4.1",
         "laravelcollective/html": "^6.1",

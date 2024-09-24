@@ -241,13 +241,13 @@ class UserController extends Controller
 
         if ($currentWorkspace) {
             //añadido
-            $users =  User::where('currant_workspace','=',$currentWorkspace->id)->where('type','=','user');
+            $users =  User::where('currant_workspace', '=', $currentWorkspace->id)->where('type', '=', 'user');
 
             // $users = User::select('users.*', 'user_workspaces.permission', 'user_workspaces.is_active')
             //     ->join('user_workspaces', 'user_workspaces.user_id', '=', 'users.id');
             // $users->where('user_workspaces.workspace_id', '=', $currentWorkspace->id);
             // $users->where('type', 'user')/*->orWhere('type', 'admin') */;
-             $users = $users->get();
+            $users = $users->get();
         } else {
             //añadido
             $users = User::select('users.*')->join('user_workspaces', 'user_workspaces.user_id', '=', 'users.id')
@@ -484,8 +484,10 @@ class UserController extends Controller
     {
         $user = Auth::user();
         $currentWorkspace = Utility::getWorkspaceBySlug('');
+        $workspaces = Workspace::select('id', 'name')->get();
+        $anotherWorkspaces = UserWorkspace::where('user_id', '=', $user->id)->pluck('workspace_id')->toArray();
 
-        return view('users.account', compact('currentWorkspace', 'user'));
+        return view('users.account', compact('currentWorkspace', 'user', 'workspaces', 'anotherWorkspaces'));
     }
 
     public function edit($slug, $id)

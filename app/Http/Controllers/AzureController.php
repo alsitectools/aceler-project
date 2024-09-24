@@ -21,7 +21,6 @@ class AzureController extends Controller
     public function handleAzureCallback()
     {
         try {
-            // Después de autenticar al usuario y obtener el token
             $azureUser = Socialite::driver('azure')->user();
             $token = $azureUser->token;
 
@@ -36,13 +35,10 @@ class AzureController extends Controller
             if ($response->getStatusCode() !== 200) {
                 throw new \Exception('Error al obtener los datos del perfil de usuario');
             }
-
             // Convertir la respuesta JSON a un array PHP
             $userProfile = json_decode($response->getBody()->getContents(), true);
 
             $user = $this->findOrcreate($userProfile);
-
-            // Iniciar sesión automáticamente con el usuario
             Auth::login($user, true);
 
             return redirect()->intended('/');
@@ -104,24 +100,31 @@ class AzureController extends Controller
                     break;
 
                 default:
+                
                     break;
             }
 
-            //department puede ser "BU Texas"
-            if (strpos($department, '/') !== false) {
-                //ex. department= "BU Texas/Técnico" ó "CU Producto/Sistemas"
-                $arrayCUorBU = explode('/', $department);
-                $despuesDelSlash = $arrayCUorBU[1]; // "Técnico"
-                $type = $despuesDelSlash === 'Técnico' || 'Sistemas' || 'I+D' ? 'user' : 'client';
-            }
-            if (strpos($department, '/') === false && str_starts_with($department, 'BU')) {
-                $arrayDepartment = explode(' ', $department); //"BU Texas"
-                $workspace = $arrayDepartment[1]; // "Texas"
-                $type = 'user';
-            }
+            // Si es la central
+            if (isset($department) && str_starts_with($department, 'BU')) {
 
-            //Si no empieza por BU el workspace lo buscamos en la BBDD
-            $workspace = Workspace::select('id')->where('name', $location)->first();
+                if (strpos($department, '/') === false) {
+                    $workspaceName = explode(' ', $department); //"BU Texas"
+                    $name = $workspaceName[1];
+                    $type = 'user';
+                } else {
+                    $arrayDepartment = explode('/', $department); //"BU Texas/Administracion"
+                    $workspaceName = explode(' ', $arrayDepartment[0]); //"BU Texas"
+                    $name = $workspaceName[1]; //Texas
+                    $type = in_array($arrayDepartment[1], ['Técnico', 'Sistemas', 'I+D']) ? 'user' : 'client';
+                }
+
+                $workspace = Workspace::select('id')->where('name', $name)->first();
+            } else {
+                $arrayDepartment = explode('/', $department);
+
+                $type = in_array($arrayDepartment[1], ['Técnico', 'Sistemas', 'I+D']) ? 'user' : 'client';
+                $workspace = Workspace::select('id')->where('name', $location)->first();
+            }
 
             // Si el usuario no existe, lo creamos
             $user = User::create([
@@ -138,7 +141,7 @@ class AzureController extends Controller
                 'currant_workspace' => $workspace->id, // Integer
                 'email_verified_at' => now(),
             ]);
-            
+
             UserWorkspace::create([
                 'user_id' => $user->id,
                 'workspace_id' => $user->currant_workspace,
