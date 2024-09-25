@@ -8,9 +8,6 @@ storage/debugbar
 storage/framework
 routes/probas.php
 routes/probas.blade.php
-storage/logs/laravel.log
 node_modules/
 storage/logs
-.env
-C:/xampp/htdocs/project/.env
-C:/xampp/htdocs/project/storage/logs/laravel.log
+
