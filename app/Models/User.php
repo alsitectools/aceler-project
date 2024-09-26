@@ -33,9 +33,9 @@ class User extends Authenticatable implements MustVerifyEmail
                 'type',
                 'currant_workspace',
                 'email_verified_at',
-                'lang',    
-                'avatar',  
-            ];
+                'lang',
+                'avatar',
+        ];
 
         /**
          * The attributes that should be hidden for arrays.
@@ -71,7 +71,13 @@ class User extends Authenticatable implements MustVerifyEmail
 
         public function workspace()
         {
-                return $this->belongsToMany('App\Models\Workspace', 'user_workspaces', 'user_id', 'workspace_id')->withPivot('permission');
+                return $this->hasMany(UserWorkspace::class);
+        }
+        public function workspaces()
+        {
+                return    UserWorkspace::join('workspaces', 'user_workspaces.workspace_id', '=', 'workspaces.id')
+                        ->where('user_workspaces.user_id', '=', $this->id)
+                        ->select('user_workspaces.*', 'workspaces.name as name')->get();
         }
 
         public function currentWorkspace()

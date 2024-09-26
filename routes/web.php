@@ -354,6 +354,7 @@ Route::prefix('client')->as('client.')->group(function () {
   Route::get('/{slug}/invoices', [InvoiceController::class, 'index'])->name('invoices.index')->middleware(['auth:client', 'XSS']);
   Route::get('/{slug}/invoices/{id}', [InvoiceController::class, 'show'])->name('invoices.show')->middleware(['auth:client', 'XSS']);
   Route::post('/{slug}/invoices/{id}/payment', [InvoiceController::class, 'addPayment'])->name('invoice.payment')->middleware(['auth:client', 'XSS']);
+
   Route::get('/workspace/{id}', [WorkspaceController::class, 'changeCurrentWorkspace'])->name('change-workspace')->middleware(['auth:client', 'XSS']);
 
   Route::get('/{slug}/calendar/{id?}', [CalenderController::class, 'index'])->name('calender.index')->middleware(['auth:client', 'XSS']);
@@ -586,7 +587,10 @@ Route::post('/workspace/{slug}/settings', [WorkspaceController::class, 'settings
 Route::post('/workspace', [WorkspaceController::class, 'store'])->name('add-workspace')->middleware(['auth', 'XSS']);
 Route::delete('/workspace/{id}', [WorkspaceController::class, 'destroy'])->name('delete-workspace')->middleware(['auth', 'XSS']);
 Route::delete('/workspace/leave/{id}', [WorkspaceController::class, 'leave'])->name('leave-workspace')->middleware(['auth', 'XSS']);
-Route::get('/workspace/{id}', [WorkspaceController::class, 'changeCurrentWorkspace'])->name('change-workspace')->middleware(['auth', 'XSS']);
+Route::get('/workspace/{id}', [WorkspaceController::class, 'changeCurrentWorkspace'])->name('changeWorkspace')->middleware(['auth', 'XSS']);
+Route::get('/home/changeWorkspace/{id}', [WorkspaceController::class, 'changeWorkspace'])->name('change-workspace')->middleware(['auth', 'XSS']);
+//agregar workspace como currant_workspace
+Route::get('/workspace/{id}', [WorkspaceController::class, 'addWorkspace'])->name('addWorkspace')->middleware(['auth', 'XSS']);
 Route::post('/workspace/settings/seo', [SettingsController::class, 'seosetting'])->name('settings.seo.store')->middleware(['auth', 'XSS']);
 
 

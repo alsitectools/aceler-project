@@ -45,13 +45,10 @@
     if ($SITE_RTL == '' || $SITE_RTL == null) {
         $SITE_RTL = env('SITE_RTL');
     }
-
     $currantLang = basename(App::getLocale());
-    // $currantLang = Auth::user()->lang;
     if ($currantLang == '') {
-        $currantLang = 'en';
+        $currantLang = 'es';
     }
-    // dump($currantLang);
 @endphp
 
 
@@ -89,121 +86,29 @@
                         <i class="ti ti-chevron-down drp-arrow nocolor hide-mob"></i>
                     </a>
                     <div class="dropdown-menu dash-h-dropdown">
-                        @php $login_status = false; @endphp
 
-                        @foreach (Auth::user()->workspace as $workspace)
-                            {{-- @dump($workspace)  --}}
-                            @if ($workspace->is_active)
-                                @php
-                                    $user = Auth::user();
-                                    $userWorkspace = App\Models\UserWorkspace::where([
-                                        ['user_id', $user->id],
-                                        ['workspace_id', $workspace->id],
-                                    ])->first();
-                                @endphp
-                                @if (isset($userWorkspace))
-                                    @if ($userWorkspace->is_active == 1)
-                                        @php
-                                            $login_status = true;
-                                        @endphp
-                                        <a href="@if ($currentWorkspace->id == $workspace->id) #@else @auth('web'){{ route('change-workspace', $workspace->id) }}@elseauth{{ route('client.change-workspace', $workspace->id) }}@endauth @endif"
-                                            title="{{ $workspace->name }}" class="dropdown-item">
-                                            @if ($currentWorkspace->id == $workspace->id)
-                                                <i class="ti ti-checks text-success"></i>
-                                            @endif
-                                            <span>{{ $workspace->name }}</span>
-                                            @if (isset($workspace->pivot->permission))
-                                                @if ($workspace->pivot->permission == 'Owner')
-                                                    <span
-                                                        class="badge bg-primary">{{ __($workspace->pivot->permission) }}</span>
-                                                @else
-                                                    <span class="badge bg-dark">{{ __('Shared') }}</span>
-                                                @endif
-                                            @endif
-                                        </a>
+                        @foreach (Auth::user()->workspaces() as $workspace)
+                            @if (Auth::user()->id == $workspace->user_id)
+                                <a href="{{ route('change-workspace', $workspace->workspace_id) }}"
+                                    id="change-workspace" class="dropdown-item">
+                                    <span>{{ $workspace->name }}</span>
+                                    @if ($currentWorkspace->id == $workspace->workspace_id)
+                                        <i class="ti ti-checks text-success ms-3"></i>
                                     @endif
-                                @endif
+                                </a>
                             @else
                                 <a href="#" class="dropdown-item" title="{{ __('Locked') }}">
                                     <i class="ti ti-lock"></i>
                                     <span>{{ $workspace->name }}</span>
-                                    @if (isset($workspace->pivot->permission))
-                                        @if ($workspace->pivot->permission == 'Owner')
-                                            <span
-                                                class="badge badge-success-primary">{{ __($workspace->pivot->permission) }}</span>
-                                        @else
-                                            <span class="badge bg-dark">{{ __('Shared') }}</span>
-                                        @endif
-                                    @endif
                                 </a>
                             @endif
                         @endforeach
 
-                        {{-- For Client  --}}
-                        @if (Auth::user()->getGuard() == 'client')
-                            @php
-                                $client = Auth::user();
-                            @endphp
-                            @foreach ($client->workspace as $workspace)
-                                @if ($workspace->is_active == 1)
-                                    @php
-                                        $clientWorkspace = App\Models\ClientWorkspace::where([
-                                            ['client_id', $client->id],
-                                            ['workspace_id', $workspace->id],
-                                        ])->first();
-                                    @endphp
-                                    @if (isset($clientWorkspace))
-                                        @php
-                                            $login_status = true;
-                                        @endphp
-                                        @if ($clientWorkspace->is_active == 1)
-                                            <a href="@if ($currentWorkspace->id == $workspace->id) #@else @auth('web'){{ route('change-workspace', $workspace->id) }}@elseauth{{ route('client.change-workspace', $workspace->id) }}@endauth @endif"
-                                                title="{{ $workspace->name }}" class="dropdown-item">
-                                                @if ($currentWorkspace->id == $workspace->id)
-                                                    <i class="ti ti-checks text-success"></i>
-                                                @endif
-                                                <span>{{ $workspace->name }}</span>
-                                                @if (isset($workspace->pivot->permission))
-                                                    @if ($workspace->pivot->permission == 'Owner')
-                                                        <span
-                                                            class="badge bg-primary">{{ __($workspace->pivot->permission) }}</span>
-                                                    @else
-                                                        <span class="badge bg-dark">{{ __('Shared') }}</span>
-                                                    @endif
-                                                @endif
-                                            </a>
-                                        @endif
-                                    @endif
-                                @endif
-                            @endforeach
-
-                        @endif
-
-                        @if (isset($currentWorkspace) && $currentWorkspace)
-                            @auth('web')
-                                @if (Auth::user()->id == 'admin')
-                                    <a href="#" class="dropdown-item bs-pass-para"
-                                        data-confirm="{{ __('Are You Sure?') }}"
-                                        data-text="{{ __('messages.This_action_can_not_be_undone._Do_you_want_to_continue?') }}"
-                                        data-confirm-yes="remove-workspace-form">
-                                        <i class="ti ti-circle-x"></i>
-                                        <span>{{ __('Remove Me From This Workspace') }}</span>
-                                    </a>
-                                    <form id="remove-workspace-form"
-                                        action="{{ route('delete-workspace', ['id' => $currentWorkspace->id]) }}"
-                                        method="POST" style="display: none;">
-                                        @csrf
-                                        @method('DELETE')
-                                    </form>
-                                @endif
-                            @endauth
-                        @endif
                         <a href="@auth('web'){{ route('users.my.account') }}@elseauth{{ route('client.users.my.account') }}@endauth"
                             class="dropdown-item">
                             <i class="ti ti-user"></i>
                             <span>{{ __('My Profile') }}</span>
                         </a>
-
                         <a href="#" class="dropdown-item "
                             onclick="event.preventDefault();document.getElementById('logout-form1').submit();">
                             <i class="ti ti-power"></i>
@@ -216,203 +121,160 @@
                         </form>
                     </div>
                 </li>
-
-
             </ul>
         </div>
         <!-- Brand + Toggler (for mobile devices) -->
 
         <div class="ms-auto">
             <ul class="list-unstyled" style="padding-right: 15px;">
-                @if (Auth::user()->type == 'admin')
-                    @impersonating($guard = null)
-                        <li class="dropdown dash-h-item drp-company">
-                            <a class="btn btn-danger btn-sm me-3" href="{{ route('exit.admin') }}"><i
-                                    class="ti ti-ban"></i>
-                                {{ __('Exit Admin Login') }}
-                            </a>
-                        </li>
-                    @endImpersonating
-                @endif
-                @if (\Auth::user()->type == 'user')
-                    @if ($adminSetting['enable_chat'] == 'on')
-                        <li class="dash-h-item">
-                            <a class="dash-head-link me-0" href="{{ url('chats') }}">
-                                <i class="ti ti-message-circle"></i>
-                                <span
-                                    class="bg-danger dash-h-badge message-counter custom_messanger_counter">{{ $unseenCounter }}<span
-                                        class="sr-only"></span>
-                                </span></a>
-                        </li>
-                    @endif
-                @endif
 
-
-                @if (\Auth::user()->type == 'user')
-                    <li class="dropdown dash-h-item drp-notification">
-                        @if (isset($currentWorkspace) && $currentWorkspace)
-                            @auth('web')
-                                @php
-                                    $notifications = Auth::user()->notifications($currentWorkspace->id);
-                                @endphp
-                                <a class="dash-head-link dropdown-toggle arrow-none me-0" data-bs-toggle="dropdown"
-                                    href="#" role="button" aria-haspopup="false" aria-expanded="false">
-
-                                    <i class="ti ti-bell"></i>
-                                    <span
-                                        class="@if (count($notifications) > 0) bg-danger dash-h-badge dots @endif"><span
-                                            class="sr-only"></span></span>
-                                </a>
-                                <div class="dropdown-menu dash-h-dropdown dropdown-menu-end notification_menu_all">
-                                    <div class="noti-header">
-                                        <h5 class="m-0">{{ __('dictionary.Notification') }}</h5>
-                                        <a href="#"
-                                            data-url="{{ route('delete_all.notifications', $currentWorkspace->slug) }}"
-                                            class="dash-head-link clear_all_notifications">{{ __('dictionary.Clear_All') }}</a>
-                                    </div>
-                                    <div class="noti-body">
-                                        <div class="limited">
-                                            @foreach ($notifications as $notification)
-                                                @php
-                                                    $project = $notification->project;
-                                                    $task = $notification->task;
-                                                    $notifyingUser = $notification->user;
-
-                                                    // Define variables for the notification data
-                                                    $projectTitle = $project ? $project->title : '';
-                                                    $taskTitle = $task ? $task->title : '';
-                                                    $notifyingUserName = $notifyingUser->name;
-
-                                                    // Define other variables you need for HTML
-                                                    $link = ''; // Replace with the actual link
-                                                    $name = ''; // Replace with the notification icon or name
-                                                    $text = ''; // Replace with the notification text
-                                                    $date = $notification->created_at->diffForHumans();
-                                                    $data = json_decode($notification->data);
-                                                @endphp
-                                                @if ($notification->user && trim($notification->user->name) != '')
-                                                    @php
-                                                        $name = '';
-                                                        $nameParts = explode(' ', $notification->user->name);
-                                                    @endphp
-
-                                                    @foreach ($nameParts as $word)
-                                                        @php
-                                                            $name .= strtoupper($word[0]);
-                                                        @endphp
-                                                    @endforeach
-                                                @endif
-
-                                                @if ($notification->type == 'task_assign')
-                                                    @php
-                                                        if ($project) {
-                                                            $link = route('projects.task.board', [
-                                                                $notification->workspace_id,
-                                                                $notification->project_id,
-                                                            ]);
-                                                            $text =
-                                                                __('New task assign') .
-                                                                ' <b>' .
-                                                                $data->title .
-                                                                '</b> ' .
-                                                                __('in project') .
-                                                                ' <b>' .
-                                                                $project->name .
-                                                                '</b>';
-                                                            $icon = 'fa fa-clock-o';
-                                                        } else {
-                                                            return '';
-                                                        }
-                                                    @endphp
-                                                @elseif($notification->type == 'project_assign')
-                                                    @php
-                                                        $link = route('projects.show', [
-                                                            $notification->workspace_id,
-                                                            $notification->data->id,
-                                                        ]);
-                                                        $text =
-                                                            __('New project assign') . ' <b>' . $data->title . '</b>';
-                                                        $icon = 'fa fa-suitcase';
-                                                    @endphp
-                                                @elseif($notification->type == 'bug_assign')
-                                                    @php
-                                                        if ($project) {
-                                                            $link = route('projects.bug.report', [
-                                                                $notification->workspace_id,
-                                                                $notification->project_id,
-                                                            ]);
-                                                            $text =
-                                                                __('New bug assign') .
-                                                                ' <b>' .
-                                                                $data->title .
-                                                                '</b> ' .
-                                                                __('in project') .
-                                                                ' <b>' .
-                                                                $project->name .
-                                                                '</b>';
-                                                            $icon = 'fa fa-bug';
-                                                            //   if ($data->priority == 'Low') {
-                                                            //       $icon_color = 'bg-success';
-                                                            //   } elseif ($data->priority == 'High') {
-                                                            //       $icon_color = 'bg-danger';
-                                                            //   }
-                                                        }
-                                                    @endphp
-                                                @endif
-                                                <a href="{{ $link }}"
-                                                    class="list-group-item list-group-item-action">
-                                                    <div class="d-flex align-items-center" data-toggle="tooltip"
-                                                        data-placement="right" data-title="{{ $date }}">
-                                                        <div class="notification_icon_size">
-                                                            <span
-                                                                class="avatar bg-primary text-white rounded-circle px-2 py-1">{{ $name }}</span>
-                                                        </div>
-                                                        <div class="flex-fill ml-3">
-                                                            <div class="h6 text-sm mb-0">
-                                                                {{ $notification->user->name }}
-                                                                <small
-                                                                    class="float-end text-muted">{{ $date }}</small>
-                                                            </div>
-                                                            <p class="text-sm lh-140 mb-0">
-                                                                {!! $text !!}
-                                                            </p>
-                                                        </div>
-                                                    </div>
-                                                </a>
-                                            @endforeach
-                                        </div>
-
-                                        <div class="all_notification">
-
-                                        </div>
-
-                                        {{-- <div class="all_notification" style="display:none !important;">
-                                            @foreach ($all_notifications as $notification)
-                                                {!! $notification->toHtml() !!}
-                                            @endforeach
-                                        </div> --}}
-                                    </div>
-                                    {{-- <div class="noti-footer">
-                                        <div class="d-grid">
-                                            <a href="#"
-                                                class="btn dash-head-link justify-content-center text-primary mx-0 view_all_notification"
-                                                data-limit="3">View
-                                                all</a>
-                                            <a href="#"
-                                                class="btn dash-head-link justify-content-center text-primary mx-0 view_less"
-                                                style="display:none !important;">View less</a>
-
-                                        </div>
-                                    </div> --}}
-                                </div>
-                            @endauth
-                        @endif
+                @if ($adminSetting['enable_chat'] == 'on')
+                    <li class="dash-h-item">
+                        <a class="dash-head-link me-0" href="{{ url('chats') }}">
+                            <i class="ti ti-message-circle"></i>
+                            <span
+                                class="bg-danger dash-h-badge message-counter custom_messanger_counter">{{ $unseenCounter }}<span
+                                    class="sr-only"></span>
+                            </span></a>
                     </li>
                 @endif
 
+                <li class="dropdown dash-h-item drp-notification">
+                    @if (isset($currentWorkspace) && $currentWorkspace)
+                        @auth('web')
+                            @php
+                                $notifications = Auth::user()->notifications($currentWorkspace->id);
+                            @endphp
+                            <a class="dash-head-link dropdown-toggle arrow-none me-0" data-bs-toggle="dropdown"
+                                href="#" role="button" aria-haspopup="false" aria-expanded="false">
+
+                                <i class="ti ti-bell"></i>
+                                <span class="@if (count($notifications) > 0) bg-danger dash-h-badge dots @endif"><span
+                                        class="sr-only"></span></span>
+                            </a>
+                            <div class="dropdown-menu dash-h-dropdown dropdown-menu-end notification_menu_all">
+                                <div class="noti-header">
+                                    <h5 class="m-0">{{ __('Notification') }}</h5>
+                                    <a href="#"
+                                        data-url="{{ route('delete_all.notifications', $currentWorkspace->slug) }}"
+                                        class="dash-head-link clear_all_notifications">{{ __('Clear all') }}</a>
+                                </div>
+                                <div class="noti-body">
+                                    <div class="limited">
+                                        @foreach ($notifications as $notification)
+                                            @php
+                                                $project = $notification->project;
+                                                $task = $notification->task;
+                                                $notifyingUser = $notification->user;
+
+                                                // Define variables for the notification data
+                                                $projectTitle = $project ? $project->title : '';
+                                                $taskTitle = $task ? $task->title : '';
+                                                $notifyingUserName = $notifyingUser->name;
+
+                                                // Define other variables you need for HTML
+                                                $link = ''; // Replace with the actual link
+                                                $name = ''; // Replace with the notification icon or name
+                                                $text = ''; // Replace with the notification text
+                                                $date = $notification->created_at->diffForHumans();
+                                                $data = json_decode($notification->data);
+                                            @endphp
+                                            @if ($notification->user && trim($notification->user->name) != '')
+                                                @php
+                                                    $name = '';
+                                                    $nameParts = explode(' ', $notification->user->name);
+                                                @endphp
+
+                                                @foreach ($nameParts as $word)
+                                                    @php
+                                                        $name .= strtoupper($word[0]);
+                                                    @endphp
+                                                @endforeach
+                                            @endif
+
+                                            @if ($notification->type == 'task_assign')
+                                                @php
+                                                    if ($project) {
+                                                        $link = route('projects.task.board', [
+                                                            $notification->workspace_id,
+                                                            $notification->project_id,
+                                                        ]);
+                                                        $text =
+                                                            __('New task assign') .
+                                                            ' <b>' .
+                                                            $data->title .
+                                                            '</b> ' .
+                                                            __('in project') .
+                                                            ' <b>' .
+                                                            $project->name .
+                                                            '</b>';
+                                                        $icon = 'fa fa-clock-o';
+                                                    } else {
+                                                        return '';
+                                                    }
+                                                @endphp
+                                            @elseif($notification->type == 'project_assign')
+                                                @php
+                                                    $link = route('projects.show', [
+                                                        $notification->workspace_id,
+                                                        $notification->data->id,
+                                                    ]);
+                                                    $text = __('New project assign') . ' <b>' . $data->title . '</b>';
+                                                    $icon = 'fa fa-suitcase';
+                                                @endphp
+                                            @elseif($notification->type == 'bug_assign')
+                                                @php
+                                                    if ($project) {
+                                                        $link = route('projects.bug.report', [
+                                                            $notification->workspace_id,
+                                                            $notification->project_id,
+                                                        ]);
+                                                        $text =
+                                                            __('New bug assign') .
+                                                            ' <b>' .
+                                                            $data->title .
+                                                            '</b> ' .
+                                                            __('in project') .
+                                                            ' <b>' .
+                                                            $project->name .
+                                                            '</b>';
+                                                        $icon = 'fa fa-bug';
+                                                    }
+                                                @endphp
+                                            @endif
+                                            <a href="{{ $link }}" class="list-group-item list-group-item-action">
+                                                <div class="d-flex align-items-center" data-toggle="tooltip"
+                                                    data-placement="right" data-title="{{ $date }}">
+                                                    <div class="notification_icon_size">
+                                                        <span
+                                                            class="avatar bg-primary text-white rounded-circle px-2 py-1">{{ $name }}</span>
+                                                    </div>
+                                                    <div class="flex-fill ml-3">
+                                                        <div class="h6 text-sm mb-0">
+                                                            {{ $notification->user->name }}
+                                                            <small class="float-end text-muted">{{ $date }}</small>
+                                                        </div>
+                                                        <p class="text-sm lh-140 mb-0">
+                                                            {!! $text !!}
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            </a>
+                                        @endforeach
+                                    </div>
+
+                                    <div class="all_notification">
+                                    </div>
+
+                                </div>
+                            </div>
+                        @endauth
+                    @endif
+                </li>
+
                 <li class="dropdown dash-h-item drp-language">
-                    <a class="dash-head-link dropdown-toggle arrow-none me-0" data-bs-toggle="dropdown"
-                        href="#" role="button" aria-haspopup="false" aria-expanded="false">
+                    <a class="dash-head-link dropdown-toggle arrow-none me-0" data-bs-toggle="dropdown" href="#"
+                        role="button" aria-haspopup="false" aria-expanded="false">
                         <i class="ti ti-world nocolor"></i>
                         <span
                             class="drp-text hide-mob">{{ ucfirst(\App\Models\Utility::getlang_fullname($currantLang)) }}</span>
@@ -457,8 +319,3 @@
         </div>
     </div>
 </header>
-@if (\Auth::user()->type != 'admin' && $login_status == false)
-    <script>
-        document.getElementById('logout-form1').submit();
-    </script>
-@endif
