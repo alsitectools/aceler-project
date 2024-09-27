@@ -8,6 +8,7 @@
     <li class="breadcrumb-item"> {{ __('User Profile') }}</li>
 @endsection
 @php
+
     $logo = \App\Models\Utility::get_file('avatars/');
 @endphp
 @section('content')
@@ -140,14 +141,13 @@
                                         @foreach ($workspaces as $workspace)
                                             <div class="col-md-4 mb-2">
                                                 <div class="form-check form-switch">
-                                                    <div class="form-check form-switch">
-                                                        <input class="form-check-input" type="checkbox" role="switch"
-                                                            id="workspaceCheckbox-{{ $workspace->id }}"
-                                                            onchange="addWorkspace({{ $workspace->id }})"
-                                                            @if (in_array($workspace->id, $anotherWorkspaces)) checked @endif>
-                                                        {{ $workspace->name }}
-                                                    </div>
+                                                    <input class="form-check-input" type="checkbox" role="switch"
+                                                        id="workspaceCheckbox-{{ $workspace->id }}"
+                                                        onchange="workspaceManager({{ $workspace->id }})"
+                                                        @if (in_array($workspace->id, $anotherWorkspaces)) checked @endif>
+                                                    {{ $workspace->name }}
                                                 </div>
+
                                             </div>
                                         @endforeach
                                     </div>
@@ -160,6 +160,7 @@
         </div> <!-- end row -->
     @endsection
     @push('scripts')
+     
         <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
         <script type="text/javascript">
             $('#avatar').change(function() {
@@ -169,18 +170,30 @@
                     $('#myAvatar').attr('src', e.target.result);
                 }
                 reader.readAsDataURL(this.files[0]);
-
             });
 
-            function addWorkspace(workspaceId) {
+            function workspaceManager(workspaceId) {
+                let isChecked = document.getElementById(`workspaceCheckbox-${workspaceId}`).checked;
+
+                let url = isChecked ?
+                    '{{ route('addWorkspace', ':id') }}'.replace(':id', workspaceId) :
+                    '{{ route('leave-workspace', ':id') }}'.replace(':id', workspaceId);
+
+                let method = isChecked ? 'GET' : 'DELETE';
+
                 $.ajax({
-                    url: '{{ route('addWorkspace', ':id') }}'.replace(':id', workspaceId),
-                    type: 'GET',
+                    url: url,
+                    type: method,
+                    beforeSend: function(xhr) {
+                        xhr.setRequestHeader('X-CSRF-TOKEN', $('meta[name="csrf-token"]').attr('content'));
+                    },
                     success: function(response) {
                         location.reload();
+
                     },
                     error: function(response) {
-                        console.error("Error al actualizar el estado del workspace");
+                        location.reload();
+
                     }
                 });
             }

@@ -70,14 +70,47 @@ class WorkspaceController extends Controller
             [
                 'user_id' => $objUser->id,
                 'workspace_id' => $objWorkspace->id,
-                'is_active' => 0,
+                'is_active' => 1,
                 'permission' => 'Member',
             ]
         );
 
         return redirect()->route('home')->with('success', __('Workspace add Successfully!'));
     }
+    public function changeWorkspace($id)
+    {
+        $workspace = Workspace::find($id);
 
+        if ($workspace) {
+            $user = Auth::user();
+            $user->currant_workspace = $workspace->id;
+            $user->save();
+            return redirect()->back()->with('success', __('Workspace change Successfully!'));
+        } else {
+            return redirect()->back()->with('error', __('Workspace is locked'));
+        }
+    }
+
+    public function leave($workspaceID)
+    {
+        $objUser = Auth::user();
+        $objWorkspace = Workspace::find($workspaceID);
+        $all_workspaces = UserWorkspace::where('user_id', '=', $objUser->id)->get();
+
+        if ($objWorkspace && count($all_workspaces) > 1) {
+            UserWorkspace::where('workspace_id', '=', $objWorkspace->id)->where('user_id', '=', $objUser->id)->delete();
+
+            $otherWorkspace = UserWorkspace::where('user_id', '=', $objUser->id)->first();
+
+            $objUser->currant_workspace = $otherWorkspace->workspace_id;
+            $objUser->save();
+
+            return redirect()->route('home')->with('success', __('Workspace leave Successfully!'));
+        } else {
+
+            return redirect()->route('home')->with('error', __('“You cannot leave this workspace, as you currently only belong to this one and must have at least one assigned to you.”!!'));
+        }
+    }
 
     public function destroy($workspaceID)
     {
@@ -115,67 +148,21 @@ class WorkspaceController extends Controller
         }
     }
 
-    public function leave($workspaceID)
-    {
-        $objUser = Auth::user();
-        $all_workspaces = UserWorkspace::where('user_id', '=', Auth::user()->id)->get();
-        $userProjects = Project::where('workspace', '=', $workspaceID)->get();
 
-        if (count($all_workspaces) > 1) {
-            $work_space = Workspace::first();
-            $user_Project = Project::where('workspace', '=', $work_space->id)->get();
+    // public function changeCurrentWorkspace($workspaceID)
+    // {
+    //     $objWorkspace = Workspace::find($workspaceID);
 
-            foreach ($userProjects as $userProject) {
-                UserProject::where('project_id', '=', $userProject->id)->where('user_id', '=', $objUser->id)->delete();
-            }
-            UserWorkspace::where('workspace_id', '=', $workspaceID)->where('user_id', '=', $objUser->id)->delete();
+    //     if ($objWorkspace && $objWorkspace->is_active) {
+    //         $objUser                    = \Auth::user();
+    //         $objUser->currant_workspace = $workspaceID;
+    //         $objUser->save();
 
-            $work_space = UserWorkspace::where('user_id', '=', Auth::user()->id)->first();
-            $objUser->currant_workspace = $work_space->workspace_id;
-            $objUser->save();
-        } else {
-            return redirect()->route('home')->with('error', __('You Can Not Leave the Workspace. Please Contact Your Company!!!'));
-
-            foreach ($userProjects as $userProject) {
-                UserProject::where('project_id', '=', $userProject->id)->where('user_id', '=', $objUser->id)->delete();
-            }
-            UserWorkspace::where('workspace_id', '=', $workspaceID)->where('user_id', '=', $objUser->id)->delete();
-            $user = User::find($objUser->id);
-            $user->delete();
-
-            return redirect()->back()->with('Sussess', __("Workspace Leave Successfully!"));
-        }
-
-        return redirect()->route('home')->with('success', __('Workspace Leave Successfully!'));
-    }
-
-    public function changeCurrentWorkspace($workspaceID)
-    {
-        $objWorkspace = Workspace::find($workspaceID);
-
-        if ($objWorkspace && $objWorkspace->is_active) {
-            $objUser                    = \Auth::user();
-            $objUser->currant_workspace = $workspaceID;
-            $objUser->save();
-
-            return redirect()->route('home')->with('success', __('Workspace add Successfully!'));
-        } else {
-            return redirect()->back()->with('error', __('Workspace is locked'));
-        }
-    }
-    public function changeWorkspace($id)
-    {
-        $workspace = Workspace::find($id);
-
-        if ($workspace) {
-            $user = Auth::user();
-            $user->currant_workspace = $workspace->id;
-            $user->save();
-            return redirect()->back()->with('success', __('Workspace add Successfully!'));
-        } else {
-            return redirect()->back()->with('error', __('Workspace is locked'));
-        }
-    }
+    //         return redirect()->route('home')->with('success', __('Workspace change Successfully!'));
+    //     } else {
+    //         return redirect()->back()->with('error', __('Workspace is locked'));
+    //     }
+    // }
 
     public function changeLangAdmin($lang)
     {

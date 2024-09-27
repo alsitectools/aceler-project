@@ -45,7 +45,7 @@
     \Carbon\Carbon::setLocale($lang);
 
 @endphp
-{{-- <html lang="{{ str_replace('_', '-', app()->getLocale()) }}"> --}}
+{{-- <html lang="{{ str_replace('_', '-', app()->getLocale()) }}" dir="{{ $SITE_RTL == 'on' ? 'rtl' : '' }}"> --}}
 <html lang="{{ config('app.locale') }}">
 
 <head>
@@ -62,7 +62,7 @@
 
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website">
-    <meta property="og:url" content="{{ env('APP_URL') }}">
+    <meta property="og:url" content= "{{ env('APP_URL') }}">
     <meta property="og:title" content="{{ $meta_setting['meta_keywords'] }}">
     <meta property="og:description" content="{{ $meta_setting['meta_description'] }}">
     <meta property="og:image" content="{{ asset($meta_images . $meta_setting['meta_image']) }}">
@@ -82,13 +82,6 @@
         @endif
     </title>
 
-
-    @if (Auth::user()->type == 'admin')
-        <link rel="shortcut icon" href="{{ asset($logo . 'favicon.png' . '?' . time()) }}">
-    @else
-        <link rel="shortcut icon"
-            href="@if ($currentWorkspace->favicon) {{ asset($logo . $currentWorkspace->favicon . '?' . time()) }}@else{{ asset($logo . 'favicon.png' . '?' . time()) }} @endif">
-    @endif
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <link rel="stylesheet" href="{{ asset('assets/css/plugins/style.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/css/plugins/flatpickr.min.css') }}">
@@ -102,19 +95,6 @@
     <link rel="stylesheet" href="{{ asset('assets/css/plugins/animate.min.css') }}" />
     <link rel="stylesheet" href="{{ asset('assets/custom/libs/summernote/summernote-bs4.css') }}">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
-    <!-- Select2 CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-beta.1/dist/css/select2.min.css" rel="stylesheet" />
-
-    <!-- jQuery (requerido para Select2) -->
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-
-    <!-- Select2 JS -->
-    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-beta.1/dist/js/select2.min.js"></script>
-
-
-    <!-- Importa Select2 CSS -->
-
-    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
     <!-- vendor css -->
     @stack('css-page')
 
@@ -164,25 +144,14 @@
 @endif
 
 <style type="text/css">
-    /*------------ tipo de fuente coorporativa -------------- */
-    /* @font-face {
-
-        font-family: 'Nexa-ExtraLight';
-        src: url("./public/assets/fonts/nexa/Nexa-ExtraLight.otf") format("opentype");
-        font-weight: normal;
-        font-style: normal;
-    }
-
-    * {
-        font-family: 'Nexa-ExtraLight' !important;
-        font-size: 18px;
-    } */
-
-    /* ----------------------------------------------------- */
     [dir="rtl"] .dash-sidebar {
         left: auto !important;
     }
 
+    /* [dir="rtl"] .dash-header {
+    left: 0;
+    right: 280px;
+} */
     [dir="rtl"] .dash-header:not(.transprent-bg) .header-wrapper {
         padding: 0 0 0 30px;
     }
@@ -214,9 +183,7 @@
         float: left !important;
     }
 </style>
-{{-- --------- CHATBOT ------------ --}}
-@include('layouts.chatbot')
-{{-- ---------------------------- --}}
+
 
 <body class="{{ $color }}">
 
@@ -226,6 +193,8 @@
             <div class="loader-fill"></div>
         </div>
     </div>
+
+    <!-- <div class="container-fluid container-application"> -->
     @if (Auth::user()->getGuard() == 'client')
         <input type="hidden" id="path_admin"
             value="{{ url(isset($currentWorkspace) ? 'client/' . $currentWorkspace->slug : '') }}">
@@ -235,7 +204,6 @@
     @endif
 
     <div class="bg-primary" id="color_chart"></div>
-
     <script>
         var element = document.querySelector('#color_chart');
         var style = getComputedStyle(element);
@@ -246,10 +214,10 @@
                 previous: "<i class='fas fa-angle-left'>",
                 next: "<i class='fas fa-angle-right'>"
             },
-            lengthMenu: "{{ trans('messages.Show') }} _MENU_ {{ __('entries') }}",
+            lengthMenu: "{{ __('Show') }} _MENU_ {{ __('entries') }}",
             zeroRecords: "{{ __('No data available in table.') }}",
-            info: "{{ trans('messages.Showing') }} _START_ {{ trans('messages.to') }} _END_ {{ __('of') }} _TOTAL_ {{ __('entries') }}",
-            infoEmpty: "{{ trans('messages.Showing_0_to_0_of_0_entries') }}",
+            info: "{{ __('Showing') }} _START_ {{ __('to') }} _END_ {{ __('of') }} _TOTAL_ {{ __('entries') }}",
+            infoEmpty: "{{ __('Showing 0 to 0 of 0 entries') }}",
             infoFiltered: "{{ __('(filtered from _MAX_ total entries)') }}",
             search: "{{ __('Search:') }}",
             thousands: ",",
@@ -260,7 +228,6 @@
     @include('partials.sidebar')
 
     @include('partials.topnav')
-
     <div class="dash-container">
         <div class="dash-content">
             <!-- [ breadcrumb ] start -->
@@ -281,12 +248,10 @@
                                 </div>
                                 <div class="col header_breadcrumb me-3">
                                     @if (trim($__env->yieldContent('action-button')))
-                                        <!-- <div class="col-xl-6 col-lg-2 col-md-4 col-sm-6 col-6 pt-lg-3 pt-xl-2"> -->
                                         <div
                                             class="text-end  all-button-box justify-content-md-end justify-content-center ">
                                             @yield('action-button')
                                         </div>
-                                        <!-- </div> -->
                                     @elseif(trim($__env->yieldContent('multiple-action-button')))
                                         <div class=" row text-end row d-flex justify-content-end col-auto ">
                                             @yield('multiple-action-button')</div>
@@ -360,10 +325,15 @@
                 </div>
                 <div class="modal-body">
                 </div>
+
             </div>
         </div>
     </div>
 
+    @php
+        \App::setLocale(env('DEFAULT_LANG'));
+        $currantLang = 'es';
+    @endphp
 
     <script src="{{ asset('assets/custom/js/site.core.js') }}"></script>
     <script src="{{ asset('assets/custom/libs/moment/min/moment.min.js') }}"></script>
@@ -428,15 +398,6 @@
 
 
     <script>
-        /*============================BOTON DEBUGBAR================================*/
-        document.addEventListener("DOMContentLoaded", function() {
-            var debugBar = document.getElementsByClassName("phpdebugbar")[0];
-            if (debugBar) {
-                debugBar.remove();
-            }
-        });
-        /*========================================================================*/
-
         $(document).on("click", ".clear_all_notifications", function() {
 
             var chbox = $(this);
@@ -470,7 +431,6 @@
         });
     </script>
 
-
     @if (env('CHAT_MODULE') == 'yes' && isset($currentWorkspace) && $currentWorkspace)
         @auth('web')
             {{-- Pusher JS --}}
@@ -488,13 +448,14 @@
                             'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                         }
                     });
+
+                    // Enable pusher logging - don't include this in production
                     Pusher.logToConsole = false;
 
-                    var pusher = new Pusher(
-                        '{{ env(' PUSHER_APP_KEY ') }}', {
-                            cluster: '{{ env('PUSHER_APP_CLUSTER ') }}',
-                            forceTLS: true
-                        });
+                    var pusher = new Pusher('{{ env('PUSHER_APP_KEY') }}', {
+                        cluster: '{{ env('PUSHER_APP_CLUSTER') }}',
+                        forceTLS: true
+                    });
 
                     var channel = pusher.subscribe('{{ $currentWorkspace->slug }}');
                     channel.bind('notification', function(data) {
@@ -530,7 +491,7 @@
 
                 $(document).on("click", ".mark_all_as_read", function() {
                     $.ajax({
-                        url: '{{ route('notification.seen ', $currentWorkspace->slug) }}',
+                        url: '{{ route('notification.seen', $currentWorkspace->slug) }}',
                         type: "get",
                         cache: false,
                         success: function(data) {
@@ -541,7 +502,7 @@
                 });
                 $(document).on("click", ".mark_all_as_read_message", function() {
                     $.ajax({
-                        url: '{{ route('message.seen ', $currentWorkspace->slug) }}',
+                        url: '{{ route('message.seen', $currentWorkspace->slug) }}',
                         type: "get",
                         cache: false,
                         success: function(data) {
@@ -635,47 +596,56 @@
     <script src="{{ asset('assets/custom/js/ac-alert.js') }}"></script>
     <script src="{{ asset('assets/custom/js/letter.avatar.js') }}"></script>
     <script src="{{ asset('assets/custom/js/fire.modal.js') }}"></script>
-
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/autosize.js/4.0.2/autosize.min.js"></script>
     <script src="{{ asset('assets/js/plugins/simple-datatables.js') }}"></script>
     <script>
         const dataTable = new simpleDatatables.DataTable("#selection-datatable");
     </script>
 
+    <!-- Demo JS - remove it when starting your project -->
+    {{-- <script src="{{ asset('assets/js/demo.js') }}"></script> --}}
+
     <script>
         var date_picker_locale = {
             format: 'YYYY-MM-DD',
             daysOfWeek: [
-                "{{ __('Sun') }}", "{{ __('Mon') }}", "{{ __('Tue') }}",
-                "{{ __('Wed') }}", "{{ __('Thu') }}", "{{ __('Fri') }}",
+                "{{ __('Sun') }}",
+                "{{ __('Mon') }}",
+                "{{ __('Tue') }}",
+                "{{ __('Wed') }}",
+                "{{ __('Thu') }}",
+                "{{ __('Fri') }}",
                 "{{ __('Sat') }}"
             ],
             monthNames: [
-                '{{ __('January') }}',
-                '{{ __('February ') }}',
-                ' {{ __('March ') }}',
-                '{{ __('April ') }}',
-                '{{ __('May ') }}',
-                '{{ __('June ') }}',
-                '{{ __('July ') }}',
-                '{{ __('August ') }}',
-                '{{ __('September ') }}',
-                '{{ __('October ') }}',
-                '{{ __('November ') }}',
-                ' {{ __('December ') }}'
+                "{{ __('January') }}",
+                "{{ __('February') }}",
+                "{{ __('March') }}",
+                "{{ __('April') }}",
+                "{{ __('May') }}",
+                "{{ __('June') }}",
+                "{{ __('July') }}",
+                "{{ __('August') }}",
+                "{{ __('September') }}",
+                "{{ __('October') }}",
+                "{{ __('November') }}",
+                "{{ __('December') }}"
             ],
         };
         var calender_header = {
-            today: '{{ __('today ') }}',
-            month: '{{ __(' month ') }}',
-            week: '{{ __('week ') }}',
-            day: '{{ __(' day ') }}',
-            list: '{{ __('list ') }}'
+            today: "{{ __('today') }}",
+            month: '{{ __('month') }}',
+            week: '{{ __('week') }}',
+            day: '{{ __('day') }}',
+            list: '{{ __('list') }}'
         };
     </script>
+
 
     @if ($meta_setting['enable_cookie'] == 'on')
         @include('layouts.cookie_consent')
     @endif
+
 
     @if (isset($currentWorkspace) && $currentWorkspace)
         <script src="{{ asset('assets/custom/js/jquery.easy-autocomplete.min.js') }}"></script>
@@ -686,12 +656,14 @@
                         phrase;
                 },
                 categories: [{
-                    listLocation: "Projects",
-                    header: "{{ __('Projects') }}"
-                }, {
-                    listLocation: "Tasks",
-                    header: "{{ __('Tasks') }}"
-                }],
+                        listLocation: "Projects",
+                        header: "{{ __('Projects') }}"
+                    },
+                    {
+                        listLocation: "Tasks",
+                        header: "{{ __('Tasks') }}"
+                    }
+                ],
                 getValue: "text",
                 template: {
                     type: "links",
@@ -731,16 +703,12 @@
     {{-- @stack('script-page') --}}
     @if (Session::has('success'))
         <script>
-            show_toastr(
-                '{{ __(' Success ') }}',
-                '{!! session('success ') !!}', 'success');
+            show_toastr('{{ __('Success') }}', '{!! session('success') !!}', 'success');
         </script>
     @endif
     @if (Session::has('error'))
         <script>
-            show_toastr(
-                '{{ __('Error ') }}',
-                '{!! session('error ') !!}', 'error');
+            show_toastr('{{ __('Error') }}', '{!! session('error') !!}', 'error');
         </script>
     @endif
     <script></script>

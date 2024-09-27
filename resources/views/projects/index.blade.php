@@ -7,6 +7,7 @@
     <li class="breadcrumb-item"> {{ __('Projects') }}</li>
 @endsection
 @php
+
     $logo = \App\Models\Utility::get_file('avatars/');
 @endphp
 
@@ -14,6 +15,7 @@
     <link rel="stylesheet" href="{{ asset('assets/css/index_projects.css') }}">
 </head>
 @section('action-button')
+
     <div class="d-flex justify-content-end">
         <div class="d-flex col-sm-7">
             <div class="dropdown dash-h-item">
@@ -126,14 +128,11 @@
                                         </div>
                                         <div class="card-body p-3">
                                             <div class="card-text text-muted d-flex">
-                                                <div class="col-md-2 tooltipCus" data-title="{{ __('Country') }}">
-                                                    <i class="fa-regular fa-building"></i>
+                                                <div class="col-md-2 tooltipCus" data-title="{{ __('BU') }}">
+                                                    <i class="fa-solid fa-location-dot"></i>
                                                     {{ $currentWorkspace->name }}
                                                 </div>
-                                                <div class="col-md-4 tooltipCus" data-title="{{ __('Branch') }}">
-                                                    <i class="fa-solid fa-location-dot"></i>
-                                                    {{ 'Montacada i Reixach' }}
-                                                </div>
+
                                                 <div class="col-md-2 text-end">
                                                     @if ($users = $project->users)
                                                         @foreach ($users as $key => $user)
@@ -155,7 +154,7 @@
                                                     @endif
                                                 </div>
                                             </div>
-                                            <div class="card-text mt-1">
+                                            <div class="card-text mt-2">
                                                 <small class="text-body-secondary tooltipCus"
                                                     data-title="{{ __('Update') }}">
                                                     {{ __('Last updated') }}{{ ' ' . $project->updated_at->diffForHumans() }}
@@ -185,7 +184,6 @@
                             @endauth
                         </div>
                         <hr class="mt-3" style="border: 1px solid black; opacity: 0.100; width: 95%">
-
                         <div class="mt-4">
                             <h5><i class="bi bi-filter"></i> {{ __('Filter by') }}</h5>
                             <div class="type-filter">
@@ -194,9 +192,7 @@
                                         <a href="#" class="types m-2 filter-link"
                                             data-filter=".type-{{ $type->id }}"
                                             style="background-color: transparent;">
-
                                             <b class="text-muted m-1">{{ $type->name }}</b>
-
                                         </a>
                                     </div>
                                 @endforeach
@@ -241,7 +237,7 @@
                                     <div class="page-search">
                                         <p class="text-muted mt-3">
                                             {{ __("It's looking like you may have taken a wrong turn. Don't worry...
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    it happens to the best of us. Here's a little tip that might help you get back on track.") }}
+                                                                                        it happens to the best of us. Here's a little tip that might help you get back on track.") }}
                                         </p>
                                         <div class="mt-3">
                                             <a class="btn-return-home badge-blue" href="{{ route('home') }}"><i

@@ -28,8 +28,7 @@ function show_toastr(title, message, type) {
         icon = 'fas fa-times-circle';
         cls = 'danger';
     }
-
-    console.log(type, cls);
+    // console.log("Tipo:", type, "Clase:", cls, "Mensaje:", message);
     $.notify({ icon: icon, title: " " + title, message: message, url: "" }, {
         element: "body",
         type: cls,
