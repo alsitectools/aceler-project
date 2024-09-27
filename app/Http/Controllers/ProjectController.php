@@ -61,20 +61,12 @@ class ProjectController extends Controller
             ->where('projects.workspace', '=', $currentWorkspace->id)->get();
         $project_type = ProjectType::select('id', 'name')->get();
 
+        $result = DB::connection('acelerdb')->select('SELECT DATABASE() AS db');
+        Log::info(['result' => $result]);
+
         return view('projects.index', compact('currentWorkspace', 'projects', 'project_type'));
     }
 
-    // public function search(Request $request)
-    // {
-    //     $query = $request->input('query');
-
-    //     // Buscar proyectos basados en el término de búsqueda
-    //     $projects = Project::where('name', 'LIKE', "%$query%")
-    //         ->orWhere('ref_mo', 'LIKE', "%$query%") // Incluye búsqueda por 'reference_mo'
-    //         ->get();
-
-    //     return redirect()->back()->with('projects', $projects)->with('query', $query);
-    // }
 
     public function autocomplete(Request $request)
     {
@@ -125,6 +117,9 @@ class ProjectController extends Controller
         }
     }
 
+
+
+    public function mo_store() {}
     public function store($slug, Request $request)
     {
         $objUser = Auth::user();
@@ -806,7 +801,6 @@ class ProjectController extends Controller
 
             $milestones = $groupMilestonesByStatus($allmilestones, $objUser);
             $project_id = -1;
-
         } else {
             // Mostrar hitos de un proyecto específico o de un usuario
             $project = Project::find($id);
