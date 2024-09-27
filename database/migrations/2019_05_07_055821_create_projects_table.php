@@ -17,7 +17,6 @@ class CreateProjectsTable extends Migration
             $table->bigIncrements('id');
             $table->string('name');
             $table->string('ref_mo')->nullable();
-            $table->string('bussines_unit')->nullable(); // añadido
             $table->string('type');
             $table->enum('status', ['Ongoing', 'Finished', 'OnHold'])->default('Ongoing');
             $table->date('start_date')->nullable();
