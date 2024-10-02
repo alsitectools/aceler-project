@@ -8,6 +8,6 @@ use Illuminate\Database\Eloquent\Model;
 class MasterObra extends Model
 {
     protected $fillable = [
-        'ref_mo', 'name'
+        'ref_mo', 'name','business_unit','status','enterprise_id','project_id'
     ];
 }
