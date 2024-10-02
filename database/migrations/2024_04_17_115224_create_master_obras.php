@@ -13,8 +13,11 @@ return new class extends Migration
     {
         Schema::create('master_obras', function (Blueprint $table) {
             $table->bigIncrements('id');
-            $table->string('ref_mo');
+            $table->string('ref_mo'); // work_id
             $table->string('name');
+            $table->string('business_unit');
+            $table->string('status');
+            $table->integer('enterprise_id');
             $table->integer('project_id')->default(0);
             $table->timestamps();
         });

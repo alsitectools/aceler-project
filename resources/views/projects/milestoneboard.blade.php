@@ -6,6 +6,7 @@
     use App\Models\User;
     use App\Models\Milestone;
     use App\Models\Task;
+
 @endphp
 @section('page-title')
     {{ __('Milestoneboard') }}

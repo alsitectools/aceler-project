@@ -802,7 +802,6 @@ class ProjectController extends Controller
 
             $milestones = $groupMilestonesByStatus($allmilestones, $objUser);
             $project_id = -1;
-
         } else {
             // Mostrar hitos de un proyecto específico o de un usuario
             $project = Project::find($id);
