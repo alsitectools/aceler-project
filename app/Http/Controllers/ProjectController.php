@@ -86,10 +86,6 @@ class ProjectController extends Controller
             ->where('workspace', $workspace)
             ->get(['id', 'name']);
 
-
-        // Depuración: Verifica los resultados de la consulta
-        \Log::info('Projects: ' . $projects->toJson());
-
         return response()->json($projects);
     }
 
