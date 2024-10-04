@@ -1,3 +1,4 @@
+/* Estilo base */
 .hight_img {
     max-width: 30px !important;
     max-height: 30px !important;
@@ -29,7 +30,6 @@
 .tooltipCus:hover::after {
     visibility: visible;
     opacity: 1;
-
 }
 
 .foot-milestone {
@@ -38,7 +38,6 @@
     flex-wrap: nowrap;
     justify-content: center;
     align-items: center;
-
 }
 
 .taskList {
@@ -48,7 +47,6 @@
     flex-wrap: nowrap;
     align-items: baseline;
     justify-content: space-evenly;
-
 }
 
 .statusDate {
@@ -66,4 +64,80 @@
     text-align: center;
     padding-right: 1%;
     align-items: center;
+}
+
+/* Responsive Styles */
+
+/* Pantallas menores de 768px (tablets y móviles) */
+@media (max-width: 768px) {
+    .hight_img {
+        max-width: 20px !important;
+        max-height: 20px !important;
+    }
+
+    .tooltipCus::after {
+        font-size: 12px;
+        left: 50%;
+        transform: translateX(-50%);
+    }
+
+    .foot-milestone {
+        flex-wrap: wrap;
+        flex-direction: column;
+    }
+
+    .taskList {
+        flex-wrap: wrap;
+        justify-content: center;
+        height: auto;
+    }
+
+    .statusDate {
+        margin: 2%;
+        flex-direction: row;
+        justify-content: space-around;
+    }
+
+    .addMilestone {
+        width: 100%;
+        justify-content: space-around !important;
+        padding-right: 0;
+    }
+}
+
+/* Pantallas menores de 480px (móviles pequeños) */
+@media (max-width: 480px) {
+    .hight_img {
+        max-width: 15px !important;
+        max-height: 15px !important;
+    }
+
+    .tooltipCus::after {
+        font-size: 10px;
+        left: 50%;
+        transform: translateX(-50%);
+    }
+
+    .foot-milestone {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .taskList {
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .statusDate {
+        margin: 1%;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .addMilestone {
+        width: 100%;
+        padding-right: 0;
+        justify-content: center !important;
+    }
 }

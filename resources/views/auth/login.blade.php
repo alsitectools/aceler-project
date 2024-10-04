@@ -66,7 +66,7 @@
                         </p>
                     </a>
                 </div>
-                <a href="#" class="mt-3 text-center mb-5" data-bs-toggle="modal" data-bs-target="#exampleModal">
+                <a href="#" class="mt-3 text-center mb-5 m-2" data-bs-toggle="modal" data-bs-target="#exampleModal">
                     {{ __('Login whit admin') }}
                 </a>
             </div>

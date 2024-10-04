@@ -47,10 +47,10 @@
 <nav style="padding-top: 5px; padding-left: 5px;"
     class="dash-sidebar light-sidebar {{ isset($cust_theme_bg) && $cust_theme_bg == 'on' ? 'transprent-bg' : '' }}">
     <div class="navbar-wrapper">
-        <div class="m-header main-logo">
+        <div class="m-header">
             <a href="{{ route('home') }}" class="b-brand">
                 <img class="img-fluid" src="{{ asset('assets/img/logoSidebar.png') }}" alt="logo"
-                    style="width: 220px; border-radius: 7px !important;" />
+                    style="width: 250px;" />
             </a>
         </div>
         <div class="navbar-content">

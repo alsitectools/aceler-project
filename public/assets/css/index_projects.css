@@ -15,10 +15,15 @@
     z-index: 1;
     bottom: 100%;
     left: 60%;
-    transform: translateX(-5%);
+    transform: translateX(-10%);
     opacity: 0;
     transition: opacity 0.3s;
     white-space: nowrap;
+}
+
+.search-element {
+    display: flex;
+
 }
 
 .tooltipCus:hover::after {

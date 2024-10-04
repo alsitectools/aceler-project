@@ -21,7 +21,7 @@
             @if ($project_id == -1)
                 <div class="col-sm-auto">
                     <button id="add_task" type="button" class="btn btn-primary add_task" data-ajax-popup="true"
-                    data-size="lg" data-title="{{ __('Create New Task') }}"
+                        data-size="lg" data-title="{{ __('Create New Task') }}"
                         data-url="{{ route('timesheet.create', $currentWorkspace->slug) }}" title="{{ __('Add Task') }}"><i
                             class="fa-solid fa-thumbtack"></i>
                         {{ __('Add Task on Timesheet') }}</button>
@@ -236,18 +236,5 @@
         align-items: center;
         justify-content: space-around !important;
         width: 320px;
-    }
-
-    @media (max-width: 1300px) {
-        .header_breadcrumb {
-            width: 100% !important;
-
-        }
-
-        .row1 {
-            display: flex;
-            flex-wrap: wrap;
-        }
-
     }
 </style>

@@ -66,14 +66,20 @@ class WorkspaceController extends Controller
         $objUser = Auth::user();
         $objWorkspace = Workspace::find($workspaceid);
 
-        UserWorkspace::create(
-            [
-                'user_id' => $objUser->id,
-                'workspace_id' => $objWorkspace->id,
-                'is_active' => 1,
-                'permission' => 'Member',
-            ]
-        );
+        $user_workspace = UserWorkspace::where('user_id', $objUser->id)
+            ->where('workspace_id', $objWorkspace->id)
+            ->first();
+
+        if (!$user_workspace) {
+            UserWorkspace::create(
+                [
+                    'user_id' => $objUser->id,
+                    'workspace_id' => $objWorkspace->id,
+                    'is_active' => 0,
+                    'permission' => 'Member',
+                ]
+            );
+        }
 
         return redirect()->route('home')->with('success', __('Workspace add Successfully!'));
     }
@@ -81,15 +87,38 @@ class WorkspaceController extends Controller
     {
         $workspace = Workspace::find($id);
 
-        if ($workspace) {
-            $user = Auth::user();
-            $user->currant_workspace = $workspace->id;
-            $user->save();
-            return redirect()->back()->with('success', __('Workspace change Successfully!'));
+        $user = Auth::user();
+        $oldWorkspaceId = $user->currant_workspace;
+
+        // Cambio al nuevo workspace
+        $user->currant_workspace = $workspace->id;
+        $user->save();
+
+        $currantUserWorkspace = UserWorkspace::where('user_id', $user->id)
+            ->where('workspace_id', $user->currant_workspace)
+            ->first();
+
+        if ($currantUserWorkspace) {
+            // Activo el nuevo workspace
+            $currantUserWorkspace->is_active = 1;
+            $currantUserWorkspace->save();
+
+            // Desactiva el antiguo workspace
+            $oldUserWorkspace = UserWorkspace::where('user_id', $user->id)
+                ->where('workspace_id', $oldWorkspaceId)
+                ->first();
+
+            if ($oldUserWorkspace) {
+                $oldUserWorkspace->is_active = 0;
+                $oldUserWorkspace->save();
+            }
+
+            return redirect()->back()->with('success', __('Workspace changed successfully!'));
         } else {
-            return redirect()->back()->with('error', __('Workspace is locked'));
+            return redirect()->back()->with('error', __('Workspace is locked or does not exist.'));
         }
     }
+
 
     public function leave($workspaceID)
     {

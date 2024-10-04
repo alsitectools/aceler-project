@@ -15,30 +15,31 @@
     <link rel="stylesheet" href="{{ asset('assets/css/index_projects.css') }}">
 </head>
 @section('action-button')
-
-    <div class="d-flex justify-content-end">
+    <div class="d-flex justify-content-end me-2">
         <div class="d-flex col-sm-7">
             <div class="dropdown dash-h-item">
-                <a class="dash-head-link dropdown-toggle arrow-none ms-0" data-bs-toggle="dropdown" href="#"
-                    role="button" aria-haspopup="false" aria-expanded="false">
-                    <img src="{{ asset('assets/img/search.png') }}" style="width: 40px; height: 40px;"
-                        alt="{{ __('Search') }}">
-                </a>
-                <div class="dropdown-menu dash-h-dropdown drp-search drp-search-custom">
+                <div class="dropdown-menu drp-search drp-search-custom searchInputProjects"
+                    data-popper-placement="bottom-start">
                     <form class="form-inline mr-auto mb-0">
-                        <div class="search-element" style="width: 300px !important;">
-                            <input type="type here" placeholder="{{ __('Enter name or reference M.O') }}"
-                                aria-label="Search" class="custom-search-input">
+                        <div class="search-element">
+                            <div class="d-flex">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="15" fill="currentColor"
+                                    class="bi bi-search ms-4 mt-3 me-2" viewBox="0 0 16 16">
+                                    <path
+                                        d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001q.044.06.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1 1 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0" />
+                                </svg>
+                                <input type="text" id="searchInput" placeholder="{{ __('Enter name or reference M.O') }}"
+                                    aria-label="Search" class="custom-search-input">
+                            </div>
                             <div class="search-backdrop"></div>
                         </div>
                     </form>
                 </div>
             </div>
         </div>
-
         @auth('web')
             <div class="col-sm-5">
-                <div class="text-sm-right status-filter">
+                <div class="divStatus">
                     <div class="btn-group status-filter">
                         <button type="button" data-filter="*" class="btn btn-light text-white btn_tab bg-primary active"
                             data-filter="*" data-status="All">{{ __('All') }}</button>
@@ -128,7 +129,7 @@
                                         </div>
                                         <div class="card-body p-3">
                                             <div class="card-text text-muted d-flex">
-                                                <div class="col-md-2 tooltipCus" data-title="{{ __('BU') }}">
+                                                <div class="col-md-6 tooltipCus" data-title="{{ __('BU') }}">
                                                     <i class="fa-solid fa-location-dot"></i>
                                                     {{ $currentWorkspace->name }}
                                                 </div>
@@ -237,7 +238,7 @@
                                     <div class="page-search">
                                         <p class="text-muted mt-3">
                                             {{ __("It's looking like you may have taken a wrong turn. Don't worry...
-                                                                                        it happens to the best of us. Here's a little tip that might help you get back on track.") }}
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     it happens to the best of us. Here's a little tip that might help you get back on track.") }}
                                         </p>
                                         <div class="mt-3">
                                             <a class="btn-return-home badge-blue" href="{{ route('home') }}"><i
@@ -256,6 +257,22 @@
 @if (isset($currentWorkspace) && $currentWorkspace)
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="{{ asset('assets/custom/js/jquery.easy-autocomplete.min.js') }}"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+
+            const input = document.getElementById('searchInput');
+            const autocompleteContainer = document.getElementById('eac-container-searchInput');
+
+            input.addEventListener('input', function() {
+                console.log('letras en el input:', this.value.trim().length);
+                if (this.value.trim().length > 0) {
+                    autocompleteContainer.style.display = 'block';
+                } else {
+                    autocompleteContainer.style.display = 'none';
+                }
+            });
+        });
+    </script>
     <script>
         jQuery(document).ready(function($) {
             var options = {
@@ -282,11 +299,6 @@
 @push('scripts')
     <script src="{{ asset('assets/custom/js/isotope.pkgd.min.js') }}"></script>
     <script>
-        // $(document).ready(function() {
-        //     $('.types').click(function() {
-        //         $(this).toggleClass('selected');
-        //     });
-        // });
         $(document).ready(function() {
             // Verificar si Isotope está disponible
             if (typeof $.fn.isotope === 'undefined') {
