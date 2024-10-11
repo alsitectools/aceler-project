@@ -11,7 +11,8 @@
                     </td>
                     @foreach ($days['datePeriod'] as $key => $perioddate)
                         <td class="wid-100 header-days" style="background-color: transparent !important;">
-                            <b>{{ ucfirst($perioddate->isoFormat('ddd DD MMM')) }}</b></td>
+                            <b>{{ ucfirst($perioddate->isoFormat('ddd DD MMM')) }}</b>
+                        </td>
                     @endforeach
                     <td class="wid-100 header-days" style="background-color: transparent !important;">
                         <b>{{ __('Total') }}</b>
@@ -53,13 +54,13 @@
                                                                 <hr class="border border-2 opacity-50">
                                                             </td>
                                                             @foreach ($milestone['taskArray'] as $taskKey => $taskTimesheet)
-                                                                <tr>
+                                                                <tr colspan="9" class="weekRow">
                                                                     @if (Auth::user()->type != 'admin')
-                                                                        <td style="white-space: normal; width: 160px !important;">
+                                                                        <td class="wid-150">
                                                                             <div data-title="{{ __('Task') }}"
-                                                                                class="tooltipCus task-name"
+                                                                                class="tooltipCus"
                                                                                 data-task-name="{{ $taskTimesheet['task_name'] }}">
-                                                                                {{ $taskTimesheet['task_name'] }}
+                                                                                {{ __($taskTimesheet['task_name']) }}
                                                                             </div>
                                                                         </td>
                                                                     @endif
@@ -67,7 +68,7 @@
                                                                         @if (Auth::user()->type == 'admin')
                                                                             <td>
                                                                                 <div data-title="{{ $taskTimesheet['user_name'] }}"
-                                                                                    class="tooltipCus text-center">
+                                                                                    class="tooltipCus text-center wid-100">
                                                                                     {{ $taskTimesheet['user_name'] }}
                                                                                 </div>
                                                                             </td>
@@ -76,7 +77,7 @@
                                                                             <td>
                                                                                 @if (Auth::user()->id == $taskTimesheet['user_id'])
                                                                                     <div role="button"
-                                                                                        class="form-control wid-100 week"
+                                                                                        class="form-control week"
                                                                                         title="{{ $dateSubArray['type'] == 'edit' ? __('Click to Edit/Delete Timesheet') : __('Click to Add Timesheet') }}"
                                                                                         data-ajax-timesheet-popup="true"
                                                                                         data-type="{{ $dateSubArray['type'] }}"
@@ -88,16 +89,14 @@
                                                                                         {{ $dateSubArray['time'] != '00:00' ? $dateSubArray['time'] : '00:00' }}
                                                                                     </div>
                                                                                 @else
-                                                                                    <div
-                                                                                        class="form-control wid-100 week">
+                                                                                    <div class="form-control week">
                                                                                         {{ $dateSubArray['time'] != '00:00' ? $dateSubArray['time'] : '00:00' }}
                                                                                     </div>
                                                                                 @endif
                                                                             </td>
                                                                         @endforeach
                                                                         <td>
-                                                                            <div
-                                                                                class="total form-control wid-100 week">
+                                                                            <div class="total form-control week">
                                                                                 {{ $dateTimeArray['totaltime'] }}
                                                                             </div>
                                                                         </td>
@@ -150,10 +149,10 @@
                                                                 <tr>
                                                                     @if (Auth::user()->type != 'admin')
                                                                         <td>
-                                                                            <div class="tooltipCus task-name ms-1"
+                                                                            <div class="tooltipCus ms-1 wid-100 p-0"
                                                                                 data-title="{{ __('Task') }}"
                                                                                 data-task-name="{{ $taskTimesheet['task_name'] }}">
-                                                                                {{ $taskTimesheet['task_name'] }}
+                                                                                {{ __($taskTimesheet['task_name']) }}
                                                                             </div>
                                                                         </td>
                                                                     @endif
@@ -256,3 +255,4 @@
         </table>
     </div>
 </div>
+

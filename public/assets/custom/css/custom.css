@@ -1292,39 +1292,42 @@ span.currency-icon {
     color: #fff !important;
 }
 
-/* .drp-search-custom {
+.drp-search-custom {
     padding: 0 !important;
 }
 
-.drp-search-custom .easy-autocomplete {
+.easy-autocomplete {
     width: 100% !important;
-    height: 100% !important;
-    margin-top: 10px;
-} */
+}
 
-.drp-search-custom .easy-autocomplete input {
-    width: 280px;
-    border: none;
-    margin-top: 10px;
-    margin-bottom: 10px;
+.easy-autocomplete input {
+    width: 350px !important;
+
 }
 
 .easy-autocomplete-container {
+    position: absolute;
     padding: 0;
+    width: 100%;
 }
 
 .easy-autocomplete-container ul {
+    width: 100% !important;
+    background-color: white !important;
+    border: 1px solid #cdcdcd;
+    border-radius: 10px;
     padding: 0px 10px !important;
 }
 
 .easy-autocomplete-container ul li {
-    width: 90% !important;
+    width: 100% !important;
     display: inline-block !important;
     padding: 13px 0px 14px 20px !important;
 
 }
 
 .eac-category {
+    width: 100% !important;
     padding-top: 15px;
     padding-bottom: 15px;
     font-weight: bold !important;

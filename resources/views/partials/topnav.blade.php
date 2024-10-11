@@ -76,7 +76,7 @@
                         </div>
                     </a>
                 </li>
-                <li class="dropdown dash-h-item drp-company">
+                <li class="dropdown dash-h-item drp-company ms-4">
                     <a class="dash-head-link dropdown-toggle arrow-none" data-bs-toggle="dropdown" href="#"
                         role="button" aria-haspopup="false" aria-expanded="false">
                         <img class="theme-avtar"

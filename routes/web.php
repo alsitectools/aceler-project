@@ -595,6 +595,10 @@ Route::post('/workspace/settings/seo', [SettingsController::class, 'seosetting']
 
 
 // project
+Route::get('/projects/search-mo/{search?}', [ProjectController::class, 'getMoJson'])->name('search-mo-json');
+Route::get('/projects/{slug}/search-mo/{search?}', [ProjectController::class, 'getMoJson'])->name('search-mo-json')->middleware(['auth', 'XSS']);
+
+// Route::get('/search-mo/{search?}', [ProjectController::class, 'getMoJson'])->name('search-mo-json');
 Route::get('/{slug}/projects', [ProjectController::class, 'index'])->name('projects.index')->middleware(['auth', 'XSS']);
 Route::get('/{slug}/projects/create', [ProjectController::class, 'create'])->name('projects.create')->middleware(['auth', 'XSS']);
 Route::get('/{slug}/projects/task-create', [ProjectController::class, 'taskCreate'])->name('tasks.create')->middleware(['auth', 'XSS']);

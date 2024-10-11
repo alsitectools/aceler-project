@@ -68,7 +68,7 @@
         <div class="col-lg-4">
             <div class="card">
                 <div class="card-body">
-                    <h4 class="mb-4">{{ __('dictionary.Tasks') }}</h4>
+                    <h4 class="mb-4">{{ __('Tasks') }}</h4>
                     <ul class="event-cards list-group list-group-flush mt-3 w-100">
                         @php
                             $date = Carbon\Carbon::now()->format('m');

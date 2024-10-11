@@ -118,10 +118,10 @@
                                             <div class="card-body pt-1">
                                                 <div class="row">
                                                     @if ($milestone['tasks'])
-                                                        <div class="col-sm-12  tooltipCus"
+                                                        <div class="col-sm-12 tooltipCus p-3"
                                                             data-title="{{ __('Tasks') }}">
                                                             @foreach ($milestone['tasks'] as $task)
-                                                                <div class="taskList p-target col-sm-12">
+                                                                <div class="taskList p-target mb-2 col-sm-12">
                                                                     @php
                                                                         $isLate =
                                                                             strtotime($task['estimated_date']) <
@@ -129,35 +129,32 @@
                                                                         $dateClass = $isLate ? 'danger' : 'success';
                                                                         $icon =
                                                                             $dateClass == 'danger'
-                                                                                ? '<i class="fa-solid fa-hourglass-end fa-xs text-' .
+                                                                                ? '<i class="ms-2 me-2 fa-solid fa-hourglass-end fa-xs text-' .
                                                                                     $dateClass .
                                                                                     '"></i>'
-                                                                                : '<i class="fa-solid fa-hourglass-start fa-xs p-0 m-0 text-' .
+                                                                                : '<i class="ms-2 me-2 fa-solid fa-hourglass-start fa-xs p-0 m-0 text-' .
                                                                                     $dateClass .
                                                                                     '"></i>';
                                                                     @endphp
-
-                                                                    {!! $icon !!} <p class="mb-2 col-md-8">
-                                                                        {{ $task['name'] }} </p>
-
-                                                                    @if ($project_id != -1)
-                                                                        <div class="user-group col-sm-2 tooltipCus"
+                                                                    {!! $icon !!}{{ __($task['name']) }}
+                                                                  
+                                                                </div>
+                                                                  @if ($project_id != -1)
+                                                                        <div class="tooltipCus col-sm-12 text-end"
                                                                             data-title="{{ $task['technician']->name }}">
                                                                             <a href="#">
-                                                                                <img alt="image" class="tooltipCus"
+                                                                                <img alt="image"
+                                                                                    class="tooltipCus user-groupTasks"
                                                                                     data-title="{{ $task['technician']->name }}"
                                                                                     @if ($task['technician']->avatar) src="{{ asset($logo . $task['technician']->avatar) }}" @else avatar="{{ $task['technician']->name }}" @endif>
                                                                             </a>
                                                                         </div>
                                                                     @endif
-                                                                </div>
                                                             @endforeach
                                                             @if ($project_id == -1)
-                                                                <div class="user-group col-sm-11 tooltipCus text-end"
-                                                                    data-title="{{ $task['technician']->name }}">
+                                                                <div class="col-sm-11 text-end">
                                                                     <a href="#">
-                                                                        <img alt="image" class="tooltipCus"
-                                                                            data-title="{{ $task['technician']->name }}"
+                                                                        <img alt="image" class="user-groupTasks"
                                                                             @if ($task['technician']->avatar) src="{{ asset($logo . $task['technician']->avatar) }}" @else avatar="{{ $task['technician']->name }}" @endif>
                                                                     </a>
                                                                 </div>
@@ -169,7 +166,7 @@
                                                         </div>
                                                     @endif
                                                 </div>
-                                                <div class="card mb-0 mt-3">
+                                                <div class="card mb-0">
                                                     <div class="card-body p-2">
                                                         <div class="row">
                                                             <div class="foot-milestone">

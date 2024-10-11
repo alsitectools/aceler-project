@@ -48,9 +48,8 @@
     class="dash-sidebar light-sidebar {{ isset($cust_theme_bg) && $cust_theme_bg == 'on' ? 'transprent-bg' : '' }}">
     <div class="navbar-wrapper">
         <div class="m-header">
-            <a href="{{ route('home') }}" class="b-brand">
-                <img class="img-fluid" src="{{ asset('assets/img/logoSidebar.png') }}" alt="logo"
-                    style="width: 250px;" />
+            <a href="{{ route('home') }}" class="mt-2">
+                <img style="width: 270px" src="{{ asset('assets/img/logoRed1.png') }}" alt="logo" />
             </a>
         </div>
         <div class="navbar-content">

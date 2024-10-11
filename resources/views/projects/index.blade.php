@@ -14,27 +14,44 @@
 <head>
     <link rel="stylesheet" href="{{ asset('assets/css/index_projects.css') }}">
 </head>
+<style>
+    #eac-container-searchInput {
+        display: none;
+        /* Ocultar por defecto */
+        position: absolute;
+        /* Asegurarse de que esté correctamente alineado */
+        z-index: 9999;
+        /* Asegurarse de que esté sobre otros elementos */
+        top: 100%;
+        /* Posicionarlo justo debajo del input */
+        left: 0;
+        width: 100%;
+    }
+
+    #searchInputProjects {
+        position: relative;
+        /* Establecer como contenedor para elementos absolutos */
+    }
+</style>
 @section('action-button')
     <div class="d-flex justify-content-end me-2">
         <div class="d-flex col-sm-7">
-            <div class="dropdown dash-h-item">
-                <div class="dropdown-menu drp-search drp-search-custom searchInputProjects"
-                    data-popper-placement="bottom-start">
-                    <form class="form-inline mr-auto mb-0">
-                        <div class="search-element">
-                            <div class="d-flex">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="15" fill="currentColor"
-                                    class="bi bi-search ms-4 mt-3 me-2" viewBox="0 0 16 16">
-                                    <path
-                                        d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001q.044.06.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1 1 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0" />
-                                </svg>
-                                <input type="text" id="searchInput" placeholder="{{ __('Enter name or reference M.O') }}"
-                                    aria-label="Search" class="custom-search-input">
-                            </div>
-                            <div class="search-backdrop"></div>
+            <div id="searchInputProjects" data-popper-placement="bottom-start">
+                <form class="form-inline mr-auto mb-0">
+                    <div class="search-element">
+                        <div class="input-wrapper">
+                            <input type="text" class="input" id="searchInput"
+                                placeholder="{{ __('Enter name or reference M.O') }}">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="input-icon" viewBox="0 0 20 20"
+                                fill="currentColor">
+                                <path fill-rule="evenodd"
+                                    d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z"
+                                    clip-rule="evenodd" />
+                            </svg>
                         </div>
-                    </form>
-                </div>
+                        <div class="search-backdrop"></div>
+                    </div>
+                </form>
             </div>
         </div>
         @auth('web')
@@ -193,7 +210,7 @@
                                         <a href="#" class="types m-2 filter-link"
                                             data-filter=".type-{{ $type->id }}"
                                             style="background-color: transparent;">
-                                            <b class="text-muted m-1">{{ $type->name }}</b>
+                                            <b class="text-muted ms-3">{{ __($type->name) }}</b>
                                         </a>
                                     </div>
                                 @endforeach
@@ -238,7 +255,7 @@
                                     <div class="page-search">
                                         <p class="text-muted mt-3">
                                             {{ __("It's looking like you may have taken a wrong turn. Don't worry...
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     it happens to the best of us. Here's a little tip that might help you get back on track.") }}
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 it happens to the best of us. Here's a little tip that might help you get back on track.") }}
                                         </p>
                                         <div class="mt-3">
                                             <a class="btn-return-home badge-blue" href="{{ route('home') }}"><i
@@ -259,16 +276,38 @@
     <script src="{{ asset('assets/custom/js/jquery.easy-autocomplete.min.js') }}"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-
             const input = document.getElementById('searchInput');
-            const autocompleteContainer = document.getElementById('eac-container-searchInput');
+            const divContainer = document.getElementById('searchInputProjects');
+
+            // Usar un observador de mutaciones para detectar la aparición del contenedor de autocompletar
+            const observer = new MutationObserver(function(mutationsList) {
+                for (const mutation of mutationsList) {
+                    if (mutation.addedNodes) {
+                        mutation.addedNodes.forEach((node) => {
+                            if (node.id === 'eac-container-searchInput') {
+                                node.style.display = 'none';
+                                observer.disconnect();
+                            }
+                        });
+                    }
+                }
+            });
+            // Observar el body para detectar cuando el contenedor de autocompletar se inserte
+            observer.observe(document.body, {
+                childList: true,
+                subtree: true
+            });
 
             input.addEventListener('input', function() {
-                console.log('letras en el input:', this.value.trim().length);
-                if (this.value.trim().length > 0) {
-                    autocompleteContainer.style.display = 'block';
-                } else {
-                    autocompleteContainer.style.display = 'none';
+                const autocompleteContainer = document.getElementById('eac-container-searchInput');
+                if (autocompleteContainer) {
+                    if (this.value.trim().length > 0) {
+                        autocompleteContainer.style.display = 'block';
+                        divContainer.classList.add('dropdown-menu');
+                    } else {
+                        autocompleteContainer.style.display = 'none';
+                        divContainer.classList.remove('dropdown-menu');
+                    }
                 }
             });
         });
@@ -300,7 +339,6 @@
     <script src="{{ asset('assets/custom/js/isotope.pkgd.min.js') }}"></script>
     <script>
         $(document).ready(function() {
-            // Verificar si Isotope está disponible
             if (typeof $.fn.isotope === 'undefined') {
                 console.error('Isotope is not loaded');
                 return;
@@ -318,7 +356,6 @@
             var filterStatus = '*';
             var filterType = '*';
 
-            // Función para aplicar el filtro combinado
             function applyFilter() {
                 var filterValue = filterStatus + filterType;
                 $grid.isotope({
@@ -326,7 +363,6 @@
                 });
             }
 
-            // Función para alternar la clase activa y la clase de selección
             function toggleActiveClass($element, groupSelector, zoomClass, selectedClass) {
                 var isActive = $element.hasClass('active');
                 $(groupSelector).removeClass('active').removeClass(zoomClass).removeClass(selectedClass);
@@ -337,15 +373,11 @@
                 }
             }
 
-            // Filtrado por estado
             $('.status-filter button').click(function() {
                 var $this = $(this);
-                // Alternar clase activa y zoom en el botón de estado
                 toggleActiveClass($this, '.status-filter button');
-
                 filterStatus = $this.hasClass('active') ? $this.attr('data-filter') : '*';
 
-                // Si el filtro de estado es 'All', reiniciar el filtro de tipo
                 if (filterStatus === '*') {
                     filterType = '*';
                     $('.type-filter a').removeClass('active').removeClass('types selected');
@@ -353,12 +385,9 @@
                 applyFilter();
             });
 
-            // Filtrado por tipo usando los enlaces dentro de .type-filter
             $('.type-filter a').click(function(e) {
                 e.preventDefault();
                 var $this = $(this);
-
-                // Alternar clase activa y zoom en el enlace de tipo
                 toggleActiveClass($this, '.type-filter a', 'types', 'selected');
 
                 filterType = $this.hasClass('active') ? $this.attr('data-filter') : '*';

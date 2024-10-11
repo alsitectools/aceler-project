@@ -22252,12 +22252,6 @@ body:not(.minimenu) .dash-sidebar .dash-submenu .dash-submenu .dash-submenu>.das
     animation: 0.1s ease-in-out 0s normal forwards 1 fadein;
 }
 
-.searchInputProjects {
-    position: absolute !important;
-    margin: -10px !important;
-    transform: translate(0px, 10px) !important;
-    display: block;
-}
 
 @keyframes fadein {
     from {

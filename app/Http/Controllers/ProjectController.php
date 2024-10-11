@@ -20,6 +20,7 @@ use App\Models\Milestone;
 use App\Models\Project;
 use App\Models\ProjectType;
 use App\Models\MasterObra;
+use App\Models\PotentialClient;
 use App\Models\ProjectFile;
 use App\Models\Stage;
 use App\Models\SubTask;
@@ -1305,6 +1306,29 @@ class ProjectController extends Controller
         );
     }
 
+    public function getMoJson($slug, $search = null)
+    {
+        $user = Auth::user();
+
+        // Obtener resultados de la base de datos
+        $objMo = MasterObra::select(['ref_mo', 'name'])
+            ->where('ref_mo', 'LIKE', "%" . $search . "%")
+            ->get();
+
+        // $objClipo = PotentialClient::select(['id', 'name'])
+        //     ->where('ref_mo', 'LIKE', "%" . $search . "%")
+        //     ->get();
+
+        $arrMo = $objMo->map(function ($mo) {
+            return [
+                'ref_mo' => $mo->ref_mo,
+                'name' => $mo->name,
+            ];
+        });
+
+        return response()->json(['mo' => $arrMo]);
+    }
+
 
 
     public function milestone($slug, $projectID)
@@ -1843,13 +1867,20 @@ class ProjectController extends Controller
             // ->join('user_projects', 'projects.id', '=', 'user_projects.project_id')
             // ->where('user_projects.user_id', '=', $objUser->id)
             ->where('projects.workspace', '=', $currentWorkspace->id)->get();
+        // Recupera los nombres de los tipos de tareas y sus IDs
+        $taskTypes = TaskType::select('id', 'name', 'project_type')->get()->map(function ($task) {
+            return [
+                'id' => $task->id,
+                'project_type' => $task->project_type,
+                'name' => __($task->name) // Traduce el nombre de la tarea
+            ];
+        });
 
-        //enviar los milestones
-        $taskTypes  = TaskType::all();
-        $milestones  = Milestone::all();
-        // $milestones = Milestone::select('milestones.*')
-        //     ->join('user_workspaces', 'user_id', '=', 'milestones.assign_to')
-        //     ->where('user_workspace.user_id', '=', $objUser->id);
+        $milestones = Milestone::join('projects', 'milestones.project_id', '=', 'projects.id')
+            ->where('projects.workspace', $objUser->currant_workspace)
+            ->select('milestones.id', 'milestones.title', 'milestones.project_id')
+            ->get();
+
 
         return view('projects.timesheetCreate', compact('currentWorkspace', 'projects', 'taskTypes', 'milestones'));
     }
@@ -2634,21 +2665,6 @@ class ProjectController extends Controller
                     ->join('tasks', 'timesheets.task_id', '=', 'tasks.id')
                     ->where('projects.workspace', '=', $currentWorkspace->id);
             } else {
-                //------------- Para ver cuando el project es != -1 ---------------------------//
-                // $timesheets = Timesheet::select(
-                //     'timesheets.*',
-                //     'milestones.id as milestone_id',
-                //     'tasks.id as task_id',
-                //     'timesheets.created_by as created_by',
-                //     'users.id as user_id',
-                //     'users.name as user_name'
-                // )
-                //     ->join('projects', 'projects.id', '=', 'timesheets.project_id')
-                //     ->join('milestones', 'milestones.project_id', '=', 'projects.id')
-                //     ->join('tasks', 'timesheets.task_id', '=', 'tasks.id')
-                //     ->join('users', 'timesheets.created_by', '=', 'users.id')
-                //     ->where('projects.workspace', '=', $currentWorkspace->id);
-
 
                 if ($project_id == -1) {
                     //--------------------- Los timesheets de mis proyectos  -------------------//
@@ -2719,7 +2735,6 @@ class ProjectController extends Controller
                 'onewWeekDate' => $onewWeekDate,
                 'days' => $days,
                 'html' => $returnHTML,
-
             ]);
         }
     }

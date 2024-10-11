@@ -49,7 +49,7 @@
                     </div>
                 @endif
                 <div class="navbar-brand d-none d-md-block text-center mt-5 mb-5 ms-4">
-                    <img width="100%" src="{{ asset('assets/img/logoSidebar.png') }}" alt="Logo Alsina Project">
+                    <img width="100%" src="{{ asset('assets/img/logoRed1.png') }}" alt="Logo Alsina Project">
                 </div>
                 <div class="text-center">
                     <h2 class="text-muted m-1">{{ __('Login') }}</h2>
@@ -67,7 +67,7 @@
                     </a>
                 </div>
                 <a href="#" class="mt-3 text-center mb-5 m-2" data-bs-toggle="modal" data-bs-target="#exampleModal">
-                    {{ __('Login whit admin') }}
+                    {{ __('Login as admin') }}
                 </a>
             </div>
             <div class="text-center text-primary mt-5 rounded" style="background-color: white">
