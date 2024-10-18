@@ -14,8 +14,9 @@ return new class extends Migration
         Schema::create('potential_clients', function (Blueprint $table) {
             $table->bigIncrements('id');
             $table->string('name');
-            $table->integer('potencial_consumer_id');
-            $table->integer('customer_id')->default(0);
+            $table->string('business_unit');
+            $table->string('potential_customer_id');
+            $table->string('customer_id')->default(0);
             $table->timestamps();
         });
     }

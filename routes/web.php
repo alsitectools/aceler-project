@@ -597,6 +597,7 @@ Route::post('/workspace/settings/seo', [SettingsController::class, 'seosetting']
 // project
 Route::get('/projects/search-mo/{search?}', [ProjectController::class, 'getMoJson'])->name('search-mo-json');
 Route::get('/projects/{slug}/search-mo/{search?}', [ProjectController::class, 'getMoJson'])->name('search-mo-json')->middleware(['auth', 'XSS']);
+Route::get('/projects/{slug}/search-clipo/{search?}', [ProjectController::class, 'getClientJson'])->name('search-clipo-json')->middleware(['auth', 'XSS']);
 
 // Route::get('/search-mo/{search?}', [ProjectController::class, 'getMoJson'])->name('search-mo-json');
 Route::get('/{slug}/projects', [ProjectController::class, 'index'])->name('projects.index')->middleware(['auth', 'XSS']);

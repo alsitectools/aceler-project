@@ -15,9 +15,9 @@ return new class extends Migration
             $table->bigIncrements('id');
             $table->string('ref_mo')->nullable(); // work_id
             $table->string('name');
-            $table->integer('business_unit');
-            $table->string('status');
-            $table->integer('cli_po'); //potencial_customer_id
+            $table->string('business_unit');
+            $table->string('status')->default(null);
+            $table->string('potential_customer_id')->default(0); //potencial_customer_id
             $table->integer('project_id')->default(0);
             $table->timestamps();
         });

@@ -13,9 +13,8 @@ return new class extends Migration
     {
         Schema::create('clients_mo', function (Blueprint $table) {
             $table->bigIncrements('id');
-            $table->integer('ref_mo_id');
-            $table->integer('cli_po_id'); //potencial_consumer_id
-             $table->integer('customer_id'); //consumer_id
+            $table->string('ref_mo');
+            $table->string('potential_customer_id'); //potential_customer_id
             $table->timestamps();
         });
     }
