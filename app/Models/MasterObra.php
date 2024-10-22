@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class MasterObra extends Model
 {
+
     protected $fillable = [
         'ref_mo',
         'name',
@@ -16,16 +17,25 @@ class MasterObra extends Model
         'project_id'
     ];
 
-    // Relación hasMany entre MasterObra y ClientsMo
+    // Definir la relación con los clientes a través de la tabla intermedia ClientsMo
     public function clients()
     {
-        return $this->hasMany(ClientsMo::class, 'ref_mo', 'ref_mo');
+        return $this->hasManyThrough(
+            PotentialClient::class,
+            ClientsMo::class,
+            'ref_mo',
+            'potential_customer_id',
+            'ref_mo',
+            'potential_customer_id'
+        );
     }
-    // Función para obtener los clientes con información adicional de potential_clients
+
     public function getClients()
     {
         return $this->clients()
+            ->join('clients_mos', 'clients_mos.potential_customer_id', '=', 'potential_clients.potential_customer_id')
             ->join('potential_clients', 'potential_clients.potential_customer_id', '=', 'clients_mos.potential_customer_id')
-            ->get(['clients_mos.potential_customer_id', 'potential_clients.name']);
+            ->select('potential_clients.potential_customer_id', 'potential_clients.name')
+            ->get();
     }
 }

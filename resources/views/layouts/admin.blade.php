@@ -650,35 +650,6 @@
     @endif
 
 
-    @if (isset($currentWorkspace) && $currentWorkspace)
-        <script src="{{ asset('assets/custom/js/jquery.easy-autocomplete.min.js') }}"></script>
-        <script>
-            var options = {
-                url: function(phrase) {
-                    return "@auth('web'){{ route('search.json', $currentWorkspace->slug) }}@elseauth{{ route('client.search.json', $currentWorkspace->slug) }}@endauth/" +
-                        phrase;
-                },
-                categories: [{
-                        listLocation: "Projects",
-                        header: "{{ __('Projects') }}"
-                    },
-                    {
-                        listLocation: "Tasks",
-                        header: "{{ __('Tasks') }}"
-                    }
-                ],
-                getValue: "text",
-                template: {
-                    type: "links",
-                    fields: {
-                        link: "link"
-                    }
-                }
-            };
-            $(".search-element input").easyAutocomplete(options);
-        </script>
-    @endif
-
     <!--  for setting scroling Active -->
     <script>
         var multipleCancelButton = new Choices('#choices-multiple-remove-button', {

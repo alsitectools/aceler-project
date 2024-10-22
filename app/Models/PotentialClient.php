@@ -9,6 +9,13 @@ class PotentialClient extends Model
 {
     use HasFactory;
     protected $fillable = [
-       'name','potencial_.consumer_id','customer_id'
+        'name',
+        'potential_customer_id',
+        'customer_id'
     ];
+
+    public function clientsMo()
+    {
+        return $this->hasMany(ClientsMo::class, 'potential_customer_id', 'potential_customer_id');
+    }
 }

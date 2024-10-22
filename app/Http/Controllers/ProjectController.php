@@ -1306,11 +1306,10 @@ class ProjectController extends Controller
             ]
         );
     }
+
     public function getMoJson($slug, $search = null)
     {
-        $currentWorkspace = Utility::getWorkspaceBySlug($slug);
-
-        $query = MasterObra::query();
+        $query = MasterObra::query()->select(['ref_mo', 'name']);
 
         if ($search) {
             $query->where(function ($query) use ($search) {
@@ -1319,46 +1318,35 @@ class ProjectController extends Controller
             });
         }
 
-        // Usando paginación para mejorar la eficiencia
-        $objMo = $query->select(['ref_mo', 'name'])->paginate(10);
+        $objMo = $query->with(['clients' => function ($query) {
+            $query->select('potential_clients.potential_customer_id', 'potential_clients.name');
+        }])->paginate(25);
 
-        $arrMo = $objMo->map(function ($mo) {
-            return [
-                'ref_mo' => $mo->ref_mo,
-                'name' => $mo->name,
-                'clients' => $mo->getClients(),
-            ];
-        });
+        $arrMo = $objMo->toArray();
 
-        return response()->json(['mo' => $arrMo]);
+        return response()->json([
+            'mo' => $arrMo,
+        ]);
     }
-
 
     public function getClientJson($slug, $search = null)
     {
-        $currentWorkspace = Utility::getWorkspaceBySlug($slug);
-
-        $query = PotentialClient::query()
-            ->select('potential_clients.potential_customer_id', 'potential_clients.name')
-            ->join('clients_mos', 'clients_mos.potential_customer_id', '=', 'potential_clients.potential_customer_id');
+        $query = PotentialClient::query()->select(['potential_customer_id', 'name']);
 
         if ($search) {
-            $query->where('clients_mos.ref_mo', 'LIKE', "%" . $search . "%")
-                ->orWhere('potential_clients.name', 'LIKE', "%" . $search . "%");
+            $query->where(function ($query) use ($search) {
+                $query->where('potential_customer_id', 'LIKE', "%" . $search . "%")
+                    ->orWhere('name', 'LIKE', "%" . $search . "%");
+            });
         }
 
-        $objClients = $query->paginate(10); 
+        $objclient = $query->paginate(25);
 
-    
-        $arrClients = $objClients->map(function ($client) {
-            return [
-                'clipo_id' => $client->potential_customer_id,
-                'name' => $client->name,
-            ];
-        });
+        $arrClients = $objclient->toArray();
 
-        // Retornar la respuesta en formato JSON
-        return response()->json(['clipos' => $arrClients]);
+        return response()->json([
+            'clients' => $arrClients,
+        ]);
     }
 
     public function milestone($slug, $projectID)
