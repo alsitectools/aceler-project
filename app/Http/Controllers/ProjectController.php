@@ -536,10 +536,10 @@ class ProjectController extends Controller
     {
         $currentWorkspace = Utility::getWorkspaceBySlug($slug);
         $project_type = ProjectType::select('id', 'name')->get();
-        $masterObras = MasterObra::select('ref_mo', 'name')->get();
         $projects = Project::select('projects.*')->where('projects.workspace', '=', $currentWorkspace->id)->get();
 
-        return view('projects.create', compact('currentWorkspace', 'project_type', 'masterObras', 'projects'));
+
+        return view('projects.create', compact('currentWorkspace', 'project_type', 'projects'));
     }
 
 

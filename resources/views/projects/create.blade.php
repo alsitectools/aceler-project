@@ -5,6 +5,7 @@
         overflow-y: auto;
         position: absolute;
         max-width: 215px;
+
     }
 
     #ref_mo_list::-webkit-scrollbar,
@@ -28,7 +29,6 @@
                     @endforeach
                 </select>
             </div>
-
             <div class="form-group col-md-6" id="ref_mo" style="display: none;">
                 <label for="search_mo" class="col-form-label">{{ __('Search MO') }}</label>
                 <input type="text" class="form-control" name="ref_mo" id="searchMo"
@@ -37,12 +37,13 @@
                 <span class="text-danger"></span>
             </div>
 
-            <div class="form-group col-md-6" id="clipo" style="display: none">
-                <label for="clipo" class="col-form-label">{{ __('Clipo') }}</label>
+            <div class="form-group col-md-6" id="clipo" style="display: none;">
+                <label for="searchClipo" class="col-form-label">{{ __('Clipo') }}</label>
                 <input class="form-control" type="text" name="clipo" id="searchClipo"
                     placeholder="{{ __('Clipo') }}">
-                <div class="list-group" id="clipo_list"></div>
+                <div class="list-group" style="display: none;" id="clipo_list"></div>
             </div>
+
 
             <div class="form-group col-md-12">
                 <label for="projectname" class="col-form-label">{{ __('Name') }}</label>
@@ -75,8 +76,6 @@
             const selectedType = $(this).find('option:selected').data('type');
             const isJobsite = (selectedType === 'Jobsite');
 
-            console.log('Tipo de proyecto seleccionado:', selectedType); // Depuración
-
             // Reset inputs
             resetInputs(isJobsite);
             $('#ref_mo, #clipo').toggle(isJobsite);
@@ -90,15 +89,27 @@
             nameInput.prop('readonly', isJobsite);
         }
 
-        // Función para realizar la búsqueda con paginación
-        function fetchData(url, list, itemProcessor, noResultsMessage) {
+        function fetchData(url, list, itemProcessor, noResultsMessage, isClipo = false) {
             if (currentRequest) {
                 currentRequest.abort();
             }
 
             loading = true;
-            // Cambia el cursor a espera
-            $('body').css('cursor', 'wait');
+
+            // Crear y mostrar el icono de carga
+            let loadingSpinner;
+
+            if (isClipo) {
+                loadingSpinner = $(
+                    '<div class="spinner-grow spinner-grow-sm me-2 ms-2" style="width: 15px; height: 15px; color: rgb(152, 151, 151);" role="status"></div>'
+                );
+                $('#clipo label').after(loadingSpinner);
+            } else {
+                loadingSpinner = $(
+                    '<div class="spinner-grow spinner-grow-sm me-2 ms-2" style="width: 15px; height: 15px; color: rgb(152, 151, 151);" role="status"></div>'
+                );
+                $('#ref_mo label').after(loadingSpinner);
+            }
 
             currentRequest = $.ajax({
                 url: url,
@@ -113,11 +124,13 @@
                     console.error('Error en la solicitud:', textStatus, errorThrown);
                 },
                 complete: function() {
-                    // Restaura el cursor al terminar la carga
-                    $('body').css('cursor', 'default');
+
+                    // Ocultar y eliminar el icono de carga
+                    loadingSpinner.remove();
                 }
             });
         }
+
 
         function handleDataList(dataList, list, noResultsMessage) {
             if (currentPage === 1) {
@@ -141,7 +154,15 @@
         function handleListItemClick(item, list) {
             return function(e) {
                 e.preventDefault();
-                const selectedClients = item.clients;
+
+                const projects = @json($projects);
+                const existingProject = projects.find(project => project.ref_mo === item.ref_mo);
+
+                if (existingProject) {
+                    showAlert('El número de referencia ya existe.');
+                    resetSearchFields();
+                    return;
+                }
 
                 if (item.ref_mo) {
                     refMoInput.val(item.ref_mo);
@@ -149,7 +170,10 @@
                 } else {
                     clientInput.val(item.name);
                 }
+
                 list.empty().hide();
+
+                const selectedClients = item.clients;
 
                 if (selectedClients && selectedClients.length) {
                     populateClientList(selectedClients);
@@ -181,31 +205,30 @@
 
             // Si el campo está vacío, ocultar la lista
             if (!searchQuery) {
-                refMoList.empty().hide(); // Ocultar la lista
-                return;
+                refMoList.empty().hide();
+            } else {
+                const url = '{{ route('search-mo-json', '__slug') }}'.replace('__slug',
+                        '{{ $currentWorkspace->slug }}') + '/' + encodeURIComponent(searchQuery) +
+                    '?page=' + currentPage;
+                fetchData(url, refMoList, data => data.mo.data, 'No results found');
             }
-
-            const url = '{{ route('search-mo-json', '__slug') }}'.replace('__slug',
-                    '{{ $currentWorkspace->slug }}') + '/' + encodeURIComponent(searchQuery) +
-                '?page=' + currentPage;
-            fetchData(url, refMoList, data => data.mo.data, 'No results found');
         });
 
+        // Buscar Cliente al escribir
         clientInput.on('input', function() {
             const searchClient = $(this).val().trim();
             currentPage = 1;
 
             // Si el campo está vacío, ocultar la lista de clientes y limpiar
             if (!searchClient) {
-                clipoList.empty().hide(); // Ocultar la lista
-                return;
+                clipoList.empty().hide();
+            } else {
+                const url = '{{ route('search-clipo-json', '__slug') }}'.replace('__slug',
+                        '{{ $currentWorkspace->slug }}') + '/' + encodeURIComponent(searchClient) +
+                    '?page=' + currentPage;
+                fetchData(url, clipoList, data => data.clients.data, 'No results found',
+                    true);
             }
-
-            clipoList.empty(); // Limpiar la lista antes de hacer la nueva búsqueda
-            const url = '{{ route('search-clipo-json', '__slug') }}'.replace('__slug',
-                    '{{ $currentWorkspace->slug }}') + '/' + encodeURIComponent(searchClient) +
-                '?page=' + currentPage;
-            fetchData(url, clipoList, data => data.clients.data, 'No results found');
         });
 
         function resetSearchFields() {
@@ -215,7 +238,7 @@
             refMoList.empty();
         }
 
-        // Scroll infinito
+        // Scroll infinito mo
         refMoList.on('scroll', function() {
             const scrollTop = refMoList[0].scrollTop;
             const scrollHeight = refMoList[0].scrollHeight;
@@ -229,19 +252,25 @@
             }
         });
 
+        // Scroll infinito clients
+        clipoList.on('scroll', function() {
+            const scrollTop = clipoList[0].scrollTop;
+            const scrollHeight = clipoList[0].scrollHeight;
+            const innerHeight = clipoList.innerHeight();
+
+            if (!loading && (scrollTop + innerHeight >= scrollHeight - 10)) {
+                console.log('Al final del scroll, cargando más resultados...');
+                fetchData('{{ route('search-clipo-json', '__slug') }}'.replace('__slug',
+                        '{{ $currentWorkspace->slug }}') + '/' + encodeURIComponent(searchQuery) +
+                    '?page=' + currentPage, clipoList, data => data.clients.data, 'No results found'
+                );
+            }
+        });
+
         // Manejar selección de MO o Cliente
         $('#searchMo, #searchClipo').on('change', function() {
             const inputId = $(this).attr('id');
             const selectedValue = $(this).val();
-            const projects = @json($projects);
-
-            const existingProject = projects.find(project => project.ref_mo === selectedValue);
-
-            if (existingProject) {
-                showAlert('El número de referencia ya existe.');
-                resetSearchFields();
-                return;
-            }
 
             if (inputId === 'searchMo') {
                 updateNameInputFromList(refMoList, selectedValue);
@@ -269,10 +298,10 @@
         function updateClientInputFromList(list, selectedValue) {
             list.find('a').each(function() {
                 const item = $(this).data('item');
-                if (item.name === selectedValue) {
+                if (selectedValue) {
                     clientInput.val(item.name);
                 } else {
-                    clientInput.val('');
+
                     clipoList.empty().hide();
                 }
             });
