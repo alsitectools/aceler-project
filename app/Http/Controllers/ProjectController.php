@@ -728,96 +728,95 @@ class ProjectController extends Controller
     }
 
     public function milestoneBoard($slug, $id)
-    {
-        $currentWorkspace = Utility::getWorkspaceBySlug($slug);
-        $stages = Stage::orderBy('order')->get();
+{
+    $currentWorkspace = Utility::getWorkspaceBySlug($slug);
+    $stages = Stage::orderBy('order')->get();
 
-        $statusClass = $stages->map(fn($stage) => 'milestone-list-' . str_replace(' ', '_', $stage->id))->toArray();
+    $statusClass = $stages->map(fn($stage) => 'milestone-list-' . str_replace(' ', '_', $stage->id))->toArray();
 
-        // Función para obtener datos de un milestone
-        $getMilestoneData = function ($milestone, $project, $objUser) {
-            $projectType = ProjectType::where('id', $project->type)->value('name');
+    // Función para obtener datos de un milestone
+    $getMilestoneData = function ($milestone, $project, $objUser) {
+        $projectType = ProjectType::where('id', $project->type)->value('name');
 
-            if ($objUser) {
-                $tasksOfmilestone = Task::where('milestone_id', $milestone->id)
-                    ->where('project_id', $project->id)
-                    ->where('assign_to', $objUser->id)
-                    ->get();
-            } else {
-                $tasksOfmilestone = Task::where('milestone_id', $milestone->id)
-                    ->where('project_id', $project->id)->get();
-            }
-
-            $taskData = $tasksOfmilestone->map(function ($task) {
-                $taskType = TaskType::find($task->type_id);
-                return $taskType ? [
-                    'id' => $task->id,
-                    'name' => $taskType->name,
-                    'estimated_date' => $task->estimated_date,
-                    'technician' => User::find($task->assign_to),
-                ] : null;
-            })->filter()->values()->toArray();
-
-            return [
-                'id' => $milestone->id,
-                'title' => $milestone->title,
-                'start_date' => $milestone->start_date,
-                'end_date' => $milestone->end_date,
-                'daysleft' => round((strtotime($milestone->end_date) - strtotime(date('Y-m-d'))) / 86400),
-                'project_id' => $project->id,
-                'project_name' => $project->name,
-                'project_type' => $projectType,
-                'project_ref' => $project->ref_mo ? '- ' . $project->ref_mo : '',
-                'tasks' => $taskData,
-                'sales' => User::find($milestone->assign_to),
-            ];
-        };
-
-        // Función para agrupar hitos por estado
-        $groupMilestonesByStatus = function ($allmilestones, $objUser = null) use ($stages, $getMilestoneData) {
-            $milestones = [];
-            $objUser != null ? $objUser->id : null;
-            foreach ($stages as $status) {
-                $filteredMilestones = $allmilestones->filter(fn($milestone) => $milestone->status == $status->id);
-                if ($filteredMilestones->isNotEmpty()) {
-                    $milestones[$status->id] = $filteredMilestones
-                        ->map(fn($milestone) => $getMilestoneData($milestone, Project::find($milestone->project_id), $objUser))
-                        ->toArray();
-                } else {
-                    $milestones[$status->id] = [];
-                }
-            }
-            // Si no hay hitos en ningún estado, se asigna null
-            return empty(array_filter($milestones, fn($milestones) => !empty($milestones))) ? null : $milestones;
-        };
-
-        if ($id == -1) {
-            // Mostrar todas las tareas del usuario logueado
-            $objUser = Auth::user();
-            $allmilestones = $objUser->type == 'client'
-                ? Milestone::where('assign_to', $objUser->id)->get()
-                : Milestone::join('tasks', 'tasks.milestone_id', 'milestones.id')
-                ->where('tasks.assign_to', $objUser->id)
-                ->select('milestones.*')
-                ->distinct()
+        if ($objUser) {
+            $tasksOfmilestone = Task::where('milestone_id', $milestone->id)
+                ->where('project_id', $project->id)
+                ->where('assign_to', $objUser->id)
                 ->get();
-
-            $milestones = $groupMilestonesByStatus($allmilestones, $objUser);
-            $project_id = -1;
         } else {
-            // Mostrar hitos de un proyecto específico o de un usuario
-            $project = Project::find($id);
-
-            if ($project) {
-                // Datos del proyecto
-                $allmilestones = Milestone::where('project_id', $project->id)->get();
-                $milestones = $groupMilestonesByStatus($allmilestones);
-                $project_id = $project->id;
-            }
+            $tasksOfmilestone = Task::where('milestone_id', $milestone->id)
+                ->where('project_id', $project->id)->get();
         }
 
-        return view('projects.milestoneboard', compact('currentWorkspace', 'milestones', 'stages', 'statusClass', 'project_id'));
+        $taskData = $tasksOfmilestone->map(function ($task) {
+            $taskType = TaskType::find($task->type_id);
+            return $taskType ? [
+                'id' => $task->id,
+                'name' => $taskType->name,
+                'estimated_date' => $task->estimated_date,
+                'technician' => User::find($task->assign_to),
+            ] : null;
+        })->filter()->values()->toArray();
+
+        return [
+            'id' => $milestone->id,
+            'title' => $milestone->title,
+            'start_date' => $milestone->start_date,
+            'end_date' => $milestone->end_date,
+            'daysleft' => round((strtotime($milestone->end_date) - strtotime(date('Y-m-d'))) / 86400),
+            'project_id' => $project->id,
+            'project_name' => $project->name,
+            'project_type' => $projectType,
+            'project_ref' => $project->ref_mo ? '- ' . $project->ref_mo : '',
+            'tasks' => $taskData,
+            'sales' => User::find($milestone->assign_to),
+        ];
+    };
+
+    // Función para agrupar hitos por estado
+    $groupMilestonesByStatus = function ($allmilestones, $objUser = null) use ($stages, $getMilestoneData) {
+        $milestones = [];
+        $objUser != null ? $objUser->id : null;
+        foreach ($stages as $status) {
+            $filteredMilestones = $allmilestones->filter(fn($milestone) => $milestone->status == $status->id);
+            if ($filteredMilestones->isNotEmpty()) {
+                $milestones[$status->id] = $filteredMilestones
+                    ->map(fn($milestone) => $getMilestoneData($milestone, Project::find($milestone->project_id), $objUser))
+                    ->toArray();
+            } else {
+                $milestones[$status->id] = [];
+            }
+        }
+        // Si no hay hitos en ningún estado, se asigna null
+        return empty(array_filter($milestones, fn($milestones) => !empty($milestones))) ? null : $milestones;
+    };
+
+    if ($id == -1) {
+        // Mostrar todas las tareas del usuario logueado
+        $objUser = Auth::user();
+
+        // Obtener milestones creadas o asignadas al usuario
+        $allmilestones = Milestone::where(function($query) use ($objUser) {
+            $query->where('assign_to', $objUser->id);// Milestones creadas por el usuario
+        })->get();
+
+        $milestones = $groupMilestonesByStatus($allmilestones, $objUser);
+        $project_id = -1;
+    } else {
+        // Mostrar hitos de un proyecto específico o de un usuario
+        $project = Project::find($id);
+
+        if ($project) {
+            // Datos del proyecto
+            $allmilestones = Milestone::where('project_id', $project->id)->get();
+            $milestones = $groupMilestonesByStatus($allmilestones);
+            $project_id = $project->id;
+        }
     }
+
+    return view('projects.milestoneboard', compact('currentWorkspace', 'milestones', 'stages', 'statusClass', 'project_id'));
+}
+
 
 
     public function taskBoard($slug, $projectID)

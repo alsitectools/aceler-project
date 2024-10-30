@@ -11,6 +11,9 @@
         }
     }
 </style>
+@push('scripts')
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js"></script>
+@endpush
 @section('page-title')
     {{ __('Calendar') }}
 @endsection
@@ -120,6 +123,11 @@
         <script>
             $(document).ready(function() {
                 get_data();
+                if ($.fn.select2) {
+                    $('.select2-container--default').css('display', 'none');
+                } else {
+                    console.log('/* Select2 no está disponible en la página */');
+                }
             });
 
             function get_data() {
@@ -166,30 +174,27 @@
                                     timeGridWeek: "{{ __('Week') }}",
                                     dayGridMonth: "{{ __('Month') }}"
                                 },
-
                                 slotLabelFormat: {
                                     hour: '2-digit',
                                     minute: '2-digit',
                                     hour12: false,
                                 },
-
+                                eventTimeFormat: { // Usa esto en lugar de timeFormat
+                                    hour: '2-digit',
+                                    minute: '2-digit',
+                                    hour12: false
+                                },
                                 themeSystem: 'bootstrap',
-                                slotDuration: '00:10:00',
-                                navLinks: true,
-                                droppable: true,
-                                selectable: true,
-                                selectMirror: true,
-                                editable: true,
-                                dayMaxEvents: true,
-                                handleWindowResize: true,
-                                height: 'auto',
-                                timeFormat: 'H(:mm)',
                                 events: data,
-
                             });
+
                             //  calendar.setOption('locale', 'en');
                             calendar.render();
                         })();
+                    },
+                    error: function(xhr, status, error) {
+                        console.error("Error en la solicitud:", status, error);
+                        console.log("Respuesta del servidor:", xhr.responseText);
                     }
                 });
             }

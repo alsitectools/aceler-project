@@ -1,3 +1,18 @@
+/* timesheet_week.css */
+
+.day-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.day-label {
+    font-size: 12px;
+    font-weight: bold;
+    color: #555;
+    margin-bottom: 4px;
+}
+
 .tooltipCus {
     position: relative;
     cursor: pointer;
@@ -22,24 +37,28 @@
     max-width: 90vw;
 }
 
-.weekRow {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    text-align: center;
-    margin-top: 20px;
-}
-
 .tooltipCus:hover::after {
     visibility: visible;
     opacity: 1;
 }
 
+.weekRow {
+    display: flex;
+    justify-content: space-evenly;
+    align-items: center;
+    text-align: center;
+    margin-top: 20px;
+    padding-bottom: 10px;
+    margin-left: 2%;
+    width: 95%;
+    border-bottom: 1px solid black;
+}
+
 .custom-accordion-button {
-    background-color: transparent;
     font-weight: bold;
-    color: black;
     border: none;
+    background-color: #AA182C !important;
+    color: white !important;
 }
 
 .icon {
@@ -55,14 +74,117 @@
     align-items: center;
     margin: 2%;
 }
+.inputsTaskTotal{
+    display: block;
+    width: 155%;
+    padding: 0.575rem 1rem;
+    font-size: 0.875rem;
+    font-weight: 400;
+    line-height: 1.5;
+    color: #293240;
+    background-color: #a293933d;
+    background-clip: padding-box;
+    border: 2px solid #ced4da;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    border-radius: 6px;
+    transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+.inputsTask{
+    display: block;
+    width: 155%;
+    padding: 0.575rem 1rem;
+    font-size: 0.875rem;
+    font-weight: 400;
+    line-height: 1.5;
+    color: white;
+    background-color: #AA182C;
+    background-clip: padding-box;
+    border: 2px solid #aa182c;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    border-radius: 6px;
+    transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+.inputsTask:hover{
+    color: #ffffff;
+    text-decoration: none;
+    background-color: #b9515f !important;
+    border-color: #b9515f !important; 
+}
+.inputsTaskTotal:hover{
+    color: #ffffff;
+    text-decoration: none;
+    background-color: #b9515f !important;
+    border-color: #b9515f !important; 
+}
 
+/*ESTILO INPUTS PARA TAREAS INSIDE PROJECT*/
+.inputsTaskTotalModify{
+    display: block;
+    width: 100%;
+    padding: 0.575rem 1rem;
+    font-size: 0.875rem;
+    font-weight: 400;
+    line-height: 1.5;
+    color: #293240;
+    background-color: #a293933d;
+    background-clip: padding-box;
+    border: 2px solid #ced4da;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    border-radius: 6px;
+    transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+.inputsTaskModify{
+    display: block;
+    width: 100%;
+    padding: 0.575rem 1rem;
+    font-size: 0.875rem;
+    font-weight: 400;
+    line-height: 1.5;
+    color: white;
+    background-color: #AA182C;
+    background-clip: padding-box;
+    border: 2px solid #aa182c;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    border-radius: 6px;
+    transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+.inputsTaskModify:hover{
+    color: #ffffff;
+    text-decoration: none;
+    background-color: #b9515f !important;
+    border-color: #b9515f !important; 
+}
+.inputsTaskTotalModify:hover{
+    color: #ffffff;
+    text-decoration: none;
+    background-color: #b9515f !important;
+    border-color: #b9515f !important; 
+}
+.accordion-item {
+    color: var(--bs-accordion-color);
+    background-color: '';
+    border: none;
+}
+.accordion{
+    --bs-accordion-btn-focus-border-color: ""; 
+    --bs-accordion-btn-focus-box-shadow:"";
+}
+/*
 .week {
     border: none !important;
     background-color: #dbdada94 !important;
     margin: 1%;
     text-align: center !important;
     width: 200px;
-}
+}*/
 
 .header-days {
     border: none !important;
@@ -100,16 +222,56 @@
     color: white !important;
 }
 
+.changeBottomRadius{
+    border-bottom-right-radius: 0;
+    border-bottom-left-radius: 0;
+}
+
+.accordion-item{
+    box-shadow: 1px 1px 3px 2px rgb(0 0 0 / 22%);
+    -webkit-box-shadow: 1px 1px 3px 2px rgb(0 0 0 / 22%);
+    -moz-box-shadow: 1px 1px 3px 2px rgb(0 0 0 / 22%);
+}
 .accordion-header {
     line-height: 50px !important;
 }
-
+.border-2{
+    --bs-border-width: 0px;
+}
+.dropShadowHr{
+    box-shadow: 1px 1px 1px 1px rgb(0 0 0);
+    -webkit-box-shadow: 1px 1px 1px 1px rgb(0 0 0);
+    -moz-box-shadow: 1px 1px 1px 1px rgb(0 0 0);
+}
 .table td {
     text-align: center;
     align-content: center;
     word-wrap: break-word;
 }
+.divTitleEncargo{
+    width: 60%;
+    margin-left: 20%;
+    margin-top: 1% !important;
+    padding-top: 5px;
+    padding-bottom: 5px;
+    box-shadow: 1px 1px 2px 1px rgb(0 0 0 / 16%);
+    -webkit-box-shadow: 1px 1px 2px 1px rgb(0 0 0 / 16%);
+    -moz-box-shadow: 1px 1px 2px 1px rgb(0 0 0 / 16%);
+}
+.greyBackgroundTotalHours{
+    background-color: #a293933d !important;
+    border-radius: 10px;
+    box-shadow: 1px 1px 2px 1px rgb(0 0 0 / 16%) !important;
+    -webkit-box-shadow: 1px 1px 2px 1px rgb(0 0 0 / 16%) !important;
+    -moz-box-shadow: 1px 1px 2px 1px rgb(0 0 0 / 16%) !important;
+}
 
+.custom-accordion-button:hover{
+    color: #ffffff;
+    text-decoration: none;
+    background-color: #b9515f !important;
+    border-color: #b9515f !important; 
+}
 tfoot,
 thead {
     background-color: #F8F9FD;
