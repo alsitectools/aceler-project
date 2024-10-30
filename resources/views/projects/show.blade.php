@@ -370,13 +370,16 @@
                                                         <div class="col-sm-auto mb-3 mb-sm-0">
                                                             <div class="d-flex align-items-center px-2">
                                                                 <a href="#" class=" text-start">
-                                                                <img class="theme-avtar"
+                                                                <!-- <img class="theme-avtar"
                                                                     @if (Auth::user()->avatar) 
                                                                         src="{{ url('storage/app/public/' . Auth::user()->avatar) }}" 
                                                                     @else 
                                                                         avatar="{{ Auth::user()->name }}" 
                                                                     @endif
-                                                                    alt="{{ Auth::user()->name }}"></a>
+                                                                    alt="{{ Auth::user()->name }}"></a> -->
+                                                                    <img class="fix_img"
+                                                                    @if ($user->avatar) src="{{ asset($logo . $user->avatar) }}" @else avatar="{{ $user->name }}" @endif>
+                                                                </a>
                                                                 <div class="px-2">
                                                                     <h5 class="m-0">{{ $user->name }}</h5>
                                                                     <small class="text-muted">{{ $user->email }}<span
@@ -453,13 +456,16 @@
                                                         <div class="col-sm-auto mb-3 mb-sm-0">
                                                             <div class="d-flex align-items-center px-2">
                                                                 <a href="#" class=" text-start">
-                                                                <img class="theme-avtar"
+                                                                <!-- <img class="theme-avtar"
                                                                     @if (Auth::user()->avatar) 
                                                                         src="{{ url('storage/app/public/' . Auth::user()->avatar) }}" 
                                                                     @else 
                                                                         avatar="{{ Auth::user()->name }}" 
                                                                     @endif
-                                                                    alt="{{ Auth::user()->name }}"></a>
+                                                                    alt="{{ Auth::user()->name }}"></a> -->
+                                                                    <img class="fix_img"
+                                                                        @if ($client->avatar) src="{{ asset($logo . $client->avatar) }}" @else avatar="{{ $client->name }}" @endif>
+                                                                </a>
                                                                 <div class="px-2">
                                                                     <h5 class="m-0">{{ $client->name }}</h5>
                                                                     <small

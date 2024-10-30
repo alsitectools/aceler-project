@@ -515,101 +515,150 @@ class UserController extends Controller
 
         return redirect()->back()->with('success', 'Avatar deleted successfully');
     }
-    public function update($slug = null, $id = null, Request $request)
+//     public function update($slug = null, $id = null, Request $request)
+// {
+//     Log::info('Update method called'); // Log para verificar entrada al método
+
+//     $objUser = User::find($id); // Se busca el usuario por ID
+
+//     if (!$objUser) {
+//         Log::error('User not found', ['user_id' => $id]);
+//         return redirect()->back()->with('error', __('User not found'));
+//     }
+
+//     Log::info('User found', ['user_id' => $objUser->id]);
+
+//     // Validación para asegurarnos de que el archivo avatar está presente y es una imagen válida
+//     $validator = \Validator::make($request->all(), [
+//         'avatar' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
+//     ]);
+
+//     if ($validator->fails()) {
+//         Log::error('Validation failed', ['errors' => $validator->errors()]);
+//         return redirect()->back()->with('error', $validator->getMessageBag()->first());
+//     }
+
+//     if ($request->hasFile('avatar')) {
+//         Log::info('Avatar file detected', ['file' => $request->file('avatar')->getClientOriginalName()]);
+
+//         // Eliminar el avatar anterior si existe
+//         if ($objUser->avatar && Storage::disk('public')->exists($objUser->avatar)) {
+//             Storage::disk('public')->delete($objUser->avatar);
+//             Log::info('Old avatar deleted', ['avatar' => $objUser->avatar]);
+//         }
+
+//         try {
+//             // Procesar y redimensionar la nueva imagen usando GD
+//             $image = $request->file('avatar');
+//             $imagePath = 'avatars/' . uniqid() . '.' . $image->getClientOriginalExtension();
+//             $destinationPath = storage_path('app/public/' . $imagePath);
+
+//             // Asegurarse de que el directorio de destino existe
+//             if (!file_exists(dirname($destinationPath))) {
+//                 mkdir(dirname($destinationPath), 0777, true); // Crear el directorio si no existe
+//             }
+
+//             // Redimensionar la imagen
+//             list($width, $height) = getimagesize($image);
+//             $newWidth = 300;
+//             $newHeight = 300;
+
+//             $imageResource = imagecreatetruecolor($newWidth, $newHeight);
+
+//             switch ($image->getClientOriginalExtension()) {
+//                 case 'jpeg':
+//                 case 'jpg':
+//                     $source = imagecreatefromjpeg($image);
+//                     imagecopyresampled($imageResource, $source, 0, 0, 0, 0, $newWidth, $newHeight, $width, $height);
+//                     imagejpeg($imageResource, $destinationPath, 80); // Guarda la imagen redimensionada
+//                     break;
+
+//                 case 'png':
+//                     $source = imagecreatefrompng($image);
+//                     imagecopyresampled($imageResource, $source, 0, 0, 0, 0, $newWidth, $newHeight, $width, $height);
+//                     imagepng($imageResource, $destinationPath); // Guarda la imagen redimensionada
+//                     break;
+
+//                 case 'gif':
+//                     $source = imagecreatefromgif($image);
+//                     imagecopyresampled($imageResource, $source, 0, 0, 0, 0, $newWidth, $newHeight, $width, $height);
+//                     imagegif($imageResource, $destinationPath); // Guarda la imagen redimensionada
+//                     break;
+
+//                 default:
+//                     return redirect()->back()->with('error', __('Unsupported image format.'));
+//             }
+
+//             imagedestroy($imageResource); // Libera la memoria
+
+//             Log::info('New avatar stored', ['path' => $imagePath]);
+
+//             // Actualizar el campo avatar en la base de datos
+//             $objUser->avatar = $imagePath;
+//             $objUser->save();
+
+//             Log::info('User avatar updated successfully', ['user_id' => $objUser->id]);
+
+//             return redirect()->back()->with('success', __('User Updated Successfully!'));
+//         } catch (\Exception $e) {
+//             Log::error('Error storing avatar', ['message' => $e->getMessage()]);
+//             return redirect()->back()->with('error', __('Error saving avatar'));
+//         }
+//     }
+
+//     Log::error('Avatar not found in the request');
+//     return redirect()->back()->with('error', __('No avatar file found in the request'));
+// }
+
+public function update($slug = null, $id = null, Request $request)
 {
-    Log::info('Update method called'); // Log para verificar entrada al método
+    $currentWorkspace = Utility::getWorkspaceBySlug($slug);
+    if ($id) {
+        $objUser = User::find($id);
+    } else {
+        $objUser = Auth::user();
+    }
+    $validation = [];
+    $validation['name'] = 'required';
+    $validation['email'] = 'required|email|max:100|unique:users,email,' . $objUser->id . ',id';
 
-    $objUser = User::find($id); // Se busca el usuario por ID
-
-    if (!$objUser) {
-        Log::error('User not found', ['user_id' => $id]);
-        return redirect()->back()->with('error', __('User not found'));
+    if ($request->has('avatar')) {
+        $validation['avatar'] = 'required';
     }
 
-    Log::info('User found', ['user_id' => $objUser->id]);
-
-    // Validación para asegurarnos de que el archivo avatar está presente y es una imagen válida
-    $validator = \Validator::make($request->all(), [
-        'avatar' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
-    ]);
-
+    $validator = \Validator::make($request->all(), $validation);
     if ($validator->fails()) {
-        Log::error('Validation failed', ['errors' => $validator->errors()]);
-        return redirect()->back()->with('error', $validator->getMessageBag()->first());
+        $messages = $validator->getMessageBag();
+        return redirect()->back()->with('error', $messages->first());
     }
 
-    if ($request->hasFile('avatar')) {
-        Log::info('Avatar file detected', ['file' => $request->file('avatar')->getClientOriginalName()]);
-
-        // Eliminar el avatar anterior si existe
-        if ($objUser->avatar && Storage::disk('public')->exists($objUser->avatar)) {
-            Storage::disk('public')->delete($objUser->avatar);
-            Log::info('Old avatar deleted', ['avatar' => $objUser->avatar]);
+    $objUser->name = $request->name;
+    $objUser->email = $request->email;
+    $dir = 'avatars/';
+    $logo = Utility::get_file('avatars/');
+    if ($request->has('avatar')) {
+        // if(asset(\Storage::exists('avatars/'.$objUser->avatar)))
+        // {
+        //     asset(\Storage::delete('avatars/'.$objUser->avatar));
+        // }
+        if (\File::exists($logo . $objUser->avatar)) {
+            \File::delete($logo . $objUser->avatar);
         }
 
-        try {
-            // Procesar y redimensionar la nueva imagen usando GD
-            $image = $request->file('avatar');
-            $imagePath = 'avatars/' . uniqid() . '.' . $image->getClientOriginalExtension();
-            $destinationPath = storage_path('app/public/' . $imagePath);
-
-            // Asegurarse de que el directorio de destino existe
-            if (!file_exists(dirname($destinationPath))) {
-                mkdir(dirname($destinationPath), 0777, true); // Crear el directorio si no existe
-            }
-
-            // Redimensionar la imagen
-            list($width, $height) = getimagesize($image);
-            $newWidth = 300;
-            $newHeight = 300;
-
-            $imageResource = imagecreatetruecolor($newWidth, $newHeight);
-
-            switch ($image->getClientOriginalExtension()) {
-                case 'jpeg':
-                case 'jpg':
-                    $source = imagecreatefromjpeg($image);
-                    imagecopyresampled($imageResource, $source, 0, 0, 0, 0, $newWidth, $newHeight, $width, $height);
-                    imagejpeg($imageResource, $destinationPath, 80); // Guarda la imagen redimensionada
-                    break;
-
-                case 'png':
-                    $source = imagecreatefrompng($image);
-                    imagecopyresampled($imageResource, $source, 0, 0, 0, 0, $newWidth, $newHeight, $width, $height);
-                    imagepng($imageResource, $destinationPath); // Guarda la imagen redimensionada
-                    break;
-
-                case 'gif':
-                    $source = imagecreatefromgif($image);
-                    imagecopyresampled($imageResource, $source, 0, 0, 0, 0, $newWidth, $newHeight, $width, $height);
-                    imagegif($imageResource, $destinationPath); // Guarda la imagen redimensionada
-                    break;
-
-                default:
-                    return redirect()->back()->with('error', __('Unsupported image format.'));
-            }
-
-            imagedestroy($imageResource); // Libera la memoria
-
-            Log::info('New avatar stored', ['path' => $imagePath]);
-
-            // Actualizar el campo avatar en la base de datos
-            $objUser->avatar = $imagePath;
-            $objUser->save();
-
-            Log::info('User avatar updated successfully', ['user_id' => $objUser->id]);
-
-            return redirect()->back()->with('success', __('User Updated Successfully!'));
-        } catch (\Exception $e) {
-            Log::error('Error storing avatar', ['message' => $e->getMessage()]);
-            return redirect()->back()->with('error', __('Error saving avatar'));
+        $logoName = uniqid() . '.png';
+        // $request->avatar->storeAs('avatars', $logoName);
+        $path = Utility::upload_file($request, 'avatar', $logoName, $dir, []);
+        if ($path['flag'] == 1) {
+            $avatar = $path['url'];
+        } else {
+            return redirect()->back()->with('error', __($path['msg']));
         }
+        $objUser->avatar = $logoName;
     }
 
-    Log::error('Avatar not found in the request');
-    return redirect()->back()->with('error', __('No avatar file found in the request'));
+    $objUser->save();
+    return redirect()->back()->with('success', __('User Updated Successfully!'));
 }
-
 
     // public function destroy($user_id)
     // {

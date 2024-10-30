@@ -31,13 +31,15 @@
                 <div class="card   text-center">
 
                     <div class="card-body">
-                    <img class="theme-avtar"
+                    <img alt="user-image" class="img-fluid rounded-circle img_users_fix_size"
+                    @if ($client->avatar) src="{{ asset($logo . $client->avatar) }}" @else avatar="{{ $client->name }}" @endif>
+                    <!-- <img class="theme-avtar"
                                 @if (Auth::user()->avatar) 
                                     src="{{ url('storage/app/public/' . Auth::user()->avatar) }}" 
                                 @else 
                                     avatar="{{ Auth::user()->name }}" 
                                 @endif
-                                alt="{{ Auth::user()->name }}">
+                                alt="{{ Auth::user()->name }}"> -->
                         <h4 class="mt-2">{{ $client->name }}</h4>
                         <small>{{ $client->email }}</small>
                     </div>

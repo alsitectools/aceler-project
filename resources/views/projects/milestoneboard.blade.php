@@ -147,7 +147,7 @@
                                                                                 <img alt="image"
                                                                                     class="tooltipCus user-groupTasks"
                                                                                     data-title="{{ $task['technician']->name }}"
-                                                                                    @if ($task['technician']->avatar) src="{{url('storage/app/public/' . $task['technician']->avatar) }}" @else avatar="{{ $task['technician']->name }}" @endif>
+                                                                                    @if ($task['technician']->avatar) src="{{ asset($logo . $task['technician']->avatar) }}" @else avatar="{{ $task['technician']->name }}" @endif>
                                                                             </a>
                                                                         </div>
                                                                     @endif
@@ -156,7 +156,7 @@
                                                                 <div class="col-sm-11 text-end">
                                                                     <a href="#">
                                                                         <img alt="image" class="user-groupTasks"
-                                                                        @if ($task['technician']->avatar) src="{{url('storage/app/public/' . $task['technician']->avatar) }}" @else avatar="{{ $task['technician']->name }}" @endif>
+                                                                        @if ($task['technician']->avatar) src="{{ asset($logo . $task['technician']->avatar) }}" @else avatar="{{ $task['technician']->name }}" @endif>
                                                                         </a>
                                                                 </div>
                                                             @endif

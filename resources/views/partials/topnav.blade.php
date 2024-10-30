@@ -80,12 +80,15 @@
                     <a class="dash-head-link dropdown-toggle arrow-none" data-bs-toggle="dropdown" href="#"
                         role="button" aria-haspopup="false" aria-expanded="false">
                         <img class="theme-avtar"
+                            @if (\Auth::user()->avatar) src="{{ asset($logo . Auth::user()->avatar) }}" @else avatar="{{ Auth::user()->name }}" @endif
+                            alt="{{ Auth::user()->name }}">
+                        <!-- <img class="theme-avtar"
                             @if (Auth::user()->avatar) 
                                 src="{{ url('storage/app/public/' . Auth::user()->avatar) }}" 
                             @else 
                                 avatar="{{ Auth::user()->name }}" 
                             @endif
-                            alt="{{ Auth::user()->name }}">
+                            alt="{{ Auth::user()->name }}"> -->
                         <span class="hide-mob ms-2">{{ __('Hi') }},{{ Auth::user()->name }} !</span>
                         <i class="ti ti-chevron-down drp-arrow nocolor hide-mob"></i>
                     </a>

@@ -8,7 +8,8 @@
     <li class="breadcrumb-item"> {{ __('User Profile') }}</li>
 @endsection
 @php
-    $avatarPath = $user->avatar ? url('storage/app/public/' . $user->avatar) : null;
+    $logo = \App\Models\Utility::get_file('avatars/');
+    <!-- $avatarPath = $user->avatar ? url('storage/app/public/' . $user->avatar) : null; -->
 @endphp
 @section('content')
     <div class="row">
@@ -36,23 +37,30 @@
                     $user_id = $user ? $user->id : 0;
                 @endphp
                 <div class="card-body">
-                <form method="post" action="{{ route('update.account', [$workspace, $user_id]) }}" enctype="multipart/form-data">
+                <!-- <form method="post" action="{{ route('update.account', [$workspace, $user_id]) }}" enctype="multipart/form-data"> -->
+                <form method="post"
+                        action="@auth('web'){{ route('update.account', [$workspace, $user_id]) }}@elseauth{{ route('client.update.account', [$workspace, $user_id]) }}@endauth"
+                        enctype="multipart/form-data">
                         @csrf
                         <div class="row">
                             <div class="col-lg-4 avatar-centrado">
                                 <div class="form-group">
-                                    <img 
+                                    <!-- <img 
                                         src="{{ $avatarPath }}" 
                                         alt="user-image" 
                                         class="rounded-circle img-thumbnail" 
                                         id="myAvatar"
-                                    >
+                                    > -->
+                                    <img @if ($user->avatar) src="{{ asset($logo . $user->avatar) }}" @else avatar="{{ $user->name }}" @endif
+                                    id="myAvatar" alt="user-image" class="rounded-circle img-thumbnail">
                                     <div class="choose-file">
                                         <label for="avatar">
                                             <div class="bg-primary">
                                                 <i class="ti ti-upload px-1"></i>{{ __('Choose file here') }}
                                             </div>
-                                            <input type="file" name="avatar" id="avatar" required>
+                                            <input type="file" class="form-control choose_file_custom" name="avatar"
+                                                id="avatar" data-filename="avatar-logo" style="display: none;">
+                                            <!-- <input type="file" name="avatar" id="avatar" required> -->
                                         </label>
                                         @error('avatar')
                                             <span class="invalid-feedback" role="alert">
@@ -61,9 +69,11 @@
                                         @enderror
                                     </div> 
                                 </div>
-                                <small class="text-muted text-center">
+                                <small
+                                    class="text-muted text-center">{{ __('Please upload a valid image file. Size of image should not be more than 2MB.') }}</small> 
+                                <!-- <small class="text-muted text-center">
                                     {{ __('Please upload a valid image file. Size of image should not be more than 2MB.') }}
-                                </small> 
+                                </small>  -->
                             </div>
                             <div class="col-lg-8">
                                 <div class="d-flex">
@@ -88,12 +98,16 @@
                         <div class="row mt-4">
                             <div class="row">
                                 <div class="text-end">
-                                    <button type="submit">Guardar avatar</button>
+                                <button type="submit" class="btn-submit btn btn-primary col-sm-auto col-12">
+                                        {{ __('Save Changes') }}
+                                    </button>
+                                    <!-- <button type="submit">Guardar avatar</button> -->
                                 </div>
                             </div>
                         </div>
                     </form>
-                    @if ($user->avatar)
+                    @if ($user->avatar != '')
+                    <!-- @if ($user->avatar) -->
                         <form
                             action="@auth('web'){{ route('delete.avatar') }}@elseauth{{ route('client.delete.avatar') }}@endauth"
                             method="post" id="delete_avatar">
@@ -103,8 +117,59 @@
                     @endif
                 </div>
             </div>
-            <!-- Rest of your code remains the same -->
-@endsection
+            <div class="card" id="v-pills-profile">
+                <div class="card-header">
+                    <h5>{{ __('Add another workspace') }}</h5>
+                </div>
+                <div class="card-body">
+                    <div class="col-12 d-flex">
+                        <div class="col-4">
+                            <div class="d-flex mt-4">
+                                <h1><i class="ti ti-users text-success card-icon-text-space m-2"></i>
+                                </h1>
+                                <div style="display: flex; flex-direction: column;" class="col-8">
+                                    <strong for="name" class="form-label mb-3">{{ __('Current workspace') }}</strong>
+                                    {{ $currentWorkspace->name }}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-8 mt-4 ms-5">
+                            <a href="#" class="d-flex">
+                                <h1 class="mt-2 me-1 d-inline"><i class="bi bi-info-circle" style="color: #FFD43B;"></i>
+                                </h1>
+                                <p class="text-muted infoWorkspace">
+                                    {{ __('The selected workspaces indicate which ones you belong to. You can also select others to be displayed in the list of your workspaces.') }}
+                                </p>
+                            </a>
+                        </div>
+                    </div>
+                    <div class="col-12">
+                        <div class="d-flex mt-4">
+                            <h1><i class="ti ti-users text-primary card-icon-text-space m-2"></i></h1>
+                            <div style="display: flex; flex-direction: column; width: 100%;">
+                                <strong for="name" class="form-label mb-4">{{ __('New workspace') }}</strong>
+                                <div class="container">
+                                    <div class="row">
+                                        @foreach ($workspaces as $workspace)
+                                            <div class="col-md-4 mb-2">
+                                                <div class="form-check form-switch">
+                                                    <input class="form-check-input" type="checkbox" role="switch"
+                                                        id="workspaceCheckbox-{{ $workspace->id }}"
+                                                        onchange="workspaceManager({{ $workspace->id }})"
+                                                        @if (in_array($workspace->id, $anotherWorkspaces)) checked @endif>
+                                                    {{ $workspace->name }}
+                                                </div>
+                                            </div>
+                                        @endforeach
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div> <!-- end col -->
+        </div> <!-- end row -->
+    @endsection
 
     @push('scripts')
      
