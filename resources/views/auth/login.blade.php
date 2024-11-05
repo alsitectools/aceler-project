@@ -1,18 +1,144 @@
 <style>
-    .buttonLogin {
-        width: 100% !important;
-        height: 50px;
-    }
+    html, body {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            overflow: hidden;
+        }
 
-    .azureIcon {
-        width: 20px;
-        filter: drop-shadow(0px 0px 1.2px #ffffff);
-    }
+        /* Estilo para la imagen de fondo */
+        .backgroundImageLogin {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: url('{{ asset('assets/img/login/imagenes cuadrados fondo filtred.png') }}');
+            background-size: cover;  /* Hace que la imagen ocupe toda la pantalla sin deformarse */
+            background-position: center; /* Centra la imagen */
+            background-repeat: no-repeat; /* Evita que la imagen se repita */
+            z-index: -1; /* Envía la imagen al fondo */
+        }
 
-    .login-deafult {
-        width: 139px !important;
-    }
+        .divLogin{
+            box-shadow: 0px 4px 4px 0px rgb(0 0 0 / 25%);
+            -webkit-box-shadow: 0px 4px 4px 0px rgb(0 0 0 / 25%);
+            -moz-box-shadow: 0px 4px 4px 0px rgb(0 0 0 / 25%);
+            background-color: white;
+            width: 30%;
+            height: 60%;
+            margin-left: 33%;
+            margin-top: 9%;
+            border-radius: 15px;
+        }
+
+        .imgDiv{
+            width: 90%;
+            padding-top: 5%;
+            margin-left: 12%;
+        }
+
+        .loginText{
+            display: flex;
+            align-content: center;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+
+        .loginTitle{
+            font-size: 50px;
+            padding-top: 4%;
+            padding-bottom: 5%;
+        }
+
+        .loginExplanation{
+            width: 79%;
+            font-size: 18px;
+            padding-left: 5%;
+        }
+
+        .azureLogo{
+            width: 26px;
+        }
+
+        .copyText{
+            color: #AA182C;
+            padding-left: 41%;
+        }
+        @media screen and (max-width: 1669px) and (min-width: 1555px){
+
+            .buttonLogin{
+                font-size: 17px;
+            }
+            .azureLogo{
+                width: 20px;
+            }
+        }
+
+        @media screen and (max-width: 1553px) and (min-width: 1479px){
+
+            .buttonLogin{
+                font-size: 15px;
+            }
+            
+            .loginExplanation{
+                font-size: 16px;
+            }
+
+            .loginTitle{
+                font-size: 48px;
+            }
+
+            .imgDiv{
+                padding-top: 8%;
+            }
+        }
+
+        @media screen and (max-width: 1479px) and (min-width: 1240px ){
+            
+            .azureLogo {
+                width: 20px;
+            }
+
+            .divLogin{
+                margin-top: 10%;
+            }
+            .buttonLogin{
+                font-size: 15px;
+            }
+        }
+
+        @media screen and (max-width: 1240px) and (min-width: 800px ){
+            
+            .azureLogo {
+                width: 20px;
+            }
+
+            .loginTitle{
+                font-size: 40px;
+            }
+            .loginExplanation{
+                width: 75%;
+                font-size: 15px;
+            }
+            .divLogin{
+                margin-top: 10%;
+            }
+            .copyText{
+                padding-left: 20%;
+            }
+            .buttonLogin{
+                font-size: 12px;
+            }
+            .imgDiv{
+                padding-top: 11%;
+                padding-bottom: 8%;
+            }
+        }
+
 </style>
+
 <x-guest-layout>
     <x-auth-card>
         @php
@@ -23,16 +149,18 @@
         @section('page-title')
             {{ __('Login') }}
         @endsection
+
         @section('language-bar')
             <div href="#" class="lang-dropdown-only-desk">
                 <li class="dropdown dash-h-item drp-language">
-                    <a class="dash-head-link dropdown-toggle btn" href="#" data-bs-toggle="dropdown"
+                    <a style="color:white;" class="dash-head-link dropdown-toggle btn" href="#" data-bs-toggle="dropdown"
                         aria-expanded="false">
-                        <span class="drp-text">{{ isset($languages[$lang]) ? ucfirst($languages[$lang]) : 'en' }}</span>
+                        <span class="drp-text">{{ isset($languages[$lang]) ? ucfirst($languages[$lang]) : 'es' }}</span>
                     </a>
+
                     <div class="dropdown-menu dash-h-dropdown dropdown-menu-end">
                         @foreach ($languages as $code => $language)
-                            <a href="{{ route('login', $code) }}" tabindex="0"
+                            <a style="border-radius: 10px;" href="{{ route('login', $code) }}" tabindex="0"
                                 class="dropdown-item {{ $code == $lang ? 'active' : '' }}">
                                 <span>{{ ucFirst($language) }}</span>
                             </a>
@@ -41,43 +169,7 @@
                 </li>
             </div>
         @endsection
-        @section('content')
-            <div class="card-body p-3">
-                @if (session()->has('error'))
-                    <div>
-                        <p class="text-danger">{{ session('error') }}</p>
-                    </div>
-                @endif
-                <div class="navbar-brand d-none d-md-block text-center mt-5 mb-5 ms-4">
-                    <img width="100%" src="{{ asset('assets/img/logoRed1.png') }}" alt="Logo Alsina Project">
-                </div>
-                <div class="text-center">
-                    <h2 class="text-muted m-1">{{ __('Login') }}</h2>
-                    <p class="text-muted m-2">
-                        {{ __('To access aCeler Project, you will be automatically redirected to the Azure login page.') }}
-                    </p>
-                </div>
-                <div class="text-center mt-4 me-4 ms-4">
-                    <a href="{{ route('azure.login') }}" class="btn btn-primary text-white buttonLogin"
-                        title="{{ __('Login azure') }}">
-                        <img class="me-2 azureIcon" src="{{ asset('assets/img/azureIcon.svg') }}"
-                            alt="login with microsoft">
-                        <p class="d-inline" style="font-size: 18px;">{{ __('Sign in') }}
-                        </p>
-                    </a>
-                </div>
-                <a href="#" class="mt-3 text-center mb-5 m-2" data-bs-toggle="modal" data-bs-target="#exampleModal">
-                    {{ __('Login as admin') }}
-                </a>
-            </div>
-            <div class="text-center text-primary mt-5 rounded" style="background-color: white">
-                <a href="#"> <span>
-                        &copy; {{ date('Y') }}
-                        {{ 'aCeler Project' }} ~@yield('page-title')
-                    </span></a>
-            </div>
-            </div>
-        @endsection
+
         @push('custom-scripts')
             <script src="{{ asset('assets/custom/libs/jquery/dist/jquery.min.js') }}"></script>
             <script>
@@ -90,40 +182,29 @@
             </script>
         @endpush
     </x-auth-card>
-</x-guest-layout>
-<form method="POST" id="form_data" action="{{ route('login', config::get('app.locale')) }}">
-    <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h1 class="modal-title fs-5" id="exampleModalLabel">Iniciar sesión</h1>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+</x-guest-layout> 
+<div class="backgroundImageLogin">
+    <div>
+        <div class="divLogin">
+            @if (session()->has('error'))
+                <div>
+                     <p >{{ session('error') }}</p>
                 </div>
-                <div class="modal-body">
-                    <div class="form-group mb-3">
-                        <label for="email" class="form-label">{{ __('Email') }}</label>
-                        <input type="email" class="form-control  @error('email') is-invalid @enderror" name="email"
-                            id="emailaddress" value="{{ old('email') }}" required autocomplete="email" autofocus
-                            placeholder="{{ __('Enter Your Email') }}">
-                        @error('email')
-                            <span class="error invalid-email text-danger" role="alert">
-                                <small>{{ $message }}</small>
-                            </span>
-                        @enderror
-                    </div>
-                    <div class="form-group mb-3">
-                        <label for="password" class="form-label">{{ __('Password') }}</label>
-                        <input type="password" class="form-control @error('password') is-invalid @enderror"
-                            name="password" required autocomplete="current-password" id="password"
-                            placeholder="{{ __('Enter Your Password') }}">
-                    </div>
+            @endif
+                <div class="imgDiv">
+                    <img width="100%" src="{{ asset('assets/img/logoRed1.png') }}" alt="Logo Alsina Project">
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                    <button type="submit" id="login_button" class="btn btn-primary btn-block mt-2">{{ __('Login') }}
-                    </button>
+                <div class="loginText">
+                    <h2 class="loginTitle">{{ __('Login') }}</h2>
+                    <p class="loginExplanation">
+                        {{ __('To access aCeler Project, you will be automatically redirected to the Azure login page.') }}
+                    </p>
                 </div>
-            </div>
         </div>
     </div>
-</form>
+</div>
+<script>
+    document.getElementById('azureLoginButton').addEventListener('click', function() {
+        window.location.href = "{{ route('azure.login') }}";
+    });
+</script>
