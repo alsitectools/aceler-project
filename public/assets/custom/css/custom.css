@@ -908,6 +908,13 @@ span.invite-warning {
     margin: 0;
     cursor: pointer;
 } */
+.form-control:focus-visible {
+    outline: none !important;
+}
+
+.form-control:focus {
+    border-color: transparent !important;
+}
 
 .choose_file_custom {
     position: relative !important;

@@ -78,7 +78,7 @@
                         <a href="{{ route('projects.milestone.board', [$currentWorkspace->slug, -1]) }}"
                             class="dash-link ">
                             <span class="dash-micon"><i class="fa-solid fa-file-lines"></i></span><span
-                                class="dash-mtext">{{ __('Milestones') }}</span></a>
+                                class="dash-mtext">{{ __('Order forms') }}</span></a>
                     </li>
                     <li class="dash-item {{ Request::route()->getName() == 'timesheet.index' ? ' active' : '' }}">
                         <a href="{{ route('timesheet.index', $currentWorkspace->slug) }}" class="dash-link ">

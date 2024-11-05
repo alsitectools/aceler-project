@@ -154,13 +154,6 @@
                                                                     data-title="{{ $user->name }}">
                                                                     <img alt="{{ $user->name }}" class="iconUSer"
                                                                         @if ($user->avatar) src="{{ asset($logo . $user->avatar) }}" @else avatar="{{ $user->name }}" @endif>
-                                                                    <!-- <img class="theme-avtar"
-                                                                        @if (Auth::user()->avatar) 
-                                                                            src="{{ url('storage/app/public/' . Auth::user()->avatar) }}" 
-                                                                        @else 
-                                                                            avatar="{{ Auth::user()->name }}" 
-                                                                        @endif
-                                                                        alt="{{ Auth::user()->name }}"> -->
                                                                 </a>
                                                             @endif
                                                         @endforeach
@@ -274,7 +267,7 @@
     </section>
 @endsection
 @if (isset($currentWorkspace) && $currentWorkspace)
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    {{-- <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script> --}}
     <script src="{{ asset('assets/custom/js/jquery.easy-autocomplete.min.js') }}"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {

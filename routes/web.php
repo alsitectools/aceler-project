@@ -7,7 +7,7 @@ use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\ProjectReportController;
 use App\Http\Controllers\UserController;
-use App\Http\Controllers\PlanController;
+// use App\Http\Controllers\PlanController;
 use App\Http\Controllers\SettingsController;
 use App\Http\Controllers\StripePaymentController;
 use App\Http\Controllers\ProjectController;
@@ -30,9 +30,9 @@ use App\Http\Controllers\PaymentWallPaymentController;
 use App\Http\Controllers\CouponController;
 use App\Http\Controllers\NoteController;
 use App\Http\Controllers\TimeTrackerController;
-use App\Http\Controllers\EmailTemplateController;
+// use App\Http\Controllers\EmailTemplateController;
 use App\Http\Controllers\ContractsTypeController;
-use App\Http\Controllers\PlanRequestController;
+// use App\Http\Controllers\PlanRequestController;
 use App\Http\Controllers\PaytmPaymentController;
 use App\Http\Controllers\MolliePaymentController;
 use App\Http\Controllers\SkrillPaymentController;
@@ -549,19 +549,19 @@ Route::post('/my-account/password', [UserController::class, 'updatePassword'])->
 Route::delete('/my-account', [UserController::class, 'deleteAvatar'])->name('delete.avatar')->middleware(['auth', 'XSS']);
 Route::delete('/delete-my-account', [UserController::class, 'deleteMyAccount'])->name('delete.my.account')->middleware(['auth', 'XSS']);
 
-Route::get('/plans', [PlanController::class, 'index'])->name('plans.index')->middleware(['auth', 'XSS']);
-Route::get('/plans/create', [PlanController::class, 'create'])->name('plans.create')->middleware(['auth', 'XSS']);
-Route::post('/plans', [PlanController::class, 'store'])->name('plans.store')->middleware(['auth', 'XSS']);
-Route::get('/plans/{id}/edit', [PlanController::class, 'edit'])->name('plans.edit')->middleware(['auth', 'XSS']);
-Route::post('/plans/{id}/update', [PlanController::class, 'update'])->name('plans.update')->middleware(['auth', 'XSS']);
-Route::post('/user-plans/', [PlanController::class, 'userPlan'])->name('update.user.plan')->middleware(['auth', 'XSS']);
-Route::get('/payment/{frequency}/{code}', [PlanController::class, 'payment'])->name('payment')->middleware(['auth', 'XSS']);
+// Route::get('/plans', [PlanController::class, 'index'])->name('plans.index')->middleware(['auth', 'XSS']);
+// Route::get('/plans/create', [PlanController::class, 'create'])->name('plans.create')->middleware(['auth', 'XSS']);
+// Route::post('/plans', [PlanController::class, 'store'])->name('plans.store')->middleware(['auth', 'XSS']);
+// Route::get('/plans/{id}/edit', [PlanController::class, 'edit'])->name('plans.edit')->middleware(['auth', 'XSS']);
+// Route::post('/plans/{id}/update', [PlanController::class, 'update'])->name('plans.update')->middleware(['auth', 'XSS']);
+// Route::post('/user-plans/', [PlanController::class, 'userPlan'])->name('update.user.plan')->middleware(['auth', 'XSS']);
+// Route::get('/payment/{frequency}/{code}', [PlanController::class, 'payment'])->name('payment')->middleware(['auth', 'XSS']);
 
-Route::get('/orders', [StripePaymentController::class, 'index'])->name('order.index')->middleware(['auth', 'XSS']);
-Route::post('/stripe', [StripePaymentController::class, 'stripePost'])->name('stripe.post')->middleware(['auth', 'XSS']);
+// Route::get('/orders', [StripePaymentController::class, 'index'])->name('order.index')->middleware(['auth', 'XSS']);
+// Route::post('/stripe', [StripePaymentController::class, 'stripePost'])->name('stripe.post')->middleware(['auth', 'XSS']);
 
-Route::get('/apply-coupon', [CouponController::class, 'applyCoupon'])->name('apply.coupon')->middleware(['auth', 'XSS']);
-Route::resource('coupons', CouponController::class)->middleware(['auth', 'XSS',]);
+// Route::get('/apply-coupon', [CouponController::class, 'applyCoupon'])->name('apply.coupon')->middleware(['auth', 'XSS']);
+// Route::resource('coupons', CouponController::class)->middleware(['auth', 'XSS',]);
 
 // Lang
 Route::get('/admin/change_lang/{lang}', [WorkspaceController::class, 'changeLangAdmin'])->name('change_lang_admin')->middleware(['auth', 'XSS']);
@@ -598,13 +598,19 @@ Route::post('/workspace/settings/seo', [SettingsController::class, 'seosetting']
 Route::get('/projects/search-mo/{search?}', [ProjectController::class, 'getMoJson'])->name('search-mo-json');
 Route::get('/projects/{slug}/search-mo/{search?}', [ProjectController::class, 'getMoJson'])->name('search-mo-json')->middleware(['auth', 'XSS']);
 Route::get('/projects/{slug}/search-clipo/{search?}', [ProjectController::class, 'getClientJson'])->name('search-clipo-json')->middleware(['auth', 'XSS']);
+Route::get('/projects/{slug}/search-project/{search?}', [ProjectController::class, 'getProjectsJson'])->name('search-project-json')->middleware(['auth', 'XSS']);
+Route::get('/projects/{slug}/search-sales/{search?}', [ProjectController::class, 'getSalesJson'])->name('search-sales-json')->middleware(['auth', 'XSS']);
 
 // Route::get('/search-mo/{search?}', [ProjectController::class, 'getMoJson'])->name('search-mo-json');
 Route::get('/{slug}/projects', [ProjectController::class, 'index'])->name('projects.index')->middleware(['auth', 'XSS']);
 Route::get('/{slug}/projects/create', [ProjectController::class, 'create'])->name('projects.create')->middleware(['auth', 'XSS']);
 Route::get('/{slug}/projects/task-create', [ProjectController::class, 'taskCreate'])->name('tasks.create')->middleware(['auth', 'XSS']);
 Route::get('/{slug}/projects/{id}', [ProjectController::class, 'show'])->name('projects.show')->middleware(['auth', 'XSS']);
-Route::post('/{slug}/projects', [ProjectController::class, 'store'])->name('projects.store')->middleware(['auth', 'XSS']);
+Route::post('/{slug}/projects', [ProjectController::class, 'store'])->name('projects.store');
+// Route::post('/{slug}/projects/milestone_project/{isReload}', [ProjectController::class, 'store'])->middleware(['auth', 'XSS']);
+Route::post('/{slug}/milestone-board/milestone_project', [ProjectController::class, 'store'])->name('project.milestone.store');
+
+// Route::post('/{slug}/projects', [ProjectController::class, 'store'])->name('projects.store')->middleware(['auth', 'XSS']);
 Route::get('/{slug}/projects/{id}/edit', [ProjectController::class, 'edit'])->name('projects.edit')->middleware(['auth', 'XSS']);
 Route::post('/{slug}/projects/{id}/update', [ProjectController::class, 'update'])->name('projects.update')->middleware(['auth', 'XSS']);
 Route::delete('/{slug}/projects/{id}', [ProjectController::class, 'destroy'])->name('projects.destroy')->middleware(['auth', 'XSS']);
@@ -724,11 +730,11 @@ Route::get('/{id}/plan-get-payment-status', [PaypalController::class, 'planGetPa
 
 
 
-Route::get('plan_request', [PlanRequestController::class, 'index'])->name('plan_request.index')->middleware(['auth', 'XSS',]);
-Route::get('request_frequency/{id}', [PlanRequestController::class, 'requestView'])->name('request.view')->middleware(['auth', 'XSS',]);
-Route::get('request_send/{id}', [PlanRequestController::class, 'userRequest'])->name('send.request')->middleware(['auth', 'XSS',]);
-Route::get('request_response/{id}/{response}', [PlanRequestController::class, 'acceptRequest'])->name('response.request')->middleware(['auth', 'XSS',]);
-Route::get('request_cancel/{id}', [PlanRequestController::class, 'cancelRequest'])->name('request.cancel')->middleware(['auth', 'XSS',]);
+// Route::get('plan_request', [PlanRequestController::class, 'index'])->name('plan_request.index')->middleware(['auth', 'XSS',]);
+// Route::get('request_frequency/{id}', [PlanRequestController::class, 'requestView'])->name('request.view')->middleware(['auth', 'XSS',]);
+// Route::get('request_send/{id}', [PlanRequestController::class, 'userRequest'])->name('send.request')->middleware(['auth', 'XSS',]);
+// Route::get('request_response/{id}/{response}', [PlanRequestController::class, 'acceptRequest'])->name('response.request')->middleware(['auth', 'XSS',]);
+// Route::get('request_cancel/{id}', [PlanRequestController::class, 'cancelRequest'])->name('request.cancel')->middleware(['auth', 'XSS',]);
 
 
 Route::get('/{slug}/timesheet/{id}', [ProjectController::class, 'projectsTimesheet'])->name('projects.timesheet.index')->middleware(['auth', 'XSS']);
@@ -751,11 +757,11 @@ Route::get('/{slug}/checkuserexists', [UserController::class, 'checkUserExists']
 
 Route::delete('/lang/{lang}', [WorkspaceController::class, 'destroyLang'])->name('lang.destroy')->middleware(['auth', 'XSS']);
 
-Route::get('/stripe-payment-status', [StripePaymentController::class, 'planGetStripePaymentStatus'])->name('stripe.payment.status');
-Route::post('/webhook-stripe', [StripePaymentController::class, 'webhookStripe'])->name('webhook.stripe');
+// Route::get('/stripe-payment-status', [StripePaymentController::class, 'planGetStripePaymentStatus'])->name('stripe.payment.status');
+// Route::post('/webhook-stripe', [StripePaymentController::class, 'webhookStripe'])->name('webhook.stripe');
 
-Route::get('/take-a-plan-trial/{plan_id}', [PlanController::class, 'takeAPlanTrial'])->name('take.a.plan.trial')->middleware(['auth', 'XSS']);
-Route::get('/change-user-plan/{plan_id}', [PlanController::class, 'changeUserPlan'])->name('change.user.plan')->middleware(['auth', 'XSS']);
+// Route::get('/take-a-plan-trial/{plan_id}', [PlanController::class, 'takeAPlanTrial'])->name('take.a.plan.trial')->middleware(['auth', 'XSS']);
+// Route::get('/change-user-plan/{plan_id}', [PlanController::class, 'changeUserPlan'])->name('change.user.plan')->middleware(['auth', 'XSS']);
 
 Route::get('user/{id}/plan/{pid}/{duration}', [UserController::class, 'manuallyActivatePlan'])->name('manually.activate.plan')->middleware(['auth', 'XSS',]);
 
@@ -876,12 +882,12 @@ Route::post('{slug}/client/changepassword/{id}', [ClientController::class, 'chan
 
 /*================================================Email Templates======================================================*/
 
-Route::get('email_template_lang/{id}/{lang?}', [EmailTemplateController::class, 'manageEmailLang'])->name('manage.email.language')->middleware(['auth']);
-Route::post('email_template_store/{pid}', [EmailTemplateController::class, 'storeEmailLang'])->name('store.email.language')->middleware(['auth']);
-Route::any('{slug}/email_template_status/{id?}', [EmailTemplateController::class, 'updateStatus'])->name('status.email.language')->middleware(['auth']);
+// Route::get('email_template_lang/{id}/{lang?}', [EmailTemplateController::class, 'manageEmailLang'])->name('manage.email.language')->middleware(['auth']);
+// Route::post('email_template_store/{pid}', [EmailTemplateController::class, 'storeEmailLang'])->name('store.email.language')->middleware(['auth']);
+// Route::any('{slug}/email_template_status/{id?}', [EmailTemplateController::class, 'updateStatus'])->name('status.email.language')->middleware(['auth']);
 
-Route::resource('email_template', EmailTemplateController::class)->middleware(['auth']);
-Route::resource('email_template_lang', EmailTemplateLangController::class)->middleware(['auth', 'XSS']);
+// Route::resource('email_template', EmailTemplateController::class)->middleware(['auth']);
+// Route::resource('email_template_lang', EmailTemplateLangController::class)->middleware(['auth', 'XSS']);
 // End Email Templates
 
 

@@ -12,6 +12,10 @@ class Milestone extends Model
         'assign_to',
         'status',
         'order',
+        'company',
+        'contractor',
+        'contractorAdress',
+        'jobsiteAdress',
         'start_date',
         'end_date',
         'summary'
