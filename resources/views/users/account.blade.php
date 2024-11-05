@@ -8,30 +8,27 @@
     <li class="breadcrumb-item"> {{ __('User Profile') }}</li>
 @endsection
 @php
-    // $logo = \App\Models\Utility::get_file('users-avatar/');
+
     $logo = \App\Models\Utility::get_file('avatars/');
 @endphp
 @section('content')
     <div class="row">
         <div class="col-xl-3">
-            <div class="card sticky-top" style="top:30px">
+            <div class="card sticky-top">
                 <div class="list-group list-group-flush" id="useradd-sidenav">
-                    <a href="#v-pills-home" class="list-group-item list-group-item-action border-0">{{ __('Account') }} <div
-                            class="float-end"><i class="ti ti-chevron-right"></i></div></a>
+                    <a href="#v-pills-home" class="list-group-item list-group-item-action border-0">{{ __('Account') }}
+                        <div class="float-end"><i class="ti ti-chevron-right"></i></div>
+                    </a>
 
                     <a href="#v-pills-profile"
-                        class="list-group-item list-group-item-action border-0">{{ __('Change Password') }} <div
-                            class="float-end"><i class="ti ti-chevron-right"></i></div></a>
-                    {{-- Escalable, guardar datos del trabajador como sus dias de vaciones con cuenta atras o dias de fiesta rs¡estantes!! 
-                    <a href="#v-pills-billing"
-                        class="list-group-item list-group-item-action border-0">{{ __('Billing Details') }} <div
-                            class="float-end"><i class="ti ti-chevron-right"></i></div></a>--}}
-
+                        class="list-group-item list-group-item-action border-0">{{ __('Add another workspace') }}
+                        <div class="float-end"><i class="ti ti-chevron-right"></i></div>
+                    </a>
                 </div>
             </div>
         </div>
         <div class="col-xl-9">
-            <div id="v-pills-home" class="card ">
+            <div id="v-pills-home" class="card">
                 <div class="card-header">
                     <h5>{{ __('Avatar') }}</h5>
                 </div>
@@ -45,71 +42,57 @@
                         enctype="multipart/form-data">
                         @csrf
                         <div class="row">
-                            <div class="col-lg-6">
+                            <div class="col-lg-4 avatar-centrado">
                                 <div class="form-group">
                                     <img @if ($user->avatar) src="{{ asset($logo . $user->avatar) }}" @else avatar="{{ $user->name }}" @endif
-                                        id="myAvatar" alt="user-image" class="rounded-circle img-thumbnail img_hight w-25">
-
-                                    <div class="choose-file" style="display: flex; flex-wrap: nowrap;">
-                                        <label for="avatar" class="wid-150">
-                                            <div class=" bg-primary"> <i
-                                                    class="ti ti-upload px-1"></i>{{ __('Choose file here') }}</div>
+                                        id="myAvatar" alt="user-image" class="rounded-circle img-thumbnail">
+                                    {{-- <div class="choose-file">
+                                        <label for="avatar">
+                                            <div class=" bg-primary "><i
+                                                    class="ti ti-upload px-1"></i>{{ __('Choose file here') }}
+                                            </div>
                                             <input type="file" class="form-control choose_file_custom" name="avatar"
-                                                id="avatar" data-filename="avatar-logo">
+                                                id="avatar" data-filename="avatar-logo" style="display: none;">
                                         </label>
                                         @error('avatar')
                                             <span class="invalid-feedback" role="alert">
                                                 <strong>{{ $message }}</strong>
                                             </span>
                                         @enderror
-
-                                        @if ($user->avatar != '')
-                                            <div class="wid-150 ">
-                                                <a href="#"
-                                                    class=" action-btn btn-danger  btn btn-sm  mb-1 d-inline-flex align-items-center bs-pass-para"
-                                                    data-confirm="{{ __('Are You Sure?') }}"
-                                                    data-text="{{ __('This action can not be undone. Do you want to continue?') }}"
-                                                    data-confirm-yes="delete_avatar"><i class="ti ti-trash text-white"></i>
-                                                </a>
-                                            </div>
-                                        @endif
+                                    </div> --}}
+                                </div>
+                                {{-- <small
+                                    class="text-muted text-center">{{ __('Please upload a valid image file. Size of image should not be more than 2MB.') }}</small> --}}
+                            </div>
+                            <div class="col-lg-8">
+                                <div class="d-flex">
+                                    <h1> {{ $user->name }}</h1>
+                                </div>
+                                <div class="d-flex mt-4">
+                                    <i class="fa-regular fa-envelope fa-xl mt-4 me-3"></i>
+                                    <div style="display: flex; flex-direction: column;" class="col-12">
+                                        <strong for="name" class="form-label ">{{ __('Email') }}</strong>
+                                        {{ $user->email }}
                                     </div>
                                 </div>
-                                <small
-                                    class="">{{ __('Please upload a valid image file. Size of image should not be more than 2MB.') }}</small>
-                            </div>
-                            <div class="col-lg-6">
-                                <div class="form-group">
-                                    <label for="name" class="form-label">{{ __('Full Name') }}</label>
-                                    <input class="form-control @error('name') is-invalid @enderror" name="name"
-                                        type="text" id="fullname" placeholder="{{ __('Enter Your Name') }}"
-                                        value="{{ $user->name }}" required autocomplete="name">
-                                    @error('name')
-                                        <span class="invalid-feedback" role="alert">
-                                            <strong>{{ $message }}</strong>
-                                        </span>
-                                    @enderror
-                                </div>
-                                <div class="form-group">
-                                    <label for="email" class="form-label">{{ __('Email') }}</label>
-                                    <input class="form-control @error('email') is-invalid @enderror" name="email"
-                                        type="text" id="email" placeholder="{{ __('Enter Your Email Address') }}"
-                                        value="{{ $user->email }}" required autocomplete="email">
-                                    @error('email')
-                                        <span class="invalid-feedback" role="alert">
-                                            <strong>{{ $message }}</strong>
-                                        </span>
-                                    @enderror
+                                <div class="d-flex mt-4">
+                                    <i class="fa-regular fa-user fa-xl mt-4 me-3"></i>
+                                    <div style="display: flex; flex-direction: column;" class="col-12">
+                                        <strong for="name" class="form-label ">{{ __('Job title') }}</strong>
+                                        {{ $user->jobTitle }}
+                                    </div>
                                 </div>
                             </div>
                         </div>
-
-                        <div class="row mt-4">
+                        {{-- <div class="row mt-4">
                             <div class=" row">
                                 <div class="text-end">
                                     <button type="submit" class="btn-submit btn btn-primary col-sm-auto col-12">
                                         {{ __('Save Changes') }}
                                     </button>
+                                </div>
+                            </div>
+                        </div> --}}
                     </form>
                     @if ($user->avatar != '')
                         <form
@@ -121,157 +104,128 @@
                     @endif
                 </div>
             </div>
-        </div> <!-- end col -->
-    </div> <!-- end row -->
-    </div>
-    <div class="card" id="v-pills-profile">
-        <div class="card-header">
-            <h5>{{ __('Change Password') }}</h5>
-        </div>
-        <div class="card-body">
-            <form method="post"
-                action="@auth('web'){{ route('update.password') }}@elseauth{{ route('client.update.password') }}@endauth">
-                @csrf
 
-                <div class="col-lg-12">
-                    <div class="row">
-                        <div class="col-lg-12">
-                            <div class="form-group">
-                                <label for="old_password" class="form-label">{{ __('Old Password') }}</label>
-                                <input class="form-control @error('old_password') is-invalid @enderror"
-                                    name="old_password" type="password" id="old_password" autocomplete="old_password"
-                                    placeholder="{{ __('Enter Old Password') }}">
-                                @error('old_password')
-                                    <span class="invalid-feedback" role="alert">
-                                        <strong>{{ $message }}</strong>
-                                    </span>
-                                @enderror
+            <div class="card" id="v-pills-profile">
+                <div class="card-header">
+                    <h5>{{ __('Add another workspace') }}</h5>
+                </div>
+                <div class="card-body">
+                    <div class="col-12 d-flex">
+                        <div class="col-4">
+                            <div class="d-flex mt-4">
+                                <h1><i class="ti ti-users text-success card-icon-text-space m-2"></i>
+                                </h1>
+                                <div style="display: flex; flex-direction: column;" class="col-8">
+                                    <strong for="name" class="form-label mb-3">{{ __('Current workspace') }}</strong>
+                                    {{ $currentWorkspace->name }}
+                                </div>
                             </div>
                         </div>
-                        <div class="col-lg-12">
-                            <div class="form-group">
-                                <label for="password" class="form-label">{{ __('New Password') }}</label>
-                                <input class="form-control @error('password') is-invalid @enderror" name="password"
-                                    type="password" autocomplete="new-password" id="password"
-                                    placeholder="{{ __('Enter new password') }}">
-                                @error('password')
-                                    <span class="invalid-feedback" role="alert">
-                                        <strong>{{ $message }}</strong>
-                                    </span>
-                                @enderror
-                            </div>
+                        <div class="col-8 mt-4 ms-5">
+                            <a href="#" class="d-flex">
+                                <h1 class="mt-2 me-1 d-inline"><i class="bi bi-info-circle" style="color: #FFD43B;"></i>
+                                </h1>
+                                <p class="text-muted infoWorkspace">
+                                    {{ __('The selected workspaces indicate which ones you belong to. You can also select others to be displayed in the list of your workspaces.') }}
+                                </p>
+                            </a>
                         </div>
-                        <div class="col-lg-12">
-                            <div class="form-group">
-                                <label for="password_confirmation"
-                                    class="form-label">{{ __('Confirm New Password') }}</label>
-                                <input class="form-control @error('password_confirmation') is-invalid @enderror"
-                                    name="password_confirmation" type="password" ` autocomplete="new-password"
-                                    id="password_confirmation" placeholder="{{ __('Enter confirm password') }}">
+                    </div>
+                    <div class="col-12">
+                        <div class="d-flex mt-4">
+                            <h1><i class="ti ti-users text-primary card-icon-text-space m-2"></i></h1>
+                            <div style="display: flex; flex-direction: column; width: 100%;">
+                                <strong for="name" class="form-label mb-4">{{ __('New workspace') }}</strong>
+                                <div class="container">
+                                    <div class="row">
+                                        @foreach ($workspaces as $workspace)
+                                            <div class="col-md-4 mb-2">
+                                                <div class="form-check form-switch">
+                                                    <input class="form-check-input" type="checkbox" role="switch"
+                                                        id="workspaceCheckbox-{{ $workspace->id }}"
+                                                        onchange="workspaceManager({{ $workspace->id }})"
+                                                        @if (in_array($workspace->id, $anotherWorkspaces)) checked @endif>
+                                                    {{ $workspace->name }}
+                                                </div>
+
+                                            </div>
+                                        @endforeach
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
+            </div> <!-- end col -->
+        </div> <!-- end row -->
+    @endsection
+    @push('scripts')
+     
+        <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+        <script type="text/javascript">
+            $('#avatar').change(function() {
 
-                <div class="row">
-                    <div class="text-end">
-                        <button type="submit" class="btn-submit btn btn-primary "> {{ __('Change Password') }} </button>
-                    </div>
-                </div>
-            </form>
-        </div>
-    </div>
-    @auth('client')
-        <div class="card" id="v-pills-billing">
+                let reader = new FileReader();
+                reader.onload = (e) => {
+                    $('#myAvatar').attr('src', e.target.result);
+                }
+                reader.readAsDataURL(this.files[0]);
+            });
 
-            <div class="card-header">
-                <h5>{{ __('Billing Details') }}</h5>
-            </div>
-            <div class="card-body">
-                <form method="post" action="{{ route('client.update.billing') }}">
-                    @csrf
-                    <div class="row">
-                        <div class="form-group col-md-12">
-                            <label for="address" class="form-label">{{ __('Address') }}</label>
-                            <input class="form-control font-style" name="address" type="text"
-                                value="{{ $user->address }}" id="address">
-                        </div>
-                        <div class="form-group col-md-6">
-                            <label for="city" class="form-label">{{ __('City') }}</label>
-                            <input class="form-control font-style" name="city" type="text"
-                                value="{{ $user->city }}" id="city">
-                        </div>
-                        <div class="form-group col-md-6">
-                            <label for="state" class="form-label">{{ __('State') }}</label>
-                            <input class="form-control font-style" name="state" type="text"
-                                value="{{ $user->state }}" id="state">
-                        </div>
-                        <div class="form-group col-md-6">
-                            <label for="zipcode" class="form-label">{{ __('Zip/Post Code') }}</label>
-                            <input class="form-control" name="zipcode" type="text" value="{{ $user->zipcode }}"
-                                id="zipcode">
-                        </div>
-                        <div class="form-group  col-md-6">
-                            <label for="country" class="form-label">{{ __('Country') }}</label>
-                            <input class="form-control font-style" name="country" type="text"
-                                value="{{ $user->country }}" id="country">
-                        </div>
-                        <div class="form-group col-md-6">
-                            <label for="telephone" class="form-label">{{ __('Telephone') }}</label>
-                            <input class="form-control" name="telephone" type="text" value="{{ $user->telephone }}"
-                                id="telephone">
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="text-end">
-                            <button type="submit" class="btn-submit btn btn-primary">
-                                {{ __('Save Changes') }}
-                            </button>
-                        </div>
-                    </div>
-                </form>
-            </div>
-        </div>
-    @endauth
-    </div>
-    </div>
-@endsection
-@push('scripts')
-    <script type="text/javascript">
-        $('#avatar').change(function() {
+            function workspaceManager(workspaceId) {
+                let isChecked = document.getElementById(`workspaceCheckbox-${workspaceId}`).checked;
 
-            let reader = new FileReader();
-            reader.onload = (e) => {
-                $('#myAvatar').attr('src', e.target.result);
+                let url = isChecked ?
+                    '{{ route('addWorkspace', ':id') }}'.replace(':id', workspaceId) :
+                    '{{ route('leave-workspace', ':id') }}'.replace(':id', workspaceId);
+
+                let method = isChecked ? 'GET' : 'DELETE';
+
+                $.ajax({
+                    url: url,
+                    type: method,
+                    beforeSend: function(xhr) {
+                        xhr.setRequestHeader('X-CSRF-TOKEN', $('meta[name="csrf-token"]').attr('content'));
+                    },
+                    success: function(response) {
+                        location.reload();
+
+                    },
+                    error: function(response) {
+                        location.reload();
+
+                    }
+                });
             }
-            reader.readAsDataURL(this.files[0]);
+        </script>
+        <script>
+            $(document).on('click', '.list-group-item', function() {
+                $('.list-group-item').removeClass('active');
+                $('.list-group-item').removeClass('text-primary');
+                setTimeout(() => {
+                    $(this).addClass('active').removeClass('text-primary');
+                }, 10);
+            });
 
-        });
-    </script>
-    <script>
-        $(document).on('click', '.list-group-item', function() {
+            var type = window.location.hash.substr(1);
             $('.list-group-item').removeClass('active');
             $('.list-group-item').removeClass('text-primary');
-            setTimeout(() => {
-                $(this).addClass('active').removeClass('text-primary');
-            }, 10);
-        });
+            if (type != '') {
+                $('a[href="#' + type + '"]').addClass('active').removeClass('text-primary');
+            } else {
+                $('.list-group-item:eq(0)').addClass('active').removeClass('text-primary');
+            }
 
-        var type = window.location.hash.substr(1);
-        $('.list-group-item').removeClass('active');
-        $('.list-group-item').removeClass('text-primary');
-        if (type != '') {
-            $('a[href="#' + type + '"]').addClass('active').removeClass('text-primary');
-        } else {
-            $('.list-group-item:eq(0)').addClass('active').removeClass('text-primary');
+            var scrollSpy = new bootstrap.ScrollSpy(document.body, {
+                target: '#useradd-sidenav',
+                offset: 300
+            })
+        </script>
+    @endpush
+    <style>
+        .icon {
+            width: 25px;
+            height: 23px;
+            margin-right: 10px;
         }
-
-
-
-
-        var scrollSpy = new bootstrap.ScrollSpy(document.body, {
-            target: '#useradd-sidenav',
-            offset: 300
-        })
-    </script>
-@endpush
+    </style>
