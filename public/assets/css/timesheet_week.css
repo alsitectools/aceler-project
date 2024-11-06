@@ -1,5 +1,4 @@
 /* timesheet_week.css */
-
 .day-container {
     display: flex;
     flex-direction: column;
@@ -74,7 +73,8 @@
     align-items: center;
     margin: 2%;
 }
-.inputsTaskTotal{
+
+.inputsTaskTotal {
     display: block;
     width: 155%;
     padding: 0.575rem 1rem;
@@ -91,7 +91,8 @@
     border-radius: 6px;
     transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
 }
-.inputsTask{
+
+.inputsTask {
     display: block;
     width: 155%;
     padding: 0.575rem 1rem;
@@ -108,21 +109,23 @@
     border-radius: 6px;
     transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
 }
-.inputsTask:hover{
+
+.inputsTask:hover {
     color: #ffffff;
     text-decoration: none;
     background-color: #b9515f !important;
-    border-color: #b9515f !important; 
+    border-color: #b9515f !important;
 }
-.inputsTaskTotal:hover{
+
+.inputsTaskTotal:hover {
     color: #ffffff;
     text-decoration: none;
     background-color: #b9515f !important;
-    border-color: #b9515f !important; 
+    border-color: #b9515f !important;
 }
 
 /*ESTILO INPUTS PARA TAREAS INSIDE PROJECT*/
-.inputsTaskTotalModify{
+.inputsTaskTotalModify {
     display: block;
     width: 100%;
     padding: 0.575rem 1rem;
@@ -139,7 +142,8 @@
     border-radius: 6px;
     transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
 }
-.inputsTaskModify{
+
+.inputsTaskModify {
     display: block;
     width: 100%;
     padding: 0.575rem 1rem;
@@ -156,27 +160,32 @@
     border-radius: 6px;
     transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
 }
-.inputsTaskModify:hover{
+
+.inputsTaskModify:hover {
     color: #ffffff;
     text-decoration: none;
     background-color: #b9515f !important;
-    border-color: #b9515f !important; 
+    border-color: #b9515f !important;
 }
-.inputsTaskTotalModify:hover{
+
+.inputsTaskTotalModify:hover {
     color: #ffffff;
     text-decoration: none;
     background-color: #b9515f !important;
-    border-color: #b9515f !important; 
+    border-color: #b9515f !important;
 }
+
 .accordion-item {
     color: var(--bs-accordion-color);
     background-color: '';
     border: none;
 }
-.accordion{
-    --bs-accordion-btn-focus-border-color: ""; 
-    --bs-accordion-btn-focus-box-shadow:"";
+
+.accordion {
+    --bs-accordion-btn-focus-border-color: "";
+    --bs-accordion-btn-focus-box-shadow: "";
 }
+
 /*
 .week {
     border: none !important;
@@ -222,33 +231,38 @@
     color: white !important;
 }
 
-.changeBottomRadius{
+.changeBottomRadius {
     border-bottom-right-radius: 0;
     border-bottom-left-radius: 0;
 }
 
-.accordion-item{
+.accordion-item {
     box-shadow: 1px 1px 3px 2px rgb(0 0 0 / 22%);
     -webkit-box-shadow: 1px 1px 3px 2px rgb(0 0 0 / 22%);
     -moz-box-shadow: 1px 1px 3px 2px rgb(0 0 0 / 22%);
 }
+
 .accordion-header {
     line-height: 50px !important;
 }
-.border-2{
+
+.border-2 {
     --bs-border-width: 0px;
 }
-.dropShadowHr{
+
+.dropShadowHr {
     box-shadow: 1px 1px 1px 1px rgb(0 0 0);
     -webkit-box-shadow: 1px 1px 1px 1px rgb(0 0 0);
     -moz-box-shadow: 1px 1px 1px 1px rgb(0 0 0);
 }
+
 .table td {
     text-align: center;
     align-content: center;
     word-wrap: break-word;
 }
-.divTitleEncargo{
+
+.divTitleEncargo {
     width: 60%;
     margin-left: 20%;
     margin-top: 1% !important;
@@ -258,7 +272,8 @@
     -webkit-box-shadow: 1px 1px 2px 1px rgb(0 0 0 / 16%);
     -moz-box-shadow: 1px 1px 2px 1px rgb(0 0 0 / 16%);
 }
-.greyBackgroundTotalHours{
+
+.greyBackgroundTotalHours {
     background-color: #a293933d !important;
     border-radius: 10px;
     box-shadow: 1px 1px 2px 1px rgb(0 0 0 / 16%) !important;
@@ -266,12 +281,13 @@
     -moz-box-shadow: 1px 1px 2px 1px rgb(0 0 0 / 16%) !important;
 }
 
-.custom-accordion-button:hover{
+.custom-accordion-button:hover {
     color: #ffffff;
     text-decoration: none;
     background-color: #b9515f !important;
-    border-color: #b9515f !important; 
+    border-color: #b9515f !important;
 }
+
 tfoot,
 thead {
     background-color: #F8F9FD;

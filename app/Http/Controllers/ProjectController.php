@@ -143,7 +143,7 @@ class ProjectController extends Controller
         $post = $request->all();
         $post['ref_mo'] = $request->ref_mo;
         $post['type'] = $request->project_type;
-
+        $post['clipo'] = $request->clipo;
         $post['start_date'] = $post['end_date'] = date('Y-m-d');
         $post['workspace'] = $currentWorkspace->id;
         $post['created_by'] = $objUser->id;
