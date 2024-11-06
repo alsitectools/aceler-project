@@ -126,12 +126,13 @@ class ProjectController extends Controller
 
     public function store($slug, Request $request)
     {
-
         $getReload = $request->get('isReload', false);
 
+        // Obtiene el usuario autenticado y el espacio de trabajo actual
         $objUser = Auth::user();
         $currentWorkspace = Utility::getWorkspaceBySlug($slug);
-        $user = $currentWorkspace->id;
+
+        // Validación de la solicitud
         $request->validate([
             'project_type' => 'required',
             'ref_mo' => 'nullable|string',
@@ -139,7 +140,10 @@ class ProjectController extends Controller
             'clipo' => 'nullable|string',
         ]);
 
+        // Configuración de pago del administrador
         $setting = Utility::getAdminPaymentSettings();
+
+        // Datos del proyecto a crear
         $post = $request->all();
         $post['ref_mo'] = $request->ref_mo;
         $post['type'] = $request->project_type;
@@ -147,93 +151,63 @@ class ProjectController extends Controller
         $post['start_date'] = $post['end_date'] = date('Y-m-d');
         $post['workspace'] = $currentWorkspace->id;
         $post['created_by'] = $objUser->id;
-        $userList[] = $objUser->email;
-        $userList = array_filter($userList);
+
+        // Creación del proyecto
         $objProject = Project::create($post);
 
-        //Comprueba que el masterObras existe y le añade el id del projecto con el que se a creado
-        $mo_id = MasterObra::where('ref_mo',  $request->ref_mo)->first();
+        // Verificación y actualización de MasterObra si existe
+        $mo_id = MasterObra::where('ref_mo', $request->ref_mo)->first();
+
         if ($mo_id) {
             $objMO = MasterObra::where('id', $mo_id->id)->first();
             $objMO->project_id = $objProject->id;
             $objMO->save();
         }
-        \Log::info(['customer' => $request->get('clipo')]);
-        $clipo = ClientsMo::where('potential_customer_id', $request->get('clipo'))->first();
 
-        \Log::info(['client_devuelto' => $clipo]);
-        $data = [];
-        $data['basic_details']  = 'on';
-        $data['member']  = 'on';
-        $data['client']  = 'on';
-        $data['attachment']  = 'on';
-        $data['bug_report']  = 'on';
-        $data['task']  = 'on';
-        $data['password_protected']  = 'off';
-        $objProject->copylinksetting =  json_encode($data);
+        // Guardar configuración del proyecto en el campo 'copylinksetting'
+        $data = [
+            'basic_details' => 'on',
+            'member' => 'on',
+            'client' => 'on',
+            'attachment' => 'on',
+            'bug_report' => 'on',
+            'task' => 'on',
+            'password_protected' => 'off'
+        ];
+        $objProject->copylinksetting = json_encode($data);
         $objProject->save();
 
-        foreach ($userList as $email) {
-            $permission = 'Member';
-            $registerUsers = User::where('email', $email)->first();
-            if ($registerUsers) {
-                if (Auth::user()->type == 'admin') {
-                    $permission = 'Owner';
-                }
-            } else {
-                $arrUser = [];
-                $arrUser['name'] = 'No Name';
-                $arrUser['email'] = $email;
-                $password = Str::random(8);
-                $arrUser['password'] = Hash::make($password);
-                $arrUser['currant_workspace'] = $objProject->workspace;
-                $arrUser['lang'] = $currentWorkspace->lang;
-                $registerUsers = User::create($arrUser);
-                $registerUsers->password = $password;
-
-                $assignPlan = $registerUsers->assignPlan(1);
-
-                try {
-                    Mail::to($email)->send(new SendLoginDetail($registerUsers));
-                } catch (\Exception $e) {
-                    $smtp_error = __('E-Mail has been not sent due to SMTP configuration');
-                }
-            }
-            $this->inviteUser($registerUsers, $objProject, $permission);
-        }
-
-        $settings = Utility::getPaymentSetting($user);
+        // Configuración de notificaciones
+        $settings = Utility::getPaymentSetting($currentWorkspace->id);
         $uArr = [
-            // 'user_name' => $user->name,
-            'app_name'  => $setting['app_name'],
+            'app_name' => $setting['app_name'],
             'user_name' => Auth::user()->name,
             'project_name' => $objProject->name,
             'app_url' => env('APP_URL'),
         ];
 
-        if (isset($settings['project_notificaation']) && $settings['project_notificaation'] == 1) {
-            Utility::send_slack_msg('New Project', $user, $uArr);
+        // Notificación en Slack y Telegram
+        if (isset($settings['project_notification']) && $settings['project_notification'] == 1) {
+            Utility::send_slack_msg('New Project', $currentWorkspace->id, $uArr);
         }
-
-        if (isset($settings['telegram_project_notificaation']) && $settings['telegram_project_notificaation'] == 1) {
-            Utility::send_telegram_msg('New Project', $uArr, $user);
-        }
-
-        //webhook
+        // Llamada a webhook
         $module = 'New Project';
-        $webhook =  Utility::webhookSetting($module, $user);
-
+        $webhook = Utility::webhookSetting($module, $currentWorkspace->id);
         if ($webhook) {
             $parameter = json_encode($objProject);
             $status = Utility::WebhookCall($webhook['url'], $parameter, $webhook['method']);
         }
+
+        // Respuesta JSON si getReload está activado, de lo contrario redirige
         if ($getReload) {
             return response()->json(['success' => true, 'message' => 'Project created successfully.']);
         } else {
             return redirect()->route('projects.index', $currentWorkspace->slug)
-                ->with('success', __('Project Created Successfully!') . ((isset($smtp_error)) ? ' <br> <span class="text-danger">' . $smtp_error . '</span>' : ''));
+                ->with('success', __('Project Created Successfully!'));
         }
     }
+
+
 
     public function export()
     {
