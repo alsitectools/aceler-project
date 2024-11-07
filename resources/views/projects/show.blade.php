@@ -730,6 +730,7 @@
             chart.render();
         })();
     </script>
+    <script src="{{ asset('assets/custom/libs/nicescroll/jquery.nicescroll.min.js')}} "></script>
     <script>
         $(document).ready(function() {
             if ($(".top-10-scroll").length) {

@@ -177,6 +177,9 @@ class ProjectController extends Controller
         $objProject->copylinksetting = json_encode($data);
         $objProject->save();
 
+        $permission = Auth::user()->type == 'admin' ? 'Owner' : 'Member';
+        $this->inviteUser($objUser, $objProject, $permission);
+
         // Configuración de notificaciones
         $settings = Utility::getPaymentSetting($currentWorkspace->id);
         $uArr = [
@@ -190,13 +193,6 @@ class ProjectController extends Controller
         if (isset($settings['project_notification']) && $settings['project_notification'] == 1) {
             Utility::send_slack_msg('New Project', $currentWorkspace->id, $uArr);
         }
-        // Llamada a webhook
-        $module = 'New Project';
-        $webhook = Utility::webhookSetting($module, $currentWorkspace->id);
-        if ($webhook) {
-            $parameter = json_encode($objProject);
-            $status = Utility::WebhookCall($webhook['url'], $parameter, $webhook['method']);
-        }
 
         // Respuesta JSON si getReload está activado, de lo contrario redirige
         if ($getReload) {
@@ -206,8 +202,6 @@ class ProjectController extends Controller
                 ->with('success', __('Project Created Successfully!'));
         }
     }
-
-
 
     public function export()
     {
@@ -779,13 +773,11 @@ class ProjectController extends Controller
         if ($id == -1) {
             // Mostrar todas las tareas del usuario logueado
             $objUser = Auth::user();
-            $allmilestones = $objUser->type == 'client'
-                ? Milestone::where('assign_to', $objUser->id)->get()
-                : Milestone::join('tasks', 'tasks.milestone_id', 'milestones.id')
-                ->where('tasks.assign_to', $objUser->id)
-                ->select('milestones.*')
-                ->distinct()
-                ->get();
+
+            // Obtener milestones creadas o asignadas al usuario
+            $allmilestones = Milestone::where(function ($query) use ($objUser) {
+                $query->where('assign_to', $objUser->id); // Milestones creadas por el usuario
+            })->get();
 
             $milestones = $groupMilestonesByStatus($allmilestones, $objUser);
             $project_id = -1;
@@ -803,7 +795,6 @@ class ProjectController extends Controller
 
         return view('projects.milestoneboard', compact('currentWorkspace', 'milestones', 'stages', 'statusClass', 'project_id'));
     }
-
 
     public function taskBoard($slug, $projectID)
     {
@@ -1527,7 +1518,7 @@ class ProjectController extends Controller
         $currentWorkspace = Utility::getWorkspaceBySlug($slug);
         $project_name = Project::where('id', $projectID)->first();
         $user1 = $currentWorkspace->id;
-
+        $objUser = Auth::user();
         $project = Project::find($request->project_id);
 
         $setting = Utility::getAdminPaymentSettings();
@@ -1558,8 +1549,8 @@ class ProjectController extends Controller
         $milestone->summary = $request->summary != null ? $request->summary : "";
         $milestone->save();
 
-
-        $this->employeesInProject(Auth::user()->id, $project->id);
+        $permission = Auth::user()->type == 'admin' ? 'Owner' : 'Member';
+        $this->inviteUser($objUser, $project, $permission);
 
         ActivityLog::create(
             [

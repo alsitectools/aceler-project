@@ -250,7 +250,7 @@
                                     <div class="page-search">
                                         <p class="text-muted mt-3">
                                             {{ __("It's looking like you may have taken a wrong turn. Don't worry...
-                                             it happens to the best of us. Here's a little tip that might help you get back on track.") }}
+                                                                                         it happens to the best of us. Here's a little tip that might help you get back on track.") }}
                                         </p>
                                         <div class="mt-3">
                                             <a class="btn-return-home badge-blue" href="{{ route('home') }}"><i
@@ -266,6 +266,7 @@
         </div>
     </section>
 @endsection
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
 @if (isset($currentWorkspace) && $currentWorkspace)
     {{-- <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script> --}}
     <script src="{{ asset('assets/custom/js/jquery.easy-autocomplete.min.js') }}"></script>

@@ -554,51 +554,7 @@
                 document.querySelector("body").classList.add(temp);
             });
         }
-
-        var custthemebg = document.querySelector("#cust-theme-bg");
-        if(custthemebg){
-            custthemebg.addEventListener("click", function() {
-            if (custthemebg.checked) {
-                document.querySelector(".dash-sidebar").classList.add("transprent-bg");
-                document
-                    .querySelector(".dash-header:not(.dash-mob-header)")
-                    .classList.add("transprent-bg");
-            } else {
-                document.querySelector(".dash-sidebar").classList.remove("transprent-bg");
-                document
-                    .querySelector(".dash-header:not(.dash-mob-header)")
-                    .classList.remove("transprent-bg");
-            }
-        });
-        }else{
-            console.log("No existe custthemebg: " + custthemebg);
-        }
-        
-        var custdarklayout = document.querySelector("#cust-darklayout");
-        if(custdarklayout){
-            custdarklayout.addEventListener("click", function() {
-            if (custdarklayout.checked) {
-
-                document
-                    .querySelector("#main-style-link")
-                    .setAttribute("href", "{{ asset('assets/css/style-dark.css') }}");
-                document
-                    .querySelector(".m-header > .b-brand > .sidebar_logo_size")
-                    .setAttribute("src", "{{ url('storage/logo/logo-dark.png') }}");
-            } else {
-
-                document
-                    .querySelector("#main-style-link")
-                    .setAttribute("href", "{{ asset('assets/css/style.css') }}");
-                document
-                    .querySelector(".m-header > .b-brand > .sidebar_logo_size")
-                    .setAttribute("src", "{{ url('storage/logo/logo-light.png') }}");
-            }
-        });
-        }else{
-            console.log("No existe custdarklayout: " + custdarklayout);
-        }
-        
+              
         function removeClassByPrefix(node, prefix) {
             for (let i = 0; i < node.classList.length; i++) {
                 let value = node.classList[i];
