@@ -108,13 +108,13 @@ class AzureController extends Controller
             if (isset($department) && str_starts_with($department, 'BU')) {
 
                 if (strpos($department, '/') === false) {
-                    $workspaceName = explode(' ', $department); //"BU Texas"
+                    $workspaceName = explode(' ', $department);
                     $name = $workspaceName[1];
                     $type = 'user';
                 } else {
-                    $arrayDepartment = explode('/', $department); //"BU Texas/Administracion"
-                    $workspaceName = explode(' ', $arrayDepartment[0]); //"BU Texas"
-                    $name = $workspaceName[1]; //Texas
+                    $arrayDepartment = explode('/', $department); 
+                    $workspaceName = explode(' ', $arrayDepartment[0]);
+                    $name = $workspaceName[1];
                     $type = in_array($arrayDepartment[1], ['Técnico', 'Sistemas', 'I+D']) ? 'user' : 'client';
                 }
 
@@ -128,17 +128,17 @@ class AzureController extends Controller
 
             // Si el usuario no existe, lo creamos
             $user = User::create([
-                'name' => $name, // "displayName":"Karla Cubias Mejia",
-                'userPrincipalName' => $userPrincipalName, // "userPrincipalName":"kcubias@alsina.com",
-                'email' => $mail, // "mail":"Karla.Cubias@Alsina.com",
-                'company' => $company, // "companyName":"Encofrados J Alsina S.A. Headquarters",
-                'branch' => $branch, // "city":"Montcada i Reixac",
-                'department' => $department, // "department":"CU Producto/Técnico",
-                'country' => $country, // "country":"Spain""mail":"Karla.Cubias@Alsina.com",
-                'jobTitle' => $jobTitle, // "jobTitle":"Headquarters Technician",
-                'officeLocation' => $location, // "officeLocation":"Central", ex. "Perú", "Chile", "México"
+                'name' => $name, 
+                'userPrincipalName' => $userPrincipalName,
+                'email' => $mail,
+                'company' => $company,
+                'branch' => $branch, 
+                'department' => $department, 
+                'country' => $country,
+                'jobTitle' => $jobTitle,
+                'officeLocation' => $location,
                 'type' => $type,
-                'currant_workspace' => $workspace->id, // Integer
+                'currant_workspace' => $workspace->id,
                 'email_verified_at' => now(),
             ]);
 

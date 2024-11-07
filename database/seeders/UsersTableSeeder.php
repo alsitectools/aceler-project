@@ -46,11 +46,8 @@ class UsersTableSeeder extends Seeder
     {
         Stage::truncate();
 
-        foreach ($this->stages as $name => $order) {
-            $stage = new Stage;
-            $stage->name = $name;
-            $stage->order = $order;
-            $stage->save();
+        foreach ($this->stages as $stage) {
+            Stage::create($stage);
         }
     }
 
@@ -124,24 +121,25 @@ class UsersTableSeeder extends Seeder
     ];
 
     private $stages = [
-        ['To Do', '#77b6ea',  1],
-        ['In Progress', '#545454', 2],
-        ['Review', '#3cb8d9', 3],
-        ['Done', '#37b37e', 4],
+        ['name' => 'To Do', 'color' => '#77b6ea', 'complete' => 0, 'order' => 1],
+        ['name' => 'In Progress', 'color' => '#545454', 'complete' => 0, 'order' => 2],
+        ['name' => 'Review', 'color' => '#3cb8d9', 'complete' => 0, 'order' => 3],
+        ['name' => 'Done', 'color' => '#37b37e', 'complete' => 0, 'order' => 4],
     ];
 
+
     private $typeProjectname = [
-        'Obra',
-        'Innovación',
-        'Desarrollo de producto',
-        'Oficina'
+        'Jobsite',
+        'Innovation',
+        'Product development',
+        'Office'
     ];
 
     private $nameTasks = [
-        ['Replanteo', 'Cálculo cargas', 'Visita obra', 'Informe cálculo', 'Diseño pieza especial'],
-        ['Análisis requisitos',  'Prediseño',  'Diseño', 'Desarrollo y pruebas'],
-        ['Análisis requisitos',  'Manuales', 'Diseño'],
-        ['Gestión de oficina', 'Formación']
+        ['Drawing', 'Load calculation', 'Jobsite visit', 'Calculation report', 'Special item design'],
+        ['Requirements analysis',  'Predesign',  'Design', 'Development and tests'],
+        ['Requirements analysis',  'Manuales', 'Design'],
+        ['Office tasks', 'Training']
     ];
 
     private $languages = [

@@ -47,6 +47,9 @@
 @endphp
 {{-- <html lang="{{ str_replace('_', '-', app()->getLocale()) }}" dir="{{ $SITE_RTL == 'on' ? 'rtl' : '' }}"> --}}
 <html lang="{{ config('app.locale') }}">
+{{-- --------- CHATBOT ------------ --}}
+@include('layouts.chatbot')
+{{-- ---------------------------- --}}
 
 <head>
 
@@ -365,13 +368,20 @@
 
 
     <script>
-        (function() {
-            const d_week = new Datepicker(document.querySelector('.datepicker'), {
-                buttonClass: 'btn',
-                todayBtn: true,
-                clearBtn: true
-            });
-        })();
+        document.addEventListener('DOMContentLoaded', function() {
+            const datepickerElement = document.querySelector('.datepicker');
+            if (datepickerElement) {
+                const d_week = new Datepicker(datepickerElement, {
+                    buttonClass: 'btn',
+                    todayBtn: true,
+                    clearBtn: true
+                });
+            } else {
+                // Solo un mensaje informativo si no existe el elemento.
+                console.log('/* No existe el elemento datepicker en la página */');
+            }
+        });
+
     </script>
 
 
@@ -544,43 +554,7 @@
                 document.querySelector("body").classList.add(temp);
             });
         }
-
-        var custthemebg = document.querySelector("#cust-theme-bg");
-        custthemebg.addEventListener("click", function() {
-            if (custthemebg.checked) {
-                document.querySelector(".dash-sidebar").classList.add("transprent-bg");
-                document
-                    .querySelector(".dash-header:not(.dash-mob-header)")
-                    .classList.add("transprent-bg");
-            } else {
-                document.querySelector(".dash-sidebar").classList.remove("transprent-bg");
-                document
-                    .querySelector(".dash-header:not(.dash-mob-header)")
-                    .classList.remove("transprent-bg");
-            }
-        });
-
-        var custdarklayout = document.querySelector("#cust-darklayout");
-        custdarklayout.addEventListener("click", function() {
-            if (custdarklayout.checked) {
-
-                document
-                    .querySelector("#main-style-link")
-                    .setAttribute("href", "{{ asset('assets/css/style-dark.css') }}");
-                document
-                    .querySelector(".m-header > .b-brand > .sidebar_logo_size")
-                    .setAttribute("src", "{{ url('storage/logo/logo-dark.png') }}");
-            } else {
-
-                document
-                    .querySelector("#main-style-link")
-                    .setAttribute("href", "{{ asset('assets/css/style.css') }}");
-                document
-                    .querySelector(".m-header > .b-brand > .sidebar_logo_size")
-                    .setAttribute("src", "{{ url('storage/logo/logo-light.png') }}");
-            }
-        });
-
+              
         function removeClassByPrefix(node, prefix) {
             for (let i = 0; i < node.classList.length; i++) {
                 let value = node.classList[i];
@@ -599,7 +573,15 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/autosize.js/4.0.2/autosize.min.js"></script>
     <script src="{{ asset('assets/js/plugins/simple-datatables.js') }}"></script>
     <script>
-        const dataTable = new simpleDatatables.DataTable("#selection-datatable");
+        document.addEventListener('DOMContentLoaded', function() {
+            const dataTableElement = document.querySelector("#selection-datatable");
+            if (dataTableElement) {
+                const dataTable = new simpleDatatables.DataTable(dataTableElement);
+            } else {
+                // Mensaje de aviso en consola
+                console.log('/* No existe el elemento selection-datatable en la página */');
+            }
+        });
     </script>
 
     <!-- Demo JS - remove it when starting your project -->
@@ -647,56 +629,51 @@
     @endif
 
 
-    @if (isset($currentWorkspace) && $currentWorkspace)
-        <script src="{{ asset('assets/custom/js/jquery.easy-autocomplete.min.js') }}"></script>
-        <script>
-            var options = {
-                url: function(phrase) {
-                    return "@auth('web'){{ route('search.json', $currentWorkspace->slug) }}@elseauth{{ route('client.search.json', $currentWorkspace->slug) }}@endauth/" +
-                        phrase;
-                },
-                categories: [{
-                        listLocation: "Projects",
-                        header: "{{ __('Projects') }}"
-                    },
-                    {
-                        listLocation: "Tasks",
-                        header: "{{ __('Tasks') }}"
-                    }
-                ],
-                getValue: "text",
-                template: {
-                    type: "links",
-                    fields: {
-                        link: "link"
-                    }
-                }
-            };
-            $(".search-element input").easyAutocomplete(options);
-        </script>
-    @endif
-
     <!--  for setting scroling Active -->
     <script>
-        var multipleCancelButton = new Choices('#choices-multiple-remove-button', {
-            removeItemButton: true,
+        document.addEventListener('DOMContentLoaded', function() {
+            const choicesElement = document.querySelector('#choices-multiple-remove-button');
+            if (choicesElement) {
+                var multipleCancelButton = new Choices(choicesElement, {
+                    removeItemButton: true,
+                });
+            } else {
+                // Mensaje de aviso en consola
+                console.log('/* No existe el elemento choices-multiple-remove-button en la página */');
+            }
         });
-        var scrollSpy = new bootstrap.ScrollSpy(document.body, {
-            target: '#useradd-sidenav',
-            offset: 300
-        })
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const scrollSpyTarget = document.querySelector('#useradd-sidenav');
+            
+            if (scrollSpyTarget) {
+                var scrollSpy = new bootstrap.ScrollSpy(document.body, {
+                    target: '#useradd-sidenav',
+                    offset: 300
+                });
+            } else {
+                // Mensaje de aviso en consola
+                console.log('/* No existe el elemento useradd-sidenav en la página */');
+            }
+        });
     </script>
     <script>
         (function() {
             var switch_event = document.querySelector("#switch_event");
 
-            switch_event.addEventListener('change', function() {
-                if (switch_event.checked) {
-                    document.querySelector("#console_event").innerHTML = "Switch Button Checked";
-                } else {
-                    document.querySelector("#console_event").innerHTML = "Switch Button Unchecked";
-                }
-            });
+            if (switch_event) {
+                switch_event.addEventListener('change', function() {
+                    const consoleEvent = document.querySelector("#console_event");
+                    if (consoleEvent) {
+                        consoleEvent.innerHTML = switch_event.checked ? "Switch Button Checked" : "Switch Button Unchecked";
+                    } else {
+                        console.log('/* No existe el elemento console_event en la página */');
+                    }
+                });
+            } else {
+                // Mensaje de aviso en consola
+                console.log('/* No existe el elemento switch_event en la página */');
+            }
         })();
     </script>
     @stack('scripts')

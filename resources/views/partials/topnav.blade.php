@@ -64,7 +64,7 @@
     }
 </style>
 <header class="dash-header {{ isset($cust_theme_bg) && $cust_theme_bg == 'on' ? 'transprent-bg' : '' }}">
-    <div class="header-wrapper p-0  me-1">
+    <div class="header-wrapper p-0 me-1">
         <div class="dash-mob-drp">
             <ul class="list-unstyled">
                 <li class="dash-h-item mob-hamburger">
@@ -76,17 +76,23 @@
                         </div>
                     </a>
                 </li>
-                <li class="dropdown dash-h-item drp-company">
+                <li class="dropdown dash-h-item drp-company ms-4">
                     <a class="dash-head-link dropdown-toggle arrow-none" data-bs-toggle="dropdown" href="#"
                         role="button" aria-haspopup="false" aria-expanded="false">
                         <img class="theme-avtar"
                             @if (\Auth::user()->avatar) src="{{ asset($logo . Auth::user()->avatar) }}" @else avatar="{{ Auth::user()->name }}" @endif
                             alt="{{ Auth::user()->name }}">
+                        <!-- <img class="theme-avtar"
+                            @if (Auth::user()->avatar) 
+                                src="{{ url('storage/app/public/' . Auth::user()->avatar) }}" 
+                            @else 
+                                avatar="{{ Auth::user()->name }}" 
+                            @endif
+                            alt="{{ Auth::user()->name }}"> -->
                         <span class="hide-mob ms-2">{{ __('Hi') }},{{ Auth::user()->name }} !</span>
                         <i class="ti ti-chevron-down drp-arrow nocolor hide-mob"></i>
                     </a>
                     <div class="dropdown-menu dash-h-dropdown">
-
                         @foreach (Auth::user()->workspaces() as $workspace)
                             @if (Auth::user()->id == $workspace->user_id)
                                 <a href="{{ route('change-workspace', $workspace->workspace_id) }}"

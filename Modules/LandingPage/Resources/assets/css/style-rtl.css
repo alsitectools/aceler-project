@@ -3966,15 +3966,15 @@ textarea.is-invalid.dataTable-input {
 }
 
 .dropdown-item:hover, .dropdown-item:focus {
-    color: var(--bs-dropdown-link-hover-color);
+    color: white;
     text-decoration: none;
-    background-color: var(--bs-dropdown-link-hover-bg);
+    background-color: #AA182C;
 }
 
 .dropdown-item.active, .dropdown-item:active {
     color: var(--bs-dropdown-link-active-color);
     text-decoration: none;
-    background-color: var(--bs-dropdown-link-active-bg);
+    background-color: #989898a8;
 }
 
 .dropdown-item.disabled, .dropdown-item:disabled {

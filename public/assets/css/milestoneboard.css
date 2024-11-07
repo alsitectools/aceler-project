@@ -43,10 +43,15 @@
 .taskList {
     height: 20px;
     display: flex;
+    justify-content: flex-start;
     flex-direction: row;
-    flex-wrap: nowrap;
-    align-items: baseline;
-    justify-content: space-evenly;
+    align-items: center;
+    width: 100%;
+}
+
+.userIconposition {
+    display: flex;
+    padding-left: 200px;
 }
 
 .statusDate {
@@ -55,6 +60,18 @@
     align-items: center;
     flex-direction: column;
     margin: 5%;
+}
+
+.user-groupTasks {
+    width: 30px;
+    height: 30px;
+    border-radius: 50% !important;
+    z-index: 2;
+    border: 2px solid #ffffff;
+}
+
+.user-groupTasks:hover {
+    z-index: 5;
 }
 
 .addMilestone {

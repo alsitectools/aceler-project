@@ -11,14 +11,12 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('master_obras', function (Blueprint $table) {
+        Schema::create('potential_clients', function (Blueprint $table) {
             $table->bigIncrements('id');
-            $table->string('ref_mo'); // work_id
             $table->string('name');
             $table->string('business_unit');
-            $table->string('status');
-            $table->integer('enterprise_id');
-            $table->integer('project_id')->default(0);
+            $table->string('potential_customer_id');
+            $table->string('customer_id')->default(0);
             $table->timestamps();
         });
     }
@@ -28,6 +26,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('master_obras');
+        Schema::dropIfExists('potential_clients');
     }
 };

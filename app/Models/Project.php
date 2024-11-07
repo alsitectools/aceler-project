@@ -14,6 +14,7 @@ class Project extends Model
         'ref_mo',
         'type',
         'status',
+        'clipo',
         'start_date',
         'end_date',
         'budget',

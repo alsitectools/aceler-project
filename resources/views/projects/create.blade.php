@@ -1,29 +1,68 @@
-<form class="" method="post" action="{{ route('projects.store', $currentWorkspace->slug) }}">
+<style>
+    #ref_mo_list,
+    #clipo_list {
+        max-height: 230px;
+        overflow-y: auto;
+        position: absolute;
+        width: 45%;
+        -webkit-box-shadow: 0px 5px 5px -2px #bcbcbc;
+        box-shadow: 0px 5px 5px -2px #bcbcbc;
+
+    }
+
+
+    .stylelist:hover {
+        background-color: #aa182c;
+        font-weight: bold;
+        color: rgb(255, 255, 255);
+
+    }
+
+    #ref_mo_list::-webkit-scrollbar,
+    #clipo_list::-webkit-scrollbar {
+        width: 0;
+        background: transparent;
+    }
+
+    .modal-dialog {
+        max-width: 60%;
+        /* Set modal width to 60% */
+    }
+</style>
+
+<form class="" method="post" action="{{ route('projects.store', [$currentWorkspace->slug]) }}">
     @csrf
     <div class="modal-body">
         <div class="row">
-
-            <div class="form-group col-md-6">
+            <div class="form-group col-md-12">
                 <label class="col-form-label">{{ __('Project type') }}</label>
-                <select class="form-control form-control-light" name="project_type" id="project_type" required="">
+                <select class="form-control form-control-light" name="project_type" id="project_type" required>
                     <option selected disabled>{{ __('Choose one') }}</option>
                     @foreach ($project_type as $type)
                         <option style="background-color:white; color:black;" value="{{ $type->id }}"
-                            data-type="{{ $type->name }}">{{ $type->name }}</option>
+                            data-type="{{ $type->name }}"> {{ __($type->name) }} </option>
                     @endforeach
                 </select>
             </div>
-
-            <div class="form-group col-md-6">
-                <label for="ref_mo" class="col-form-label">{{ __('Master Obra') }}</label>
-                <input class="form-control" type="text" id="ref_mo" name="ref_mo"
-                    placeholder="{{ __('Reference M.O') }}">
-                <span class="text-danger"></span>
+            <div class="form-group col-md-6" id="ref_mo" style="display: none;">
+                <label for="search_mo" class="col-form-label">{{ __('Search project') }}</label>
+                <input type="text" class="form-control" name="ref_mo" id="searchMo"
+                    placeholder="{{ __('Reference') }}">
+                <div class="list-group" id="ref_mo_list"></div>
+                
             </div>
+
+            <div class="form-group col-md-6" id="clipo" style="display: none;">
+                <label for="searchClipo" class="col-form-label">{{ __('Clipo') }}</label>
+                <input class="form-control" type="text" name="clipo" id="searchClipo"
+                    placeholder="{{ __('Clipo') }}">
+                <div class="list-group" style="display: none;" id="clipo_list"></div>
+               
+            </div>
+
             <div class="form-group col-md-12">
                 <label for="projectname" class="col-form-label">{{ __('Name') }}</label>
-
-                <input class="form-control" type="text" id="projectname" name="name" required=""
+                <input class="form-control" type="text" id="projectname" name="name" required
                     placeholder="{{ __('Project Name') }}">
             </div>
         </div>
@@ -33,57 +72,12 @@
         <input type="submit" value="{{ __('Add New project') }}" class="btn btn-primary">
     </div>
 </form>
+<!-- Script para pasar datos de Blade a JavaScript -->
 <script>
-    $(document).ready(function() {
-        $('#project_type').change(function() {
-            var selectedType = $(this).find('option:selected').data('type');
-            var refMoInput = $('#ref_mo');
-            var nameInput = $('#projectname');
-
-            if (selectedType === 'Obra') {
-
-                nameInput.val("");
-                refMoInput.val("");
-                refMoInput.prop('required', true);
-                refMoInput.prop('disabled', false);
-                $('#projectname').prop('readonly', true);
-
-            } else {
-                nameInput.val("");
-                refMoInput.val("");
-                refMoInput.prop('required', false);
-                refMoInput.prop('disabled', true);
-                $('#projectname').prop('readonly', false);
-            }
-        });
-
-        $('#ref_mo').change(function() {
-            var refMo = $(this).val();
-            var masterObras = @json($masterObras);
-            var projects = @json($projects);
-
-            var existingMasterObra = masterObras.find(function(masterObra) {
-                return masterObra.ref_mo === refMo;
-            });
-            var existingProject = projects.find(function(project) {
-                return project.ref_mo === refMo;
-            });
-
-            if (!existingProject) {
-                if (existingMasterObra) {
-                    $('.text-danger').text("");
-                    $('#projectname').prop('readonly', true);
-                    $('#projectType').val();
-                    $('#projectname').val(existingMasterObra.name);
-                    $('#name').val(existingMasterObra.name);
-                    $('#ref_mo').val(refMo);
-                }
-            } else {
-                $('.text-danger').text('El número de referencia ya existe.');
-                setTimeout(function() {
-                    $('.text-danger').text("");
-                }, 5000);
-            }
-        });
-    });
+    // Asegúrate de que esto esté antes de tu archivo JS
+    const projects = @json($projects);
+    const currentWorkspaceSlug = '{{ $currentWorkspace->slug }}'; // Asegúrate de que esta variable esté en el contexto
+    const searchMoUrl = "{{ route('search-mo-json', '__slug') }}".replace('__slug', currentWorkspaceSlug);
+    const searchClipoUrl = "{{ route('search-clipo-json', '__slug') }}".replace('__slug', currentWorkspaceSlug);
 </script>
+<script src="{{ asset('assets/js/create_project.js') }}"></script>

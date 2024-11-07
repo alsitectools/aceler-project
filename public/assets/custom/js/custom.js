@@ -87,15 +87,15 @@ $(document).ready(function () {
         });
     }
 
-    if ($(".select2").length) {
-        $('.select2').select2({
-            "language": {
-                "noResults": function () {
-                    return "No result found";
-                }
-            },
-        });
-    }
+    // if ($(".select2").length) {
+    //     $('.select2').select2({
+    //         "language": {
+    //             "noResults": function () {
+    //                 return "No result found";
+    //             }
+    //         },
+    //     });
+    // }
 
     // for Choose file
     $(document).on('change', 'input[type=file]', function () {
@@ -196,18 +196,6 @@ function commonLoader() {
     LetterAvatar.transform();
 
     $('[data-toggle="tooltip"]').tooltip();
-
-    if ($(".select2").length) {
-        $('.select2').select2({
-            "language": {
-                "noResults": function () {
-                    return "No result found";
-                }
-            },
-        });
-    }
-
-
 
 
     if ($(".multi-select").length > 0) {
