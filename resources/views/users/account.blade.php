@@ -8,8 +8,8 @@
     <li class="breadcrumb-item"> {{ __('User Profile') }}</li>
 @endsection
 @php
+
     $logo = \App\Models\Utility::get_file('avatars/');
-    <!-- $avatarPath = $user->avatar ? url('storage/app/public/' . $user->avatar) : null; -->
 @endphp
 @section('content')
     <div class="row">
@@ -37,43 +37,32 @@
                     $user_id = $user ? $user->id : 0;
                 @endphp
                 <div class="card-body">
-                <!-- <form method="post" action="{{ route('update.account', [$workspace, $user_id]) }}" enctype="multipart/form-data"> -->
-                <form method="post"
+                    <form method="post"
                         action="@auth('web'){{ route('update.account', [$workspace, $user_id]) }}@elseauth{{ route('client.update.account', [$workspace, $user_id]) }}@endauth"
                         enctype="multipart/form-data">
                         @csrf
                         <div class="row">
                             <div class="col-lg-4 avatar-centrado">
                                 <div class="form-group">
-                                    <!-- <img 
-                                        src="{{ $avatarPath }}" 
-                                        alt="user-image" 
-                                        class="rounded-circle img-thumbnail" 
-                                        id="myAvatar"
-                                    > -->
                                     <img @if ($user->avatar) src="{{ asset($logo . $user->avatar) }}" @else avatar="{{ $user->name }}" @endif
-                                    id="myAvatar" alt="user-image" class="rounded-circle img-thumbnail">
-                                    <div class="choose-file">
+                                        id="myAvatar" alt="user-image" class="rounded-circle img-thumbnail">
+                                    {{-- <div class="choose-file">
                                         <label for="avatar">
-                                            <div class="bg-primary">
-                                                <i class="ti ti-upload px-1"></i>{{ __('Choose file here') }}
+                                            <div class=" bg-primary "><i
+                                                    class="ti ti-upload px-1"></i>{{ __('Choose file here') }}
                                             </div>
                                             <input type="file" class="form-control choose_file_custom" name="avatar"
                                                 id="avatar" data-filename="avatar-logo" style="display: none;">
-                                            <!-- <input type="file" name="avatar" id="avatar" required> -->
                                         </label>
                                         @error('avatar')
                                             <span class="invalid-feedback" role="alert">
                                                 <strong>{{ $message }}</strong>
                                             </span>
                                         @enderror
-                                    </div> 
+                                    </div> --}}
                                 </div>
-                                <small
-                                    class="text-muted text-center">{{ __('Please upload a valid image file. Size of image should not be more than 2MB.') }}</small> 
-                                <!-- <small class="text-muted text-center">
-                                    {{ __('Please upload a valid image file. Size of image should not be more than 2MB.') }}
-                                </small>  -->
+                                {{-- <small
+                                    class="text-muted text-center">{{ __('Please upload a valid image file. Size of image should not be more than 2MB.') }}</small> --}}
                             </div>
                             <div class="col-lg-8">
                                 <div class="d-flex">
@@ -95,19 +84,17 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="row mt-4">
-                            <div class="row">
+                        {{-- <div class="row mt-4">
+                            <div class=" row">
                                 <div class="text-end">
-                                <button type="submit" class="btn-submit btn btn-primary col-sm-auto col-12">
+                                    <button type="submit" class="btn-submit btn btn-primary col-sm-auto col-12">
                                         {{ __('Save Changes') }}
                                     </button>
-                                    <!-- <button type="submit">Guardar avatar</button> -->
                                 </div>
                             </div>
-                        </div>
+                        </div> --}}
                     </form>
                     @if ($user->avatar != '')
-                    <!-- @if ($user->avatar) -->
                         <form
                             action="@auth('web'){{ route('delete.avatar') }}@elseauth{{ route('client.delete.avatar') }}@endauth"
                             method="post" id="delete_avatar">
@@ -117,6 +104,7 @@
                     @endif
                 </div>
             </div>
+
             <div class="card" id="v-pills-profile">
                 <div class="card-header">
                     <h5>{{ __('Add another workspace') }}</h5>
@@ -159,6 +147,7 @@
                                                         @if (in_array($workspace->id, $anotherWorkspaces)) checked @endif>
                                                     {{ $workspace->name }}
                                                 </div>
+
                                             </div>
                                         @endforeach
                                     </div>
@@ -170,7 +159,6 @@
             </div> <!-- end col -->
         </div> <!-- end row -->
     @endsection
-
     @push('scripts')
      
         <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
