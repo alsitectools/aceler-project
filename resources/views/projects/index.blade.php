@@ -90,7 +90,7 @@
                                     <div class="col-md-9">
                                         <div class="card-header pt-3 pb-1 d-flex p-3">
                                             @if ($project->is_active)
-                                                <a href="@auth('web'){{ route('projects.show', [$currentWorkspace->slug, $project->id]) }}@endauth"
+                                                <a style="width: 83%" href="@auth('web'){{ route('projects.show', [$currentWorkspace->slug, $project->id]) }}@endauth"
                                                     class="tooltipCus" data-title="{{ __('Project Name') }}">
                                                     <h4>{{ $project->name }} </h4>
                                                 </a>
