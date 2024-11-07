@@ -114,6 +114,7 @@ class ProjectController extends Controller
         $existingRecord = UserProject::where('user_id', $user->id)->where('project_id', $project->id)->first();
 
         if (!$existingRecord && $project && $user) {
+
             $arrData = [
                 'user_id' => $user->id,
                 'project_id' => $project->id,
@@ -301,37 +302,15 @@ class ProjectController extends Controller
     public function inviteUser(User $user, Project $project, $permission)
     {
         $authuser = Auth::user();
-        $authusername  = User::where('id', '=', $authuser->id)->first();
         $setting = Utility::getAdminPaymentSettings();
-        // assign workspace first
-        $is_assigned = false;
-        foreach ($user->workspace as $workspace) {
-            if ($workspace->id == $project->workspace) {
-                $is_assigned = true;
-            }
-        }
-
-        if (!$is_assigned) {
-            UserWorkspace::create(
-                [
-                    'user_id' => $user->id,
-                    'workspace_id' => $project->workspace,
-                    'permission' => $permission,
-                ]
-            );
-            try {
-                Mail::to($user->email)->send(new SendWorkspaceInvication($user, $project->workspaceData));
-            } catch (\Exception $e) {
-                $smtp_error = __('E-Mail has been not sent due to SMTP configuration');
-            }
-        }
-
+        
         // assign project
-        $arrData = [];
-        $arrData['user_id'] = $user->id;
-        $arrData['project_id'] = $project->id;
-        $is_invited = UserProject::where($arrData)->first();
-        if (!$is_invited) {
+        $existingRecord = UserProject::where('user_id', $user->id)->where('project_id', $project->id)->first();
+
+        if (!$existingRecord) {
+            $arrData = [];
+            $arrData['user_id'] = $user->id;
+            $arrData['project_id'] = $project->id;
             $arrData['permission'] = json_encode(Utility::getAllPermission());
             UserProject::create($arrData);
             if ($permission != 'Owner') {
@@ -340,7 +319,6 @@ class ProjectController extends Controller
                     $uArr = [
                         'user_name' => $user->name,
                         'app_name'  => $setting['app_name'],
-                        'owner_name' => $authusername->name,
                         'project_name' => $project->name,
                         'project_status' => $project->status,
                         'app_url' => env('APP_URL'),

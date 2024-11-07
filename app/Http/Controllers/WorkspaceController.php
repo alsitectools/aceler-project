@@ -126,7 +126,8 @@ class WorkspaceController extends Controller
         $objWorkspace = Workspace::find($workspaceID);
         $all_workspaces = UserWorkspace::where('user_id', '=', $objUser->id)->get();
 
-        if ($objWorkspace && count($all_workspaces) > 1) {
+        if (count($all_workspaces) > 1 && $objWorkspace) {
+
             UserWorkspace::where('workspace_id', '=', $objWorkspace->id)->where('user_id', '=', $objUser->id)->delete();
 
             $otherWorkspace = UserWorkspace::where('user_id', '=', $objUser->id)->first();
@@ -136,7 +137,6 @@ class WorkspaceController extends Controller
 
             return redirect()->route('home')->with('success', __('Workspace leave Successfully!'));
         } else {
-
             return redirect()->route('home')->with('error', __('“You cannot leave this workspace, as you currently only belong to this one and must have at least one assigned to you.”!!'));
         }
     }
