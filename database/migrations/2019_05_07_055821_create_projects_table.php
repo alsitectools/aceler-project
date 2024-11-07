@@ -18,6 +18,7 @@ class CreateProjectsTable extends Migration
             $table->string('name');
             $table->string('ref_mo')->nullable();
             $table->string('type');
+            $table->string('clipo')->nullable();
             $table->enum('status', ['Ongoing', 'Finished', 'OnHold'])->default('Ongoing');
             $table->date('start_date')->nullable();
             $table->date('end_date')->nullable();

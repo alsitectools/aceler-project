@@ -1,3 +1,144 @@
+<style>
+    html, body {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            overflow: hidden;
+        }
+
+        /* Estilo para la imagen de fondo */
+        .backgroundImageLogin {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: url('{{ asset('assets/img/login/imagenes cuadrados fondo filtred.png') }}');
+            background-size: cover;  /* Hace que la imagen ocupe toda la pantalla sin deformarse */
+            background-position: center; /* Centra la imagen */
+            background-repeat: no-repeat; /* Evita que la imagen se repita */
+            z-index: -1; /* Envía la imagen al fondo */
+        }
+
+        .divLogin{
+            box-shadow: 0px 4px 4px 0px rgb(0 0 0 / 25%);
+            -webkit-box-shadow: 0px 4px 4px 0px rgb(0 0 0 / 25%);
+            -moz-box-shadow: 0px 4px 4px 0px rgb(0 0 0 / 25%);
+            background-color: white;
+            width: 30%;
+            height: 60%;
+            margin-left: 33%;
+            margin-top: 9%;
+            border-radius: 15px;
+        }
+
+        .imgDiv{
+            width: 90%;
+            padding-top: 5%;
+            margin-left: 12%;
+        }
+
+        .loginText{
+            display: flex;
+            align-content: center;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+
+        .loginTitle{
+            font-size: 50px;
+            padding-top: 4%;
+            padding-bottom: 5%;
+        }
+
+        .loginExplanation{
+            width: 79%;
+            font-size: 18px;
+            padding-left: 5%;
+        }
+
+        .azureLogo{
+            width: 26px;
+        }
+
+        .copyText{
+            color: #AA182C;
+            padding-left: 41%;
+        }
+        @media screen and (max-width: 1669px) and (min-width: 1555px){
+
+            .buttonLogin{
+                font-size: 17px;
+            }
+            .azureLogo{
+                width: 20px;
+            }
+        }
+
+        @media screen and (max-width: 1553px) and (min-width: 1479px){
+
+            .buttonLogin{
+                font-size: 15px;
+            }
+            
+            .loginExplanation{
+                font-size: 16px;
+            }
+
+            .loginTitle{
+                font-size: 48px;
+            }
+
+            .imgDiv{
+                padding-top: 8%;
+            }
+        }
+
+        @media screen and (max-width: 1479px) and (min-width: 1240px ){
+            
+            .azureLogo {
+                width: 20px;
+            }
+
+            .divLogin{
+                margin-top: 10%;
+            }
+            .buttonLogin{
+                font-size: 15px;
+            }
+        }
+
+        @media screen and (max-width: 1240px) and (min-width: 800px ){
+            
+            .azureLogo {
+                width: 20px;
+            }
+
+            .loginTitle{
+                font-size: 40px;
+            }
+            .loginExplanation{
+                width: 75%;
+                font-size: 15px;
+            }
+            .divLogin{
+                margin-top: 10%;
+            }
+            .copyText{
+                padding-left: 20%;
+            }
+            .buttonLogin{
+                font-size: 12px;
+            }
+            .imgDiv{
+                padding-top: 11%;
+                padding-bottom: 8%;
+            }
+        }
+
+</style>
+
 <x-guest-layout>
     <x-auth-card>
         @php
@@ -12,14 +153,14 @@
         @section('language-bar')
             <div href="#" class="lang-dropdown-only-desk">
                 <li class="dropdown dash-h-item drp-language">
-                    <a class="dash-head-link dropdown-toggle btn" href="#" data-bs-toggle="dropdown"
+                    <a style="color:white;" class="dash-head-link dropdown-toggle btn" href="#" data-bs-toggle="dropdown"
                         aria-expanded="false">
                         <span class="drp-text">{{ isset($languages[$lang]) ? ucfirst($languages[$lang]) : 'es' }}</span>
                     </a>
 
                     <div class="dropdown-menu dash-h-dropdown dropdown-menu-end">
                         @foreach ($languages as $code => $language)
-                            <a href="{{ route('login', $code) }}" tabindex="0"
+                            <a style="border-radius: 10px;" href="{{ route('login', $code) }}" tabindex="0"
                                 class="dropdown-item {{ $code == $lang ? 'active' : '' }}">
                                 <span>{{ ucFirst($language) }}</span>
                             </a>
@@ -29,74 +170,9 @@
             </div>
         @endsection
 
-        @section('content')
-            <div class="card-body">
-                <div class="">
-                    <h2 class="mb-3 f-w-600">{{ __('Login') }}</h2>
-                </div>
-                @if (session()->has('error'))
-                    <div>
-                        <p class="text-danger">{{ session('error') }}</p>
-                    </div>
-                @endif
-                <form method="POST" id="form_data" action="{{ route('login') }}">
-                    @csrf
-                    <div class="">
-                        <div class="form-group mb-3">
-                            <label for="email" class="form-label">{{ __('Email') }}</label>
-                            <input type="email" class="form-control  @error('email') is-invalid @enderror" name="email"
-                                id="emailaddress" value="{{ old('email') }}" required autocomplete="email" autofocus
-                                placeholder="{{ __('Enter Your Email') }}">
-                            @error('email')
-                                <span class="error invalid-email text-danger" role="alert">
-                                    <small>{{ $message }}</small>
-                                </span>
-                            @enderror
-                        </div>
-                        <div class="form-group mb-3">
-                            <label for="password" class="form-label">{{ __('Password') }}</label>
-                            <input type="password" class="form-control @error('password') is-invalid @enderror"
-                                name="password" required autocomplete="current-password" id="password"
-                                placeholder="{{ __('Enter Your Password') }}">
-                        </div>
-                        <div class="form-group mb-3 text-start">
-                            <span>
-                                <a href="{{ route('password.request', $lang) }}"
-                                    tabindex="0">{{ __('Forgot Your Password?') }}</a>
-                            </span>
-
-                        </div>
-                        <a href="{{ route('azure.login') }}">{{ __('Login azure') }}</a>
-                        {{-- @if ($setting['recaptcha_module'] == 'on') --}}
-                        <div class="form-group col-lg-12 col-md-12 mt-3">
-                            {!! NoCaptcha::display($setting['cust_darklayout'] == 'on' ? ['data-theme' => 'dark'] : []) !!}
-                            @error('g-recaptcha-response')
-                                <span class="small text-danger" role="alert">
-                                    <strong>{{ $message }}</strong>
-                                </span>
-                            @enderror
-                        </div>
-                        {{-- @endif --}}
-                        <div class="d-grid">
-                            <button type="submit" id="login_button"
-                                class="btn btn-primary btn-block mt-2">{{ __('Login') }}
-                            </button>
-                        </div>
-                        <p class="my-4 text-center">{{ __('Don\'t have an account?') }}
-                            <a href="#" onclick="mostrarMensaje(event)" class="my-4 text-center text-primary">
-                                {{ __('Sign up') }}</a>
-                        </p>
-                    </div>
-                </form>
-            </div>
-        @endsection
         @push('custom-scripts')
             <script src="{{ asset('assets/custom/libs/jquery/dist/jquery.min.js') }}"></script>
             <script>
-                function mostrarMensaje(event) {
-                    event.preventDefault();
-                    alert("This option is not aviable.");
-                }
                 $(document).ready(function() {
                     $("#form_data").submit(function(e) {
                         $("#login_button").attr("disabled", true);
@@ -104,14 +180,31 @@
                     });
                 });
             </script>
-            {{-- @if ($setting['recaptcha_module'] == 'on')
-                {!! NoCaptcha::renderJs() !!}
-            @endif --}}
         @endpush
     </x-auth-card>
-</x-guest-layout>
-<style>
-    .login-deafult {
-        width: 139px !important;
-    }
-</style>
+</x-guest-layout> 
+<div class="backgroundImageLogin">
+    <div>
+        <div class="divLogin">
+            @if (session()->has('error'))
+                <div>
+                     <p >{{ session('error') }}</p>
+                </div>
+            @endif
+                <div class="imgDiv">
+                    <img width="100%" src="{{ asset('assets/img/logoRed1.png') }}" alt="Logo Alsina Project">
+                </div>
+                <div class="loginText">
+                    <h2 class="loginTitle">{{ __('Login') }}</h2>
+                    <p class="loginExplanation">
+                        {{ __('To access aCeler Project, you will be automatically redirected to the Azure login page.') }}
+                    </p>
+                </div>
+        </div>
+    </div>
+</div>
+<script>
+    document.getElementById('azureLoginButton').addEventListener('click', function() {
+        window.location.href = "{{ route('azure.login') }}";
+    });
+</script>

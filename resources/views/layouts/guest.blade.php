@@ -10,7 +10,6 @@
         }
     } else {
         $setting = App\Models\Utility::getAdminPaymentSettings();
-        // $SITE_RTL = env('SITE_RTL');
         $SITE_RTL = $setting['site_rtl'];
         if ($setting['color']) {
             $color = $setting['color'];
@@ -28,9 +27,81 @@
     $logo = \App\Models\Utility::get_file('logo/');
     use App\Models\Utility;
 @endphp
-{{----------- CHATBOT --------------}}
+{{-- --------- CHATBOT ------------ --}}
 @include('layouts.chatbot')
 {{-- ---------------------------- --}}
+
+<style>
+    .buttonLogin{
+        width: 10%;
+        height: 6%;
+        margin-left: 43%;
+        border: none;
+        border-radius: 10px;
+        color: white;
+        background-color: #AA182C;
+        margin-top: 22%;
+        font-size: 20px;
+        margin-bottom: 3%;
+    }
+
+    .backgroundMainDiv{
+        background-color: #ffffff;
+        width: 7%;
+        margin-left: 33%;
+        margin-top: 5%;
+        border-radius: 10px;
+        box-shadow: 0px 4px 4px 0px rgb(0 0 0 / 25%);
+        -webkit-box-shadow: 0px 4px 4px 0px rgb(0 0 0 / 25%);
+        -moz-box-shadow: 0px 4px 4px 0px rgb(0 0 0 / 25%);
+        background-color: #aa182C;
+    }
+    @media screen and (max-width: 1669px) and (min-width: 1555px){
+
+            .buttonLogin{
+                font-size: 17px;
+            }
+            .azureLogo{
+                width: 20px;
+            }
+        }
+
+        @media screen and (max-width: 1553px) and (min-width: 1479px){
+
+            .buttonLogin{
+                font-size: 15px;
+            }
+        }
+
+        @media screen and (max-width: 1479px) and (min-width: 1240px ){
+
+            .azureLogo {
+                width: 20px;
+            }
+
+            .buttonLogin{
+                font-size: 15px;
+                margin-top: 25%;
+            }
+        }
+
+        @media screen and (max-width: 1240px) and (min-width: 800px ){
+
+            .azureLogo {
+                width: 20px;
+            }
+
+            
+            .buttonLogin{
+                font-size: 12px;
+            }
+        }
+    @media screen and (max-width: 1669px){
+        .backgroundMainDiv{
+            width: 8%;
+        }
+    }
+</style>
 
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}" dir="{{ $SITE_RTL == 'on' ? 'rtl' : '' }}">
@@ -63,7 +134,7 @@
         {{ 'aCeler Project' }} ~@yield('page-title')
     </title>
     <!-- Favicon -->
-    <link rel="shortcut icon" href="{{ $logo . 'favicon.png' . '?' . time() }}">
+    <link rel="shortcut icon" href="{{ asset('assets/img/iconA.png') }}" type="image/png">
 
     @if ($setting['cust_darklayout'] == 'on')
         @if (isset($SITE_RTL) && $SITE_RTL == 'on')
@@ -86,9 +157,8 @@
     @if ($setting['cust_darklayout'] == 'on')
         <link rel="stylesheet" href="{{ asset('assets/css/custom-dark.css') }}" id="main-style-link">
     @endif
-    <link rel="shortcut icon" href="{{ asset('assets/img/iconA.png') }}" type="image/png">
-</head>
 
+</head>
 
 <body class="{{ $color }}">
 
@@ -110,6 +180,14 @@
     <script src="{{ asset('assets/js/plugins/bootstrap.min.js') }}"></script>
     <script src="{{ asset('assets/js/plugins/feather.min.js') }}"></script>
 
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            var debugBars = document.getElementsByClassName("phpdebugbar-openhandler-overlay");
+            for (var i = 0; i < debugBars.length; i++) {
+                debugBars[i].innerHTML = ""; // Elimina el contenido de texto
+            }
+        });
+    </script>
     <script>
         feather.replace();
         /*============================BOTON DEBUGBAR================================*/
@@ -141,39 +219,42 @@
             });
         }
         var custthemebg = document.querySelector("#cust-theme-bg");
-        custthemebg.addEventListener("click", function() {
-            if (custthemebg.checked) {
-                document.querySelector(".dash-sidebar").classList.add("transprent-bg");
-                document
-                    .querySelector(".dash-header:not(.dash-mob-header)")
-                    .classList.add("transprent-bg");
-            } else {
-                document.querySelector(".dash-sidebar").classList.remove("transprent-bg");
-                document
-                    .querySelector(".dash-header:not(.dash-mob-header)")
-                    .classList.remove("transprent-bg");
-            }
-        });
+        if(custthemebg){
+            custthemebg.addEventListener("click", function() {
+                if (custthemebg.checked) {
+                    document.querySelector(".dash-sidebar").classList.add("transprent-bg");
+                    document
+                        .querySelector(".dash-header:not(.dash-mob-header)")
+                        .classList.add("transprent-bg");
+                } else {
+                    document.querySelector(".dash-sidebar").classList.remove("transprent-bg");
+                    document
+                        .querySelector(".dash-header:not(.dash-mob-header)")
+                        .classList.remove("transprent-bg");
+                }
+            });
+        }
 
         var custdarklayout = document.querySelector("#cust-darklayout");
-        custdarklayout.addEventListener("click", function() {
-            if (custdarklayout.checked) {
-                document
-                    .querySelector(".m-header > .b-brand > .logo-lg")
-                    .setAttribute("src", "../assets/images/logo.svg");
-                document
-                    .querySelector("#main-style-link")
-                    .setAttribute("href", "../assets/css/style-dark.css");
-            } else {
-                document
-                    .querySelector(".m-header > .b-brand > .logo-lg")
-                    .setAttribute("src", "../assets/images/logo-dark.svg");
-                document
-                    .querySelector("#main-style-link")
-                    .setAttribute("href", "../assets/css/style.css");
-            }
-        });
-
+        if(custdarklayout){  
+            custdarklayout.addEventListener("click", function() {
+                if (custdarklayout.checked) {
+                    document
+                        .querySelector(".m-header > .b-brand > .logo-lg")
+                        .setAttribute("src", "../assets/images/logo.svg");
+                    document
+                        .querySelector("#main-style-link")
+                        .setAttribute("href", "../assets/css/style-dark.css");
+                } else {
+                    document
+                        .querySelector(".m-header > .b-brand > .logo-lg")
+                        .setAttribute("src", "../assets/images/logo-dark.svg");
+                    document
+                        .querySelector("#main-style-link")
+                        .setAttribute("href", "../assets/css/style.css");
+                }
+            });
+        }
         function removeClassByPrefix(node, prefix) {
             for (let i = 0; i < node.classList.length; i++) {
                 let value = node.classList[i];
@@ -189,80 +270,45 @@
     @php
         $company_logo = App\Models\Utility::get_logo();
     @endphp
-    <div class="custom-login">
-        <div class="login-bg-img">
-            <img src="{{ asset('assets/img/' . $color . '.svg') }}" class="login-bg-1">
-            <img src="{{ asset('assets/img/user2.svg') }}" class="login-bg-2">
-        </div>
-        <div class="bg-login bg-primary"></div>
-        <div class="custom-login-inner">
-            <header class="dash-header">
+
+    
+    <div class="backgroundMainDiv">
+        <header>
                 <nav class="navbar navbar-expand-md default">
                     <div class="container">
-
-                        {{-- LOGO PROJECT --}}
-                        <div class="navbar-brand d-none d-md-block" style="overflow: hidden; ">
-                            <img class="img-fluid rounded" width="350px" src="{{ asset('assets/img/acelerProject.png') }}"
-                                alt="Imagen de portada">
-                        </div>
 
                         <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
                             data-bs-target="#navbarlogin" aria-controls="navbarTogglerDemo01" aria-expanded="false"
                             aria-label="Toggle navigation">
-                            <span class="navbar-toggler-icon"></span>
+                            
                         </button>
 
                         <div class="collapse navbar-collapse" id="navbarlogin">
-                            <ul class="navbar-nav align-items-center ms-auto mb-2 mb-lg-0">
-                                @include('landingpage::layouts.buttons')
+                            <ul class="navbar-nav">
                                 <a class="" href="#">@yield('language-bar')</a>
                             </ul>
                         </div>
                     </div>
                 </nav>
-            </header>
-
-            <main class="custom-wrapper">
-                <div class="custom-row">
-                    <div class="card">
-                        @yield('content')
-                    </div>
-                </div>
-            </main>
-
-            <div class="row justify-content-center">
-                <div class="col-md-4">
-                    @if (session()->has('info'))
-                        <div class="alert alert-primary">
-                            {{ session()->get('info') }}
-                        </div>
-                    @endif
-                    @if (session()->has('status'))
-                        <div class="alert alert-info">
-                            {{ session()->get('status') }}
-                        </div>
-                    @endif
-                </div>
-            </div>
-
-            <footer class="text-center">
-                <div class="auth-footer">
-                    <div class="container">
-                        <div class="row justify-content-center">
-                            <div class=" col-6 col-md-4 rounded text-center" style="background: white; color: #AA182C;">
-                                <a href="#"> <span>
-                                        &copy; {{ date('Y') }}
-                                        {{ 'aCeler Project' }} ~@yield('page-title')
-                                    </span></a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </footer>
-
+        </header>
+    </div>
+    <div>
+        <div >
+                    
+            <button  id="azureLoginButton" class="buttonLogin">
+                <img class="azureLogo" src="{{ asset('assets/img/azureIcon.svg') }}"
+                        alt="login with microsoft">
+                        {{ __('Sign in') }}
+            </button>
+        </div>
+        <div>
+        <span class="copyText">
+                        &copy; {{ date('Y') }}
+                        {{ 'aCeler Project' }} ~@yield('page-title')
+                    </span>
+    
         </div>
     </div>
-
     @if ($meta_setting['enable_cookie'] == 'on')
         @include('layouts.cookie_consent')
     @endif

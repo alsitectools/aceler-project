@@ -38,18 +38,6 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Domain Hint
-    |--------------------------------------------------------------------------
-    |
-    | This value can be used to help users know which email address they
-    | should login with.
-    | https://azure.microsoft.com/en-us/updates/app-service-auth-and-azure-ad-domain-hints/
-    |
-    */
-    'domain_hint' => env('AZURE_DOMAIN_HINT', ''),
-
-    /*
-    |--------------------------------------------------------------------------
     | Permission Scope
     |--------------------------------------------------------------------------
     |
@@ -57,6 +45,14 @@ return [
     | https://docs.microsoft.com/en-us/graph/api/resources/users?view=graph-rest-1.0
     |
     */
-    'scope' => env('AZURE_SCOPE', 'User.Read'),
+    'scope' => env('AZURE_SCOPE', ''),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Redirect
+    |--------------------------------------------------------------------------
+    |
+    */
+    'redirect' => env('AZURE_REDIRECT_URI', ''),
 
 ];

@@ -186,7 +186,7 @@ return [
         Obydul\LaraSkrill\LaraSkrillServiceProvider::class,
         Paytabscom\Laravel_paytabs\PaypageServiceProvider::class,
         Lab404\Impersonate\ImpersonateServiceProvider::class,
-
+        SocialiteProviders\Manager\ServiceProvider::class,
 
 
         /*
@@ -268,6 +268,7 @@ return [
         'Excel' => Maatwebsite\Excel\Facades\Excel::class,
         'PaytmWallet' => Anand\LaravelPaytmWallet\Facades\PaytmWallet::class,
         'Chatify' => Chatify\Facades\ChatifyMessenger::class,
+        'Socialite' => Laravel\Socialite\Facades\Socialite::class,
     ])->toArray(),
 
 ];

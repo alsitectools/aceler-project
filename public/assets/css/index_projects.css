@@ -1,3 +1,33 @@
+#searchInputProjects {
+    position: absolute !important;
+    margin: -10px !important;
+    transform: translate(0px, 10px) !important;
+    display: flex;
+}
+
+.input {
+    position: relative;
+    box-sizing: border-box;
+    border: 1px solid #cdcdcd;
+    padding: 15px 15px 15px 35px;
+    width: 150%;
+    border-radius: 10px;
+    text-align: left !important;
+    direction: ltr !important;
+}
+
+.input-icon {
+    color: #797878;
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    left: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    pointer-events: none;
+}
+
+
 .tooltipCus {
     position: relative;
     cursor: pointer;
@@ -15,7 +45,7 @@
     z-index: 1;
     bottom: 100%;
     left: 60%;
-    transform: translateX(-5%);
+    transform: translateX(-10%);
     opacity: 0;
     transition: opacity 0.3s;
     white-space: nowrap;
@@ -34,8 +64,7 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    width: 95%;
-    height: calc(30% - 24px);
+    height: 200px;
     justify-content: center;
 }
 
@@ -51,11 +80,25 @@
 }
 
 .zoom {
-    width: 97%;
+    width: 95%;
     background-color: #f0f0f0;
     transition: transform 0.3s ease-in-out;
     box-sizing: border-box;
 }
+
+.types {
+    width: 95%;
+    background-color: #f0f0f0;
+    transition: transform 0.3s ease-in-out;
+    box-sizing: border-box;
+}
+
+.types.selected {
+    transform: scale(1.5);
+    transform-origin: left;
+    font-weight: bold;
+}
+
 
 .zoom:hover {
     transform: scale(1.05);
@@ -98,7 +141,6 @@
     border-radius: 50%;
     width: 30px;
     height: 30px;
-    padding-bottom: 2%;
 
 }
 

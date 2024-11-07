@@ -12,11 +12,9 @@ class Workspace extends Model
         'created_by',
         'lang',
         'currency',
-        'is_stripe_enabled',
-        'stripe_key',
-        'stripe_secret',
-        'is_paypal_enabled',
-        'is_active',
+        'interval_time',
+        'country',
+        'is_active'
     ];
 
     public static function create($data)
@@ -32,15 +30,14 @@ class Workspace extends Model
         ];
         $key = 0;
         $lastKey       = count($defaultStages) - 1;
-        foreach($defaultStages as $color => $stage)
-        {
+        foreach ($defaultStages as $color => $stage) {
             Stage::create([
-                    'name' => $stage,
-                    'color' => $color,
-                    'workspace_id' => $workspace->id,
-                    'complete' => ($key == $lastKey) ? true : false,
-                    'order' => $key,
-                ]);
+                'name' => $stage,
+                'color' => $color,
+                'workspace_id' => $workspace->id,
+                'complete' => ($key == $lastKey) ? true : false,
+                'order' => $key,
+            ]);
             $key++;
         }
 
@@ -55,15 +52,14 @@ class Workspace extends Model
         $key = 0;
 
         $lastKey       = count($defaultStages) - 1;
-        foreach($defaultStages as $color => $stage)
-        {
+        foreach ($defaultStages as $color => $stage) {
             BugStage::create([
-                    'name' => $stage,
-                    'color' => $color,
-                    'workspace_id' => $workspace->id,
-                    'complete' => ($key == $lastKey) ? true : false,
-                    'order' => $key,
-                ]);
+                'name' => $stage,
+                'color' => $color,
+                'workspace_id' => $workspace->id,
+                'complete' => ($key == $lastKey) ? true : false,
+                'order' => $key,
+            ]);
             $key++;
         }
 
@@ -87,23 +83,19 @@ class Workspace extends Model
         $owner1 = UserWorkspace::where('workspace_id', $this->id)->where('permission', 'Owner')->first();
         $setting = Utility::getAdminPaymentSettings();
 
-        if(isset($setting['enable_chatgpt']) && $setting['enable_chatgpt'] == 'on'){
+        if (isset($setting['enable_chatgpt']) && $setting['enable_chatgpt'] == 'on') {
 
             return true;
-
-        }else{
+        } else {
             return false;
         }
     }
 
     public function users($created_by = false)
     {
-        if($created_by)
-        {
+        if ($created_by) {
             return $this->belongsToMany('App\Models\User', 'user_workspaces', 'workspace_id', 'user_id')->withPivot('is_active')->where('users.id', "!=", $created_by)->get();
-        }
-        else
-        {
+        } else {
             return $this->belongsToMany('App\Models\User', 'user_workspaces', 'workspace_id', 'user_id')->withPivot('is_active');
         }
     }
@@ -123,14 +115,16 @@ class Workspace extends Model
         $dir     = base_path() . '/resources/lang/';
         $glob    = glob($dir . "*", GLOB_ONLYDIR);
         $arrLang = array_map(
-            function ($value) use ($dir){
+            function ($value) use ($dir) {
                 return str_replace($dir, '', $value);
-            }, $glob
+            },
+            $glob
         );
         $arrLang = array_map(
-            function ($value) use ($dir){
+            function ($value) use ($dir) {
                 return preg_replace('/[0-9]+/', '', $value);
-            }, $arrLang
+            },
+            $arrLang
         );
         $arrLang = array_filter($arrLang);
 

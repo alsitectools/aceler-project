@@ -3,7 +3,7 @@
     $client_keyword = Auth::user()->getGuard() == 'client' ? 'client.' : '';
 @endphp
 @section('page-title')
-    {{ trans('messages.Timesheet') }}
+    {{ __('Timesheet') }}
 @endsection
 @section('links')
     <li class="breadcrumb-item"><a href="{{ route('home') }}">{{ __('Home') }}</a></li>
@@ -13,7 +13,7 @@
                 href="{{ route('projects.show', [$currentWorkspace->slug, $project_id]) }}">{{ __('Project Details') }}</a>
         </li>
     @endif
-    <li class="breadcrumb-item"> {{ trans('messages.Timesheet') }}</li>
+    <li class="breadcrumb-item"> {{ __('Timesheet') }}</li>
 @endsection
 @section('action-button')
     <div class="d-flex justify-content-end row1">
@@ -21,7 +21,7 @@
             @if ($project_id == -1)
                 <div class="col-sm-auto">
                     <button id="add_task" type="button" class="btn btn-primary add_task" data-ajax-popup="true"
-                    data-size="lg" data-title="{{ __('Create New Task') }}"
+                        data-size="lg" data-title="{{ __('Create New Task') }}"
                         data-url="{{ route('timesheet.create', $currentWorkspace->slug) }}" title="{{ __('Add Task') }}"><i
                             class="fa-solid fa-thumbtack"></i>
                         {{ __('Add Task on Timesheet') }}</button>
@@ -63,14 +63,14 @@
                             <div class="page-error">
                                 <div class="page-inner">
                                     <div class="page-description">
-                                        {{ trans("messages.We_couldn't_find_any_data") }}
+                                        {{ __("We couldn't find any data") }}
                                     </div>
                                     <div class="page-search">
                                         <p class="text-muted mt-3">
-                                            {{ trans("messages.Sorry_we_can't_find_any_timesheet_records_on_this_week.") }}
+                                            {{ __("Sorry we can't find any timesheet records on this week") }}
                                             <br>
                                             @if ($project_id != '-1')
-                                                {{ trans('messages.To_add_timesheet_record_go_to ') }}
+                                                {{ __('To add timesheet record go to') }}
                                                 <b>{{ __('Add Task on Timesheet.') }}</b>
                                             @endif
                                         </p>
@@ -236,18 +236,5 @@
         align-items: center;
         justify-content: space-around !important;
         width: 320px;
-    }
-
-    @media (max-width: 1300px) {
-        .header_breadcrumb {
-            width: 100% !important;
-
-        }
-
-        .row1 {
-            display: flex;
-            flex-wrap: wrap;
-        }
-
     }
 </style>

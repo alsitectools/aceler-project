@@ -16,8 +16,8 @@ class CreateStagesTable extends Migration
         Schema::create('stages', function (Blueprint $table) {
             $table->bigIncrements('id');
             $table->string('name');
-            $table->string('color')->default('#051c4b');
-            $table->boolean('complete');
+            $table->string('color');
+            $table->boolean('complete')->default(0);
             $table->integer('order');
             $table->timestamps();
         });

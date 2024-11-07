@@ -43,7 +43,7 @@
     </div>
     <div class="col-lg-auto pb-3">
         <a href="{{ route('projects.timesheet.index', [$currentWorkspace->slug, $project->id]) }}"
-            class="btn btn-primary btn-task-milestone" title="{{ __('dictionary.Tasks') }}"><i
+            class="btn btn-primary btn-task-milestone" title="{{ __('Tasks') }}"><i
                 class="fas fa-tasks text-white"></i>{{ __('Tasks') }}</a>
     </div>
 @endsection
@@ -370,8 +370,15 @@
                                                         <div class="col-sm-auto mb-3 mb-sm-0">
                                                             <div class="d-flex align-items-center px-2">
                                                                 <a href="#" class=" text-start">
+                                                                <!-- <img class="theme-avtar"
+                                                                    @if (Auth::user()->avatar) 
+                                                                        src="{{ url('storage/app/public/' . Auth::user()->avatar) }}" 
+                                                                    @else 
+                                                                        avatar="{{ Auth::user()->name }}" 
+                                                                    @endif
+                                                                    alt="{{ Auth::user()->name }}"></a> -->
                                                                     <img class="fix_img"
-                                                                        @if ($user->avatar) src="{{ asset($logo . $user->avatar) }}" @else avatar="{{ $user->name }}" @endif>
+                                                                    @if ($user->avatar) src="{{ asset($logo . $user->avatar) }}" @else avatar="{{ $user->name }}" @endif>
                                                                 </a>
                                                                 <div class="px-2">
                                                                     <h5 class="m-0">{{ $user->name }}</h5>
@@ -449,6 +456,13 @@
                                                         <div class="col-sm-auto mb-3 mb-sm-0">
                                                             <div class="d-flex align-items-center px-2">
                                                                 <a href="#" class=" text-start">
+                                                                <!-- <img class="theme-avtar"
+                                                                    @if (Auth::user()->avatar) 
+                                                                        src="{{ url('storage/app/public/' . Auth::user()->avatar) }}" 
+                                                                    @else 
+                                                                        avatar="{{ Auth::user()->name }}" 
+                                                                    @endif
+                                                                    alt="{{ Auth::user()->name }}"></a> -->
                                                                     <img class="fix_img"
                                                                         @if ($client->avatar) src="{{ asset($logo . $client->avatar) }}" @else avatar="{{ $client->name }}" @endif>
                                                                 </a>
@@ -716,6 +730,7 @@
             chart.render();
         })();
     </script>
+    <script src="{{ asset('assets/custom/libs/nicescroll/jquery.nicescroll.min.js')}} "></script>
     <script>
         $(document).ready(function() {
             if ($(".top-10-scroll").length) {

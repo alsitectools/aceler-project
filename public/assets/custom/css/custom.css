@@ -888,11 +888,12 @@ span.invite-warning {
     color: #fff;
     /*  background:#584ed2 !important;*/
     border: none;
-    border-radius: 10px;
-    padding: 8px 15px;
-    max-width: 155px !important;
-    font-size: 12px;
+    border-radius: 7px;
+    padding: 10px 15px;
+    max-width: 200px !important;
+    font-size: 13px;
     font-weight: 500;
+    margin-top: 25px;
 }
 
 /* input[type="file"] {
@@ -907,6 +908,13 @@ span.invite-warning {
     margin: 0;
     cursor: pointer;
 } */
+.form-control:focus-visible {
+    outline: none !important;
+}
+
+.form-control:focus {
+    border-color: transparent !important;
+}
 
 .choose_file_custom {
     position: relative !important;
@@ -1291,44 +1299,65 @@ span.currency-icon {
     color: #fff !important;
 }
 
-
-
 .drp-search-custom {
     padding: 0 !important;
 }
 
-.drp-search-custom .easy-autocomplete {
-    margin: 0 !important;
+.easy-autocomplete {
     width: 100% !important;
-    height: 100% !important;
 }
 
-.drp-search-custom .easy-autocomplete input {
-    height: 100%;
-    width: 100%;
-    border: none;
-    padding: 20px 20px !important;
-    border-radius: 10px 10px 0 0 !important;
+.easy-autocomplete input {
+    width: 350px !important;
+
 }
 
 .easy-autocomplete-container {
-    border-top: 1px solid #d6d6d6;
-    /*padding-top: 12px;*/
+    position: absolute;
+    padding: 0;
+    width: 100%;
 }
 
 .easy-autocomplete-container ul {
-    display: block !important;
-    padding: 0px 20px !important;
+    width: 100% !important;
+    background-color: white !important;
+    border: 1px solid #cdcdcd;
+    border-radius: 10px;
+    padding: 0px 10px !important;
 }
 
 .easy-autocomplete-container ul li {
     width: 100% !important;
     display: inline-block !important;
     padding: 13px 0px 14px 20px !important;
+
 }
 
 .eac-category {
+    width: 100% !important;
+    padding-top: 15px;
+    padding-bottom: 15px;
     font-weight: bold !important;
+}
+
+.status-filter button {
+    padding: 5px 15px;
+    font-size: 13px;
+    font-weight: 600;
+    height: 45px !important;
+}
+
+@media screen and (min-width: 2000px) {
+    .status-filter button {
+        padding: 10px 20px;
+        font-size: 16px;
+        font-weight: 700;
+    }
+}
+
+.divStatus {
+    width: 100%;
+
 }
 
 .expires_tag {
@@ -1354,7 +1383,6 @@ span.currency-icon {
     padding-right: 1rem !important;
     padding-left: 1rem !important;
     margin-bottom: 1.5rem !important;
-
 }
 
 .dash-sidebar .main-logo {

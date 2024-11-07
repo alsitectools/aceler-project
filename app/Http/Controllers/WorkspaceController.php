@@ -39,12 +39,12 @@ class WorkspaceController extends Controller
         if ($validator->fails()) {
             return redirect()->back()->with('error', $validator->errors()->first());
         }
-        
+
         $objWorkspace = Workspace::create(
             [
                 'created_by' => $objUser->id,
                 'name' => $request->name,
-                'currency' => 'USD',
+                'currency' => 'EUR',
             ]
         );
 
@@ -55,105 +55,91 @@ class WorkspaceController extends Controller
                 'permission' => 'Owner',
             ]
         );
-
         $objUser->currant_workspace = $objWorkspace->id;
         $objUser->save();
 
         return redirect()->route('home', $objWorkspace->slug)->with('success', __('Workspace Created Successfully!'));
     }
 
+    public function addWorkspace($workspaceid)
+    {
+        $objUser = Auth::user();
+        $objWorkspace = Workspace::find($workspaceid);
 
-    //    public function destroy($workspaceID)
-    // { 
-    //     $objUser   = Auth::user();
-    //     $workspace = Workspace::find($workspaceID);
-    //     $all_workspaces = Workspace::get();
+        $user_workspace = UserWorkspace::where('user_id', $objUser->id)
+            ->where('workspace_id', $objWorkspace->id)
+            ->first();
+
+        if (!$user_workspace) {
+            UserWorkspace::create(
+                [
+                    'user_id' => $objUser->id,
+                    'workspace_id' => $objWorkspace->id,
+                    'is_active' => 0,
+                    'permission' => 'Member',
+                ]
+            );
+        }
+
+        return redirect()->route('home')->with('success', __('Workspace add Successfully!'));
+    }
+    public function changeWorkspace($id)
+    {
+        $workspace = Workspace::find($id);
+
+        $user = Auth::user();
+        $oldWorkspaceId = $user->currant_workspace;
+
+        // Cambio al nuevo workspace
+        $user->currant_workspace = $workspace->id;
+        $user->save();
+
+        $currantUserWorkspace = UserWorkspace::where('user_id', $user->id)
+            ->where('workspace_id', $user->currant_workspace)
+            ->first();
+
+        if ($currantUserWorkspace) {
+            // Activo el nuevo workspace
+            $currantUserWorkspace->is_active = 1;
+            $currantUserWorkspace->save();
+
+            // Desactiva el antiguo workspace
+            $oldUserWorkspace = UserWorkspace::where('user_id', $user->id)
+                ->where('workspace_id', $oldWorkspaceId)
+                ->first();
+
+            if ($oldUserWorkspace) {
+                $oldUserWorkspace->is_active = 0;
+                $oldUserWorkspace->save();
+            }
+
+            return redirect()->back()->with('success', __('Workspace changed successfully!'));
+        } else {
+            return redirect()->back()->with('error', __('Workspace is locked or does not exist.'));
+        }
+    }
 
 
-    //     if($workspace->created_by == $objUser->id)
-    //     {
+    public function leave($workspaceID)
+    {
+        $objUser = Auth::user();
+        $objWorkspace = Workspace::find($workspaceID);
+        $all_workspaces = UserWorkspace::where('user_id', '=', $objUser->id)->get();
 
-    //       if(count($all_workspaces) > 1)
-    //        {
-    //         UserWorkspace::where('workspace_id', '=', $workspaceID)->delete();
-    //         Stage::where('workspace_id', '=', $workspaceID)->delete(); 
-    //         $workspace->delete();
-    //         $work_space = Workspace::first();
+        if ($objWorkspace && count($all_workspaces) > 1) {
+            UserWorkspace::where('workspace_id', '=', $objWorkspace->id)->where('user_id', '=', $objUser->id)->delete();
 
-    //          UserWorkspace::create(
-    //                 [
-    //                     'user_id' => $objUser->id,
-    //                     'workspace_id' => $work_space->id,
-    //                     'permission' => 'Owner',
-    //                 ]
-    //             );
-    //          $objUser->currant_workspace = $work_space->id;
-    //          $objUser->save();
+            $otherWorkspace = UserWorkspace::where('user_id', '=', $objUser->id)->first();
 
-    //        }
-    //     else
-    //     {
-    //       return redirect()->back()->with('error', __("You can't delete Workspace!"));
-    //     }
-    //         return redirect()->route('home')->with('success', __('Workspace Deleted Successfully!'));
-    //     }
-    //     else
-    //     {
-    //         return redirect()->route('home')->with('error', __("You can't delete Workspace!"));
-    //     }
-    // }
+            $objUser->currant_workspace = $otherWorkspace->workspace_id;
+            $objUser->save();
 
-    // Old 
-    // public function destroy($workspaceID)
-    // {
-    //     $objUser   = Auth::user();
-    //     $workspace = Workspace::find($workspaceID);
-    //     $all_workspaces = Workspace::get();
+            return redirect()->route('home')->with('success', __('Workspace leave Successfully!'));
+        } else {
 
-
-    //     if ($workspace->created_by == $objUser->id) {
-    //         if (count($all_workspaces) > 1) {
-
-    //             UserWorkspace::where('workspace_id', '=', $workspaceID)->delete();
-    //             Stage::where('workspace_id', '=', $workspaceID)->delete();
-    //             $workspace->delete();
-    //             $work_space = Workspace::first();
-
-    //             $objUser->currant_workspace = $work_space->id;
-    //             $objUser->save();
-    //         } else {
-    //             return redirect()->back()->with('error', __("You can't delete Workspace!"));
-    //         }
-    //         return redirect()->route('home')->with('success', __('Workspace Deleted Successfully!'));
-    //     } else {
-    //         return redirect()->route('home')->with('error', __("You can't delete Workspace!"));
-    //     }
-    // }
-
-    // public function destroy($workspaceID)
-    // {
-    //     $objUser   = Auth::user();
-    //     $workspace = Workspace::find($workspaceID);
-    //     $all_workspaces = Workspace::where('created_by','=',Auth::user()->id)->get();
-    //     if ($workspace->created_by == $objUser->id) {
-
-    //         if (count($all_workspaces) > 1) {
-
-    //             UserWorkspace::where('workspace_id', '=', $workspaceID)->delete();
-    //             Stage::where('workspace_id', '=', $workspaceID)->delete();
-    //             $workspace->delete();
-    //             $work_space = Workspace::where('created_by','=',Auth::user()->id)->first();
-
-    //             $objUser->currant_workspace = $work_space->id;
-    //             $objUser->save();
-    //         } else {
-    //             return redirect()->back()->with('error', __("You can't delete Workspace!"));
-    //         }
-    //         return redirect()->route('home')->with('success', __('Workspace Deleted Successfully!'));
-    //     } else {
-    //         return redirect()->route('home')->with('error', __("You can't delete Workspace!"));
-    //     }
-    // }
+            return redirect()->route('home')->with('error', __('“You cannot leave this workspace, as you currently only belong to this one and must have at least one assigned to you.”!!'));
+        }
+    }
 
     public function destroy($workspaceID)
     {
@@ -161,15 +147,15 @@ class WorkspaceController extends Controller
         $workspace = Workspace::find($workspaceID);
         $all_workspaces = Workspace::where('created_by', '=', Auth::user()->id)->get();
         if ($workspace->created_by == $objUser->id) {
-            
+
             if (count($all_workspaces) > 1) {
-                
+
                 $currentWorkspaceUsers = UserWorkspace::where([
                     ['workspace_id', '=', $workspaceID],
                     ['permission', '=', 'Member'],
-                    ])
+                ])
                     ->get();
-    
+
                 if (count($currentWorkspaceUsers) >= 1) {
                     return redirect()->back()->with('error', __('Please Remove the Users Before Delete the Workspace !!!'));
                 } else {
@@ -192,109 +178,20 @@ class WorkspaceController extends Controller
     }
 
 
-    //  Old
-    // public function leave($workspaceID)
+    // public function changeCurrentWorkspace($workspaceID)
     // {
+    //     $objWorkspace = Workspace::find($workspaceID);
 
-    //     $objUser = Auth::user();
-    //     $all_workspaces = Workspace::get();
-    //     $userProjects = Project::where('workspace', '=', $workspaceID)->get();
-    //     // dd(count($all_workspaces));
-
-
-    //     if (count($all_workspaces) > 1) {
-            
-    //         $work_space = Workspace::first();
-
-    //         $user_Project = Project::where('workspace', '=', $work_space->id)->get();
-
-    //         foreach ($userProjects as $userProject) {
-    //             UserProject::where('project_id', '=', $userProject->id)->where('user_id', '=', $objUser->id)->delete();
-    //         }
-
-    //         UserWorkspace::where('workspace_id', '=', $workspaceID)->where('user_id', '=', $objUser->id)->delete();
-
-
-    //         foreach ($user_Project as $userProject_s) {
-    //             UserProject::create(
-    //                 [
-    //                     'user_id' => $objUser->id,
-    //                     'project_id' => $userProject_s->id,
-
-    //                 ]
-    //             );
-    //         }
-
-    //         UserWorkspace::create(
-    //             [
-    //                 'user_id' => $objUser->id,
-    //                 'workspace_id' => $work_space->id,
-    //                 'permission' => 'Owner',
-    //             ]
-    //         );
-    //         $objUser->currant_workspace = $work_space->id;
+    //     if ($objWorkspace && $objWorkspace->is_active) {
+    //         $objUser                    = \Auth::user();
+    //         $objUser->currant_workspace = $workspaceID;
     //         $objUser->save();
+
+    //         return redirect()->route('home')->with('success', __('Workspace change Successfully!'));
     //     } else {
-    //         return redirect()->back()->with('error', __("You can't delete Workspace!"));
+    //         return redirect()->back()->with('error', __('Workspace is locked'));
     //     }
-
-    //     return redirect()->route('home')->with('success', __('Workspace Leave Successfully!'));
     // }
-
-    public function leave($workspaceID)
-    {
-        $objUser = Auth::user();
-        // $all_workspaces = Workspace::get();
-        $all_workspaces = UserWorkspace::where('user_id','=',Auth::user()->id)->get();
-        $userProjects = Project::where('workspace', '=', $workspaceID)->get();
-
-        if (count($all_workspaces) > 1) {
-            // $work_space = Workspace::first();
-            // $user_Project = Project::where('workspace', '=', $work_space->id)->get();
-
-            foreach ($userProjects as $userProject) {
-                UserProject::where('project_id', '=', $userProject->id)->where('user_id', '=', $objUser->id)->delete();
-            }
-            UserWorkspace::where('workspace_id', '=', $workspaceID)->where('user_id', '=', $objUser->id)->delete();
-
-            $work_space = UserWorkspace::where('user_id','=',Auth::user()->id)->first();
-            $objUser->currant_workspace = $work_space->workspace_id;
-            $objUser->save();
-        } else {
-            return redirect()->route('home')->with('error', __('You Can Not Leave the Workspace. Please Contact Your Company!!!'));
-            foreach ($userProjects as $userProject) {
-                UserProject::where('project_id', '=', $userProject->id)->where('user_id', '=', $objUser->id)->delete();
-            }
-            UserWorkspace::where('workspace_id', '=', $workspaceID)->where('user_id', '=', $objUser->id)->delete();
-            $user = User::find($objUser->id);
-            $user->delete();
-
-            return redirect()->back()->with('Sussess', __("Workspace Leave Successfully!"));
-        }
-
-        return redirect()->route('home')->with('success', __('Workspace Leave Successfully!'));
-    }
-
-    public function changeCurrentWorkspace($workspaceID)
-    {
-        $objWorkspace = Workspace::find($workspaceID);
-        if ($objWorkspace && $objWorkspace->is_active) {
-            $currentWorkspace           = Utility::getWorkspaceBySlug($objWorkspace->slug);
-            $objUser                    = Auth::user();
-            $objUser->currant_workspace = $workspaceID;
-            $objUser->save();
-
-            if(Auth::user()->getGuard() == 'client'){
-
-                return redirect()->route('client.home')->with('success', __('Workspace Change Successfully!'));
-            }else{
-
-                return redirect()->route('home')->with('success', __('Workspace Change Successfully!'));
-            }
-        } else {
-            return redirect()->back()->with('error', __('Workspace is locked'));
-        }
-    }
 
     public function changeLangAdmin($lang)
     {
@@ -302,13 +199,13 @@ class WorkspaceController extends Controller
 
         //     Artisan::call('config:cache');
         //     Artisan::call('config:clear');
-            
+
         //     return redirect()->back()->with('success', __('Language Change Successfully!'));
         // } else {
         //     return redirect()->back()->with('error', __('Something is wrong'));
         // }
         $user = \Auth::user();
-        $user->lang = $lang; 
+        $user->lang = $lang;
         $user->save();
         return redirect()->back()->with('success', __('Language Change Successfully!'));
     }
@@ -316,7 +213,7 @@ class WorkspaceController extends Controller
     public function changeLangcopylink($lang)
     {
         \Cookie::queue('LANGUAGE', $lang, 120);
-        
+
         return redirect()->back()->with('success', __('Language Change Successfully!'));
     }
 
@@ -324,7 +221,7 @@ class WorkspaceController extends Controller
     {
 
         $user = \Auth::user();
-        $user->lang = $lang; 
+        $user->lang = $lang;
         $user->save();
         return redirect()->back()->with('success', __('Language Change Successfully!'));
     }
@@ -332,7 +229,7 @@ class WorkspaceController extends Controller
     {
 
         $user = \Auth::user();
-        $user->lang = $lang; 
+        $user->lang = $lang;
         $user->save();
 
         return redirect()->back()->with('success', __('Language Change Successfully!'));
@@ -343,12 +240,11 @@ class WorkspaceController extends Controller
         $objUser = Auth::user();
         if ($objUser->type == 'admin') {
 
-            $languages = \App\Models\Languages::pluck('lang_fullname','lang_code');
+            $languages = \App\Models\Languages::pluck('lang_fullname', 'lang_code');
             $settings = \App\Models\Utility::getAdminPaymentSettings();
-            if(!empty($settings['disable_lang'])){
-                $disabledLang = explode(',',$settings['disable_lang']);
-            }
-            else{
+            if (!empty($settings['disable_lang'])) {
+                $disabledLang = explode(',', $settings['disable_lang']);
+            } else {
                 $disabledLang = [];
             }
             $dir = base_path() . '/resources/lang/' . $currantLang;
@@ -381,7 +277,7 @@ class WorkspaceController extends Controller
             }
             $workspace = new Workspace();
 
-            return view('lang.index', compact('workspace', 'currantLang', 'arrLabel', 'arrMessage','disabledLang','languages'));
+            return view('lang.index', compact('workspace', 'currantLang', 'arrLabel', 'arrMessage', 'disabledLang', 'languages'));
         } else {
             redirect()->route('home');
         }
@@ -399,7 +295,7 @@ class WorkspaceController extends Controller
 
             $langFolder = $dir . "/" . $currantLang;
 
-            if($request->message){
+            if ($request->message) {
                 foreach ($request->message as $fileName => $fileData) {
                     $content = "<?php return [";
                     $content .= $this->buildArray($fileData);
@@ -445,11 +341,11 @@ class WorkspaceController extends Controller
             [
                 'lang_code' => 'required|unique:languages',
                 'lang_fullname' => 'required|unique:languages',
-                ]
-            );
+            ]
+        );
         if ($validator->fails()) {
             $messages = $validator->getMessageBag();
-            
+
             return redirect()->back()->with('error', $messages->first());
         }
 
@@ -648,7 +544,7 @@ class WorkspaceController extends Controller
                 $validate['payfast_signature'] = 'required|string';
                 $validate['payfast_mode'] = 'required|string';
             }
-            
+
             if (isset($request->is_iyzipay_enabled) && $request->is_iyzipay_enabled == 'on') {
                 $validate['iyzipay_api_key'] = 'required|string';
                 $validate['iyzipay_secret_key'] = 'required|string';
@@ -709,7 +605,7 @@ class WorkspaceController extends Controller
             if ($request->has('interval_time')) {
                 $validate['interval_time'] = 'required';
             }
-            
+
             if ($request->has('zoom_account_id')) {
                 $validate['zoom_account_id'] = 'required';
             }
@@ -781,10 +677,9 @@ class WorkspaceController extends Controller
 
                 $currentWorkspace->name = $request->name;
                 $currentWorkspace->lang = $request->default_language;
-
             } elseif ($request->has('interval_time')) {
                 $currentWorkspace->interval_time = $request->interval_time;
-            }elseif ($request->has('zoom_account_id')) {
+            } elseif ($request->has('zoom_account_id')) {
                 // $currentWorkspace->zoom_api_key = $request->zoom_api_key;
                 // $currentWorkspace->zoom_api_secret = $request->zoom_api_secret;
 
@@ -905,8 +800,8 @@ class WorkspaceController extends Controller
                     $post['is_paymentwall_enabled'] = 'off';
                 }
 
-                 // Save Toyyibpay Detail
-                 if (isset($request->is_toyyibpay_enabled) && $request->is_toyyibpay_enabled == 'on') {
+                // Save Toyyibpay Detail
+                if (isset($request->is_toyyibpay_enabled) && $request->is_toyyibpay_enabled == 'on') {
 
                     $post['is_toyyibpay_enabled'] = $request->is_toyyibpay_enabled;
                     $post['toyyibpay_secret_key'] = $request->toyyibpay_secret_key;
@@ -926,7 +821,7 @@ class WorkspaceController extends Controller
                     $post['is_payfast_enabled'] = 'off';
                 }
 
-                 // Save iyzipay Detail
+                // Save iyzipay Detail
                 if (isset($request->is_iyzipay_enabled) && $request->is_iyzipay_enabled == 'on') {
                     $post['is_iyzipay_enabled'] = $request->is_iyzipay_enabled;
                     $post['iyzipay_api_key'] = $request->iyzipay_api_key;
@@ -993,8 +888,8 @@ class WorkspaceController extends Controller
                     $post['is_paytr_enabled'] = 'off';
                 }
 
-                  // Save Midtrans Detail
-                  if (isset($request->is_midtrans_enabled) && $request->is_midtrans_enabled == 'on') {
+                // Save Midtrans Detail
+                if (isset($request->is_midtrans_enabled) && $request->is_midtrans_enabled == 'on') {
                     $post['is_midtrans_enabled'] = $request->is_midtrans_enabled;
                     $post['midtrans_mode'] = $request->midtrans_mode;
                     $post['midtrans_server_key'] = $request->midtrans_server_key;
@@ -1100,9 +995,8 @@ class WorkspaceController extends Controller
         }
 
         return redirect()->back()->with('success', __('Zoom Metting Saved Successfully.'));
-
     }
-    
+
     public function create_tax($slug)
     {
         $objUser          = Auth::user();
@@ -1454,17 +1348,15 @@ class WorkspaceController extends Controller
                 \File::makeDirectory($dir, $mode = 0777, true, true);
             }
             $file_name = $request->google_calender_json_file->getClientOriginalName();
-            $file_path =  md5(time()) . "/" .md5(time()) . "." . $request->google_calender_json_file->getClientOriginalExtension();
+            $file_path =  md5(time()) . "/" . md5(time()) . "." . $request->google_calender_json_file->getClientOriginalExtension();
             $file = $request->file('google_calender_json_file');
             $file->move($dir, $file_path);
             $currentWorkspace->google_calender_json_file = $file_path;
-
         }
 
         if ($request->google_calender_id) {
 
             $currentWorkspace->google_calender_id = $request->google_calender_id;
-
         }
 
         $currentWorkspace->save();
@@ -1472,7 +1364,7 @@ class WorkspaceController extends Controller
         return redirect()->back()->with('success', 'Google Calendar Settings updated successfully.');
     }
 
-    public function conpanyEmailSettingStore(Request $request , $slug)
+    public function conpanyEmailSettingStore(Request $request, $slug)
     {
         $user = Auth::user();
         $currentWorkspace = Utility::getWorkspaceBySlug($slug);
@@ -1519,10 +1411,8 @@ class WorkspaceController extends Controller
             }
 
             return redirect()->back()->with('success', __('Comapny Setting updated successfully'));
-           
         } else {
             return redirect()->back()->with('error', __('Something is wrong'));
         }
     }
-    
 }

@@ -24,7 +24,7 @@
                     </select>
                 </div>
                 <div class="form-group col-md-6" id="task-container">
-                    <label class="col-form-label">{{ __('dictionary.Task_type') }}</label>
+                    <label class="col-form-label">{{ __('Task type') }}</label>
                     <select class="form-control form-control-light select2" id="task-list" name="type_id" required>
                         <option value="">{{ __('Select Task') }}</option>
                     </select>
@@ -84,24 +84,22 @@
             var projectId = selectedOption.val();
             var selectedProject = JSON.parse(selectedOption.attr('data-project'));
 
-            // Vacía las listas antes de agregar nuevas opciones
             $('#task-list').empty().append(
                 '<option value="" readonly>{{ __('Select Task') }}</option>');
             $('#milestone_id').empty().append(
                 '<option value="" readonly>{{ __('Select Milestone') }}</option>');
 
-            // Itera sobre cada tipo de tarea y agrega los que coincidan con el tipo de proyecto
             var taskTypes = @json($taskTypes);
-            $.each(taskTypes, function(index, type) {
-                if (selectedProject.type == type.project_type) {
+            $.each(taskTypes, function(index, task) {
+                if (selectedProject.type == task.project_type) {
                     $('#task-list').append($('<option>', {
-                        value: type.id,
-                        text: type.name,
+                        value: task.id,
+                        text: task.name
                     }));
                 }
             });
 
-            let milestones = @json($milestones);
+            let milestones = @json($milestones);       
             $.each(milestones, function(index, milestone) {
                 if (projectId == milestone.project_id) {
                     $('#milestone_id').append($('<option>', {

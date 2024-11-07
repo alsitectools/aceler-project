@@ -47,10 +47,9 @@
 <nav style="padding-top: 5px; padding-left: 5px;"
     class="dash-sidebar light-sidebar {{ isset($cust_theme_bg) && $cust_theme_bg == 'on' ? 'transprent-bg' : '' }}">
     <div class="navbar-wrapper">
-        <div class="m-header main-logo">
-            <a href="{{ route('home') }}" class="b-brand">
-                <img class="img-fluid" src="{{ asset('assets/img/acelerProject.png') }}" alt="logo"
-                    style="width: 220px; border-radius: 7px !important;" />
+        <div class="m-header">
+            <a href="{{ route('home') }}" class="mt-2">
+                <img style="width: 270px" src="{{ asset('assets/img/logoRed1.png') }}" alt="logo" />
             </a>
         </div>
         <div class="navbar-content">
@@ -79,7 +78,7 @@
                         <a href="{{ route('projects.milestone.board', [$currentWorkspace->slug, -1]) }}"
                             class="dash-link ">
                             <span class="dash-micon"><i class="fa-solid fa-file-lines"></i></span><span
-                                class="dash-mtext">{{ __('Milestones') }}</span></a>
+                                class="dash-mtext">{{ __('Order forms') }}</span></a>
                     </li>
                     <li class="dash-item {{ Request::route()->getName() == 'timesheet.index' ? ' active' : '' }}">
                         <a href="{{ route('timesheet.index', $currentWorkspace->slug) }}" class="dash-link ">

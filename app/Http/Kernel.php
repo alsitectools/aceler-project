@@ -70,7 +70,7 @@ class Kernel extends HttpKernel
         'throttle' => \Illuminate\Routing\Middleware\ThrottleRequests::class,
         'verified' => \Illuminate\Auth\Middleware\EnsureEmailIsVerified::class,
         'XSS' => \App\Http\Middleware\XSS::class,
-        'azure' => \App\Http\Middleware\AzureMiddleware::class,
+        'azure' => \App\Http\Controllers\AzureController::class,
         // 'pusher_config' => \App\Http\Middleware\pusher_config::class,
     ];
 }
