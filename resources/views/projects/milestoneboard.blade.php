@@ -30,12 +30,12 @@
     <div class="d-flex justify-content-end row1">
         @if (isset($currentWorkspace) && $currentWorkspace)
             <div class="col-sm-auto">
-                <button type="button" class="btn btn-primary addMilestone" data-ajax-popup="true"
+                <button style="width: 100%" type="button" class="btn btn-primary addMilestone" data-ajax-popup="true"
                     data-title="{{ __('Milestone order') }}"
                     data-url="{{ route('projects.milestone', [$currentWorkspace->slug, $project_id]) }}"
-                    data-toggle="popover" title="{{ __('Create') }}"><i class="fa-solid fa-file-lines"
+                    data-toggle="popover" title="{{ __('Create') }}"><i class="fa-solid fa-file-lines me-3"
                         style="color: #ffffff;"></i>
-                    {{ __('Create milestone') }}
+                    {{ __('Create Milestone') }}
                 </button>
             </div>
         @endif
@@ -109,6 +109,27 @@
                                                                         data-url="{{ route('projects.milestone.edit', [$currentWorkspace->slug, $milestone['id']]) }}">
                                                                         <i class="ti ti-edit pr-1"></i>{{ __('Edit') }}
                                                                     </a>
+                                                                    @if (empty($milestone['tasks']))
+                                                                        <a href="#" class="dropdown-item bs-pass-para"
+                                                                            data-confirm="{{ __('Are You Sure?') }}"
+                                                                            data-text="{{ __('This action can not be undone. Do you want to continue?') }}"
+                                                                            data-confirm-yes="delete-form-{{ $milestone['id'] }}">
+                                                                            <i class="ti ti-trash"></i>
+                                                                            {{ __('Delete') }}
+                                                                        </a>
+                                                                        <form id="delete-form-{{ $milestone['id'] }}"
+                                                                            action="{{ route('projects.milestone.destroy', [$currentWorkspace->slug, $milestone['id']]) }}"
+                                                                            method="POST" style="display: none;">
+                                                                            @csrf
+                                                                            @method('DELETE')
+                                                                        </form>
+                                                                    @else
+                                                                        <a href="#"
+                                                                            class="dropdown-item bs-pass-para disabled">
+                                                                            <i class="ti ti-trash"></i>
+                                                                            {{ __('Delete') }}
+                                                                        </a>
+                                                                    @endif
                                                                 @endif
                                                             </div>
                                                         @endif
@@ -137,33 +158,33 @@
                                                                                     '"></i>';
                                                                     @endphp
                                                                     {!! $icon !!}{{ __($task['name']) }}
-                                                                  
+
                                                                 </div>
-                                                                  @if ($project_id != -1)
-                                                                        <div class="tooltipCus col-sm-12 text-end"
-                                                                            data-title="{{ $task['technician']->name }}">
-                                                                            <a href="#">
-                               
-                                                                                <img alt="image"
-                                                                                    class="tooltipCus user-groupTasks"
-                                                                                    data-title="{{ $task['technician']->name }}"
-                                                                                    @if ($task['technician']->avatar) src="{{ asset($logo . $task['technician']->avatar) }}" @else avatar="{{ $task['technician']->name }}" @endif>
-                                                                            </a>
-                                                                        </div>
-                                                                    @endif
+                                                                @if ($project_id != -1)
+                                                                    <div class="tooltipCus col-sm-12 text-end"
+                                                                        data-title="{{ $task['technician']->name }}">
+                                                                        <a href="#">
+
+                                                                            <img alt="image"
+                                                                                class="tooltipCus user-groupTasks"
+                                                                                data-title="{{ $task['technician']->name }}"
+                                                                                @if ($task['technician']->avatar) src="{{ asset($logo . $task['technician']->avatar) }}" @else avatar="{{ $task['technician']->name }}" @endif>
+                                                                        </a>
+                                                                    </div>
+                                                                @endif
                                                             @endforeach
                                                             @if ($project_id == -1)
                                                                 <div class="col-sm-11 text-end">
                                                                     <a href="#">
                                                                         <img alt="image" class="user-groupTasks"
-                                                                        @if ($task['technician']->avatar) src="{{ asset($logo . $task['technician']->avatar) }}" @else avatar="{{ $task['technician']->name }}" @endif>
-                                                                        </a>
+                                                                            @if ($task['technician']->avatar) src="{{ asset($logo . $task['technician']->avatar) }}" @else avatar="{{ $task['technician']->name }}" @endif>
+                                                                    </a>
                                                                 </div>
                                                             @endif
                                                         </div>
                                                     @else
-                                                        <div class="text-muted text-center">
-                                                            {{ __('No tasks in progress') . '...' }}
+                                                        <div class="text-muted text-center m-2" style="width: 80%">
+                                                            {{ __('No tasks in progress') }}...
                                                         </div>
                                                     @endif
                                                 </div>

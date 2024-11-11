@@ -303,7 +303,7 @@ class ProjectController extends Controller
     {
         $authuser = Auth::user();
         $setting = Utility::getAdminPaymentSettings();
-        
+
         // assign project
         $existingRecord = UserProject::where('user_id', $user->id)->where('project_id', $project->id)->first();
 
@@ -1049,26 +1049,41 @@ class ProjectController extends Controller
         }
     }
 
-    public function taskShow($slug, $projectID, $taskID)
+    public function taskShow($slug, $taskID)
     {
         $currentWorkspace = Utility::getWorkspaceBySlug($slug);
         $task = Task::find($taskID);
-        $project  = Project::find($projectID);
+        $project = Project::find($task->project_id);
+        $task_name = TaskType::select('name')->where('id', '=', $task->type_id)->first();
+        $milestone = Milestone::select('title')->where('id', '=', $task->milestone_id)->first();
+        $assign_to = User::find($task->assign_to);
 
-        if (Auth::user() != null) {
-            $objUser         = Auth::user();
-        } else {
-            // $objUser         = User::where('id', $project->created_by)->first();
-            $objUser         = User::where('currant_workspace', $currentWorkspace)->first();
-        }
+        // Definir el inicio y fin de la semana actual
+        $startOfWeek = Carbon::now()->startOfWeek()->toDateString(); // Lunes de la semana actual
+        $endOfWeek = Carbon::now()->endOfWeek()->toDateString(); // Domingo de la semana actual
 
-        $clientID = '';
-        if ($objUser->getGuard() == 'client') {
-            $clientID = $objUser->id;
-        }
+        // Consulta para calcular el total de horas en la semana actual para la tarea especificada
+        $horasPorTarea = Timesheet::where('task_id', $taskID)
+            ->whereBetween('date', [$startOfWeek, $endOfWeek])
+            ->select(DB::raw("SEC_TO_TIME(SUM(TIME_TO_SEC(time))) as total_time"))
+            ->first();
 
-        return view('projects.taskShow', compact('currentWorkspace', 'task', 'clientID'));
+        $taskDetail = [
+            'workspace' => $currentWorkspace,
+            'project' => $project,
+            'task' => $task,
+            'task_name' => $task_name->name ?? 'Sin nombre',
+            'milestone' => $milestone->title ?? 'Sin título',
+            'assign_to' => $assign_to ?? 'No asignado',
+            'start_of_week' => $startOfWeek,
+            'end_of_week' => $endOfWeek,
+            'total_time_this_week' => $horasPorTarea->total_time ?? '00:00:00',
+        ];
+
+        return view('projects.taskShow', compact('taskDetail'));
     }
+
+
 
     public function taskDrag(Request $request, $slug, $projectID, $taskID)
     {
@@ -1285,8 +1300,18 @@ class ProjectController extends Controller
 
     public function getClientJson($slug, $search = null)
     {
-        $query = PotentialClient::query()->select(['potential_customer_id', 'name']);
+        // $query = PotentialClient::query()->select(['potential_customer_id', 'name']);
 
+        // if ($search) {
+        //     $query->where(function ($query) use ($search) {
+        //         $query->where('potential_customer_id', 'LIKE', "%" . $search . "%")
+        //             ->orWhere('name', 'LIKE', "%" . $search . "%");
+        //     });
+        // }
+
+        // $objclient = $query->paginate(25);
+
+        $query = PotentialClient::query()->select(['potential_customer_id', 'name']);
         if ($search) {
             $query->where(function ($query) use ($search) {
                 $query->where('potential_customer_id', 'LIKE', "%" . $search . "%")
@@ -1294,7 +1319,9 @@ class ProjectController extends Controller
             });
         }
 
-        $objclient = $query->paginate(25);
+        $objclient = $query->with(['obras' => function ($query) {
+            $query->select('master_obras.ref_mo', 'master_obras.name');
+        }])->paginate(25);
 
         $arrClients = $objclient->toArray();
 

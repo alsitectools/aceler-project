@@ -4126,6 +4126,7 @@ fieldset:disabled .btn {
     white-space: nowrap;
     background-color: transparent;
     border: 0;
+    border-radius: 10px;
 }
 
 .dropdown-item:hover,
