@@ -51,7 +51,7 @@
     padding-bottom: 10px;
     margin-left: 2%;
     width: 95%;
-    border-bottom: 1px solid black;
+    border-bottom: 1px solid #abaaaa;
 }
 
 .custom-accordion-button {
@@ -196,7 +196,48 @@
     width: 100%;
     background-color: transparent !important;
 }
-
+.firstTdInWeek{
+    font-size:15px;
+}
+.marginForTotalText{
+    margin-left: 35px;
+}
+.totalChangeSpaceVariant{
+    padding-right: 10px !important;
+}
+@media screen and (max-width:1200px) and (min-width:1099px) {
+    .header-days {
+        width: 11%;
+    }
+    .totalChangeSpace{
+        padding-right: 40px !important;
+    }
+    .accordion{
+        width: 98% !important;
+    }
+    .weekRow{
+        width: 94% !important;
+    }
+    .firstTdInWeek{
+        font-size: 13px !important;
+        padding-left: 5px !important;
+    }
+    .inputsTask{
+        width: 110% !important;
+    }
+    .inputsTaskTotal{
+        width: 110% !important;
+    }
+    .marginForTotalText{
+        margin-left: 10px !important;
+    }
+    .inputsTaskModify{
+        width: 90%;
+    }
+    .inputsTaskTotalModify{
+        width: 90%;
+    }
+}
 .wid {
     border: none !important;
     background-color: transparent !important;

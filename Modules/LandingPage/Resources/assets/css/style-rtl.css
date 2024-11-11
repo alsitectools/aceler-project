@@ -14115,7 +14115,11 @@ textarea.is-invalid.dataTable-input {
 .wid-100 {
     width: 100px;
 }
-
+@media screen and (max-width:1200px) and (min-width:1099px) {
+    .wid-100 {
+        font-size: 13px;
+    }
+}
 .hei-100 {
     height: 100px;
 }
@@ -18885,7 +18889,16 @@ body:not(.minimenu) .dash-sidebar .dash-submenu .dash-submenu .dash-submenu > .d
     padding-right: 30px;
     padding-top: 30px;
 }
-
+@media screen and (max-width:1200px) and (min-width:1000px) {
+    .dash-container .dash-content {
+        padding-left: 0;
+        padding-right: 0;
+        padding-top: 0;
+    }
+    .dash-container {
+        margin-left: 210px;
+    }
+}
 .dash-container .page-header + .row {
     padding-top: 25px;
 }
@@ -22069,7 +22082,17 @@ body .table thead th {
   .card:not(.table-card) .table tr th:last-child {
     padding-right: 25px;
 }
-
+@media screen and (max-width:1200px) and (min-width:1099px) {
+    .card:not(.table-card) .table tr td:last-child,
+    .card:not(.table-card) .table tr th:last-child {
+        padding-right: 0px;
+    }
+    .card:not(.table-card) .table tr td:first-child,
+    .card:not(.table-card) .table tr th:first-child {
+        padding-left: 20px;
+        font-size: 13px;
+    }
+}
 .card:not(.table-card) .table.without-header tr:first-child td {
     border-top: none;
 }
