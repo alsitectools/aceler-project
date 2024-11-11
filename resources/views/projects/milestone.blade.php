@@ -68,7 +68,7 @@
         box-shadow: none;
     }
 </style>
-</style>
+
 @if ($currentWorkspace)
     <div class="modal-body">
         <!-- Toast Notification -->
@@ -86,7 +86,7 @@
             <li class="nav-item" role="presentation">
                 <a class="nav-link active" id="milestone-tab" data-bs-toggle="tab" href="#milestone" role="tab"
                     aria-controls="milestone" aria-selected="true">
-                    <i class="fa-solid fa-file-lines me-2"></i> {{ __('Milestone') }}
+                    <i class="fa-solid fa-file-lines me-2"></i> {{ __('Create Milestone') }}
                 </a>
             </li>
             <li class="nav-item" role="presentation">
@@ -242,7 +242,7 @@
                                 <label for="clipo" class="col-form-label">{{ __('Search client') }}</label>
                                 <input class="form-control" type="text" name="clipo" id="searchClipo"
                                     placeholder="{{ __('Clipo') }}">
-                                <div class="list-group" style="display: none;" id="clipo_list"></div>
+                                <div class="list-group" id="clipo_list"></div>
                             </div>
 
                             <div class="form-group col-md-12">
@@ -340,12 +340,9 @@
                 },
                 success: function(response) {
                     // Limpiar campos
-                    $('#project_type').val("");
                     $('#projectname').val("");
                     $('#searchMo').val("");
                     $('#searchClipo').val("");
-                    $('#ref_mo_list').empty().hide();
-                    $('#clipo_list').empty().hide();
 
                     msg = '{{ __('Project Created Successfully!') }}'
                     // Mostrar el mensaje en el *toast*
@@ -353,7 +350,7 @@
 
                     const toast = new bootstrap.Toast(document.getElementById(
                         'successToast'), {
-                        delay: 2000 
+                        delay: 2000
                     });
                     toast.show();
 
@@ -386,7 +383,5 @@
 
             $('#milestone-form').attr('action', actionUrl);
         });
-
-
     });
 </script>

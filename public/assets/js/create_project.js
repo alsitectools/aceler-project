@@ -24,6 +24,14 @@ $(document).ready(function () {
     let loading = false;
     let searchQuery = '';
 
+    function hideAllLists(exceptList) {
+        // Oculta todas las listas excepto la especificada
+        if (exceptList !== projectList) projectList.hide();
+        if (exceptList !== refMoList) refMoList.hide();
+        if (exceptList !== clipoList) clipoList.hide();
+        if (exceptList !== salesList) salesList.hide();
+    }
+
     function resetSearchFields() {
         project_nameInput.val('');
         clientInput.val('');
@@ -49,6 +57,7 @@ $(document).ready(function () {
 
     // Función de manejo de entrada
     const handleInputChange = debounce(function (input, list, url, noResultsMessage, type) {
+        hideAllLists(list);
         searchQuery = input.val().trim();
         currentPage = 1;
 
@@ -62,20 +71,12 @@ $(document).ready(function () {
 
     // Manejadores de entrada para los campos de búsqueda
     projectInput.on('input', function () {
-
         milestoneMoInput.val("");
-        if ($(this).val().trim() === "") {
-            projectList.empty().hide();
-            resetSearchFields();
-            return;
-        }
-        handleInputChange($(this), projectList, searchProjectsUrl,
-            'No results found. The project is not yet created, you must create it.', 'projects');
+        handleInputChange($(this), projectList, searchProjectsUrl, 'No results found. The project is not yet created, you must create it.', 'projects');
     });
 
     salesManagerInput.on('input', function () {
-
-        if ($(this).val().trim() === "") {
+        if (salesManagerInput.val().trim() === "") {
             salesList.empty().hide();
             return;
         }
@@ -83,17 +84,14 @@ $(document).ready(function () {
     });
 
     refMoInput.on('input', function () {
-
-        if ($(this).val().trim() === "") {
-            refMoList.empty().hide();
-            resetSearchFields();
-            return;
-        }
+        clientInput.val("");
+        project_nameInput.val("");
         handleInputChange($(this), refMoList, searchMoUrl, 'No results found', 'mo');
     });
-    clientInput.on('input', function () {
 
-        clipoList.empty().hide();
+    clientInput.on('input', function () {
+        refMoInput.val("");
+        project_nameInput.val("");
         handleInputChange($(this), clipoList, searchClipoUrl, 'No results found', 'clients');
     });
 
@@ -158,6 +156,7 @@ $(document).ready(function () {
             success: function (data) {
                 loading = false;
                 const itemData = itemProcessor(data);
+                console.log(itemData);
 
                 handleDataList(itemData, list, noResultsMessage, type);
             },
@@ -194,8 +193,7 @@ $(document).ready(function () {
     function handleListItemClick(item, list, type) {
         return function (e) {
             e.preventDefault();
-            console.log('Item seleccionado:', item);
-            console.log('Tipo en handleListItemClick:', type);
+
 
             // Verifica si el proyecto ya existe cuando el tipo es 'mo'
             if (type === 'mo') {
@@ -211,11 +209,21 @@ $(document).ready(function () {
             } else if (type === 'clients') {
                 clientInput.val(item.name);
 
+                if (item.obras && item.obras.length > 0) {
+                    populateMoList(item.obras);
+                }
+
             } else if (type === 'projects') {
 
                 $('#projectId').val(item.id);
                 projectInput.val(item.name);
-                milestoneMoInput.val(item.ref_mo).prop('readonly', true);
+                if (!item.ref_mo) {
+                    milestoneMoInput.prop('disabled', true);
+                } else {
+                    milestoneMoInput.prop('disabled', false);
+                    milestoneMoInput.val(item.ref_mo).prop('readonly', true);
+                }
+
 
             } else if (type === 'salesManagers') {
                 salesManagerInput.val(item.name);
@@ -230,6 +238,25 @@ $(document).ready(function () {
         };
     }
 
+    // Función para mostrar la lista de obras en ref_mo_list
+    function populateMoList(obras) {
+        refMoList.empty().show();
+        console.log('obras devuletas', obras);
+
+        const obraItems = obras.map(obra => {
+            return $('<a href="#" class="list-group-item list-group-item-action stylelist">')
+                .text(`${obra.ref_mo} - ${obra.name}`)
+                .data('item', obra)
+                .on('click', function (e) {
+                    e.preventDefault();
+                    refMoInput.val(obra.ref_mo);
+                    project_nameInput.val(obra.name);
+                    refMoList.empty().hide();  // Ocultar la lista después de seleccionar
+                });
+        });
+
+        refMoList.append(obraItems);
+    }
     function populateClientList(selectedClients) {
         console.log('Clientes seleccionados:', selectedClients);
 
@@ -266,17 +293,6 @@ $(document).ready(function () {
     setupInfiniteScroll(refMoList, searchMoUrl, data => data.mo.data, 'Projects no results found', 'ref_mo');
     setupInfiniteScroll(clipoList, searchClipoUrl, data => data.clients.data, 'Clients no results found', 'clipo');
 
-    // Cerrar listas cuando se hace click fuera de las mismas
-    $(document).on('click', function (e) {
-        if (!$(e.target).closest('#projects_list').length) {
-            projectList.empty().hide();
-        }
-        if (!$(e.target).closest('#ref_mo_list').length) {
-            refMoList.empty().hide();
-        }
-        if (!$(e.target).closest('#sales_manager_list').length) {
-            salesList.empty().hide();
-        }
 
-    });
 });
+

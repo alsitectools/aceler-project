@@ -308,7 +308,7 @@ Route::prefix('client')->as('client.')->group(function () {
   Route::get('/{slug}/projects/{id}/task-board/edit/{tid}', [ProjectController::class, 'taskEdit'])->name('tasks.edit')->middleware(['auth:client', 'XSS']);
   Route::post('/{slug}/projects/{id}/task-board/{tid}/update', [ProjectController::class, 'taskUpdate'])->name('tasks.update')->middleware(['auth:client', 'XSS']);
   Route::delete('/{slug}/projects/{id}/task-board/{tid}', [ProjectController::class, 'taskDestroy'])->name('tasks.destroy')->middleware(['auth:client', 'XSS']);
-  Route::get('/{slug}/projects/{id}/task-board/{tid}/{cid?}', [ProjectController::class, 'taskShow'])->name('tasks.show')->middleware(['auth:client', 'XSS']);;
+  // Route::get('/{slug}/projects/{id}/task-board/{tid}/{cid?}', [ProjectController::class, 'taskShow'])->name('tasks.show')->middleware(['auth:client', 'XSS']);;
 
   /*=========== Milestone board =============*/
   Route::get('/{slug}/projects/milestone-board/{id}', [ProjectController::class, 'milestoneBoard'])->name('projects.milestone.board')->middleware(['auth', 'XSS']);
@@ -970,4 +970,7 @@ Route::resource('/{slug}/webhook', WebhookController::class)->middleware(['auth'
 Route::post('webhooks/response/get', [WebhookController::class, 'WebhookResponse'])->name('webhooks.response.get');
 // });
 
-Route::get('/{slug}/projects/{id}/task-board/{tid}/{cid?}', [ProjectController::class, 'taskShow'])->name('tasks.show');
+// Route::get('/{slug}/projects/{id}/task-board/{tid}/{cid?}', [ProjectController::class, 'taskShow'])->name('tasks.show');
+
+//Ruta creada para recibir la task_id y en la funcion buscar los otros parametros 
+Route::get('/{slug}/timesheet-task/{task_id}', [ProjectController::class, 'taskShow'])->name('show.task');

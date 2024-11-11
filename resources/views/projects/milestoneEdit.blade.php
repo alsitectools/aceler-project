@@ -4,7 +4,6 @@
         @csrf
         <div class="modal-body">
             <div class="row">
-
                 <div class="col-md-12">
                     <div class="form-group">
                         <label for="milestone-title" class="col-form-label">{{ __('Milestone Title') }}</label>
@@ -14,20 +13,12 @@
                     </div>
                 </div>
                 <div class="row">
-                    <div class="col-md-6">
-                        <div class="form-group ">
-                            <label class="form-label">{{ __('Created date') }}</label>
-
-                            <div class="input-group date ">
-                                <input class="form-control datepicker22" type="text" id="start_date"
-                                    name="start_date" value="{{ $milestone->start_date }}" autocomplete="off" disabled>
-                                <span class="input-group-text">
-                                    <i class="feather icon-calendar"></i>
-                                </span>
-                            </div>
-                        </div>
+                    <div class="form-group col-md-6">
+                        <label for="end_date" class="col-form-label">{{ __('Created date') }}</label>
+                        <input type="date" class="form-control form-control-light date" id="start_date"
+                            name="start_date" value="{{ $milestone->start_date }}" disabled>
                     </div>
-                    <div class="form-group col-md-6 ">
+                    <div class="form-group col-md-6">
                         <label for="end_date" class="col-form-label">{{ __('Estimated date') }}</label>
                         <input onclick="this.showPicker()" type="date" class="form-control form-control-light date"
                             id="end_date" value="" placeholder="{{ __('End date') }}" name="end_date" required>
@@ -37,12 +28,12 @@
                     <label for="task-summary" class="col-form-label">{{ __('Description') }}</label>
                     <textarea class="form-control form-control-light" id="task-summary" rows="3" name="summary">{{ $milestone->summary }}</textarea>
                 </div>
-
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn  btn-light" data-bs-dismiss="modal">{{ __('Close') }}</button>
                 <input type="submit" value="{{ __('Save Changes') }}" class="btn  btn-primary">
             </div>
+        </div>
     </form>
 @else
     <div class="container mt-5">

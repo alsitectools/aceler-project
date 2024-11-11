@@ -230,10 +230,10 @@
                                                 @foreach ($tasks as $task)
                                                     <tr>
                                                         <td>
-                                                            <div class=" my-1"><a
+                                                            {{-- <div class=" my-1"><a
                                                                     href="{{ route('projects.task.board', [$currentWorkspace->slug, $task->project_id]) }}"
                                                                     class="text-body">{{ $taskTypes[$task->type_id]['name'] }}</a>
-                                                            </div>
+                                                            </div> --}}
                                                             @php
                                                                 $isLate =
                                                                     strtotime($task->estimated_date) <
