@@ -56,7 +56,7 @@
                                                             @foreach ($milestone['taskArray'] as $taskKey => $taskTimesheet)
                                                                 <tr class="weekRow">
                                                                     @if (Auth::user()->type != 'admin')
-                                                                        <td class="wid-150" style="font-size:15px;">
+                                                                        <td class="wid-150 firstTdInWeek">
                                                                             <div data-title="{{ __('Task') }}"
                                                                                 class="tooltipCus"
                                                                                 data-task-name="{{ $taskTimesheet['task_name'] }}">
@@ -94,7 +94,7 @@
                                                                             </td>
                                                                         @endforeach
                                                                         <td>
-                                                                        <div class="day-label" style="margin-left: 35px;">
+                                                                        <div class="day-label marginForTotalText" style="margin-left: 35px;">
                                                                             Total
                                                                                     </div>
                                                                             <div class="total form-control week inputsTaskTotal">
@@ -149,7 +149,7 @@
                                         @foreach ($user['taskArray'] as $taskKey => $taskTimesheet)
                                             <tr>
                                                 @if (Auth::user()->type != 'admin')
-                                                    <td>
+                                                    <td style="padding-left: 5px;">
                                                         <div class="tooltipCus ms-1 wid-100 p-0"
                                                             data-title="{{ __('Task') }}"
                                                             data-task-name="{{ $taskTimesheet['task_name'] }}">
@@ -159,7 +159,7 @@
                                                 @endif
                                                 @foreach ($taskTimesheet['dateArray'] as $dateTimeArray)
                                                     @if (Auth::user()->type == 'admin')
-                                                        <td>
+                                                        <td style="padding-left: 5px;">
                                                             <div class="tooltipCus text-center"
                                                                 data-title="{{ $taskTimesheet['user_name'] }}">
                                                                 {{ $dateTimeArray['user_name'] }}
@@ -221,9 +221,15 @@
             </tbody>
             <tfoot>
                 <tr colspan="9" class="d-flex text-center padding-r mt-2">
-                    <td class="week wid">
-                        <b> {{ __('Total') }}</b>
-                    </td>
+                    @if (isset($allProjects) && $allProjects == true)
+                        <td class="week wid totalChangeSpace">
+                            <b> {{ __('Total') }}</b>
+                        </td>
+                    @else
+                        <td class="week wid totalChangeSpaceVariant">
+                            <b> {{ __('Total') }}</b>
+                        </td>
+                    @endif
                     @foreach ($totalDateTimes as $key => $totaldatetime)
                         <td class="wid-100 header-days greyBackgroundTotalHours">
                             <b>{{ $totaldatetime != '00:00' ? $totaldatetime : '00:00' }}</b>

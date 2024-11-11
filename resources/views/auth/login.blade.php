@@ -66,7 +66,19 @@
             color: #AA182C;
             padding-left: 41%;
         }
-        @media screen and (max-width: 1669px) and (min-width: 1555px){
+
+        @media screen and (max-width: 2400px) and (min-width: 2000px){
+            .buttonLogin{
+                margin-top: 18%;
+            }
+            .copyText{
+                padding-left: 42%;
+            }
+            .backgroundMainDiv{
+                width: 6%;
+            }
+        }
+        @media screen and (max-width: 1710px) and (min-width: 1555px){
 
             .buttonLogin{
                 font-size: 17px;
@@ -104,12 +116,20 @@
             .divLogin{
                 margin-top: 10%;
             }
-            .buttonLogin{
-                font-size: 15px;
+            .loginTitle{
+                font-size: 41px;
+                padding-bottom: 10%;
+                padding-top: 7%;
+            }
+            .loginExplanation{
+                font-size: 16px;
+            }
+            .imgDiv{
+                padding-top: 12%;
             }
         }
 
-        @media screen and (max-width: 1240px) and (min-width: 800px ){
+        @media screen and (max-width: 1240px) and (min-width: 1208px ){
             
             .azureLogo {
                 width: 20px;
@@ -123,7 +143,7 @@
                 font-size: 15px;
             }
             .divLogin{
-                margin-top: 10%;
+                margin-top: 11%;
             }
             .copyText{
                 padding-left: 20%;
@@ -135,6 +155,24 @@
                 padding-top: 11%;
                 padding-bottom: 8%;
             }
+        }
+
+        @media screen and (max-width: 1207px) and (min-width: 800px){
+
+            .divLogin{
+                margin-top: 11%;
+            }
+            .imgDiv{
+                padding-top: 9%;
+            }
+            .loginTitle{
+                font-size: 41px;
+                padding-top: 7%;
+            }
+            .loginExplanation{
+                font-size: 16px;
+            }
+            
         }
 
 </style>

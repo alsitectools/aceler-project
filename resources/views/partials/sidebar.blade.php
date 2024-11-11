@@ -44,12 +44,25 @@
         $SITE_RTL = env('SITE_RTL');
     }
 @endphp
+<style>
+    .ajustarImg{
+        width: 270px;
+    }
+    @media screen and (max-width:1200px) and (min-width:1100px){
+        .vistaPortatil{
+            width: 18%;
+        }
+        .ajustarImg{
+            width: 200px;
+        }
+    }
+</style>
 <nav style="padding-top: 5px; padding-left: 5px;"
-    class="dash-sidebar light-sidebar {{ isset($cust_theme_bg) && $cust_theme_bg == 'on' ? 'transprent-bg' : '' }}">
+    class="vistaPortatil dash-sidebar light-sidebar {{ isset($cust_theme_bg) && $cust_theme_bg == 'on' ? 'transprent-bg' : '' }}">
     <div class="navbar-wrapper">
         <div class="m-header">
             <a href="{{ route('home') }}" class="mt-2">
-                <img style="width: 270px" src="{{ asset('assets/img/logoRed1.png') }}" alt="logo" />
+                <img class="ajustarImg" src="{{ asset('assets/img/logoRed1.png') }}" alt="logo" />
             </a>
         </div>
         <div class="navbar-content">
