@@ -129,6 +129,7 @@ $(document).on('click', 'a[data-ajax-popup="true"],a[data_ajax_popup="true"], bu
             $('#commonModal .body').html(data);
             $("#commonModal").modal('show');
             $("#commonModal .modal-title").html(title);
+            //here's where the modal gets the title
             commonLoader();
         },
         error: function (data) {

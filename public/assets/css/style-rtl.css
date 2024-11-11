@@ -6042,7 +6042,24 @@ textarea.is-invalid.dataTable-input {
     align-items: center;
     min-height: calc(100% - var(--bs-modal-margin) * 2);
 }
-
+.modal-content-modified{
+    width: 80%;
+    box-shadow: 10px 10px 5px 0px rgba(0, 0, 0, 0.75);
+    -webkit-box-shadow: 3px 2px 4px 2px rgb(0 0 0 / 25%);
+    -moz-box-shadow: 10px 10px 5px 0px rgba(0, 0, 0, 0.75);
+    border: none;
+    height: 53%;
+    margin-left: 20%;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    color: var(--bs-modal-color);
+    pointer-events: auto;
+    background-color: var(--bs-modal-bg);
+    background-clip: padding-box;
+    border-radius: var(--bs-modal-border-radius);
+    outline: 0;
+}
 .modal-content {
     position: relative;
     display: flex;
@@ -22083,6 +22100,16 @@ body .table thead th {
     padding-right: 25px;
 }
 @media screen and (max-width:1200px) and (min-width:1099px) {
+
+    .modal-content-modified{
+        height: 76%;
+    }
+    .dash-header{
+        left: 180px;
+    }
+    .ms-auto{
+        margin-left: 545px !important;
+    }
     .card:not(.table-card) .table tr td:last-child,
     .card:not(.table-card) .table tr th:last-child {
         padding-right: 0px;

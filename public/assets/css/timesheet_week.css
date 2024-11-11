@@ -117,13 +117,6 @@
     border-color: #b9515f !important;
 }
 
-.inputsTaskTotal:hover {
-    color: #ffffff;
-    text-decoration: none;
-    background-color: #b9515f !important;
-    border-color: #b9515f !important;
-}
-
 /*ESTILO INPUTS PARA TAREAS INSIDE PROJECT*/
 .inputsTaskTotalModify {
     display: block;
@@ -162,13 +155,6 @@
 }
 
 .inputsTaskModify:hover {
-    color: #ffffff;
-    text-decoration: none;
-    background-color: #b9515f !important;
-    border-color: #b9515f !important;
-}
-
-.inputsTaskTotalModify:hover {
     color: #ffffff;
     text-decoration: none;
     background-color: #b9515f !important;
