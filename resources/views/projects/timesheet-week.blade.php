@@ -157,8 +157,11 @@
                                                                 <tr>
                                                                     @if (Auth::user()->type != 'admin')
                                                                         <td style="padding-left: 5px;">
-                                                                            <div class="tooltipCus ms-1 wid-100 p-0"
+                                                                            <div role="button"
                                                                                 data-title="{{ __('Task') }}"
+                                                                                data-url="{{ route('show.task', [$currentWorkspace->slug, $taskTimesheet['task_id']]) }}"
+                                                                                data-ajax-popup="true"
+                                                                                data-title="Task Detail"
                                                                                 data-task-name="{{ $taskTimesheet['task_name'] }}">
                                                                                 {{ __($taskTimesheet['task_name']) }}
                                                                             </div>
