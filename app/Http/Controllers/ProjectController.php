@@ -1044,12 +1044,13 @@ class ProjectController extends Controller
             } else {
                 return redirect()->back()->with('error', __("You can't Delete Task!"));
             }
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             return redirect()->back()->with('error', __("You can't Delete Task!"));
         }
     }
 
-    public function taskShow($slug, $taskID)
+
+    public function showTask($slug, $taskID)
     {
         $currentWorkspace = Utility::getWorkspaceBySlug($slug);
         $task = Task::find($taskID);
@@ -1059,8 +1060,12 @@ class ProjectController extends Controller
         $assign_to = User::find($task->assign_to);
 
         // Definir el inicio y fin de la semana actual
-        $startOfWeek = Carbon::now()->startOfWeek()->toDateString(); // Lunes de la semana actual
-        $endOfWeek = Carbon::now()->endOfWeek()->toDateString(); // Domingo de la semana actual
+        $startOfWeek = Carbon::now()->startOfWeek(); // Lunes de la semana actual
+        $endOfWeek = Carbon::now()->endOfWeek(); // Domingo de la semana actual
+    
+        // Formatear las fechas de inicio y fin de la semana
+        $startOfWeekFormatted = $startOfWeek->isoFormat('ddd DD MMM');
+        $endOfWeekFormatted = $endOfWeek->isoFormat('ddd DD MMM');
 
         // Consulta para calcular el total de horas en la semana actual para la tarea especificada
         $horasPorTarea = Timesheet::where('task_id', $taskID)
@@ -1075,15 +1080,31 @@ class ProjectController extends Controller
             'task_name' => $task_name->name ?? 'Sin nombre',
             'milestone' => $milestone->title ?? 'Sin título',
             'assign_to' => $assign_to ?? 'No asignado',
-            'start_of_week' => $startOfWeek,
-            'end_of_week' => $endOfWeek,
+            'start_of_week' => $startOfWeekFormatted,
+            'end_of_week' => $endOfWeekFormatted,
             'total_time_this_week' => $horasPorTarea->total_time ?? '00:00:00',
         ];
 
         return view('projects.taskShow', compact('taskDetail'));
     }
 
-
+    public function taskShow($slug, $projectID, $taskID)
+    {
+        $currentWorkspace = Utility::getWorkspaceBySlug($slug);
+        $task = Task::find($taskID);
+        $project  = Project::find($projectID);
+        if (Auth::user() != null) {
+            $objUser         = Auth::user();
+        } else {
+            // $objUser         = User::where('id', $project->created_by)->first();
+            $objUser         = User::where('currant_workspace', $currentWorkspace)->first();
+        }
+        $clientID = '';
+        if ($objUser->getGuard() == 'client') {
+            $clientID = $objUser->id;
+        }
+        return view('projects.taskShow', compact('currentWorkspace', 'task', 'clientID'));
+    }
 
     public function taskDrag(Request $request, $slug, $projectID, $taskID)
     {
