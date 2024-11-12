@@ -54,6 +54,9 @@
         border-radius: 50%;
     }
 
+    .buttonCenterText{
+        padding-top: 7px !important;
+    }
     @media (max-width: 1300px) {
         .header_breadcrumb {
             width: 100% !important;
@@ -64,6 +67,14 @@
             flex-wrap: wrap;
         }
     }
+    @media screen and (max-width:1200px) and (min-width:1000px) {
+        .widthAdjustDiv{
+            width: 99% !important;
+        }
+        .widthAdjustMediumDiv{
+            width: 49%;
+        }
+    }
 </style>
 
 @section('content')
@@ -72,7 +83,7 @@
         <div class="col-sm-12">
             <div class="row">
                 <div class="col-xxl-12">
-                    <div class="card bg-primary">
+                    <div class="card bg-primary widthAdjustDiv">
                         <div class="card-body">
                             <div class="d-block d-sm-flex align-items-center">
                                 <div class="col-sm-3">
@@ -111,7 +122,7 @@
                                             <div class="badge bg-success rounded"> {{ __('Finished') }}
                                             </div>
                                         @elseif($project->status == 'Ongoing')
-                                            <div class="badge bg-secondary rounded"
+                                            <div class="badge bg-secondary rounded buttonCenterText"
                                                 style="width: 75px !important; height: 25px !important;">
                                                 {{ __('Ongoing') }}
                                             </div>
@@ -216,7 +227,7 @@
                             </div>
                         </div>
                     </div>
-                    <div class="col-lg-12">
+                    <div class="col-lg-12 widthAdjustDiv">
                         @if ($currentWorkspace->permission == 'Member' || $currentWorkspace->permission == 'Owner')
                             <div class="card">
                                 <div class="card-header">
@@ -424,7 +435,7 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="col-md-6">
+                        <div class="col-md-6 widthAdjustMediumDiv">
                             <div class="card">
                                 <div class="card-header">
                                     <div class="d-flex justify-content-between align-items-center">

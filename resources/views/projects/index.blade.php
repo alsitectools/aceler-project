@@ -27,6 +27,11 @@
     #searchInputProjects {
         position: relative;
     }
+    @media screen and (max-width:1200px) and (min-width:1000px){
+        .responsiveButton{
+            font-size: 12px !important;
+        }
+    }
 </style>
 @section('action-button')
     <div class="d-flex justify-content-end me-2">
@@ -55,11 +60,11 @@
                     <div class="btn-group status-filter">
                         <button type="button" data-filter="*" class="btn btn-light text-white btn_tab bg-primary active"
                             data-filter="*" data-status="All">{{ __('All') }}</button>
-                        <button type="button" class="btn btn-light bg-primary text-white btn_tab"
+                        <button type="button" class="btn btn-light bg-primary text-white btn_tab responsiveButton"
                             data-filter=".Ongoing">{{ __('Ongoing') }}</button>
-                        <button type="button" class="btn btn-light bg-primary text-white btn_tab"
+                        <button type="button" class="btn btn-light bg-primary text-white btn_tab responsiveButton"
                             data-filter=".Finished">{{ __('Finished') }}</button>
-                        <button type="button" class="btn btn-light bg-primary text-white btn_tab"
+                        <button type="button" class="btn btn-light bg-primary text-white btn_tab responsiveButton"
                             data-filter=".OnHold">{{ __('OnHold') }}</button>
                     </div>
                 </div>
