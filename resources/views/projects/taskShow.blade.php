@@ -6,17 +6,17 @@
     .firstDivIconTexts{
         padding-top: 8%;
         display: flex;
-        padding-left: 20%;
+        padding-left: 11%;
     }
     .divIconTexts{
         display: flex;
-        padding-left: 20%;
+        padding-left: 11%;
         padding-top: 5%;
     }
     .divIconModified{
         display: flex;
         padding-top: 5%;
-        padding-left: 21%;
+        padding-left: 12%;
     }
     .customIconsStlye{
         color: #aa182c;
@@ -31,10 +31,12 @@
         padding-left: 14%;
     }
     .userImg{
-        padding-left: 14%;
+        width: 8%;
+        margin-left: 14%;
+        margin-top: -2px !important;
     }
     .textUserName{
-        padding-left: 5%;
+        padding-left: 2%;
     }
     .resumeDivBackground{
         display: flex;
