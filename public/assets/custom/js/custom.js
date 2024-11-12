@@ -106,35 +106,33 @@ $(document).ready(function () {
 });
 
 // Common Modal
-$(document).on('click', 'a[data-ajax-popup="true"],a[data_ajax_popup="true"], button[data-ajax-popup="true"], div[data-ajax-popup="true"], span[data-ajax-popup="true"]', function (e) {
-
-
+$(document).on('click', 'a[data-ajax-popup="true"], a[data_ajax_popup="true"], button[data-ajax-popup="true"], div[data-ajax-popup="true"], span[data-ajax-popup="true"]', function (e) {
+    var modalId = $(this).data('modal-id') || 'commonModal'; // Usa 'commonModal' por defecto si no se especifica
     var title = $(this).data('title');
     var size = ($(this).data('size') == '') ? 'md' : $(this).data('size');
     var url = $(this).data('url');
 
     if (url == null) {
-        var title = $(this).attr('data_title');
-        var url = $(this).attr('data_url');
-        var size = $(this).attr('data_size');
+        title = $(this).attr('data_title');
+        url = $(this).attr('data_url');
+        size = $(this).attr('data_size');
     }
 
-    $("#commonModal .modal-dialog").addClass('modal-' + size);
-    $("#commonModal .modal-footer").addClass('modal-footer');
+    $("#" + modalId + " .modal-dialog").addClass('modal-' + size);
+    $("#" + modalId + " .modal-footer").addClass('modal-footer');
 
     $.ajax({
         url: url,
         cache: false,
         success: function (data) {
-            $('#commonModal .body').html(data);
-            $("#commonModal").modal('show');
-            $("#commonModal .modal-title").html(title);
-            //here's where the modal gets the title
+            $('#' + modalId + ' .body').html(data);
+            $("#" + modalId).modal('show');
+            $("#" + modalId + " .modal-title").html(title);
             commonLoader();
         },
         error: function (data) {
             data = data.responseJSON;
-            show_toastr('Error', data.error, 'error')
+            show_toastr('Error', data.error, 'error');
         }
     });
     e.stopImmediatePropagation();

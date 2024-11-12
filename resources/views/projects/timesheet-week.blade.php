@@ -57,16 +57,17 @@
                                                             @foreach ($milestone['taskArray'] as $taskKey => $taskTimesheet)
                                                                 <tr class="weekRow">
                                                                     @if (Auth::user()->type != 'admin')
-                                                                        <td class="wid-150 firstTdInWeek">
-                                                                            <div role="button"
-                                                                                data-title="{{ __('Task') }}"
-                                                                                data-url="{{ route('show.task', [$currentWorkspace->slug, $taskTimesheet['task_id']]) }}"
-                                                                                data-ajax-popup="true"
-                                                                                data-title="Task Detail"
-                                                                                data-task-name="{{ $taskTimesheet['task_name'] }}">
-                                                                                {{ __($taskTimesheet['task_name']) }}
-                                                                            </div>
-                                                                        </td>
+                                                                    <td class="wid-150 firstTdInWeek">
+                                                                        <div role="button"
+                                                                            data-title="{{ __('Task') }}"
+                                                                            data-url="{{ route('show.task', [$currentWorkspace->slug, $taskTimesheet['task_id']]) }}"
+                                                                            data-ajax-popup="true"
+                                                                            data-title="Task Detail"
+                                                                            data-task-name="{{ $taskTimesheet['task_name'] }}"
+                                                                            data-modal-id="commonModalModified"> <!-- Nuevo atributo añadido aquí -->
+                                                                            {{ __($taskTimesheet['task_name']) }}
+                                                                        </div>
+                                                                    </td>
                                                                     @endif
                                                                     @foreach ($taskTimesheet['dateArray'] as $dateTimeArray)
                                                                         @foreach ($dateTimeArray['week'] as $dateKey => $dateSubArray)

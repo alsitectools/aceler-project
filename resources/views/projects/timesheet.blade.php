@@ -152,9 +152,10 @@
             ajaxFilterTimesheetTableView();
         });
 
-        $(document).on('click', '[data-ajax-timesheet-popup="true"]', function(e) {
+        $(document).on('click', '[data-ajax-timesheet-popup="true"]', function (e) {
             e.preventDefault();
 
+            var modalId = $(this).data('modal-id') || 'commonModal'; // Usa 'commonModal' por defecto si no se especifica
             var data = {};
             var url = $(this).data('url');
             var type = $(this).data('type');
@@ -170,26 +171,24 @@
                 data.user_id = user_id;
             }
 
+            var title;
             if (type == 'create') {
-                var title = '{{ __('Create Timesheet') }}';
+                title = '{{ __('Create Timesheet') }}';
                 data.p_id = '{{ $project_id }}';
                 data.project_id = data.p_id != '-1' ? data.p_id : p_id;
-
             } else if (type == 'edit') {
-                var title = '{{ __('Edit Timesheet') }}';
+                title = '{{ __('Edit Timesheet') }}';
             }
 
-            $("#commonModal .modal-title").html(title + ` <small>(` + moment(date).format("ddd DD MMM") +
-                `)</small>`);
+            $("#" + modalId + " .modal-title").html(title + ` <small>(` + moment(date).format("ddd DD MMM") + `)</small>`);
 
             $.ajax({
                 url: url,
                 data: data,
                 dataType: 'html',
-                success: function(data) {
-                    $('#commonModal .body').html(data);
-                    // $('#commonModal .modal-body').html(data);
-                    $("#commonModal").modal('show');
+                success: function (data) {
+                    $('#' + modalId + ' .body').html(data);
+                    $("#" + modalId).modal('show');
                     commonLoader();
                     loadConfirm();
                 }
