@@ -48,7 +48,9 @@
                 <p class="me-2">Total horas</p>{{ $taskDetail['total_time_this_week'] }}
             </div>
             <div class="bordar_styless m-2">
-                <p class="me-2">Periodo</p>{{ $taskDetail['start_of_week'] }} - {{ $taskDetail['end_of_week'] }}
+                <p class="me-2">Periodo</p>
+                {{ ucfirst($taskDetail['start_of_week']) }} a
+                {{ ucfirst($taskDetail['end_of_week']) }}
             </div>
         </div>
     @else
