@@ -10,6 +10,11 @@
             width: 100% !important;
         }
     }
+    @media screen and (max-width:1200px) and (min-width:1000px) {
+        .adjustWidthCalendar{
+            width: 32% !important;
+        }
+    }
 </style>
 @push('scripts')
     <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js"></script>
@@ -68,7 +73,7 @@
                 </div>
             </div>
         </div>
-        <div class="col-lg-4">
+        <div class="col-lg-4 adjustWidthCalendar">
             <div class="card">
                 <div class="card-body">
                     <h4 class="mb-4">{{ __('Tasks') }}</h4>

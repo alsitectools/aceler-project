@@ -8531,7 +8531,12 @@ textarea.is-invalid.dataTable-input {
 .mb-2 {
     margin-bottom: 0.5rem !important;
 }
+@media screen and (max-width:1200px) and (min-width:1000px){
 
+    .mb-2{
+        margin-bottom: 25px !important;
+    }
+}
 .mb-3 {
     margin-bottom: 1rem !important;
 }
@@ -14170,7 +14175,7 @@ textarea.is-invalid.dataTable-input {
         font-size: 13px;
     }
     .modal-content-modified{
-        height: 76%;
+        height: 86%;
     }
     .dash-header{
         left: 180px;

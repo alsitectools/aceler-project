@@ -12,6 +12,14 @@
         flex-direction: column;
         justify-content: center;
     }
+    @media screen and (max-width: 1200px) and (min-width:1000px){
+        .taskRowWidth{
+            width: 32% !important;
+        }
+        .colWidthTask{
+            width: 49% !important;
+        }
+    }
 </style>
 
 @section('content')
@@ -164,7 +172,7 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="col-xl-4 col-md-6 col-sm-6">
+                        <div class="col-xl-4 col-md-6 col-sm-6 taskRowWidth">
                             <div class="card">
                                 <div class="card-body">
                                     <div class="theme-avtar bg-info">
@@ -205,7 +213,7 @@
                         </div>
 
 
-                        <div class="col-lg-6 col-md-6">
+                        <div class="col-lg-6 col-md-6 colWidthTask">
                             <div class="card">
                                 <div class="card-header">
                                     <div class="row">

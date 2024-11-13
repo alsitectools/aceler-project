@@ -15,6 +15,35 @@
 <head>
     <link rel="stylesheet" href="{{ asset('assets/css/milestoneboard.css') }}">
 </head>
+<style>
+    .modifiedWidth{
+            width: 99.9%;
+    }
+    .adjustImg{
+        width: 40px;
+    }
+    .calendarAlert{
+        font-size: 29px;
+        padding-top: 12px !important;
+        padding-bottom: 0px !important;
+    }
+    .adjustTextCalendar{
+        padding-top: 10% !important; 
+        font-size: 12px !important;
+    }
+    @media screen and(max-width:1200px) and(min-width:1000px) {
+        .adjustImg{
+            width: 65%;
+        }
+        .calendarAlert{
+            font-size: 25px !important;
+            padding-top: 12px !important;
+        }
+        .adjustTextCalendar{
+            padding-top: 15%;
+        }
+    }
+</style>
 @section('links')
     @if (isset($project_id) && $project_id != -1)
         <li class="breadcrumb-item"><a
@@ -42,7 +71,7 @@
     </div>
 @endsection
 @section('content')
-    <div class="row">
+    <div class="row modifiedWidth">
         <div class="col-sm-12">
             <div class="row kanban-wrapper horizontal-scroll-cards" data-toggle="dragula"
                 data-containers='{{ json_encode($statusClass) }}' data-handleclass="handleclass">
@@ -142,7 +171,7 @@
                                                         <div class="col-sm-12 tooltipCus p-3"
                                                             data-title="{{ __('Tasks') }}">
                                                             @foreach ($milestone['tasks'] as $task)
-                                                                <div class="taskList p-target mb-2 col-sm-12">
+                                                                <div class="taskList p-target mb-2 col-sm-12 marginText">
                                                                     @php
                                                                         $isLate =
                                                                             strtotime($task['estimated_date']) <
@@ -196,7 +225,7 @@
                                                                     <div class="text-center tooltipCus"
                                                                         data-title="{{ __('Project') }}">
                                                                         <div>
-                                                                            <img class="img-fluid p-1" width="40px"
+                                                                            <img class="img-fluid p-1 adjustImg"
                                                                                 src="{{ asset('assets/img/' . $milestone['project_type'] . '.png') }}"
                                                                                 alt="Project type">
                                                                         </div>
@@ -209,17 +238,17 @@
                                                                 <div class="col-6 text-center tooltipCus"
                                                                     data-title="{{ __('End Date') }}">
                                                                     @if ($milestone['daysleft'] < 1)
-                                                                        <i class="fa-solid fa-calendar-check fa-beat-fade m-1 pb-1 fa-2xl"
+                                                                        <i class="fa-solid fa-calendar-check fa-beat-fade m-1 pb-1 fa-2xl calendarAlert"
                                                                             style="color: red;"></i>
                                                                     @elseif($milestone['daysleft'] < 3)
-                                                                        <i class="fa-solid fa-calendar-check fa-2xl m-1"
+                                                                        <i class="fa-solid fa-calendar-check fa-2xl m-1 calendarAlert"
                                                                             style="color: #db8d33;"></i>
                                                                     @else
-                                                                        <i class="fa-solid fa-calendar-check fa-2xl m-1"
+                                                                        <i class="fa-solid fa-calendar-check fa-2xl m-1 calendarAlert"
                                                                             style="color: #53b446;"></i>
                                                                     @endif
-                                                                    <div class="text-center"
-                                                                        style="padding-top: 15%; font-size: 12px;">
+                                                                    <div class="text-center adjustTextCalendar"
+                                                                        >
                                                                         <b style="font-size: 12px">
                                                                             {{ \App\Models\Utility::dateFormat($milestone['end_date']) }}</b>
                                                                     </div>

@@ -84,6 +84,7 @@
         margin-top: -16px;
         font-size: 12px;
         color: grey;
+        margin-left: -49px !important;
     }
     .divResumeAjustText{
         display: flex;

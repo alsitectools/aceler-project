@@ -51,6 +51,9 @@
 @include('layouts.chatbot')
 {{-- ---------------------------- --}}
 
+{{-- --------- COPILOT ------------ --}}
+@include('layouts.chatCopilot')
+{{-- ---------------------------- --}}
 <head>
 
     <meta charset="utf-8">

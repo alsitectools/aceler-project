@@ -29,7 +29,7 @@
             @endif
         @endif
         <div class="col-sm-auto">
-            <div class="weekly-dates-div">
+            <div class="weekly-dates-div weekArrowsPadding">
                 <i role="button" class="fa fa-arrow-left previous"></i>
 
                 <span class="weekly-dates"></span>
@@ -55,7 +55,7 @@
             <div class="row">
                 <div class="col-md-12">
 
-                    <div class="card border">
+                    <div class="card border modifiedWidthTime">
                         <div id="timesheet-table-view"></div>
                     </div>
                     <div class="card notfound-timesheet text-center">
@@ -227,9 +227,17 @@
 @endpush
 <style type="text/css">
     .weekly-dates-div {
-        padding: 8px 12px 8px 5px !important;
+        padding: 8px 12px 8px 15px !important;
     }
 
+    @media screen and (max-width:1200px) and (min-width:1000px) {
+        .weekly-dates-div {
+            padding: 8px 12px 8px 25px !important;
+        }
+        .modifiedWidthTime{
+            width: 99% !important;
+        }
+    }
     #add_task {
         display: flex !important;
         align-items: center;
