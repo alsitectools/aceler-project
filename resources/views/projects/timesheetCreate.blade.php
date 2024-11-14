@@ -30,6 +30,12 @@
                     </select>
                 </div>
 
+                <div class="form-group col-md-6">
+                    <label for="start_date" class="col-form-label">{{ __('Start Date') }}</label>
+                    <input onclick="this.showPicker()" type="date" class="form-control form-control-light date"
+                        id="start_date" value="" placeholder="{{ __('Start Date') }}" name="date"
+                        required>
+                </div>
                 <div class="form-group col-md-6 ">
                     <label for="estimated_date" class="col-form-label">{{ __('Fecha Estimada') }}</label>
                     <input onclick="this.showPicker()" type="date" class="form-control form-control-light date"

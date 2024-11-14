@@ -1049,9 +1049,9 @@ class ProjectController extends Controller
         }
     }
 
-
-    public function showTask($slug, $taskID)
+    public function showTask($slug, $taskID, $first_day, $seventh_day)
     {
+
         $currentWorkspace = Utility::getWorkspaceBySlug($slug);
         $task = Task::find($taskID);
         $project = Project::find($task->project_id);
@@ -1059,19 +1059,20 @@ class ProjectController extends Controller
         $milestone = Milestone::select('title')->where('id', '=', $task->milestone_id)->first();
         $assign_to = User::find($task->assign_to);
 
-        // Definir el inicio y fin de la semana actual
-        $startOfWeek = Carbon::now()->startOfWeek(); // Lunes de la semana actual
-        $endOfWeek = Carbon::now()->endOfWeek(); // Domingo de la semana actual
-    
-        // Formatear las fechas de inicio y fin de la semana
-        $startOfWeekFormatted = $startOfWeek->isoFormat('ddd DD MMM');
-        $endOfWeekFormatted = $endOfWeek->isoFormat('ddd DD MMM');
+        $firstDay = Carbon::parse($first_day);
+        $seventhDay = Carbon::parse($seventh_day);
+
+        $startOfWeek = $firstDay->format('Y-m-d');
+        $endOfWeek = $seventhDay->format('Y-m-d');
 
         // Consulta para calcular el total de horas en la semana actual para la tarea especificada
         $horasPorTarea = Timesheet::where('task_id', $taskID)
             ->whereBetween('date', [$startOfWeek, $endOfWeek])
             ->select(DB::raw("SEC_TO_TIME(SUM(TIME_TO_SEC(time))) as total_time"))
             ->first();
+
+        $startOfWeekFormatted = $firstDay->isoFormat('ddd DD MMM');
+        $endOfWeekFormatted = $seventhDay->isoFormat('ddd DD MMM');
 
         $taskDetail = [
             'workspace' => $currentWorkspace,
@@ -1963,6 +1964,7 @@ class ProjectController extends Controller
 
     public function timesheetStore($slug, Request $request)
     {
+
         $user = Auth::user();
         $currentWorkspace = Utility::getWorkspaceBySlug($slug);
         $rules = [
@@ -1970,8 +1972,8 @@ class ProjectController extends Controller
             'milestone_id' => 'required',
             'type_id' => 'required',
             'estimated_date' => 'required',
-            // 'time' => 'required',
-            // 'date' => 'required',
+            'time' => 'required',
+            'date' => 'required',
         ];
 
         $validator = Validator::make($request->all(), $rules);
@@ -1994,6 +1996,7 @@ class ProjectController extends Controller
             $task->project_id = $request->project_id;
             $task->milestone_id = $request->milestone_id;
             $task->type_id = $request->type_id;
+            $task->start_date = $request->date;
             $task->estimated_date = $request->estimated_date;
             // $task->description = $request->description ? $request->description : "";   
             $task->assign_to = $user->id;
@@ -2002,8 +2005,9 @@ class ProjectController extends Controller
             $timesheet = new Timesheet();
             $timesheet->project_id = $request->project_id;
             $timesheet->task_id = $task->id;
-            $timesheet->date = date('Y-m-d');
-            $timesheet->time = $request->time;
+            $timesheet->date = $request->date;
+            $timesheet->time = sprintf('%02d:%02d:00', $request->time_hour, $request->time_minute);
+
             // $timesheet->description = $request->description;
             $timesheet->created_by = $user->id;
             $timesheet->save();
@@ -2046,7 +2050,6 @@ class ProjectController extends Controller
     public function timesheetUpdate($slug, $timesheetID, Request $request)
     {
         $currentWorkspace = Utility::getWorkspaceBySlug($slug);
-
         $request->validate(
             [
                 'task_id' => 'required',

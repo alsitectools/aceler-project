@@ -60,7 +60,7 @@
                                                                     <td class="wid-150 firstTdInWeek">
                                                                         <div role="button"
                                                                             data-title="{{ __('Task') }}"
-                                                                            data-url="{{ route('show.task', [$currentWorkspace->slug, $taskTimesheet['task_id']]) }}"
+                                                                            data-url="{{ route('show.task', [$currentWorkspace->slug, $taskTimesheet['task_id'],$days['first_day'],$days['seventh_day']]) }}"
                                                                             data-ajax-popup="true"
                                                                             data-title="Task Detail"
                                                                             data-task-name="{{ $taskTimesheet['task_name'] }}"
@@ -160,7 +160,7 @@
                                                                         <td style="padding-left: 5px;">
                                                                             <div role="button"
                                                                                 data-title="{{ __('Task') }}"
-                                                                                data-url="{{ route('show.task', [$currentWorkspace->slug, $taskTimesheet['task_id']]) }}"
+                                                                                data-url="{{ route('show.task', [$currentWorkspace->slug, $taskTimesheet['task_id'],$days['first_day'],$days['seventh_day']]) }}"
                                                                                 data-ajax-popup="true"
                                                                                 data-title="Task Detail"
                                                                                 data-task-name="{{ $taskTimesheet['task_name'] }}">
