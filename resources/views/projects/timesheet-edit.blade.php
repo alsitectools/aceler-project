@@ -16,6 +16,11 @@
         <label class="col-form-label">{{ __('Task') }}</label>
         <input type="text" class="form-control" value="{{ $parseArray['task_name'] }}" disabled="disabled">
     </div>
+    <div class="form-group">
+        <label class="col-form-label">{{ __('Date') }}</label>
+        <input type="date" class="form-control form-control-light date" value="{{ $timesheet->date }}"
+            placeholder="{{ __('Date') }}" disabled>
+    </div>
 
     <div class="row">
         <div class="col-md-12">
@@ -64,7 +69,7 @@
     <div class="row">
         <div class="text-end">
             <a href="#" class="action-btn btn-danger  btn btn-sm d-inline-flex"
-                data-confirm="{{ __('Are You Sure?') }}" 
+                data-confirm="{{ __('Are You Sure?') }}"
                 data-text="{{ trans('This action can not be undone. Do you want to continue?') }}"
                 data-confirm-yes="delete-form-{{ $id }}">
                 <i class="ti ti-trash"></i>

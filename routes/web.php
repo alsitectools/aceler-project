@@ -973,4 +973,4 @@ Route::post('webhooks/response/get', [WebhookController::class, 'WebhookResponse
 Route::get('/{slug}/projects/{id}/task-board/{tid}/{cid?}', [ProjectController::class, 'taskShow'])->name('tasks.show');
 
 //Ruta creada para recibir la task_id y en la funcion buscar los otros parametros 
-Route::get('/{slug}/timesheet-task/{task_id}', [ProjectController::class, 'showTask'])->name('show.task');
+Route::get('/{slug}/timesheet-task/{task_id}/{first_day}/{seventh_day}', [ProjectController::class, 'showTask'])->name('show.task');
