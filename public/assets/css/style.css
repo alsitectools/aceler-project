@@ -25758,6 +25758,7 @@ body.theme-10 .team-lists img {
 
 .fc-button,
 .fc-today-button {
+    margin-bottom: 5px !important;
     background: #fefefe;
     border: none;
     color: #343a40;
@@ -25848,10 +25849,11 @@ body.theme-10 .team-lists img {
 .fc-today-button {
     margin-bottom: 4px;
     margin-left: 10px;
-    border-radius: 2px;
+    border-radius: 5px;
+    background-color: #aa182C;
+    border-color: white;
     font-size: 1rem;
 }
-
 .fc-ltr .fc-basic-view .fc-day-top .fc-day-number {
     float: right;
     height: 20px;

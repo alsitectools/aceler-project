@@ -200,18 +200,13 @@ When it's NOT activated, the fc-button classes won't even be in the DOM.
 .fc .fc-button-primary {
     color: #fff;
     color: var(--fc-button-text-color, #fff);
-    background-color: #2C3E50;
-    background-color: var(--fc-button-bg-color, #2C3E50);
-    border-color: #2C3E50;
-    border-color: var(--fc-button-border-color, #2C3E50);
+    background-color: #AA182C; 
   }
 .fc .fc-button-primary:hover {
-    color: #fff;
-    color: var(--fc-button-text-color, #fff);
-    background-color: #1e2b37;
-    background-color: var(--fc-button-hover-bg-color, #1e2b37);
-    border-color: #1a252f;
-    border-color: var(--fc-button-hover-border-color, #1a252f);
+    color: #ffffff;
+    text-decoration: none;
+    background-color: #b9515f !important;
+    border-color: #b9515f !important;
   }
 .fc .fc-button-primary:disabled { /* not DRY */
     color: #fff;
@@ -226,12 +221,10 @@ When it's NOT activated, the fc-button classes won't even be in the DOM.
   }
 .fc .fc-button-primary:not(:disabled):active,
   .fc .fc-button-primary:not(:disabled).fc-button-active {
-    color: #fff;
-    color: var(--fc-button-text-color, #fff);
-    background-color: #1a252f;
-    background-color: var(--fc-button-active-bg-color, #1a252f);
-    border-color: #151e27;
-    border-color: var(--fc-button-active-border-color, #151e27);
+    color: #ffffff;
+    text-decoration: none;
+    background-color: #b9515f !important;
+    border-color: #b9515f !important;
   }
 .fc .fc-button-primary:not(:disabled):active:focus,
   .fc .fc-button-primary:not(:disabled).fc-button-active:focus {
@@ -250,6 +243,11 @@ When it's NOT activated, the fc-button classes won't even be in the DOM.
     position: relative;
     display: inline-flex;
     vertical-align: middle;
+  }
+  @media screen and(max-width:1200px) and(min-width:1000px) {
+   .fc-button-group {
+      width: 60% !important;
+    }
   }
 .fc .fc-button-group > .fc-button {
     position: relative;
@@ -295,6 +293,12 @@ When it's NOT activated, the fc-button classes won't even be in the DOM.
 .fc .fc-toolbar-title {
     font-size: 1.75em;
     margin: 0;
+  }
+  @media screen and(max-width:1200px) and(min-width:1000px) {
+    .fc-toolbar-title{
+      font-size: 21px !important;
+      padding-bottom: 5px !important;
+    }
   }
 .fc-direction-ltr .fc-toolbar > * > :not(:first-child) {
     margin-left: .75em; /* space between */

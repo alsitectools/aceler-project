@@ -25124,6 +25124,8 @@ body.theme-10 .team-lists img {
 
 .fc-button,
 .fc-today-button {
+    margin-bottom: 5px !important;
+
     background: #fefefe;
     border: none;
     color: #343a40;
