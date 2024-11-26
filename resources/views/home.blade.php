@@ -1,8 +1,5 @@
 @extends('layouts.admin')
 
-@section('page-title')
-    {{ __('Dashboard') }}
-@endsection
 @php
     $client_keyword = Auth::user()->getGuard() == 'client' ? 'client.' : '';
 @endphp
@@ -20,10 +17,90 @@
             width: 49% !important;
         }
     }
+    /* General Reset */
+    .carousel {
+        display: flex;
+        position: relative;
+        width: 100%;
+        height: 650px;
+        overflow: hidden;
+        border: 2px solid #ccc;
+        border-radius: 10px;
+        background-color: #fff;
+    }
+
+.carousel-slide {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    transition: flex 0.5s ease-in-out, transform 0.5s ease-in-out;
+    cursor: pointer;
+    overflow: hidden;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    color: white;
+}
+
+.carousel-slide h2 {
+    font-size: 20px;
+    color: white;
+}
+
+.carousel-slide p {
+    display: none;
+    font-size: 1rem;
+    margin: 0;
+    color: #ccc;
+}
+
+/* Active Slide Styling */
+.carousel-slide.active {
+    flex: 7;
+    color: #fff;
+    background-color: rgb(0 0 0 / 70%);
+}
+
+.carousel-slide.active p {
+    display: block;
+}
+
+.carousel-slide:first-child.active h2{
+    position: absolute;
+    left: 5%;
+    top: 5%;
+}
+
+/* Style for the middle slide when active */
+.carousel-slide:nth-child(2).active h2 {
+    position: absolute;
+    left: 20%;
+    top: 5%;
+    transform: translateX(-50%);
+}
+
+/* Style for the last slide when active */
+.carousel-slide:last-child.active h2{
+    position: absolute;
+    left: 30%;
+    top: 5%;
+}
+/* Inactive Slide Styling */
+.carousel-slide:not(.active) {
+    flex: 1;
+    background-color: rgb(0 0 0 / 45%);
+    box-shadow: 5px 0px 5px 0px rgb(0 0 0 / 45%);
+    -webkit-box-shadow: 5px 0px 5px 0px rgb(0 0 0 / 45%);
+    -moz-box-shadow: 5px 0px 5px 0px rgb(0 0 0 / 45%);
+}
+
 </style>
 
 @section('content')
-    <section class="section">
+    <section class="section" style="margin-top: -30px;">
         @if (Auth::user()->type == 'admin')
             <div class="row">
                 <div class="col-12">
@@ -185,114 +262,23 @@
                             </div>
                         </div>
 
-                        <div class="col-xl-3 col-md-6 col-sm-6">
-                            <div class="card">
-                                <div class="card-body">
-                                    <div class="theme-avtar bg-danger">
-                                        <i class="fa-solid fa-user-tie bg-danger text-white"></i>
-                                    </div>
-                                    <p class="text-muted text-sm"></p>
-                                    <h6 class="">{{ __('Sales managers') }}</h6>
-                                    <h3 class="mb-0">{{ $totalSales }} <span class="text-success text-sm"></span></h3>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="col-xl-3 col-md-6 col-sm-6">
-                            <div class="card">
-                                <div class="card-body">
-                                    <div class="theme-avtar bg-primary">
-                                        <i class="fa-solid fa-helmet-safety bg-primary text-white"></i>
-                                    </div>
-                                    <p class="text-muted text-sm"></p>
-                                    <h6 class="">{{ __('Technicians') }}</h6>
-                                    <h3 class="mb-0">{{ $totalTechni }} <span class="text-success text-sm"></span>
-                                    </h3>
-                                </div>
-                            </div>
-                        </div>
-
-
-                        <div class="col-lg-6 col-md-6 colWidthTask">
-                            <div class="card">
-                                <div class="card-header">
-                                    <div class="row">
-                                        <div class="col-9">
-                                            <h5 class="">
-                                                {{ __('Tasks') }}
-                                            </h5>
-                                        </div>
-                                        <div class="col-auto d-flex justify-content-end">
-                                            <div class="">
-                                                <small><b>{{ $completeTask }}</b>
-                                                    {{ __('Tasks completed out of') }}
-                                                    {{ $totalTask }}</small>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="card-body">
-                                    <div class="table-responsive">
-                                        <table class="table table-centered table-hover mb-0 animated">
-                                            <tbody>
-                                                @foreach ($tasks as $task)
-                                                    <tr>
-                                                        <td>
-                                                            {{-- <div class=" my-1"><a
-                                                                    href="{{ route('projects.task.board', [$currentWorkspace->slug, $task->project_id]) }}"
-                                                                    class="text-body">{{ $taskTypes[$task->type_id]['name'] }}</a>
-                                                            </div> --}}
-                                                            @php
-                                                                $isLate =
-                                                                    strtotime($task->estimated_date) <
-                                                                    strtotime(date('Y-m-d'));
-                                                                $dateClass = $isLate ? 'danger' : 'success';
-                                                                $formattedDate = date(
-                                                                    'Y-m-d',
-                                                                    strtotime($task->estimated_date),
-                                                                );
-                                                                $due_date =
-                                                                    '<span class="text-' .
-                                                                    $dateClass .
-                                                                    '">' .
-                                                                    $formattedDate .
-                                                                    '</span>';
-                                                                $icon =
-                                                                    '<i class="fa-solid fa-calendar-check text-' .
-                                                                    $dateClass .
-                                                                    '"></i>';
-                                                            @endphp
-
-                                                            <span class="text-muted">
-                                                                {!! $icon !!}
-                                                                {!! $due_date !!}
-                                                            </span>
-
-                                                        </td>
-                                                        <td>
-                                                            <span class="text-muted">{{ __('Project') }}</span>
-                                                            <div class=" mt-1 font-weight-normal">
-                                                                {{ $task->project->name }}</div>
-                                                        </td>
-                                                        <td>
-                                                            <span class="text-muted">{{ __('Assigned to') }}</span>
-                                                            <div class="mt-1 font-weight-normal">
-                                                                @foreach ($task->users() as $user)
-                                                                    <span
-                                                                        class="badge p-2 px-2 rounded bg-secondary">{{ $user->name }}</span>
-                                                                @endforeach
-                                                            </div>
-                                                        </td>
-                                                    </tr>
-                                                @endforeach
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+                <div>
+                <div class="carousel">
+                    <div class="carousel-slide" data-index="1" data-image="assets/img/backgroundTutorial/img projects large size.png">
+                        <h2>Proyecto</h2>
+                        @include('tutorial.projectTutorial')
                     </div>
-                </div>
+                    <div class="carousel-slide" data-index="2" data-image="assets/img/backgroundTutorial/img milestones large size.png">
+                        <h2>Hoja de encargo</h2>
+                        @include('tutorial.milestoneTutorial')
+                    </div>
+                    <div class="carousel-slide" data-index="3" data-image="assets/img/backgroundTutorial/img task large size.png">
+                        <h2>Tareas</h2>
+                        @include('tutorial.taskTutorial')
+                    </div>
+                </div>    
+                </div>       
+                       
             @else
                 <div class="row">
                     <div class="col-md-12">
@@ -308,3 +294,28 @@
         @endif
     </section>
 @endsection
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    const slides = document.querySelectorAll(".carousel-slide");
+    const carousel = document.querySelector(".carousel");
+
+    // Set the default background image (custom image)
+    const defaultImageUrl = "assets/img/backgroundTutorial/img mix large size.png";
+    carousel.style.backgroundImage = `url('${defaultImageUrl}')`;
+
+    // Add event listeners to slides
+    slides.forEach((slide) => {
+        slide.addEventListener("click", () => {
+            // Remove active class from all slides
+            slides.forEach((s) => s.classList.remove("active"));
+
+            // Add active class to the clicked slide
+            slide.classList.add("active");
+
+            // Update the background image to the clicked slide's image
+            const imageUrl = slide.getAttribute("data-image");
+            carousel.style.backgroundImage = `url('${imageUrl}')`;
+        });
+    });
+});
+</script>
