@@ -52,7 +52,7 @@
 {{-- ---------------------------- --}}
 
 {{-- --------- COPILOT ------------ --}}
-@include('layouts.chatCopilot')
+{{-- @include('layouts.chatCopilot') --}}
 {{-- ---------------------------- --}}
 <head>
 

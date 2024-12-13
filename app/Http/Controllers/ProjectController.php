@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Support\Facades\Storage; // Importar Storage para gestionar archivos
 use App\Exports\projectsExport;
 use App\Imports\projectsImport;
 use App\Models\ActivityLog;
@@ -32,6 +33,7 @@ use App\Models\Timesheet;
 use App\Models\TimeTracker;
 use App\Models\User;
 use App\Models\Log;
+use App\Models\MilestoneFile;
 use App\Models\UserProject;
 use App\Models\UserWorkspace;
 use App\Models\Utility;
@@ -1200,6 +1202,8 @@ class ProjectController extends Controller
         return "true";
     }
 
+
+
     public function commentStoreFile(Request $request, $slug, $projectID, $taskID, $clientID = '')
     {
         $currentWorkspace = Utility::getWorkspaceBySlug($slug);
@@ -1412,208 +1416,108 @@ class ProjectController extends Controller
         }
     }
 
-    public function milestoneTODO($slug, $projectID, Request $request)
-    {
-
-        $currentWorkspace = Utility::getWorkspaceBySlug($slug);
-        $project_name = Project::where('id', $projectID)->first();
-        $user1 = $currentWorkspace->id;
-        $project = Project::find($projectID);
-        $setting = Utility::getAdminPaymentSettings();
-
-
-        $rules = [
-            'title' => 'required',
-            'project_id' => 'required',
-            'assing_to' => 'required',
-            'status' => 'required',
-            'order' => 'required',
-            'end_date' => 'required',
-            'summary' => 'required',
-        ];
-
-        $validator = \Validator::make($request->all(), $rules);
-
-        if ($validator->fails()) {
-            $messages = $validator->getMessageBag();
-
-            return redirect()->back()->with('error', $messages->first());
-        }
-
-        $objUser = Auth::user();
-        $currentWorkspace = Utility::getWorkspaceBySlug($slug);
-        $user = $currentWorkspace->id;
-        $project_name = Project::where('id', $request->project_id)->first();
-
-
-        $project = Project::select('projects.*')->join('user_projects', 'user_projects.project_id', '=', 'projects.id')
-            ->where('user_projects.user_id', '=', $objUser->id)
-            ->where('projects.workspace', '=', $currentWorkspace->id)
-            ->where('projects.id', '=', $request->project_id)->first();
-
-
-        if ($project) {
-            $post = $request->all();
-            $stage = Stage::where('workspace_id', '=', $currentWorkspace->id)->orderBy('order')->first();
-            if ($stage) {
-                $post['project_id'] = !empty($request->milestone_id) ? $request->milestone_id : 0;
-                $post['status'] = $stage->id;
-                $post['assign_to'] = is_array($request->assign_to) ? implode(",", $request->assign_to) : $request->assign_to;
-                $post['tasks'] = is_array($request->assign_to) ? implode(",", $request->assign_to) : $request->assign_to;
-                $task = Milestone::create($post);
-
-                if ($request->get('synchronize_type') == 'google_calender') {
-                    $type = 'task';
-                    $request1 = new Milestone();
-                    $request1->title = $request->title;
-                    $request1->start_date = $request->start_date;
-                    $request1->end_date = $request->due_date;
-
-                    $a =  Utility::addCalendarData($request1, $type, $slug);
-                }
-
-                ActivityLog::create(
-                    [
-                        'user_id' => Auth::user()->id,
-                        'user_type' => get_class(Auth::user()),
-                        'project_id' => $projectID,
-                        'log_type' => 'Create Task',
-                        'remark' => json_encode(['title' => $task->title]),
-                    ]
-                );
-
-                $uArr = [
-
-                    'project_name' => $project_name->name,
-                    'user_name' => Auth::user()->name,
-                    'task_title' => $task->title,
-                    'app_url' => env('APP_URL'),
-                ];
-
-                if (isset($settings['task_notificaation']) && $settings['task_notificaation'] == 1) {
-
-                    Utility::send_slack_msg('New Task', $user, $uArr);
-                    // $msg = $request->title . " of " . $project_name->name . " created by " . \Auth::user()->name . '.';
-                    // Utility::send_slack_msg($msg, $user);
-                }
-
-                if (isset($settings['telegram_task_notificaation']) && $settings['telegram_task_notificaation'] == 1) {
-                    // $msg = $request->title . " of " . $project_name->name . " created by " . \Auth::user()->name . '.';
-                    Utility::send_telegram_msg('New Task', $uArr, $user);
-                }
-
-                Utility::sendNotification('task_assign', $currentWorkspace, $request->assign_to, $task);
-
-                //  webhook
-                $module = 'New Task';
-                $webhook =  Utility::webhookSetting($module, $user);
-
-                if ($webhook) {
-                    $parameter = json_encode($task);
-                    // 1 parameter is  URL , 2 parameter is data , 3 parameter is method
-                    // $status = Utility::WebhookCall($webhook['url'], $parameter, $webhook['method']);
-                    // if ($status == true) {
-                    //     return redirect()->back()->with('success', __('Task successfully created!'));
-                    // } else {
-                    //     return redirect()->back()->with('error', __('Webhook call failed.'));
-                    // }
-                }
-
-                if ($objUser->getGuard() == 'client') {
-                    return redirect()->route(
-                        'client.projects.task.board',
-                        [
-                            $currentWorkspace->slug,
-                            $request->project_id,
-                        ]
-                    )->with('success', __('Task Create Successfully!'));
-                } else {
-
-                    return redirect()->route('projects.task.board', [$currentWorkspace->slug, $request->project_id,])
-                        ->with('success', __('Task Create Successfully!'));
-                }
-            } else {
-                return redirect()->back()->with('error', __('Please add stages first.'));
-            }
-        } else {
-            return redirect()->back()->with('error', __("You can't Add Task!"));
-        }
-    }
-
+    /**
+     * Ruta relativa de donde se guardan los ficheros de los Encargos storage/app/public/milestones
+     */
     public function milestoneStore($slug, $projectID, Request $request)
     {
         $currentWorkspace = Utility::getWorkspaceBySlug($slug);
-        $project_name = Project::where('id', $projectID)->first();
-        $user1 = $currentWorkspace->id;
-        $objUser = Auth::user();
         $project = Project::find($request->project_id);
 
-        $setting = Utility::getAdminPaymentSettings();
+        // Validación de los campos requeridos
         $rules = [
             'title' => 'required',
             'end_date' => 'required',
+            'files' => 'nullable|array',
+            'files.*' => 'file|mimes:jpg,jpeg,png,xlsx,xls,csv,pdf,txt,dwg,dxf,zip,docx|max:5120',
         ];
 
         $validator = \Validator::make($request->all(), $rules);
 
         if ($validator->fails()) {
             $messages = $validator->getMessageBag();
-
             return redirect()->back()->with('error', $messages->first());
         }
-        // dd($request->all());
 
+        // Crear el milestone
         $milestone = new Milestone();
         $milestone->project_id = $project->id;
         $milestone->title = $request->title;
         $milestone->assign_to = Auth::user()->id;
         $milestone->start_date = date('Y-m-d');
-        $milestone->company = $request->company != null ? $request->company : "";
-        $milestone->contractor = $request->contractor != null ? $request->contractor : "";
-        $milestone->contractorAdress = $request->contractorAdress != null ? $request->contractorAdress : "";
-        $milestone->jobsiteAdress = $request->jobsiteAdress != null ? $request->jobsiteAdress : "";
+        $milestone->company = $request->company ?? '';
+        $milestone->contractor = $request->contractor ?? '';
+        $milestone->contractorAdress = $request->contractorAdress ?? '';
+        $milestone->jobsiteAdress = $request->jobsiteAdress ?? '';
         $milestone->end_date = $request->end_date;
-        $milestone->summary = $request->summary != null ? $request->summary : "";
+        $milestone->summary = $request->description ?? '';
         $milestone->save();
 
-        $permission = Auth::user()->type == 'admin' ? 'Owner' : 'Member';
-        $this->inviteUser($objUser, $project, $permission);
 
-        ActivityLog::create(
-            [
-                'user_id' => Auth::user()->id,
-                'user_type' => get_class(Auth::user()),
-                'project_id' => $project->id,
-                'log_type' => 'Create Milestone',
-                'remark' => json_encode(['title' => $milestone->title]),
-            ]
-        );
+        if ($request->hasFile('files')) {
 
-        $settings = Utility::getPaymentSetting($user1);
+            $projectFolder = str_replace(' ', '_', $project->name);
+            $dir = 'milestones_files/' . $projectFolder;
+
+            if (!Storage::exists($dir)) {
+                Storage::makeDirectory($dir);
+
+                // Establecer permisos (0777: lectura, escritura y ejecución para todos)
+                $path = storage_path("app/$dir");
+
+                // Verifica si el directorio fue creado correctamente antes de cambiar permisos
+                if (\File::exists($path)) {
+                    chmod($path, 0777);
+                }
+            }
+
+
+            foreach ($request->file('files') as $file) {
+                if ($file->isValid()) {
+                    $fileName = $milestone->id . '_' . time() . '_' . $file->getClientOriginalName();
+
+                    $path = $file->storeAs($dir, $fileName);
+
+                    if (!$path) {
+                        return redirect()->back()->with('error', 'Hubo un problema al subir los archivos.');
+                    }
+
+                    // Crear el registro de los archivos en la base de datos
+                    MilestoneFile::create([
+                        'milestone_id' => $milestone->id,
+                        'file' => $fileName,
+                        'name' => $file->getClientOriginalName(),
+                        'extension' => '.' . $file->getClientOriginalExtension(),
+                        'file_size' => round($file->getSize() / 1024, 2) . ' KB',
+                        'created_by' => Auth::user()->id,
+                        'user_type' => Auth::user()->type,
+                    ]);
+                } else {
+                    return redirect()->back()->with('error', __('One or more files are not valid'));
+                }
+            }
+        }
+
+        // Log de actividad
+        ActivityLog::create([
+            'user_id' => Auth::user()->id,
+            'user_type' => get_class(Auth::user()),
+            'project_id' => $project->id,
+            'log_type' => 'Create Milestone',
+            'remark' => json_encode(['title' => $milestone->title]),
+        ]);
+
+        // Notificaciones
+        $setting = Utility::getAdminPaymentSettings();
         $uArr = [
-            // 'user_name' => $user->name,
             'project_name' => $project->name,
             'user_name' => Auth::user()->name,
             'milestone_title' => $milestone->title,
             'app_url' => env('APP_URL'),
-            'app_name'  => $setting['app_name'],
+            'app_name' => $setting['app_name'],
         ];
-        if (isset($settings['milestone_notificaation']) && $settings['milestone_notificaation'] == 1) {
-            Utility::send_slack_msg('New Milestone', $user1, $uArr);
-        }
-
-        // if (isset($settings['telegram_milestone_notificaation']) && $settings['telegram_milestone_notificaation'] == 1) {
-        //     Utility::send_telegram_msg('New Milestone', $uArr, $user1);
-        // }
-
-        //webhook
-        $module = 'New Milestone';
-        // $webhook=  Utility::webhookSetting($module);
-        $webhook =  Utility::webhookSetting($module, $user1);
-
-        if ($webhook) {
-            $parameter = json_encode($milestone);
-            $status = Utility::WebhookCall($webhook['url'], $parameter, $webhook['method']);
+        if (isset($setting['milestone_notificaation']) && $setting['milestone_notificaation'] == 1) {
+            Utility::send_slack_msg('New Milestone', $currentWorkspace->id, $uArr);
         }
 
         return redirect()->back()->with('success', __('Milestone Created Successfully!'));
@@ -1628,10 +1532,47 @@ class ProjectController extends Controller
         return view('projects.milestoneEdit', compact('currentWorkspace', 'milestone'));
     }
 
+    public function milestoneDestroyFile(Request $request, $slug, $milestoneID, $fileID, $projectID)
+    {
+
+        try {
+            $milestoneFile = MilestoneFile::find($fileID);
+
+            if (!$milestoneFile) {
+                return response()->json("false", 400);
+            }
+
+            $project = Project::find($projectID);
+            if (!$project) {
+                return response()->json("false", 400);
+            }
+
+            $projectName = str_replace(' ', '_', $project->name);
+            $filePath = storage_path('app/public/milestones_files/' . $projectName . '/' . $milestoneFile->file);
+
+            if (file_exists($filePath)) {
+                if (unlink($filePath)) {
+                } else {
+                    \Log::error('No se pudo eliminar el archivo', ['filePath' => $filePath]);
+                }
+            } else {
+                \Log::warning('El archivo no existe en el sistema de archivos', ['filePath' => $filePath]);
+            }
+
+            $milestoneFile->delete();
+
+            return response()->json("true", 200);
+        } catch (\Exception $e) {
+
+            return response()->json("false", 500);
+        }
+    }
+
     public function milestoneUpdate($slug, $milestoneID, Request $request)
     {
         $currentWorkspace = Utility::getWorkspaceBySlug($slug);
         $user1 = $currentWorkspace->id;
+
         $setting = Utility::getAdminPaymentSettings();
         $request->validate(
             [
@@ -1640,19 +1581,65 @@ class ProjectController extends Controller
         );
 
         $milestone = Milestone::find($milestoneID);
+
         $milestone->status = 1;
         $milestone->order = 1;
         $milestone->summary = $request->summary;
         $milestone->end_date = $request->end_date;
         $milestone->save();
 
-        $settings = Utility::getPaymentSetting($user1);
-        $project_name = Project::where('id', $milestone->project_id)->first();
+        $project = Project::where('id', '=', $milestone->project_id)->first();
 
+        if ($request->hasFile('new_files')) {
+
+            $projectFolder = str_replace(' ', '_', $project->name);
+            $dir = 'milestones_files/' . $projectFolder;
+
+            // Verifica si el directorio no existe y luego lo crea
+            if (!Storage::exists($dir)) {
+                // Crear directorio
+                Storage::makeDirectory($dir);
+
+                // Establecer permisos (0777: lectura, escritura y ejecución para todos)
+                $path = storage_path("app/$dir");
+
+                // Verifica si el directorio fue creado correctamente antes de cambiar permisos
+                if (File::exists($path)) {
+                    chmod($path, 0777); // Establecer permisos completos para todos
+                }
+            }
+
+
+            foreach ($request->file('new_files') as $file) {
+                if ($file->isValid()) {
+                    $fileName = $milestone->id . '_' . time() . '_' . $file->getClientOriginalName();
+
+                    $path = $file->storeAs($dir, $fileName);
+
+                    if (!$path) {
+                        return redirect()->back()->with('error', 'Hubo un problema al subir los archivos.');
+                    }
+
+                    // Crear el registro de los archivos en la base de datos
+                    MilestoneFile::create([
+                        'milestone_id' => $milestone->id,
+                        'file' => $fileName,
+                        'name' => $file->getClientOriginalName(),
+                        'extension' => '.' . $file->getClientOriginalExtension(),
+                        'file_size' => round($file->getSize() / 1024, 2) . ' KB',
+                        'created_by' => Auth::user()->id,
+                        'user_type' => Auth::user()->type,
+                    ]);
+                } else {
+                    return redirect()->back()->with('error', __('One or more files are not valid'));
+                }
+            }
+        }
+
+        $settings = Utility::getPaymentSetting($user1);
         $uArr = [
-            // 'user_name' => $user->name,
-            'project_name' => $project_name->name,
-            'user_name' => \Auth::user()->name,
+            'project_name' => $project->name,
+            'user_name' => Auth::user()->name,
             'milestone_title' => $milestone->title,
             'milestone_status' => $milestone->status,
             'app_url' => env('APP_URL'),
@@ -1660,31 +1647,7 @@ class ProjectController extends Controller
         ];
 
         if (isset($settings['milestonest_notificaation']) && $settings['milestonest_notificaation'] == 1) {
-
             Utility::send_slack_msg('Milestone Status Updated', $user1, $uArr);
-        }
-
-        if (isset($settings['telegram_milestonest_notificaation']) && $settings['telegram_milestonest_notificaation'] == 1) {
-            Utility::send_telegram_msg('Milestone Status Updated', $uArr, $user1);
-        }
-
-        //webhook
-        $module = 'Milestone Status Updated';
-        // $webhook=  Utility::webhookSetting($module);
-        $webhook =  Utility::webhookSetting($module, $user1);
-
-        if ($webhook) {
-            $parameter = json_encode($milestone);
-            // 1 parameter is  URL , 2 parameter is data , 3 parameter is method
-            $status = Utility::WebhookCall($webhook['url'], $parameter, $webhook['method']);
-            // if($status == true)
-            // {
-            //     return redirect()->back()->with('success', __('Milestone successfully created!'));
-            // }
-            // else
-            // {
-            //     return redirect()->back()->with('error', __('Webhook call failed.'));
-            // }
         }
 
         return redirect()->back()->with('success', __('Milestone Updated Successfully!'));
@@ -1703,8 +1666,9 @@ class ProjectController extends Controller
     {
         $currentWorkspace = Utility::getWorkspaceBySlug($slug);
         $milestone = Milestone::find($milestoneID);
+        $salesManager = User::find($milestone->assign_to);
 
-        return view('projects.milestoneShow', compact('currentWorkspace', 'milestone'));
+        return view('projects.milestoneShow', compact('currentWorkspace', 'milestone', 'salesManager'));
     }
 
     public function subTaskStore(Request $request, $slug, $projectID, $taskID, $clientID = '')
@@ -1773,8 +1737,9 @@ class ProjectController extends Controller
         $file_name = $request->file->getClientOriginalName();
         $file_path = $project->id . "_" . md5(time()) . "_" . $request->file->getClientOriginalName();
         // $request->file->storeAs('project_files', $file_path);
+        $project_name = str_replace(' ', '_', $project->name);
 
-        $dir = 'project_files/';
+        $dir = 'project_files/' . $project_name;
         $path = Utility::upload_file($request, 'file', $file_path, $dir, []);
         if ($path['flag'] == 1) {
             $file = $path['url'];
@@ -1789,6 +1754,7 @@ class ProjectController extends Controller
                 'file_path' => $file_path,
             ]
         );
+
         $return = [];
         $return['is_success'] = true;
         $return['download'] = route(
@@ -1821,27 +1787,48 @@ class ProjectController extends Controller
         return response()->json($return);
     }
 
+    public function milestonefileDownload($slug, $id, $file_id)
+    {
+        $project = Project::find($id);
+        $file = MilestoneFile::find($file_id);
+
+        if (!$project) {
+            return redirect()->back()->with('error', __("Project does not exist."));
+        }
+
+        if (!$file) {
+            return redirect()->back()->with('error', __('File is not exist.'));
+        }
+
+        try {
+
+            $project_name = str_replace(' ', '_', $project->name);
+            $file_path = storage_path('app/public/milestones_files/' . $project_name . '/' . $file->file);
+
+            if (!file_exists($file_path)) {
+                return redirect()->back()->with('error', __("File does not exist. Path: $file_path"));
+            }
+
+            return response()->download($file_path, $file->name, [
+                'Content-Length: ' . filesize($file_path),
+            ]);
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', __("An error occurred while trying to download the file."));
+        }
+    }
+
     public function fileDownload($slug, $id, $file_id)
     {
-
         $project = Project::find($id);
-
         $file = ProjectFile::find($file_id);
         if ($file) {
-            // $file_path = storage_path('project_files/' . $file->file_path);
-            // $filename = $file->file_name;
 
-            // return \Response::download(
-            //     $file_path, $filename, [
-            //         'Content-Length: ' . filesize($file_path),
-            //     ]
-            // );
             $logo = Utility::get_file('project_files/');
-
+            $project_name = str_replace(' ', '_', $project->name);
             $settings = Utility::getAdminPaymentSettings();
             try {
                 if ($settings['storage_setting'] == 'local') {
-                    $file_path = storage_path('project_files/' . $file->file_path);
+                    $file_path = storage_path('project_files/' . $project_name . '/' . $file->file_path);
                 } else {
                     $file_path = $logo . $file->file_path;
                 }

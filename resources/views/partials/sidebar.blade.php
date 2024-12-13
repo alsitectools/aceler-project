@@ -45,14 +45,16 @@
     }
 @endphp
 <style>
-    .ajustarImg{
+    .ajustarImg {
         width: 270px;
     }
-    @media screen and (max-width:1200px) and (min-width:1100px){
-        .vistaPortatil{
+
+    @media screen and (max-width:1200px) and (min-width:1100px) {
+        .vistaPortatil {
             width: 18%;
         }
-        .ajustarImg{
+
+        .ajustarImg {
             width: 200px;
         }
     }
@@ -107,13 +109,17 @@
                     <li class="dash-item dash-hasmenu">
                         <a href="{{ route('clients.index', $currentWorkspace->slug) }}"
                             class="dash-link {{ Request::route()->getName() == 'clients.index' ? ' active' : '' }} "><span
-                                class="dash-micon"> <i class="fa-solid fa-user-tie"></i></span><span class="dash-mtext">
+                                class="dash-micon"> <img class="img-fluid"
+                                    src="{{ asset('assets/img/salesManager.png') }}" alt="logo" /> </span><span
+                                class="dash-mtext">
                                 {{ __('Sales manager') }}</span></a>
                     </li>
                     <li
                         class="dash-item {{ Request::route()->getName() == 'users.index' || Request::route()->getName() == 'users_logs.index' ? ' active' : '' }}">
                         <a href="{{ route('users.index', $currentWorkspace->slug) }}" class="dash-link ">
-                            <span class="dash-micon"> <i class="fa-solid fa-helmet-safety"></i></span>
+                            <span
+                            class="dash-micon"> <img class="img-fluid"
+                                src="{{ asset('assets/img/technicians.png') }}" alt="logo" /> </span>
                             <span class="dash-mtext">{{ __('Technicians') }}</span>
                         </a>
                     </li>

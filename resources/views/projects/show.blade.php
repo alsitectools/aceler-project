@@ -54,9 +54,10 @@
         border-radius: 50%;
     }
 
-    .buttonCenterText{
+    .buttonCenterText {
         padding-top: 7px !important;
     }
+
     @media (max-width: 1300px) {
         .header_breadcrumb {
             width: 100% !important;
@@ -67,11 +68,13 @@
             flex-wrap: wrap;
         }
     }
+
     @media screen and (max-width:1200px) and (min-width:1000px) {
-        .widthAdjustDiv{
+        .widthAdjustDiv {
             width: 99% !important;
         }
-        .widthAdjustMediumDiv{
+
+        .widthAdjustMediumDiv {
             width: 49%;
         }
     }
@@ -381,15 +384,13 @@
                                                         <div class="col-sm-auto mb-3 mb-sm-0">
                                                             <div class="d-flex align-items-center px-2">
                                                                 <a href="#" class=" text-start">
-                                                                <!-- <img class="theme-avtar"
-                                                                    @if (Auth::user()->avatar) 
-                                                                        src="{{ url('storage/app/public/' . Auth::user()->avatar) }}" 
+                                                                    <!-- <img class="theme-avtar"
+                                                                        @if (Auth::user()->avatar) src="{{ url('storage/app/public/' . Auth::user()->avatar) }}" 
                                                                     @else 
-                                                                        avatar="{{ Auth::user()->name }}" 
-                                                                    @endif
-                                                                    alt="{{ Auth::user()->name }}"></a> -->
+                                                                        avatar="{{ Auth::user()->name }}" @endif
+                                                                        alt="{{ Auth::user()->name }}"></a> -->
                                                                     <img class="fix_img"
-                                                                    @if ($user->avatar) src="{{ asset($logo . $user->avatar) }}" @else avatar="{{ $user->name }}" @endif>
+                                                                        @if ($user->avatar) src="{{ asset($logo . $user->avatar) }}" @else avatar="{{ $user->name }}" @endif>
                                                                 </a>
                                                                 <div class="px-2">
                                                                     <h5 class="m-0">{{ $user->name }}</h5>
@@ -467,13 +468,11 @@
                                                         <div class="col-sm-auto mb-3 mb-sm-0">
                                                             <div class="d-flex align-items-center px-2">
                                                                 <a href="#" class=" text-start">
-                                                                <!-- <img class="theme-avtar"
-                                                                    @if (Auth::user()->avatar) 
-                                                                        src="{{ url('storage/app/public/' . Auth::user()->avatar) }}" 
+                                                                    <!-- <img class="theme-avtar"
+                                                                        @if (Auth::user()->avatar) src="{{ url('storage/app/public/' . Auth::user()->avatar) }}" 
                                                                     @else 
-                                                                        avatar="{{ Auth::user()->name }}" 
-                                                                    @endif
-                                                                    alt="{{ Auth::user()->name }}"></a> -->
+                                                                        avatar="{{ Auth::user()->name }}" @endif
+                                                                        alt="{{ Auth::user()->name }}"></a> -->
                                                                     <img class="fix_img"
                                                                         @if ($client->avatar) src="{{ asset($logo . $client->avatar) }}" @else avatar="{{ $client->name }}" @endif>
                                                                 </a>
@@ -527,31 +526,24 @@
                     <div class="row">
                         <div class="col-md-4">
                             <div class="card">
-                                @if ($currentWorkspace->permission == 'Owner' || $currentWorkspace->permission == 'Member')
-                                    <div class="card-header">
-                                        <div class="d-flex justify-content-between align-items-center">
-                                            <div>
-                                                <h5 class="mb-0"> {{ __('Files') }}</h5>
-                                            </div>
+                                <div class="card-header">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <h5 class="mb-0"> {{ __('Files') }}</h5>
                                         </div>
                                     </div>
-                                    <div class="card-body p-3">
-                                        <div class="author-box-name form-control-label mb-4"></div>
+                                </div>
+                                <div class="card-body p-3">
+                                    <div class="author-box-name form-control-label mb-4"></div>
+                                    <div class="col-md-12 dropzone browse-file" id="dropzonewidget">
+                                        <div class="dz-message" data-dz-message>
+                                            <span>
+                                                {{ __('Drop files here to upload') }}
+                                            </span>
 
-                                        <div class="col-md-12 dropzone browse-file" id="dropzonewidget">
-                                            <div class="dz-message" data-dz-message>
-                                                <span>
-                                                    @if (Auth::user()->getGuard() == 'client')
-                                                        {{ __('No files available') }}
-                                                    @else
-                                                        {{ __('Drop files here to upload') }}
-                                                    @endif
-                                                </span>
-
-                                            </div>
                                         </div>
                                     </div>
-                                @endif
+                                </div>
                             </div>
                         </div>
                         <div class="col-md-4">
@@ -644,7 +636,6 @@
     <link rel="stylesheet" href="{{ asset('assets/custom/css/dropzone.min.css') }}">
 @endpush
 @push('scripts')
-    <!-- <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script> -->
     <script src="{{ asset('assets/js/plugins/apexcharts.min.js') }}"></script>
     <script>
         (function() {
@@ -741,7 +732,7 @@
             chart.render();
         })();
     </script>
-    <script src="{{ asset('assets/custom/libs/nicescroll/jquery.nicescroll.min.js')}} "></script>
+    <script src="{{ asset('assets/custom/libs/nicescroll/jquery.nicescroll.min.js') }} "></script>
     <script>
         $(document).ready(function() {
             if ($(".top-10-scroll").length) {

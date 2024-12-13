@@ -26,11 +26,19 @@ class Milestone extends Model
         return  round((strtotime($this->end_date) - strtotime(date('Y-m-d'))) /   24 / 60 / 60,);
     }
 
-    function tasks()
+    // function tasks()
+    // {
+    //     return Task::join('task_types', 'task_types.id', 'tasks.type_id')
+    //         ->where('tasks.milestone_id', $this->id)->pluck('task_types.name');
+    // }
+    public function tasks()
     {
-        return Task::join('task_types', 'task_types.id', 'tasks.type_id')
-            ->where('tasks.milestone_id', $this->id)->pluck('task_types.name');
+        return Task::join('task_types', 'task_types.id', '=', 'tasks.type_id')
+            ->where('tasks.milestone_id', $this->id)
+            ->select('tasks.*', 'task_types.name as task_name')
+            ->get();
     }
+
 
     public function salesManager()
     {
@@ -41,8 +49,7 @@ class Milestone extends Model
             ->first();
 
 
-
-        return $sales_manager ? $sales_manager->name : "Hola";
+        return $sales_manager ? $sales_manager : "Unknow";
     }
 
     public function milestone()
@@ -51,5 +58,10 @@ class Milestone extends Model
             ->where('milestone_id', $this->id)->first();
 
         return $milestone ? $milestone->title : null;
+    }
+    // Relación con los archivos
+    public function files()
+    {
+        return $this->hasMany(MilestoneFile::class);
     }
 }

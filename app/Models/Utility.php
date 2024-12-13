@@ -548,7 +548,7 @@ Utility
             'color' => 'theme-3',
             'company_email' => 'test@example.com',
             "storage_setting" => "local",
-            "local_storage_validation" => "jpg,jpeg,png,xlsx,xls,csv,pdf",
+            "local_storage_validation" => "jpg,jpeg,png,xlsx,xls,csv,pdf,txt,dwg,dxf,zip,docx",
             "local_storage_max_upload_size" => "2048000000",
             "s3_key" => "",
             "s3_secret" => "",
@@ -1387,7 +1387,7 @@ Utility
                         ]
                     );
 
-                    $max_size = !empty($settings['wasabi_max_upload_size']) ? $settings['wasabi_max_upload_size'] : '2048';
+                    $max_size = !empty($settings['wasabi_max_upload_size']) ? $settings['wasabi_max_upload_size'] : '5120';
                     $mimes = !empty($settings['wasabi_storage_validation']) ? $settings['wasabi_storage_validation'] : '';
                 } else if ($settings['storage_setting'] == 's3') {
                     config(
@@ -1399,17 +1399,15 @@ Utility
                             'filesystems.disks.s3.use_path_style_endpoint' => false,
                         ]
                     );
-                    $max_size = !empty($settings['s3_max_upload_size']) ? $settings['s3_max_upload_size'] : '2048';
+                    $max_size = !empty($settings['s3_max_upload_size']) ? $settings['s3_max_upload_size'] : '5120';
                     $mimes = !empty($settings['s3_storage_validation']) ? $settings['s3_storage_validation'] : '';
                 } else {
-                    $max_size = !empty($settings['local_storage_max_upload_size']) ? $settings['local_storage_max_upload_size'] : '2048';
+                    $max_size = !empty($settings['local_storage_max_upload_size']) ? $settings['local_storage_max_upload_size'] : '5120';
 
                     $mimes = !empty($settings['local_storage_validation']) ? $settings['local_storage_validation'] : '';
                 }
 
-
                 $file = $request->$key_name;
-
 
                 if (count($custom_validation) > 0) {
                     $validation = $custom_validation;

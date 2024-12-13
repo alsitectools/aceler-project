@@ -1,3 +1,6 @@
+<head>
+    <link rel="stylesheet" href="{{ asset('assets/css/milestone.css') }}">
+</head>
 @php
     $user = Auth::user();
     $actionUrl =
@@ -5,69 +8,6 @@
             ? route('projects.milestone.store', [$currentWorkspace->slug, 'PLACEHOLDER'])
             : route('projects.milestone.store', [$currentWorkspace->slug, $project->id]);
 @endphp
-<style>
-    .disabled {
-        color: black !important;
-        background-color: #6c757d !important;
-    }
-
-    .modal-dialog {
-        max-width: 60%;
-    }
-
-    #projects_list,
-    #ref_mo_list,
-    #clipo_list {
-        max-height: 245px;
-        overflow-y: auto;
-        position: absolute;
-        width: 95%;
-        -webkit-box-shadow: 0px 5px 5px -2px #bcbcbc;
-        box-shadow: -3px 4px 5px -2px #bcbcbc;
-
-    }
-
-    .stylelist:hover {
-        background-color: #aa182c;
-        font-weight: bold;
-        color: rgb(255, 255, 255);
-
-    }
-
-    .form-control:focus-visible {
-        outline: none;
-    }
-
-    .form-control:focus {
-        border-color: transparent !important;
-    }
-
-    #ref_mo_list::-webkit-scrollbar,
-    #clipo_list::-webkit-scrollbar {
-        width: 0;
-        background: transparent;
-    }
-
-
-    .accordion-light .accordion-item {
-        border-radius: 0.25rem !important;
-        background-color: #f8f9fa;
-        border: 1px solid #ced4da;
-    }
-
-    .accordion-light .accordion-button {
-        background-color: #f8f9fa;
-        color: #495057;
-        height: calc(1.5em + 0.75rem + 2px);
-        padding: 0.375rem 0.75rem;
-        line-height: 1.5;
-        border-radius: 0.25rem;
-    }
-
-    .accordion-light .accordion-button:not(.collapsed) {
-        box-shadow: none;
-    }
-</style>
 
 @if ($currentWorkspace)
     <div class="modal-body">
@@ -99,7 +39,7 @@
         <div class="tab-content mt-3" id="myTabContent">
             <!-- Milestone Form -->
             <div class="tab-pane fade show active" id="milestone" role="tabpanel" aria-labelledby="milestone-tab">
-                <form id="milestone-form" method="POST" action="{{ $actionUrl }}">
+                <form id="milestone-form" method="POST" action="{{ $actionUrl }}" enctype="multipart/form-data">
                     @csrf
                     <div class="row">
                         <div class="col-md-6">
@@ -198,10 +138,50 @@
                             </div>
                         </div>
                     </div>
-
-                    <div class="form-group">
-                        <label for="task-summary" class="col-form-label">{{ __('Description') }}</label>
-                        <textarea class="form-control form-control-light" id="task-summary" rows="10" name="summary"></textarea>
+                    <div class="col-md-12 mt-3">
+                        <ul class="nav nav-tabs" id="myTab" role="tablist">
+                            <!-- Tab para Description -->
+                            <li class="nav-item" role="presentation">
+                                <a class="nav-link active" id="description-tab" data-bs-toggle="tab"
+                                    href="#description" role="tab" aria-controls="description"
+                                    aria-selected="true">
+                                    {{ __('Description') }}
+                                </a>
+                            </li>
+                            <!-- Tab para Upload Files -->
+                            <li class="nav-item" role="presentation">
+                                <a class="nav-link" id="uploadfiles-tab" data-bs-toggle="tab" href="#uploadfiles"
+                                    role="tab" aria-controls="uploadfiles" aria-selected="false">
+                                    <i class="fa-solid fa-arrow-up-from-bracket me-2"></i>{{ __('Upload files') }}
+                                </a>
+                            </li>
+                        </ul>
+                        <div class="tab-content mt-3" id="myTabContent">
+                            <!-- Contenido del tab Description -->
+                            <div class="tab-pane fade show active" id="description" role="tabpanel"
+                                aria-labelledby="description-tab">
+                                <div class="form-group">
+                                    <textarea class="form-control mt-3" id="description-text" name="description" rows="5"
+                                        placeholder="{{ __('Enter description...') }}"></textarea>
+                                </div>
+                            </div>
+                            <div class="tab-pane fade" id="uploadfiles" role="tabpanel"
+                                aria-labelledby="uploadfiles-tab">
+                                <div class="form-group browser-file">
+                                    <input type="file" id="file-upload" multiple style="display: none;" />
+                                    <div id="file-list" class="mt-3">
+                                    </div>
+                                </div>
+                                <div class="text-start">
+                                    <button type="button" id="file-select-button" class="btn btn-primary">
+                                        <i class="fa-solid fa-paperclip"></i>
+                                        {{ __('Attach files') }}
+                                    </button>
+                                </div>
+                                <div id="hidden-file-inputs" style="display: none;">
+                                </div>
+                            </div>
+                        </div>
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-light"
@@ -234,7 +214,6 @@
                                 <input type="text" class="form-control" name="ref_mo" id="searchMo"
                                     placeholder="{{ __('Reference') }}">
                                 <div class="list-group" id="ref_mo_list"></div>
-
                             </div>
 
                             <div class="form-group col-md-6" id="clipo"
@@ -259,10 +238,7 @@
                     </div>
                 </form>
             </div>
-
         </div>
-
-    </div>
     </div>
 @else
     <div class="container mt-5">
@@ -290,7 +266,6 @@
         </div>
     </div>
 @endif
-
 <script>
     $(document).ready(function() {
         $('#toggleFormSwitch').change(function() {
@@ -304,7 +279,7 @@
 </script>
 <script>
     const projects = @json($projects);
-    const currentWorkspaceSlug = '{{ $currentWorkspace->slug }}'; // Asegúrate de que esta variable esté en el contexto
+    const currentWorkspaceSlug = '{{ $currentWorkspace->slug }}';
     const searchMoUrl = "{{ route('search-mo-json', '__slug') }}".replace('__slug', currentWorkspaceSlug);
     const searchClipoUrl = "{{ route('search-clipo-json', '__slug') }}".replace('__slug', currentWorkspaceSlug);
     const searchProjectsUrl = "{{ route('search-project-json', '__slug') }}".replace('__slug', currentWorkspaceSlug);
@@ -370,7 +345,6 @@
     });
 </script>
 
-
 <script>
     $(document).ready(function() {
         $('#project_id').on('change', function() {
@@ -384,4 +358,104 @@
             $('#milestone-form').attr('action', actionUrl);
         });
     });
+
+    const assetBasePath = '{{ asset('assets/iconFilesTypes') }}/';
+    let filesArray = [];
+
+    document.getElementById('file-select-button').addEventListener('click', function() {
+        document.getElementById('file-upload').click();
+    });
+
+    document.getElementById('file-upload').addEventListener('change', function(event) {
+        const newFiles = Array.from(event.target.files);
+
+        newFiles.forEach((file) => {
+            if (!filesArray.some((f) => f.name === file.name && f.size === file.size)) {
+                filesArray.push(file);
+            } else {
+                console.warn(`Archivo duplicado ignorado: ${file.name}`);
+            }
+        });
+
+        updateFileList();
+    });
+
+    function updateFileList() {
+        const fileListElement = document.getElementById('file-list');
+        const hiddenInputsContainer = document.getElementById('hidden-file-inputs');
+
+        fileListElement.innerHTML = '';
+        hiddenInputsContainer.innerHTML = '';
+
+        filesArray.forEach((file, index) => {
+            const fileContainer = document.createElement('div');
+            fileContainer.classList.add('file');
+
+            // Ícono de la extensión
+            const icon = document.createElement('img');
+            icon.src = getIconPath(file.name);
+            icon.alt = `${getExtension(file.name)} icon`;
+            icon.style.width = '20px';
+            icon.style.height = '25px';
+            fileContainer.appendChild(icon);
+
+            const fileNameContainer = document.createElement('div');
+            fileNameContainer.classList.add('file-name');
+            fileNameContainer.textContent = file.name;
+            fileContainer.appendChild(fileNameContainer);
+
+            const fileDetailsSmall = document.createElement('small');
+            fileDetailsSmall.classList.add('text-muted', 'ms-1');
+            fileDetailsSmall.innerHTML = ' · ' + `(${formatFileSize(file.size)})`;
+
+            const removeButton = document.createElement('button');
+            removeButton.classList.add('btn', 'btn-link', 'text-danger', 'p-0');
+            removeButton.innerHTML = '<i class="fa-solid fa-trash-alt"></i>';
+            removeButton.title = 'X';
+            removeButton.addEventListener('click', function() {
+                filesArray.splice(index, 1);
+                updateFileList();
+            });
+            fileNameContainer.appendChild(fileDetailsSmall);
+            fileContainer.appendChild(removeButton);
+
+            // Añadir a la lista visual
+            fileListElement.appendChild(fileContainer);
+
+            // Crear un input oculto para cada archivo
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.name = 'files[]';
+            input.style.display = 'none';
+
+            const dataTransfer = new DataTransfer();
+            dataTransfer.items.add(file);
+            input.files = dataTransfer.files;
+
+            // Agregar el input al contenedor oculto
+            hiddenInputsContainer.appendChild(input);
+        });
+    }
+
+    // Función para obtener la ruta del ícono basado en la extensión del archivo
+    function getIconPath(filename) {
+        const extension = getExtension(filename);
+        const iconPath = `${assetBasePath}${extension}.png`;
+        const defaultIcon = `${assetBasePath}default.png`;
+
+        const supportedExtensions = ['pdf', 'doc', 'jpg', 'png', 'xlsx', 'txt', 'dwg', 'dxf', 'img', 'docx', 'zip'];
+        return supportedExtensions.includes(extension) ? iconPath : defaultIcon;
+    }
+
+    // Función para obtener la extensión del archivo
+    function getExtension(filename) {
+        return filename.split('.').pop().toLowerCase();
+    }
+
+    // Función para formatear el tamaño del archivo (bytes a KB/MB)
+    function formatFileSize(bytes) {
+        if (bytes < 1024) return `${bytes} B`;
+        if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(2)} KB`;
+        return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
+    }
 </script>
