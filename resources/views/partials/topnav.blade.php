@@ -138,9 +138,7 @@
                     <li class="dash-h-item">
                         <a class="dash-head-link me-0" href="{{ url('chats') }}">
                             <i class="ti ti-message-circle"></i>
-                            <span
-                                class="bg-danger dash-h-badge message-counter custom_messanger_counter">{{ $unseenCounter }}<span
-                                    class="sr-only"></span>
+                            <span class="bg-danger dash-h-badge message-counter custom_messanger_counter">{{ $unseenCounter }}<span class="sr-only"></span>
                             </span></a>
                     </li>
                 @endif

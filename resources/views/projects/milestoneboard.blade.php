@@ -16,30 +16,36 @@
     <link rel="stylesheet" href="{{ asset('assets/css/milestoneboard.css') }}">
 </head>
 <style>
-    .modifiedWidth{
-            width: 99.9%;
+    .modifiedWidth {
+        width: 99.9%;
     }
-    .adjustImg{
+
+    .adjustImg {
         width: 40px;
     }
-    .calendarAlert{
+
+    .calendarAlert {
         font-size: 29px;
         padding-top: 12px !important;
         padding-bottom: 0px !important;
     }
-    .adjustTextCalendar{
-        padding-top: 10% !important; 
+
+    .adjustTextCalendar {
+        padding-top: 10% !important;
         font-size: 12px !important;
     }
+
     @media screen and(max-width:1200px) and(min-width:1000px) {
-        .adjustImg{
+        .adjustImg {
             width: 65%;
         }
-        .calendarAlert{
+
+        .calendarAlert {
             font-size: 25px !important;
             padding-top: 12px !important;
         }
-        .adjustTextCalendar{
+
+        .adjustTextCalendar {
             padding-top: 15%;
         }
     }
@@ -105,8 +111,9 @@
                                                     <div class="col-sm-2 pt-1 text-center">
                                                         <a href="#" class=" tooltipCus"
                                                             data-title="{{ $milestone['sales']->name }}">
-                                                            <i class="fa-solid fa-user-tie fa-xl"
-                                                                style="color: #0000009a; padding-top: 25%;"></i>
+                                                            <img class="img-fluid"
+                                                                src="{{ asset('assets/img/salesManager.png') }}"
+                                                                alt="logo" />
                                                         </a>
 
                                                     </div>
@@ -187,7 +194,6 @@
                                                                                     '"></i>';
                                                                     @endphp
                                                                     {!! $icon !!}{{ __($task['name']) }}
-
                                                                 </div>
                                                                 @if ($project_id != -1)
                                                                     <div class="tooltipCus col-sm-12 text-end"
@@ -247,8 +253,7 @@
                                                                         <i class="fa-solid fa-calendar-check fa-2xl m-1 calendarAlert"
                                                                             style="color: #53b446;"></i>
                                                                     @endif
-                                                                    <div class="text-center adjustTextCalendar"
-                                                                        >
+                                                                    <div class="text-center adjustTextCalendar">
                                                                         <b style="font-size: 12px">
                                                                             {{ \App\Models\Utility::dateFormat($milestone['end_date']) }}</b>
                                                                     </div>
