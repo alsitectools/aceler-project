@@ -194,7 +194,6 @@ $(document).ready(function () {
         return function (e) {
             e.preventDefault();
 
-
             // Verifica si el proyecto ya existe cuando el tipo es 'mo'
             if (type === 'mo') {
                 let existingProject = projects.find(project => project.ref_mo === item.ref_mo);
@@ -205,6 +204,9 @@ $(document).ready(function () {
                 }
                 refMoInput.val(item.ref_mo);
                 project_nameInput.val(item.name);
+
+                $('#projectId').val(item.name);
+                projectInput.val(item.name);
 
             } else if (type === 'clients') {
                 clientInput.val(item.name);
@@ -218,10 +220,11 @@ $(document).ready(function () {
                 $('#projectId').val(item.id);
                 projectInput.val(item.name);
                 if (!item.ref_mo) {
-                    milestoneMoInput.prop('disabled', true);
+                    refMoInput.prop('disabled', true);
+                    refMoInput.prop('required', false);
                 } else {
-                    milestoneMoInput.prop('disabled', false);
-                    milestoneMoInput.val(item.ref_mo).prop('readonly', true);
+                    refMoInput.prop('disabled', false);
+                    refMoInput.val(item.ref_mo).prop('readonly', true);
                 }
 
 

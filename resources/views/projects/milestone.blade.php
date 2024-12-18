@@ -5,7 +5,7 @@
     $user = Auth::user();
     $actionUrl =
         $project_id == -1
-            ? route('projects.milestone.store', [$currentWorkspace->slug, 'PLACEHOLDER'])
+            ? route('projects.milestone.store', [$currentWorkspace->slug, $project_id])
             : route('projects.milestone.store', [$currentWorkspace->slug, $project->id]);
 @endphp
 
@@ -51,21 +51,38 @@
                                             placeholder="{{ __('Name or reference M.O') }}">
                                         <input id="projectId" name="project_id" style="display: none">
                                         <div class="list-group" id="projects_list"></div>
-
                                     </div>
                                 @else
+                                    <label class="col-form-label">{{ __('Project') }}</label>
                                     <input class="form-control" type="text" value="{{ $project->name }}" disabled>
                                     <input class="form-control" type="text" id="project_id" name="project_id"
                                         value="{{ $project->id }}" autocomplete="off" style="display: none;">
                                 @endif
                             </div>
                         </div>
+
                         <div class="col-md-6">
-                            <div class="form-group">
-                                <label class="col-form-label">{{ __('MO') }}</label>
-                                <input type="text" class="form-control form-control-light" id="milestone_mo"
-                                    placeholder="{{ __('MO') }}" name="ref_mo" required>
+                            <div class="form-group" id="ref_mo">
+                                @if (isset($project_id) && $project_id == -1)
+                                    <label class="col-form-label">{{ __('MO') }}</label>
+                                    <input type="text" class="form-control form-control-light" {{-- id="milestone_mo" --}}
+                                        placeholder="{{ __('MO') }}" id="searchMo" name="ref_mo" required>
+                                    <div class="list-group" id="ref_mo_list"></div>
+                                @else
+                                    <label class="col-form-label">{{ __('MO') }}</label>
+                                    <input type="text" class="form-control form-control-light"
+                                        placeholder="{{ __('MO') }}" value="{{ $project->ref_mo }}" disabled>
+
+                                    <input type="text" class="form-control form-control-light" id="milestone_mo"
+                                        placeholder="{{ __('MO') }}" name="ref_mo"
+                                        value="{{ $project->ref_mo }}" style="display: none;">
+                                @endif
                             </div>
+                        </div>
+                        <div class="col-md-12">
+                            <p class="text-muted">
+                                {{ __('If the project with MO reference exists in the database, it will be created automatically. Otherwise, it will be requested later.') }}
+                            </p>
                         </div>
                         <div class="col-md-6">
                             <div class="form-group">
@@ -75,12 +92,10 @@
                             </div>
                         </div>
                         <div class="col-md-6" id="sales_manager">
-                            <label class="col-form-label">{{ __('Search Sales Manager') }}</label>
+                            <label class="col-form-label">{{ __('Requested by') }}</label>
                             <input type="text" class="form-control" name="sales_manager" id="searchSalesManager"
-                                placeholder="{{ __('Name of Sales Manager') }}"
-                                value="{{ Auth::user()->type == 'client' ? Auth::user()->name : '' }}">
+                                placeholder="{{ __('Name of Sales Manager') }}" value="{{ Auth::user()->name }}">
                             <div class="list-group" id="sales_manager_list"></div>
-
                         </div>
                     </div>
                     <div class="form-check form-switch mb-3">
@@ -277,16 +292,18 @@
         });
     });
 </script>
-<script>
-    const projects = @json($projects);
-    const currentWorkspaceSlug = '{{ $currentWorkspace->slug }}';
-    const searchMoUrl = "{{ route('search-mo-json', '__slug') }}".replace('__slug', currentWorkspaceSlug);
-    const searchClipoUrl = "{{ route('search-clipo-json', '__slug') }}".replace('__slug', currentWorkspaceSlug);
-    const searchProjectsUrl = "{{ route('search-project-json', '__slug') }}".replace('__slug', currentWorkspaceSlug);
-    const searchSalesManagerUrl = "{{ route('search-sales-json', '__slug') }}".replace('__slug', currentWorkspaceSlug);
-</script>
+@if (isset($projects))
+    <script>
+        const projects = @json($projects);
+        const currentWorkspaceSlug = '{{ $currentWorkspace->slug }}';
+        const searchMoUrl = "{{ route('search-mo-json', '__slug') }}".replace('__slug', currentWorkspaceSlug);
+        const searchClipoUrl = "{{ route('search-clipo-json', '__slug') }}".replace('__slug', currentWorkspaceSlug);
+        const searchProjectsUrl = "{{ route('search-project-json', '__slug') }}".replace('__slug', currentWorkspaceSlug);
+        const searchSalesManagerUrl = "{{ route('search-sales-json', '__slug') }}".replace('__slug', currentWorkspaceSlug);
+    </script>
+    <script src="{{ asset('assets/js/create_project.js') }}"></script>
+@endif
 
-<script src="{{ asset('assets/js/create_project.js') }}"></script>
 <script>
     $(document).ready(function() {
 

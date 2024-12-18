@@ -4,9 +4,6 @@
     $logo = \App\Models\Utility::get_file('avatars/');
     $logo_tasks = \App\Models\Utility::get_file('tasks/');
     use App\Models\User;
-    use App\Models\Milestone;
-    use App\Models\Task;
-
 @endphp
 @section('page-title')
     {{ __('Milestoneboard') }}

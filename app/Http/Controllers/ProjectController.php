@@ -69,18 +69,6 @@ class ProjectController extends Controller
         return view('projects.index', compact('currentWorkspace', 'projects', 'project_type'));
     }
 
-    // public function search(Request $request)
-    // {
-    //     $query = $request->input('query');
-
-    //     // Buscar proyectos basados en el término de búsqueda
-    //     $projects = Project::where('name', 'LIKE', "%$query%")
-    //         ->orWhere('ref_mo', 'LIKE', "%$query%") // Incluye búsqueda por 'reference_mo'
-    //         ->get();
-
-    //     return redirect()->back()->with('projects', $projects)->with('query', $query);
-    // }
-
     public function autocomplete(Request $request)
     {
         $query = $request->input('query');
@@ -131,7 +119,6 @@ class ProjectController extends Controller
     {
         $getReload = $request->get('isReload', false);
 
-        // Obtiene el usuario autenticado y el espacio de trabajo actual
         $objUser = Auth::user();
         $currentWorkspace = Utility::getWorkspaceBySlug($slug);
 
@@ -146,11 +133,18 @@ class ProjectController extends Controller
         // Configuración de pago del administrador
         $setting = Utility::getAdminPaymentSettings();
 
+        $potentialClient = is_numeric($request->clipo)
+            ? PotentialClient::find($request->clipo)
+            : null;
+
+        $clipo = $potentialClient ? $potentialClient->name : $request->clipo;
+
+
         // Datos del proyecto a crear
         $post = $request->all();
         $post['ref_mo'] = $request->ref_mo;
         $post['type'] = $request->project_type;
-        $post['clipo'] = $request->clipo;
+        $post['clipo'] = $clipo;
         $post['start_date'] = $post['end_date'] = date('Y-m-d');
         $post['workspace'] = $currentWorkspace->id;
         $post['created_by'] = $objUser->id;
@@ -197,9 +191,9 @@ class ProjectController extends Controller
             Utility::send_slack_msg('New Project', $currentWorkspace->id, $uArr);
         }
 
-        // Respuesta JSON si getReload está activado, de lo contrario redirige
         if ($getReload) {
-            return response()->json(['success' => true, 'message' => 'Project created successfully.']);
+
+            return response()->json(['success' => true, 'message' => 'Project created successfully.', 'project_id' => $objProject]);
         } else {
             return redirect()->route('projects.index', $currentWorkspace->slug)
                 ->with('success', __('Project Created Successfully!'));
@@ -756,7 +750,7 @@ class ProjectController extends Controller
 
             // Obtener milestones creadas o asignadas al usuario
             $allmilestones = Milestone::where(function ($query) use ($objUser) {
-                $query->where('assign_to', $objUser->id); // Milestones creadas por el usuario
+                $query->where('assign_to', $objUser->id);
             })->get();
 
             $milestones = $groupMilestonesByStatus($allmilestones, $objUser);
@@ -1326,16 +1320,6 @@ class ProjectController extends Controller
 
     public function getClientJson($slug, $search = null)
     {
-        // $query = PotentialClient::query()->select(['potential_customer_id', 'name']);
-
-        // if ($search) {
-        //     $query->where(function ($query) use ($search) {
-        //         $query->where('potential_customer_id', 'LIKE', "%" . $search . "%")
-        //             ->orWhere('name', 'LIKE', "%" . $search . "%");
-        //     });
-        // }
-
-        // $objclient = $query->paginate(25);
 
         $query = PotentialClient::query()->select(['potential_customer_id', 'name']);
         if ($search) {
@@ -1396,6 +1380,7 @@ class ProjectController extends Controller
     public function milestone($slug, $projectID)
     {
         $currentWorkspace = Utility::getWorkspaceBySlug($slug);
+        $project_type = ProjectType::select('id', 'name')->get();
 
         if ($projectID == -1) {
             $project_id = -1;
@@ -1404,25 +1389,53 @@ class ProjectController extends Controller
                 ->where('projects.status', '!=', 'Finished')
                 ->get();
 
-            $project_type = ProjectType::select('id', 'name')->get();
-
             return view('projects.milestone', compact('currentWorkspace', 'projects', 'project_id', 'project_type'));
         } else {
-
             $project_id = $projectID;
             $project = Project::find($projectID);
-
-            return view('projects.milestone', compact('currentWorkspace', 'project', 'project_id'));
+            return view('projects.milestone', compact('currentWorkspace', 'project', 'project_id', 'project_type'));
         }
     }
 
     /**
-     * Ruta relativa de donde se guardan los ficheros de los Encargos storage/app/public/milestones
+     * Ruta relativa de donde se guardan los ficheros de los Encargos storage/app/public/milestones_files en local y storage/milestones_files en el servidor
      */
     public function milestoneStore($slug, $projectID, Request $request)
     {
+
+        if (is_numeric($request->project_id)) {
+            $project = Project::find($request->project_id);
+
+            if (!$project) {
+                return response()->json(['error' => 'Proyecto no encontrado'], 404);
+            }
+        } else {
+            $clipoId = ClientsMo::where('ref_mo', $request->ref_mo)->value('potential_customer_id') ?? '';
+
+            $newRequest = Request::create('/fake-url', 'POST', [
+                'name' => $request->project_id,
+                'ref_mo' => $request->ref_mo,
+                'isReload' => true,
+                'project_type' => 1,
+                'clipo' => $clipoId,
+                'created_by' => Auth::user()->id,
+                'start_date' => now()->format('Y-m-d'),
+            ]);
+
+            try {
+                $response = $this->store($slug, $newRequest);
+                $data = $response->getOriginalContent();
+
+                if (isset($data['project_id'])) {
+                    $project = $data['project_id'] ?? null;
+                }
+            } catch (\Exception $e) {
+                return response()->json(['error' => 'Error al crear el proyecto'], 500);
+            }
+        }
+
+
         $currentWorkspace = Utility::getWorkspaceBySlug($slug);
-        $project = Project::find($request->project_id);
 
         // Validación de los campos requeridos
         $rules = [
@@ -1456,21 +1469,18 @@ class ProjectController extends Controller
 
         if ($request->hasFile('files')) {
 
+            $projectFolder = preg_replace('/[^A-Za-z0-9_\-]/', '_', $project->name);
+            $baseDir = 'milestones_files';
+            if (!Storage::exists($baseDir)) {
+                Storage::makeDirectory($baseDir);
+            }
+
             $projectFolder = str_replace(' ', '_', $project->name);
-            $dir = 'milestones_files/' . $projectFolder;
+            $dir = $baseDir . '/' . $projectFolder;
 
             if (!Storage::exists($dir)) {
                 Storage::makeDirectory($dir);
-
-                // Establecer permisos (0777: lectura, escritura y ejecución para todos)
-                $path = storage_path("app/$dir");
-
-                // Verifica si el directorio fue creado correctamente antes de cambiar permisos
-                if (\File::exists($path)) {
-                    chmod($path, 0777);
-                }
             }
-
 
             foreach ($request->file('files') as $file) {
                 if ($file->isValid()) {
@@ -1531,40 +1541,44 @@ class ProjectController extends Controller
 
         return view('projects.milestoneEdit', compact('currentWorkspace', 'milestone'));
     }
-
     public function milestoneDestroyFile(Request $request, $slug, $milestoneID, $fileID, $projectID)
     {
-
         try {
             $milestoneFile = MilestoneFile::find($fileID);
 
             if (!$milestoneFile) {
-                return response()->json("false", 400);
+                return response()->json(['success' => false, 'error' => 'El archivo no existe.'], 404);
             }
 
             $project = Project::find($projectID);
             if (!$project) {
-                return response()->json("false", 400);
+                return response()->json(['success' => false, 'error' => 'El proyecto no existe.'], 404);
             }
 
             $projectName = str_replace(' ', '_', $project->name);
-            $filePath = storage_path('app/public/milestones_files/' . $projectName . '/' . $milestoneFile->file);
+
+            // Servidor
+            $filePath = storage_path('milestones_files/' . $projectName . '/' . $milestoneFile->file);
+
+            // Local
+            // $filePath = storage_path('app/public/milestones_files/' . $projectName . '/' . $milestoneFile->file);
 
             if (file_exists($filePath)) {
-                if (unlink($filePath)) {
-                } else {
-                    \Log::error('No se pudo eliminar el archivo', ['filePath' => $filePath]);
+                chmod($filePath, 0777);
+
+                if (\File::delete($filePath)) {
+
+                    \Log::info('Archivo eliminado correctamente', ['filePath' => $filePath]);
+                    $milestoneFile->delete();
                 }
             } else {
                 \Log::warning('El archivo no existe en el sistema de archivos', ['filePath' => $filePath]);
             }
 
-            $milestoneFile->delete();
-
-            return response()->json("true", 200);
+            return response()->json(['success' => true, 'message' => 'Archivo eliminado correctamente.'], 200);
         } catch (\Exception $e) {
-
-            return response()->json("false", 500);
+            \Log::error('Error en la función milestoneDestroyFile', ['exception' => $e->getMessage()]);
+            return response()->json(['success' => false, 'error' => $e->getMessage()], 500);
         }
     }
 
@@ -1582,8 +1596,6 @@ class ProjectController extends Controller
 
         $milestone = Milestone::find($milestoneID);
 
-        $milestone->status = 1;
-        $milestone->order = 1;
         $milestone->summary = $request->summary;
         $milestone->end_date = $request->end_date;
         $milestone->save();
@@ -1593,22 +1605,20 @@ class ProjectController extends Controller
         if ($request->hasFile('new_files')) {
 
             $projectFolder = str_replace(' ', '_', $project->name);
+            // url local
+            // $dir = '/app/public/milestones_files/' . $projectFolder;
+
             $dir = 'milestones_files/' . $projectFolder;
 
-            // Verifica si el directorio no existe y luego lo crea
             if (!Storage::exists($dir)) {
-                // Crear directorio
                 Storage::makeDirectory($dir);
 
-                // Establecer permisos (0777: lectura, escritura y ejecución para todos)
                 $path = storage_path("app/$dir");
 
-                // Verifica si el directorio fue creado correctamente antes de cambiar permisos
-                if (File::exists($path)) {
-                    chmod($path, 0777); // Establecer permisos completos para todos
+                if (\File::exists($path)) {
+                    chmod($path, 0777);
                 }
             }
-
 
             foreach ($request->file('new_files') as $file) {
                 if ($file->isValid()) {
@@ -1801,9 +1811,14 @@ class ProjectController extends Controller
         }
 
         try {
-
             $project_name = str_replace(' ', '_', $project->name);
-            $file_path = storage_path('app/public/milestones_files/' . $project_name . '/' . $file->file);
+
+            // Servidor
+            $file_path = storage_path('milestones_files/' . $project_name . '/' . $file->file);
+
+            // Local
+            // $file_path = storage_path('app/public/milestones_files/' . $project_name . '/' . $file->file);
+
 
             if (!file_exists($file_path)) {
                 return redirect()->back()->with('error', __("File does not exist. Path: $file_path"));
