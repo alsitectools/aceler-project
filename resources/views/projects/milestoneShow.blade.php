@@ -43,14 +43,14 @@
                                         : 'assets/iconFilesTypes/default.png';
                                 @endphp
 
-                                <div class="file d-flex me-3 mb-2">
+                                <div class="file me-1">
                                     <div class="row">
-                                        <div class="col-2">
-                                            <img class="mt-2" src="{{ asset($iconPath) }}"
+                                        <div class="col-1">
+                                            <img class="mt-1" src="{{ asset($iconPath) }}"
                                                 alt="{{ $extension }} icon" style="width: 20px; height: 25px;" />
                                         </div>
-                                        <div class="col-10 file-name">
-                                            <span>{{ $file->name }}</span>
+                                        <div class="col-10">
+                                            <span class="file-name ms-1">{{ $file->name }}</span>
                                             <br />
                                             <small class="text-muted">
                                                 ({{ $file->file_size }})
@@ -119,38 +119,22 @@
 </div>
 <script>
     $(document).ready(function() {
-        // Aseguramos que los elementos existen
         const toggleButton = $('#toggleTasks');
         const taskListContainer = $('#taskListContainer');
         const toggleIcon = $('#toggleIcon');
 
-        // Verificamos si los elementos están correctamente seleccionados
-        console.log("Botón Toggle:", toggleButton);
-        console.log("Contenedor de tareas:", taskListContainer);
-        console.log("Icono Toggle:", toggleIcon);
-
-        // Verificamos si el botón de tareas está haciendo clic correctamente
         toggleButton.on('click', function(event) {
-            event.preventDefault(); // Prevenimos que el enlace recargue la página
+            event.preventDefault();
 
-            // Mostramos en consola para saber si el clic fue detectado
-            console.log("Clic en el enlace Tareas detectado.");
-
-            // Cambiamos la visibilidad de las tareas
             if (taskListContainer.is(':visible')) {
-                console.log("Ocultando las tareas");
-                taskListContainer.hide(); // Ocultamos el contenedor de las tareas
+                taskListContainer.hide();
                 toggleIcon.removeClass('fa-chevron-up').addClass(
-                    'fa-chevron-down'); // Cambiamos el icono
+                    'fa-chevron-down');
             } else {
-                console.log("Mostrando las tareas");
-                taskListContainer.show(); // Mostramos el contenedor de las tareas
+                taskListContainer.show();
                 toggleIcon.removeClass('fa-chevron-down').addClass(
-                    'fa-chevron-up'); // Cambiamos el icono
+                    'fa-chevron-up');
             }
-
-            // Verificamos el estado final
-            console.log("Estado final de las tareas (visible):", taskListContainer.is(':visible'));
         });
     });
 </script>

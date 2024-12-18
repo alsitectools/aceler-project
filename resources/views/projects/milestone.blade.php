@@ -230,7 +230,6 @@
                                     placeholder="{{ __('Reference') }}">
                                 <div class="list-group" id="ref_mo_list"></div>
                             </div>
-
                             <div class="form-group col-md-6" id="clipo"
                                 style="display: none; position: relative">
                                 <label for="clipo" class="col-form-label">{{ __('Search client') }}</label>
@@ -238,7 +237,6 @@
                                     placeholder="{{ __('Clipo') }}">
                                 <div class="list-group" id="clipo_list"></div>
                             </div>
-
                             <div class="form-group col-md-12">
                                 <label for="projectname" class="col-form-label">{{ __('Name') }}</label>
                                 <input class="form-control" type="text" id="projectname" name="name" required
@@ -427,7 +425,7 @@
 
             const removeButton = document.createElement('button');
             removeButton.classList.add('btn', 'btn-link', 'text-danger', 'p-0');
-            removeButton.innerHTML = '<i class="fa-solid fa-trash-alt"></i>';
+            removeButton.innerHTML = '<i class="fa-solid fa-trash-alt ms-1"></i>';
             removeButton.title = 'X';
             removeButton.addEventListener('click', function() {
                 filesArray.splice(index, 1);

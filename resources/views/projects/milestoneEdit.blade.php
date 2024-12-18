@@ -2,7 +2,6 @@
     <link rel="stylesheet" href="{{ asset('assets/css/milestone.css') }}">
     <script src="{{ asset('assets/js/milestone_uploadfiles.js') }}" defer></script>
 </head>
-
 @if ($milestone && $currentWorkspace)
     <form method="post" action="{{ route('projects.milestone.update', [$currentWorkspace->slug, $milestone->id]) }}"
         enctype="multipart/form-data">
@@ -38,29 +37,30 @@
             <!-- Archivos adjuntos existentes -->
             <div class="form-group col-md-12">
                 <label class="col-form-label">{{ __('Attached files') }}</label>
-                <div id="file-list">
-                    @foreach ($milestone->files as $file)
-                        @php
-                            $extension = pathinfo($file->name, PATHINFO_EXTENSION);
-                            $iconPath = file_exists(public_path('assets/iconFilesTypes/' . $extension . '.png'))
-                                ? 'assets/iconFilesTypes/' . $extension . '.png'
-                                : 'assets/iconFilesTypes/default.png';
-                        @endphp
-                        <div class="file exist d-flex align-items-center mt-2" data-file-id="{{ $file->id }}">
-                            <img src="{{ asset($iconPath) }}" alt="{{ $extension }} icon"
-                                style="width: 20px; height: 25px;">
-                            <div class="file-name ms-2">{{ $file->name }} <small
-                                    class="text-muted">({{ $file->file_size }})</small></div>
-                            <button class="btn btn-danger btn-sm ms-2 btn-delete-file"
-                                data-url="{{ route('milestone.destroy.file', [$currentWorkspace->slug, $milestone->id, $file->id, $milestone->project_id]) }}">
-                                <i class="fa-solid fa-trash-alt"></i>
-                            </button>
-                        </div>
-                    @endforeach
+                <div class="form-group browser-file">
+                    <div id="file-list">
+                        @foreach ($milestone->files as $file)
+                            @php
+                                $extension = pathinfo($file->name, PATHINFO_EXTENSION);
+                                $iconPath = file_exists(public_path('assets/iconFilesTypes/' . $extension . '.png'))
+                                    ? 'assets/iconFilesTypes/' . $extension . '.png'
+                                    : 'assets/iconFilesTypes/default.png';
+                            @endphp
+                            <div class="file exist d-flex align-items-center mt-2" data-file-id="{{ $file->id }}">
+                                <img src="{{ asset($iconPath) }}" alt="{{ $extension }} icon"
+                                    style="width: 20px; height: 25px;">
+                                <div class="file-name ms-2">{{ $file->name }} <small
+                                        class="text-muted">({{ $file->file_size }})</small></div>
+                                <button class="btn btn-danger btn-sm ms-2 btn-delete-file"
+                                    data-url="{{ route('milestone.destroy.file', [$currentWorkspace->slug, $milestone->id, $file->id, $milestone->project_id]) }}">
+                                    <i class="fa-solid fa-trash-alt"></i>
+                                </button>
+                            </div>
+                        @endforeach
+                    </div>
                 </div>
                 <div id="hidden-file-inputs" style="display: none;"></div>
             </div>
-
             <!-- Selección de nuevos archivos -->
             <div class="form-group col-md-12 text-start">
                 <input type="file" id="file-upload" class="form-control" multiple style="display: none;">
@@ -69,7 +69,6 @@
                 </label>
             </div>
         </div>
-
         <div class="modal-footer">
             <button type="button" class="btn btn-light" data-bs-dismiss="modal">{{ __('Close') }}</button>
             <input type="submit" value="{{ __('Save Changes') }}" class="btn btn-primary">
