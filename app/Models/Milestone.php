@@ -39,6 +39,26 @@ class Milestone extends Model
             ->get();
     }
 
+    public function taskStart()
+    {
+        $firstTask = Timesheet::join('tasks', 'tasks.id', '=', 'timesheets.task_id')
+            ->where('tasks.milestone_id', '=', $this->id)
+            ->where('time', '!=', '00:00:00')
+            ->orderBy('date', 'asc')
+            ->first();
+
+        return $firstTask ? $firstTask->date : '';
+    }
+    public function taskEnd()
+    {
+        $lastUpdate = Timesheet::join('tasks', 'tasks.id', '=', 'timesheets.task_id')
+            ->where('tasks.milestone_id', '=', $this->id)
+            ->where('time', '!=', '00:00:00')
+            ->orderBy('date', 'desc')
+            ->first();
+
+        return $lastUpdate ? $lastUpdate->date : '';
+    }
 
     public function salesManager()
     {

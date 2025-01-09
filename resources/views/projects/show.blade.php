@@ -58,6 +58,14 @@
         padding-top: 7px !important;
     }
 
+    .min-h {
+        min-height: 180px;
+    }
+
+    .min-end {
+        min-height: 300px;
+    }
+
     @media (max-width: 1300px) {
         .header_breadcrumb {
             width: 100% !important;
@@ -87,40 +95,27 @@
             <div class="row">
                 <div class="col-xxl-12">
                     <div class="card bg-primary widthAdjustDiv">
-                        <div class="card-body">
-                            <div class="d-block d-sm-flex align-items-center">
-                                <div class="col-sm-3">
-                                    <h3 class="text-white"> {{ $project->name }}</h3>
-                                </div>
-                                <div style="font-size: 12px;"
-                                    class="col-sm-9 d-flex align-items-center align-items-end row1 text-white text-center">
-                                    <div class="col-2" data-toggle="tooltip" data-placement="top"
-                                        title="{{ __('dictionary.Company') }}">
-                                        <i class="fa-regular fa-building fa-xl" style="margin: 5px;"></i>
-                                        {{ $currentWorkspace->name }}
+                        <div class="card-body pb-2">
+                            <div>
+                                <h3 class="text-white pb-3"> {{ $project->name }}</h3>
+                            </div>
+                            <div class="d-block d-sm-flex">
+                                <div style="font-size: 14px;" class="col-sm-12 d-flex  align-items-center row1 text-white">
+                                    <div class="col-3" data-toggle="tooltip" data-placement="top"
+                                        title="{{ __('Company') }}">
+                                        <i class="fa-regular fa-building fa-xl me-2"></i>
+                                        {{ $currentWorkspace->country }}
                                     </div>
                                     <div class="col-3" data-toggle="tooltip" data-placement="top"
-                                        title="{{ __('dictionary.Branch') }}">
-                                        <i class="fa-solid fa-location-dot fa-xl" style="margin: 5px;"></i>
-                                        {{ 'Montacada i Reixach' }}
+                                        title="{{ __('Branch') }}">
+                                        <i class="fa-solid fa-location-dot fa-xl me-2"></i>
+                                        {{ $currentWorkspace->name }}
                                     </div>
-                                    @if ($project->ref_mo != null)
-                                        <div class="col-2 text-white m-0 p-0">
-                                            <img class="img-fluid" src="{{ asset('assets/img/moicon.png') }}"
-                                                alt="logo" style="width: 45px; height: 45px;" />
-                                            {{ $project->ref_mo }}
-                                        </div>
-                                    @endif
-                                    <div class="col-2">
-                                        <i class="fa-solid fa-calendar-check fa-xl text-white" style="margin: 5px;"></i>
-                                        {{ App\Models\Utility::dateFormat($project->start_date) }}
-                                    </div>
-                                    <div class="col-1 d-inline">
-                                        <i class="fa-solid fa-users fa-xl" style="margin: 5px;"></i>
+                                    <div class="col-3 d-inline">
+                                        <i class="fas fa-users fa-xl me-2"></i>
                                         {{ (int) $project->technicians->count() + (int) $project->salesManager->count() }}
                                     </div>
-                                    <div
-                                        class="justify-content-center align-items-center align-content-center pr-0 mr-0 col-2">
+                                    <div class="col-3">
                                         @if ($project->status == 'Finished')
                                             <div class="badge bg-success rounded"> {{ __('Finished') }}
                                             </div>
@@ -190,8 +185,9 @@
                                             <i class="fas fas fa-calendar-day"></i>
                                         </div>
                                         <div class="col text-end">
-                                            <h6 class="text-muted mb-1">{{ __('Days left') }}</h6>
-                                            <span class="h6 font-weight-bold mb-0 ">{{ $daysleft }}</span>
+                                            <h6 class="text-muted mb-1">{{ __('Created date') }}</h6>
+                                            <span
+                                                class="h6 font-weight-bold mb-0 ">{{ App\Models\Utility::dateFormat($project->start_date) }}</span>
                                         </div>
                                     </div>
                                 </div>
@@ -217,13 +213,31 @@
                                 <div class="card-body">
                                     <div class="row">
                                         <div class="theme-avtar" style="background-color: #B197FC;">
-                                            <i class="fa-solid fa-file-lines fa-xl text-white"
+                                            <i class="fa-solid fa-file-lines fa-lg text-white"
                                                 style="color: #B197FC;"></i>
                                         </div>
                                         <div class="col text-end">
                                             <h6 class="text-muted mb-1">{{ __('Milestones') }}</h6>
                                             <span
                                                 class="h6 font-weight-bold mb-0 ">{{ $project->milestonescount() }}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-3 col-sm-6">
+                            <div class="card">
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="theme-avtar bg-success">
+                                            <i class="fa-solid fa-diagram-project bg-success text-white"></i>
+                                        </div>
+                                        <div class="col text-end">
+                                            <h6 class="text-muted mb-1">
+                                                {{ $project->type != 1 ? __('Project type') : __('MO') }}</h6>
+                                            <span
+                                                class="h6 font-weight-bold mb-0 ">{{ $project->ref_mo != '' ? $project->ref_mo : __($project->typeName()) }}
+                                            </span>
                                         </div>
                                     </div>
                                 </div>
@@ -240,13 +254,11 @@
                                             </h5>
                                         </div>
                                         <div class="float-end">
-                                            {{-- @if ($objUser->type == 'client' || $currentWorkspace->permission == 'Owner') --}}
                                             <a href="#" class="btn btn-sm btn-primary" data-ajax-popup="true"
                                                 data-title="{{ __('Milestone order') }}"
                                                 data-url="{{ route('projects.milestone', [$currentWorkspace->slug, $project->id]) }}"
                                                 data-toggle="popover" title="{{ __('Create') }}"><i
                                                     class="ti ti-plus"></i></a>
-                                            {{-- @endif --}}
                                         </div>
                                     </div>
                                 </div>
@@ -256,11 +268,10 @@
                                             <thead>
                                                 <tr>
                                                     <th>{{ __('Name') }}</th>
-                                                    <th>{{ trans('messages.Status') }}</th>
-                                                    <th>{{ __('messages.Created_date') }}</th>
-                                                    <th>{{ __('messages.Desired_delivery_date') }}</th>
-                                                    <th>{{ __('Fecha de inicio') }}</th>
-                                                    <th>{{ __('Fecha final') }}</th>
+                                                    <th>{{ __('Created date') }}</th>
+                                                    <th>{{ __('Desired delivery date') }}</th>
+                                                    <th>{{ __('Task started') }}</th>
+                                                    <th>{{ __('Last update') }}</th>
                                                     @if ($objUser->type == 'client' || $currentWorkspace->permission == 'Owner')
                                                         <th>{{ __('Action') }}</th>
                                                     @endif
@@ -274,23 +285,15 @@
                                                                 data-title="{{ __('Milestone Details') }}"
                                                                 data-url="{{ route('projects.milestone.show', [$currentWorkspace->slug, $milestone->id]) }}">
                                                                 <h5 class="m-0"> {{ $milestone->title }} </h5>
-                                                            </a></td>
-                                                        <td>
-                                                            @if ($milestone->status == 'complete')
-                                                                <label
-                                                                    class="badge bg-success p-2 px-3 rounded">{{ __('Complete') }}</label>
-                                                            @else
-                                                                <label
-                                                                    class="badge bg-warning p-2 px-3 rounded">{{ __('Incomplete') }}</label>
-                                                            @endif
+                                                            </a>
                                                         </td>
                                                         <td>{{ $milestone->start_date }}</td>
                                                         <td>{{ $milestone->end_date }}</td>
-                                                        <td></td>
-                                                        <td></td>
+                                                        <td>{{ $milestone->taskStart() }}</td>
+                                                        <td>{{ $milestone->taskEnd() }}</td>
                                                         <td class="text-right">
                                                             <div class="col-auto">
-                                                                @if ($objUser->type == 'client' || $currentWorkspace->permission == 'Owner')
+                                                                @if ($milestone->assign_to == $objUser->id)
                                                                     <a href="#"
                                                                         class="action-btn btn-info mx-1  btn btn-sm d-inline-flex align-items-center"
                                                                         data-ajax-popup="true" data-size="lg"
@@ -298,20 +301,7 @@
                                                                         data-title="{{ __('Edit Milestone') }}"
                                                                         data-url="{{ route('projects.milestone.edit', [$currentWorkspace->slug, $milestone->id]) }}"><i
                                                                             class="ti ti-edit"></i></a>
-                                                                    <a href="#"
-                                                                        class="action-btn btn-danger mx-1  btn btn-sm d-inline-flex align-items-center bs-pass-para"
-                                                                        data-confirm="{{ __('Are You Sure?') }}"
-                                                                        data-toggle="popover" title="{{ __('Delete') }}"
-                                                                        data-text="{{ __('This action can not be undone. Do you want to continue?') }}"
-                                                                        data-confirm-yes="delete-form1-{{ $milestone->id }}"><i
-                                                                            class="ti ti-trash"></i></a>
-                                                                    <form id="delete-form1-{{ $milestone->id }}"
-                                                                        action="{{ route('projects.milestone.destroy', [$currentWorkspace->slug, $milestone->id]) }}"
-                                                                        method="POST" style="display: none;">
-                                                                        @csrf
-                                                                        @method('DELETE')
-                                                                    </form>
-                                                                @elseif($objUser->type == 'client' || $currentWorkspace->permission == 'Owner')
+                                                                @elseif($currentWorkspace->permission == 'Owner')
                                                                     <a href="#"
                                                                         class="action-btn btn-info mx-1  btn btn-sm d-inline-flex align-items-center bs-pass-para"
                                                                         data-ajax-popup="true" data-size="lg"
@@ -352,7 +342,7 @@
                     {{-- ======================================================================================== --}}
                     <div class="row">
                         <div class="col-md-6">
-                            <div class="card ">
+                            <div class="card min-h">
                                 <div class="card-header">
                                     <div class="d-flex justify-content-between align-items-center">
                                         <div>
@@ -375,7 +365,7 @@
                                         </div>
                                     </div>
                                 </div>
-                                <div class="card-body">
+                                <div class="card-body pb-1">
                                     <div class="px-3 top-10-scroll" style="max-height: 300px;">
                                         @foreach ($project->technicians as $user)
                                             <ul class="list-group list-group-flush">
@@ -384,11 +374,6 @@
                                                         <div class="col-sm-auto mb-3 mb-sm-0">
                                                             <div class="d-flex align-items-center px-2">
                                                                 <a href="#" class=" text-start">
-                                                                    <!-- <img class="theme-avtar"
-                                                                        @if (Auth::user()->avatar) src="{{ url('storage/app/public/' . Auth::user()->avatar) }}" 
-                                                                    @else 
-                                                                        avatar="{{ Auth::user()->name }}" @endif
-                                                                        alt="{{ Auth::user()->name }}"></a> -->
                                                                     <img class="fix_img"
                                                                         @if ($user->avatar) src="{{ asset($logo . $user->avatar) }}" @else avatar="{{ $user->name }}" @endif>
                                                                 </a>
@@ -411,7 +396,6 @@
                                                                         data-title="{{ __('Edit Permission') }}"
                                                                         data-url="{{ route('projects.user.permission', [$currentWorkspace->slug, $project->id, $user->id]) }}"><i
                                                                             class="ti ti-lock"></i></a>
-
                                                                     <a href="#"
                                                                         class="action-btn btn-danger btn btn-sm d-inline-flex align-items-center bs-pass-para"
                                                                         data-confirm="{{ __('Are You Sure?') }}"
@@ -437,7 +421,7 @@
                             </div>
                         </div>
                         <div class="col-md-6 widthAdjustMediumDiv">
-                            <div class="card">
+                            <div class="card min-h">
                                 <div class="card-header">
                                     <div class="d-flex justify-content-between align-items-center">
                                         <div>
@@ -459,7 +443,7 @@
                                         </div>
                                     </div>
                                 </div>
-                                <div class="card-body">
+                                <div class="card-body pb-1">
                                     <div class=" px-3 top-10-scroll" style="max-height: 300px;">
                                         @foreach ($project->salesManager as $client)
                                             <ul class="list-group list-group-flush">
@@ -468,11 +452,6 @@
                                                         <div class="col-sm-auto mb-3 mb-sm-0">
                                                             <div class="d-flex align-items-center px-2">
                                                                 <a href="#" class=" text-start">
-                                                                    <!-- <img class="theme-avtar"
-                                                                        @if (Auth::user()->avatar) src="{{ url('storage/app/public/' . Auth::user()->avatar) }}" 
-                                                                    @else 
-                                                                        avatar="{{ Auth::user()->name }}" @endif
-                                                                        alt="{{ Auth::user()->name }}"></a> -->
                                                                     <img class="fix_img"
                                                                         @if ($client->avatar) src="{{ asset($logo . $client->avatar) }}" @else avatar="{{ $client->name }}" @endif>
                                                                 </a>
@@ -525,7 +504,7 @@
                 <div class="col-xxl-12">
                     <div class="row">
                         <div class="col-md-4">
-                            <div class="card">
+                            <div class="card min-end">
                                 <div class="card-header">
                                     <div class="d-flex justify-content-between align-items-center">
                                         <div>
@@ -537,22 +516,19 @@
                                     <div class="author-box-name form-control-label mb-4"></div>
                                     <div class="col-md-12 dropzone browse-file" id="dropzonewidget">
                                         <div class="dz-message" data-dz-message>
-                                            <span>
-                                                {{ __('Drop files here to upload') }}
-                                            </span>
-
+                                            <span> {{ __('Drop files here to upload') }}</span>
                                         </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
                         <div class="col-md-4">
-                            <div class="card">
+                            <div class="card min-end">
                                 <div class="card-header" style="padding: 25px 35px !important;">
                                     <div class="d-flex justify-content-between align-items-center">
                                         <div class="row">
-                                            <h5 class="mb-0">{{ __('Progress') }}<span class="text-end">
-                                                    ({{ __('Last week tasks') }}) </span></h5>
+                                            <h5 class="mb-0">{{ __('Progress') }}<span
+                                                    class="text-end">({{ __('Last week tasks') }}) </span></h5>
                                         </div>
                                     </div>
                                 </div>
@@ -564,7 +540,7 @@
                             </div>
                         </div>
                         <div class="col-md-4">
-                            <div class="card">
+                            <div class="card min-end">
                                 <div class="card-header">
                                     <div class="d-flex justify-content-between align-items-center">
                                         <div>
@@ -590,18 +566,12 @@
                                                         <span
                                                             class="timeline-step timeline-step-sm border border-success text-white">
                                                             <i class="fas fa-tasks"></i></span>
-                                                    @elseif($activity->log_type == 'Invite User')
-                                                        <span
-                                                            class="timeline-step timeline-step-sm border border-success text-white">
-                                                            <i class="fas fa-plus"></i></span>
                                                     @elseif($activity->log_type == 'Create Timesheet')
                                                         <span
                                                             class="timeline-step timeline-step-sm border border-success text-white">
                                                             <i class="fas fa-clock-o"></i></span>
                                                     @endif
-
                                                     <div class="last_notification_text">
-                                                        <!--   <p class="m-0"> <span>{{ $activity->log_type }} </span> </p> <br> -->
                                                         <p class="m-0">
                                                             <span>{{ $activity->logType($activity->log_type) }}
                                                             </span>
@@ -629,9 +599,6 @@
     </div>
 @endsection
 
-@php
-    //   dd($chartData);
-@endphp
 @push('css-page')
     <link rel="stylesheet" href="{{ asset('assets/custom/css/dropzone.min.css') }}">
 @endpush

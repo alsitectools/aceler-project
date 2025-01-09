@@ -27,8 +27,9 @@
     #searchInputProjects {
         position: relative;
     }
-    @media screen and (max-width:1200px) and (min-width:1000px){
-        .responsiveButton{
+
+    @media screen and (max-width:1200px) and (min-width:1000px) {
+        .responsiveButton {
             font-size: 12px !important;
         }
     }
@@ -95,7 +96,8 @@
                                     <div class="col-md-9">
                                         <div class="card-header pt-3 pb-1 d-flex p-3">
                                             @if ($project->is_active)
-                                                <a style="width: 83%" href="@auth('web'){{ route('projects.show', [$currentWorkspace->slug, $project->id]) }}@endauth"
+                                                <a style="width: 83%"
+                                                    href="@auth('web'){{ route('projects.show', [$currentWorkspace->slug, $project->id]) }}@endauth"
                                                     class="tooltipCus" data-title="{{ __('Project Name') }}">
                                                     <h4>{{ $project->name }} </h4>
                                                 </a>
@@ -224,20 +226,22 @@
                         </h5>
                         <div style="width: 95%;" class="mt-3">
                             @foreach (Auth::user()->projects() as $project)
-                                <div class="list-group mb-2">
-                                    <a a href="@auth('web'){{ route('projects.show', [$currentWorkspace->slug, $project->id]) }}@endauth"
-                                        class="list-group-item list-group-item-action tooltipCus" aria-current="true"
-                                        data-title="{{ __('Project') }}">
-                                        <div class="d-flex w-100 justify-content-between">
-                                            <h5 class="text-muted">{{ $project->name }} </h5>
+                                @if (Auth::user()->currant_workspace == $project->workspace)
+                                    <div class="list-group mb-2">
+                                        <a a href="@auth('web'){{ route('projects.show', [$currentWorkspace->slug, $project->id]) }}@endauth"
+                                            class="list-group-item list-group-item-action tooltipCus" aria-current="true"
+                                            data-title="{{ __('Project') }}">
+                                            <div class="d-flex w-100 justify-content-between">
+                                                <h5 class="text-muted">{{ $project->name }} </h5>
+                                                <small
+                                                    class="me-0 text-muted">{{ ucfirst($project->created_at->isoFormat('ddd DD MMM YYYY')) }}</small>
+                                            </div>
                                             <small
-                                                class="me-0 text-muted">{{ ucfirst($project->created_at->isoFormat('ddd DD MMM YYYY')) }}</small>
-                                        </div>
-
-                                        <small class="text-muted">{{ $project_type[$project->type - 1]->name }}</small>
-                                        <small class="text-muted"><b>{{ $project->ref_mo }}</b></small>
-                                    </a>
-                                </div>
+                                                class="text-muted">{{ $project_type[$project->type - 1]->name }}</small>
+                                            <small class="text-muted"><b>{{ $project->ref_mo }}</b></small>
+                                        </a>
+                                    </div>
+                                @endif
                             @endforeach
                         </div>
                     </div>
@@ -254,8 +258,7 @@
                                     </div>
                                     <div class="page-search">
                                         <p class="text-muted mt-3">
-                                            {{ __("It's looking like you may have taken a wrong turn. Don't worry...
-                                                                                         it happens to the best of us. Here's a little tip that might help you get back on track.") }}
+                                            {{ __("It's looking like you may have taken a wrong turn. Don't worry... it happens to the best of us. Here's a little tip that might help you get back on track.") }}
                                         </p>
                                         <div class="mt-3">
                                             <a class="btn-return-home badge-blue" href="{{ route('home') }}"><i
@@ -273,7 +276,6 @@
 @endsection
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
 @if (isset($currentWorkspace) && $currentWorkspace)
-    {{-- <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script> --}}
     <script src="{{ asset('assets/custom/js/jquery.easy-autocomplete.min.js') }}"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
@@ -293,7 +295,6 @@
                     }
                 }
             });
-            // Observar el body para detectar cuando el contenedor de autocompletar se inserte
             observer.observe(document.body, {
                 childList: true,
                 subtree: true

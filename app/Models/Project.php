@@ -51,6 +51,16 @@ class Project extends Model
             ->withPivot('is_active')
             ->orderBy('users.id', 'ASC');
     }
+    public function typeRel()
+    {
+        return $this->belongsTo(ProjectType::class, 'type', 'id');
+    }
+
+    public function typeName()
+    {
+        return $this->type ? $this->typeRel->name : 'unknown';
+    }
+
     public function salesManager()
     {
         return $this->belongsToMany('App\Models\User', 'user_projects', 'project_id', 'user_id')

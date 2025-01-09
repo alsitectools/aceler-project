@@ -72,7 +72,7 @@ $(document).ready(function () {
     // Manejadores de entrada para los campos de búsqueda
     projectInput.on('input', function () {
         milestoneMoInput.val("");
-        handleInputChange($(this), projectList, searchProjectsUrl, 'No results found. The project is not yet created, you must create it.', 'projects');
+        handleInputChange($(this), projectList, searchProjectsUrl, 'The project is not yet created, you must create it.', 'projects');
     });
 
     salesManagerInput.on('input', function () {
@@ -86,6 +86,7 @@ $(document).ready(function () {
     refMoInput.on('input', function () {
         clientInput.val("");
         project_nameInput.val("");
+        $('#projectId').val('');
         handleInputChange($(this), refMoList, searchMoUrl, 'No results found', 'mo');
     });
 
@@ -156,7 +157,6 @@ $(document).ready(function () {
             success: function (data) {
                 loading = false;
                 const itemData = itemProcessor(data);
-                console.log(itemData);
 
                 handleDataList(itemData, list, noResultsMessage, type);
             },
@@ -254,7 +254,7 @@ $(document).ready(function () {
                     e.preventDefault();
                     refMoInput.val(obra.ref_mo);
                     project_nameInput.val(obra.name);
-                    refMoList.empty().hide();  // Ocultar la lista después de seleccionar
+                    refMoList.empty().hide(); 
                 });
         });
 

@@ -425,8 +425,7 @@
 
             const removeButton = document.createElement('button');
             removeButton.classList.add('btn', 'btn-link', 'text-danger', 'p-0');
-            removeButton.innerHTML = '<i class="fa-solid fa-trash-alt ms-1"></i>';
-            removeButton.title = 'X';
+            removeButton.innerHTML = '<i class="ms-1 fa-solid fa-xmark"></i>';
             removeButton.addEventListener('click', function() {
                 filesArray.splice(index, 1);
                 updateFileList();

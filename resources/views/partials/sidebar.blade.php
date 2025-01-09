@@ -111,8 +111,7 @@
                             class="dash-link {{ Request::route()->getName() == 'clients.index' ? ' active' : '' }} "><span
                                 class="dash-micon"> <img class="img-fluid"
                                     src="{{ asset('assets/img/salesManager.png') }}" alt="logo" /> </span><span
-                                class="dash-mtext">
-                                {{ __('Sales manager') }}</span></a>
+                                class="dash-mtext"> {{ __('Sales managers') }}</span></a>
                     </li>
                     <li
                         class="dash-item {{ Request::route()->getName() == 'users.index' || Request::route()->getName() == 'users_logs.index' ? ' active' : '' }}">

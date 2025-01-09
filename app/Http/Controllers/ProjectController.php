@@ -816,8 +816,6 @@ class ProjectController extends Controller
 
     public function taskStore(Request $request, $slug)
     {
-        // dd($request->all());
-
         // Validar los datos del formulario
         $request->validate([
             'project_id' => 'required',
@@ -1966,7 +1964,6 @@ class ProjectController extends Controller
 
     public function timesheetStore($slug, Request $request)
     {
-
         $user = Auth::user();
         $currentWorkspace = Utility::getWorkspaceBySlug($slug);
         $rules = [
@@ -2730,7 +2727,6 @@ class ProjectController extends Controller
                     ->join('tasks', 'timesheets.task_id', '=', 'tasks.id')
                     ->where('projects.workspace', '=', $currentWorkspace->id);
             } else {
-
                 if ($project_id == -1) {
                     //--------------------- Los timesheets de mis proyectos  -------------------//
                     $timesheets = Timesheet::select('timesheets.*', 'tasks.milestone_id as milestone_id', 'tasks.id as task_id')
@@ -2739,7 +2735,6 @@ class ProjectController extends Controller
                         ->where('projects.workspace', '=', $currentWorkspace->id)
                         ->where('tasks.assign_to', $user_id);
                 } else {
-
                     //--------------------- Los timesheets de todos en un proyecto  -------------------//
                     $timesheets = Timesheet::select('timesheets.*', 'tasks.milestone_id as milestone_id', 'tasks.assign_to as user_id', 'tasks.id as task_id')
                         ->join('projects', 'projects.id', '=', 'timesheets.project_id')
@@ -2755,8 +2750,18 @@ class ProjectController extends Controller
             $onewWeekDate = $first_day->format('Y-m-d') . ' - ' . $seventh_day->format('Y-m-d');
             $selectedDate = $first_day->format('Y-m-d') . ' - ' . $seventh_day->format('Y-m-d');
 
-            $timesheets = $timesheets->whereDate('date', '>=', $first_day->format('Y-m-d'))
-                ->whereDate('date', '<=', $seventh_day->format('Y-m-d'));
+            // $timesheets = $timesheets->whereDate('date', '>=', $first_day->format('Y-m-d'))
+            //     ->whereDate('date', '<=', $seventh_day->format('Y-m-d'));
+
+            $timesheets = $timesheets->where(function ($query) use ($first_day, $seventh_day) {
+                $query->whereDate('timesheets.date', '>=', $first_day->format('Y-m-d'))
+                    ->whereDate('timesheets.date', '<=', $seventh_day->format('Y-m-d'))
+                    ->orWhere(function ($subQuery) use ($first_day, $seventh_day) {
+                        $subQuery->whereDate('tasks.estimated_date', '>=', $first_day->format('Y-m-d'))
+                            ->whereDate('tasks.estimated_date', '<=', $seventh_day->format('Y-m-d'));
+                    });
+            });
+
             $milestones_ids = [];
             $milestones = [];
 
@@ -2803,7 +2808,6 @@ class ProjectController extends Controller
             ]);
         }
     }
-
 
     public function appendTimesheetTaskHTML(Request $request, $slug)
     {

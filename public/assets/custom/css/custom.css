@@ -1461,7 +1461,8 @@ a.b-brand {
 
 .table>thead>tr>th {
     border-top: 0;
-    padding: 10px 50px 10px 10px;
+    /* padding: 10px 50px 10px 10px; */
+    padding: 10px;
 }
 
 .dataTable-sorter::before,
