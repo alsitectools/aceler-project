@@ -164,14 +164,111 @@
     <script>
         $(document).ready(function() {
             get_data();
-
+            getCalendarInfo();
             // Agregar evento de cambio para el filtro
             $('#project_id').on('change', function() {
                 get_data();
             });
         });
 
-function get_data() {
+        function hexToRgba(hex, alpha) {
+            hex = hex.replace(/^#/, '');
+            let r = parseInt(hex.substring(0, 2), 16);
+            let g = parseInt(hex.substring(2, 4), 16);
+            let b = parseInt(hex.substring(4, 6), 16);
+            return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+        }
+
+        function getCalendarInfo() {
+            const operationUrl = '<?php echo url("get-timesheetCalendar"); ?>';
+
+            $.ajax({
+                type: 'GET',
+                url: operationUrl,
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') // Incluye el token CSRF
+                },
+                success: function(data) {
+                    console.log("success", data);
+
+                    const opacity = 0.4;
+
+                    if (data.colorData && Array.isArray(data.colorData) && data.expectedHours) {
+                        // Obtener los días no laborales (días con `null` en expectedHours)
+                        const nonWorkingDays = Object.keys(data.expectedHours).filter(day => data.expectedHours[day] === null);
+
+                        // Generar todos los días no laborales del año en UTC
+                        const currentYear = new Date().getUTCFullYear();
+                        const nonWorkingEvents = [];
+
+                        // Generar un rango de fechas del año en UTC
+                        const startOfYear = new Date(Date.UTC(currentYear, 0, 1)); // 1 de enero en UTC
+                        const endOfYear = new Date(Date.UTC(currentYear, 11, 31)); // 31 de diciembre en UTC
+
+                        for (let date = new Date(startOfYear); date <= endOfYear; date.setUTCDate(date.getUTCDate() + 1)) {
+                            // Obtener el día de la semana en UTC
+                            const dayOfWeek = date.toLocaleDateString('en-US', { weekday: 'long', timeZone: 'UTC' }).toLowerCase();
+                            if (nonWorkingDays.includes(dayOfWeek)) {
+                                const backgroundColor = hexToRgba("#d3d3d3", opacity);
+                                nonWorkingEvents.push({
+                                    title: 'Non-working day',      // Título genérico para días no laborales
+                                    start: date.toISOString().split('T')[0], // Fecha en formato YYYY-MM-DD (en UTC)
+                                    backgroundColor: backgroundColor, // Color gris con opacidad
+                                    borderColor: '#d3d3d3',       // Bordes también en gris
+                                    textColor: 'black',           // Texto en negro
+                                    allDay: true                  // Día completo
+                                });
+                            }
+                        }
+
+                        // Mapea `colorData` a eventos para FullCalendar
+                        const events = data.colorData.map(item => {
+                            const backgroundColor = hexToRgba(item.color, opacity);
+
+                            return {
+                                title: item.hours ? item.hours + ' hours' : 'No hours', // Título
+                                start: item.date,            // Fecha del evento en formato UTC
+                                backgroundColor: backgroundColor, // Color del fondo con opacidad
+                                borderColor: item.color,     // Color del borde
+                                textColor: 'black',          // Texto en negro para contraste
+                                allDay: true                 // Evento de día completo
+                            };
+                        });
+
+                        // Combina los eventos normales con los días no laborales
+                        const allEvents = [...events, ...nonWorkingEvents];
+
+                        // Crea el calendario usando FullCalendar
+                        const calendarEl = document.getElementById('calendar');
+                        const locale = '{{ app()->getLocale() }}';
+
+                        const calendar = new FullCalendar.Calendar(calendarEl, {
+                            locale: locale,
+                            initialView: 'dayGridMonth', // Mostrar vista mensual
+                            firstDay: 1,                 // Comenzar la semana en lunes
+                            headerToolbar: {
+                                left: 'prev,next today',
+                                center: 'title',
+                                right: '' // Ocultar otras vistas
+                            },
+                            buttonText: {
+                                today: "{{ trans('messages.today') }}"
+                            },
+                            events: allEvents, // Agregar los eventos generados
+                        });
+
+                        calendar.render(); // Renderiza el calendario
+                    } else {
+                        console.error("No valid colorData or expectedHours found in response:", data);
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.error("Error:", error);
+                }
+            });
+        }
+
+        function get_data() {
     var project_id = $('#project_id').val();
     $.ajax({
         url: $("#path_admin").val() + "/calendarr",
@@ -180,6 +277,7 @@ function get_data() {
             'project_id': project_id
         },
         success: function(response) {
+            /*
             var filteredEvents = response.events.filter(event => event.start !== null);
 
             var milestoneColors = {};
@@ -210,16 +308,15 @@ function get_data() {
 
             var calendar = new FullCalendar.Calendar(calendarEl, {
                 locale: locale,
+                initialView: 'dayGridMonth', // Mostrar solo vista mensual
+                firstDay: 1, // Iniciar el calendario en lunes
                 headerToolbar: {
                     left: 'prev,next today',
                     center: 'title',
-                    right: 'dayGridMonth,timeGridWeek,timeGridDay'
+                    right: '' // Ocultar otras vistas
                 },
                 buttonText: {
                     today: "{{ trans('messages.today') }}",
-                    timeGridDay: "{{ __('Day') }}",
-                    timeGridWeek: "{{ __('Week') }}",
-                    dayGridMonth: "{{ __('Month') }}"
                 },
                 events: filteredEvents,
                 eventClick: function(info) {
@@ -243,28 +340,27 @@ function get_data() {
 
             });
             calendar.render();
-
+*/
             // Actualizar la lista de tareas
-                var taskList = $('#task-list');
-                taskList.empty(); // Limpiar la lista actual
+            var taskList = $('#task-list');
+            taskList.empty(); // Limpiar la lista actual
 
-                if (response.tasks.length > 0) {
-                    response.tasks.forEach(function(task) {
-                        // Agregar la clase 'liStyleTask' al elemento li
-                        var taskHtml = `<li class="liStyleTask">
-                                           <div class="divIconTask">
-                                            <i class="fa-solid fa-list-check iStyleTask"></i>
-                                            </div>
-                                            <div class="divAlignP">
-                                                <p class="titleTask"> ${task.milestoneTitle} - ${task.taskTitle}</p>
-                                                <p class="subtitleTask">(${task.taskTime})</p>
-                                           </div>
-                                        </li>`;
-                        taskList.append(taskHtml);
-                    });
-                } else {
-                    taskList.append('<p>{{ __('No tasks available') }}</p>');
-                }
+            if (response.tasks.length > 0) {
+                response.tasks.forEach(function(task) {
+                    var taskHtml = `<li class="liStyleTask">
+                                       <div class="divIconTask">
+                                        <i class="fa-solid fa-list-check iStyleTask"></i>
+                                        </div>
+                                        <div class="divAlignP">
+                                            <p class="titleTask"> ${task.milestoneTitle} - ${task.taskTitle}</p>
+                                            <p class="subtitleTask">(${task.taskTime})</p>
+                                       </div>
+                                    </li>`;
+                    taskList.append(taskHtml);
+                });
+            } else {
+                taskList.append('<p>{{ __('No tasks available') }}</p>');
+            }
 
             // Actualizar las horas totales
             $('#total-hours').text(response.formattedTotalHours);
@@ -274,6 +370,7 @@ function get_data() {
         }
     });
 }
+
 
     </script>
 @endpush

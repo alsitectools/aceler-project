@@ -985,3 +985,10 @@ Route::get('/{slug}/projects/{id}/task-board/{tid}/{cid?}', [ProjectController::
 
 //Ruta creada para recibir la task_id y en la funcion buscar los otros parametros 
 Route::get('/{slug}/timesheet-task/{task_id}/{first_day}/{seventh_day}', [ProjectController::class, 'showTask'])->name('show.task');
+
+//Modify user timetable
+Route::post('/user/update-timetable', [UserController::class, 'updateTimetable'])->name('user.updateTimetable');
+Route::get('/user/get-timetable', [UserController::class, 'getTimetable'])->name('user.getTimetable');
+
+//Get timesheet of the calendar 
+Route::get('/get-timesheetCalendar', [CalenderController::class, 'getTimesheetColor'])->name('calender.getTimesheetColor');

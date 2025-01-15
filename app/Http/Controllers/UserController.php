@@ -18,6 +18,7 @@ use App\Models\TaskFile;
 use App\Models\Tax;
 use App\Models\Timesheet;
 use App\Models\User;
+use App\Models\UserTimetable;
 use App\Models\UserProject;
 use App\Models\UserWorkspace;
 use App\Models\Utility;
@@ -46,6 +47,8 @@ use App\Models\Client;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Intervention\Image\Facades\Image;
+use DB;
+
 class UserController extends Controller
 {
     public function companyInfo(Request $request, $id)
@@ -515,6 +518,49 @@ class UserController extends Controller
 
         return redirect()->back()->with('success', 'Avatar deleted successfully');
     }
+
+    /*Timetable */
+
+    public function getTimetable()
+    {
+        // Obtener el usuario actual
+        $userId = Auth::id();
+
+        // Obtener el horario del usuario actual
+        $timetableUser = DB::table('user_timetable')->where('user_id', $userId)->get();
+        
+        return response()->json($timetableUser);
+    }
+
+    public function updateTimetable(Request $request)
+    {
+        // Obtiene el usuario actual
+        $userId = Auth::id();
+
+        
+        $inputs = $request->input();
+
+        $weekTime = json_decode($inputs["inputHours"], true);
+
+        DB::table('user_timetable')
+        ->updateOrInsert(
+            // Condición para encontrar el registro del usuario actual
+            ['user_id' => $userId],
+            // Valores a insertar o actualizar
+            [
+                'monday' => $weekTime['monday'] ?? null,
+                'tuesday' => $weekTime['tuesday'] ?? null,
+                'wednesday' => $weekTime['wednesday'] ?? null,
+                'thursday' => $weekTime['thursday'] ?? null,
+                'friday' => $weekTime['friday'] ?? null,
+                'saturday' => $weekTime['saturday'] ?? null,
+                'sunday' => $weekTime['sunday'] ?? null
+            ]
+        );
+
+        return redirect()->back()->with('success', __('Timetable updated successfully.'));
+    }
+
 //     public function update($slug = null, $id = null, Request $request)
 // {
 //     Log::info('Update method called'); // Log para verificar entrada al método
@@ -609,7 +655,6 @@ class UserController extends Controller
 //     Log::error('Avatar not found in the request');
 //     return redirect()->back()->with('error', __('No avatar file found in the request'));
 // }
-
 public function update($slug = null, $id = null, Request $request)
 {
     $currentWorkspace = Utility::getWorkspaceBySlug($slug);

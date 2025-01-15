@@ -11,7 +11,9 @@
 
     $logo = \App\Models\Utility::get_file('avatars/');
 @endphp
+
 @section('content')
+@include('loader.loader')
     <div class="row">
         <div class="col-xl-3">
             <div class="card sticky-top">
@@ -24,19 +26,25 @@
                         class="list-group-item list-group-item-action border-0">{{ __('Add another workspace') }}
                         <div class="float-end"><i class="ti ti-chevron-right"></i></div>
                     </a>
+
+                    <a href="#v-pills-timetable"
+                        class="list-group-item list-group-item-action border-0">{{ __('Timetable') }}
+                        <div class="float-end"><i class="ti ti-chevron-right"></i></div>
+                    </a>
                 </div>
             </div>
         </div>
         <div class="col-xl-9">
             <div id="v-pills-home" class="card">
-                <div class="card-header">
+                <div class="card-header buttonColocation">
                     <h5>{{ __('Avatar') }}</h5>
+                    <button style="margin-right: 1%;" class="btn btn-sm btn-primary toggle-section buttonColapse" data-target="#avatar-content">-</button>
                 </div>
                 @php
                     $workspace = $currentWorkspace ? $currentWorkspace->id : 0;
                     $user_id = $user ? $user->id : 0;
                 @endphp
-                <div class="card-body">
+                <div class="card-body collapse-section" id="avatar-content">
                     <form method="post"
                         action="@auth('web'){{ route('update.account', [$workspace, $user_id]) }}@elseauth{{ route('client.update.account', [$workspace, $user_id]) }}@endauth"
                         enctype="multipart/form-data">
@@ -106,10 +114,11 @@
             </div>
 
             <div class="card" id="v-pills-profile">
-                <div class="card-header">
+                <div class="card-header buttonColocation">
                     <h5>{{ __('Add another workspace') }}</h5>
+                    <button style="margin-right: 1%;" class="btn btn-sm btn-primary toggle-section buttonColapse" data-target="#workspace-content">-</button>
                 </div>
-                <div class="card-body">
+                <div class="card-body collapse-section" id="workspace-content">
                     <div class="col-12 d-flex">
                         <div class="col-4">
                             <div class="d-flex mt-4">
@@ -158,11 +167,234 @@
                 </div>
             </div> <!-- end col -->
         </div> <!-- end row -->
+
+        <!-- timetable-->
+        <div class="card divTimetable" id="v-pills-timetable">
+
+            <div class="card-header buttonColocation">
+                <h5>{{ __('Timetable') }}</h5>
+                <button class="btn btn-sm btn-primary toggle-section buttonColapse" data-target="#timetable-content">-</button>
+            </div>
+
+            <div class="card-body collapse-section" id="timetable-content" style="display: flex; flex-direction: row;">
+                <div class="dayToggle">
+                    <p>{{_('Monday')}}</p>
+                    <label class="switch">
+                        <input type="checkbox">
+                        <span class="slider round"></span>
+                    </label>
+                    <input id="mondayInput" type="time" class="inputToggle"></input> 
+                </div>
+
+                <div class="dayToggle">
+                    <p>{{_('Tuesday')}}</p>
+                    <label class="switch">
+                        <input type="checkbox">
+                        <span class="slider round"></span>
+                    </label>
+                    <input id="tuesdayInput" type="time" class="inputToggle"></input> 
+                </div>
+
+                <div class="dayToggle">
+                    <p>{{_('Wednesday')}}</p>
+                    <label class="switch">
+                        <input type="checkbox">
+                        <span class="slider round"></span>
+                    </label>
+                    <input id="wednesdayInput" type="time" class="inputToggle"></input> 
+                </div>
+
+                <div class="dayToggle">
+                    <p>{{_('Thursday')}}</p>
+                    <label class="switch">
+                        <input type="checkbox">
+                        <span class="slider round"></span>
+                    </label>
+                    <input id="thursdayInput" type="time" class="inputToggle"></input> 
+                </div>
+
+                <div class="dayToggle">
+                    <p>{{_('Friday')}}</p>
+                    <label class="switch">
+                        <input type="checkbox">
+                        <span class="slider round"></span>
+                    </label>
+                    <input id="fridayInput" type="time" class="inputToggle"></input> 
+                </div>
+
+                <div class="dayToggle">
+                    <p>{{_('Saturday')}}</p>
+                    <label class="switch">
+                        <input type="checkbox">
+                        <span class="slider round"></span>
+                    </label>
+                    <input id="saturdayInput" type="time" class="inputToggle"></input> 
+                </div>
+
+                <div class="dayToggle">
+                    <p>{{_('Sunday')}}</p>
+                    <label class="switch">
+                        <input type="checkbox">
+                        <span class="slider round"></span>
+                    </label>
+                    <input id="sundayInput" type="time" class="inputToggle"></input> 
+                </div>
+            </div>
+
+            <div class="alignCenterItems" >
+                <button id="saveTimetable" class="btn btn-sm btn-primary saveButton">{{_('Save')}}</button>
+            </div>       
+        </div>
     @endsection
     @push('scripts')
      
         <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
         <script type="text/javascript">
+
+            let days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+            //onload get user timetable info
+            window.onload = function() {
+
+                // Deshabilitar el scroll
+                document.body.style.overflow = 'hidden';
+
+                operationUrl = '<?php echo url("user/get-timetable"); ?>';
+                $.ajax({
+                    type: 'GET',
+                    url: operationUrl,
+                            headers: {
+                                "Content-Type": "application/json",
+                            },
+                            headers: {
+                                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') // Incluye el token CSRF
+                            },
+                            success: function(data) {
+                                console.log("success");
+
+                                //reactivar scroll
+                                document.body.style.overflow = 'auto';
+                                //esconder el loader
+                                document.getElementById('loader-overlay').style.display = 'none';
+
+                               //deleting the id and user_id from the data
+
+                                delete data[0].id;
+                                delete data[0].user_id;
+
+                               console.log("actual data", data);
+
+                               //Iterate over the days and set the value of the inputs
+                               days.forEach(day => {
+                                let value = data[0][day]; // Obtener el valor del día actual
+                                let input = document.getElementById(`${day}Input`);
+                                let toggle = input.previousElementSibling.querySelector('input[type="checkbox"]'); // Obtener el toggle asociado
+
+                                   if(value){
+                                       input.value = value;
+                                       toggle.checked = true;
+                                   }
+                               });
+                               
+                            },
+                            error: function(xhr, status, error) {
+                                console.error("Error:", error);
+                            }
+                });
+            };
+
+            let saveButton = document.getElementById('saveTimetable');
+
+            saveButton.addEventListener('click', function(){
+                //check the value of the inputs
+
+                let inputs = document.querySelectorAll(".inputToggle");
+                     // Diccionario para almacenar los días y sus valores
+                    let schedule = {};
+                    inputs.forEach(input => {
+                        // Extraer el día de la semana desde el ID del input
+                        let day = input.id.replace("Input", "").toLowerCase(); // Quitar "Input" del ID
+
+                        // Obtener el valor del input o asignar null si está vacío
+                        let value = input.value ? input.value : null;
+
+                        // Agregar el día y el valor al diccionario
+                        schedule[day] = value;
+                    });
+
+                    console.log(schedule);
+
+                //llamada ajax al backend
+                
+                operationUrl = '<?php echo url("user/update-timetable"); ?>';
+                $.ajax({
+                    type: 'POST',
+                    url: operationUrl,
+                            data: {
+                                "inputHours" : JSON.stringify (schedule),
+                            }, 
+                            headers: {
+                                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') // Incluye el token CSRF
+                            },
+                            success: function(data) {
+                               console.log("success")
+                            },
+                            fail:function() {
+                                console.log("fail")
+                            },
+                });
+            });
+
+            $(document).ready(function () {
+                $('.toggle-section').on('click', function () {
+                    var target = $(this).data('target');
+                    var saveButton = $('#saveTimetable');
+
+                    $(target).slideToggle(function () {
+                        // Si el objetivo es la sección Timetable
+                        if (target === "#timetable-content") {
+                            if ($(target).is(':visible')) {
+                                $(target).css({
+                                    display: 'flex',
+                                    justifyContent: 'space-evenly'
+                                });
+                                saveButton.show(); // Mostrar el botón Save si la sección está visible
+                            } else {
+                                $(target).css({
+                                    display: 'none'
+                                });
+                                saveButton.hide(); // Ocultar el botón Save si la sección está oculta
+                            }
+                        }
+                    });
+
+                    // Cambia el símbolo del botón entre "+" y "-"
+                    var currentSymbol = $(this).text();
+                    $(this).text(currentSymbol === '-' ? '+' : '-');
+                });
+
+                $('.inputToggle').prop('disabled', true).css({
+                    'background-color': '#E4DEDE',
+                    '-webkit-box-shadow': 'rgb(0 0 0 / 10%) 0px 4px 10px 0px'
+                });
+
+                $('.dayToggle .switch input[type="checkbox"]').on('change', function () {
+                    // Encuentra el input más cercano al toggle actual
+                    var inputToggle = $(this).closest('.dayToggle').find('.inputToggle');
+
+                    if ($(this).is(':checked')) {
+                        // Si el toggle está activo, cambia el fondo del input
+                        inputToggle.css('background-color', 'white');
+                        inputToggle.css('-webkit-box-shadow', 'rgb(0 0 0 / 20%) 0px 4px 10px 0px ');
+                        inputToggle.prop('disabled', false);
+                    } else {
+                        // Si el toggle está desactivado, restablece el color del fondo
+                        inputToggle.css('background-color', '#E4DEDE');
+                        inputToggle.css('-webkit-box-shadow', 'rgb(0 0 0 / 10%) 0px 4px 10px 0px');
+                        inputToggle.prop('disabled', true).val('');;
+                    }
+                });
+            });
+
             $('#avatar').change(function() {
 
                 let reader = new FileReader();
