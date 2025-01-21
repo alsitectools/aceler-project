@@ -118,8 +118,6 @@ Route::get('/{slug}/projects/{id}/bug_report/{bid}/show', [ProjectController::cl
 Route::get('/{slug}/timesheet-table-view', [ProjectController::class, 'filterTimesheetTableView'])->name('filter.timesheet.table.view')->middleware(['XSS']);
 
 
-
-
 //================================= Invoice Payment Gateways for Copylink ====================================//
 
 Route::post('/{slug}/invoice-pay-with-paystack/{invoice_id}', [PaystackPaymentController::class, 'invoicePayWithPaystack'])->name('invoice.pay.with.paystack')->middleware(['XSS']);
@@ -324,7 +322,7 @@ Route::prefix('client')->as('client.')->group(function () {
   // Route::post('/{slug}/projects/milestone-board/{id}/update', [ProjectController::class, 'milestoneUpdate'])->name('projects.milestone.update')->middleware(['auth', 'XSS']);
   Route::delete('/{slug}/projects/milestone-board/{id}', [ProjectController::class, 'milestoneDestroy'])->name('projects.milestone.destroy')->middleware(['auth', 'XSS']);
   //========
-  Route::get('/{slug}/projects/task-create', [ProjectController::class, 'taskCreate'])->name('tasks.create')->middleware(['auth', 'XSS']);
+  Route::get('/{slug}/timesheet/task-create', [ProjectController::class, 'taskCreate'])->name('tasks.create')->middleware(['auth', 'XSS']);
 
   //============================================================================AQUIIII
   // Route::post('/{slug}/timesheet/taskForm', [ProjectController::class, 'taskStore'])->name('tasks.store.form')->middleware(['auth', 'XSS']);
@@ -666,7 +664,7 @@ Route::get('/{slug}/tasks', [ProjectController::class, 'allTasks'])->name('tasks
 Route::post('/{slug}/tasks', [ProjectController::class, 'ajax_tasks'])->name('tasks.ajax')->middleware(['auth', 'XSS']);
 
 // Timesheet
-Route::post('/{slug}/timesheet/taskCreate', [ProjectController::class, 'taskStore'])->name('tasks.store')->middleware(['auth', 'XSS']);
+Route::post('/{slug}/timesheet/taskStore', [ProjectController::class, 'taskStore'])->name('tasks.store')->middleware(['auth', 'XSS']);
 
 Route::get('/{slug}/tasks/{id?}', [ProjectController::class, 'getTask'])->name('tasks.ajax')->middleware(['auth', 'XSS']);
 Route::get('/{slug}/timesheet', [ProjectController::class, 'timesheet'])->name('timesheet.index')->middleware(['auth', 'XSS']);

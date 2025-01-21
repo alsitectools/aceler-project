@@ -19,15 +19,54 @@ class Task extends Model
     {
         return $this->belongsTo('App\Models\Project', 'project_id', 'id');
     }
+    public function timesheets()
+    {
+        return $this->hasMany(Timesheet::class);
+    }
+
+    public function milestone()
+    {
+        return $this->belongsTo(Milestone::class, 'milestone_id', 'id');
+    }
 
     public function project()
     {
-        return $this->hasOne('App\Models\Project', 'id', 'project_id');
+        return $this->belongsTo(Project::class);
+    }
+    // En el modelo Task.php
+    public function scopeWithinDateRange($query, $firstDay, $seventhDay)
+    {
+        return $query->where(function ($q) use ($firstDay, $seventhDay) {
+            $q->whereBetween('start_date', [$firstDay, $seventhDay])
+                ->orWhereBetween('estimated_date', [$firstDay, $seventhDay]);
+        });
     }
 
+    public function user()
+    {
+        return $this->belongsTo(User::class, 'assign_to');
+    }
+
+    public function assignedUser()
+    {
+        return $this->belongsTo(User::class, 'assign_to');  // Asumiendo que 'assign_to' es el campo que guarda el ID del usuario
+    }
+
+    // public function milestone()
+    // {
+    //     return $this->milestone_id ? Milestone::find($this->milestone_id) : null;
+    // }
+    // Relación con Project (un Task pertenece a un Project)
+
+
+    // public function users()
+    // {
+    //     return User::whereIn('id', explode(',', $this->assign_to))->get();
+    // }
+    // Relación muchos a muchos con los usuarios
     public function users()
     {
-        return User::whereIn('id', explode(',', $this->assign_to))->get();
+        return $this->belongsToMany(User::class, 'task_user', 'task_id', 'user_id');
     }
     public function taskUsers()
     {
@@ -45,10 +84,7 @@ class Task extends Model
         return $this->hasMany('App\Models\TaskFile', 'task_id', 'id')->orderBy('id', 'DESC');
     }
 
-    public function milestone()
-    {
-        return $this->milestone_id ? Milestone::find($this->milestone_id) : null;
-    }
+
     public function milestoneTitle()
     {
         $milestone = $this->milestone_id ? Milestone::find($this->milestone_id) : null;

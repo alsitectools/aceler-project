@@ -22,7 +22,7 @@
                 <div class="col-sm-auto">
                     <button id="add_task" type="button" class="btn btn-primary add_task" data-ajax-popup="true"
                         data-size="lg" data-title="{{ __('Create New Task') }}"
-                        data-url="{{ route('timesheet.create', $currentWorkspace->slug) }}" title="{{ __('Add Task') }}"><i
+                        data-url="{{ route('tasks.create', $currentWorkspace->slug) }}" title="{{ __('Add Task') }}"><i
                             class="fa-solid fa-thumbtack"></i>
                         {{ __('Add Task on Timesheet') }}</button>
                 </div>
@@ -118,6 +118,7 @@
                             .attr("value", i)
                             .text(item));
                     });
+                    console.log('totalrecords', data.totalrecords);
 
                     if (data.totalrecords == 0) {
                         mainEle.hide();
@@ -126,6 +127,7 @@
                         notfound.hide();
                         mainEle.show();
                     }
+
                     mainEle.html(data.html);
                 }
             });
@@ -152,10 +154,11 @@
             ajaxFilterTimesheetTableView();
         });
 
-        $(document).on('click', '[data-ajax-timesheet-popup="true"]', function (e) {
+        $(document).on('click', '[data-ajax-timesheet-popup="true"]', function(e) {
             e.preventDefault();
 
-            var modalId = $(this).data('modal-id') || 'commonModal'; // Usa 'commonModal' por defecto si no se especifica
+            var modalId = $(this).data('modal-id') ||
+            'commonModal'; // Usa 'commonModal' por defecto si no se especifica
             var data = {};
             var url = $(this).data('url');
             var type = $(this).data('type');
@@ -180,13 +183,14 @@
                 title = '{{ __('Edit Timesheet') }}';
             }
 
-            $("#" + modalId + " .modal-title").html(title + ` <small>(` + moment(date).format("ddd DD MMM") + `)</small>`);
+            $("#" + modalId + " .modal-title").html(title + ` <small>(` + moment(date).format("ddd DD MMM") +
+                `)</small>`);
 
             $.ajax({
                 url: url,
                 data: data,
                 dataType: 'html',
-                success: function (data) {
+                success: function(data) {
                     $('#' + modalId + ' .body').html(data);
                     $("#" + modalId).modal('show');
                     commonLoader();
@@ -234,10 +238,12 @@
         .weekly-dates-div {
             padding: 8px 12px 8px 25px !important;
         }
-        .modifiedWidthTime{
+
+        .modifiedWidthTime {
             width: 99% !important;
         }
     }
+
     #add_task {
         display: flex !important;
         align-items: center;
