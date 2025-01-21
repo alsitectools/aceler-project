@@ -807,7 +807,13 @@ class ProjectController extends Controller
     public function taskCreate($slug)
     {
         $currentWorkspace = Utility::getWorkspaceBySlug($slug);
-        $taskType  = TaskType::all();
+        $taskType = TaskType::select('id', 'name', 'project_type')->get()->map(function ($task) {
+            return [
+                'id' => $task->id,
+                'project_type' => $task->project_type,
+                'name' => __($task->name)
+            ];
+        });
         $projects = Project::where('workspace', $currentWorkspace->id)->get();
         $milestones = Milestone::all();
 
@@ -816,11 +822,11 @@ class ProjectController extends Controller
 
     public function taskStore(Request $request, $slug)
     {
-        // Validar los datos del formulario
         $request->validate([
             'project_id' => 'required',
             'milestone_id' => 'required',
             'type_id' => 'required',
+            'start_date' => 'required',
             'estimated_date' => 'required',
         ]);
 
@@ -835,27 +841,16 @@ class ProjectController extends Controller
         if (!$project) {
             return redirect()->back()->with('error', 'Proyecto no encontrado o no pertenece al espacio de trabajo actual.');
         } else {
-
             $task = new Task();
             $task->project_id = $request->project_id;
             $task->milestone_id = $request->milestone_id;
             $task->type_id = $request->type_id;
+            $task->start_date = $request->start_date;
             $task->estimated_date = $request->estimated_date;
-            // $task->description = $request->description ? $request->description : "";
-            $task->start_date = date('Y-m-d');
             $task->assign_to = $user->id;
             $task->save();
 
-            //enviamos el project_id porque en la vista esta la opcion de mostrar unas opciones cuando hay id y otras opciones sino la hay 
-            $project_id = $project->id;
-            $tasks = $project->tasks();
-
-            return redirect()->back()->with([
-                'success' => __('Task Created Successfully!'),
-                'project_id' => $project_id,
-                'currentWorkspace' => $currentWorkspace,
-                'tasks' => $tasks
-            ]);
+            return redirect()->back()->with(['success' => __('Task Created Successfully!')]);
         }
     }
 
@@ -1928,12 +1923,12 @@ class ProjectController extends Controller
             // ->join('user_projects', 'projects.id', '=', 'user_projects.project_id')
             // ->where('user_projects.user_id', '=', $objUser->id)
             ->where('projects.workspace', '=', $currentWorkspace->id)->get();
-        // Recupera los nombres de los tipos de tareas y sus IDs
-        $taskTypes = TaskType::select('id', 'name', 'project_type')->get()->map(function ($task) {
+
+        $taskType = TaskType::select('id', 'name', 'project_type')->get()->map(function ($task) {
             return [
                 'id' => $task->id,
                 'project_type' => $task->project_type,
-                'name' => __($task->name) // Traduce el nombre de la tarea
+                'name' => __($task->name)
             ];
         });
 
@@ -1943,7 +1938,7 @@ class ProjectController extends Controller
             ->get();
 
 
-        return view('projects.timesheetCreate', compact('currentWorkspace', 'projects', 'taskTypes', 'milestones'));
+        return view('projects.timesheetCreate', compact('currentWorkspace', 'projects', 'taskType', 'milestones'));
     }
 
     public function getTask($slug, $project_id = null)
@@ -1971,8 +1966,6 @@ class ProjectController extends Controller
             'milestone_id' => 'required',
             'type_id' => 'required',
             'estimated_date' => 'required',
-            'time' => 'required',
-            'date' => 'required',
         ];
 
         $validator = Validator::make($request->all(), $rules);
@@ -1997,7 +1990,6 @@ class ProjectController extends Controller
             $task->type_id = $request->type_id;
             $task->start_date = $request->date;
             $task->estimated_date = $request->estimated_date;
-            // $task->description = $request->description ? $request->description : "";   
             $task->assign_to = $user->id;
             $task->save();
 
@@ -2712,58 +2704,56 @@ class ProjectController extends Controller
         $tasks = [];
         $week = $request->week;
         $project_id = $request->project_id;
-
         $currentWorkspace = Utility::getWorkspaceBySlug($slug);
         $objUser = Auth::user();
 
         $user_id = $objUser->id;
 
         if ($request->has('week')) {
-            if ($currentWorkspace->permission == 'Owner') {
 
-                $timesheets = Timesheet::select('timesheets.*', 'milestones.id as milestone_id', 'tasks.id as task_id')
-                    ->join('projects', 'projects.id', '=', 'timesheets.project_id')
-                    ->join('milestones', 'milestones.project_id', '=', 'projects.id')
-                    ->join('tasks', 'timesheets.task_id', '=', 'tasks.id')
-                    ->where('projects.workspace', '=', $currentWorkspace->id);
+            if ($project_id == -1) {
+                //--------------------- Los timesheets de mis proyectos  -------------------//
+
+                $timesheets = Task::select(
+                    'tasks.*',
+                    'tasks.milestone_id as milestone_id',
+                    'tasks.id as task_id',
+                    'milestones.title as milestone_name',
+                    'projects.id as project_id',
+                    'projects.name as project_name'
+                )
+                    ->join('timesheets', 'timesheets.task_id', '=', 'tasks.id')
+                    ->join('milestones', 'tasks.milestone_id', '=', 'milestones.id')
+                    ->join('projects', 'milestones.project_id', '=', 'projects.id')
+                    ->where('projects.workspace', '=', $currentWorkspace->id)
+                    ->where('tasks.assign_to', '=', $user_id);
             } else {
-                if ($project_id == -1) {
-                    //--------------------- Los timesheets de mis proyectos  -------------------//
-                    $timesheets = Timesheet::select('timesheets.*', 'tasks.milestone_id as milestone_id', 'tasks.id as task_id')
-                        ->join('projects', 'projects.id', '=', 'timesheets.project_id')
-                        ->join('tasks', 'timesheets.task_id', '=', 'tasks.id')
-                        ->where('projects.workspace', '=', $currentWorkspace->id)
-                        ->where('tasks.assign_to', $user_id);
-                } else {
-                    //--------------------- Los timesheets de todos en un proyecto  -------------------//
-                    $timesheets = Timesheet::select('timesheets.*', 'tasks.milestone_id as milestone_id', 'tasks.assign_to as user_id', 'tasks.id as task_id')
-                        ->join('projects', 'projects.id', '=', 'timesheets.project_id')
-                        ->join('tasks', 'timesheets.task_id', '=', 'tasks.id')
-                        ->where('projects.workspace', '=', $currentWorkspace->id);
-                }
+                //--------------------- Los timesheets de todos en un proyecto  -------------------//
+                $timesheets = Task::select(
+                    'tasks.*',
+                    'tasks.milestone_id as milestone_id',
+                    'tasks.id as task_id',
+                    'milestones.title as milestone_name',
+                    'projects.id as project_id',
+                    'projects.name as project_name'
+                )
+                    ->join('timesheets', 'timesheets.task_id', '=', 'tasks.id')
+                    ->join('milestones', 'tasks.milestone_id', '=', 'milestones.id')
+                    ->join('projects', 'milestones.project_id', '=', 'projects.id')
+                    ->where('projects.workspace', '=', $currentWorkspace->id);
             }
 
             $days = Utility::getFirstSeventhWeekDay($week);
             $first_day = $days['first_day'];
             $seventh_day = $days['seventh_day'];
 
+
             $onewWeekDate = $first_day->format('Y-m-d') . ' - ' . $seventh_day->format('Y-m-d');
             $selectedDate = $first_day->format('Y-m-d') . ' - ' . $seventh_day->format('Y-m-d');
 
-            // $timesheets = $timesheets->whereDate('date', '>=', $first_day->format('Y-m-d'))
-            //     ->whereDate('date', '<=', $seventh_day->format('Y-m-d'));
+            $timesheets = $timesheets->whereDate('tasks.start_Date', '>=', $first_day->format('Y-m-d'))
+                ->whereDate('tasks.estimated_date', '<=', $seventh_day->format('Y-m-d'));
 
-            $timesheets = $timesheets->where(function ($query) use ($first_day, $seventh_day) {
-                $query->whereDate('timesheets.date', '>=', $first_day->format('Y-m-d'))
-                    ->whereDate('timesheets.date', '<=', $seventh_day->format('Y-m-d'))
-                    ->orWhere(function ($subQuery) use ($first_day, $seventh_day) {
-                        $subQuery->whereDate('tasks.estimated_date', '>=', $first_day->format('Y-m-d'))
-                            ->whereDate('tasks.estimated_date', '<=', $seventh_day->format('Y-m-d'));
-                    });
-            });
-
-            $milestones_ids = [];
-            $milestones = [];
 
             if ($project_id == '-1') {
                 $timesheets = $timesheets->get()->groupBy([
@@ -2771,8 +2761,6 @@ class ProjectController extends Controller
                     'milestone_id',
                     'task_id'
                 ])->toArray();
-
-                // dd($timesheets);
             } else {
 
                 $timesheets = $timesheets->where('projects.id', $project_id)->get()->groupBy([
@@ -2781,30 +2769,28 @@ class ProjectController extends Controller
                     'task_id'
                 ])->toArray();
             }
-
-            $returnHTML = Project::getProjectAssignedTimesheetHTML($currentWorkspace, $timesheets, $milestones_ids, $days, $project_id);
-            $totalrecords = count($timesheets);
+            $results = Project::getProjectAssignedTimesheetHTML($currentWorkspace, $timesheets, $days, $project_id);
+            $returnHTML = $results['htmlContent'];         // HTML generado
+            $totalrecords = $results['totalrecords']; // Total de registros
 
             if ($project_id != '-1') {
-
                 $projects = Project::select('projects.*')
                     ->join('user_projects', 'projects.id', '=', 'user_projects.project_id')
                     ->where('user_projects.user_id', '=', $user_id)
                     ->where('projects.workspace', '=', $currentWorkspace->id)->get();
 
                 $tasks = Task::where('project_id', '=', $project_id)
-                    // ->whereNotIn('id', $task_ids)
                     ->where('assign_to')->pluck('type_id', 'id');
             }
 
             return response()->json([
                 'success' => true,
-                'totalrecords' => $totalrecords,
                 'selectedDate' => $selectedDate,
                 'tasks' => $tasks,
                 'onewWeekDate' => $onewWeekDate,
                 'days' => $days,
                 'html' => $returnHTML,
+                'totalrecords' => $totalrecords
             ]);
         }
     }

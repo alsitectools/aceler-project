@@ -6,8 +6,10 @@
         @csrf
         <div class="modal-body">
             <div class="row">
-                <div class="form-group col-md-8">
-                    <label class="col-form-label">{{ __('Projects') }}</label>
+                <div class="form-group col-md-12">
+                    <label class="col-form-label">
+                        {{ __('Projects') }}
+                    </label>
                     <select class="form-control form-control-light select2" name="project_id" id="project_id" required>
                         <option value="">{{ __('Select Project') }}</option>
                         @foreach ($projects as $project)
@@ -17,133 +19,39 @@
                     </select>
                 </div>
 
-                <div class="form-group col-md-4">
+                <div class="form-group col-md-6">
                     <label class="col-form-label">{{ __('Milestone') }}</label>
                     <select class="form-control form-control-light select2" name="milestone_id" id="milestone_id"
                         required>
                         <option value="">{{ __('Select Milestone') }}</option>
                     </select>
                 </div>
-                <div class="form-group col-md-8" id="task-container">
-                    <label class="col-form-label">{{ __('dictionary.Task_type') }}</label>
+                <div class="form-group col-md-6" id="task-container">
+                    <label class="col-form-label">{{ __('Task type') }}</label>
                     <select class="form-control form-control-light select2" id="task-list" name="type_id" required>
                         <option value="">{{ __('Select Task') }}</option>
                     </select>
                 </div>
-                <div class="form-group col-md-4">
-                    <label class="col-form-label">{{ __('Entrega estimada') }}</label>
-                    <div class="form-group">
-                        <div class="input-group date">
-                            <input class="form-control datepicker23" type="text" id="end_date" name="estimated_date"
-                                autocomplete="off">
-                            <span class="input-group-text">
-                                <i class="feather icon-calendar"></i>
-                            </span>
-                        </div>
-                    </div>
-                </div>
-                <div class="form-group col-md-12" style="display:none">
-                    <label class="col-form-label">{{ __('Assign To') }}</label>
-                    <select class=" multi-select" id="assign_to" name="assign_to[]" data-toggle="select2"
-                        multiple="multiple" data-placeholder="{{ __('Select Users ...') }}">
-                        <option value="{{ $user->id }}" selected></option>
-                    </select>
-                </div>
-                <div class="form-group col-md-12">
-                    <label class="col-form-label">{{ __('Description') }}</label>
-                    <textarea class="form-control form-control-light" id="task-description" rows="3" name="description"></textarea>
-                </div>
 
-                @if ($currentWorkspace->is_googlecalendar_enabled == 'on')
-                    <div class="form-group col-md-6">
-                        {{ Form::label('synchronize_type', __('Synchroniz in Google Calendar ?'), ['class' => 'col-form-label']) }}
-                        <div class=" form-switch">
-                            <input type="checkbox" class="form-check-input mt-2" name="synchronize_type"
-                                id="switch-shadow" value="google_calender">
-                            <label class="form-check-label" for="switch-shadow"></label>
-                        </div>
-                    </div>
-                @endif
+                <div class="form-group col-md-6">
+                    <label for="start_date" class="col-form-label">{{ __('Start date') }}</label>
+                    <input onclick="this.showPicker()" type="date" class="form-control form-control-light date"
+                        id="start_date" value="" placeholder="{{ __('Start Date') }}" name="start_date" required>
+                </div>
+                <div class="form-group col-md-6 ">
+                    <label for="estimated_date" class="col-form-label">{{ __('Estimated delivery') }}</label>
+                    <input onclick="this.showPicker()" type="date" class="form-control form-control-light date"
+                        id="estimated_date" value="" placeholder="{{ __('Date') }}" name="estimated_date"
+                        required>
+                </div>
             </div>
         </div>
-        <div class="modal-footer">
+        <div class=" modal-footer">
             <button type="button" class="btn  btn-light" data-bs-dismiss="modal">{{ __('Close') }}</button>
-            <input type="submit" value="{{ __('Save Changes') }}" class="btn  btn-primary">
+            <button type="submit" class="btn btn-primary">{{ __('Create') }}</button>
         </div>
-
+        </div>
     </form>
-    <link rel="stylesheet" href="{{ asset('assets/custom/libs/bootstrap-daterangepicker/daterangepicker.css') }}">
-    <script src="{{ asset('assets/custom/libs/bootstrap-daterangepicker/daterangepicker.js') }}"></script>
-    <script>
-        if ($(".multi-select").length > 0) {
-            $($(".multi-select")).each(function(index, element) {
-                var id = $(element).attr('id');
-                var multipleCancelButton = new Choices(
-                    '#' + id, {
-                        removeItemButton: true,
-                    }
-                );
-            });
-        }
-
-        (function() {
-            var locale = '{{ app()->getLocale() }}';
-            var dateInput = document.querySelector('.datepicker23');
-            var datepicker = new Datepicker(dateInput, {
-                locale: locale,
-                buttonClass: 'btn',
-                format: 'yyyy-mm-dd',
-            });
-
-            dateInput.addEventListener('changeDate', function() {
-                datepicker.hide();
-            });
-        })();
-    </script>
-    <script>
-        $(document).ready(function() {
-            $('#project_id').on('change', function() {
-                var selectedOption = $(this).find('option:selected');
-                var projectId = selectedOption.val();
-                var selectedProject = JSON.parse(selectedOption.attr('data-project'));
-    
-                // Vacía las listas antes de agregar nuevas opciones
-                $('#task-list').empty().append(
-                    '<option value="" readonly>{{ __('Select Task') }}</option>');
-                $('#milestone_id').empty().append(
-                    '<option value="" readonly>{{ __('Select Milestone') }}</option>');
-    
-                // Itera sobre cada tipo de tarea y agrega los que coincidan con el tipo de proyecto
-                var taskTypes = @json($taskTypes);
-                $.each(taskTypes, function(index, type) {
-                    if (selectedProject.type == type.project_type) {
-                        $('#task-list').append($('<option>', {
-                            value: type.id,
-                            text: type.name,
-                        }));
-                    }
-                });
-    
-                // Itera sobre cada milestone y agrega los que coincidan con el project_id
-                let milestones = @json($milestones);
-                $.each(milestones, function(index, milestone) {
-                    if (projectId == milestone.project_id) {
-                        $('#milestone_id').append($('<option>', {
-                            value: milestone.id,
-                            text: milestone.title
-                        }));
-                    }
-                });
-    
-                // console.log('Milestones: ', milestones);
-                // console.log('task type: ', taskTypes);
-                // console.log('Selected Project ID: ', projectId);
-                // console.log('Selected Project: ', selectedProject);
-            });
-        });
-    
-    </script>
-
 @else
     <div class="container mt-5">
         <div class="card">
@@ -160,8 +68,7 @@
                             </p>
                             <div class="mt-3">
                                 <a class="btn-return-home badge-blue" href="{{ route('home') }}"><i
-                                        class="fas fa-reply"></i>
-                                    {{ __('Return Home') }}</a>
+                                        class="fas fa-reply"></i> {{ __('Return Home') }}</a>
                             </div>
                         </div>
                     </div>
@@ -170,3 +77,51 @@
         </div>
     </div>
 @endif
+<link rel="stylesheet" href="{{ asset('assets/custom/libs/bootstrap-daterangepicker/daterangepicker.css') }}">
+<script src="{{ asset('assets/custom/libs/bootstrap-daterangepicker/daterangepicker.js') }}"></script>
+<script>
+    $(document).ready(function() {
+        $('#project_id').on('change', function() {
+            var selectedOption = $(this).find('option:selected');
+            var projectId = selectedOption.val();
+            var selectedProject = JSON.parse(selectedOption.attr('data-project'));
+
+            $('#task-list').empty().append(
+                '<option value="" readonly>{{ __('Select Task') }}</option>');
+            $('#milestone_id').empty().append(
+                '<option value="" readonly>{{ __('Select Milestone') }}</option>');
+
+            var taskTypes = @json($taskType);
+            $.each(taskTypes, function(index, task) {
+                if (selectedProject.type == task.project_type) {
+                    $('#task-list').append($('<option>', {
+                        value: task.id,
+                        text: task.name
+                    }));
+                }
+            });
+
+            let milestones = @json($milestones);
+            $.each(milestones, function(index, milestone) {
+                if (projectId == milestone.project_id) {
+                    $('#milestone_id').append($('<option>', {
+                        value: milestone.id,
+                        text: milestone.title
+                    }));
+                }
+            });
+        });
+    });
+</script>
+<style>
+    .estimated_date {
+        display: flex;
+        justify-content: center;
+        align-items: flex-end;
+    }
+
+    .estimated_date>p {
+        font-size: 14px;
+        text-align: center;
+    }
+</style>

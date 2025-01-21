@@ -23,6 +23,7 @@ class Milestone extends Model
 
     public function daysLeft()
     {
+
         return  round((strtotime($this->end_date) - strtotime(date('Y-m-d'))) /   24 / 60 / 60,);
     }
 
@@ -31,12 +32,34 @@ class Milestone extends Model
     //     return Task::join('task_types', 'task_types.id', 'tasks.type_id')
     //         ->where('tasks.milestone_id', $this->id)->pluck('task_types.name');
     // }
+    // public function tasks()
+    // {
+    //     return Task::join('task_types', 'task_types.id', '=', 'tasks.type_id')
+    //         ->where('tasks.milestone_id', $this->id)
+    //         ->select('tasks.*', 'task_types.name as task_name')
+    //         ->get();
+    // }
+
+    public function project()
+    {
+        return $this->belongsTo(Project::class, 'project_id', 'id');
+    }
+
+    // public function tasks()
+    // {
+    //     return $this->hasMany(Task::class, 'milestone_id', 'id');
+    // }
     public function tasks()
     {
-        return Task::join('task_types', 'task_types.id', '=', 'tasks.type_id')
-            ->where('tasks.milestone_id', $this->id)
-            ->select('tasks.*', 'task_types.name as task_name')
-            ->get();
+        return $this->hasMany(Task::class);
+    }
+    public function tasksWithinDateRange($startDate, $estimatedDate)
+    {
+        return $this->hasMany(Task::class, 'milestone_id', 'id')
+            ->where(function ($query) use ($startDate, $estimatedDate) {
+                $query->where('start_date', '>=', $startDate)
+                    ->where('estimated_date', '<=', $estimatedDate);
+            });
     }
 
     public function taskStart()

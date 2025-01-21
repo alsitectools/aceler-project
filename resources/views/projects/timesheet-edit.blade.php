@@ -14,7 +14,7 @@
 
     <div class="form-group">
         <label class="col-form-label">{{ __('Task') }}</label>
-        <input type="text" class="form-control" value="{{ $parseArray['task_name'] }}" disabled="disabled">
+        <input type="text" class="form-control" value={{ __($parseArray['task_name']) }} disabled="disabled">
     </div>
     <div class="form-group">
         <label class="col-form-label">{{ __('Date') }}</label>
@@ -29,28 +29,20 @@
         <div class="col-md-6">
             <select class="form-control select2" name="time_hour" id="time_hour" required="">
                 <option value="">{{ __('Hours') }}</option>
-
                 <?php for ($i = 0; $i < 9; $i++) { $i = $i < 10 ? '0' . $i : $i; ?>
-
                 <option value="{{ $i }}" {{ $parseArray['time_hour'] == $i ? 'selected="selected"' : '' }}>
                     {{ $i }}</option>
-
                 <?php } ?>
-
             </select>
         </div>
 
         <div class="col-md-6">
             <select class="form-control select2" name="time_minute" id="time_minute" required>
                 <option value="">{{ __('Minutes') }}</option>
-
                 <?php for ($i = 0; $i < 60; $i += 10) { $i = $i < 10 ? '0' . $i : $i; ?>
-
                 <option value="{{ $i }}"
                     {{ $parseArray['time_minute'] == $i ? 'selected="selected"' : '' }}>{{ $i }}</option>
-
                 <?php } ?>
-
             </select>
         </div>
         <div class="col-md-12">
@@ -60,7 +52,6 @@
                     {{ $parseArray['totaltaskhour'] . ' ' . __('Hours') . ' ' . $parseArray['totaltaskminute'] . ' ' . __('Minutes') }}</span>
             </div>
         </div>
-
         @php($id = str_replace('.', '', uniqid('', true)))
     </div>
 </div>
@@ -68,12 +59,12 @@
 <div>
     <div class="row">
         <div class="text-end">
-            <a href="#" class="action-btn btn-danger  btn btn-sm d-inline-flex"
+            {{-- <a href="#" class="action-btn btn-danger  btn btn-sm d-inline-flex"
                 data-confirm="{{ __('Are You Sure?') }}"
                 data-text="{{ trans('This action can not be undone. Do you want to continue?') }}"
                 data-confirm-yes="delete-form-{{ $id }}">
                 <i class="ti ti-trash"></i>
-            </a>
+            </a> --}}
             <button type="button" class="btn btn-light" data-bs-dismiss="modal">{{ __('Close') }}</button>
             <input type="submit" value="{{ __('Save Changes') }}" class="btn  btn-primary me-5">
 

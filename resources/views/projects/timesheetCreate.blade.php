@@ -95,7 +95,7 @@
             $('#milestone_id').empty().append(
                 '<option value="" readonly>{{ __('Select Milestone') }}</option>');
 
-            var taskTypes = @json($taskTypes);
+            var taskTypes = @json($taskType);
             $.each(taskTypes, function(index, task) {
                 if (selectedProject.type == task.project_type) {
                     $('#task-list').append($('<option>', {

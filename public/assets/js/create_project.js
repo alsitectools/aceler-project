@@ -91,8 +91,6 @@ $(document).ready(function () {
     });
 
     clientInput.on('input', function () {
-        refMoInput.val("");
-        project_nameInput.val("");
         handleInputChange($(this), clipoList, searchClipoUrl, 'No results found', 'clients');
     });
 
@@ -162,7 +160,7 @@ $(document).ready(function () {
             },
             error: function (jqXHR, textStatus, errorThrown) {
                 loading = false;
-                showAlert("Error en la solicitud. Inténtalo de nuevo.", type);
+                showAlert(type);
             },
             complete: function () {
                 $('#loading-spinner-container').remove();
@@ -244,7 +242,6 @@ $(document).ready(function () {
     // Función para mostrar la lista de obras en ref_mo_list
     function populateMoList(obras) {
         refMoList.empty().show();
-        console.log('obras devuletas', obras);
 
         const obraItems = obras.map(obra => {
             return $('<a href="#" class="list-group-item list-group-item-action stylelist">')
@@ -254,15 +251,13 @@ $(document).ready(function () {
                     e.preventDefault();
                     refMoInput.val(obra.ref_mo);
                     project_nameInput.val(obra.name);
-                    refMoList.empty().hide(); 
+                    refMoList.empty().hide();
                 });
         });
 
         refMoList.append(obraItems);
     }
     function populateClientList(selectedClients) {
-        console.log('Clientes seleccionados:', selectedClients);
-
         clipoList.empty().show();
         const clientItems = selectedClients.map(client => {
             return $('<a href="#" class="list-group-item list-group-item-action stylelist">')

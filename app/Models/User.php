@@ -68,6 +68,12 @@ class User extends Authenticatable implements MustVerifyEmail
         {
                 return $this->guard;
         }
+        // Relación de muchos a uno con las tareas
+        public function tasks()
+        {
+                return $this->hasMany(Task::class, 'assign_to');  // Relación inversa
+        }
+
 
         public function workspace()
         {
