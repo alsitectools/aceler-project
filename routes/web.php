@@ -985,6 +985,8 @@ Route::get('/{slug}/projects/{id}/task-board/{tid}/{cid?}', [ProjectController::
 Route::get('/{slug}/timesheet-task/{task_id}/{first_day}/{seventh_day}', [ProjectController::class, 'showTask'])->name('show.task');
 
 //Modify user timetable
+Route::post('/user/specialDelete-timetable', [UserController::class, 'deleteSpecialDay'])->name('user.deleteSpecialDay');
+Route::post('/user/specialUpdate-timetable', [UserController::class, 'specialDays'])->name('user.specialDays');
 Route::post('/user/update-timetable', [UserController::class, 'updateTimetable'])->name('user.updateTimetable');
 Route::get('/user/get-timetable', [UserController::class, 'getTimetable'])->name('user.getTimetable');
 

@@ -218,45 +218,44 @@ class CalenderController extends Controller
         return response()->json($calendarData);
     }
 
-    // Function to get the day of the week
-private function getDayOfWeek($date)
-{
-    $dateTime = new DateTime($date);
-    return $dateTime->format('l'); // 'l' (lowercase 'L') returns the full textual representation of the day of the week
-}
-
-// Function to get the week days of a specific week
-public function getWeekDaysOfMonth($specificDate = null)
-{
-    // If no date is provided, use the current date
-    $referenceDate = $specificDate ? Carbon::parse($specificDate) : Carbon::now();
-
-    // Calculate the first and last day of the week based on the given date
-    $first_day = $referenceDate->copy()->startOfWeek(); // Monday
-    $seventh_day = $referenceDate->copy()->endOfWeek(); // Sunday
-
-    $dateCollection = [
-        'first_day' => $first_day->toDateString(),
-        'seventh_day' => $seventh_day->toDateString(),
-        'datePeriod' => []
-    ];
-
-    // Generate the range of dates for the week
-    $period = CarbonPeriod::create($first_day, $seventh_day);
-
-    foreach ($period as $key => $dateObj) {
-        $dateCollection['datePeriod'][$key] = $dateObj->toDateString();
+        // Function to get the day of the week
+    private function getDayOfWeek($date)
+    {
+        $dateTime = new DateTime($date);
+        return $dateTime->format('l'); // 'l' (lowercase 'L') returns the full textual representation of the day of the week
     }
 
-    return $dateCollection;
-}
+    // Function to get the week days of a specific week
+    public function getWeekDaysOfMonth($specificDate = null)
+    {
+        // If no date is provided, use the current date
+        $referenceDate = $specificDate ? Carbon::parse($specificDate) : Carbon::now();
 
-    // Function to modify colors of the timesheet
+        // Calculate the first and last day of the week based on the given date
+        $first_day = $referenceDate->copy()->startOfWeek(); // Monday
+        $seventh_day = $referenceDate->copy()->endOfWeek(); // Sunday
+
+        $dateCollection = [
+            'first_day' => $first_day->toDateString(),
+            'seventh_day' => $seventh_day->toDateString(),
+            'datePeriod' => []
+        ];
+
+        // Generate the range of dates for the week
+        $period = CarbonPeriod::create($first_day, $seventh_day);
+
+        foreach ($period as $key => $dateObj) {
+            $dateCollection['datePeriod'][$key] = $dateObj->toDateString();
+        }
+
+        return $dateCollection;
+    }
+
     public function getTimesheetColor()
     {
         $userId = Auth::id();
 
-        // Fetch all timesheets for the user
+        // Obtener todas las tareas del usuario
         $timesheets = DB::table('timesheets')
             ->join('tasks', 'timesheets.task_id', '=', 'tasks.id')
             ->join('users', 'tasks.assign_to', '=', 'users.id')
@@ -264,23 +263,12 @@ public function getWeekDaysOfMonth($specificDate = null)
             ->where('users.id', '=', $userId)
             ->get();
 
-        Log::debug("getTimesheetColor INFO:::" . $timesheets);
-
-        // Prepare calendar data
-        $calendarData = [];
-        foreach ($timesheets as $timesheet) {
-            $dayOfWeek = $this->getDayOfWeek($timesheet->date);
-            $calendarData[] = [
-                'date' => $timesheet->date,
-                'dayOfWeek' => $dayOfWeek,
-                'hours' => $timesheet->time,
-            ];
+        // Obtener el horario del usuario
+        $timetable = UserTimetable::where('user_id', $userId)->first();
+        if (!$timetable) {
+            return response()->json(['error' => 'No timetable found'], 404);
         }
 
-        Log::debug("calendarData INFO:::" . json_encode($calendarData));
-
-        // Get user timetable
-        $timetable = UserTimetable::where('user_id', $userId)->first();
         $expectedHours = [
             'monday' => $timetable->monday,
             'tuesday' => $timetable->tuesday,
@@ -291,72 +279,124 @@ public function getWeekDaysOfMonth($specificDate = null)
             'sunday' => $timetable->sunday,
         ];
 
-        Log::debug("expectedHours INFO:::" . json_encode($expectedHours));
-
-        // Identify all unique weeks from calendarData
-        $uniqueWeeks = [];
-        foreach ($calendarData as $data) {
-            $weekKey = Carbon::parse($data['date'])->startOfWeek()->toDateString();
-            $uniqueWeeks[$weekKey] = $data['date'];
+        $calendarData = [];
+        foreach ($timesheets as $timesheet) {
+            $dayOfWeek = $this->getDayOfWeek($timesheet->date);
+            $calendarData[] = [
+                'date' => $timesheet->date,
+                'dayOfWeek' => $dayOfWeek,
+                'hours' => $timesheet->time,
+            ];
         }
 
-        // Prepare color data for all weeks
+        $today = Carbon::now()->toDateString();
+        $currentYear = Carbon::now()->year;
+
+        // Generar todas las semanas del año
+        $startOfYear = Carbon::create($currentYear, 1, 1)->startOfWeek();
+        $endOfYear = Carbon::create($currentYear, 12, 31)->endOfWeek();
+
+        $period = CarbonPeriod::create($startOfYear, '1 week', $endOfYear);
+
         $colorData = [];
 
-        foreach ($uniqueWeeks as $weekStartDate) {
-            // Get all days in the week for the current date
-            $weekDays = $this->getWeekDaysOfMonth($weekStartDate);
-            $weekDates = $weekDays['datePeriod'];
+        foreach ($period as $weekStartDate) {
+            $weekStartDate = $weekStartDate->startOfWeek();
+            $weekDays = $this->getWeekDaysOfMonth($weekStartDate->toDateString());
 
-            foreach ($expectedHours as $day => $expectedHour) {
-                $dayColor = '#e06c71'; // Default color
-                $workedHours = 0;
-                $currentDate = null;
+            foreach ($weekDays['datePeriod'] as $currentDate) {
+                $dayOfWeek = strtolower($this->getDayOfWeek($currentDate));
+                $expectedHour = $expectedHours[$dayOfWeek] ?? null;
 
-                // Find the corresponding date for the day
-                foreach ($weekDates as $date) {
-                    if (strtolower($this->getDayOfWeek($date)) == $day) {
-                        $currentDate = $date;
-                        break;
-                    }
+                // Excluir días futuros
+                if ($currentDate > $today) {
+                    continue;
                 }
 
-                // Check if there are hours worked on this day
+                // Comprobar si hay horas trabajadas para este día
+                $workedHours = null;
+                $dayColor = '#e06c71'; // Color rojo por defecto para días sin imputaciones
+
                 foreach ($calendarData as $dataDay) {
                     if ($dataDay['date'] === $currentDate) {
                         $workedHours = $dataDay['hours'];
-                        
+
                         if ($workedHours == 0) {
-                            $dayColor = '#e06c71'; // No hours worked
+                            $dayColor = '#e06c71'; // No se imputaron horas
                         } elseif ($workedHours < $expectedHour) {
-                            $dayColor = '#fcf75e'; // Partial hours worked
+                            $dayColor = '#fcf75e'; // Horas parciales
                         } elseif ($workedHours == $expectedHour) {
-                            $dayColor = '#cbd7bf'; // Hours met
+                            $dayColor = '#cbd7bf'; // Horas completas
                         } else {
-                            $dayColor = '#b2e2f2'; // Overtime
+                            $dayColor = '#b2e2f2'; // Horas extras
                         }
                         break;
                     }
                 }
 
+                // Si no hay horas imputadas y es un día pasado, asignar 00:00
+                if (!$workedHours && $currentDate < $today && $expectedHour !== null) {
+                    $workedHours = '00:00';
+                }
+
+                // Agregar al colorData
                 if ($expectedHour !== null) {
-                    // Add data to colorData
                     $colorData[] = [
-                        'dayOfWeek' => ucfirst($day),
+                        'dayOfWeek' => ucfirst($dayOfWeek),
                         'date' => $currentDate,
-                        'hours' => $workedHours,
+                        'hours' => $workedHours ? date('H:i', strtotime($workedHours)) : '00:00',
                         'color' => $dayColor,
                     ];
                 }
             }
         }
 
-        Log::debug("colorData INFO:::" . json_encode($colorData));
+        //get user holidays/intensive workday
 
+        $rangeDays = DB::table('user_timetable')
+        ->where('user_id', $userId)
+        ->select('range_holidays', 'range_intensive_workday')
+        ->first();
+    
+        // Inicializar variables de resultado
+        $specialColorData = [];
+        
+        // Procesar el campo `range_holidays` si no es null
+        if (!is_null($rangeDays->range_holidays)) {
+            $holidays = json_decode($rangeDays->range_holidays, true); // Decodificar JSON
+        
+            $holidayDays = [];
+            foreach ($holidays as $day) {
+                $holidayDays[] = $day; // Asumiendo que cada elemento en JSON es un día individual
+            }
+        
+            // Agregar holidays al diccionario con color
+            $specialColorData['holidayRange'] = $holidayDays;
+            $specialColorData['holidayColor'] = '#91DDCF'; // Color rosa para días festivos
+        }
+        
+        // Procesar el campo `range_intensive_workday` si no es null
+        if (!is_null($rangeDays->range_intensive_workday)) {
+            $intensiveWorkdays = json_decode($rangeDays->range_intensive_workday, true);
+        
+            $intensiveData = [];
+            foreach ($intensiveWorkdays as $hours => $days) {
+                foreach ($days as $day) {
+                    $intensiveData[$hours][] = $day; // Agrupando los días bajo las horas específicas
+                }
+            }
+        
+            // Agregar intensive workdays al diccionario con color
+            $specialColorData['intensiveWorkRange'] = $intensiveData;
+            $specialColorData['intensiveWorkColor'] = '#89A8B2'; // Color púrpura para trabajo intensivo
+        }
+
+        
         return response()->json([
             'calendarData' => $calendarData,
             'expectedHours' => $expectedHours,
             'colorData' => $colorData,
+            'specialColorData' => $specialColorData,
         ]);
     }
 
