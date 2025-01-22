@@ -521,6 +521,127 @@ class UserController extends Controller
 
     /*Timetable */
 
+
+    //function to delete a special day from timetable
+    public function deleteSpecialDay(Request $request)
+    {
+        $userId = Auth::id();
+        $inputs = $request->input();
+
+        $event = $inputs['eventId'];
+
+        // Determinar el tipo de evento a eliminar
+        $splitEvent = explode('_', $event); // Separar el tipo de evento y la fecha
+
+        $typeEvent = "";
+
+        if ($splitEvent[0] == "holiday") {
+            $typeEvent = "range_holidays";
+        } else {
+            $typeEvent = "range_intensive_workday";
+        }
+
+        $dateToRemove = $splitEvent[1];  // La fecha que queremos eliminar
+
+        // Obtener el contenido JSON de la columna correspondiente
+        $jsonField = DB::table('user_timetable')
+                    ->where('user_id', $userId)
+                    ->value($typeEvent);
+
+        // Decodificar JSON a un array PHP
+        $jsonArray = json_decode($jsonField, true);
+
+        // Buscar la posición del valor a eliminar
+        if (($key = array_search($dateToRemove, $jsonArray)) !== false) {
+            // Construcción de la ruta JSON para JSON_REMOVE (por índice)
+            $jsonPath = '$[' . $key . ']';
+
+            // Ejecutar la consulta para eliminar el valor específico usando JSON_REMOVE
+            DB::table('user_timetable')
+                ->where('user_id', $userId)
+                ->update([
+                    $typeEvent => DB::raw("JSON_REMOVE($typeEvent, '$jsonPath')")
+                ]);
+
+            return response()->json(['success' => true, 'message' => 'Date removed successfully.']);
+        }
+
+        return response()->json(['success' => false, 'message' => 'Date not found in JSON field.']);
+    }
+
+
+    //function to set specials days for timetable
+
+    public function specialDays(Request $request)
+    {
+        // Get the current authenticated user ID
+        $userId = Auth::id();
+    
+        // Get input data from the request and decode JSON input
+        $inputs = $request->input();
+        $rangeAndInput = json_decode($inputs["rangeAndInput"], true);
+    
+        // Retrieve the existing record for the user
+        $existingData = DB::table('user_timetable')->where('user_id', $userId)->first();
+    
+        // Initialize update data array
+        $updateData = [];
+    
+        // Handling holidays and intensive workdays separately
+        if (isset($rangeAndInput['rangeDate'])) {
+            $newDates = json_decode($rangeAndInput['rangeDate'], true);
+    
+            if (isset($rangeAndInput['intensiveWorkday']) && !empty($rangeAndInput['intensiveWorkday'])) {
+                // Handle intensive workday storage
+                $newIntensiveHours = $rangeAndInput['intensiveWorkday'];
+    
+                // Decode existing intensive workdays
+                $existingIntensiveWorkdays = $existingData && $existingData->range_intensive_workday
+                    ? json_decode($existingData->range_intensive_workday, true)
+                    : [];
+    
+                if (!is_array($existingIntensiveWorkdays)) {
+                    $existingIntensiveWorkdays = [];
+                }
+    
+                // Add or update the intensive workday dates with the provided time
+                foreach ($newDates as $date) {
+                    $existingIntensiveWorkdays[$newIntensiveHours][] = $date;
+                }
+    
+                // Ensure unique dates under each hour key
+                foreach ($existingIntensiveWorkdays as $hour => $dates) {
+                    $existingIntensiveWorkdays[$hour] = array_unique($dates);
+                }
+    
+                $updateData['range_intensive_workday'] = json_encode($existingIntensiveWorkdays);
+            } else {
+                // Handle holiday storage when no intensive workday is provided
+                $existingHolidays = $existingData && $existingData->range_holidays
+                    ? json_decode($existingData->range_holidays, true)
+                    : [];
+    
+                if (!is_array($existingHolidays)) {
+                    $existingHolidays = [];
+                }
+    
+                // Merge new holidays and ensure uniqueness
+                $mergedHolidays = array_unique(array_merge($existingHolidays, $newDates));
+    
+                $updateData['range_holidays'] = json_encode($mergedHolidays);
+            }
+        }
+    
+        // Perform the update only if there's data to update
+        if (!empty($updateData)) {
+            DB::table('user_timetable')
+                ->where('user_id', $userId)
+                ->update($updateData);
+        }
+    
+        return redirect()->back()->with('success', __('Timetable updated successfully.'));
+    }
+    
     public function getTimetable()
     {
         // Obtener el usuario actual

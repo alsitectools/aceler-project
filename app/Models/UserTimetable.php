@@ -20,5 +20,7 @@ class UserTimetable extends Model
         'friday',
         'saturday',
         'sunday',
+        'special_days_range',
+        'intensive_workday',
     ];
 }

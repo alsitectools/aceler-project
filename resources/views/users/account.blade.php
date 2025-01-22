@@ -14,6 +14,7 @@
 
 @section('content')
 @include('loader.loader')
+@include('calendar.customCalendar')
     <div class="row">
         <div class="col-xl-3">
             <div class="card sticky-top">
@@ -29,6 +30,11 @@
 
                     <a href="#v-pills-timetable"
                         class="list-group-item list-group-item-action border-0">{{ __('Timetable') }}
+                        <div class="float-end"><i class="ti ti-chevron-right"></i></div>
+                    </a>
+
+                    <a href="#v-pills-HolidayPicker"
+                        class="list-group-item list-group-item-action border-0">{{ __('Holiday') }}
                         <div class="float-end"><i class="ti ti-chevron-right"></i></div>
                     </a>
                 </div>
@@ -183,7 +189,7 @@
                         <input type="checkbox">
                         <span class="slider round"></span>
                     </label>
-                    <input id="mondayInput" type="time" class="inputToggle"></input> 
+                    <input id="mondayInput" type="time" class="inputToggle" onclick="this.showPicker()"></input> 
                 </div>
 
                 <div class="dayToggle">
@@ -192,7 +198,7 @@
                         <input type="checkbox">
                         <span class="slider round"></span>
                     </label>
-                    <input id="tuesdayInput" type="time" class="inputToggle"></input> 
+                    <input id="tuesdayInput" type="time" class="inputToggle" onclick="this.showPicker()"></input> 
                 </div>
 
                 <div class="dayToggle">
@@ -201,7 +207,7 @@
                         <input type="checkbox">
                         <span class="slider round"></span>
                     </label>
-                    <input id="wednesdayInput" type="time" class="inputToggle"></input> 
+                    <input id="wednesdayInput" type="time" class="inputToggle" onclick="this.showPicker()"></input> 
                 </div>
 
                 <div class="dayToggle">
@@ -210,7 +216,7 @@
                         <input type="checkbox">
                         <span class="slider round"></span>
                     </label>
-                    <input id="thursdayInput" type="time" class="inputToggle"></input> 
+                    <input id="thursdayInput" type="time" class="inputToggle" onclick="this.showPicker()"></input> 
                 </div>
 
                 <div class="dayToggle">
@@ -219,7 +225,7 @@
                         <input type="checkbox">
                         <span class="slider round"></span>
                     </label>
-                    <input id="fridayInput" type="time" class="inputToggle"></input> 
+                    <input id="fridayInput" type="time" class="inputToggle" onclick="this.showPicker()"></input> 
                 </div>
 
                 <div class="dayToggle">
@@ -228,7 +234,7 @@
                         <input type="checkbox">
                         <span class="slider round"></span>
                     </label>
-                    <input id="saturdayInput" type="time" class="inputToggle"></input> 
+                    <input id="saturdayInput" type="time" class="inputToggle" onclick="this.showPicker()"></input> 
                 </div>
 
                 <div class="dayToggle">
@@ -237,7 +243,7 @@
                         <input type="checkbox">
                         <span class="slider round"></span>
                     </label>
-                    <input id="sundayInput" type="time" class="inputToggle"></input> 
+                    <input id="sundayInput" type="time" class="inputToggle" onclick="this.showPicker()"></input> 
                 </div>
             </div>
 
@@ -245,6 +251,34 @@
                 <button id="saveTimetable" class="btn btn-sm btn-primary saveButton">{{_('Save')}}</button>
             </div>       
         </div>
+
+        <!-- timetable-->
+        <div class="card divTimetable" id="v-pills-HolidayPicker">
+            <div class="card-header buttonColocation">
+                <h5>{{ __('Holiday') }}</h5>
+                <button class="btn btn-sm btn-primary toggle-section buttonColapse" data-target="#Holiday-content">-</button>
+            </div>
+            <div class="collapse-section card-body divHolidayContent" id="Holiday-content">
+                <div id="startDayPick" class="inputDatePicker">
+                    <i class="fa-solid fa-calendar HolidayIcon"></i>
+                </div>
+                <div style="display: contents;">
+                    <div class="HolidayToggleDiv">
+                        <p>{{_('Holiday')}}</p>
+                        <label class="switch" style="width: 23%;margin-bottom: 10px;">
+                            <input type="checkbox">
+                            <span class="slider round"></span>
+                        </label>
+                        <p>{{_('Intensive workday')}}</p>
+                    </div>
+                    <input class="intensiveWorkInput" type="time" id="intesiveWordaykInput" onclick="this.showPicker()" disabled></input>
+                </div>
+            </div>
+            <div class="alignCenterItems" >
+                <button id="saveHoliday" class="btn btn-sm btn-primary saveButton">{{_('Save')}}</button>
+            </div>   
+        </div>
+
     @endsection
     @push('scripts')
      
@@ -302,6 +336,65 @@
                 });
             };
 
+            //show/hide custom calendar
+            let showCustomCalendar = document.getElementById('startDayPick');
+
+            showCustomCalendar.addEventListener('click', function() {
+
+                let customCalendar = document.getElementById('customCalendarParent');
+
+                if(customCalendar){
+
+                    if(customCalendar.style.display == 'none'){
+                        customCalendar.style.display = 'block';
+                    }else{
+                        customCalendar.style.display = 'none';
+                    }
+                }
+
+            });
+
+            let saveButtonHoliday = document.getElementById('saveHoliday');
+
+            saveButtonHoliday.addEventListener('click', function(){
+
+                //get range of the localstorage
+                let rangeDate = localStorage.getItem('DateSelectedRange');
+                console.log("rangeDate", rangeDate);
+
+                //check if the days will be Holidays or intensive workdays
+                let HolidayToggle = document.querySelector('.HolidayToggleDiv .switch input[type="checkbox"]');
+                
+                let rangeAndInput ={ "rangeDate": rangeDate};
+                if (HolidayToggle.checked) {
+                    //check the value of the input 
+                    let intensiveWorkInput = document.getElementById('intesiveWordaykInput');
+                    console.log("Holiday toggle is ON (Checked)");
+
+                    rangeAndInput["intensiveWorkday"] = intensiveWorkInput.value;
+
+                }
+
+                console.log("range and Input::",rangeAndInput);
+                operationUrl = '<?php echo url("user/specialUpdate-timetable"); ?>';
+                $.ajax({
+                    type: 'POST',
+                    url: operationUrl,
+                            data: {
+                                "rangeAndInput" : JSON.stringify (rangeAndInput),
+                            }, 
+                            headers: {
+                                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') // Incluye el token CSRF
+                            },
+                            success: function(data) {
+                               console.log("success");
+                            },
+                            fail:function() {
+                                console.log("fail");
+                            },
+                });
+            });
+
             let saveButton = document.getElementById('saveTimetable');
 
             saveButton.addEventListener('click', function(){
@@ -345,9 +438,31 @@
             });
 
             $(document).ready(function () {
+        // Manejar el cambio en el checkbox de la sección de Holiday
+                $('.HolidayToggleDiv .switch input[type="checkbox"]').on('change', function () {
+                    var intensiveWorkInput = $('#intesiveWordaykInput');
+
+                    if ($(this).is(':checked')) {
+                        // Habilitar el input cuando el checkbox esté marcado
+                        intensiveWorkInput.prop('disabled', false);
+                        intensiveWorkInput.css({
+                            'background-color': 'white',
+                            '-webkit-box-shadow': 'rgb(0 0 0 / 20%) 0px 4px 10px 0px'
+                        });
+                    } else {
+                        // Deshabilitar el input cuando el checkbox no esté marcado
+                        intensiveWorkInput.prop('disabled', true).val('');
+                        intensiveWorkInput.css({
+                            'background-color': '#E4DEDE',
+                            '-webkit-box-shadow': 'rgb(0 0 0 / 10%) 0px 4px 10px 0px'
+                        });
+                    }
+                });
+
                 $('.toggle-section').on('click', function () {
                     var target = $(this).data('target');
                     var saveButton = $('#saveTimetable');
+                    var saveButtonHoliday = $('#saveHoliday');
 
                     $(target).slideToggle(function () {
                         // Si el objetivo es la sección Timetable
@@ -363,6 +478,12 @@
                                     display: 'none'
                                 });
                                 saveButton.hide(); // Ocultar el botón Save si la sección está oculta
+                            }
+                        }else if(target == "#Holiday-content"){
+                            if ($(target).is(':visible')) {
+                                saveButtonHoliday.show();
+                            }else{
+                                saveButtonHoliday.hide();
                             }
                         }
                     });

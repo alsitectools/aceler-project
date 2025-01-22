@@ -186,87 +186,188 @@
                 type: 'GET',
                 url: operationUrl,
                 headers: {
-                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') // Incluye el token CSRF
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                 },
-                success: function(data) {
+                success: function (data) {
                     console.log("success", data);
 
                     const opacity = 0.4;
 
                     if (data.colorData && Array.isArray(data.colorData) && data.expectedHours) {
-                        // Obtener los días no laborales (días con `null` en expectedHours)
                         const nonWorkingDays = Object.keys(data.expectedHours).filter(day => data.expectedHours[day] === null);
 
-                        // Generar todos los días no laborales del año en UTC
                         const currentYear = new Date().getUTCFullYear();
                         const nonWorkingEvents = [];
 
-                        // Generar un rango de fechas del año en UTC
-                        const startOfYear = new Date(Date.UTC(currentYear, 0, 1)); // 1 de enero en UTC
-                        const endOfYear = new Date(Date.UTC(currentYear, 11, 31)); // 31 de diciembre en UTC
+                        const startOfYear = new Date(Date.UTC(currentYear, 0, 1));
+                        const endOfYear = new Date(Date.UTC(currentYear, 11, 31));
 
                         for (let date = new Date(startOfYear); date <= endOfYear; date.setUTCDate(date.getUTCDate() + 1)) {
-                            // Obtener el día de la semana en UTC
                             const dayOfWeek = date.toLocaleDateString('en-US', { weekday: 'long', timeZone: 'UTC' }).toLowerCase();
                             if (nonWorkingDays.includes(dayOfWeek)) {
-                                const backgroundColor = hexToRgba("#d3d3d3", opacity);
                                 nonWorkingEvents.push({
-                                    title: 'Non-working day',      // Título genérico para días no laborales
-                                    start: date.toISOString().split('T')[0], // Fecha en formato YYYY-MM-DD (en UTC)
-                                    backgroundColor: backgroundColor, // Color gris con opacidad
-                                    borderColor: '#d3d3d3',       // Bordes también en gris
-                                    textColor: 'black',           // Texto en negro
-                                    allDay: true                  // Día completo
+                                    title: 'Non-working day',
+                                    start: date.toISOString().split('T')[0],
+                                    backgroundColor: hexToRgba("#d3d3d3", opacity),
+                                    borderColor: '#d3d3d3',
+                                    textColor: 'black',
+                                    allDay: true
+                                });
+                            }
+                        }
+                        let events = data.colorData
+                            .filter(item => {
+                                // Filtrar para que los días festivos no muestren 00:00
+                                if (data.specialColorData && data.specialColorData.holidayRange.includes(item.date)) {
+                                    return item.hours !== '00:00';
+                                }
+                                return true;
+                            })
+                            .map(item => ({
+                                title: item.hours ? item.hours + ' hours' : '',
+                                start: item.date,
+                                backgroundColor: hexToRgba(item.color, opacity),
+                                borderColor: item.color,
+                                textColor: 'black',
+                                allDay: true
+                            }));
+
+                        if (data.specialColorData && data.specialColorData.holidayRange) {
+                            data.specialColorData.holidayRange.forEach(day => {
+                                events.push({
+                                    title: 'Holiday',
+                                    start: day,
+                                    backgroundColor: hexToRgba(data.specialColorData.holidayColor, opacity),
+                                    borderColor: data.specialColorData.holidayColor,
+                                    textColor: 'black',
+                                    allDay: true,
+                                    id: `holiday_${day}`,
+                                    type: 'holiday'
+                                });
+                            });
+                        }
+
+                        if (data.specialColorData && data.specialColorData.intensiveWorkRange) {
+                            for (const [hours, days] of Object.entries(data.specialColorData.intensiveWorkRange)) {
+                                days.forEach(day => {
+                                    events.push({
+                                        title: `${hours} hours`,
+                                        start: day,
+                                        backgroundColor: hexToRgba(data.specialColorData.intensiveWorkColor, opacity),
+                                        borderColor: data.specialColorData.intensiveWorkColor,
+                                        textColor: 'black',
+                                        allDay: true,
+                                        id: `intensive_${day}`,
+                                        type: 'intensive_work'
+                                    });
                                 });
                             }
                         }
 
-                        // Mapea `colorData` a eventos para FullCalendar
-                        const events = data.colorData.map(item => {
-                            const backgroundColor = hexToRgba(item.color, opacity);
-
-                            return {
-                                title: item.hours ? item.hours + ' hours' : 'No hours', // Título
-                                start: item.date,            // Fecha del evento en formato UTC
-                                backgroundColor: backgroundColor, // Color del fondo con opacidad
-                                borderColor: item.color,     // Color del borde
-                                textColor: 'black',          // Texto en negro para contraste
-                                allDay: true                 // Evento de día completo
-                            };
-                        });
-
-                        // Combina los eventos normales con los días no laborales
                         const allEvents = [...events, ...nonWorkingEvents];
 
-                        // Crea el calendario usando FullCalendar
                         const calendarEl = document.getElementById('calendar');
                         const locale = '{{ app()->getLocale() }}';
 
                         const calendar = new FullCalendar.Calendar(calendarEl, {
                             locale: locale,
-                            initialView: 'dayGridMonth', // Mostrar vista mensual
-                            firstDay: 1,                 // Comenzar la semana en lunes
+                            initialView: 'dayGridMonth',
+                            firstDay: 1,
                             headerToolbar: {
                                 left: 'prev,next today',
                                 center: 'title',
-                                right: '' // Ocultar otras vistas
+                                right: ''
                             },
                             buttonText: {
                                 today: "{{ trans('messages.today') }}"
                             },
-                            events: allEvents, // Agregar los eventos generados
+                            events: allEvents,
+                            
+                            eventDidMount: function(info) {
+                                if (info.event.extendedProps.type === 'holiday' || info.event.extendedProps.type === 'intensive_work') {
+                                    // Crear el botón de eliminación
+                                    const deleteBtn = document.createElement('span');
+                                    deleteBtn.innerHTML = '❌';  // Icono de eliminación
+                                    deleteBtn.style.cursor = 'pointer';
+                                    deleteBtn.style.marginLeft = '10px';
+                                    deleteBtn.style.color = 'red';
+                                    deleteBtn.style.fontSize = '14px';
+
+                                    // Función para eliminar el evento al hacer clic en la X
+                                    deleteBtn.addEventListener('click', function(e) {
+                                        e.stopPropagation();  // Evitar clics en el evento del calendario
+                                        showDeleteModal(info.event);
+                                    });
+
+                                    // Agregar el botón dentro del evento en el calendario
+                                    info.el.querySelector('.fc-event-title').appendChild(deleteBtn);
+                                }
+                            },
+
                         });
 
-                        calendar.render(); // Renderiza el calendario
+                        calendar.render();
                     } else {
                         console.error("No valid colorData or expectedHours found in response:", data);
                     }
                 },
-                error: function(xhr, status, error) {
+                error: function (xhr, status, error) {
                     console.error("Error:", error);
                 }
             });
         }
+        function showDeleteModal(event) {
+                console.log(event.id)
+                let confirmation = confirm(`Do you want to delete this ${event.extendedProps.type.replace('_', ' ')}?`);
+                if (confirmation) {
+                    deleteEvent(event.id);
+                }
+            }
+
+            // Función AJAX para eliminar el evento del servidor
+            function deleteEvent(eventId) {
+                const deleteUrl = '<?php echo url("user/specialDelete-timetable"); ?>';
+                $.ajax({
+                    url: deleteUrl,
+                    method: 'POST',
+                    data: {
+                        "eventId": eventId,
+                        _token: $('meta[name="csrf-token"]').attr('content')
+                    },
+                    success: function(response) {
+                        alert("Event deleted successfully!");
+                        location.reload();  // Refrescar la página para actualizar el calendario
+                    },
+                    error: function(xhr) {
+                        alert("An error occurred while deleting the event.");
+                        console.error(xhr.responseText);
+                    }
+                });
+            }
+            // Función para verificar si una fecha está en días festivos o de trabajo intensivo
+            function isDateRestricted(date) {
+                let formattedDate = date.toISOString().split('T')[0];
+
+                // Comprobar si la fecha está en los días festivos
+                if (data.specialColorData.holidayRange.includes(formattedDate)) {
+                    return {
+                        restricted: true,
+                        message: 'This is a holiday. No work can be logged.'
+                    };
+                }
+
+                // Comprobar si la fecha tiene jornada intensiva
+                for (const [hours, days] of Object.entries(data.specialColorData.intensiveWorkRange)) {
+                    if (days.includes(formattedDate)) {
+                        return {
+                            restricted: true,
+                            message: `Intensive work day (${hours} hours). Adjust your schedule accordingly.`
+                        };
+                    }
+                }
+
+                return { restricted: false };
+            }
 
         function get_data() {
     var project_id = $('#project_id').val();
