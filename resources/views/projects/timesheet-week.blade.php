@@ -136,9 +136,9 @@
                                                     data-bs-target="#collapseOne{{ $key }}"
                                                     aria-expanded="true"
                                                     aria-controls="collapseOne{{ $key }}">
-                                                    <div class="project-name pad_row tooltipCus"
-                                                        data-title="{{ __('Project') }}">
-                                                        {{ $timesheet['project_name'] }}
+                                                    <div class="milestone-name pad_row tooltipCus"
+                                                        data-title="{{ __('Milestone') }}">
+                                                        {{ $timesheet['milestone_name'] ?? __('Unknown Milestone') }}
                                                     </div>
                                                 </button>
                                             </h2>
