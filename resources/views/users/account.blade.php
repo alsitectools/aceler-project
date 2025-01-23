@@ -9,7 +9,7 @@
 @endsection
 @php
 
-    $logo = \App\Models\Utility::get_file('avatars/');
+$logo = 'storage/app/public/';
 @endphp
 
 @section('content')

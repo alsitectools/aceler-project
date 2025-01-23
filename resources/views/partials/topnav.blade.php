@@ -2,7 +2,7 @@
     $unseenCounter = App\Models\ChMessage::where('to_id', Auth::user()->id)
         ->where('seen', 0)
         ->count();
-    $logo = \App\Models\Utility::get_file('avatars/');
+    $logo = 'storage/app/public/';
 @endphp
 @php
     $languages = \App\Models\Utility::languages();
@@ -83,13 +83,12 @@
                             @if (\Auth::user()->avatar) src="{{ asset($logo . Auth::user()->avatar) }}" @else avatar="{{ Auth::user()->name }}" @endif
                             alt="{{ Auth::user()->name }}">
                         <!-- <img class="theme-avtar"
-                            @if (Auth::user()->avatar) 
-                                src="{{ url('storage/app/public/' . Auth::user()->avatar) }}" 
+                            @if (Auth::user()->avatar) src="{{ url('storage/app/public/' . Auth::user()->avatar) }}" 
                             @else 
-                                avatar="{{ Auth::user()->name }}" 
-                            @endif
+                                avatar="{{ Auth::user()->name }}" @endif
                             alt="{{ Auth::user()->name }}"> -->
-                        <span class="hide-mob ms-2">{{ __('Hi') }},{{ Auth::user()->name }} !</span>
+                        <span class="hide-mob ms-2">{{ __('Hi') }},{{ Auth::user()->name }} <i
+                                class="fa-regular fa-face-smile"></i></span>
                         <i class="ti ti-chevron-down drp-arrow nocolor hide-mob"></i>
                     </a>
                     <div class="dropdown-menu dash-h-dropdown">
@@ -138,7 +137,9 @@
                     <li class="dash-h-item">
                         <a class="dash-head-link me-0" href="{{ url('chats') }}">
                             <i class="ti ti-message-circle"></i>
-                            <span class="bg-danger dash-h-badge message-counter custom_messanger_counter">{{ $unseenCounter }}<span class="sr-only"></span>
+                            <span
+                                class="bg-danger dash-h-badge message-counter custom_messanger_counter">{{ $unseenCounter }}<span
+                                    class="sr-only"></span>
                             </span></a>
                     </li>
                 @endif

@@ -61,7 +61,11 @@ $(document).ready(function () {
         searchQuery = input.val().trim();
         currentPage = 1;
 
-        if (!searchQuery) {
+        if (searchQuery == '') {
+            if (currentRequest) {
+                currentRequest.abort();
+            }
+            $('#loading-spinner-container').remove();
             list.empty().hide();
             return;
         }
@@ -156,6 +160,10 @@ $(document).ready(function () {
                 loading = false;
                 const itemData = itemProcessor(data);
 
+                if (!itemData.length && searchQuery.length >= 3) {
+                    list.append(`<p class="text-danger">${noResultsMessage}</p>`);
+                }
+
                 handleDataList(itemData, list, noResultsMessage, type);
             },
             error: function (jqXHR, textStatus, errorThrown) {
@@ -217,7 +225,9 @@ $(document).ready(function () {
 
                 $('#projectId').val(item.id);
                 projectInput.val(item.name);
+
                 if (!item.ref_mo) {
+
                     refMoInput.prop('disabled', true);
                     refMoInput.prop('required', false);
                 } else {
