@@ -49,7 +49,7 @@ class Task extends Model
 
     public function assignedUser()
     {
-        return $this->belongsTo(User::class, 'assign_to');  // Asumiendo que 'assign_to' es el campo que guarda el ID del usuario
+        return $this->belongsTo(User::class, 'assign_to');
     }
 
     // public function milestone()

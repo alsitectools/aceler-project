@@ -187,7 +187,7 @@ class Project extends Model
                         $hasTasks = true;
                     }
                 }
-
+                
                 if (!empty($taskArray)) {
                     $milestoneArray[] = [
                         'milestone_name' => $milestone->title ?? 'unknown',
@@ -195,7 +195,6 @@ class Project extends Model
                     ];
                 }
             }
-
 
             if ($hasTasks) {
                 $totalrecords = count($totalTaskTimes);
@@ -213,7 +212,6 @@ class Project extends Model
             'totalrecords' => $totalrecords,
         ];
     }
-
     private static function processSingleProjectTimesheets($project, $timesheets, $days, $currentWorkspace, $userId, &$totalTaskTimes)
     {
         $timesheetArray = [];
@@ -223,7 +221,7 @@ class Project extends Model
         $seventh_day = Carbon::parse($days['seventh_day']);
 
         $milestonesWithTasks = $project->milestones()
-            ->whereHas('tasks') 
+            ->whereHas('tasks')
             ->with('tasks')
             ->get();
 
@@ -231,8 +229,9 @@ class Project extends Model
             $userArray = [];
 
             foreach ($milestone->tasks as $task) {
-                $taskStart = Carbon::parse($task->start_date);
-                $taskEnd = Carbon::parse($task->estimated_date);
+
+                $taskStart = Carbon::parse($task->start_date ?? $first_day);
+                $taskEnd = Carbon::parse($task->estimated_date ?? $seventh_day);
 
                 if ($taskStart->lte($seventh_day) && $taskEnd->gte($first_day)) {
                     $taskData = self::processTaskTimesheets($task, $days, $currentWorkspace, $project->id, $userId);
@@ -241,20 +240,20 @@ class Project extends Model
 
                     $user = User::find($task->assign_to);
                     if ($user) {
-                        if (!isset($userArray[$task->assign_to])) {
-                            $userArray[$task->assign_to] = [
+                        if (!isset($userArray[$user->id])) {
+                            $userArray[$user->id] = [
                                 'user_id' => $user->id,
                                 'user_name' => $user->name ?? 'unknown name',
                                 'taskArray' => []
                             ];
                         }
 
-                        $userArray[$task->assign_to]['taskArray'][] = $taskData;
+                        $userArray[$user->id]['taskArray'][] = $taskData;
                     }
                 }
             }
 
-            if (count($userArray) > 0) {
+            if (!empty($userArray)) {
                 $timesheetArray[] = [
                     'project_id' => $project->id,
                     'project_name' => $project->name,
@@ -264,7 +263,7 @@ class Project extends Model
 
                 $totalrecords += array_sum(array_map(function ($user) {
                     return count($user['taskArray']);
-                }, $userArray)); 
+                }, $userArray));
             }
         }
 
@@ -273,6 +272,7 @@ class Project extends Model
             'totalrecords' => $totalrecords,
         ];
     }
+
 
     private static function processTaskTimesheets($task, $days, $currentWorkspace, $projectId, $userId)
     {
