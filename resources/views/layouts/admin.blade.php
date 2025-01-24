@@ -203,7 +203,12 @@
         width: 40%;
         height: 34px;
     }
-
+    .switchHoliday {
+        width: 100% !important;
+        margin-left: 15px;
+        margin-right: 15px;
+        padding-right: 6px;
+    }
     .switch input { 
     opacity: 0;
     width: 0;
@@ -314,10 +319,10 @@
     .HolidayToggleDiv{
         display: flex;
         flex-direction: row;
-        justify-content: space-evenly;
-        width: 25%;
-        align-items: center;
+        justify-content: center;
+        width: 100%;
         padding-top: 4%;
+        align-items: center;
     }
 
     .HolidayModifiedPadding{
@@ -337,8 +342,8 @@
     }
     .divHolidayContent{
         display: flex;
-        flex-direction: row;
-        justify-content: center;
+        flex-direction: column;
+        align-items: center;
     }
     .inputDateDisplay{
         border: none;
@@ -355,9 +360,40 @@
         border-radius: 8px;
         margin-top: 4%;
         height: 35px;
-        width: 8%;
-        padding-left: 1%;
-        padding-right: 1%;
+        width: 40%;
+        padding-left: 4%;
+        padding-right: 4%;
+    }
+    .holidayP{
+        padding-top:5%;
+    }
+    .holidayPIntenisve{
+        width: 100%;
+        padding-top: 5%;
+    }
+    /*Responsive laptop */
+    @media screen and (max-width: 1200px){
+
+        .saveButton{
+            height: 70%;
+            width: 15%;
+        }
+        .switch{
+            width: 70%;
+        }
+        .inputToggle{
+            width: 80%;
+        }
+        .HolidayToggleDiv{
+            padding-top: 7%;
+        }
+        .inputDatePicker{
+            width: 6%;
+        }
+        .holidayP{
+            font-size: 14px;
+        }
+
     }
 </style>
 

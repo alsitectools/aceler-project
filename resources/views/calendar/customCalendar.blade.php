@@ -7,11 +7,7 @@
             border-radius: 10px;
             padding: 10px;
             box-shadow: 0 1px 10px rgb(0 0 0 / 20%);
-            position: absolute;
-            bottom: 11%;
-            left: 40%;
-            z-index: 1000;
-            width: 22%;
+            width: 100%;
         }
 
         .calendar-header {
@@ -144,7 +140,7 @@
     </style>
 </head>
 <body>
-    <div id="customCalendarParent" class="calendar-container" style="display: none;">
+    <div id="customCalendarParent" class="calendar-container" >
         <div class="calendar-header">
             <button id="prev-month">&lt;</button>
             <div class="titleDivDisplay">
