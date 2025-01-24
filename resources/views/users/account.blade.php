@@ -14,7 +14,7 @@
 
 @section('content')
 @include('loader.loader')
-@include('calendar.customCalendar')
+
     <div class="row">
         <div class="col-xl-3">
             <div class="card sticky-top">
@@ -252,24 +252,25 @@
             </div>       
         </div>
 
-        <!-- timetable-->
+        <!-- holiday picker-->
         <div class="card divTimetable" id="v-pills-HolidayPicker">
             <div class="card-header buttonColocation">
                 <h5>{{ __('Holiday') }}</h5>
                 <button class="btn btn-sm btn-primary toggle-section buttonColapse" data-target="#Holiday-content">-</button>
             </div>
             <div class="collapse-section card-body divHolidayContent" id="Holiday-content">
-                <div id="startDayPick" class="inputDatePicker">
-                    <i class="fa-solid fa-calendar HolidayIcon"></i>
+                <div id="startDayPick" >
+                    @include('calendar.customCalendar')
+                    
                 </div>
-                <div style="display: contents;">
+                <div style="display: flex; flex-direction: column; align-items: center;">
                     <div class="HolidayToggleDiv">
-                        <p>{{_('Holiday')}}</p>
-                        <label class="switch" style="width: 23%;margin-bottom: 10px;">
+                        <p class="holidayP">{{_('Holiday')}}</p>
+                        <label class="switch switchHoliday" >
                             <input type="checkbox">
                             <span class="slider round"></span>
                         </label>
-                        <p>{{_('Intensive workday')}}</p>
+                        <p class="holidayPIntenisve">{{_('Intensive workday')}}</p>
                     </div>
                     <input class="intensiveWorkInput" type="time" id="intesiveWordaykInput" onclick="this.showPicker()" disabled></input>
                 </div>
