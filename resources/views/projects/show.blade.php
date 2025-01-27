@@ -66,6 +66,18 @@
         min-height: 300px;
     }
 
+    .projectTitleH3{
+        text-align: center;
+        font-size: 28px;
+    }
+    .projectDivSubtitle{
+        display: flex;
+        justify-content: space-evenly;
+        align-items: center;
+        color: white;
+        margin-bottom: 10px;
+    }
+
     @media (max-width: 1300px) {
         .header_breadcrumb {
             width: 100% !important;
@@ -97,25 +109,31 @@
                     <div class="card bg-primary widthAdjustDiv">
                         <div class="card-body pb-2">
                             <div>
-                                <h3 class="text-white pb-3"> {{ $project->name }}</h3>
+                                <h3 class="text-white projectTitleH3"> {{ $project->name }}</h3>
                             </div>
-                            <div class="d-block d-sm-flex">
-                                <div style="font-size: 14px;" class="col-sm-12 d-flex  align-items-center row1 text-white">
-                                    <div class="col-3" data-toggle="tooltip" data-placement="top"
+                            <div >
+                                <div class="projectDivSubtitle">
+                                    <div  data-toggle="tooltip" data-placement="top"
                                         title="{{ __('Company') }}">
                                         <i class="fa-regular fa-building fa-xl me-2"></i>
-                                        {{ $currentWorkspace->country }}
+                                        {{ $currentWorkspace->country }} / {{ $currentWorkspace->name }}
                                     </div>
-                                    <div class="col-3" data-toggle="tooltip" data-placement="top"
-                                        title="{{ __('Branch') }}">
-                                        <i class="fa-solid fa-location-dot fa-xl me-2"></i>
-                                        {{ $currentWorkspace->name }}
-                                    </div>
-                                    <div class="col-3 d-inline">
+                                    <div >
                                         <i class="fas fa-users fa-xl me-2"></i>
                                         {{ (int) $project->technicians->count() + (int) $project->salesManager->count() }}
                                     </div>
-                                    <div class="col-3">
+
+                                    <div >
+                                        <i class="fas fas fa-calendar-day"></i>
+                                        {{ App\Models\Utility::dateFormat($project->start_date) }}
+                                    </div>
+
+                                    <div >
+                                        <i class="fa-solid fa-diagram-project  text-white"></i>
+                                        {{ $project->ref_mo != '' ? $project->ref_mo : __($project->typeName()) }}
+                                    </div>
+
+                                    <div >
                                         @if ($project->status == 'Finished')
                                             <div class="badge bg-success rounded"> {{ __('Finished') }}
                                             </div>
@@ -176,7 +194,7 @@
                             </div>
                         </div>
                     </div>
-                    <div class="row">
+                    <!---<div class="row">
                         <div class="col-lg-3 col-sm-6">
                             <div class="card">
                                 <div class="card-body">
@@ -243,7 +261,7 @@
                                 </div>
                             </div>
                         </div>
-                    </div>
+                    </div>-->
                     <div class="col-lg-12 widthAdjustDiv">
                         @if ($currentWorkspace->permission == 'Member' || $currentWorkspace->permission == 'Owner')
                             <div class="card">
@@ -503,7 +521,7 @@
                 </div>
                 <div class="col-xxl-12">
                     <div class="row">
-                        <div class="col-md-4">
+                        <div class="col-md-6">
                             <div class="card min-end">
                                 <div class="card-header">
                                     <div class="d-flex justify-content-between align-items-center">
@@ -522,6 +540,7 @@
                                 </div>
                             </div>
                         </div>
+                        <!---
                         <div class="col-md-4">
                             <div class="card min-end">
                                 <div class="card-header" style="padding: 25px 35px !important;">
@@ -539,7 +558,8 @@
                                 <div id="task-chart"></div>
                             </div>
                         </div>
-                        <div class="col-md-4">
+                        --->
+                        <div class="col-md-6">
                             <div class="card min-end">
                                 <div class="card-header">
                                     <div class="d-flex justify-content-between align-items-center">

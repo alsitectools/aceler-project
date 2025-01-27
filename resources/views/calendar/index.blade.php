@@ -63,17 +63,31 @@
         .adjustWidthCalendar {
             width: 32% !important;
         }
-        .responsiveDiv{
-            width: 32% !important;
+        .responsiveDivCalendarTask{
+            width: 99% !important;
         }
         .liStyleTask{
             padding: 10px;
         }
         .titleTask{
-            font-size: 13px;
+            font-size: 15px;
         }
         .subtitleTask{
-            font-size: 12px
+            font-size: 13px;
+        }
+        .testCol{
+            width: 99% !important;
+        }
+        .divIconTask{
+            height: 20px;
+            width: 20px;
+            display: flex;
+            align-content: center;
+            justify-content: center;
+            align-items: center;
+        }
+        .iStyleTask{
+            font-size: 30px;
         }
     }
 </style>
@@ -115,7 +129,7 @@
 
 @section('content')
     <div class="row">
-        <div class="col-lg-8">
+        <div class="col-lg-8 testCol">
             <div class="card">
                 <div class="card-header">
                     <h5>{{ __('Calendar') }}</h5>
@@ -124,8 +138,8 @@
                     <div id="calendar" class="calendar"></div>
                 </div>
             </div>
-        </div>
-        <div class="col-lg-4 responsiveDiv">
+        </div>       
+        <div class="col-lg-4 responsiveDivCalendarTask">
             <div class="card">
                 <div class="card-header">
                     <h5>{{ __('Tasks') }}</h5>
@@ -169,7 +183,22 @@
             $('#project_id').on('change', function() {
                 get_data();
             });
+
+            adjustLayout();
+
+            $(window).resize(function () {
+                adjustLayout();
+            });
         });
+   
+        //adjusting to laptop view
+        function adjustLayout() {
+            if ($(window).width() <= 1200) {
+                $('.testCol').removeClass('col-lg-8').addClass('col-12');
+            } else {
+                $('.testCol').removeClass('col-12').addClass('col-lg-8');
+            }
+        }
 
         function hexToRgba(hex, alpha) {
             hex = hex.replace(/^#/, '');
@@ -192,8 +221,9 @@
                     console.log("success", data);
 
                     const opacity = 0.4;
+                    let allEvents = [];
 
-                    if (data.colorData && Array.isArray(data.colorData) && data.expectedHours) {
+                    if (data && data.colorData && Array.isArray(data.colorData) && data.expectedHours) {
                         const nonWorkingDays = Object.keys(data.expectedHours).filter(day => data.expectedHours[day] === null);
 
                         const currentYear = new Date().getUTCFullYear();
@@ -215,9 +245,9 @@
                                 });
                             }
                         }
+
                         let events = data.colorData
                             .filter(item => {
-                                // Filtrar para que los días festivos no muestren 00:00
                                 if (data.specialColorData && data.specialColorData.holidayRange.includes(item.date)) {
                                     return item.hours !== '00:00';
                                 }
@@ -264,58 +294,61 @@
                             }
                         }
 
-                        const allEvents = [...events, ...nonWorkingEvents];
-
-                        const calendarEl = document.getElementById('calendar');
-                        const locale = '{{ app()->getLocale() }}';
-
-                        const calendar = new FullCalendar.Calendar(calendarEl, {
-                            locale: locale,
-                            initialView: 'dayGridMonth',
-                            firstDay: 1,
-                            headerToolbar: {
-                                left: 'prev,next today',
-                                center: 'title',
-                                right: ''
-                            },
-                            buttonText: {
-                                today: "{{ trans('messages.today') }}"
-                            },
-                            events: allEvents,
-                            
-                            eventDidMount: function(info) {
-                                if (info.event.extendedProps.type === 'holiday' || info.event.extendedProps.type === 'intensive_work') {
-                                    // Crear el botón de eliminación
-                                    const deleteBtn = document.createElement('span');
-                                    deleteBtn.innerHTML = '❌';  // Icono de eliminación
-                                    deleteBtn.style.cursor = 'pointer';
-                                    deleteBtn.style.marginLeft = '10px';
-                                    deleteBtn.style.color = 'red';
-                                    deleteBtn.style.fontSize = '14px';
-
-                                    // Función para eliminar el evento al hacer clic en la X
-                                    deleteBtn.addEventListener('click', function(e) {
-                                        e.stopPropagation();  // Evitar clics en el evento del calendario
-                                        showDeleteModal(info.event);
-                                    });
-
-                                    // Agregar el botón dentro del evento en el calendario
-                                    info.el.querySelector('.fc-event-title').appendChild(deleteBtn);
-                                }
-                            },
-
-                        });
-
-                        calendar.render();
+                        allEvents = [...events, ...nonWorkingEvents];
                     } else {
-                        console.error("No valid colorData or expectedHours found in response:", data);
+                        console.warn("No valid data found. Loading empty calendar.");
                     }
+
+                    // Renderizar el calendario incluso si no hay eventos
+                    renderCalendar(allEvents);
                 },
                 error: function (xhr, status, error) {
                     console.error("Error:", error);
+                    renderCalendar([]); // Renderizar el calendario vacío en caso de error
                 }
             });
         }
+
+        function renderCalendar(events) {
+            const calendarEl = document.getElementById('calendar');
+            const locale = '{{ app()->getLocale() }}';
+
+            const calendar = new FullCalendar.Calendar(calendarEl, {
+                locale: locale,
+                initialView: 'dayGridMonth',
+                firstDay: 1,
+                headerToolbar: {
+                    left: 'prev,next today',
+                    center: 'title',
+                    right: ''
+                },
+                buttonText: {
+                    today: "{{ trans('messages.today') }}"
+                },
+                events: events,
+
+                eventDidMount: function(info) {
+                    if (info.event.extendedProps.type === 'holiday' || info.event.extendedProps.type === 'intensive_work') {
+                        const deleteBtn = document.createElement('span');
+                        deleteBtn.innerHTML = '❌';
+                        deleteBtn.style.cursor = 'pointer';
+                        deleteBtn.style.marginLeft = '10px';
+                        deleteBtn.style.color = 'red';
+                        deleteBtn.style.fontSize = '14px';
+
+                        deleteBtn.addEventListener('click', function(e) {
+                            e.stopPropagation();
+                            showDeleteModal(info.event);
+                        });
+
+                        info.el.querySelector('.fc-event-title').appendChild(deleteBtn);
+                    }
+                }
+            });
+
+            calendar.render();
+        }
+        
         function showDeleteModal(event) {
                 console.log(event.id)
                 let confirmation = confirm(`Do you want to delete this ${event.extendedProps.type.replace('_', ' ')}?`);
