@@ -55,6 +55,9 @@ class HomeController extends Controller
             return view('users.index', compact('users'));
         }
 
+        $technicians = User::where('type','=','user')->get();
+        $comerciales = User::where('type','=','client')->get();
+
         $currentWorkspace = Utility::getWorkspaceBySlug($slug);
         if ($currentWorkspace) {
             $doneStage = Stage::where('complete', '=', '1')->first();
@@ -217,7 +220,10 @@ class HomeController extends Controller
                 'tasks',
                 'chartData',
                 'tasksUsers',
-                'taskTypes'
+                'taskTypes',
+                'technicians',
+                'comerciales',
+                'projectProcess'
             ));
 
             // }
