@@ -14,6 +14,7 @@ $logo = 'storage/app/public/';
 
 @section('content')
 @include('loader.loader')
+@include('saver.saver')
 
     <div class="row">
         <div class="col-xl-3">
@@ -337,27 +338,15 @@ $logo = 'storage/app/public/';
                 });
             };
 
-            //show/hide custom calendar
-            let showCustomCalendar = document.getElementById('startDayPick');
-
-            showCustomCalendar.addEventListener('click', function() {
-
-                let customCalendar = document.getElementById('customCalendarParent');
-
-                if(customCalendar){
-
-                    if(customCalendar.style.display == 'none'){
-                        customCalendar.style.display = 'block';
-                    }else{
-                        customCalendar.style.display = 'none';
-                    }
-                }
-
-            });
-
             let saveButtonHoliday = document.getElementById('saveHoliday');
 
             saveButtonHoliday.addEventListener('click', function(){
+
+                //when the user save, show the loader
+                document.getElementById('saving-overlay').style.display = 'flex';
+
+                // Deshabilitar el scroll
+                document.body.style.overflow = 'hidden';
 
                 //get range of the localstorage
                 let rangeDate = localStorage.getItem('DateSelectedRange');
@@ -389,9 +378,15 @@ $logo = 'storage/app/public/';
                             },
                             success: function(data) {
                                console.log("success");
+                               document.getElementById('saving-overlay').style.display = 'none';
+                               //reactivar scroll
+                               document.body.style.overflow = 'auto';
                             },
                             fail:function() {
                                 console.log("fail");
+                                document.getElementById('saving-overlay').style.display = 'none';
+                                //reactivar scroll
+                                document.body.style.overflow = 'auto';
                             },
                 });
             });
@@ -399,8 +394,14 @@ $logo = 'storage/app/public/';
             let saveButton = document.getElementById('saveTimetable');
 
             saveButton.addEventListener('click', function(){
-                //check the value of the inputs
 
+                //when the user save, show the loader
+                document.getElementById('saving-overlay').style.display = 'flex';
+
+                // Deshabilitar el scroll
+                document.body.style.overflow = 'hidden';
+
+                //check the value of the inputs
                 let inputs = document.querySelectorAll(".inputToggle");
                      // Diccionario para almacenar los días y sus valores
                     let schedule = {};
@@ -430,10 +431,16 @@ $logo = 'storage/app/public/';
                                 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') // Incluye el token CSRF
                             },
                             success: function(data) {
-                               console.log("success")
+                               console.log("success");
+                               document.getElementById('saving-overlay').style.display = 'none';
+                               //reactivar scroll
+                               document.body.style.overflow = 'auto';
                             },
                             fail:function() {
-                                console.log("fail")
+                                console.log("fail");
+                                document.getElementById('saving-overlay').style.display = 'none';
+                               //reactivar scroll
+                               document.body.style.overflow = 'auto';
                             },
                 });
             });

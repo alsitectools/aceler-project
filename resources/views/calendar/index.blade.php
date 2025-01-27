@@ -91,7 +91,7 @@
         }
     }
 </style>
-
+@include('loader.loader')
 @push('scripts')
     <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/5.11.3/main.min.js"></script>
@@ -177,6 +177,10 @@
 @push('scripts')
     <script>
         $(document).ready(function() {
+
+            // Deshabilitar el scroll
+            document.body.style.overflow = 'hidden';
+
             get_data();
             getCalendarInfo();
             // Agregar evento de cambio para el filtro
@@ -248,9 +252,9 @@
 
                         let events = data.colorData
                             .filter(item => {
-                                if (data.specialColorData && data.specialColorData.holidayRange.includes(item.date)) {
-                                    return item.hours !== '00:00';
-                                }
+                                if (data.specialColorData?.holidayRange && Array.isArray(data.specialColorData.holidayRange) && data.specialColorData.holidayRange.includes(item.date)) {
+                                        return item.hours !== '00:00';
+                                    }
                                 return true;
                             })
                             .map(item => ({
@@ -347,6 +351,10 @@
             });
 
             calendar.render();
+            //reactivar scroll
+            document.body.style.overflow = 'auto';
+            //esconder el loader
+            document.getElementById('loader-overlay').style.display = 'none';
         }
         
         function showDeleteModal(event) {
