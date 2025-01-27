@@ -34,8 +34,8 @@
 }
 .pStyleSlide{
     font-size: 14px !important;
-    text-align: left !important;
-    padding-left: 15% !important;
+    text-align: center !important;
+   /* padding-left: 15% !important; */
     padding-top: 5px !important;
 }
 /* Horizontal carousel styles */
@@ -44,7 +44,7 @@
     width: 100%;
     height: 500px;
     overflow: hidden;
-    display: none; /* Hide the carousel initially */
+    display: flex; /* Hide the carousel initially */
     justify-content: center;
     align-items: center;
 }
@@ -65,6 +65,12 @@
 
 .nested-carousel-milestone-slide.active {
     opacity: 1; /* Only active slide is visible */
+    display: flex;
+    color: white;
+    justify-content: center;
+    align-content: center;
+    flex-direction: column;
+    align-items: center;
 }
 
 
@@ -84,7 +90,7 @@
     background-color: #aa182c !important;
     margin-left: 3% !important;
     font-size: 22px !important;
-    width: 4% !important;
+    width: 5% !important;
     color: white;
     border: none;
     cursor: pointer;
@@ -95,7 +101,7 @@
     background-color: #aa182c !important;
     margin-right: 3% !important;
     font-size: 22px !important;
-    width: 4% !important;
+    width: 5% !important;
     color: white;
     border: none;
     cursor: pointer;

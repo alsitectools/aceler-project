@@ -106,7 +106,7 @@
                                     class="fa-regular fa-calendar"></i></span><span
                                 class="dash-mtext">{{ __('Calendar') }}</span></a>
                     </li>
-                    <li class="dash-item dash-hasmenu">
+                    <!-- <li class="dash-item dash-hasmenu">
                         <a href="{{ route('clients.index', $currentWorkspace->slug) }}"
                             class="dash-link {{ Request::route()->getName() == 'clients.index' ? ' active' : '' }} "><span
                                 class="dash-micon"> <img class="img-fluid"
@@ -121,7 +121,7 @@
                                 src="{{ asset('assets/img/technicians.png') }}" alt="logo" /> </span>
                             <span class="dash-mtext">{{ __('Technicians') }}</span>
                         </a>
-                    </li>
+                    </li> -->
                 @endif
                 {{-- colorAlsina #AA182C --}}
                 @if (\Auth::user()->type == 'admin')
