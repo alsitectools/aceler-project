@@ -78,6 +78,59 @@
         margin-bottom: 10px;
     }
 
+    .uploaded-files-container {
+        display: grid; /* Cambia a un diseño de cuadrícula */
+        grid-template-columns: repeat(3, 1fr); /* Limita a 3 elementos por fila */
+        gap: 10px; /* Espaciado entre los archivos */
+        max-height: 140px; /* Limita la altura del contenedor */
+        overflow-y: auto; /* Permite el desplazamiento vertical si hay demasiados archivos */
+        overflow-x: hidden; /* Evita el desplazamiento horizontal */
+    }
+
+    .uploaded-file {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 5px;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        background-color: #f9f9f9;
+        min-width: 100px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        width: 95%
+    }
+
+    .uploaded-file p {
+        margin: 0;
+        font-size: 14px;
+        flex-grow: 1;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .uploaded-file-buttons {
+        display: flex;
+        gap: 5px;
+    }
+    .buttonFiles{
+        background-color: #aa182c;
+        width: 25px;
+        height: 25px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 5px;
+    }
+    .buttonFiles:hover{
+        background-color: #b9515f;
+        color: white;
+        text-decoration: none;
+        border-color: #b9515f;
+    }
+
     @media (max-width: 1300px) {
         .header_breadcrumb {
             width: 100% !important;
@@ -96,6 +149,19 @@
 
         .widthAdjustMediumDiv {
             width: 49%;
+        }
+        .uploaded-files-container {
+            gap: 5px;
+        }
+        .uploaded-file{
+            width: 92%;
+        }
+        .last_notification_text{
+            padding: 0 0 0 5px !important;
+        }
+        .last_notification_text p{
+            margin-right: 10px !important;
+            font-size: 9px !important;
         }
     }
 </style>
@@ -139,7 +205,7 @@
                                             </div>
                                         @elseif($project->status == 'Ongoing')
                                             <div class="badge bg-secondary rounded buttonCenterText"
-                                                style="width: 75px !important; height: 25px !important;">
+                                                style="width: 75px !important; height: 25px !important;color: black;background-color: #d3d3d3 !important;">
                                                 {{ __('Ongoing') }}
                                             </div>
                                         @else
@@ -535,9 +601,52 @@
                                     <div class="col-md-12 dropzone browse-file" id="dropzonewidget">
                                         <div class="dz-message" data-dz-message>
                                             <span> {{ __('Drop files here to upload') }}</span>
+                                            <br/>
+                                            <small class="text-muted">.png .gif .pdf .txt .doc .docx .zip .rar .dwg .dxf</small>
                                         </div>
                                     </div>
-                                </div>
+                                    <div class="mt-3">
+                                        <h5>{{ __('Uploaded Files') }}</h5>
+                                        <div class="uploaded-files-container top-10-scroll">
+                                            @if (!empty($projectFiles) && count($projectFiles) > 0)
+                                                @php
+                                                    $cleanedFiles = [];
+                                                    foreach ($projectFiles as $file) {
+                                                        // Obtener el nombre del archivo sin la ruta
+                                                        $filename = basename($file);
+                                                        $parts = explode('_', $filename);
+                                                        $cleanFilename = isset($parts[2]) ? implode('_', array_slice($parts, 2)) : $filename;
+
+                                                        // Agregar el archivo limpio al array
+                                                        $cleanedFiles[] = ['original' => $file, 'cleaned' => $cleanFilename];
+                                                    }
+
+                                                    // Ordenar alfabéticamente por los nombres limpios
+                                                    usort($cleanedFiles, function ($a, $b) {
+                                                        return strcmp($a['cleaned'], $b['cleaned']);
+                                                    });
+                                                @endphp
+
+                                                @foreach ($cleanedFiles as $file)
+                                                    <div class="uploaded-file">
+                                                        <p>{{ $file['cleaned'] }}</p>
+                                                        <div class="uploaded-file-buttons">
+                                                            <a onclick="downloadFile({{ $project->id }}, '{{ basename($file['original']) }}')" class="buttonFiles">
+                                                                <i class="ti ti-download" style="color:white"></i>
+                                                            </a>
+                                                            <a onclick="deleteFile({{ $project->id }}, '{{ basename($file['original']) }}')" class="buttonFiles">
+                                                                <i class="fa-solid fa-trash" style="color:white"></i>
+                                                            </a>
+                                                        </div>
+                                                    </div>
+                                                @endforeach
+                                            @else
+                                                <p class="text-muted">{{ __('No files uploaded yet.') }}</p>
+                                            @endif
+                                        </div>
+
+                                    </div>
+                                </div>         
                             </div>
                         </div>
                         <!---
@@ -576,7 +685,7 @@
                                                 <div class="timeline-block px-2 pt-3">
                                                     @if ($activity->log_type == 'Upload File')
                                                         <span
-                                                            class="timeline-step timeline-step-sm border border-primary text-white">
+                                                            class="timeline-step timeline-step-sm border border-success text-white">
                                                             <i class="fas fa-file"></i></span>
                                                     @elseif($activity->log_type == 'Create Milestone')
                                                         <span
@@ -590,13 +699,15 @@
                                                         <span
                                                             class="timeline-step timeline-step-sm border border-success text-white">
                                                             <i class="fas fa-clock-o"></i></span>
+                                                    @elseif($activity->log_type == 'has delete a file')
+                                                        <span
+                                                            class="timeline-step timeline-step-sm border border-primary text-white" 
+                                                            style="border-color: #aa182c !important;">
+                                                            <i class="fas fa-file"></i></span>
                                                     @endif
                                                     <div class="last_notification_text">
-                                                        <p class="m-0">
-                                                            <span>{{ $activity->logType($activity->log_type) }}
-                                                            </span>
-                                                        </p> <br>
-                                                        <p> {!! $activity->getRemark() !!} </p>
+                                                        <!-- Person who did the notification --><p> {!! $activity->getRemark() !!} : </p>
+                                                        <br>
                                                         <div class="notification_time_main">
                                                             <p>{{ $activity->created_at->diffForHumans() }}</p>
                                                         </div>
@@ -625,6 +736,62 @@
 @push('scripts')
     <script src="{{ asset('assets/js/plugins/apexcharts.min.js') }}"></script>
     <script>
+
+        function downloadFile(idProject, file) {
+            const downloadUrl = '<?php echo url("projects/download-file"); ?>';
+
+            $.ajax({
+                url: downloadUrl,
+                method: 'POST',
+                data: {
+                    "idProject": idProject,
+                    "fileName": file,
+                    _token: $('meta[name="csrf-token"]').attr('content')
+                },
+                success: function(response) {
+                    if (response.success) {
+                        console.log("Download URL: ", response.file_url);
+                        
+                        // Crear un enlace temporal para descargar el archivo
+                        let downloadLink = document.createElement("a");
+                        downloadLink.href = response.file_url;
+                        downloadLink.target = "_blank";
+                        downloadLink.download = file;  // Nombre del archivo
+                        document.body.appendChild(downloadLink);
+                        downloadLink.click();
+                        document.body.removeChild(downloadLink);
+                    } else {
+                        alert("Error: File not found.");
+                    }
+                },
+                error: function(xhr) {
+                    alert("An error occurred while downloading the file.");
+                    console.error(xhr.responseText);
+                }
+            });
+        }
+
+        function deleteFile(idProject, file) {
+            const downloadUrl = '<?php echo url("projects/delete-file"); ?>';
+
+            $.ajax({
+                url: downloadUrl,
+                method: 'POST',
+                data: {
+                    "idProject": idProject,
+                    "fileName": file,
+                    _token: $('meta[name="csrf-token"]').attr('content')
+                },
+                success: function(response) {
+                    location.reload();
+                },
+                error: function(xhr) {
+                    alert("An error occurred while downloading the file.");
+                    console.error(xhr.responseText);
+                }
+            });
+        }
+
         (function() {
             var options = {
                 chart: {
@@ -722,9 +889,14 @@
     <script src="{{ asset('assets/custom/libs/nicescroll/jquery.nicescroll.min.js') }} "></script>
     <script>
         $(document).ready(function() {
+            if ($(".uploaded-files-container").length) {
+                $(".uploaded-files-container").css({
+                    "max-height": 100
+                }).niceScroll();
+            }
             if ($(".top-10-scroll").length) {
                 $(".top-10-scroll").css({
-                    "max-height": 300
+                    "max-height": 305
                 }).niceScroll();
             }
         });
@@ -734,32 +906,56 @@
         Dropzone.autoDiscover = false;
         myDropzone = new Dropzone("#dropzonewidget", {
             maxFiles: 20,
-            // maxFilesize: 209715200,
+            maxFilesize: 209715200, // Tamaño máximo
             parallelUploads: 1,
-            //acceptedFiles: ".jpeg,.jpg,.png,.gif,.svg,.pdf,.txt,.doc,.docx,.zip,.rar",
+            acceptedFiles: ".jpeg,.jpg,.png,.gif,.svg,.pdf,.txt,.doc,.docx,.zip,.rar,.dwg,.dxf",
             url: "{{ route('projects.file.upload', [$currentWorkspace->slug, $project->id]) }}",
-            success: function(file, response) {
+
+            success: function (file, response) {
                 if (response.is_success) {
-                    dropzoneBtn(file, response);
                     show_toastr('{{ __('Success') }}', 'File Successfully Uploaded', 'success');
                 } else {
                     myDropzone.removeFile(file);
-                    // show_toastr('error', 'File type must be match with Storage setting.');
-                    show_toastr('{{ __('Error') }}',
-                        'File type and size must be match with Storage setting.', 'error');
+                    show_toastr('{{ __('Error') }}', 'Error while storing the document.', 'error');
                 }
             },
-            error: function(file, response) {
+            error: function (file, response) {
                 myDropzone.removeFile(file);
-                if (response.error) {
-                    show_toastr('{{ __('Error') }}',
-                        'File type and size must be match with Storage setting.', 'error');
-                } else {
-                    show_toastr('{{ __('Error') }}',
-                        'File type and size must be match with Storage setting.', 'error');
+                show_toastr('{{ __('Error') }}', 'Error while storing the document.', 'error');
+            },
+
+            complete: function (file) {
+                // Verifica si Dropzone ha terminado con todos los archivos
+                if (this.getQueuedFiles().length === 0 && this.getUploadingFiles().length === 0) {
+                    // Recarga la página después de que se suban todos los archivos
+                    setTimeout(function () {
+                        location.reload(); // Recarga la página actual
+                    }, 1000); // Opcional: Agrega un pequeño delay para asegurarte de que el backend procese todo.
                 }
             }
         });
+        // Función para agregar un botón de eliminación al archivo en Dropzone
+        function addDeleteButton(file, filePath) {
+            const deleteButton = Dropzone.createElement(`
+                <button class="btn btn-sm btn-danger ml-2">
+                    <i class="fa-solid fa-trash"></i>
+                </button>
+            `);
+
+            // Agregar evento al botón de eliminación
+            deleteButton.addEventListener("click", function (e) {
+                e.preventDefault();
+                e.stopPropagation();
+
+                if (confirm("Are you sure you want to delete this file?")) {
+                    deleteFile({{ $project->id }}, filePath); // Usar la lógica de eliminación existente
+                    myDropzone.removeFile(file);
+                }
+            });
+
+            // Agregar el botón de eliminación al contenedor del archivo
+            file.previewElement.appendChild(deleteButton);
+        }
 
         myDropzone.on("sending", function(file, xhr, formData) {
             formData.append("_token", $('meta[name="csrf-token"]').attr('content'));

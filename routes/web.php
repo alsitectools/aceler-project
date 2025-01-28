@@ -992,3 +992,8 @@ Route::get('/user/get-timetable', [UserController::class, 'getTimetable'])->name
 
 //Get timesheet of the calendar 
 Route::get('/get-timesheetCalendar', [CalenderController::class, 'getTimesheetColor'])->name('calender.getTimesheetColor');
+
+//Download project files
+Route::post('/projects/download-file', [ProjectController::class, 'downloadFile'])->name('project.downloadFile');
+//Delete project files
+Route::post('/projects/delete-file', [ProjectController::class, 'deleteFile'])->name('project.deleteFile');

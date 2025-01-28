@@ -404,31 +404,89 @@ class ProjectController extends Controller
     {
         $objUser = Auth::user();
         $currentWorkspace = Utility::getWorkspaceBySlug($slug);
+
         if ($objUser && $currentWorkspace) {
-
-            $project = Project::select('projects.*')->join('user_projects', 'projects.id', '=', 'user_projects.project_id')
+            $project = Project::select('projects.*')
+                ->join('user_projects', 'projects.id', '=', 'user_projects.project_id')
                 ->where('projects.workspace', '=', $currentWorkspace->id)
-                ->where('projects.id', '=', $projectID)->with('activities.user')->first();
+                ->where('projects.id', '=', $projectID)
+                ->with('activities.user')
+                ->first();
 
-            if (isset($project) && $project != null) {
-                $chartData = $this->getProjectChart(
-                    [
-                        'workspace_id' => $currentWorkspace->id,
-                        'project_id' => $projectID,
-                        'duration' => 'week',
-                    ]
-                );
+            if ($project) {
+                $chartData = $this->getProjectChart([
+                    'workspace_id' => $currentWorkspace->id,
+                    'project_id' => $projectID,
+                    'duration' => 'week',
+                ]);
 
                 $daysleft = round((((strtotime($project->end_date) - strtotime(date('Y-m-d'))) / 24) / 60) / 60);
 
-                return view('projects.show', compact('currentWorkspace', 'project', 'chartData', 'daysleft'));
+                // Obtener archivos del proyecto desde la carpeta correspondiente
+                $projectFolder = 'project_files/' . strtr($project->name,[" " => "_"]);
+                $projectFiles = \Storage::files($projectFolder);
+
+                \Log::debug( $projectFolder);
+                return view('projects.show', compact('currentWorkspace', 'project', 'chartData', 'daysleft', 'projectFiles'));
             } else {
                 return redirect()->back()->with('error', __("Project Not Found."));
             }
         } else {
-
             return redirect()->back()->with('error', __("Workspace Not Found."));
         }
+    }
+
+    public function downloadFile(Request $request)
+    {
+        $inputs = $request->input();
+        
+        // Obtener el proyecto usando el ID
+        $project = Project::findOrFail($inputs['idProject']);
+        $projectName = strtr($project->name, [' ' => '_']);   
+
+        // Construir la ruta del archivo basado en la estructura de almacenamiento
+        $filePath = 'project_files/' . $projectName . '/' . $inputs['fileName'];
+        $url = asset('storage/' . $filePath);
+
+        \Log::debug("Generated URL: " . $url);
+
+        // Retornar la URL en formato JSON
+        return response()->json([
+            'success' => true,
+            'file_url' => $url
+        ]);
+    }
+
+    public function deleteFile(Request $request)
+    {
+        $inputs = $request->input();
+        
+        // Obtener el proyecto usando el ID
+        $project = Project::findOrFail($inputs['idProject']);
+        $projectName = strtr($project->name, [' ' => '_']);   
+
+        // Construir la ruta del archivo basado en la estructura de almacenamiento
+        $filePath = 'project_files/' . $projectName . '/' . $inputs['fileName'];
+
+        $fileNameParts = explode('_', $inputs['fileName']); // Dividir el nombre por '_'
+        $cleanFileName = isset($fileNameParts[2]) 
+            ? implode(' ', array_slice($fileNameParts, 2))  // Limpiar y unir las partes sin prefijo
+            : strtr($inputs['fileName'], ['_' => ' ']);     // Reemplazar '_' por espacio si no hay prefijo
+    
+        // Registrar la actividad
+        ActivityLog::create([
+            'user_id' => \Auth::user()->id,
+            'user_type' => get_class(\Auth::user()),
+            'project_id' => $inputs['idProject'],
+            'log_type' => 'has delete a file',
+            'remark' => json_encode(['file_name' => $cleanFileName]), // Usar el nombre limpio aquí
+        ]);
+
+        Storage::delete($filePath);
+        return response()->json([
+            'success' => true,
+            'message' => __('File deleted successfully.')
+        ]);
     }
 
     public function getProjectChart($arrParam)
