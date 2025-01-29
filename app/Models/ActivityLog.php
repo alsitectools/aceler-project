@@ -38,6 +38,8 @@ class ActivityLog extends Model
                 return $user_name . " " . __('Create new Milestone') . " <b>" . $remark['title'] . "</b>";
             }elseif ($this->log_type == 'has delete a file'){
                 return $user_name . " " . __('has delete a file') . " <b>" . $remark['file_name'] . "</b>";
+            }elseif ($this->log_type == 'has created a new project'){
+                return $user_name . " " . __('has created a new project') . " <b>" . $remark['projectName'] . "</b>";
             }
         }else{
             return $this->remark;

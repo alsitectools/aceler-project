@@ -191,10 +191,31 @@ class ProjectController extends Controller
             Utility::send_slack_msg('New Project', $currentWorkspace->id, $uArr);
         }
 
+        //Implements activity log when a project is created
+
         if ($getReload) {
+            
+            ActivityLog::create(
+                [
+                    'user_id' => Auth::user()->id,
+                    'user_type' => get_class(Auth::user()),
+                    'project_id' => $objProject->id,
+                    'log_type' => 'has created a new project',
+                    'remark' => json_encode(['projectName' => $objProject->name]),
+                ]);
 
             return response()->json(['success' => true, 'message' => 'Project created successfully.', 'project_id' => $objProject]);
         } else {
+
+            ActivityLog::create(
+                [
+                    'user_id' => Auth::user()->id,
+                    'user_type' => get_class(Auth::user()),
+                    'project_id' => $objProject->id,
+                    'log_type' => 'has created a new project',
+                    'remark' => json_encode(['projectName' => $objProject->name]),
+                ]);
+            
             return redirect()->route('projects.index', $currentWorkspace->slug)
                 ->with('success', __('Project Created Successfully!'));
         }
@@ -2067,6 +2088,7 @@ class ProjectController extends Controller
 
             $this->employeesInProject(Auth::user()->id, $project->id);
 
+            /* Create log about timesheet 
             ActivityLog::create(
                 [
                     'user_id' => Auth::user()->id,
@@ -2075,7 +2097,7 @@ class ProjectController extends Controller
                     'log_type' => 'Create Timesheet',
                     'remark' => json_encode(['name' => Auth::user()->name]),
                 ]
-            );
+            );*/
 
             return redirect()->back()->with('success', __('Timesheet Updated Successfully!'));
         }

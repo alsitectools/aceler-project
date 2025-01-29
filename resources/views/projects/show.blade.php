@@ -601,7 +601,7 @@
                                     <div class="col-md-12 dropzone browse-file" id="dropzonewidget">
                                         <div class="dz-message" data-dz-message>
                                             <span> {{ __('Drop files here to upload') }}</span>
-                                            <br/>
+                                            <p class="text-muted" style="font-size:15px; margin:5px;">200MB</p>
                                             <small class="text-muted">.png .gif .pdf .txt .doc .docx .zip .rar .dwg .dxf</small>
                                         </div>
                                     </div>
@@ -691,10 +691,6 @@
                                                         <span
                                                             class="timeline-step timeline-step-sm border border-info text-white">
                                                             <i class="fas fa-cubes"></i></span>
-                                                    @elseif($activity->log_type == 'Create Task')
-                                                        <span
-                                                            class="timeline-step timeline-step-sm border border-success text-white">
-                                                            <i class="fas fa-tasks"></i></span>
                                                     @elseif($activity->log_type == 'Create Timesheet')
                                                         <span
                                                             class="timeline-step timeline-step-sm border border-success text-white">
@@ -704,7 +700,12 @@
                                                             class="timeline-step timeline-step-sm border border-primary text-white" 
                                                             style="border-color: #aa182c !important;">
                                                             <i class="fas fa-file"></i></span>
+                                                    @elseif($activity->log_type == 'has created a new project')
+                                                        <span
+                                                            class="timeline-step timeline-step-sm border border-success text-white">
+                                                            <i class="fa-solid fa-diagram-project"></i></span>
                                                     @endif
+
                                                     <div class="last_notification_text">
                                                         <!-- Person who did the notification --><p> {!! $activity->getRemark() !!} : </p>
                                                         <br>
@@ -896,7 +897,7 @@
             }
             if ($(".top-10-scroll").length) {
                 $(".top-10-scroll").css({
-                    "max-height": 305
+                    "max-height": 335
                 }).niceScroll();
             }
         });
@@ -906,7 +907,7 @@
         Dropzone.autoDiscover = false;
         myDropzone = new Dropzone("#dropzonewidget", {
             maxFiles: 20,
-            maxFilesize: 209715200, // Tamaño máximo
+            maxFilesize: 209715200, // Tamaño máximo = 200MB
             parallelUploads: 1,
             acceptedFiles: ".jpeg,.jpg,.png,.gif,.svg,.pdf,.txt,.doc,.docx,.zip,.rar,.dwg,.dxf",
             url: "{{ route('projects.file.upload', [$currentWorkspace->slug, $project->id]) }}",
