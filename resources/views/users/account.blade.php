@@ -59,7 +59,8 @@ $logo = 'storage/app/public/';
                         <div class="row">
                             <div class="col-lg-4 avatar-centrado">
                                 <div class="form-group">
-                                    <img @if ($user->avatar) src="{{ asset($logo . $user->avatar) }}" @else avatar="{{ $user->name }}" @endif
+                                    <img @if ($user->avatar) src="{{ asset($user->avatar) }}" @else avatar="{{ $user->name }}" @endif
+                                        id="myAvatar" alt="user-image" class="rounded-circle img-thumbnail">
                                     {{-- <div class="choose-file">
                                         <label for="avatar">
                                             <div class=" bg-primary "><i
@@ -184,7 +185,6 @@ $logo = 'storage/app/public/';
 
             <div class="card-body collapse-section" id="timetable-content" style="display: flex; flex-direction: row;">
                 <div class="dayToggle">
-                    <p>{{_('Monday')}}</p>
                     <p>{{__('Monday')}}</p>
                     <label class="switch">
                         <input type="checkbox">
@@ -194,7 +194,6 @@ $logo = 'storage/app/public/';
                 </div>
 
                 <div class="dayToggle">
-                    <p>{{_('Tuesday')}}</p>
                     <p>{{__('Tuesday')}}</p>
                     <label class="switch">
                         <input type="checkbox">
@@ -204,7 +203,6 @@ $logo = 'storage/app/public/';
                 </div>
 
                 <div class="dayToggle">
-                    <p>{{_('Wednesday')}}</p>
                     <p>{{__('Wednesday')}}</p>
                     <label class="switch">
                         <input type="checkbox">
@@ -214,7 +212,6 @@ $logo = 'storage/app/public/';
                 </div>
 
                 <div class="dayToggle">
-                    <p>{{_('Thursday')}}</p>
                     <p>{{__('Thursday')}}</p>
                     <label class="switch">
                         <input type="checkbox">
@@ -224,7 +221,6 @@ $logo = 'storage/app/public/';
                 </div>
 
                 <div class="dayToggle">
-                    <p>{{_('Friday')}}</p>
                     <p>{{__('Friday')}}</p>
                     <label class="switch">
                         <input type="checkbox">
@@ -234,7 +230,6 @@ $logo = 'storage/app/public/';
                 </div>
 
                 <div class="dayToggle">
-                    <p>{{_('Saturday')}}</p>
                     <p>{{__('Saturday')}}</p>
                     <label class="switch">
                         <input type="checkbox">
@@ -244,7 +239,6 @@ $logo = 'storage/app/public/';
                 </div>
 
                 <div class="dayToggle">
-                    <p>{{_('Sunday')}}</p>
                     <p>{{__('Sunday')}}</p>
                     <label class="switch">
                         <input type="checkbox">
@@ -256,7 +250,6 @@ $logo = 'storage/app/public/';
 
             <div class="alignCenterItems" >
                 <button id="saveTimetable" class="btn btn-sm btn-primary saveButton">{{_('Save')}}</button>
-                <button id="saveTimetable" class="btn btn-sm btn-primary saveButton">{{__('Save')}}</button>
             </div>       
         </div>
 
@@ -273,19 +266,18 @@ $logo = 'storage/app/public/';
                 </div>
                 <div style="display: flex; flex-direction: column; align-items: center;">
                     <div class="HolidayToggleDiv">
-                        <p class="holidayP">{{_('Holiday')}}</p>
                         <p class="holidayP">{{__('Holiday')}}</p>
                         <label class="switch switchHoliday" >
                             <input type="checkbox">
                             <span class="slider round"></span>
                         </label>
-                        <p class="holidayPIntenisve">{{_('Intensive workday')}}</p>
+                        <p class="holidayPIntenisve">{{__('Intensive workday')}}</p>
                     </div>
                     <input class="intensiveWorkInput" type="time" id="intesiveWordaykInput" onclick="this.showPicker()" disabled></input>
                 </div>
             </div>
             <div class="alignCenterItems" >
-                <button id="saveHoliday" class="btn btn-sm btn-primary saveButton">{{_('Save')}}</button>
+                <button id="saveHoliday" class="btn btn-sm btn-primary saveButton">{{__('Save')}}</button>
             </div>   
         </div>
 
