@@ -8,7 +8,11 @@
             ? route('projects.milestone.store', [$currentWorkspace->slug, $project_id])
             : route('projects.milestone.store', [$currentWorkspace->slug, $project->id]);
 @endphp
-
+<style>
+    #user-select {
+        display: none;
+    }
+</style>
 @if ($currentWorkspace)
     <div class="modal-body">
         <!-- Toast Notification -->
@@ -48,7 +52,7 @@
                                     <div id="project">
                                         <label class="col-form-label">{{ __('Search project') }}</label>
                                         <input type="text" class="form-control" id="searchProject"
-                                            placeholder="{{ __('Name or reference M.O') }}">
+                                            placeholder="{{ __('Name or reference M.O') }}" autocomplete="off">
                                         <input id="projectId" name="project_id" style="display: none">
                                         <div class="list-group" id="projects_list"></div>
                                     </div>
@@ -60,28 +64,17 @@
                                 @endif
                             </div>
                         </div>
-
                         <div class="col-md-6">
-                            <div class="form-group" id="ref_mo">
-                                @if (isset($project_id) && $project_id == -1)
-                                    <label class="col-form-label">{{ __('MO') }}</label>
-                                    <input type="text" class="form-control form-control-light" {{-- id="milestone_mo" --}}
-                                        placeholder="{{ __('MO') }}" id="searchMo" name="ref_mo" required>
-                                    <div class="list-group" id="ref_mo_list"></div>
-                                @else
-                                    <label class="col-form-label">{{ __('MO') }}</label>
-                                    <input type="text" class="form-control form-control-light"
-                                        placeholder="{{ __('MO') }}" value="{{ $project->ref_mo }}" disabled>
-
-                                    <input type="text" class="form-control form-control-light" id="milestone_mo"
-                                        placeholder="{{ __('MO') }}" name="ref_mo"
-                                        value="{{ $project->ref_mo }}" style="display: none;">
-                                @endif
+                            <div class="form-group">
+                                <label class="col-form-label">{{ __('MO') }}</label>
+                                <input type="text" class="form-control form-control-light" id="milestone_mo"
+                                    placeholder="{{ __('MO') }}" name="ref_mo" required readonly>
                             </div>
                         </div>
                         <div class="col-md-12">
                             <p class="text-muted">
-                                {{ __('If the project with MO reference exists in the database, it will be created automatically. Otherwise, it will be requested later.') }}
+                                <i class="bi bi-info-circle me-2"
+                                    style="color: #FFD43B;"></i>{{ __('If the project with MO reference exists in the database, it will be created automatically. Otherwise, it will be requested later.') }}
                             </p>
                         </div>
                         <div class="col-md-6">
@@ -91,19 +84,28 @@
                                     placeholder="{{ __('Title') }}" name="title" required>
                             </div>
                         </div>
-                        <div class="col-md-6" id="sales_manager">
+                        <div class="col-md-6" id="requestBy">
                             <label class="col-form-label">{{ __('Requested by') }}</label>
-                            <input type="text" class="form-control" name="sales_manager" id="searchSalesManager"
-                                placeholder="{{ __('Name of Sales Manager') }}" value="{{ Auth::user()->name }}">
-                            <div class="list-group" id="sales_manager_list"></div>
+                            <input type="text" class="form-control" id="search"
+                                placeholder="{{ __('Search') }}" value="" autocomplete="off">
+
+                            <div id="user-select" aria-label="Default select example" class="dropdown-menu"
+                                style="width: 45% !important;">
+                                @foreach ($users as $user)
+                                    <div class="option list-group-item list-group-item-action stylelist ps-3"
+                                        data-id="{{ $user->id }}" style="padding: 8px; cursor: pointer;">
+                                        {{ $user->name }}
+                                    </div>
+                                @endforeach
+                                <input type="text" name="assing_to" id="assing_To" style="display: none;">
+                            </div>
                         </div>
                     </div>
-                    <div class="form-check form-switch mb-3">
+                    <div class="form-check form-switch mb-3" id="visado" style="display: none">
                         <input class="form-check-input" type="checkbox" role="switch" id="toggleFormSwitch">
                         <label class="form-check-label"
                             for="toggleFormSwitch">{{ __('Only in case it is necessary to to carry out a project with a visa.') }}</label>
                     </div>
-                    <!-- Contenedor del formulario adicional -->
                     <div id="additionalForm" class="collapse mt-3">
                         <div class="card card-body">
                             <div class="mb-3">
@@ -135,7 +137,6 @@
                             </p>
                         </div>
                     </div>
-
                     <div class="row">
                         <div class="col-md-6">
                             <div class="form-group">
@@ -154,43 +155,29 @@
                         </div>
                     </div>
                     <div class="col-md-12 mt-3">
-                        <ul class="nav nav-tabs" id="myTab" role="tablist">
-                            <!-- Tab para Description -->
-                            <li class="nav-item" role="presentation">
-                                <a class="nav-link active" id="description-tab" data-bs-toggle="tab"
-                                    href="#description" role="tab" aria-controls="description"
-                                    aria-selected="true">
-                                    {{ __('Description') }}
-                                </a>
-                            </li>
-                            <!-- Tab para Upload Files -->
-                            <li class="nav-item" role="presentation">
-                                <a class="nav-link" id="uploadfiles-tab" data-bs-toggle="tab" href="#uploadfiles"
-                                    role="tab" aria-controls="uploadfiles" aria-selected="false">
-                                    <i class="fa-solid fa-arrow-up-from-bracket me-2"></i>{{ __('Upload files') }}
-                                </a>
-                            </li>
-                        </ul>
-                        <div class="tab-content mt-3" id="myTabContent">
-                            <!-- Contenido del tab Description -->
-                            <div class="tab-pane fade show active" id="description" role="tabpanel"
-                                aria-labelledby="description-tab">
-                                <div class="form-group">
-                                    <textarea class="form-control mt-3" id="description-text" name="description" rows="5"
-                                        placeholder="{{ __('Enter description...') }}"></textarea>
-                                </div>
+                        <div class="row">
+                            <!-- Sección de Descripción (Izquierda) -->
+                            <div class="col-md-6">
+                                <label for="description-text"
+                                    class="form-label"><strong>{{ __('Description') }}</strong></label>
+                                <textarea class="form-control mt-2" id="description-text" name="description" rows="5"
+                                    placeholder="{{ __('Enter description...') }}"></textarea>
                             </div>
-                            <div class="tab-pane fade" id="uploadfiles" role="tabpanel"
-                                aria-labelledby="uploadfiles-tab">
-                                <div class="form-group browser-file">
+
+                            <!-- Sección de Archivos Adjuntos (Derecha) -->
+                            <div class="col-md-6">
+                                <label for="file-upload"
+                                    class="form-label"><strong>{{ __('Upload files') }}</strong></label>
+                                <div class="form-group browser-file mt-2">
                                     <input type="file" id="file-upload" multiple style="display: none;" />
-                                    <div id="file-list" class="mt-3">
+                                    <div id="file-list" class="border p-3 rounded bg-light"
+                                        style="min-height: 120px;">
+                                        <!-- Aquí se listarán los archivos adjuntos -->
                                     </div>
                                 </div>
-                                <div class="text-start">
+                                <div class="text-start mt-2">
                                     <button type="button" id="file-select-button" class="btn btn-primary">
-                                        <i class="fa-solid fa-paperclip"></i>
-                                        {{ __('Attach files') }}
+                                        <i class="fa-solid fa-paperclip"></i> {{ __('Attach files') }}
                                     </button>
                                 </div>
                                 <div id="hidden-file-inputs" style="display: none;">
@@ -205,7 +192,6 @@
                     </div>
                 </form>
             </div>
-            <!-- New Project Form -->
             <div class="tab-pane fade" id="projectForm" role="tabpanel" aria-labelledby="project-tab">
                 <form class="" id="projectForm" method="POST">
                     @csrf
@@ -223,20 +209,22 @@
                                     @endforeach
                                 </select>
                             </div>
-                            <div class="form-group col-md-6" id="ref_mo"
-                                style="display: none; position: relative;">
+                            <div class="form-group col-md-6" id="ref_mo" style="display: none;">
                                 <label for="search_mo" class="col-form-label">{{ __('Search MO') }}</label>
                                 <input type="text" class="form-control" name="ref_mo" id="searchMo"
-                                    placeholder="{{ __('Reference') }}">
-                                <div class="list-group" id="ref_mo_list"></div>
+                                    placeholder="{{ __('Reference') }}" autocomplete="off">
+                                <div class="list-group" id="ref_mo_list" style="width: 48%"></div>
+
                             </div>
+
                             <div class="form-group col-md-6" id="clipo"
                                 style="display: none; position: relative">
                                 <label for="clipo" class="col-form-label">{{ __('Search client') }}</label>
                                 <input class="form-control" type="text" name="clipo" id="searchClipo"
-                                    placeholder="{{ __('Clipo') }}">
-                                <div class="list-group" id="clipo_list"></div>
+                                    placeholder="{{ __('Clipo') }}" autocomplete="off">
+                                <div class="list-group" style="display: none;" id="clipo_list"></div>
                             </div>
+
                             <div class="form-group col-md-12">
                                 <label for="projectname" class="col-form-label">{{ __('Name') }}</label>
                                 <input class="form-control" type="text" id="projectname" name="name" required
@@ -251,6 +239,7 @@
                     </div>
                 </form>
             </div>
+
         </div>
     </div>
 @else
@@ -279,7 +268,53 @@
         </div>
     </div>
 @endif
+<script src="{{ asset('assets/custom/libs/nicescroll/jquery.nicescroll.min.js') }} "></script>
 <script>
+    const searchInput = document.getElementById('search');
+    const optionsList = document.getElementById('user-select');
+    const options = optionsList.getElementsByClassName('option');
+    const hiddenInput = document.getElementById('assing_To');
+
+    searchInput.addEventListener('click', function(event) {
+
+        event.stopPropagation();
+        optionsList.style.display = 'block';
+    });
+
+    searchInput.addEventListener('input', function() {
+        const filter = searchInput.value.toLowerCase();
+        let hasVisibleOption = false;
+
+        for (let i = 0; i < options.length; i++) {
+            const option = options[i];
+            const text = option.innerText.toLowerCase();
+            if (text.includes(filter)) {
+                option.style.display = 'block';
+                hasVisibleOption = true;
+            } else {
+                option.style.display = 'none';
+            }
+        }
+
+        optionsList.style.display = hasVisibleOption ? 'block' : 'none';
+    });
+
+    for (let i = 0; i < options.length; i++) {
+        options[i].addEventListener('click', function() {
+            const selectedUserId = this.getAttribute('data-id');
+            searchInput.value = this.innerText;
+            hiddenInput.value = selectedUserId;
+            optionsList.style.display = 'none';
+        });
+    }
+
+    document.addEventListener('click', function(event) {
+        if (!event.target.closest('#requestBy') && !event.target.closest('#search')) {
+            optionsList.style.display = 'none';
+        }
+    });
+
+
     $(document).ready(function() {
         $('#toggleFormSwitch').change(function() {
             if ($(this).is(':checked')) {
@@ -425,7 +460,7 @@
 
             const removeButton = document.createElement('button');
             removeButton.classList.add('btn', 'btn-link', 'text-danger', 'p-0');
-            removeButton.innerHTML = '<i class="ms-1 fa-solid fa-xmark"></i>';
+            removeButton.innerHTML = '<i class="ps-2 fa-solid fa-xmark"></i>';
             removeButton.addEventListener('click', function() {
                 filesArray.splice(index, 1);
                 updateFileList();

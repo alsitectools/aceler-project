@@ -51,28 +51,57 @@ class AzureController extends Controller
                 ]);
 
                 if ($photoResponse->getStatusCode() === 200) {
+                    $photoContent = $photoResponse->getBody()->getContents();
                     $contentType = $photoResponse->getHeaderLine('Content-Type');
 
-                    if (in_array($contentType, ['image/jpeg', 'image/png', 'image/gif'])) {
+                    // Determinar la extensión y guardar la foto
+                    $extension = null;
+                    if ($contentType === 'image/jpeg') {
+                        $extension = 'jpg';
+                    } elseif ($contentType === 'image/png') {
+                        $extension = 'png';
+                    } elseif ($contentType === 'image/gif') {
+                        $extension = 'gif';
+                    }
 
-                        $photoContent = $photoResponse->getBody()->getContents();
-                        $photoPath = 'users-avatar/' . $userProfile['userPrincipalName'] . '.jpg';
-                        Storage::disk('public')->put($photoPath, $photoContent);
-                        $userProfile['photo_path'] = $photoPath;
-                    } else {
+                    if ($extension) {
+                        $photoPath = 'public/assets/users-avatar/' . $userProfile['userPrincipalName'] . '.' . $extension;
+                        $absolutePath = public_path('assets/users-avatar/' . $userProfile['userPrincipalName'] . '.' . $extension);
 
-                        $userProfile['photo_path'] = null;
+                        if (!file_exists(dirname($absolutePath))) {
+                            mkdir(dirname($absolutePath), 0755, true);
+                        }
+
+                        file_put_contents($absolutePath, $photoContent);
+
+                        $userProfile['photo_path'] = 'assets/users-avatar/' . $userProfile['userPrincipalName'] . '.' . $extension;
                     }
                 } else {
-
                     $userProfile['photo_path'] = null;
                 }
             } catch (\Exception $e) {
-
                 $userProfile['photo_path'] = null;
             }
 
             $user = $this->findOrcreate($userProfile);
+
+            if (isset($user)) {
+                $filePath = public_path($user->avatar);
+
+                if ($userProfile['photo_path'] == null) {
+                    if (file_exists($filePath)) {
+                        chmod($filePath, 0777);
+
+                        if (\File::delete($filePath)) {
+                            $user->avatar = null;
+                            $user->save();
+                        }
+                    }
+                } else {
+                    $user->avatar = $userProfile['photo_path'];
+                    $user->save();
+                }
+            }
             Auth::login($user, true);
 
             return redirect()->intended('/');
@@ -80,7 +109,6 @@ class AzureController extends Controller
             return redirect('/login')->with('error', 'Hubo un problema al iniciar sesión con Azure.');
         }
     }
-
 
     public function findOrcreate($userProfile)
     {

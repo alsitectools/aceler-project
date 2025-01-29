@@ -1,4 +1,3 @@
-/** Script que gestiona la creacion de proyectos y hojas de encargos desde las vistas de create y milestone */
 $(document).ready(function () {
     const projectInput = $('#searchProject');
     const projectList = $('#projects_list');
@@ -76,7 +75,7 @@ $(document).ready(function () {
     // Manejadores de entrada para los campos de búsqueda
     projectInput.on('input', function () {
         milestoneMoInput.val("");
-        handleInputChange($(this), projectList, searchProjectsUrl, 'The project is not yet created, you must create it.', 'projects');
+        handleInputChange($(this), projectList, searchProjectsUrl, 'Sin resultados. El proyecto no ha sido creado.', 'projects');
     });
 
     salesManagerInput.on('input', function () {
@@ -84,18 +83,18 @@ $(document).ready(function () {
             salesList.empty().hide();
             return;
         }
-        handleInputChange($(this), salesList, searchSalesManagerUrl, 'No results found', 'salesManagers');
+        handleInputChange($(this), salesList, searchSalesManagerUrl, 'Sin resultados encontrados', 'salesManagers');
     });
 
     refMoInput.on('input', function () {
         clientInput.val("");
         project_nameInput.val("");
         $('#projectId').val('');
-        handleInputChange($(this), refMoList, searchMoUrl, 'No results found', 'mo');
+        handleInputChange($(this), refMoList, searchMoUrl, 'Sin resultados encontrados', 'mo');
     });
 
     clientInput.on('input', function () {
-        handleInputChange($(this), clipoList, searchClipoUrl, 'No results found', 'clients');
+        handleInputChange($(this), clipoList, searchClipoUrl, 'Sin resultados encontrados', 'clients');
     });
 
     $('#project_type').change(function () {
@@ -110,9 +109,6 @@ $(document).ready(function () {
         switch (type) {
             case 'clipo':
                 $('#clipo_list').after(alertSpan);
-                break;
-            case 'salesManagers':
-                $('#sales_manager_list').after(alertSpan);
                 break;
             case 'mo':
                 $('#ref_mo_list').after(alertSpan);
@@ -150,7 +146,8 @@ $(document).ready(function () {
                 $('#project label').after(loadingSpinner);
                 break;
             default:
-                console.warn('Tipo desconocido para el spinner:', type);
+                console.log('Tipo desconocido para el spinner:', type);
+
         }
         // Realizar la solicitud AJAX
         currentRequest = $.ajax({
@@ -159,6 +156,7 @@ $(document).ready(function () {
             success: function (data) {
                 loading = false;
                 const itemData = itemProcessor(data);
+                console.log('obras', itemData);
 
                 if (!itemData.length && searchQuery.length >= 3) {
                     list.append(`<p class="text-danger">${noResultsMessage}</p>`);
@@ -191,14 +189,34 @@ $(document).ready(function () {
             });
             list.append(listItems);
             currentPage++;
+            // Inicializar NiceScroll después de agregar los elementos a la lista
+            list.niceScroll({
+                cursorcolor: "grey",
+                cursorwidth: "8px",
+                background: "transparent",
+                autohidemode: true,
+                cursorborder: "1px solid #ccc",
+                cursorborderradius: "5px",
+            });
+
         } else if (currentPage === 1) {
-            list.append(`<p class="text-danger">${noResultsMessage}</p>`);
+            let errorMessage = $(`<div class="text-danger list-group-item m-0">${noResultsMessage}</div>`);
+            list.append(errorMessage);
+
+            setTimeout(() => {
+                errorMessage.fadeOut(1000, function () {
+                    $(this).remove();
+                });
+            }, 5000);
         }
     }
 
     function handleListItemClick(item, list, type) {
         return function (e) {
             e.preventDefault();
+
+            const additionalForm = document.getElementById('visado');
+            console.log('tipo de busqueda', type);
 
             // Verifica si el proyecto ya existe cuando el tipo es 'mo'
             if (type === 'mo') {
@@ -210,9 +228,6 @@ $(document).ready(function () {
                 }
                 refMoInput.val(item.ref_mo);
                 project_nameInput.val(item.name);
-
-                $('#projectId').val(item.name);
-                projectInput.val(item.name);
 
             } else if (type === 'clients') {
                 clientInput.val(item.name);
@@ -228,11 +243,13 @@ $(document).ready(function () {
 
                 if (!item.ref_mo) {
 
-                    refMoInput.prop('disabled', true);
-                    refMoInput.prop('required', false);
+                    milestoneMoInput.prop('disabled', true);
+                    milestoneMoInput.prop('required', false);
                 } else {
-                    refMoInput.prop('disabled', false);
-                    refMoInput.val(item.ref_mo).prop('readonly', true);
+                    milestoneMoInput.val('');
+                    milestoneMoInput.prop('disabled', false);
+                    milestoneMoInput.val(item.ref_mo).prop('readonly', true);
+                    additionalForm.style.display = 'block';
                 }
 
 
@@ -297,10 +314,7 @@ $(document).ready(function () {
     }
 
     setupInfiniteScroll(projectList, searchMoUrl, data => data.projects.data,
-        'No results found. The project is not yet created, you must create it.', 'project');
-    setupInfiniteScroll(refMoList, searchMoUrl, data => data.mo.data, 'Projects no results found', 'ref_mo');
-    setupInfiniteScroll(clipoList, searchClipoUrl, data => data.clients.data, 'Clients no results found', 'clipo');
-
-
+        'Sin resultados. El proyecto no ha sido creado.', 'project');
+    setupInfiniteScroll(refMoList, searchMoUrl, data => data.mo.data, 'Sin proyectos encontrados', 'ref_mo');
+    setupInfiniteScroll(clipoList, searchClipoUrl, data => data.clients.data, 'Sin clientes encontrados', 'clipo');
 });
-

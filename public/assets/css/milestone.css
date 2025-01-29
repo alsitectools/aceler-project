@@ -10,10 +10,9 @@
 #projects_list,
 #ref_mo_list,
 #clipo_list {
+    position: absolute;
     max-height: 245px;
     overflow-y: auto;
-    position: absolute;
-    width: 47%;
     -webkit-box-shadow: 0px 5px 5px -2px #bcbcbc;
     box-shadow: -3px 4px 5px -2px #bcbcbc;
 }
@@ -137,15 +136,15 @@
     background-color: #f9f9f9;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
     height: 60px;
-    overflow: hidden; 
+    overflow: hidden;
     white-space: nowrap;
     margin: 5px;
 }
 
 .file-name {
     overflow: hidden;
-    text-overflow: ellipsis; 
-    white-space: nowrap; 
+    text-overflow: ellipsis;
+    white-space: nowrap;
 
     max-width: 100%;
 }
@@ -154,6 +153,7 @@
     flex-shrink: 0;
     margin-right: 10px;
 }
+
 .file button {
     flex-shrink: 0;
     background: none;
