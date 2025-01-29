@@ -375,7 +375,7 @@
                                                             <div class="d-flex align-items-center px-2">
                                                                 <a href="#" class=" text-start">
                                                                     <img class="fix_img"
-                                                                        @if ($user->avatar) src="{{ asset($logo . $user->avatar) }}" @else avatar="{{ $user->name }}" @endif>
+                                                                        @if ($user->avatar) src="{{ asset($user->avatar) }}" @else avatar="{{ $user->name }}" @endif>
                                                                 </a>
                                                                 <div class="px-2">
                                                                     <h5 class="m-0">{{ $user->name }}</h5>

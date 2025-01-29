@@ -1353,7 +1353,8 @@ class ProjectController extends Controller
     }
     public function getSalesJson($slug, $search = null)
     {
-        $query = User::query()->select(['id', 'name'])->where('type', '=', 'client');
+        $currentWorkspace = Utility::getWorkspaceBySlug($slug);
+        $query = User::query()->select(['id', 'name'])->where('currant_workspace', '=', $currentWorkspace->id);
 
         if ($search) {
             $query->where(function ($query) use ($search) {
@@ -1374,6 +1375,7 @@ class ProjectController extends Controller
     {
         $currentWorkspace = Utility::getWorkspaceBySlug($slug);
         $project_type = ProjectType::select('id', 'name')->get();
+        $users = User::where('currant_workspace', '=', $currentWorkspace->id)->get();
 
         if ($projectID == -1) {
             $project_id = -1;
@@ -1382,11 +1384,11 @@ class ProjectController extends Controller
                 ->where('projects.status', '!=', 'Finished')
                 ->get();
 
-            return view('projects.milestone', compact('currentWorkspace', 'projects', 'project_id', 'project_type'));
+            return view('projects.milestone', compact('currentWorkspace', 'projects', 'project_id', 'project_type', 'users'));
         } else {
             $project_id = $projectID;
             $project = Project::find($projectID);
-            return view('projects.milestone', compact('currentWorkspace', 'project', 'project_id', 'project_type'));
+            return view('projects.milestone', compact('currentWorkspace', 'project', 'project_id', 'project_type', 'users'));
         }
     }
 
@@ -1426,7 +1428,6 @@ class ProjectController extends Controller
                 return response()->json(['error' => 'Error al crear el proyecto'], 500);
             }
         }
-
 
         $currentWorkspace = Utility::getWorkspaceBySlug($slug);
 
@@ -1469,7 +1470,7 @@ class ProjectController extends Controller
             }
 
             $projectFolder = str_replace(' ', '_', $project->name);
-            $dir = $baseDir . '/' . $projectFolder;
+            $dir = $baseDir . '/' . $projectFolder . '/' . $milestone->title;
 
             if (!Storage::exists($dir)) {
                 Storage::makeDirectory($dir);

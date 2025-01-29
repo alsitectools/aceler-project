@@ -160,7 +160,7 @@
                                                                 <a href="#" class="img_group tooltipCus"
                                                                     data-title="{{ $user->name }}">
                                                                     <img alt="{{ $user->name }}" class="iconUSer"
-                                                                        @if ($user->avatar) src="{{ asset($logo . $user->avatar) }}" @else avatar="{{ $user->name }}" @endif>
+                                                                        @if ($user->avatar) src="{{ asset($user->avatar) }}" @else avatar="{{ $user->name }}" @endif>
                                                                 </a>
                                                             @endif
                                                         @endforeach
