@@ -23,6 +23,9 @@
         left: 0;
         width: 100%;
     }
+    .hover:hover {
+        cursor: pointer;
+    }
 
     #searchInputProjects {
         position: relative;
@@ -80,7 +83,7 @@
                 <div class="col-md-8">
                     <div class="grid filters-content">
                         @foreach ($projects as $project)
-                            <div class="card mb-3 zoom mt-0 ml-0 m-2 All  {{ $project->status }} type-{{ $project->type }}"
+                            <div onclick="redirectToCurrentProject('{{ route('projects.show', [$currentWorkspace->slug, $project->id]) }}')"  class="hover card mb-3 zoom mt-0 ml-0 m-2 All  {{ $project->status }} type-{{ $project->type }}"
                                 style="border-radius: 10px;">
                                 <div class="row ms-2">
                                     <div class="col-md-2 project-type text-center m-2">
@@ -97,7 +100,6 @@
                                         <div class="card-header pt-3 pb-1 d-flex p-3">
                                             @if ($project->is_active)
                                                 <a style="width: 83%"
-                                                    href="@auth('web'){{ route('projects.show', [$currentWorkspace->slug, $project->id]) }}@endauth"
                                                     class="tooltipCus" data-title="{{ __('Project Name') }}">
                                                     <h4>{{ $project->name }} </h4>
                                                 </a>
@@ -198,8 +200,7 @@
                                         <i class="ti ti-plus"></i>
                                     </div>
                                     <h5 class="m-1">{{ __('Create New Project') }}</h5>
-                                    <p class="text-muted text-center m-1">
-                                        {{ __('Click here to add New Project') }}</p>
+                                    
                                 </a>
                             @endauth
                         </div>
@@ -274,6 +275,11 @@
         </div>
     </section>
 @endsection
+<script>
+    function redirectToCurrentProject(url) {
+        window.location.href = url;
+    }
+    </script>
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
 @if (isset($currentWorkspace) && $currentWorkspace)
     <script src="{{ asset('assets/custom/js/jquery.easy-autocomplete.min.js') }}"></script>

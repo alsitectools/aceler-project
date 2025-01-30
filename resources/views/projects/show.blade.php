@@ -25,6 +25,9 @@
         align-items: center;
 
     }
+    .fileIcon{
+        margin-right: 8px;
+    }
 </style>
 @section('multiple-action-button')
     @if (isset($currentWorkspace) && $currentWorkspace->permission == 'Owner')
@@ -41,7 +44,7 @@
     <div class="col-lg-auto pb-3">
         <a href="{{ route('projects.milestone.board', [$currentWorkspace->slug, $project->id]) }}"
             class="btn btn-primary btn-task-milestone" title="{{ __('Milestones') }}"><i
-                class="fa-solid fa-file-lines"></i>{{ __('Milestones') }}</a>
+                class="fa-solid fa-file-lines fileIcon"></i>{{ __('Order forms') }}</a>
     </div>
     <div class="col-lg-auto pb-3">
         <a href="{{ route('projects.timesheet.index', [$currentWorkspace->slug, $project->id]) }}"
@@ -132,7 +135,9 @@
         text-decoration: none;
         border-color: #b9515f;
     }
-
+.plusIcon{
+    margin-left: 10px;
+}
     @media (max-width: 1300px) {
         .header_breadcrumb {
             width: 100% !important;
@@ -344,7 +349,7 @@
                                                 data-title="{{ __('Milestone order') }}"
                                                 data-url="{{ route('projects.milestone', [$currentWorkspace->slug, $project->id]) }}"
                                                 data-toggle="popover" title="{{ __('Create') }}"><i
-                                                    class="ti ti-plus"></i></a>
+                                                    class="ti ti-plus plusIcon"></i> {{__('Create Milestone')}}</a>
                                         </div>
                                     </div>
                                 </div>
