@@ -2,7 +2,7 @@
 <!-- @include('tutorial.projectTutorial') -->
 @php
     $client_keyword = Auth::user()->getGuard() == 'client' ? 'client.' : '';
-    $logo = \App\Models\Utility::get_file('avatars/');
+
 @endphp
 
 
@@ -107,7 +107,7 @@
     width: 100%;
     margin-top: 10px;
     /* border: 1px solid black; */
-    height: 96px;
+    height: 120px;
     align-content: center;
     align-items: center;
     margin-bottom:20px ;
@@ -119,8 +119,8 @@
     /* border: 1px solid magenta; */
     /* background-color: magenta; */
     /* border: 1px solid red; */
-    border-radius: 4px;
-    filter: drop-shadow(0px 2px 8px #c2c2c2);
+    border-radius: 15px;
+    filter: drop-shadow(0px 1px 3px #dbdbdb);
 }
 
 .ctr{
@@ -130,21 +130,30 @@
   
 }
 .tabIcon{
-    margin-left: 15px;
+    margin-left: 30px;
     width: 50px;
     height: 50px;
     background-color: #AA182C;
     display: flex;
     justify-content: center;
     align-items: center;
-    border-radius: 9px;
-    filter: drop-shadow(1px 2px 2px rgba(0, 0, 0, 0.6));
+    border-radius: 16px;
+    filter: drop-shadow(0px 1px 3px rgba(0, 0, 0, 0.2));
 }
 
 .icons{
     width: 35px;
     height: 32px;
     filter: invert(1);
+}
+.projectIcon{
+    background-color: #8dd656;
+}
+.milestoneIcon{
+    background-color:rgb(174 154 247);
+}
+.taskIcon{
+    background-color: #72c8d4;
 }
 .tabTexts{
     margin-left: 20px;
@@ -560,8 +569,8 @@
                         
                         <div class="summary">
                             <div class="tabs ctr">
-                            <div class="tabIcon" >
-                                <img class="icons" src="public\assets\custom\libs\@fontawesome\fontawesome-free\svgs\solid\project-diagram.svg" alt="logo" />
+                            <div class="tabIcon projectIcon" >
+                                <img class="icons" src="{{asset('assets/custom/libs/@fontawesome/fontawesome-free/svgs/solid/project-diagram.svg')}}" alt="logo" />
 
                                 </div>
                                 <div class="tabTexts">
@@ -569,7 +578,7 @@
                                 </div>
                                 <div class="tabTexts tabNumCounter">
                                     <span>
-                                    {{ $totalProject }}
+                                    {{ $totalProject  ?? 0}}
                                     </span>
                                     
                                 </div>
@@ -577,41 +586,41 @@
                                     <div class="status hold ctr">
                                         <span class="statusText">{{__('OnHold')}}</span>
                                         <div class="statusNumContainer">
-                                        <span class="statusNum">{{$projectProcess['OnHold']}}</span>
+                                        <span class="statusNum">{{$projectProcess['OnHold'] ?? 0}}</span>
                                         </div>
                                     </div>
                                     <div class="status progressstat ctr">
                                         <span class="statusText">{{__('Ongoing')}}</span>
                                         <div class="statusNumContainer">
-                                        <span class="statusNum">{{$projectProcess['Ongoing']}}</span>
+                                        <span class="statusNum">{{$projectProcess['Ongoing']?? 0}}</span>
                                         </div>
                                     </div>
                                     <div class="status ended ctr">
                                         <span class="statusText">{{__('Finished')}}</span>
                                         <div class="statusNumContainer">
-                                        <span class="statusNum">{{$projectProcess['Finished']}}</span>
+                                        <span class="statusNum">{{$projectProcess['Finished']?? 0}}</span>
                                         </div>
                                     </div>
 
                                 </div>
                             </div>
                             <div class="tabs ctr">
-                            <div class="tabIcon" >
-                            <img class="icons" src="public\assets\custom\libs\@fontawesome\fontawesome-free\svgs\solid\file-alt.svg" alt="logo" />
+                            <div class="tabIcon milestoneIcon" >
+                            <img class="icons" src="{{asset('assets/custom/libs/@fontawesome/fontawesome-free/svgs/solid/file-alt.svg')}}" alt="logo" />
                             </div>
                                 <div class="tabTexts">
                                 {{__('Milestones')}}
                                 </div>
                                 <div class="tabTexts tabNumCounter">
                                     <span>
-                                    {{ $totalMilestones }}
+                                    {{ $totalMilestones  ?? 0}}
                                     </span>
                                     
                                 </div>
                             </div>
                             <div class="tabs ctr">
-                                <div class="tabIcon" >
-                                <img class="icons" src="public\assets\custom\libs\@fontawesome\fontawesome-free\svgs\solid\tasks.svg" alt="logo" />
+                                <div class="tabIcon taskIcon" >
+                                <img class="icons" src="{{asset('assets/custom/libs/@fontawesome/fontawesome-free/svgs/solid/tasks.svg')}}" alt="logo" />
 
                                 </div>
                                 <div class="tabTexts">
@@ -619,7 +628,7 @@
                                 </div>
                                 <div class="tabTexts tabNumCounter">
                                     <span>
-                                    {{ $totalTask }}
+                                    {{ $totalTask  ?? 0}}
                                     </span>
                                     
                                 </div>
@@ -635,7 +644,7 @@
                         </div>
                         <div class="tutorialPartCardContent initial-content">
                         
-                            <span id="defaultTextProject">{{_('Learn how to create, delete and visualize projects of any type.')}}</span>
+                            <span id="defaultTextProject">{{__('Learn how to create, delete and visualize projects of any type')}}</span>
                         </div>
                         <div class="hiddenTuto" id="hiddenTutoProject">@include('tutorial.projectTutorial')</div>
                     </div>
@@ -645,7 +654,7 @@
                     </div>
                     <div class="tutorialPartCardContent initial-content">
                   
-                    <span id="defaultTextMilestone">{{_('Learn how to create, delete and edit job sheets, as well as view their current status.')}}</span>
+                    <span id="defaultTextMilestone">{{__('Learn how to create, delete and edit job sheets, as well as view their current status')}}</span>
                     </div>
                     <div class="hiddenTuto" id="hiddenTutoMilestone">@include('tutorial.milestoneTutorial')</div>
                     </div>
@@ -654,7 +663,7 @@
                     <h2>{{__('Tasks')}}</h2>
                     </div>
                     <div class="tutorialPartCardContent initial-content">
-                    <span id="defaultTextTask">{{_('Learn how to input the hours dedicated to each task')}}</span>
+                    <span id="defaultTextTask">{{__('Learn how to input the hours dedicated to each task')}}</span>
                     </div>
                     <div class="hiddenTuto" id="hiddenTutoTask">@include('tutorial.taskTutorial')</div>
 
@@ -663,9 +672,9 @@
                 <div class="stickyComercialTec">
                     <div class="comercial dropDownCT">
                         <div class="dropdownHeaders" id="headerCom" onclick="toggleContentCom()">
-                            <img src="public\assets\img\salesManager.png" class="comercialTecIcons"/>
+                            <img src="{{asset('assets/img/salesManager.png')}}" class="comercialTecIcons"/>
                             <span>{{__('Sales managers')}}</span>
-                            <img src="public\assets\images\sort-down-solid.svg" class="dropdownArrow"/>
+                            <img src="{{asset('assets/images/sort-down-solid.svg')}}" class="dropdownArrow"/>
                         </div>
                         <div class="dropdownContent" id="contentCom">
                             <input type="text" class="filter-input" id="filterComerciales" placeholder="Filtrar comerciales..." oninput="filterList('filterComerciales', 'contentCom')">
@@ -685,7 +694,7 @@
                                 <div class="comercialAndTechnicians">
                                     <div class="ppcontainer">
                                         <img alt="{{ $comercial->name }}" class="profilePicture"
-                                            @if ($comercial->avatar) src="{{ asset($logo . $comercial->avatar) }}" @else avatar="{{ $comercial->name }}" @endif>
+                                            @if ($comercial->avatar) src="{{ asset( $comercial->avatar) }}" @else avatar="{{ $comercial->name }}" @endif>
                                     </div>
                                     <div class="textContent">
                                         <span class="fullName">{{$comercial->name}}</span>
@@ -698,9 +707,9 @@
                     </div>
                     <div class="technicians dropDownCT">
                         <div class="dropdownHeaders" id="headerTec" onclick="toggleContentTec()">
-                            <img src="public\assets\img\technicians.png" class="comercialTecIcons"/>
+                            <img src="{{asset('assets/img/technicians.png')}}" class="comercialTecIcons"/>
                             <span>{{__('Technicians')}}</span>
-                            <img src="public\assets\images\sort-down-solid.svg" class="dropdownArrow"/>
+                            <img src="{{asset('assets/images/sort-down-solid.svg')}}" class="dropdownArrow"/>
                         </div>
                         <div class="dropdownContent" id="contentTec">
                             <input type="text" class="filter-input" id="filterTechnicians" placeholder="Filtrar técnicos/as..." oninput="filterList('filterTechnicians', 'contentTec')">
@@ -708,7 +717,7 @@
                                 <div class="comercialAndTechnicians">
                                     <div class="ppcontainer">
                                         <img alt="{{ $technician->name }}" class="profilePicture"
-                                            @if ($technician->avatar) src="{{ asset($logo . $technician->avatar) }}" @else avatar="{{ $technician->name }}" @endif>
+                                            @if ($technician->avatar) src="{{ asset( $technician->avatar) }}" @else avatar="{{ $technician->name }}" @endif>
                                     </div>
                                     <div class="textContent">
                                         <span class="fullName">{{$technician->name}}</span>

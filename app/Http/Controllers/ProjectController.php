@@ -843,10 +843,16 @@ class ProjectController extends Controller
                 $allmilestones = Milestone::where('project_id', $project->id)->get();
                 $milestones = $groupMilestonesByStatus($allmilestones);
                 $project_id = $project->id;
+                $project_name = $project->name;
             }
         }
+        if($project_id == -1){
+            return view('projects.milestoneboard', compact('currentWorkspace', 'milestones', 'stages', 'statusClass', 'project_id'));
+        }else{
+            return view('projects.milestoneboard', compact('currentWorkspace', 'milestones', 'stages', 'statusClass', 'project_id','project_name'));
+        }
 
-        return view('projects.milestoneboard', compact('currentWorkspace', 'milestones', 'stages', 'statusClass', 'project_id'));
+       
     }
 
     public function taskBoard($slug, $projectID)
@@ -2541,8 +2547,10 @@ class ProjectController extends Controller
 
     public function projectsTimesheet(Request $request, $slug, $project_id = 0)
     {
+        $project = Project::find($project_id);
+        $project_name = $project->name ?? '';
         $currentWorkspace = Utility::getWorkspaceBySlug($slug);
-        return view('projects.timesheet', compact('currentWorkspace', 'project_id'));
+        return view('projects.timesheet', compact('currentWorkspace', 'project_id', 'project_name'));
     }
 
     public function ajax_tasks($slug, Request $request)

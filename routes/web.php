@@ -756,7 +756,7 @@ Route::get('/{slug}/append-timesheet-task-html', [ProjectController::class, 'app
 
 Route::get('/{slug}/timesheet/create/{project_id}', [ProjectController::class, 'projectTimesheetCreate'])->name('project.timesheet.create')->middleware(['auth', 'XSS']);
 
-Route::post('/{slug}/timesheet/store/{project_id}', [ProjectController::class, 'projectTimesheetStore'])->name('project.timesheet.store')->middleware(['auth', 'XSS']);
+Route::post('/{slug}/timesheet/store/{project_id}', [ProjectController::class, 'TimesheetStore'])->name('project.timesheet.store')->middleware(['auth', 'XSS']);
 
 Route::get('/{slug}/timesheet/{timesheet_id}/edit/{project_id}', [ProjectController::class, 'projectTimesheetEdit'])->name('project.timesheet.edit')->middleware(['auth', 'XSS']);
 

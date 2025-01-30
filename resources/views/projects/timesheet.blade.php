@@ -7,10 +7,12 @@
 @endsection
 @section('links')
     <li class="breadcrumb-item"><a href="{{ route('home') }}">{{ __('Home') }}</a></li>
+    <li class="breadcrumb-item"><a href="{{ route('projects.index', $currentWorkspace->slug) }}">{{ __('Projects') }}</a></li>
+
 
     @if ($project_id != -1)
         <li class="breadcrumb-item"><a
-                href="{{ route('projects.show', [$currentWorkspace->slug, $project_id]) }}">{{ __('Project Details') }}</a>
+                href="{{ route('projects.show', [$currentWorkspace->slug, $project_id]) }}">{{$project_name }}</a>
         </li>
     @endif
     <li class="breadcrumb-item"> {{ __('Timesheet') }}</li>
@@ -40,12 +42,12 @@
             </div>
         </div>
         @if ($project_id != '-1')
-            <div class="col-auto">
+            <!-- <div class="col-auto">
                 <a href="{{ route($client_keyword . 'projects.show', [$currentWorkspace->slug, $project_id]) }}"
                     class="btn btn-sm btn-primary">
                     <i class=" ti ti-arrow-back-up"></i>
                 </a>
-            </div>
+            </div> -->
         @endif
     </div>
 @endsection

@@ -314,7 +314,7 @@ $(document).ready(function () {
     }
 
     setupInfiniteScroll(projectList, searchMoUrl, data => data.projects.data,
-        'Sin resultados. El proyecto no ha sido creado.', 'project');
+        'Sin resultados. El proyecto no ha sido creado.', 'projects');
     setupInfiniteScroll(refMoList, searchMoUrl, data => data.mo.data, 'Sin proyectos encontrados', 'ref_mo');
     setupInfiniteScroll(clipoList, searchClipoUrl, data => data.clients.data, 'Sin clientes encontrados', 'clipo');
 });

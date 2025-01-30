@@ -83,7 +83,7 @@
                             @if (\Auth::user()->avatar) src="{{ asset(Auth::user()->avatar) }}" @else avatar="{{ Auth::user()->name }}" @endif
                             alt="{{ Auth::user()->name }}">
       
-                        <span class="hide-mob ms-2">{{ __('Hi') }},{{ Auth::user()->name }} </span>
+                        <span class="hide-mob ms-2">{{ __('Hi') }}, {{ Auth::user()->name }} </span>
                         <i class="ti ti-chevron-down drp-arrow nocolor hide-mob"></i>
                     </a>
                     <div class="dropdown-menu dash-h-dropdown">

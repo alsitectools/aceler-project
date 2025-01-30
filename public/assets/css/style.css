@@ -3554,19 +3554,19 @@ fieldset:disabled .btn {
 
 .btn-danger {
     --bs-btn-color: #ffffff;
-    --bs-btn-bg: #ff3a6e;
-    --bs-btn-border-color: #ff3a6e;
+    --bs-btn-bg: #727272;
+    --bs-btn-border-color: #727272;
     --bs-btn-hover-color: #ffffff;
-    --bs-btn-hover-bg: #d9315e;
-    --bs-btn-hover-border-color: #cc2e58;
+    --bs-btn-hover-bg: #9a9a9a;
+    --bs-btn-hover-border-color: #727272;
     --bs-btn-focus-shadow-rgb: 255, 88, 132;
     --bs-btn-active-color: #ffffff;
-    --bs-btn-active-bg: #cc2e58;
-    --bs-btn-active-border-color: #bf2c53;
+    --bs-btn-active-bg: #727272;
+    --bs-btn-active-border-color: #727272;
     --bs-btn-active-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.125);
     --bs-btn-disabled-color: #ffffff;
-    --bs-btn-disabled-bg: #ff3a6e;
-    --bs-btn-disabled-border-color: #ff3a6e;
+    --bs-btn-disabled-bg: #727272;
+    --bs-btn-disabled-border-color: #727272;
 }
 
 .btn-light {

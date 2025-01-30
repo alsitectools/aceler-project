@@ -33,12 +33,12 @@
                     <i class="fa-solid fa-file-lines me-2"></i> {{ __('Create Milestone') }}
                 </a>
             </li>
-            <li class="nav-item" role="presentation">
+            <!-- <li class="nav-item" role="presentation">
                 <a class="nav-link" id="project-tab" data-bs-toggle="tab" href="#projectForm" role="tab"
                     aria-controls="project" aria-selected="false">
                     <i class="fa-solid fa-diagram-project me-2"></i> {{ __('Create New Project') }}
                 </a>
-            </li>
+            </li> -->
         </ul>
         <div class="tab-content mt-3" id="myTabContent">
             <!-- Milestone Form -->
@@ -54,7 +54,7 @@
                                         <input type="text" class="form-control" id="searchProject"
                                             placeholder="{{ __('Name or reference M.O') }}" autocomplete="off">
                                         <input id="projectId" name="project_id" style="display: none">
-                                        <div class="list-group" id="projects_list"></div>
+                                        <div class="list-group" id="projects_list" style="width:48% !important"></div>
                                     </div>
                                 @else
                                     <label class="col-form-label">{{ __('Project') }}</label>

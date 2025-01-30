@@ -24,7 +24,7 @@
                             name="start_date" value="{{ $milestone->start_date }}" disabled>
                     </div>
                     <div class="form-group col-md-6">
-                        <label for="end_date" class="col-form-label">{{ __('Estimated date') }}</label>
+                        <label for="end_date" class="col-form-label">{{ __('Desired delivery date') }}</label>
                         <input onclick="this.showPicker()" type="date" class="form-control form-control-light date"
                             id="end_date" name="end_date" value="{{ $milestone->end_date }}" required>
                     </div>

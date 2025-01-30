@@ -49,11 +49,15 @@
 </style>
 @section('links')
     @if (isset($project_id) && $project_id != -1)
+    <li class="breadcrumb-item"><a href="{{ route('home') }}">{{ __('Home') }}</a></li>
+    <li class="breadcrumb-item"><a href="{{ route('projects.index', $currentWorkspace->slug) }}">{{ __('Projects') }}</a></li>
+    
         <li class="breadcrumb-item"><a
-                href="{{ route('projects.show', [$currentWorkspace->slug, $project_id]) }}">{{ __('Project Details') }}</a>
+                href="{{ route('projects.show', [$currentWorkspace->slug, $project_id]) }}">{{$project_name}}</a>
         </li>
     @else
         <li class="breadcrumb-item"><a href="{{ route('home') }}">{{ __('Home') }}</a></li>
+        <li class="breadcrumb-item"><a href="{{ route('projects.index', $currentWorkspace->slug) }}">{{ __('Projects') }}</a></li>
     @endif
     <li class="breadcrumb-item">{{ __('Milestoneboard') }}</li>
 @endsection
@@ -157,11 +161,19 @@
                                                                             @method('DELETE')
                                                                         </form>
                                                                     @else
-                                                                        <a href="#"
-                                                                            class="dropdown-item bs-pass-para disabled">
+                                                                    <a href="#" class="dropdown-item bs-pass-para"
+                                                                            data-confirm="{{ __('Are You Sure?') }}"
+                                                                            data-text="{{ __('This action can not be undone. Do you want to continue?') }}"
+                                                                            data-confirm-yes="delete-form-{{ $milestone['id'] }}">
                                                                             <i class="ti ti-trash"></i>
                                                                             {{ __('Delete') }}
                                                                         </a>
+                                                                        <form id="delete-form-{{ $milestone['id'] }}"
+                                                                            action="{{ route('projects.milestone.destroy', [$currentWorkspace->slug, $milestone['id']]) }}"
+                                                                            method="POST" style="display: none;">
+                                                                            @csrf
+                                                                            @method('DELETE')
+                                                                        </form>
                                                                     @endif
                                                                 @endif
                                                             </div>
