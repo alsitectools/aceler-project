@@ -194,7 +194,7 @@ class ProjectController extends Controller
         //Implements activity log when a project is created
 
         if ($getReload) {
-            
+
             ActivityLog::create(
                 [
                     'user_id' => Auth::user()->id,
@@ -202,7 +202,8 @@ class ProjectController extends Controller
                     'project_id' => $objProject->id,
                     'log_type' => 'has created a new project',
                     'remark' => json_encode(['projectName' => $objProject->name]),
-                ]);
+                ]
+            );
 
             return response()->json(['success' => true, 'message' => 'Project created successfully.', 'project_id' => $objProject]);
         } else {
@@ -214,8 +215,9 @@ class ProjectController extends Controller
                     'project_id' => $objProject->id,
                     'log_type' => 'has created a new project',
                     'remark' => json_encode(['projectName' => $objProject->name]),
-                ]);
-            
+                ]
+            );
+
             return redirect()->route('projects.index', $currentWorkspace->slug)
                 ->with('success', __('Project Created Successfully!'));
         }
@@ -444,10 +446,10 @@ class ProjectController extends Controller
                 $daysleft = round((((strtotime($project->end_date) - strtotime(date('Y-m-d'))) / 24) / 60) / 60);
 
                 // Obtener archivos del proyecto desde la carpeta correspondiente
-                $projectFolder = 'project_files/' . strtr($project->name,[" " => "_"]);
+                $projectFolder = 'project_files/' . strtr($project->name, [" " => "_"]);
                 $projectFiles = \Storage::files($projectFolder);
 
-                \Log::debug( $projectFolder);
+                \Log::debug($projectFolder);
                 return view('projects.show', compact('currentWorkspace', 'project', 'chartData', 'daysleft', 'projectFiles'));
             } else {
                 return redirect()->back()->with('error', __("Project Not Found."));
@@ -460,10 +462,10 @@ class ProjectController extends Controller
     public function downloadFile(Request $request)
     {
         $inputs = $request->input();
-        
+
         // Obtener el proyecto usando el ID
         $project = Project::findOrFail($inputs['idProject']);
-        $projectName = strtr($project->name, [' ' => '_']);   
+        $projectName = strtr($project->name, [' ' => '_']);
 
         // Construir la ruta del archivo basado en la estructura de almacenamiento
         $filePath = 'project_files/' . $projectName . '/' . $inputs['fileName'];
@@ -481,19 +483,19 @@ class ProjectController extends Controller
     public function deleteFile(Request $request)
     {
         $inputs = $request->input();
-        
+
         // Obtener el proyecto usando el ID
         $project = Project::findOrFail($inputs['idProject']);
-        $projectName = strtr($project->name, [' ' => '_']);   
+        $projectName = strtr($project->name, [' ' => '_']);
 
         // Construir la ruta del archivo basado en la estructura de almacenamiento
         $filePath = 'project_files/' . $projectName . '/' . $inputs['fileName'];
 
         $fileNameParts = explode('_', $inputs['fileName']); // Dividir el nombre por '_'
-        $cleanFileName = isset($fileNameParts[2]) 
+        $cleanFileName = isset($fileNameParts[2])
             ? implode(' ', array_slice($fileNameParts, 2))  // Limpiar y unir las partes sin prefijo
             : strtr($inputs['fileName'], ['_' => ' ']);     // Reemplazar '_' por espacio si no hay prefijo
-    
+
         // Registrar la actividad
         ActivityLog::create([
             'user_id' => \Auth::user()->id,
@@ -846,13 +848,11 @@ class ProjectController extends Controller
                 $project_name = $project->name;
             }
         }
-        if($project_id == -1){
+        if ($project_id == -1) {
             return view('projects.milestoneboard', compact('currentWorkspace', 'milestones', 'stages', 'statusClass', 'project_id'));
-        }else{
-            return view('projects.milestoneboard', compact('currentWorkspace', 'milestones', 'stages', 'statusClass', 'project_id','project_name'));
+        } else {
+            return view('projects.milestoneboard', compact('currentWorkspace', 'milestones', 'stages', 'statusClass', 'project_id', 'project_name'));
         }
-
-       
     }
 
     public function taskBoard($slug, $projectID)
@@ -2047,68 +2047,56 @@ class ProjectController extends Controller
     {
         $user = Auth::user();
         $currentWorkspace = Utility::getWorkspaceBySlug($slug);
+
         $rules = [
             'project_id' => 'required',
             'milestone_id' => 'required',
-            'type_id' => 'required',
-            'estimated_date' => 'required',
+            'task_id' => 'required',
+            'date' => 'required',
         ];
 
         $validator = Validator::make($request->all(), $rules);
 
         if ($validator->fails()) {
-            $messages = $validator->getMessageBag();
-
-            return redirect()->back()->with('error', $messages->first());
+            return redirect()->back()->with('error', $validator->errors()->first());
         }
+
         $project = Project::where('id', $request->project_id)
             ->where('workspace', $currentWorkspace->id)
             ->first();
 
         if (!$project) {
             return redirect()->back()->with('error', 'Proyecto no encontrado o no pertenece al espacio de trabajo actual.');
-        } else {
-
-            //creo la tarea para guardaar en BBDD
-            $task = new Task();
-            $task->project_id = $request->project_id;
-            $task->milestone_id = $request->milestone_id;
-            $task->type_id = $request->type_id;
-            $task->start_date = $request->date;
-            $task->estimated_date = $request->estimated_date;
-            $task->assign_to = $user->id;
-            $task->save();
-
-            $timesheet = new Timesheet();
-            $timesheet->project_id = $request->project_id;
-            $timesheet->task_id = $task->id;
-            $timesheet->date = $request->date;
-            $timesheet->time = sprintf('%02d:%02d:00', $request->time_hour, $request->time_minute);
-
-            // $timesheet->description = $request->description;
-            $timesheet->created_by = $user->id;
-            $timesheet->save();
-
-            $milestone = Milestone::find($request->milestone_id);
-            $milestone->status = 2;
-            $milestone->update();
-
-            $this->employeesInProject(Auth::user()->id, $project->id);
-
-            /* Create log about timesheet 
-            ActivityLog::create(
-                [
-                    'user_id' => Auth::user()->id,
-                    'user_type' => get_class(Auth::user()),
-                    'project_id' => $request->project_id,
-                    'log_type' => 'Create Timesheet',
-                    'remark' => json_encode(['name' => Auth::user()->name]),
-                ]
-            );*/
-
-            return redirect()->back()->with('success', __('Timesheet Updated Successfully!'));
         }
+
+        $task = Task::where('id', $request->task_id)
+            ->where('project_id', $request->project_id)
+            ->first();
+
+        if (!$task) {
+            return redirect()->back()->with('error', 'Tarea no encontrada o no pertenece al proyecto actual.');
+        }
+
+        $timesheet = new Timesheet();
+        $timesheet->project_id = $request->project_id;
+        $timesheet->task_id = $task->id;
+        $timesheet->date = $request->date;
+        $timesheet->time = sprintf('%02d:%02d:00', $request->time_hour, $request->time_minute);
+        $timesheet->created_by = $user->id;
+        $timesheet->save();
+
+        $milestone = Milestone::find($task->milestone_id);
+
+        if ($milestone) {
+            $milestone->status = 2;
+            $milestone->save();
+        }
+
+        $this->employeesInProject(Auth::user()->id, $project->id);
+
+        return redirect()->back()->with('success', __('Timesheet actualizado correctamente.'));
     }
+
 
     public function timesheetEdit($slug, $timesheetID)
     {
@@ -2937,75 +2925,68 @@ class ProjectController extends Controller
 
     public function projectTimesheetCreate(Request $request, $slug, $project_id)
     {
+
         $parseArray = [];
-
         $objUser = Auth::user();
-
         $currentWorkspace = Utility::getWorkspaceBySlug($slug);
 
-        $project_id = $request->has('project_id') ? $request->project_id : null;
-        $task_id = $request->has('task_id') ? $request->task_id : null;
-        $selected_date = $request->has('date') ? $request->date : null;
-        $user_id = $request->has('user_id') ? $request->user_id : null;
+        $project_id = $request->input('project_id');
+        $task_id = $request->input('task_id');
+        $selected_date = $request->input('date');
+        $user_id = $request->input('user_id');
 
-        $created_by = $user_id != null ? $user_id : $objUser->id;
+        $project = Project::find($project_id);
 
-
-        $projects = Project::select('projects.*')
-            ->join('user_projects', 'projects.id', '=', 'user_projects.project_id')
-            ->where('user_projects.user_id', '=', $objUser->id)
-            ->where('projects.workspace', '=', $currentWorkspace->id);
-
-
-        if ($project_id) {
-            $project = $projects->where('projects.id', '=', $project_id)->pluck('projects.name', 'projects.id')->all();
-
-
-            if (!empty($project) && count($project) > 0) {
-                $project_id = key($project);
-                $project_name = $project[$project_id];
-                $p_type = Project::find($project_id);
-
-                $task = Task::where(
-                    [
-                        'project_id' => $project_id,
-                        'id' => $task_id,
-                    ]
-                )->pluck('type_id', 'id')->all();
-
-                $task_id = key($task);
-                $taskType = TaskType::where('project_type', $p_type->type)
-                    ->where('id', $task[$task_id])
-                    ->first();
-
-                $task_name = $taskType ? $taskType->name : 'unknow';
-                $tasktime = Timesheet::where('task_id', $task_id)->where('created_by', $created_by)->pluck('time')->toArray();
-
-                $totaltasktime = Utility::calculateTimesheetHours($tasktime);
-
-                $totalhourstimes = explode(':', $totaltasktime);
-
-                $totaltaskhour = $totalhourstimes[0];
-                $totaltaskminute = $totalhourstimes[1];
-
-                $parseArray = [
-                    'project_id' => $project_id,
-                    'project_name' => $project_name,
-                    'task_id' => $task_id,
-                    'task_name' => $task_name,
-                    'date' => $selected_date,
-                    'totaltaskhour' => $totaltaskhour,
-                    'totaltaskminute' => $totaltaskminute,
-                ];
-
-                return view('projects.timesheet-create', compact('currentWorkspace', 'parseArray'));
-            }
-        } else {
-            $projects = $projects->get();
-
-            return view('projects.timesheet-create', compact('currentWorkspace', 'projects', 'project_id', 'selected_date'));
+        if (!$project) {
+            return redirect()->back()->with('error', 'Project not found');
         }
+
+        $project_name = $project->name;
+
+        $task = Task::where('project_id', $project_id)
+            ->where('id', $task_id)
+            ->first();
+
+        if (!$task) {
+            return redirect()->back()->with('error', 'Task not found');
+        }
+
+        $taskType = TaskType::where('project_type', $project->type)
+            ->where('id', $task->type_id)
+            ->first();
+
+        $task_name = $taskType ? $taskType->name : 'Unknown';
+
+        $tasktime = Timesheet::where('task_id', $task->id)
+            ->where('created_by', $user_id)
+            ->pluck('time')
+            ->toArray();
+
+        $milestone = Milestone::find($task->milestone_id);
+        $milestone_name = $milestone->title ?? 'Sin hito';
+        $milestone_id = $milestone->id ?? null;
+
+        $totaltasktime = Utility::calculateTimesheetHours($tasktime);
+
+        $totalhourstimes = explode(':', $totaltasktime);
+        $totaltaskhour = $totalhourstimes[0] ?? '00';
+        $totaltaskminute = $totalhourstimes[1] ?? '00';
+
+        $parseArray = [
+            'project_id' => $project->id,
+            'project_name' => $project_name,
+            'task_id' => $task->id,
+            'task_name' => $task_name,
+            'milestone_id' => $milestone_id,
+            'milestone_name' => __($milestone_name),
+            'date' => $selected_date,
+            'totaltaskhour' => $totaltaskhour,
+            'totaltaskminute' => $totaltaskminute,
+        ];
+
+        return view('projects.timesheet-create', compact('currentWorkspace', 'parseArray'));
     }
+
 
     public function projectTimesheetStore(Request $request, $slug, $project_id)
     {

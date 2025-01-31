@@ -87,6 +87,7 @@
                                                                                             data-type="{{ $dateSubArray['type'] }}"
                                                                                             data-user-id="{{ $dateSubArray['user_id'] }}"
                                                                                             data-project-id="{{ $dateSubArray['project_id'] }}"
+                                                                                            data-milestone-id="{{ $dateSubArray['milestone_id'] }}"
                                                                                             data-task-id="{{ $dateSubArray['task_id'] }}"
                                                                                             data-date="{{ $dateSubArray['date'] }}"
                                                                                             data-url="{{ $dateSubArray['url'] }}">

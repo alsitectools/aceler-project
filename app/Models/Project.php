@@ -317,6 +317,7 @@ class Project extends Model
                 'project_id' => $projectId,
                 'user_id' => $userId,
                 'task_id' => $task->id,
+                'milestone_id' => $task->milestone_id,
                 'date' => $date,
                 'time' => $time,
                 'type' => $type,
