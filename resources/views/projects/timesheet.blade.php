@@ -168,9 +168,11 @@
             var task_id = $(this).data('task-id');
             var user_id = $(this).data('user-id');
             var p_id = $(this).data('project-id');
+            var milestone_id = $(this).data('milestone-id');
 
             data.date = date;
             data.task_id = task_id;
+            data.milestone_id = milestone_id;
 
             if (user_id != undefined) {
                 data.user_id = user_id;
@@ -178,11 +180,12 @@
 
             var title;
             if (type == 'create') {
-                title = '{{ __('Create Timesheet') }}';
+                title = '{{ __('Add record to timesheet') }}';
                 data.p_id = '{{ $project_id }}';
                 data.project_id = data.p_id != '-1' ? data.p_id : p_id;
+                data.milestone_id = milestone_id;
             } else if (type == 'edit') {
-                title = '{{ __('Edit Timesheet') }}';
+                title = '{{ __('Edit timesheet entry') }}';
             }
 
             $("#" + modalId + " .modal-title").html(title + ` <small>(` + moment(date).format("ddd DD MMM") +

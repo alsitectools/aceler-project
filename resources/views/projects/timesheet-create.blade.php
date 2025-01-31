@@ -8,6 +8,7 @@
 <div class="modal-body">
     <input type="hidden" name="project_id" value="{{ $parseArray['project_id'] }}">
     <input type="hidden" name="task_id" value="{{ $parseArray['task_id'] }}">
+    <input type="hidden" name="milestone_id" value="{{ $parseArray['milestone_id'] }}">
     <input type="hidden" name="date" value="{{ $parseArray['date'] }}">
     <input type="hidden" id="totaltasktime"
         value="{{ $parseArray['totaltaskhour'] . ':' . $parseArray['totaltaskminute'] }}">
@@ -16,6 +17,10 @@
         <div class="form-group">
             <label class="col-form-label">{{ __('Project') }}</label>
             <input type="text" class="form-control" value="{{ $parseArray['project_name'] }}" disabled>
+        </div>
+        <div class="form-group">
+            <label class="col-form-label">{{ __('Milestone') }}</label>
+            <input type="text" class="form-control" value="{{ $parseArray['milestone_name'] }}" disabled>
         </div>
         <div class="form-group">
             <label class="col-form-label">{{ __('Task') }}</label>
@@ -27,7 +32,6 @@
                 placeholder="{{ __('Date') }}" disabled>
         </div>
     </div>
-
     <div class="row">
         <div class="col-md-12">
             <label for="time" class="col-form-label">{{ __('Time') }}</label>
