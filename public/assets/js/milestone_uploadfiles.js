@@ -23,12 +23,33 @@ $(document).on('click', '.btn-delete-file', function () {
 // Manejar la selección de nuevos archivos
 document.getElementById('file-upload').addEventListener('change', function (event) {
     const newFiles = Array.from(event.target.files);
+    const existingFileNames = Array.from(document.querySelectorAll('.file-name'))
+        .map(fileNameElement => fileNameElement.textContent.trim().split(" (")[0]); // Obtener nombres de archivos ya existentes
 
     newFiles.forEach(file => {
-        const fileKey = `${file.name}-${file.size}-${file.lastModified}`;
+        let fileName = file.name;
+        let fileBaseName = fileName.substring(0, fileName.lastIndexOf(".")) || fileName;
+        let fileExtension = fileName.substring(fileName.lastIndexOf(".")) || "";
+        let newFileName = fileName;
 
+        // Si el archivo ya existe, agregar "_update" sucesivamente hasta encontrar un nombre único
+        while (existingFileNames.includes(newFileName)) {
+            if (fileBaseName.endsWith("_update")) {
+                fileBaseName = fileBaseName + "_update"; // Agregar otro "_update"
+            } else {
+                fileBaseName = fileBaseName + "_update"; // Primera vez que se renombra
+            }
+            newFileName = `${fileBaseName}${fileExtension}`;
+        }
+
+        // Crear un nuevo objeto File con el nuevo nombre
+        let renamedFile = new File([file], newFileName, { type: file.type, lastModified: file.lastModified });
+
+        // Agregar el archivo renombrado al array si aún no está en él
+        let fileKey = `${renamedFile.name}-${renamedFile.size}-${renamedFile.lastModified}`;
         if (!filesArray.some(f => `${f.name}-${f.size}-${f.lastModified}` === fileKey)) {
-            filesArray.push(file);
+            filesArray.push(renamedFile);
+            existingFileNames.push(newFileName); // Asegurar que el nuevo nombre se registre
         } else {
             console.warn(`Archivo ya existe en filesArray: ${fileKey}`);
         }
@@ -36,6 +57,7 @@ document.getElementById('file-upload').addEventListener('change', function (even
 
     updateFileList();
 });
+
 
 // Función para actualizar la lista de archivos visualmente
 function updateFileList() {

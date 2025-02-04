@@ -424,40 +424,83 @@ class ProjectController extends Controller
     }
 
     public function show($slug, $projectID)
-    {
-        $objUser = Auth::user();
-        $currentWorkspace = Utility::getWorkspaceBySlug($slug);
+{
+    $objUser = Auth::user();
+    $currentWorkspace = Utility::getWorkspaceBySlug($slug);
 
-        if ($objUser && $currentWorkspace) {
-            $project = Project::select('projects.*')
-                ->join('user_projects', 'projects.id', '=', 'user_projects.project_id')
-                ->where('projects.workspace', '=', $currentWorkspace->id)
-                ->where('projects.id', '=', $projectID)
-                ->with('activities.user')
-                ->first();
+    if ($objUser && $currentWorkspace) {
+        $project = Project::select('projects.*')
+            ->join('user_projects', 'projects.id', '=', 'user_projects.project_id')
+            ->where('projects.workspace', '=', $currentWorkspace->id)
+            ->where('projects.id', '=', $projectID)
+            ->with('activities.user')
+            ->first();
 
-            if ($project) {
-                $chartData = $this->getProjectChart([
-                    'workspace_id' => $currentWorkspace->id,
-                    'project_id' => $projectID,
-                    'duration' => 'week',
-                ]);
+        if ($project) {
+            $chartData = $this->getProjectChart([
+                'workspace_id' => $currentWorkspace->id,
+                'project_id' => $projectID,
+                'duration' => 'week',
+            ]);
 
-                $daysleft = round((((strtotime($project->end_date) - strtotime(date('Y-m-d'))) / 24) / 60) / 60);
+            $daysleft = round((((strtotime($project->end_date) - strtotime(date('Y-m-d'))) / 24) / 60) / 60);
 
-                // Obtener archivos del proyecto desde la carpeta correspondiente
-                $projectFolder = 'project_files/' . strtr($project->name, [" " => "_"]);
-                $projectFiles = \Storage::files($projectFolder);
+            // Archivos del proyecto
+            $projectFolder = 'project_files/' . strtr($project->name, [" " => "_"]);
+            $projectFiles = \Storage::disk('local')->files($projectFolder);
+            \Log::debug($projectFiles);
 
-                \Log::debug($projectFolder);
-                return view('projects.show', compact('currentWorkspace', 'project', 'chartData', 'daysleft', 'projectFiles'));
-            } else {
-                return redirect()->back()->with('error', __("Project Not Found."));
+            // Obtener milestones
+            $milestones = DB::table('milestones')
+            ->join('projects', 'projects.id', '=', 'milestones.project_id')
+            ->where('projects.id', '=', $projectID)
+            ->select('milestones.id', 'milestones.title')
+            ->get();
+
+            // Array para almacenar los archivos de cada milestone
+            $milestoneFiles = [];
+
+            foreach ($milestones as $milestone) {
+                // Reiniciar el array para cada milestone
+                $allFiles = [];
+
+                // Generar la ruta para los archivos del milestone
+                $milestoneFolder = 'milestones_files/' . strtr($project->name, [" " => "_"]) . '/' . strtr($milestone->title, [" " => "_"]);
+                $files = \Storage::disk('local')->files($milestoneFolder);
+                foreach ($files as $filePath) {
+                    $allFiles[] = [
+                        'path'   => $filePath,
+                        'source' => 'folder', // o cualquier etiqueta que te identifique
+                    ];
+                }
+
+                // Verificar si existen archivos en la ruta de actualizaciones
+                $milestoneFolderUpdate = 'app/public/milestones_files/' . strtr($project->name, [" " => "_"]) . '/' . strtr($milestone->title, [" " => "_"]);
+                $filesUpdate = \Storage::disk('local')->files($milestoneFolderUpdate);
+                foreach ($filesUpdate as $filePath) {
+                    $allFiles[] = [
+                        'path'   => $filePath,
+                        'source' => 'update'
+                    ];
+                }
+
+                // Guardar los archivos para este milestone
+                $milestoneFiles[$milestone->id] = [
+                    'title' => $milestone->title,
+                    'files' => $allFiles,
+                ];
             }
+            \Log::debug($milestoneFiles);
+            
+            return view('projects.show', compact('currentWorkspace', 'project', 'chartData', 'daysleft', 'projectFiles', 'milestoneFiles'));
         } else {
-            return redirect()->back()->with('error', __("Workspace Not Found."));
+            return redirect()->back()->with('error', __("Project Not Found."));
         }
+    } else {
+        return redirect()->back()->with('error', __("Workspace Not Found."));
     }
+}
+
 
     public function downloadFile(Request $request)
     {
@@ -467,6 +510,13 @@ class ProjectController extends Controller
         $project = Project::findOrFail($inputs['idProject']);
         $projectName = strtr($project->name, [' ' => '_']);
 
+        // check if we're downloading a milestone file or a project file
+        $filePath ='';
+
+        if($inputs['milestoneTitle'] !== null && isset($inputs['milestoneTitle'])){
+
+            $filePath = 'app/public/milestones_files/' . $projectName . '/' . $inputs['fileName'];
+        }
         // Construir la ruta del archivo basado en la estructura de almacenamiento
         $filePath = 'project_files/' . $projectName . '/' . $inputs['fileName'];
         $url = asset('storage/' . $filePath);
@@ -1621,6 +1671,7 @@ class ProjectController extends Controller
 
         return view('projects.milestoneEdit', compact('currentWorkspace', 'milestone'));
     }
+
     public function milestoneDestroyFile(Request $request, $slug, $milestoneID, $fileID, $projectID)
     {
         try {
@@ -1637,11 +1688,14 @@ class ProjectController extends Controller
 
             $projectName = str_replace(' ', '_', $project->name);
 
+            //GET milestone title
+            $milestone = Milestone::find($milestoneID);
+            $milestoneName = $milestone->title;
             // Servidor
-            $filePath = storage_path('milestones_files/' . $projectName . '/' . $milestoneFile->file);
+           // $filePath = storage_path('milestones_files/' . $projectName . '/' . $milestoneName . '/' . $milestoneFile->file);
 
             // Local
-            // $filePath = storage_path('app/public/milestones_files/' . $projectName . '/' . $milestoneFile->file);
+            $filePath = storage_path('app/public/milestones_files/' . $projectName . '/' . $milestoneName . '/' . $milestoneFile->file);
 
             if (file_exists($filePath)) {
                 chmod($filePath, 0777);
@@ -1685,15 +1739,18 @@ class ProjectController extends Controller
         if ($request->hasFile('new_files')) {
 
             $projectFolder = str_replace(' ', '_', $project->name);
+            $milestoneFolder = str_replace(' ','_', $milestone->title);
             // url local
             // $dir = '/app/public/milestones_files/' . $projectFolder;
 
-            $dir = 'milestones_files/' . $projectFolder;
+            $dir = 'milestones_files/' . $projectFolder . '/'. $milestoneFolder;
+
+            $milestoneFolder = 'milestones_files/' . strtr($project->name, [" " => "_"]) . '/' . strtr($milestone->title, [" " => "_"]);
 
             if (!Storage::exists($dir)) {
                 Storage::makeDirectory($dir);
 
-                $path = storage_path("app/$dir");
+                $path = $dir;
 
                 if (\File::exists($path)) {
                     chmod($path, 0777);

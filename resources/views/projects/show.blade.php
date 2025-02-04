@@ -614,21 +614,18 @@
                                     </div>
                                     <div class="mt-3">
                                         <h5>{{ __('Uploaded Files') }}</h5>
-                                        <div class="uploaded-files-container top-10-scroll">
+                                        <!-- Contenedor único scrollable -->
+                                        <div class="uploaded-files-container top-10-scroll" >
+                                            <!-- Sección de archivos del proyecto -->
                                             @if (!empty($projectFiles) && count($projectFiles) > 0)
                                                 @php
                                                     $cleanedFiles = [];
                                                     foreach ($projectFiles as $file) {
-                                                        // Obtener el nombre del archivo sin la ruta
                                                         $filename = basename($file);
                                                         $parts = explode('_', $filename);
                                                         $cleanFilename = isset($parts[2]) ? implode('_', array_slice($parts, 2)) : $filename;
-
-                                                        // Agregar el archivo limpio al array
                                                         $cleanedFiles[] = ['original' => $file, 'cleaned' => $cleanFilename];
                                                     }
-
-                                                    // Ordenar alfabéticamente por los nombres limpios
                                                     usort($cleanedFiles, function ($a, $b) {
                                                         return strcmp($a['cleaned'], $b['cleaned']);
                                                     });
@@ -638,7 +635,7 @@
                                                     <div class="uploaded-file">
                                                         <p>{{ $file['cleaned'] }}</p>
                                                         <div class="uploaded-file-buttons">
-                                                            <a onclick="downloadFile({{ $project->id }}, '{{ basename($file['original']) }}')" class="buttonFiles">
+                                                            <a onclick="downloadFile({{ $project->id }}, '', '{{ basename($file['original']) }}')" class="buttonFiles">
                                                                 <i class="ti ti-download" style="color:white"></i>
                                                             </a>
                                                             <a onclick="deleteFile({{ $project->id }}, '{{ basename($file['original']) }}')" class="buttonFiles">
@@ -648,10 +645,55 @@
                                                     </div>
                                                 @endforeach
                                             @else
-                                                <p class="text-muted">{{ __('No files uploaded yet.') }}</p>
+                                                <p class="text-muted">{{ __('No project files uploaded yet.') }}</p>
+                                            @endif
+<div style="display: flex; flex-direction: column;">
+                                            <!-- Sección de archivos de Milestones -->
+                                            @if (!empty($milestoneFiles) && count($milestoneFiles) > 0)
+                                                @foreach ($milestoneFiles as $milestone)
+                                                    <div class="milestone-files" style="margin-bottom: 15px;">
+                                                        <h6>{{ $milestone['title'] }}</h6>
+                                                        @if (!empty($milestone['files']) && count($milestone['files']) > 0)
+                                                            @php
+                                                                $cleanedMilestoneFiles = [];
+                                                                foreach ($milestone['files'] as $file) {
+                                                                    $filename = basename($file['path']);
+                                                                    $parts = explode('_', $filename);
+                                                                    $cleanFilename = isset($parts[2]) ? implode('_', array_slice($parts, 2)) : $filename;
+                                                                    $cleanedMilestoneFiles[] = [
+                                                                        'original' => $file['path'],
+                                                                        'cleaned'  => $cleanFilename,
+                                                                        'source'   => $file['source']
+                                                                    ];
+                                                                }
+                                                                usort($cleanedMilestoneFiles, function ($a, $b) {
+                                                                    return strcmp($a['cleaned'], $b['cleaned']);
+                                                                });
+                                                            @endphp
+
+                                                            @foreach ($cleanedMilestoneFiles as $file)
+                                                                <div class="uploaded-file">
+                                                                    <p>{{ $file['cleaned'] }}</p>
+                                                                    <div class="uploaded-file-buttons">
+                                                                        <a onclick="downloadFile({{ $project->id }}, '{{ $milestone['title'] }}', '{{ basename($file['original']) }}', '{{ $file['source'] }}')" class="buttonFiles">
+                                                                            <i class="ti ti-download" style="color:white"></i>
+                                                                        </a>
+                                                                        <a onclick="deleteFile({{ $project->id }}, '{{ basename($file['original']) }}')" class="buttonFiles">
+                                                                            <i class="fa-solid fa-trash" style="color:white"></i>
+                                                                        </a>
+                                                                    </div>
+                                                                </div>
+                                                            @endforeach
+                                                        @else
+                                                            <p class="text-muted">{{ __('No files uploaded for this milestone.') }}</p>
+                                                        @endif
+                                                    </div>
+                                                @endforeach
+                                            @else
+                                                <p class="text-muted">{{ __('No milestones files uploaded yet.') }}</p>
                                             @endif
                                         </div>
-
+                                                            </div>
                                     </div>
                                 </div>         
                             </div>
@@ -745,14 +787,15 @@
     <script src="{{ asset('assets/js/plugins/apexcharts.min.js') }}"></script>
     <script>
 
-        function downloadFile(idProject, file) {
-            const downloadUrl = '<?php echo url("projects/download-file"); ?>';
+        function downloadFile(idProject,titleMilestone, file) {
 
+            const downloadUrl = '<?php echo url("projects/download-file"); ?>';
             $.ajax({
                 url: downloadUrl,
                 method: 'POST',
                 data: {
                     "idProject": idProject,
+                    "milestoneTitle": titleMilestone,
                     "fileName": file,
                     _token: $('meta[name="csrf-token"]').attr('content')
                 },

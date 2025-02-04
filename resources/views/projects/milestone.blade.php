@@ -33,12 +33,14 @@
                     <i class="fa-solid fa-file-lines me-2"></i> {{ __('Create Milestone') }}
                 </a>
             </li>
-            <li class="nav-item" role="presentation">
-                <a class="nav-link" id="project-tab" data-bs-toggle="tab" href="#projectForm" role="tab"
-                    aria-controls="project" aria-selected="false">
-                    <i class="fa-solid fa-diagram-project me-2"></i> {{ __('Create New Project') }}
-                </a>
-            </li>
+            @if(isset($project_id) && $project_id == -1)
+                <li class="nav-item" role="presentation">
+                    <a class="nav-link" id="project-tab" data-bs-toggle="tab" href="#projectForm" role="tab"
+                        aria-controls="project" aria-selected="false">
+                        <i class="fa-solid fa-diagram-project me-2"></i> {{ __('Create New Project') }}
+                    </a>
+                </li>
+            @endif
         </ul>
         <div class="tab-content mt-3" id="myTabContent">
             <!-- Milestone Form -->
@@ -74,7 +76,7 @@
                         <div class="col-md-12">
                             <p class="text-muted">
                                 <i class="bi bi-info-circle me-2"
-                                    style="color: #FFD43B;"></i>{{ __('If the project with MO reference exists in the database, it will be created automatically. Otherwise, it will be requested later.') }}
+                                    style="color: #FFD43B;"></i>{{ __('If the project does not exist, create a new project.') }}
                             </p>
                         </div>
                         <div class="col-md-6">
@@ -154,34 +156,32 @@
                             </div>
                         </div>
                     </div>
-                    <div class="col-md-12 mt-3">
+                    <div class="col-md-12 mt-3" style="padding-bottom: 10px;">
                         <div class="row">
                             <!-- Sección de Descripción (Izquierda) -->
                             <div class="col-md-6">
                                 <label for="description-text"
                                     class="form-label"><strong>{{ __('Description') }}</strong></label>
-                                <textarea class="form-control mt-2" id="description-text" name="description" rows="5"
+                                <textarea style="height:82%" class="form-control mt-2" id="description-text" name="description" rows="5"
                                     placeholder="{{ __('Enter description...') }}"></textarea>
                             </div>
 
                             <!-- Sección de Archivos Adjuntos (Derecha) -->
                             <div class="col-md-6">
-                                <label for="file-upload"
+                                <label for="file-uploadMilestone"
                                     class="form-label"><strong>{{ __('Upload files') }}</strong></label>
-                                <div class="form-group browser-file mt-2">
-                                    <input type="file" id="file-upload" multiple style="display: none;" />
-                                    <div id="file-list" class="border p-3 rounded bg-light"
-                                        style="min-height: 120px;">
-                                        <!-- Aquí se listarán los archivos adjuntos -->
+                                <div >
+                                <div class="col-md-12 dropzone browse-file" id="dropzonewidgetMilestone">
+                                        <div class="dz-message" data-dz-message>
+                                            <input type="file" id="file-uploadMilestone" style="display:none" multiple/>
+                                            <span> {{ __('Drop files here to upload') }}</span>
+                                            <p class="text-muted" style="font-size:15px; margin:5px;">200MB</p>
+                                            <small class="text-muted">.png .gif .pdf .txt .doc .docx .zip .rar .dwg .dxf</small>
+                                            <div id="file-list"></div>
+                                        </div>
                                     </div>
                                 </div>
-                                <div class="text-start mt-2">
-                                    <button type="button" id="file-select-button" class="btn btn-primary">
-                                        <i class="fa-solid fa-paperclip"></i> {{ __('Attach files') }}
-                                    </button>
-                                </div>
-                                <div id="hidden-file-inputs" style="display: none;">
-                                </div>
+                                <div id="hidden-file-inputs" style="display: none;"></div>
                             </div>
                         </div>
                     </div>
@@ -338,6 +338,7 @@
 @endif
 
 <script>
+    
     $(document).ready(function() {
 
         $('#projectForm').on('submit', function(event) {
@@ -412,11 +413,11 @@
     const assetBasePath = '{{ asset('assets/iconFilesTypes') }}/';
     let filesArray = [];
 
-    document.getElementById('file-select-button').addEventListener('click', function() {
-        document.getElementById('file-upload').click();
+    document.getElementById('dropzonewidgetMilestone').addEventListener('click', function() {
+        document.getElementById('file-uploadMilestone').click();
     });
 
-    document.getElementById('file-upload').addEventListener('change', function(event) {
+    document.getElementById('file-uploadMilestone').addEventListener('change', function(event) {
         const newFiles = Array.from(event.target.files);
 
         newFiles.forEach((file) => {
