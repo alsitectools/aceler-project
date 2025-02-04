@@ -33,12 +33,12 @@
                     <i class="fa-solid fa-file-lines me-2"></i> {{ __('Create Milestone') }}
                 </a>
             </li>
-            <!-- <li class="nav-item" role="presentation">
+            <li class="nav-item" role="presentation">
                 <a class="nav-link" id="project-tab" data-bs-toggle="tab" href="#projectForm" role="tab"
                     aria-controls="project" aria-selected="false">
                     <i class="fa-solid fa-diagram-project me-2"></i> {{ __('Create New Project') }}
                 </a>
-            </li> -->
+            </li>
         </ul>
         <div class="tab-content mt-3" id="myTabContent">
             <!-- Milestone Form -->

@@ -3,6 +3,11 @@
     font-size: 14px;
     font-weight: 600;
 }
+.type-filter button{
+    padding: 7px 15px;
+    font-size: 14px;
+    font-weight: 600;
+}
 
 .currency-icon {
     color: #fff;
@@ -1346,9 +1351,26 @@ span.currency-icon {
     font-weight: 600;
     height: 45px !important;
 }
+.type-filter button {
+    padding: 5px 15px;
+    font-size: 13px;
+    font-weight: 600;
+    height: 45px !important;
+}
+.type-filter button {
+    padding: 5px 15px;
+    font-size: 13px;
+    font-weight: 600;
+    height: 45px !important;
+}
 
 @media screen and (min-width: 2000px) {
     .status-filter button {
+        padding: 10px 20px;
+        font-size: 16px;
+        font-weight: 700;
+    }
+    .type-filter button {
         padding: 10px 20px;
         font-size: 16px;
         font-weight: 700;
