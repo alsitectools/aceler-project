@@ -890,7 +890,7 @@ class ProjectController extends Controller
     }
 
     public function taskCreate($slug)
-    {
+    {   
         $currentWorkspace = Utility::getWorkspaceBySlug($slug);
         $taskType = TaskType::select('id', 'name', 'project_type')->get()->map(function ($task) {
             return [
@@ -934,6 +934,10 @@ class ProjectController extends Controller
             $task->estimated_date = $request->estimated_date;
             $task->assign_to = $user->id;
             $task->save();
+
+            $milestone = Milestone::find($request->milestone_id);
+            $milestone->status = 2;
+            $milestone->update();
 
             return redirect()->back()->with(['success' => __('Task Created Successfully!')]);
         }
@@ -1345,34 +1349,31 @@ class ProjectController extends Controller
     {
         $user = Auth::user();
         $currentWorkspace = Utility::getWorkspaceBySlug($slug);
-
-        $objProject = Project::select(
-            [
-                'projects.id',
-                'projects.name',
-            ]
-        )->where('projects.workspace', '=', $currentWorkspace->id)
-            ->where('projects.name', 'LIKE', "%" . $search . "%")
-            ->orwhere('projects.ref_mo', 'LIKE', "%" . $search . "%")->get();
+    
+        $objProject = Project::select(['projects.id', 'projects.name', 'projects.ref_mo'])
+            ->where('projects.workspace', '=', $currentWorkspace->id)
+            ->where(function ($query) use ($search) {
+                $query->where('projects.name', 'LIKE', "%" . $search . "%")
+                      ->orWhere('projects.ref_mo', 'LIKE', "%" . $search . "%");
+            })
+            ->get();
+    
         $arrProject = [];
         foreach ($objProject as $project) {
+            $displayName = $project->name;
+            if (!empty($project->ref_mo)) {
+                $displayName .= " - " . $project->ref_mo;
+            }
+    
             $arrProject[] = [
-                'text' => $project->name,
-                'link' => route(
-                    'projects.show',
-                    [
-                        $currentWorkspace->slug,
-                        $project->id,
-                    ]
-                ),
+                'text' => $displayName, 
+                'link' => route('projects.show', [$currentWorkspace->slug, $project->id]),
             ];
         }
-        return json_encode(
-            [
-                'Projects' => $arrProject,
-            ]
-        );
+    
+        return response()->json(['Projects' => $arrProject]);
     }
+    
 
     public function getMoJson($slug, $search = null)
     {
