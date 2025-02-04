@@ -16,7 +16,8 @@
                     <label class="col-form-label">{{ __('Projects') }}</label>
                     @if ($selectedProjectId)
                         <!-- Si existe proyecto preseleccionado, se muestra un select con el único option seleccionado -->
-                        <select class="form-control form-control-light select2" name="project_id" id="project_id" required>
+                        <input type="hidden" name="project_id" value="{{ $selectedProjectId }}" style="display: none;">
+                        <select class="form-control form-control-light select2" name="project_id" id="project_id" required disabled>
                             <option value="">{{ __('Select Project') }}</option>
                             @foreach ($projects as $project)
                                 @if ($selectedProjectId == $project->id)
@@ -42,10 +43,13 @@
                 <!-- Select de Milestone -->
                 <div class="form-group col-md-6">
                     <label class="col-form-label">{{ __('Milestone') }}</label>
-                    <select class="form-control form-control-light select2" name="milestone_id" id="milestone_id" required>
+                    
                         @if($selectedMilestoneTitle)
+                        <input type="hidden" name="milestone_id" value="{{ $selectedMilestoneId }}" style="display: none;">
+                        <select class="form-control form-control-light select2" name="milestone_id" id="milestone_id" required disabled>
                             <option value="{{$selectedMilestoneId}}">{{$selectedMilestoneTitle}}</option>
                         @else
+                        <select class="form-control form-control-light select2" name="milestone_id" id="milestone_id" required>
                             <option value="">{{ __('Select Milestone') }}</option>
                         @endif
                     </select>
@@ -61,14 +65,17 @@
 
                 <!-- Fecha de inicio -->
                 <div class="form-group col-md-6">
-                    <label for="start_date" class="col-form-label">{{ __('Start date') }}</label>
-                    <input onclick="this.showPicker()" type="date" class="form-control form-control-light date"
-                        id="start_date" placeholder="{{ __('Start Date') }}" name="start_date" required>
-                </div>
+    <label for="start_date" class="col-form-label">{{ __('Start date') }}</label>
+    <input type="text" class="form-control form-control-light date"
+           id="start_date_display" name="start_date_display"
+           value="{{ \Carbon\Carbon::now()->format('d/m/Y') }}" disabled>
+    <!-- Campo oculto para enviar el valor -->
+    <input type="hidden" id="start_date" name="start_date" value="{{ \Carbon\Carbon::now()->format('d/m/Y') }}">
+</div>
 
                 <!-- Fecha estimada -->
                 <div class="form-group col-md-6">
-                    <label for="estimated_date" class="col-form-label">{{ __('Estimated delivery') }}</label>
+                    <label for="estimated_date" class="col-form-label">{{ __('Estimated delivery date') }}</label>
                     <input onclick="this.showPicker()" type="date" class="form-control form-control-light date"
                         id="estimated_date" placeholder="{{ __('Date') }}" name="estimated_date" required>
                 </div>
