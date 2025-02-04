@@ -15,6 +15,25 @@
     <link rel="stylesheet" href="{{ asset('assets/css/index_projects.css') }}">
 </head>
 <style>
+    .filterSection{
+        display: flex;
+    background-color: red;
+    width: 96% !important;
+    padding: 20px;
+    box-shadow: 0 6px 30px rgba(182, 186, 203, 0.3);
+    background-color: #ffffff;
+    border-radius: 10px;
+    }
+    .secondFilter{
+        margin-bottom: 15px !important;
+    }
+    .divStatus {
+        width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    }
     #eac-container-searchInput {
         display: none;
         position: absolute;
@@ -28,7 +47,24 @@
     }
 
     #searchInputProjects {
-        position: relative;
+transform: none !important;
+margin: 0px !important;    }
+    .inputWrapper{
+        background-color: #ffffff;
+    height: 90px;
+    display: flex;
+    flex-direction: column;
+    align-content: center;
+    align-items: center;
+    justify-content: center;
+    width: 95%;
+    margin-bottom: 20px;
+    box-shadow: 0 6px 30px rgba(182, 186, 203, 0.3);
+    border-radius: 10px;
+    }
+    .custom{
+        box-shadow: none !important;
+        background-color: #f7f9f9 !important;
     }
 
     @media screen and (max-width:1200px) and (min-width:1000px) {
@@ -40,39 +76,10 @@
 @section('action-button')
     <div class="d-flex justify-content-end me-2">
         <div class="d-flex col-sm-7">
-            <div id="searchInputProjects" data-popper-placement="bottom-start">
-                <form class="form-inline mr-auto mb-0">
-                    <div class="search-element">
-                        <div class="input-wrapper">
-                            <input type="text" class="input" id="searchInput"
-                                placeholder="{{ __('Enter name or reference M.O') }}">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="input-icon" viewBox="0 0 20 20"
-                                fill="currentColor">
-                                <path fill-rule="evenodd"
-                                    d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z"
-                                    clip-rule="evenodd" />
-                            </svg>
-                        </div>
-                        <div class="search-backdrop"></div>
-                    </div>
-                </form>
-            </div>
+           
         </div>
         @auth('web')
-            <div class="col-sm-5">
-                <div class="divStatus">
-                    <div class="btn-group status-filter">
-                        <button type="button" data-filter="*" class="btn btn-light text-white btn_tab bg-primary active"
-                            data-filter="*" data-status="All">{{ __('All') }}</button>
-                        <button type="button" class="btn btn-light bg-primary text-white btn_tab responsiveButton"
-                            data-filter=".Ongoing">{{ __('Ongoing') }}</button>
-                        <button type="button" class="btn btn-light bg-primary text-white btn_tab responsiveButton"
-                            data-filter=".Finished">{{ __('Finished') }}</button>
-                        <button type="button" class="btn btn-light bg-primary text-white btn_tab responsiveButton"
-                            data-filter=".OnHold">{{ __('OnHold') }}</button>
-                    </div>
-                </div>
-            </div>
+           
         @endauth
     </div>
 @endsection
@@ -150,7 +157,7 @@
                                         </div>
                                         <div class="card-body p-3">
                                             <div class="card-text text-muted d-flex">
-                                                <div class="col-md-6 tooltipCus" data-title="{{ __('BU') }}">
+                                                <div class="col-md-6 tooltipCus" data-title="{{ __('Location') }}">
                                                     <i class="fa-solid fa-location-dot"></i>
                                                     {{ $currentWorkspace->name }}
                                                 </div>
@@ -191,21 +198,71 @@
                 </div>
                 <div class="col-md-4 position-sticky text-muted">
                     <div class="mt-0 pt-0">
-                        <div>
+                    <div>
                             @auth('web')
-                                <a href="#" class="btn-addnew tooltipCus card zoom" data-ajax-popup="true"
+                                <a href="#" class="btn-addnew tooltipCus card custom " data-ajax-popup="true"
                                     data-title="{{ __('Create New Project') }}"
                                     data-url="{{ route('projects.create', $currentWorkspace->slug) }}">
-                                    <div class="bg-primary iconaddproject">
+                                    <div class="bg-primary iconaddproject zoom">
+                                    <h6 class="m-1 btnlabel">{{ __('Create New Project') }}</h6>
                                         <i class="ti ti-plus"></i>
                                     </div>
-                                    <h5 class="m-1">{{ __('Create New Project') }}</h5>
+                                    
                                     
                                 </a>
                             @endauth
                         </div>
-                        <hr class="mt-3" style="border: 1px solid black; opacity: 0.100; width: 95%">
-                        <div class="mt-4">
+                        <div class="inputWrapper">
+                    <div id="searchInputProjects" data-popper-placement="bottom-start">
+                <form class="form-inline mr-auto mb-0">
+                    <div class="search-element">
+                        <div class="input-wrapper">
+                            <input type="text" class="input" id="searchInput"
+                                placeholder="{{ __('Enter name or reference M.O') }}">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="input-icon" viewBox="0 0 20 20"
+                                fill="currentColor">
+                                <path fill-rule="evenodd"
+                                    d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z"
+                                    clip-rule="evenodd" />
+                            </svg>
+                        </div>
+                        <div class="search-backdrop"></div>
+                    </div>
+                </form>
+            </div>
+            </div>
+                      
+                         <!-- inicio botones filtro  -->
+                         <div class="col-sm-5 filterSection">
+    <div class="divStatus">
+        <!-- Filtro de Status -->
+        <div class="btn-group status-filter secondFilter">
+            <!-- <button type="button" data-filter="*" class="btn btn-light text-white btn_tab bg-primary active"
+                data-status="All">{{ __('All') }}</button> -->
+            <button type="button" class="btn btn-light bg-primary text-white btn_tab responsiveButton"
+                data-filter=".Ongoing">{{ __('Ongoing') }}</button>
+            <button type="button" class="btn btn-light bg-primary text-white btn_tab responsiveButton"
+                data-filter=".Finished">{{ __('Finished') }}</button>
+            <button type="button" class="btn btn-light bg-primary text-white btn_tab responsiveButton"
+                data-filter=".OnHold">{{ __('OnHold') }}</button>
+        </div>
+        
+        <!-- Filtro de Type -->
+        <div class="btn-group type-filter"> 
+            @foreach ($project_type as $index => $type)
+                <button type="button" 
+                    class="btn btn-light text-white btn_tab bg-primary" 
+                    data-filter=".type-{{ $type->id }}">
+                    {{ __($type->name) }}
+                </button>
+            @endforeach
+        </div>
+    </div>
+</div>
+
+            <!-- Final botones filtro  -->
+                        <!-- <hr class="mt-3" style="border: 1px solid black; opacity: 0.100; width: 95%"> -->
+                        <!-- <div class="mt-4">
                             <h5><i class="bi bi-filter"></i> {{ __('Filter by') }}</h5>
                             <div class="type-filter">
                                 @foreach ($project_type as $type)
@@ -218,8 +275,9 @@
                                     </div>
                                 @endforeach
                             </div>
-                        </div>
+                        </div> -->
                     </div>
+                    
                     <hr class="mt-3" style="border: 1px solid black; opacity: 0.100; width: 95%">
                     <div class="mt-4">
                         <h5>
@@ -337,7 +395,7 @@
                     fields: {
                         link: "link"
                     }
-                }
+                },
             };
             $(".search-element input").easyAutocomplete(options);
         });
@@ -346,61 +404,70 @@
 @push('scripts')
     <script src="{{ asset('assets/custom/js/isotope.pkgd.min.js') }}"></script>
     <script>
-        $(document).ready(function() {
-            if (typeof $.fn.isotope === 'undefined') {
-                console.error('Isotope is not loaded');
-                return;
-            }
+      $(document).ready(function() {
+    if (typeof $.fn.isotope === 'undefined') {
+        console.error('Isotope is not loaded');
+        return;
+    }
 
-            // Inicializar Isotope
-            var $grid = $(".grid").isotope({
-                itemSelector: ".All",
-                percentPosition: true,
-                masonry: {
-                    columnWidth: ".All"
-                }
-            });
+    // Inicializar Isotope
+    var $grid = $(".grid").isotope({
+        itemSelector: ".All",
+        percentPosition: true,
+        masonry: {
+            columnWidth: ".All"
+        }
+    });
 
-            var filterStatus = '*';
-            var filterType = '*';
+    var filterStatus = '*';  
+    var filterType = '*';    
 
-            function applyFilter() {
-                var filterValue = filterStatus + filterType;
-                $grid.isotope({
-                    filter: filterValue
-                });
-            }
+    function applyFilter() {
+        
+        var filterValue = (filterStatus === '*' && filterType === '*') 
+            ? '*' 
+            : filterStatus + filterType;
 
-            function toggleActiveClass($element, groupSelector, zoomClass, selectedClass) {
-                var isActive = $element.hasClass('active');
-                $(groupSelector).removeClass('active').removeClass(zoomClass).removeClass(selectedClass);
-                if (!isActive) {
-                    $element.addClass('active').addClass(zoomClass).addClass(selectedClass);
-                } else {
-                    $element.removeClass(selectedClass);
-                }
-            }
-
-            $('.status-filter button').click(function() {
-                var $this = $(this);
-                toggleActiveClass($this, '.status-filter button');
-                filterStatus = $this.hasClass('active') ? $this.attr('data-filter') : '*';
-
-                if (filterStatus === '*') {
-                    filterType = '*';
-                    $('.type-filter a').removeClass('active').removeClass('types selected');
-                }
-                applyFilter();
-            });
-
-            $('.type-filter a').click(function(e) {
-                e.preventDefault();
-                var $this = $(this);
-                toggleActiveClass($this, '.type-filter a', 'types', 'selected');
-
-                filterType = $this.hasClass('active') ? $this.attr('data-filter') : '*';
-                applyFilter();
-            });
+        
+        $grid.isotope({
+            filter: filterValue
         });
+    }
+
+    function toggleActiveClass($element, groupSelector, zoomClass, selectedClass) {
+        var isActive = $element.hasClass('active');
+        $(groupSelector).removeClass('active').removeClass(selectedClass);
+        if (!isActive) {
+            $element.addClass('active').addClass(selectedClass);
+        } else {
+            $element.removeClass(selectedClass);
+        }
+    }
+
+    
+    $('.status-filter button, .type-filter button').click(function(e) {
+        var $this = $(this);
+        var selectedFilter = $this.attr('data-filter');
+        var filterTypeSelector = '.type-filter button';
+        var filterStatusSelector = '.status-filter button';
+
+        
+        if ($this.closest(filterStatusSelector).length > 0) {
+          
+            toggleActiveClass($this, filterStatusSelector);
+            filterStatus = $this.hasClass('active') ? selectedFilter : '*';
+        }
+
+        if ($this.closest(filterTypeSelector).length > 0) {
+            
+            toggleActiveClass($this, filterTypeSelector, 'types', 'selected');
+            filterType = $this.hasClass('active') ? selectedFilter : '*';
+        }
+
+        
+        applyFilter();
+    });
+});
+
     </script>
 @endpush

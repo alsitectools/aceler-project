@@ -107,7 +107,7 @@
                                                 <div class="d-flex">
                                                     <div class="col-sm-9 text-center tooltipCus"
                                                         data-title="{{ __('Milestone') }}">
-                                                        <b>{{ $milestone['title'] }}</b>
+                                                        <b id="mileTitle">{{ $milestone['title'] }}</b>
                                                     </div>
                                                     <div class="col-sm-2 pt-1 text-center">
                                                         <a href="#" class=" tooltipCus"
@@ -136,6 +136,7 @@
                                                                     <i class="ti ti-eye pr-1"></i>
                                                                     {{ __('View') }}
                                                                 </a>
+                                                                <a href="#" class="dropdown-item"  data-ajax-popup="true" title="{{ __('Add Task') }}" data-title="{{ __('Add Task') }}" data-url="{{ route('tasks.create', [$currentWorkspace->slug, 'project_id'=> $milestone['project_id'], 'milestoneTitle' => $milestone['title'], 'milestone_id' =>$milestone['id']]) }}"><i class="fas fa-tasks pr-1"></i> {{ __('Add Task') }}</a>
                                                                 @if (
                                                                     $currentWorkspace->permission == 'Owner' ||
                                                                         ($currentWorkspace->permission == 'Member' && Auth::user()->type == 'user'))
@@ -326,45 +327,67 @@
                             }).on('drop', handleDrop);
                         });
                     };
+    function handleDrop(el, target, source, sibling) {
+    var sort = [];
+    a(target).find(".card").each(function(key) {
+        var cardId = a(this).attr('id');
+        if (cardId) {
+            console.log('Card ID at index', key, ':', cardId);
+            sort.push(cardId);
+        } else {
+            console.warn('Card at index', key, 'does not have an ID');
+        }
+    });
+    
+    // Obtenemos el cardId del elemento que se acaba de mover
+    var cardId = a(el).attr('id');
+    var oldStatus = a(source).data('status');
+    var newStatus = a(target).data('status');
+    var project_id = a(el).data('project-id');
+    var milestoneTitle = a(el).find('#mileTitle').text(); // Obtenemos el título del milestone
+    
+    if (oldStatus == 1 && newStatus == 2) {
+        console.log('De por hacer a in progress');
+        console.log('Card ID:', cardId, 'Old status:', oldStatus, 'New status:', newStatus, 'Project ID:', project_id, 'Milestone Title:', milestoneTitle);
 
-                    function handleDrop(el, target, source, sibling) {
+        // Se dispara la misma acción que al hacer clic en "Add Task on Timesheet"
+        var url = '{{ route('tasks.create', $currentWorkspace->slug) }}' + '?project_id=' + project_id + '&milestoneTitle=' + milestoneTitle  + '&milestone_id=' + cardId;
+        var title = '{{ __('Create New Task') }}';
+        var modalId = 'commonModal';
 
-                        var sort = [];
-                        a(target).find(".card").each(function(key) {
-                            var cardId = a(this).attr('id');
-                            if (cardId) {
-                                console.log('Card ID at index', key, ':', cardId);
-                                sort.push(cardId);
-                            } else {
-                                console.warn('Card at index', key, 'does not have an ID');
-                            }
-                        });
-                        var id = el.id;
-                        var oldStatus = a(source).data('status');
-                        var newStatus = a(target).data('status');
-                        var project_id = a(el).data('project-id');
+        $("#" + modalId + " .modal-title").html(title);
+        $.ajax({
+            url: url,
+            dataType: 'html',
+            success: function(data) {
+                $('#' + modalId + ' .body').html(data);
+                $("#" + modalId).modal('show');
+                commonLoader();
+                loadConfirm();
+            }
+        });
+    }
+    updateTaskCount(source);
+    updateTaskCount(target);
 
-                        updateTaskCount(source);
-                        updateTaskCount(target);
-
-                        a.ajax({
-                            url: '{{ route('milestone.update.order', [$currentWorkspace->slug, $milestone['project_id']]) }}',
-                            type: 'POST',
-                            data: {
-                                id: id,
-                                sort: sort,
-                                new_status: newStatus,
-                                old_status: oldStatus,
-                                project_id: project_id
-                            },
-                            success: function(data) {
-                                console.log('AJAX success');
-                            },
-                            error: function(xhr, status, error) {
-                                console.error('Error al actualizar el orden:', error);
-                            }
-                        });
-                    }
+    a.ajax({
+        url: '{{ route('milestone.update.order', [$currentWorkspace->slug, $milestone['project_id']]) }}',
+        type: 'POST',
+        data: {
+            id: cardId,  // Se envía el cardId obtenido
+            sort: sort,
+            new_status: newStatus,
+            old_status: oldStatus,
+            project_id: project_id
+        },
+        success: function(data) {
+            console.log('AJAX success');
+        },
+        error: function(xhr, status, error) {
+            console.error('Error al actualizar el orden:', error);
+        }
+    });
+}
 
                     function updateTaskCount(container) {
                         var parentCardList = a(container).parents('.card-list');
