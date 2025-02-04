@@ -1,48 +1,74 @@
 @php
     // dd($timesheetArray);
 @endphp
+<style>
+    .custom-thead,
+    .custom-tfoot {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+        background-color: #f8f9fa;
+        font-weight: bold;
+        text-align: center;
+        padding: 5px;
+    }
+
+    .header-cell,
+    .footer-cell {
+        padding: 10px;
+    }
+
+    .total-foot {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+</style>
+
 <head>
     <link rel="stylesheet" href="{{ asset('assets/css/timesheet_week.css') }}">
 </head>
 <div class="card-body table-border-style">
     <div class="table-responsive">
+        <div class="custom-thead d-grid">
+            <div class="header-cell">
+                <b>{{ isset($allProjects) && $allProjects == true ? __('Projects') : __('Tasks') }}</b>
+            </div>
+            @foreach ($days['datePeriod'] as $key => $perioddate)
+                <div class="header-cell">
+                    <b>{{ ucfirst($perioddate->isoFormat('ddd DD MMM')) }}</b>
+                </div>
+            @endforeach
+            <div class="header-cell">
+                <b>{{ __('Total') }}</b>
+            </div>
+        </div>
         <table class="table table-borderless mb-0">
-            <thead>
-                <tr colspan="9" class="d-flex text-center padding-r mt-2">
-                    <td class="week wid">
-                        <b>{{ isset($allProjects) && $allProjects == true ? __('Projects') : __('Tasks') }}</b>
-                    </td>
-                    @foreach ($days['datePeriod'] as $key => $perioddate)
-                        <td class="wid-100 header-days" style="background-color: transparent !important;">
-                            <b>{{ ucfirst($perioddate->isoFormat('ddd DD MMM')) }}</b>
-                        </td>
-                    @endforeach
-                    <td class="wid-100 header-days" style="background-color: transparent !important;">
-                        <b>{{ __('Total') }}</b>
-                    </td>
-                </tr>
-            </thead>
             <tbody>
                 @if (isset($allProjects) && $allProjects == true)
                     @foreach ($timesheetArray as $key => $timesheet)
                         <tr>
                             <td colspan="10">
-                                <div class="accordion" id="accordionExample">
+                                <div class="accordion" id="accordion{{ $key }}">
                                     <div class="accordion-item">
                                         <h2 class="accordion-header">
                                             <button
                                                 class="accordion-button mb-1 custom-accordion-button changeBottomRadius"
                                                 type="button" data-bs-toggle="collapse"
-                                                data-bs-target="#collapseOne{{ $key }}" aria-expanded="true"
-                                                aria-controls="collapseOne{{ $key }}">
+                                                data-bs-target="#collapse{{ $key }}" aria-expanded="true"
+                                                aria-controls="collapse{{ $key }}">
                                                 <div class="project-name pad_row tooltipCus"
                                                     data-title="{{ __('Project') }}">
                                                     {{ $timesheet['project_name'] }}
                                                 </div>
                                             </button>
                                         </h2>
-                                        <div id="collapseOne{{ $key }}"
-                                            class="accordion-collapse collapse show" data-bs-parent="#accordionExample">
+                                        <div id="collapse{{ $key }}" class="accordion-collapse collapse show"
+                                            data-bs-parent="#accordionExample">
                                             <div class="accordion-body mb-0">
                                                 <div class="table-responsive">
                                                     <table class="table">
@@ -134,16 +160,15 @@
                                             <button
                                                 class="accordion-button mb-1 custom-accordion-button changeBottomRadius"
                                                 type="button" data-bs-toggle="collapse"
-                                                data-bs-target="#collapseOne{{ $key }}" aria-expanded="true"
-                                                aria-controls="collapseOne{{ $key }}">
+                                                data-bs-target="#collapse{{ $key }}" aria-expanded="true"
+                                                aria-controls="collapse{{ $key }}">
                                                 <div class="milestone-name pad_row tooltipCus"
                                                     data-title="{{ __('Milestone') }}">
                                                     {{ $timesheet['milestone_name'] ?? __('Unknown Milestone') }}
                                                 </div>
                                             </button>
                                         </h2>
-                                        <div id="collapseOne{{ $key }}"
-                                            class="accordion-collapse collapse show"
+                                        <div id="collapse{{ $key }}" class="accordion-collapse collapse show"
                                             data-bs-parent="#accordionExample{{ $key }}">
                                             <div class="accordion-body mb-0">
                                                 <div class="table-responsive">
@@ -227,49 +252,21 @@
                     @endforeach
                 @endif
             </tbody>
-            <tfoot>
-                <tr colspan="9" class="d-flex text-center padding-r mt-2">
-                    <td class="week wid totalChangeSpaceVariant">
-                        <b> {{ __('Total') }}</b>
-                    </td>
-                    @foreach ($totalDateTimes as $key => $totaldatetime)
-                        <td class="wid-100 header-days greyBackgroundTotalHours">
-                            <b>{{ $totaldatetime != '00:00' ? $totaldatetime : '00:00' }}</b>
-                        </td>
-                    @endforeach
-                    <td class="wid-100 header-days greyBackgroundTotalHours">
-                        <b> {{ $calculatedTotalTaskTime ? $calculatedTotalTaskTime : 'error' }}</b>
-
-                    </td>
-                </tr>
-                <tr>
-                    <td class="text-center d-flex align-items-center justify-content-center">
-                        <div class="summary">
-                            <svg xmlns="http://www.w3.org/2000/svg" height="50" width="45"
-                                viewBox="0 0 512 512" class="mt-2">
-                                <path fill="#63E6BE"
-                                    d="M75 75L41 41C25.9 25.9 0 36.6 0 57.9V168c0 13.3 10.7 24 24 24H134.1c21.4 0 32.1-25.9 17-41l-30.8-30.8C155 85.5 203 64 256 64c106 0 192 86 192 192s-86 192-192 192c-40.8 0-78.6-12.7-109.7-34.4c-14.5-10.1-34.4-6.6-44.6 7.9s-6.6 34.4 7.9 44.6C151.2 495 201.7 512 256 512c141.4 0 256-114.6 256-256S397.4 0 256 0C185.3 0 121.3 28.7 75 75zm181 53c-13.3 0-24 10.7-24 24V256c0 6.4 2.5 12.5 7 17l72 72c9.4 9.4 24.6 9.4 33.9 0s9.4-24.6 0-33.9l-65-65V152c0-13.3-10.7-24-24-24z" />
-                            </svg>
-                            <h5 class="mt-2">{{ __('Total hours') }}</h5>
-                            <span>
-                                <b> {{ $calculatedTotalTaskTime ? $calculatedTotalTaskTime : 'error' }}</b>
-                            </span>
-                        </div>
-                        <div class="summary">
-                            <svg xmlns="http://www.w3.org/2000/svg" height="50" width="45"
-                                viewBox="0 0 448 512">
-                                <path fill="#B197FC"
-                                    d="M152 24c0-13.3-10.7-24-24-24s-24 10.7-24 24V64H64C28.7 64 0 92.7 0 128v16 48V448c0 35.3 28.7 64 64 64H384c35.3 0 64-28.7 64-64V192 144 128c0-35.3-28.7-64-64-64H344V24c0-13.3-10.7-24-24-24s-24 10.7-24 24V64H152V24zM48 192h80v56H48V192zm0 104h80v64H48V296zm128 0h96v64H176V296zm144 0h80v64H320V296zm80-48H320V192h80v56zm0 160v40c0 8.8-7.2 16-16 16H320V408h80zm-128 0v56H176V408h96zm-144 0v56H64c-8.8 0-16-7.2-16-16V408h80zM272 248H176V192h96v56z" />
-                            </svg>
-                            <h5 class="mt-2">{{ __('Período') }}</h5>
-                            <span>
-                                <b>{{ ucfirst($days['first_day']->isoFormat('ddd DD MMM')) }} a
-                                    {{ ucfirst($days['seventh_day']->isoFormat('ddd DD MMM')) }}</b>
-                            </span>
-                        </div>
-                    </td>
-                </tr>
-            </tfoot>
         </table>
+        <div class="custom-tfoot d-grid">
+            <div class="footer-cell total-foot">
+                <div>{{ __('Total') }}</div>
+            </div>
+            @foreach ($totalDateTimes as $key => $totaldatetime)
+                <div class="footer-cell">
+                    <div class="greyBackgroundTotalHours">{{ $totaldatetime != '00:00' ? $totaldatetime : '00:00' }}
+                    </div>
+                </div>
+            @endforeach
+            <div class="footer-cell">
+                <div class=" greyBackgroundTotalHours">
+                    {{ $calculatedTotalTaskTime ? $calculatedTotalTaskTime : 'error' }}</div>
+            </div>
+        </div>
     </div>
 </div>

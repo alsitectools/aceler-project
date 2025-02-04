@@ -191,48 +191,62 @@
     width: 100%;
     background-color: transparent !important;
 }
-.firstTdInWeek{
-    font-size:15px;
+
+.firstTdInWeek {
+    font-size: 15px;
 }
-.marginForTotalText{
+
+.marginForTotalText {
     margin-left: 35px;
 }
-.totalChangeSpaceVariant{
+
+.totalChangeSpaceVariant {
     padding-right: 10px !important;
 }
+
 @media screen and (max-width:1200px) and (min-width:1099px) {
     .header-days {
         width: 11%;
     }
-    .totalChangeSpace{
+
+    .totalChangeSpace {
         padding-right: 40px !important;
     }
-    .accordion{
+
+    .accordion {
         width: 98% !important;
     }
-    .weekRow{
+
+    .weekRow {
         width: 94% !important;
     }
-    .firstTdInWeek{
+
+    .firstTdInWeek {
         font-size: 13px !important;
         padding-left: 5px !important;
     }
-    .inputsTask{
+
+    .inputsTask {
         width: 110% !important;
     }
-    .inputsTaskTotal{
+
+    .inputsTaskTotal {
         width: 110% !important;
     }
-    .marginForTotalText{
+
+    .marginForTotalText {
         margin-left: 10px !important;
     }
-    .inputsTaskModify{
+
+    .inputsTaskModify {
         width: 90%;
     }
-    .inputsTaskTotalModify{
+
+    .inputsTaskTotalModify {
         width: 90%;
     }
 }
+
 .wid {
     border: none !important;
     background-color: transparent !important;
@@ -303,9 +317,12 @@
 .greyBackgroundTotalHours {
     background-color: #a293933d !important;
     border-radius: 10px;
+    height: 35px;
     box-shadow: 1px 1px 2px 1px rgb(0 0 0 / 16%) !important;
-    -webkit-box-shadow: 1px 1px 2px 1px rgb(0 0 0 / 16%) !important;
-    -moz-box-shadow: 1px 1px 2px 1px rgb(0 0 0 / 16%) !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
 }
 
 .custom-accordion-button:hover {
