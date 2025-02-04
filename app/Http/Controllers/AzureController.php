@@ -39,11 +39,8 @@ class AzureController extends Controller
             }
 
             $userProfile = json_decode($response->getBody()->getContents(), true);
-
-            // Intentar obtener la foto de perfil del usuario
-            $photoUrl = 'https://graph.microsoft.com/v1.0/me/photo/$value';
-
             try {
+                $photoUrl = 'https://graph.microsoft.com/v1.0/me/photo/$value';
                 $photoResponse = $client->get($photoUrl, [
                     'headers' => [
                         'Authorization' => 'Bearer ' . $token,
@@ -79,16 +76,24 @@ class AzureController extends Controller
                 } else {
                     $userProfile['photo_path'] = null;
                 }
+            } catch (\GuzzleHttp\Exception\ClientException $e) {
+                // Capturar error 404 (usuario sin foto)
+                if ($e->getResponse()->getStatusCode() === 404) {
+                    $userProfile['photo_path'] = null;
+                } else {
+                    throw $e;
+                }
             } catch (\Exception $e) {
                 $userProfile['photo_path'] = null;
             }
+
 
             $user = $this->findOrcreate($userProfile);
 
             if (isset($user)) {
                 $filePath = public_path($user->avatar);
 
-                if ($userProfile['photo_path'] == null) {
+                if (isset($userProfile['photo_path']) && $userProfile['photo_path'] == null) {
                     if (file_exists($filePath)) {
                         chmod($filePath, 0777);
 
