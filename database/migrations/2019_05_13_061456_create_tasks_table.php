@@ -19,9 +19,9 @@ class CreateTasksTable extends Migration
             $table->string('milestone_id')->nullable();
             $table->integer('type_id');
             $table->string('assign_to')->nullable();
-            // $table->text('description');
             $table->dateTime('start_date')->nullable();
             $table->dateTime('estimated_date');
+            $table->dateTime('end_date');
             $table->timestamps();
         });
     }

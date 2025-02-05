@@ -13,6 +13,7 @@ class Task extends Model
         'assign_to',
         'start_date',
         'estimated_date',
+        'end_date'
     ];
     // use for invoice details
     public function invoiceproject()

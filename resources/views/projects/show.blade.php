@@ -4,13 +4,15 @@
     {{ __('Project Detail') }}
 @endsection
 @section('links')
-<li class="breadcrumb-item"><a href="{{ route('home') }}">{{ __('Home') }}</a>
+    <li class="breadcrumb-item"><a href="{{ route('home') }}">{{ __('Home') }}</a>
     </li>
     <li class="breadcrumb-item"><a href="{{ route('projects.index', $currentWorkspace->slug) }}">{{ __('Projects') }}</a>
     </li>
     <li class="breadcrumb-item">{{ $project->name }}</li>
 @endsection
 @php
+    use Carbon\Carbon;
+
     $objUser = Auth::user();
     $logo = \App\Models\Utility::get_file('avatars/');
     $logo_project_files = \App\Models\Utility::get_file('project_files/');
@@ -25,7 +27,8 @@
         align-items: center;
 
     }
-    .fileIcon{
+
+    .fileIcon {
         margin-right: 8px;
     }
 </style>
@@ -71,11 +74,12 @@
         min-height: 300px;
     }
 
-    .projectTitleH3{
+    .projectTitleH3 {
         text-align: center;
         font-size: 28px;
     }
-    .projectDivSubtitle{
+
+    .projectDivSubtitle {
         display: flex;
         justify-content: space-evenly;
         align-items: center;
@@ -84,12 +88,18 @@
     }
 
     .uploaded-files-container {
-        display: grid; /* Cambia a un diseño de cuadrícula */
-        grid-template-columns: repeat(3, 1fr); /* Limita a 3 elementos por fila */
-        gap: 10px; /* Espaciado entre los archivos */
-        max-height: 140px; /* Limita la altura del contenedor */
-        overflow-y: auto; /* Permite el desplazamiento vertical si hay demasiados archivos */
-        overflow-x: hidden; /* Evita el desplazamiento horizontal */
+        display: grid;
+        /* Cambia a un diseño de cuadrícula */
+        grid-template-columns: repeat(3, 1fr);
+        /* Limita a 3 elementos por fila */
+        gap: 10px;
+        /* Espaciado entre los archivos */
+        max-height: 140px;
+        /* Limita la altura del contenedor */
+        overflow-y: auto;
+        /* Permite el desplazamiento vertical si hay demasiados archivos */
+        overflow-x: hidden;
+        /* Evita el desplazamiento horizontal */
     }
 
     .uploaded-file {
@@ -120,7 +130,8 @@
         display: flex;
         gap: 5px;
     }
-    .buttonFiles{
+
+    .buttonFiles {
         background-color: #aa182c;
         width: 25px;
         height: 25px;
@@ -129,15 +140,18 @@
         justify-content: center;
         border-radius: 5px;
     }
-    .buttonFiles:hover{
+
+    .buttonFiles:hover {
         background-color: #b9515f;
         color: white;
         text-decoration: none;
         border-color: #b9515f;
     }
-.plusIcon{
-    margin-left: 10px;
-}
+
+    .plusIcon {
+        margin-left: 10px;
+    }
+
     @media (max-width: 1300px) {
         .header_breadcrumb {
             width: 100% !important;
@@ -157,16 +171,20 @@
         .widthAdjustMediumDiv {
             width: 49%;
         }
+
         .uploaded-files-container {
             gap: 5px;
         }
-        .uploaded-file{
+
+        .uploaded-file {
             width: 92%;
         }
-        .last_notification_text{
+
+        .last_notification_text {
             padding: 0 0 0 5px !important;
         }
-        .last_notification_text p{
+
+        .last_notification_text p {
             margin-right: 10px !important;
             font-size: 9px !important;
         }
@@ -184,29 +202,28 @@
                             <div>
                                 <h3 class="text-white projectTitleH3"> {{ $project->name }}</h3>
                             </div>
-                            <div >
+                            <div>
                                 <div class="projectDivSubtitle">
-                                    <div  data-toggle="tooltip" data-placement="top"
-                                        title="{{ __('Company') }}">
+                                    <div data-toggle="tooltip" data-placement="top" title="{{ __('Company') }}">
                                         <i class="fa-regular fa-building fa-xl me-2"></i>
                                         {{ $currentWorkspace->country }} / {{ $currentWorkspace->name }}
                                     </div>
-                                    <div >
+                                    <div>
                                         <i class="fas fa-users fa-xl me-2"></i>
                                         {{ (int) $project->technicians->count() + (int) $project->salesManager->count() }}
                                     </div>
 
-                                    <div >
+                                    <div>
                                         <i class="fas fas fa-calendar-day"></i>
                                         {{ App\Models\Utility::dateFormat($project->start_date) }}
                                     </div>
 
-                                    <div >
+                                    <div>
                                         <i class="fa-solid fa-diagram-project  text-white"></i>
                                         {{ $project->ref_mo != '' ? $project->ref_mo : __($project->typeName()) }}
                                     </div>
 
-                                    <div >
+                                    <div>
                                         @if ($project->status == 'Finished')
                                             <div class="badge bg-success rounded"> {{ __('Finished') }}
                                             </div>
@@ -268,88 +285,88 @@
                         </div>
                     </div>
                     <!---<div class="row">
-                        <div class="col-lg-3 col-sm-6">
-                            <div class="card">
-                                <div class="card-body">
-                                    <div class="row">
-                                        <div class="theme-avtar bg-primary">
-                                            <i class="fas fas fa-calendar-day"></i>
-                                        </div>
-                                        <div class="col text-end">
-                                            <h6 class="text-muted mb-1">{{ __('Created date') }}</h6>
-                                            <span
-                                                class="h6 font-weight-bold mb-0 ">{{ App\Models\Utility::dateFormat($project->start_date) }}</span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-lg-3 col-sm-6">
-                            <div class="card">
-                                <div class="card-body">
-                                    <div class="row">
-                                        <div class="theme-avtar bg-danger">
-                                            <i class="fas fa-tasks text-white"></i>
-                                        </div>
-                                        <div class="col text-end">
-                                            <h6 class="text-muted mb-1">{{ __('Tasks') }}</h6>
-                                            <span class="h6 font-weight-bold mb-0 ">{{ $project->countTask() }}</span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-lg-3 col-sm-6">
-                            <div class="card">
-                                <div class="card-body">
-                                    <div class="row">
-                                        <div class="theme-avtar" style="background-color: #B197FC;">
-                                            <i class="fa-solid fa-file-lines fa-lg text-white"
-                                                style="color: #B197FC;"></i>
-                                        </div>
-                                        <div class="col text-end">
-                                            <h6 class="text-muted mb-1">{{ __('Milestones') }}</h6>
-                                            <span
-                                                class="h6 font-weight-bold mb-0 ">{{ $project->milestonescount() }}</span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-lg-3 col-sm-6">
-                            <div class="card">
-                                <div class="card-body">
-                                    <div class="row">
-                                        <div class="theme-avtar bg-success">
-                                            <i class="fa-solid fa-diagram-project bg-success text-white"></i>
-                                        </div>
-                                        <div class="col text-end">
-                                            <h6 class="text-muted mb-1">
-                                                {{ $project->type != 1 ? __('Project type') : __('MO') }}</h6>
-                                            <span
-                                                class="h6 font-weight-bold mb-0 ">{{ $project->ref_mo != '' ? $project->ref_mo : __($project->typeName()) }}
-                                            </span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>-->
+                                                        <div class="col-lg-3 col-sm-6">
+                                                            <div class="card">
+                                                                <div class="card-body">
+                                                                    <div class="row">
+                                                                        <div class="theme-avtar bg-primary">
+                                                                            <i class="fas fas fa-calendar-day"></i>
+                                                                        </div>
+                                                                        <div class="col text-end">
+                                                                            <h6 class="text-muted mb-1">{{ __('Created date') }}</h6>
+                                                                            <span
+                                                                                class="h6 font-weight-bold mb-0 ">{{ App\Models\Utility::dateFormat($project->start_date) }}</span>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-lg-3 col-sm-6">
+                                                            <div class="card">
+                                                                <div class="card-body">
+                                                                    <div class="row">
+                                                                        <div class="theme-avtar bg-danger">
+                                                                            <i class="fas fa-tasks text-white"></i>
+                                                                        </div>
+                                                                        <div class="col text-end">
+                                                                            <h6 class="text-muted mb-1">{{ __('Tasks') }}</h6>
+                                                                            <span class="h6 font-weight-bold mb-0 ">{{ $project->countTask() }}</span>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-lg-3 col-sm-6">
+                                                            <div class="card">
+                                                                <div class="card-body">
+                                                                    <div class="row">
+                                                                        <div class="theme-avtar" style="background-color: #B197FC;">
+                                                                            <i class="fa-solid fa-file-lines fa-lg text-white"
+                                                                                style="color: #B197FC;"></i>
+                                                                        </div>
+                                                                        <div class="col text-end">
+                                                                            <h6 class="text-muted mb-1">{{ __('Milestones') }}</h6>
+                                                                            <span
+                                                                                class="h6 font-weight-bold mb-0 ">{{ $project->milestonescount() }}</span>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-lg-3 col-sm-6">
+                                                            <div class="card">
+                                                                <div class="card-body">
+                                                                    <div class="row">
+                                                                        <div class="theme-avtar bg-success">
+                                                                            <i class="fa-solid fa-diagram-project bg-success text-white"></i>
+                                                                        </div>
+                                                                        <div class="col text-end">
+                                                                            <h6 class="text-muted mb-1">
+                                                                                {{ $project->type != 1 ? __('Project type') : __('MO') }}</h6>
+                                                                            <span
+                                                                                class="h6 font-weight-bold mb-0 ">{{ $project->ref_mo != '' ? $project->ref_mo : __($project->typeName()) }}
+                                                                            </span>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>-->
                     <div class="col-lg-12 widthAdjustDiv">
                         @if ($currentWorkspace->permission == 'Member' || $currentWorkspace->permission == 'Owner')
                             <div class="card">
                                 <div class="card-header">
                                     <div class="d-flex justify-content-between align-items-center">
                                         <div>
-                                            <h5 class="mb-0">{{ __('Milestones') }} ({{ count($project->milestones) }})
+                                            <h5 class="mb-0">{{ __('Order forms') }} ({{ count($project->milestones) }})
                                             </h5>
                                         </div>
                                         <div class="float-end">
-                                            <a href="#" class="btn btn-sm btn-primary" data-ajax-popup="true"
+                                            <a href="#" class="btn btn-primary addMilestone" data-ajax-popup="true"
                                                 data-title="{{ __('Milestone order') }}"
                                                 data-url="{{ route('projects.milestone', [$currentWorkspace->slug, $project->id]) }}"
-                                                data-toggle="popover" title="{{ __('Create') }}"><i
-                                                    class="ti ti-plus plusIcon"></i> {{__('Create Milestone')}}</a>
+                                                data-toggle="popover"><i class="fa-solid fa-file-lines me-3"
+                                                    style="color: #ffffff;"></i> {{ __('Create Order Form') }}</a>
                                         </div>
                                     </div>
                                 </div>
@@ -359,13 +376,12 @@
                                             <thead>
                                                 <tr>
                                                     <th>{{ __('Name') }}</th>
+                                                    <th>{{ __('Status') }}</th>
                                                     <th>{{ __('Created date') }}</th>
                                                     <th>{{ __('Desired delivery date') }}</th>
-                                                    <th>{{ __('Task started') }}</th>
-                                                    <th>{{ __('Last update') }}</th>
-                                                    @if ($objUser->type == 'client' || $currentWorkspace->permission == 'Owner')
-                                                        <th>{{ __('Action') }}</th>
-                                                    @endif
+                                                    <th>{{ __('Task started date') }}</th>
+                                                    <th>{{ __('Completion date') }}</th>
+                                                    <th>{{ __('Action') }}</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
@@ -378,46 +394,45 @@
                                                                 <h5 class="m-0"> {{ $milestone->title }} </h5>
                                                             </a>
                                                         </td>
-                                                        <td>{{ $milestone->start_date }}</td>
-                                                        <td>{{ $milestone->end_date }}</td>
+                                                        <td>
+                                                            @if ($milestone->status == 4)
+                                                                <label
+                                                                    class="badge bg-success p-2 px-3 rounded">{{ __('Finished') }}</label>
+                                                            @else
+                                                                <label
+                                                                    class="badge p-2 px-3 rounded {{ $milestone->status == 1 ? 'bg-warning' : 'bg-secondary' }}">
+                                                                    {{ $milestone->status == 1 ? __('OnHold') : __('Ongoing') }}
+                                                                </label>
+                                                            @endif
+                                                        </td>
+                                                        <td>{{ $milestone->start_date ? Carbon::parse($milestone->start_date)->format('d-m-Y') : '...' }}
+                                                        </td>
+                                                        <td>{{ $milestone->end_date ? Carbon::parse($milestone->end_date)->format('d-m-Y') : '...' }}
+                                                        </td>
                                                         <td>{{ $milestone->taskStart() }}</td>
-                                                        <td>{{ $milestone->taskEnd() }}</td>
+                                                        <td>{{ $milestone->tasksEnd() }}</td>
                                                         <td class="text-right">
                                                             <div class="col-auto">
-                                                                @if ($milestone->assign_to == $objUser->id)
-                                                                    <a href="#"
-                                                                        class="action-btn btn-info mx-1  btn btn-sm d-inline-flex align-items-center"
-                                                                        data-ajax-popup="true" data-size="lg"
-                                                                        data-toggle="popover" title="{{ __('Edit') }}"
-                                                                        data-title="{{ __('Edit Milestone') }}"
-                                                                        data-url="{{ route('projects.milestone.edit', [$currentWorkspace->slug, $milestone->id]) }}"><i
-                                                                            class="ti ti-edit"></i></a>
-                                                                @elseif($currentWorkspace->permission == 'Owner')
-                                                                    <a href="#"
-                                                                        class="action-btn btn-info mx-1  btn btn-sm d-inline-flex align-items-center bs-pass-para"
-                                                                        data-ajax-popup="true" data-size="lg"
-                                                                        data-title="{{ __('Edit Milestone') }}"
-                                                                        data-toggle="popover" title="{{ __('Edit') }}"
-                                                                        data-url="{{ route('projects.milestone.edit', [$currentWorkspace->slug, $milestone->id]) }}"><i
-                                                                            class="ti ti-edit"></i></a>
-
-                                                                    @if ($currentWorkspace->permission == 'Owner')
-                                                                        <a href="#"
-                                                                            class="action-btn btn-danger mx-1  btn btn-sm d-inline-flex align-items-center bs-pass-para"
-                                                                            data-confirm="{{ __('Are You Sure?') }}"
-                                                                            data-toggle="popover"
-                                                                            title="{{ __('Delete') }}"
-                                                                            data-text="{{ __('This action can not be undone. Do you want to continue?') }}"
-                                                                            data-confirm-yes="delete-form1-{{ $milestone->id }}"><i
-                                                                                class="ti ti-trash"></i></a>
-                                                                        <form id="delete-form1-{{ $milestone->id }}"
-                                                                            action="{{ route('projects.milestone.destroy', [$currentWorkspace->slug, $milestone->id]) }}"
-                                                                            method="POST" style="display: none;">
-                                                                            @csrf
-                                                                            @method('DELETE')
-                                                                        </form>
-                                                                    @endif
-                                                                @endif
+                                                                <a href="#"
+                                                                    class="action-btn btn-info mx-1  btn btn-sm d-inline-flex align-items-center"
+                                                                    data-ajax-popup="true" data-size="lg"
+                                                                    data-toggle="popover" title="{{ __('Edit') }}"
+                                                                    data-title="{{ __('Edit Milestone') }}"
+                                                                    data-url="{{ route('projects.milestone.edit', [$currentWorkspace->slug, $milestone->id]) }}"><i
+                                                                        class="ti ti-edit"></i></a>
+                                                                <a href="#"
+                                                                    class="action-btn bg-danger mx-1  btn btn-sm d-inline-flex align-items-center bs-pass-para"
+                                                                    data-confirm="{{ __('Are You Sure?') }}"
+                                                                    data-toggle="popover" title="{{ __('Delete') }}"
+                                                                    data-text="{{ __('This action can not be undone. Do you want to continue?') }}"
+                                                                    data-confirm-yes="delete-form1-{{ $milestone->id }}"><i
+                                                                        class="ti ti-trash"></i></a>
+                                                                <form id="delete-form1-{{ $milestone->id }}"
+                                                                    action="{{ route('projects.milestone.destroy', [$currentWorkspace->slug, $milestone->id]) }}"
+                                                                    method="POST" style="display: none;">
+                                                                    @csrf
+                                                                    @method('DELETE')
+                                                                </form>
                                                             </div>
                                                         </td>
                                                     </tr>
@@ -609,7 +624,8 @@
                                         <div class="dz-message" data-dz-message>
                                             <span> {{ __('Drop files here to upload') }}</span>
                                             <p class="text-muted" style="font-size:15px; margin:5px;">200MB</p>
-                                            <small class="text-muted">.png .gif .pdf .txt .doc .docx .zip .rar .dwg .dxf</small>
+                                            <small class="text-muted">.png .gif .pdf .txt .doc .docx .zip .rar .dwg
+                                                .dxf</small>
                                         </div>
                                     </div>
                                     <div class="mt-3">
@@ -622,10 +638,15 @@
                                                         // Obtener el nombre del archivo sin la ruta
                                                         $filename = basename($file);
                                                         $parts = explode('_', $filename);
-                                                        $cleanFilename = isset($parts[2]) ? implode('_', array_slice($parts, 2)) : $filename;
+                                                        $cleanFilename = isset($parts[2])
+                                                            ? implode('_', array_slice($parts, 2))
+                                                            : $filename;
 
                                                         // Agregar el archivo limpio al array
-                                                        $cleanedFiles[] = ['original' => $file, 'cleaned' => $cleanFilename];
+                                                        $cleanedFiles[] = [
+                                                            'original' => $file,
+                                                            'cleaned' => $cleanFilename,
+                                                        ];
                                                     }
 
                                                     // Ordenar alfabéticamente por los nombres limpios
@@ -638,10 +659,12 @@
                                                     <div class="uploaded-file">
                                                         <p>{{ $file['cleaned'] }}</p>
                                                         <div class="uploaded-file-buttons">
-                                                            <a onclick="downloadFile({{ $project->id }}, '{{ basename($file['original']) }}')" class="buttonFiles">
+                                                            <a onclick="downloadFile({{ $project->id }}, '{{ basename($file['original']) }}')"
+                                                                class="buttonFiles">
                                                                 <i class="ti ti-download" style="color:white"></i>
                                                             </a>
-                                                            <a onclick="deleteFile({{ $project->id }}, '{{ basename($file['original']) }}')" class="buttonFiles">
+                                                            <a onclick="deleteFile({{ $project->id }}, '{{ basename($file['original']) }}')"
+                                                                class="buttonFiles">
                                                                 <i class="fa-solid fa-trash" style="color:white"></i>
                                                             </a>
                                                         </div>
@@ -653,28 +676,28 @@
                                         </div>
 
                                     </div>
-                                </div>         
+                                </div>
                             </div>
                         </div>
                         <!---
-                        <div class="col-md-4">
-                            <div class="card min-end">
-                                <div class="card-header" style="padding: 25px 35px !important;">
-                                    <div class="d-flex justify-content-between align-items-center">
-                                        <div class="row">
-                                            <h5 class="mb-0">{{ __('Progress') }}<span
-                                                    class="text-end">({{ __('Last week tasks') }}) </span></h5>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="card-body">
-                                    <div class="d-flex align-items-start">
-                                    </div>
-                                </div>
-                                <div id="task-chart"></div>
-                            </div>
-                        </div>
-                        --->
+                                                        <div class="col-md-4">
+                                                            <div class="card min-end">
+                                                                <div class="card-header" style="padding: 25px 35px !important;">
+                                                                    <div class="d-flex justify-content-between align-items-center">
+                                                                        <div class="row">
+                                                                            <h5 class="mb-0">{{ __('Progress') }}<span
+                                                                                    class="text-end">({{ __('Last week tasks') }}) </span></h5>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                                <div class="card-body">
+                                                                    <div class="d-flex align-items-start">
+                                                                    </div>
+                                                                </div>
+                                                                <div id="task-chart"></div>
+                                                            </div>
+                                                        </div>
+                                                        --->
                         <div class="col-md-6">
                             <div class="card min-end">
                                 <div class="card-header">
@@ -704,7 +727,7 @@
                                                             <i class="fas fa-clock-o"></i></span>
                                                     @elseif($activity->log_type == 'has delete a file')
                                                         <span
-                                                            class="timeline-step timeline-step-sm border border-primary text-white" 
+                                                            class="timeline-step timeline-step-sm border border-primary text-white"
                                                             style="border-color: #aa182c !important;">
                                                             <i class="fas fa-file"></i></span>
                                                     @elseif($activity->log_type == 'has created a new project')
@@ -714,7 +737,8 @@
                                                     @endif
 
                                                     <div class="last_notification_text">
-                                                        <!-- Person who did the notification --><p> {!! $activity->getRemark() !!} : </p>
+                                                        <!-- Person who did the notification -->
+                                                        <p> {!! $activity->getRemark() !!} : </p>
                                                         <br>
                                                         <div class="notification_time_main">
                                                             <p>{{ $activity->created_at->diffForHumans() }}</p>
@@ -744,9 +768,8 @@
 @push('scripts')
     <script src="{{ asset('assets/js/plugins/apexcharts.min.js') }}"></script>
     <script>
-
         function downloadFile(idProject, file) {
-            const downloadUrl = '<?php echo url("projects/download-file"); ?>';
+            const downloadUrl = '<?php echo url('projects/download-file'); ?>';
 
             $.ajax({
                 url: downloadUrl,
@@ -759,12 +782,12 @@
                 success: function(response) {
                     if (response.success) {
                         console.log("Download URL: ", response.file_url);
-                        
+
                         // Crear un enlace temporal para descargar el archivo
                         let downloadLink = document.createElement("a");
                         downloadLink.href = response.file_url;
                         downloadLink.target = "_blank";
-                        downloadLink.download = file;  // Nombre del archivo
+                        downloadLink.download = file; // Nombre del archivo
                         document.body.appendChild(downloadLink);
                         downloadLink.click();
                         document.body.removeChild(downloadLink);
@@ -780,7 +803,7 @@
         }
 
         function deleteFile(idProject, file) {
-            const downloadUrl = '<?php echo url("projects/delete-file"); ?>';
+            const downloadUrl = '<?php echo url('projects/delete-file'); ?>';
 
             $.ajax({
                 url: downloadUrl,
@@ -919,7 +942,7 @@
             acceptedFiles: ".jpeg,.jpg,.png,.gif,.svg,.pdf,.txt,.doc,.docx,.zip,.rar,.dwg,.dxf",
             url: "{{ route('projects.file.upload', [$currentWorkspace->slug, $project->id]) }}",
 
-            success: function (file, response) {
+            success: function(file, response) {
                 if (response.is_success) {
                     show_toastr('{{ __('Success') }}', 'File Successfully Uploaded', 'success');
                 } else {
@@ -927,18 +950,20 @@
                     show_toastr('{{ __('Error') }}', 'Error while storing the document.', 'error');
                 }
             },
-            error: function (file, response) {
+            error: function(file, response) {
                 myDropzone.removeFile(file);
                 show_toastr('{{ __('Error') }}', 'Error while storing the document.', 'error');
             },
 
-            complete: function (file) {
+            complete: function(file) {
                 // Verifica si Dropzone ha terminado con todos los archivos
                 if (this.getQueuedFiles().length === 0 && this.getUploadingFiles().length === 0) {
                     // Recarga la página después de que se suban todos los archivos
-                    setTimeout(function () {
-                        location.reload(); // Recarga la página actual
-                    }, 1000); // Opcional: Agrega un pequeño delay para asegurarte de que el backend procese todo.
+                    setTimeout(function() {
+                            location.reload(); // Recarga la página actual
+                        },
+                        1000
+                    ); // Opcional: Agrega un pequeño delay para asegurarte de que el backend procese todo.
                 }
             }
         });
@@ -951,7 +976,7 @@
             `);
 
             // Agregar evento al botón de eliminación
-            deleteButton.addEventListener("click", function (e) {
+            deleteButton.addEventListener("click", function(e) {
                 e.preventDefault();
                 e.stopPropagation();
 
