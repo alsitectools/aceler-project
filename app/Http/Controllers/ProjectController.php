@@ -1013,7 +1013,16 @@ class ProjectController extends Controller
                 $milestone = Milestone::find($request->id);
                 $milestone->status = $request->new_status;
                 $milestone->save();
-
+                
+                if ($milestone->status == 4) {
+ 
+                    $tasksTomilestones = Task::where('milestone_id', $milestone->id)->get();
+                    foreach ($tasksTomilestones as $task) {
+                        $task->end_date = date('Y-m-d');
+                        $task->save();
+                    }
+                }
+                
                 $name = $user->name;
                 $id = $user->id;
 

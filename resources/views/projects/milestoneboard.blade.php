@@ -13,6 +13,22 @@
     <link rel="stylesheet" href="{{ asset('assets/css/milestoneboard.css') }}">
 </head>
 <style>
+    .showCompletedProjectGroup{
+        display: flex;
+        gap: 17px;
+    }
+    .showCompletedProjects{
+        width: 20px;
+        height: 20px;
+        margin-top: -6px;
+    }
+    .showCompletedProjects:hover{
+        cursor: pointer;
+       
+    }
+    .showCompletedProjectsUnabled{
+        filter: grayscale(1);
+    }
     .modifiedWidth {
         width: 99.9%;
     }
@@ -71,7 +87,7 @@
                     data-url="{{ route('projects.milestone', [$currentWorkspace->slug, $project_id]) }}"
                     data-toggle="popover" title="{{ __('Create') }}"><i class="fa-solid fa-file-lines me-3"
                         style="color: #ffffff;"></i>
-                    {{ __('Create Milestone') }}
+                    {{ __('Create Order Form') }}
                 </button>
             </div>
         @endif
@@ -86,8 +102,14 @@
                     <div class="col-3 pe-1" id="{{ 'milestone-list-' . str_replace(' ', '_', $status->id) }}">
                         <div class="card card-list">
                             <div class="card-header">
-                                <div class="float-end">
-                                    <button class="btn-submit btn btn-md btn-primary btn-icon px-1 py-0">
+                                <div class="float-end showCompletedProjectGroup">
+                                
+                                @if ($status->name === 'Done')
+                            @if ($project_id == -1)
+                                <img id="toggleCompletedProjectsIcon" src="{{ asset('assets/img/clipboard-check-solid.svg') }}" alt="show completed projects" title="{{ __('Show Completed Projects') }}" class="showCompletedProjects showCompletedProjectsUnabled"/>
+                                @endif
+                            @endif
+                                    <button class="btn-submit btn btn-md btn-primary btn-icon px-1 py-0 " style="height: 19.7px;">
                                         <span class="badge badge-secondary rounded-pill count">
                                             {{ isset($milestones[$status->id]) ? count($milestones[$status->id]) : 0 }}
                                         </span>
@@ -185,10 +207,10 @@
                                             <div class="card-body pt-1">
                                                 <div class="row">
                                                     @if ($milestone['tasks'])
-                                                        <div class="col-sm-12 tooltipCus p-3"
-                                                            data-title="{{ __('Tasks') }}">
+                                                        <div class="col-sm-12  p-3"
+                                                         >
                                                             @foreach ($milestone['tasks'] as $task)
-                                                                <div class="taskList p-target mb-2 col-sm-12 marginText">
+                                                                <div class="taskList tooltipCus p-target mb-2 col-sm-12 marginText" data-title="{{ $task['technician']->name }}">
                                                                     @php
                                                                         $isLate =
                                                                             strtotime($task['estimated_date']) <
@@ -210,19 +232,20 @@
                                                                         data-title="{{ $task['technician']->name }}">
                                                                         <a href="#">
 
-                                                                            <img alt="image"
+                                                                            <!-- <img alt="image"
                                                                                 class="tooltipCus user-groupTasks"
                                                                                 data-title="{{ $task['technician']->name }}"
-                                                                                @if ($task['technician']->avatar) src="{{ asset($task['technician']->avatar) }}" @else avatar="{{ $task['technician']->name }}" @endif>
+                                                                                @if ($task['technician']->avatar) src="{{ asset($task['technician']->avatar) }}" @else avatar="{{ $task['technician']->name }}" @endif> -->
                                                                         </a>
                                                                     </div>
                                                                 @endif
                                                             @endforeach
                                                             @if ($project_id == -1)
-                                                                <div class="col-sm-11 text-end">
+                                                                <div class="col-sm-11 text-end"
+                                                                data-title="{{ $task['technician']->name }}">
                                                                     <a href="#">
-                                                                        <img alt="image" class="user-groupTasks"
-                                                                            @if ($task['technician']->avatar) src="{{ asset($task['technician']->avatar) }}" @else avatar="{{ $task['technician']->name }}" @endif>
+                                                                        <!-- <img alt="image" class="user-groupTasks"
+                                                                            @if ($task['technician']->avatar) src="{{ asset($task['technician']->avatar) }}" @else avatar="{{ $task['technician']->name }}" @endif> -->
                                                                     </a>
                                                                 </div>
                                                             @endif
@@ -293,7 +316,7 @@
     <script src="{{ asset('assets/custom/js/dragula.min.js') }}"></script>
     @if ($milestones != null)
         @push('scripts')
-            <script>
+            <!-- <script>
                 ! function(a) {
                     "use strict";
 
@@ -404,6 +427,238 @@
                     "use strict";
                     a.Dragula.init();
                 }(window.jQuery);
-            </script>
+            </script> -->
+
+
+            <script>
+    ! function(a) {
+        "use strict";
+
+        var t = function() {
+            this.$body = a("body");
+        };
+
+        t.prototype.init = function() {
+            a('[data-toggle="dragula"]').each(function() {
+                var containers = a(this).data("containers");
+                var containersArray = [];
+
+                if (containers && containers.length) {
+                    for (var i = 0; i < containers.length; i++) {
+                        var container = a("#" + containers[i] + " .kanban-box")[0];
+                        if (container) {
+                            containersArray.push(container);
+                        } else {
+                            console.error('Contenedor no encontrado:', containers[i]);
+                        }
+                    }
+                } else {
+                    containersArray = [a(this)[0]];
+                }
+                var handleClass = a(this).data("handleclass");
+
+                // Inicializamos dragula y agregamos eventos 'drag' y 'drop'
+                dragula(containersArray, {
+                    moves: function(el, container, handle) {
+                        return el.classList.contains('card');
+                    }
+                })
+                // Al iniciar el drag, almacenamos el contenedor de origen y el índice original
+                .on('drag', function(el, source) {
+                    a(el).data('originContainer', source);
+                    a(el).data('originalIndex', a(source).children('.card').index(a(el)));
+                })
+                // Al soltar el elemento se ejecuta el handleDrop
+                .on('drop', handleDrop);
+            });
+        };
+
+        function handleDrop(el, target, source, sibling) {
+            // Obtenemos el nuevo orden de los elementos en el contenedor destino
+            var sort = [];
+            a(target).find(".card").each(function(key) {
+                var cardId = a(this).attr('id');
+                if (cardId) {
+                    console.log('Card ID at index', key, ':', cardId);
+                    sort.push(cardId);
+                } else {
+                    console.warn('Card at index', key, 'does not have an ID');
+                }
+            });
+
+            // Obtenemos información necesaria
+            var cardId = a(el).attr('id');
+            // Utilizamos .data() para obtener el status; sin embargo, al mover la tarjeta actualizaremos el atributo
+            var oldStatus = a(source).data('status');
+            var newStatus = a(target).data('status');
+            var project_id = a(el).data('project-id');
+            var milestoneTitle = a(el).find('#mileTitle').text(); // Título del milestone
+
+            // Si el elemento viene de un status mayor o igual a 2 y se intenta mover a status 1, se revierte el cambio.
+            if (oldStatus >= 2 && newStatus == 1) {
+                console.log('Movimiento no permitido: No se puede mover un elemento de status ' + oldStatus + ' a status 1.');
+
+                // Se recupera el contenedor de origen y la posición original que se almacenaron en el evento "drag"
+                var originContainer = a(el).data('originContainer');
+                var originalIndex = a(el).data('originalIndex');
+
+                // Removemos el elemento del contenedor destino
+                a(target).remove(el);
+
+                // Reinsertamos en el contenedor de origen en la posición original
+                var $origin = a(originContainer);
+                var $cards = $origin.find('.card');
+                if ($cards.length > 0 && originalIndex < $cards.length) {
+                    a(el).insertBefore($cards.eq(originalIndex));
+                } else {
+                    $origin.append(el);
+                }
+
+                // Actualizamos el contador de tareas de ambos contenedores
+                updateTaskCount(source);
+                updateTaskCount(target);
+
+                // No se ejecuta la llamada AJAX ya que se ha cancelado el cambio
+                return;
+            }
+
+            // Si se permite el movimiento y es de status 1 a 2, se dispara la acción de "Add Task"
+            if (oldStatus == 1 && newStatus >= 2) {
+                console.log('De por hacer a in progress');
+
+                var url = '{{ route('tasks.create', $currentWorkspace->slug) }}' + '?project_id=' + project_id + '&milestoneTitle=' + milestoneTitle  + '&milestone_id=' + cardId;
+                var title = '{{ __('Create New Task') }}';
+                var modalId = 'commonModal';
+
+                $("#" + modalId + " .modal-title").html(title);
+                $.ajax({
+                    url: url,
+                    dataType: 'html',
+                    success: function(data) {
+                        $('#' + modalId + ' .body').html(data);
+                        $("#" + modalId).modal('show');
+                        commonLoader();
+                        loadConfirm();
+                    }
+                });
+            }
+
+            // Actualizamos los contadores de tareas en los contenedores de origen y destino
+            updateTaskCount(source);
+            updateTaskCount(target);
+
+            // *** Actualización dinámica del status en el elemento ***
+            // Esto asegura que, si se mueve la tarjeta y cambia su status,
+            // el atributo data-status se actualiza y el toggle lo detecta correctamente.
+            a(el).attr('data-status', newStatus);
+
+            // Se realiza la llamada AJAX para actualizar el orden y el estado en el servidor
+            a.ajax({
+                url: '{{ route('milestone.update.order', [$currentWorkspace->slug, $milestone['project_id']]) }}',
+                type: 'POST',
+                data: {
+                    id: cardId,  // Se envía el cardId obtenido
+                    sort: sort,
+                    new_status: newStatus,
+                    old_status: oldStatus,
+                    project_id: project_id
+                },
+                success: function(data) {
+                    console.log('AJAX success');
+                },
+                error: function(xhr, status, error) {
+                    console.error('Error al actualizar el orden:', error);
+                }
+            });
+        }
+
+        function updateTaskCount(container) {
+            var parentCardList = a(container).parents('.card-list');
+            var count = a(container).children('.card').length;
+            parentCardList.find('.count').text(count);
+        }
+
+        a.Dragula = new t;
+        a.Dragula.Constructor = t;
+
+    }(window.jQuery);
+
+    ! function(a) {
+        "use strict";
+        a.Dragula.init();
+    }(window.jQuery);
+</script>
+@if ($project_id == -1)
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        let showCompleted = false; // Variable global para rastrear el estado de visibilidad de proyectos completados
+
+        // Inicializa: Oculta grupos de milestones cuyo TODOS elementos tengan status 4
+        initializeCompletedProjects();
+
+        // Configura el listener para el toggle
+        const toggleIcon = document.getElementById('toggleCompletedProjectsIcon');
+        if (toggleIcon) {
+            toggleIcon.addEventListener('click', function() {
+                showCompleted = !showCompleted;
+                toggleCompletedProjects(showCompleted);
+                this.classList.toggle('showCompletedProjectsUnabled', !showCompleted);
+                this.title = showCompleted ? "{{ __('Hide Completed Projects') }}":"{{ __('Show Completed Projects') }}";
+
+            });
+        }
+
+        function initializeCompletedProjects() {
+            const milestones = document.querySelectorAll('.card[data-project-id]');
+            const projectMap = new Map();
+
+            milestones.forEach(milestone => {
+                const projectId = milestone.dataset.projectId;
+                if (!projectMap.has(projectId)) {
+                    projectMap.set(projectId, []);
+                }
+                projectMap.get(projectId).push(milestone);
+            });
+
+            projectMap.forEach((milestones, projectId) => {
+                const allInStatus4 = milestones.every(m => parseInt(m.dataset.status) === 4);
+                if (allInStatus4) {
+                    milestones.forEach(m => m.style.display = 'none');
+                }
+            });
+        }
+
+        function toggleCompletedProjects(shouldShow) {
+            const milestones = document.querySelectorAll('.card[data-project-id]');
+            const projectMap = new Map();
+
+            milestones.forEach(milestone => {
+                const projectId = milestone.dataset.projectId;
+                if (!projectMap.has(projectId)) {
+                    projectMap.set(projectId, []);
+                }
+                projectMap.get(projectId).push(milestone);
+            });
+
+            projectMap.forEach((milestones, projectId) => {
+                const allInStatus4 = milestones.every(m => parseInt(m.dataset.status) === 4);
+                milestones.forEach(m => m.style.display = allInStatus4 && !shouldShow ? 'none' : 'block');
+            });
+        }
+
+        function checkAndUpdateProjectVisibility(el) {
+            const projectId = el.dataset.projectId;
+            const projectMilestones = document.querySelectorAll(`.card[data-project-id='${projectId}']`);
+            const allInStatus4 = Array.from(projectMilestones).every(m => parseInt(m.dataset.status) === 4);
+
+            if (allInStatus4 && !showCompleted) {
+                projectMilestones.forEach(m => m.style.display = 'none');
+            }
+        }
+    });
+</script>
+@endif
+
+
         @endpush
     @endif
