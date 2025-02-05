@@ -2,7 +2,10 @@
 
 namespace App\Models;
 
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
+
+use function Laravel\Prompts\select;
 
 class Milestone extends Model
 {
@@ -61,26 +64,35 @@ class Milestone extends Model
                     ->where('estimated_date', '<=', $estimatedDate);
             });
     }
-
     public function taskStart()
     {
-        $firstTask = Timesheet::join('tasks', 'tasks.id', '=', 'timesheets.task_id')
-            ->where('tasks.milestone_id', '=', $this->id)
-            ->where('time', '!=', '00:00:00')
-            ->orderBy('date', 'asc')
+        $milestoneIds = Milestone::where('project_id', function ($query) {
+            $query->select('project_id')
+                ->from('milestones')
+                ->where('id', $this->id);
+        })->pluck('id');
+
+        $firstTask = Task::whereIn('milestone_id', $milestoneIds)
+            ->orderBy('start_date', 'asc')
             ->first();
 
-        return $firstTask ? $firstTask->date : '';
+        return $firstTask ? Carbon::parse($firstTask->start_date)->format('d-m-Y') : '...';
     }
-    public function taskEnd()
+
+    public function tasksEnd()
     {
-        $lastUpdate = Timesheet::join('tasks', 'tasks.id', '=', 'timesheets.task_id')
-            ->where('tasks.milestone_id', '=', $this->id)
-            ->where('time', '!=', '00:00:00')
-            ->orderBy('date', 'desc')
+        $milestoneIds = Milestone::where('project_id', function ($query) {
+            $query->select('project_id')
+                ->from('milestones')
+                ->where('id', $this->id);
+        })
+            ->pluck('id');
+
+        $lastTask = Task::whereIn('milestone_id', $milestoneIds)
+            ->orderBy('end_date', 'desc')
             ->first();
 
-        return $lastUpdate ? $lastUpdate->date : '';
+        return $lastTask->end_date ? Carbon::parse($lastTask->end_date)->format('d-m-Y') : '...';
     }
 
     public function salesManager()
