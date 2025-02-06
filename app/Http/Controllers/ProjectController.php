@@ -424,82 +424,82 @@ class ProjectController extends Controller
     }
 
     public function show($slug, $projectID)
-{
-    $objUser = Auth::user();
-    $currentWorkspace = Utility::getWorkspaceBySlug($slug);
+    {
+        $objUser = Auth::user();
+        $currentWorkspace = Utility::getWorkspaceBySlug($slug);
 
-    if ($objUser && $currentWorkspace) {
-        $project = Project::select('projects.*')
-            ->join('user_projects', 'projects.id', '=', 'user_projects.project_id')
-            ->where('projects.workspace', '=', $currentWorkspace->id)
-            ->where('projects.id', '=', $projectID)
-            ->with('activities.user')
-            ->first();
+        if ($objUser && $currentWorkspace) {
+            $project = Project::select('projects.*')
+                ->join('user_projects', 'projects.id', '=', 'user_projects.project_id')
+                ->where('projects.workspace', '=', $currentWorkspace->id)
+                ->where('projects.id', '=', $projectID)
+                ->with('activities.user')
+                ->first();
 
-        if ($project) {
-            $chartData = $this->getProjectChart([
-                'workspace_id' => $currentWorkspace->id,
-                'project_id' => $projectID,
-                'duration' => 'week',
-            ]);
+            if ($project) {
+                $chartData = $this->getProjectChart([
+                    'workspace_id' => $currentWorkspace->id,
+                    'project_id' => $projectID,
+                    'duration' => 'week',
+                ]);
 
-            $daysleft = round((((strtotime($project->end_date) - strtotime(date('Y-m-d'))) / 24) / 60) / 60);
+                $daysleft = round((((strtotime($project->end_date) - strtotime(date('Y-m-d'))) / 24) / 60) / 60);
 
-            // Archivos del proyecto
-            $projectFolder = 'project_files/' . strtr($project->name, [" " => "_"]);
-            $projectFiles = \Storage::disk('local')->files($projectFolder);
-            \Log::debug($projectFiles);
+                // Archivos del proyecto
+                $projectFolder = 'project_files/' . strtr($project->name, [" " => "_"]);
+                $projectFiles = \Storage::disk('local')->files($projectFolder);
+                \Log::debug($projectFiles);
 
-            // Obtener milestones
-            $milestones = DB::table('milestones')
-            ->join('projects', 'projects.id', '=', 'milestones.project_id')
-            ->where('projects.id', '=', $projectID)
-            ->select('milestones.id', 'milestones.title')
-            ->get();
+                // Obtener milestones
+                $milestones = DB::table('milestones')
+                    ->join('projects', 'projects.id', '=', 'milestones.project_id')
+                    ->where('projects.id', '=', $projectID)
+                    ->select('milestones.id', 'milestones.title')
+                    ->get();
 
-            // Array para almacenar los archivos de cada milestone
-            $milestoneFiles = [];
+                // Array para almacenar los archivos de cada milestone
+                $milestoneFiles = [];
 
-            foreach ($milestones as $milestone) {
-                // Reiniciar el array para cada milestone
-                $allFiles = [];
+                foreach ($milestones as $milestone) {
+                    // Reiniciar el array para cada milestone
+                    $allFiles = [];
 
-                // Generar la ruta para los archivos del milestone
-                $milestoneFolder = 'milestones_files/' . strtr($project->name, [" " => "_"]) . '/' . strtr($milestone->title, [" " => "_"]);
-                $files = \Storage::disk('local')->files($milestoneFolder);
-                foreach ($files as $filePath) {
-                    $allFiles[] = [
-                        'path'   => $filePath,
-                        'source' => 'folder', // o cualquier etiqueta que te identifique
+                    // Generar la ruta para los archivos del milestone
+                    $milestoneFolder = 'milestones_files/' . strtr($project->name, [" " => "_"]) . '/' . strtr($milestone->title, [" " => "_"]);
+                    $files = \Storage::disk('local')->files($milestoneFolder);
+                    foreach ($files as $filePath) {
+                        $allFiles[] = [
+                            'path'   => $filePath,
+                            'source' => 'folder', // o cualquier etiqueta que te identifique
+                        ];
+                    }
+
+                    // Verificar si existen archivos en la ruta de actualizaciones
+                    $milestoneFolderUpdate = 'app/public/milestones_files/' . strtr($project->name, [" " => "_"]) . '/' . strtr($milestone->title, [" " => "_"]);
+                    $filesUpdate = \Storage::disk('local')->files($milestoneFolderUpdate);
+                    foreach ($filesUpdate as $filePath) {
+                        $allFiles[] = [
+                            'path'   => $filePath,
+                            'source' => 'update'
+                        ];
+                    }
+
+                    // Guardar los archivos para este milestone
+                    $milestoneFiles[$milestone->id] = [
+                        'title' => $milestone->title,
+                        'files' => $allFiles,
                     ];
                 }
+                \Log::debug($milestoneFiles);
 
-                // Verificar si existen archivos en la ruta de actualizaciones
-                $milestoneFolderUpdate = 'app/public/milestones_files/' . strtr($project->name, [" " => "_"]) . '/' . strtr($milestone->title, [" " => "_"]);
-                $filesUpdate = \Storage::disk('local')->files($milestoneFolderUpdate);
-                foreach ($filesUpdate as $filePath) {
-                    $allFiles[] = [
-                        'path'   => $filePath,
-                        'source' => 'update'
-                    ];
-                }
-
-                // Guardar los archivos para este milestone
-                $milestoneFiles[$milestone->id] = [
-                    'title' => $milestone->title,
-                    'files' => $allFiles,
-                ];
+                return view('projects.show', compact('currentWorkspace', 'project', 'chartData', 'daysleft', 'projectFiles', 'milestoneFiles'));
+            } else {
+                return redirect()->back()->with('error', __("Project Not Found."));
             }
-            \Log::debug($milestoneFiles);
-            
-            return view('projects.show', compact('currentWorkspace', 'project', 'chartData', 'daysleft', 'projectFiles', 'milestoneFiles'));
         } else {
-            return redirect()->back()->with('error', __("Project Not Found."));
+            return redirect()->back()->with('error', __("Workspace Not Found."));
         }
-    } else {
-        return redirect()->back()->with('error', __("Workspace Not Found."));
     }
-}
 
 
     public function downloadFile(Request $request)
@@ -511,9 +511,9 @@ class ProjectController extends Controller
         $projectName = strtr($project->name, [' ' => '_']);
 
         // check if we're downloading a milestone file or a project file
-        $filePath ='';
+        $filePath = '';
 
-        if($inputs['milestoneTitle'] !== null && isset($inputs['milestoneTitle'])){
+        if ($inputs['milestoneTitle'] !== null && isset($inputs['milestoneTitle'])) {
 
             $filePath = 'app/public/milestones_files/' . $projectName . '/' . $inputs['fileName'];
         }
@@ -940,7 +940,7 @@ class ProjectController extends Controller
     }
 
     public function taskCreate($slug)
-    {   
+    {
         $currentWorkspace = Utility::getWorkspaceBySlug($slug);
         $taskType = TaskType::select('id', 'name', 'project_type')->get()->map(function ($task) {
             return [
@@ -995,7 +995,7 @@ class ProjectController extends Controller
     public function milestoneOrderUpdate(Request $request, $slug, $projectID)
     {
         $currentWorkspace = Utility::getWorkspaceBySlug($slug);
-        $project_name = Project::where('id', $projectID)->first();
+
         if (isset($currentWorkspace)) {
             if (isset($request->sort)) {
                 foreach ($request->sort as $index => $milestoneID) {
@@ -1012,16 +1012,21 @@ class ProjectController extends Controller
                 $milestone = Milestone::find($request->id);
                 $milestone->status = $request->new_status;
                 $milestone->save();
-                
+
                 if ($milestone->status == 4) {
- 
                     $tasksTomilestones = Task::where('milestone_id', $milestone->id)->get();
+
                     foreach ($tasksTomilestones as $task) {
                         $task->end_date = date('Y-m-d');
                         $task->save();
                     }
+
+                    $project = Project::find($milestone->project_id);
+                    if (isset($project)) {
+                        $project->updateProjectStatus();
+                    }
                 }
-                
+
                 $name = $user->name;
                 $id = $user->id;
 
@@ -1029,7 +1034,6 @@ class ProjectController extends Controller
             }
         }
     }
-
 
     public function taskOrderUpdate(Request $request, $slug, $projectID)
     {
@@ -1407,31 +1411,31 @@ class ProjectController extends Controller
     {
         $user = Auth::user();
         $currentWorkspace = Utility::getWorkspaceBySlug($slug);
-    
+
         $objProject = Project::select(['projects.id', 'projects.name', 'projects.ref_mo'])
             ->where('projects.workspace', '=', $currentWorkspace->id)
             ->where(function ($query) use ($search) {
                 $query->where('projects.name', 'LIKE', "%" . $search . "%")
-                      ->orWhere('projects.ref_mo', 'LIKE', "%" . $search . "%");
+                    ->orWhere('projects.ref_mo', 'LIKE', "%" . $search . "%");
             })
             ->get();
-    
+
         $arrProject = [];
         foreach ($objProject as $project) {
             $displayName = $project->name;
             if (!empty($project->ref_mo)) {
                 $displayName .= " - " . $project->ref_mo;
             }
-    
+
             $arrProject[] = [
-                'text' => $displayName, 
+                'text' => $displayName,
                 'link' => route('projects.show', [$currentWorkspace->slug, $project->id]),
             ];
         }
-    
+
         return response()->json(['Projects' => $arrProject]);
     }
-    
+
 
     public function getMoJson($slug, $search = null)
     {
@@ -1604,6 +1608,10 @@ class ProjectController extends Controller
         $milestone->summary = $request->description ?? '';
         $milestone->save();
 
+        $project = Project::find($milestone->project_id);
+        if ($project) {
+            $project->updateProjectStatus();
+        }
 
         if ($request->hasFile('files')) {
 
@@ -1700,7 +1708,7 @@ class ProjectController extends Controller
             $milestone = Milestone::find($milestoneID);
             $milestoneName = $milestone->title;
             // Servidor
-           // $filePath = storage_path('milestones_files/' . $projectName . '/' . $milestoneName . '/' . $milestoneFile->file);
+            // $filePath = storage_path('milestones_files/' . $projectName . '/' . $milestoneName . '/' . $milestoneFile->file);
 
             // Local
             $filePath = storage_path('app/public/milestones_files/' . $projectName . '/' . $milestoneName . '/' . $milestoneFile->file);
@@ -1747,11 +1755,11 @@ class ProjectController extends Controller
         if ($request->hasFile('new_files')) {
 
             $projectFolder = str_replace(' ', '_', $project->name);
-            $milestoneFolder = str_replace(' ','_', $milestone->title);
+            $milestoneFolder = str_replace(' ', '_', $milestone->title);
             // url local
             // $dir = '/app/public/milestones_files/' . $projectFolder;
 
-            $dir = 'milestones_files/' . $projectFolder . '/'. $milestoneFolder;
+            $dir = 'milestones_files/' . $projectFolder . '/' . $milestoneFolder;
 
             $milestoneFolder = 'milestones_files/' . strtr($project->name, [" " => "_"]) . '/' . strtr($milestone->title, [" " => "_"]);
 

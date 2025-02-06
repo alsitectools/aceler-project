@@ -23,10 +23,8 @@ class Project extends Model
         'is_active',
     ];
 
-    public function getCollaborators()
-    {
-        //mostrara a los que hayan participado en el proyecto user_project ->where project_id
-    }
+
+
     public function creater()
     {
         return $this->hasOne('App\Models\User', 'id', 'created_by');
@@ -40,7 +38,6 @@ class Project extends Model
     public function users()
     {
         return $this->belongsToMany('App\Models\User', 'user_projects', 'project_id', 'user_id')
-            // ->where('users.type', 'user') no muestra s los comerciales
             ->withPivot('is_active')
             ->orderBy('users.id', 'ASC');
     }
@@ -93,14 +90,23 @@ class Project extends Model
         return Task::where('project_id', '=', $this->id)->get();
     }
 
-    // public function milestones()
-    // {
-    //     return $this->hasMany(Milestone::class, 'project_id');
-    // }
     public function milestones()
     {
         return $this->hasMany(Milestone::class);
     }
+
+    public function updateProjectStatus()
+    {
+        if ($this->milestones()->exists()) {
+            $this->status = 'Ongoing';
+        }
+        if (!$this->milestones()->where('status', '!=', 4)->exists()) {
+            $this->status = 'Finished';
+        }
+
+        $this->save();
+    }
+
     public function milestonesCount()
     {
         return $this->milestones()->count();
@@ -111,13 +117,10 @@ class Project extends Model
         return Task::where('project_id', $this->id)->whereRaw('FIND_IN_SET(?, assign_to)', [$user_id])->get();
     }
 
-    // public function user_tasks($user_id){
-    //     return Task::where('project_id','=',$this->id)->where('assign_to','=',$user_id)->get();
-    // }
+
     public function user_done_tasks($user_id)
     {
         return Task::where('project_id', '=', $this->id)->where('assign_to', '=', $user_id)->get();
-        // return Task::join('stages', 'stages.id', '=', 'tasks.status')->where('project_id', '=', $this->id)->where('assign_to', '=', $user_id)->where('stages.complete', '=', '1')->get();
     }
 
     public function timesheet()
@@ -143,11 +146,6 @@ class Project extends Model
         return round(($totalDone * 100) / $total);
     }
 
-    // public function milestones()
-    // {
-    //     return $this->hasMany('App\Models\Milestone', 'project_id', 'id');
-    // }
-
     public function files()
     {
         return $this->hasMany('App\Models\ProjectFile', 'project_id', 'id');
@@ -161,33 +159,28 @@ class Project extends Model
     {
         $timesheetArray = [];
         $projectIndex = 0;
+        $totalrecords = 0;
 
         $first_day = Carbon::parse($days['first_day']);
         $seventh_day = Carbon::parse($days['seventh_day']);
 
         foreach ($projects as $project) {
-
             $milestoneArray = [];
             $hasTasks = false;
 
             foreach ($project->milestones as $milestone) {
-
                 $taskArray = [];
                 foreach ($milestone->tasks as $task) {
-
                     $taskStart = Carbon::parse($task->start_date);
-                    $taskEnd = Carbon::parse($task->estimated_date);
+                    $taskEnd = $task->end_date ? Carbon::parse($task->end_date) : null;
 
-                    if ($taskStart->lte($seventh_day) && $taskEnd->gte($first_day)) {
-
+                    if ($taskStart->lte($seventh_day) && (!$taskEnd || $taskEnd->gte($first_day))) {
                         $taskData = self::processTaskTimesheets($task, $days, $currentWorkspace, $project->id, $userId);
                         $taskArray[] = $taskData;
                         $totalTaskTimes[] = $taskData['totaltime'];
-
                         $hasTasks = true;
                     }
                 }
-                
                 if (!empty($taskArray)) {
                     $milestoneArray[] = [
                         'milestone_name' => $milestone->title ?? 'unknown',
@@ -195,10 +188,8 @@ class Project extends Model
                     ];
                 }
             }
-
             if ($hasTasks) {
                 $totalrecords = count($totalTaskTimes);
-
                 $timesheetArray[] = [
                     'project_id' => $project->id,
                     'project_name' => $project->name,
@@ -229,13 +220,11 @@ class Project extends Model
             $userArray = [];
 
             foreach ($milestone->tasks as $task) {
+                $taskStart = Carbon::parse($task->start_date);
+                $taskEnd = $task->end_date ? Carbon::parse($task->end_date) : null;
 
-                $taskStart = Carbon::parse($task->start_date ?? $first_day);
-                $taskEnd = Carbon::parse($task->estimated_date ?? $seventh_day);
-
-                if ($taskStart->lte($seventh_day) && $taskEnd->gte($first_day)) {
+                if ($taskStart->lte($seventh_day) && (!$taskEnd || $taskEnd->gte($first_day))) {
                     $taskData = self::processTaskTimesheets($task, $days, $currentWorkspace, $project->id, $userId);
-
                     $totalTaskTimes[] = $taskData['totaltime'];
 
                     $user = User::find($task->assign_to);
@@ -247,7 +236,6 @@ class Project extends Model
                                 'taskArray' => []
                             ];
                         }
-
                         $userArray[$user->id]['taskArray'][] = $taskData;
                     }
                 }
@@ -260,7 +248,6 @@ class Project extends Model
                     'milestone_name' => $milestone->title ?? 'unknown',
                     'usersArray' => array_values($userArray),
                 ];
-
                 $totalrecords += array_sum(array_map(function ($user) {
                     return count($user['taskArray']);
                 }, $userArray));
@@ -272,7 +259,6 @@ class Project extends Model
             'totalrecords' => $totalrecords,
         ];
     }
-
 
     private static function processTaskTimesheets($task, $days, $currentWorkspace, $projectId, $userId)
     {
