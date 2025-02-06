@@ -349,7 +349,7 @@
                                             <div class="badge bg-success p-2 px-3 rounded"> {{ __('Finished') }}
                                             </div>
                                         @elseif($project->status == 'Ongoing')
-                                            <div class="badge bg-secundary p-2 px-3 rounded">
+                                            <div class="badge bg-secondary p-2 px-3 rounded">
                                                 {{ __('Ongoing') }}
                                             </div>
                                         @else

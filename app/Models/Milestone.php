@@ -73,8 +73,10 @@ class Milestone extends Model
         })->pluck('id');
 
         $firstTask = Task::whereIn('milestone_id', $milestoneIds)
+            ->whereNotNull('start_date')
             ->orderBy('start_date', 'asc')
             ->first();
+
 
         return $firstTask ? Carbon::parse($firstTask->start_date)->format('d-m-Y') : '...';
     }
@@ -85,14 +87,22 @@ class Milestone extends Model
             $query->select('project_id')
                 ->from('milestones')
                 ->where('id', $this->id);
-        })
-            ->pluck('id');
+        })->pluck('id');
+
+        $unfinishedTasks = Task::whereIn('milestone_id', $milestoneIds)
+            ->whereNull('end_date')
+            ->exists();
+
+        if ($unfinishedTasks) {
+            return '...';
+        }
 
         $lastTask = Task::whereIn('milestone_id', $milestoneIds)
+            ->whereNotNull('end_date')
             ->orderBy('end_date', 'desc')
             ->first();
 
-        return $lastTask->end_date ? Carbon::parse($lastTask->end_date)->format('d-m-Y') : '...';
+        return $lastTask ? Carbon::parse($lastTask->end_date)->format('d-m-Y') : '...';
     }
 
     public function salesManager()
