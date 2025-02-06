@@ -961,7 +961,6 @@ class ProjectController extends Controller
             'project_id' => 'required',
             'milestone_id' => 'required',
             'type_id' => 'required',
-            'start_date' => 'required',
             'estimated_date' => 'required',
         ]);
 
@@ -980,7 +979,7 @@ class ProjectController extends Controller
             $task->project_id = $request->project_id;
             $task->milestone_id = $request->milestone_id;
             $task->type_id = $request->type_id;
-            $task->start_date = $request->start_date;
+            $task->start_date = date('Y-m-d');
             $task->estimated_date = $request->estimated_date;
             $task->assign_to = $user->id;
             $task->save();
