@@ -94,12 +94,17 @@ class Project extends Model
     {
         return $this->hasMany(Milestone::class);
     }
+    public function activeMilestones()
+    {
+        return $this->hasMany(Milestone::class)->where('status', 2);
+    }
 
     public function updateProjectStatus()
     {
-        if ($this->milestones()->exists()) {
+        if ($this->milestones()->where('status', 3)->exists() || $this->milestones()->exists()) {
             $this->status = 'Ongoing';
         }
+
         if (!$this->milestones()->where('status', '!=', 4)->exists()) {
             $this->status = 'Finished';
         }
@@ -160,6 +165,7 @@ class Project extends Model
         $timesheetArray = [];
         $projectIndex = 0;
         $totalrecords = 0;
+        $user_id = Auth::user()->id;
 
         $first_day = Carbon::parse($days['first_day']);
         $seventh_day = Carbon::parse($days['seventh_day']);
@@ -168,9 +174,10 @@ class Project extends Model
             $milestoneArray = [];
             $hasTasks = false;
 
-            foreach ($project->milestones as $milestone) {
+            foreach ($project->activeMilestones as $milestone) {
+
                 $taskArray = [];
-                foreach ($milestone->tasks as $task) {
+                foreach ($milestone->userTasks($user_id)->get() as $task) {
                     $taskStart = Carbon::parse($task->start_date);
                     $taskEnd = $task->end_date ? Carbon::parse($task->end_date) : null;
 

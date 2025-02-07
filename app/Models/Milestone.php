@@ -48,10 +48,11 @@ class Milestone extends Model
         return $this->belongsTo(Project::class, 'project_id', 'id');
     }
 
-    // public function tasks()
-    // {
-    //     return $this->hasMany(Task::class, 'milestone_id', 'id');
-    // }
+    public function userTasks($userId)
+    {
+        return $this->hasMany(Task::class)->where('assign_to', $userId);
+    }
+    
     public function tasks()
     {
         return $this->hasMany(Task::class);
