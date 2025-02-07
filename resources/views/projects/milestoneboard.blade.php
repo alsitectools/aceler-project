@@ -113,7 +113,9 @@
                                 
                                 @if ($status->name === 'Done')
                             @if ($project_id == -1)
+                            
                                 <img id="toggleCompletedProjectsIcon" src="{{ asset('assets/img/clipboard-check-solid.svg') }}" alt="show completed projects" title="{{ __('Show Completed Projects') }}" class="showCompletedProjects showCompletedProjectsUnabled"/>
+                              
                                 @endif
                             @endif
                                     <button class="btn-submit btn btn-md btn-primary btn-icon px-1 py-0 " style="height: 19.7px;">
@@ -500,33 +502,54 @@
             var project_id = a(el).data('project-id');
             var milestoneTitle = a(el).find('#mileTitle').text(); // Título del milestone
 
-            // Si el elemento viene de un status mayor o igual a 2 y se intenta mover a status 1, se revierte el cambio.
-            if (oldStatus >= 2 && newStatus == 1) {
-                console.log('Movimiento no permitido: No se puede mover un elemento de status ' + oldStatus + ' a status 1.');
+            // Definir las transiciones permitidas
+            const allowedTransitions = {
+    4: [3],    // oldStatus 4 solo puede ir a 3
+    3: [2, 4], // oldStatus 3 solo puede ir a 2 o 4
+    2: [3],    // oldStatus 2 solo puede ir a 3
+    1: [2]     // oldStatus 1 solo puede ir a 2
+};
 
-                // Se recupera el contenedor de origen y la posición original que se almacenaron en el evento "drag"
-                var originContainer = a(el).data('originContainer');
-                var originalIndex = a(el).data('originalIndex');
+// Verificar si el movimiento es válido
+if (!(allowedTransitions[oldStatus] && allowedTransitions[oldStatus].includes(newStatus))) {
+    console.log(`Movimiento no permitido: No se puede mover un elemento de status ${oldStatus} a status ${newStatus}.`);
 
-                // Removemos el elemento del contenedor destino
-                a(target).remove(el);
+    // Se recupera el contenedor de origen y la posición original que se almacenaron en el evento "drag"
+    var originContainer = a(el).data('originContainer');
+    var originalIndex = a(el).data('originalIndex');
 
-                // Reinsertamos en el contenedor de origen en la posición original
-                var $origin = a(originContainer);
-                var $cards = $origin.find('.card');
-                if ($cards.length > 0 && originalIndex < $cards.length) {
-                    a(el).insertBefore($cards.eq(originalIndex));
-                } else {
-                    $origin.append(el);
-                }
+    // Asegurarse de que el contenedor de origen aún existe
+    var $origin = a(originContainer);
+    if ($origin.length === 0) {
+        console.error("El contenedor de origen ya no existe en el DOM.");
+        return;
+    }
 
-                // Actualizamos el contador de tareas de ambos contenedores
-                updateTaskCount(source);
-                updateTaskCount(target);
+    // Remover el elemento del contenedor destino correctamente
+    a(el).detach(); // Mejor que .remove(), evita errores de referencia
 
-                // No se ejecuta la llamada AJAX ya que se ha cancelado el cambio
-                return;
-            }
+    // Obtener todas las tarjetas dentro del contenedor original
+    var $cards = $origin.children('.card');
+
+    // Reinsertamos en la posición original
+    if ($cards.length > 0 && originalIndex < $cards.length) {
+        a(el).insertBefore($cards.eq(originalIndex));
+    } else {
+        $origin.append(el);
+    }
+
+    // Limpiar referencias de origen para evitar anidamientos
+    a(el).data('originContainer', null);
+    a(el).data('originalIndex', null);
+
+    // Actualizamos el contador de tareas de ambos contenedores
+    updateTaskCount(source);
+    updateTaskCount(target);
+
+    // No se ejecuta la llamada AJAX ya que se ha cancelado el cambio
+    return;
+}
+
 
             // Si se permite el movimiento y es de status 1 a 2, se dispara la acción de "Add Task"
             if (oldStatus == 1 && newStatus >= 2) {
@@ -690,7 +713,7 @@
                 type: 'GET',
                 data: taskData,
                 success: function(data) {
-    console.log('AJAX success', data); // Verificar contenido
+    console.log('AJAX success'); // Verificar contenido
     $('#modal-container .modal-content').html(data);
     var myModal = new bootstrap.Modal(document.getElementById('modal-container'));
     myModal.show();
