@@ -1004,6 +1004,7 @@ class ProjectController extends Controller
                     $milestone->save();
                 }
             }
+            $project = Project::find($milestone->project_id);
 
             if ($request->new_status != $request->old_status) {
                 $new_status = Stage::find($request->new_status);
@@ -1013,17 +1014,15 @@ class ProjectController extends Controller
                 $milestone->status = $request->new_status;
                 $milestone->save();
 
+                if (isset($project)) {
+                    $project->updateProjectStatus();
+                }
                 if ($milestone->status == 4) {
                     $tasksTomilestones = Task::where('milestone_id', $milestone->id)->get();
 
                     foreach ($tasksTomilestones as $task) {
                         $task->end_date = date('Y-m-d');
                         $task->save();
-                    }
-
-                    $project = Project::find($milestone->project_id);
-                    if (isset($project)) {
-                        $project->updateProjectStatus();
                     }
                 }
 
@@ -3006,7 +3005,7 @@ class ProjectController extends Controller
 
         $project_id = $request->input('project_id');
         $task_id = $request->input('task_id');
-        $selected_date = $request->input('date');
+        $selected_date = $request->input('date') ? $request->input('date') : date('Y-m-d');
         $user_id = $request->input('user_id');
 
         $project = Project::find($project_id);

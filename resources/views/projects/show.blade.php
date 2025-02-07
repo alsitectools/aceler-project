@@ -522,7 +522,7 @@
                                                             @else
                                                                 <label
                                                                     class="badge p-2 px-3 rounded {{ $milestone->status == 1 ? 'bg-warning' : 'bg-secondary' }}">
-                                                                    {{ $milestone->status == 1 ? __('OnHold') : __('Ongoing') }}
+                                                                    {{ $milestone->status == 1 ? __('For Review') : __('Ongoing') }}
                                                                 </label>
                                                             @endif
                                                         </td>
