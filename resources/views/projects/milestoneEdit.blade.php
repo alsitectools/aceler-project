@@ -1,6 +1,6 @@
 <head>
     <link rel="stylesheet" href="{{ asset('assets/css/milestone.css') }}">
-    <script src="{{ asset('assets/js/milestone_uploadfiles.js') }}" defer></script>
+    <!--<script src="{{ asset('assets/js/milestone_uploadfiles.js') }}" defer></script>-->
 </head>
 @if ($milestone && $currentWorkspace)
     <form method="post" action="{{ route('projects.milestone.update', [$currentWorkspace->slug, $milestone->id]) }}"
@@ -95,99 +95,119 @@
 </script>
 
 <script>
-     document.getElementById('dropzonewidgetMilestone').addEventListener('click', function() {
-        document.getElementById('file-uploadMilestone').click();
-    });
-    
-    document.getElementById('file-uploadMilestone').addEventListener('change', function(event) {
-        const newFiles = Array.from(event.target.files);
+   let filesArray = [];
 
-        newFiles.forEach((file) => {
-            if (!filesArray.some((f) => f.name === file.name && f.size === file.size)) {
-                filesArray.push(file);
-            } else {
-                console.warn(`Archivo duplicado ignorado: ${file.name}`);
-            }
+document.getElementById('dropzonewidgetMilestone').addEventListener('click', function() {
+    document.getElementById('file-uploadMilestone').click();
+});
+
+document.getElementById('file-uploadMilestone').addEventListener('change', function(event) {
+    const newFiles = Array.from(event.target.files);
+    const existingFileNames = Array.from(document.querySelectorAll('.file-name'))
+        .map(fileNameElement => fileNameElement.textContent.trim().split(" (")[0]);
+
+    newFiles.forEach(file => {
+        let fileName = file.name;
+        let fileBaseName = fileName.substring(0, fileName.lastIndexOf(".")) || fileName;
+        let fileExtension = fileName.substring(fileName.lastIndexOf(".")) || "";
+        let newFileName = fileName;
+
+        // Evitar archivos con nombres duplicados agregando "_update"
+        while (existingFileNames.includes(newFileName)) {
+            fileBaseName = fileBaseName.endsWith("_update") ? fileBaseName + "_update" : fileBaseName + "_update";
+            newFileName = `${fileBaseName}${fileExtension}`;
+        }
+
+        let renamedFile = new File([file], newFileName, { type: file.type, lastModified: file.lastModified });
+
+        let fileKey = `${renamedFile.name}-${renamedFile.size}-${renamedFile.lastModified}`;
+        if (!filesArray.some(f => `${f.name}-${f.size}-${f.lastModified}` === fileKey)) {
+            filesArray.push(renamedFile);
+            existingFileNames.push(newFileName);
+        }
+    });
+
+    updateFileList();
+});
+
+// 🔹 Función para actualizar la lista visual y los inputs ocultos
+function updateFileList() {
+    const fileListElement = document.getElementById('file-list');
+    const hiddenInputsContainer = document.getElementById('hidden-file-inputs');
+
+    fileListElement.innerHTML = '';
+    hiddenInputsContainer.innerHTML = '';
+
+    filesArray.forEach(file => {
+        const fileKey = `${file.name}-${file.size}-${file.lastModified}`;
+
+        const fileContainer = document.createElement('div');
+        fileContainer.classList.add('file', 'd-flex', 'align-items-center', 'mt-2');
+
+        const icon = document.createElement('img');
+        icon.src = getIconPath(file.name);
+        icon.alt = `${getExtension(file.name)} icon`;
+        icon.style.width = '20px';
+        icon.style.height = '25px';
+        fileContainer.appendChild(icon);
+
+        const fileNameContainer = document.createElement('div');
+        fileNameContainer.classList.add('file-name', 'ms-2');
+        fileNameContainer.textContent = file.name;
+        fileContainer.appendChild(fileNameContainer);
+
+        const fileSize = document.createElement('small');
+        fileSize.classList.add('text-muted', 'ms-2');
+        fileSize.textContent = `(${formatFileSize(file.size)})`;
+        fileNameContainer.appendChild(fileSize);
+
+        const removeButton = document.createElement('button');
+        removeButton.classList.add('btn', 'btn-danger', 'btn-sm', 'ms-2');
+        removeButton.textContent = "X";
+        removeButton.addEventListener('click', function () {
+            filesArray = filesArray.filter(f => `${f.name}-${f.size}-${f.lastModified}` !== fileKey);
+            document.getElementById(fileKey).remove();
+            updateFileList();
         });
+        fileContainer.appendChild(removeButton);
 
-        updateFileList();
-    });
+        fileListElement.appendChild(fileContainer);
 
-    function updateFileList() {
-        const fileListElement = document.getElementById('file-list');
-        const hiddenInputsContainer = document.getElementById('hidden-file-inputs');
-
-        fileListElement.innerHTML = '';
-        hiddenInputsContainer.innerHTML = '';
-
-        filesArray.forEach((file, index) => {
-            const fileContainer = document.createElement('div');
-            fileContainer.classList.add('file');
-
-            // Ícono de la extensión
-            const icon = document.createElement('img');
-            icon.src = getIconPath(file.name);
-            icon.alt = `${getExtension(file.name)} icon`;
-            icon.style.width = '20px';
-            icon.style.height = '25px';
-            fileContainer.appendChild(icon);
-
-            const fileNameContainer = document.createElement('div');
-            fileNameContainer.classList.add('file-name');
-            fileNameContainer.textContent = file.name;
-            fileContainer.appendChild(fileNameContainer);
-
-            const fileDetailsSmall = document.createElement('small');
-            fileDetailsSmall.classList.add('text-muted', 'ms-1');
-            fileDetailsSmall.innerHTML = ' · ' + `(${formatFileSize(file.size)})`;
-
-            const removeButton = document.createElement('button');
-            removeButton.classList.add('btn', 'btn-link', 'text-danger', 'p-0');
-            removeButton.innerHTML = '<i class="ps-2 fa-solid fa-xmark"></i>';
-            removeButton.addEventListener('click', function() {
-                filesArray.splice(index, 1);
-                updateFileList();
-            });
-            fileNameContainer.appendChild(fileDetailsSmall);
-            fileContainer.appendChild(removeButton);
-
-            // Añadir a la lista visual
-            fileListElement.appendChild(fileContainer);
-
-            // Crear un input oculto para cada archivo
+        // 🔹 Crear un input oculto con ID único para cada archivo
+        if (!document.getElementById(fileKey)) {
             const input = document.createElement('input');
             input.type = 'file';
-            input.name = 'files[]';
+            input.name = 'new_files[]';
+            input.id = fileKey;
             input.style.display = 'none';
 
             const dataTransfer = new DataTransfer();
             dataTransfer.items.add(file);
             input.files = dataTransfer.files;
 
-            // Agregar el input al contenedor oculto
             hiddenInputsContainer.appendChild(input);
-        });
-    }
+        }
+    });
+}
 
-    // Función para obtener la ruta del ícono basado en la extensión del archivo
-    function getIconPath(filename) {
-        const extension = getExtension(filename);
-        const iconPath = `${assetBasePath}${extension}.png`;
-        const defaultIcon = `${assetBasePath}default.png`;
+// 🔹 Funciones auxiliares para íconos, extensiones y tamaños de archivos
+function getIconPath(filename) {
+    const extension = getExtension(filename);
+    const supportedExtensions = ['pdf', 'doc', 'jpg', 'png', 'xlsx', 'txt', 'dwg', 'dxf', 'img', 'docx', 'zip'];
 
-        const supportedExtensions = ['pdf', 'doc', 'jpg', 'png', 'xlsx', 'txt', 'dwg', 'dxf', 'img', 'docx', 'zip'];
-        return supportedExtensions.includes(extension) ? iconPath : defaultIcon;
-    }
+    return supportedExtensions.includes(extension)
+        ? `${assetBasePath}${extension}.png`
+        : `${assetBasePath}default.png`;
+}
 
-    // Función para obtener la extensión del archivo
-    function getExtension(filename) {
-        return filename.split('.').pop().toLowerCase();
-    }
+function getExtension(filename) {
+    return filename.split('.').pop().toLowerCase();
+}
 
-    // Función para formatear el tamaño del archivo (bytes a KB/MB)
-    function formatFileSize(bytes) {
-        if (bytes < 1024) return `${bytes} B`;
-        if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(2)} KB`;
-        return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
-    }
+function formatFileSize(bytes) {
+    if (bytes < 1024) return `${bytes} B`;
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(2)} KB`;
+    return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
+}
+
 </script>

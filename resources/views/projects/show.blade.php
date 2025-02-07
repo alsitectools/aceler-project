@@ -115,6 +115,18 @@
         margin-left: 10px;
     }
 
+    .fatherMilestoneDiv{
+        max-height: 140px;
+        overflow-y: auto;
+        overflow-x: hidden;
+        display: flex;
+        flex-direction: column;
+    }
+    .milestoneGridDisplay{
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 10px;
+    }
     @media (max-width: 1300px) {
         .header_breadcrumb {
             width: 100% !important;
@@ -531,7 +543,7 @@
                                                         <td>{{ $milestone->end_date ? Carbon::parse($milestone->end_date)->format('d-m-Y') : '...' }}
                                                         </td>
                                                         <td>{{ $milestone->taskStart() }}</td>
-                                                        <td>{{ $milestone->tasksEnd() }}</td>
+                                                        
                                                         <td class="text-right">
                                                             <div class="col-auto">
                                                                 <a href="#"
@@ -750,7 +762,7 @@
                                         </div>
                                     </div>
                                     <div class="mt-3">
-                                        <h5>{{ __('Uploaded Files') }}</h5>
+                                        <h5>{{ __('Project files') }}</h5>
                                         <!-- Contenedor único scrollable -->
                                         <div class="uploaded-files-container top-10-scroll">
                                             <!-- Sección de archivos del proyecto -->
@@ -781,7 +793,7 @@
                                                                 class="buttonFiles">
                                                                 <i class="ti ti-download" style="color:white"></i>
                                                             </a>
-                                                            <a onclick="deleteFile({{ $project->id }}, '{{ basename($file['original']) }}')"
+                                                            <a onclick="deleteFile({{ $project->id }}, '', '{{ basename($file['original']) }}')"
                                                                 class="buttonFiles">
                                                                 <i class="fa-solid fa-trash" style="color:white"></i>
                                                             </a>
@@ -791,61 +803,39 @@
                                             @else
                                                 <p class="text-muted">{{ __('No project files uploaded yet.') }}</p>
                                             @endif
-                                            <div style="display: flex; flex-direction: column;">
+                                            </div>
+                                            <div class="fatherMilestoneDiv">
                                                 <!-- Sección de archivos de Milestones -->
                                                 @if (!empty($milestoneFiles) && count($milestoneFiles) > 0)
+                                                    <h6>{{ __('Milestone files') }}</h6>
                                                     @foreach ($milestoneFiles as $milestone)
                                                         <div class="milestone-files" style="margin-bottom: 15px;">
                                                             <h6>{{ $milestone['title'] }}</h6>
-                                                            @if (!empty($milestone['files']) && count($milestone['files']) > 0)
-                                                                @php
-                                                                    $cleanedMilestoneFiles = [];
-                                                                    foreach ($milestone['files'] as $file) {
-                                                                        $filename = basename($file['path']);
-                                                                        $parts = explode('_', $filename);
-                                                                        $cleanFilename = isset($parts[2])
-                                                                            ? implode('_', array_slice($parts, 2))
-                                                                            : $filename;
-                                                                        $cleanedMilestoneFiles[] = [
-                                                                            'original' => $file['path'],
-                                                                            'cleaned' => $cleanFilename,
-                                                                            'source' => $file['source'],
-                                                                        ];
-                                                                    }
-                                                                    usort($cleanedMilestoneFiles, function ($a, $b) {
-                                                                        return strcmp($a['cleaned'], $b['cleaned']);
-                                                                    });
-                                                                @endphp
-
-                                                                @foreach ($cleanedMilestoneFiles as $file)
-                                                                    <div class="uploaded-file">
-                                                                        <p>{{ $file['cleaned'] }}</p>
-                                                                        <div class="uploaded-file-buttons">
-                                                                            <a onclick="downloadFile({{ $project->id }}, '{{ $milestone['title'] }}', '{{ basename($file['original']) }}', '{{ $file['source'] }}')"
-                                                                                class="buttonFiles">
-                                                                                <i class="ti ti-download"
-                                                                                    style="color:white"></i>
-                                                                            </a>
-                                                                            <a onclick="deleteFile({{ $project->id }}, '{{ basename($file['original']) }}')"
-                                                                                class="buttonFiles">
-                                                                                <i class="fa-solid fa-trash"
-                                                                                    style="color:white"></i>
-                                                                            </a>
+                                                            
+                                                            <div class="milestoneGridDisplay">
+                                                                @if (!empty($milestone['files']) && count($milestone['files']) > 0)
+                                                                    @foreach ($milestone['files'] as $file)
+                                                                        <div class="uploaded-file" style="display: flex; justify-content: space-between; align-items: center; padding: 5px; border: 1px solid #ccc; border-radius: 5px; background: #fff;">
+                                                                            <p style="margin: 0;">{{ basename($file) }}</p>
+                                                                            <div class="uploaded-file-buttons" style="display: flex; gap: 5px;">
+                                                                                <a onclick="downloadFile({{ $project->id }}, '{{ $milestone['title'] }}', '{{ basename($file) }}')" class="buttonFiles">
+                                                                                    <i class="ti ti-download" style="color:white"></i>
+                                                                                </a>
+                                                                                <a onclick="deleteFile({{ $project->id }}, '{{ $milestone['title'] }}', '{{ basename($file) }}')" class="buttonFiles">
+                                                                                    <i class="fa-solid fa-trash" style="color:white"></i>
+                                                                                </a>
+                                                                            </div>
                                                                         </div>
-                                                                    </div>
-                                                                @endforeach
-                                                            @else
-                                                                <p class="text-muted">
-                                                                    {{ __('No files uploaded for this milestone.') }}</p>
-                                                            @endif
+                                                                    @endforeach
+                                                                @else
+                                                                    <p class="text-muted">{{ __('No files uploaded for this milestone.') }}</p>
+                                                                @endif
+                                                            </div>
                                                         </div>
                                                     @endforeach
-                                                @else
-                                                    <p class="text-muted">{{ __('No milestones files uploaded yet.') }}
-                                                    </p>
                                                 @endif
                                             </div>
-                                        </div>
+
                                     </div>
                                 </div>
                             </div>
@@ -974,14 +964,18 @@
             });
         }
 
-        function deleteFile(idProject, file) {
+        function deleteFile(idProject, titleMilestone, file) {
             const downloadUrl = '<?php echo url('projects/delete-file'); ?>';
 
+            console.log(idProject)
+            console.log(titleMilestone)
+            console.log(file)
             $.ajax({
                 url: downloadUrl,
                 method: 'POST',
                 data: {
                     "idProject": idProject,
+                    "milestoneTitle": titleMilestone,
                     "fileName": file,
                     _token: $('meta[name="csrf-token"]').attr('content')
                 },
