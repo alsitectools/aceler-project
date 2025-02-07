@@ -1610,6 +1610,9 @@ public function milestoneStore($slug, $projectID, Request $request)
     $milestone->summary = $request->description ?? '';
     $milestone->save();
 
+    if (isset($project)) {
+        $project->updateProjectStatus();
+    }
     //  Guardar archivos en "storage/project_files/{proyecto}/{milestone}"
     if ($request->hasFile('files')) {
         $projectFolder = preg_replace('/[^A-Za-z0-9_\-]/', '_', $project->name);
