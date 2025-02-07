@@ -117,6 +117,7 @@ Route::get('/{slug}/projects{id}/edit', [ProjectController::class, 'copylink_set
 Route::get('/{slug}/projects/{id}/bug_report/{bid}/show', [ProjectController::class, 'bugReportShow'])->name('projects.bug.report.show')->middleware(['XSS']);
 Route::get('/{slug}/timesheet-table-view', [ProjectController::class, 'filterTimesheetTableView'])->name('filter.timesheet.table.view')->middleware(['XSS']);
 
+Route::get('/{slug}/timesheet/createOrderForms/{project_id}', [ProjectController::class, 'creatTimeshitFromOrderForms'])->name('create.timesheet.from.orders')->middleware(['auth', 'XSS']);
 
 //================================= Invoice Payment Gateways for Copylink ====================================//
 
@@ -671,7 +672,7 @@ Route::get('/{slug}/timesheet', [ProjectController::class, 'timesheet'])->name('
 // Route::get('/{slug}/timesheet/{id}', [ProjectController::class, 'timesheet'])->name('timesheet.index')->middleware(['auth', 'XSS']);
 Route::get('/{slug}/timesheet/create', [ProjectController::class, 'timesheetCreate'])->name('timesheet.create')->middleware(['auth', 'XSS']);
 Route::post('/{slug}/timesheet/store', [ProjectController::class, 'timesheetStore'])->name('timesheet.store')->middleware(['auth', 'XSS']);
-Route::get('/{slug}/timesheet/{id}/edit', [ProjectController::class, 'timesheetEdit'])->name('timesheet.edit')->middleware(['auth', 'XSS']);
+// Route::get('/{slug}/timesheet/{id}/edit', [ProjectController::class, 'timesheetEdit'])->name('timesheet.edit')->middleware(['auth', 'XSS']);
 Route::post('/{slug}/timesheet/{id}/update', [ProjectController::class, 'timesheetUpdate'])->name('timesheet.update')->middleware(['auth', 'XSS']);
 Route::delete('/{slug}/timesheet/{id}', [ProjectController::class, 'timesheetDestroy'])->name('timesheet.destroy')->middleware(['auth', 'XSS']);
 

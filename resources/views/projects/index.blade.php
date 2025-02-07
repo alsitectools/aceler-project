@@ -127,6 +127,7 @@ margin: 0px !important;    }
                                                         @if ($project->is_active && $project->created_by == Auth::user()->id)
                                                             @auth('web')
                                                                 <button type="button" class="btn dropdown-toggle"
+                                                                onclick="event.stopPropagation();"
                                                                     data-bs-toggle="dropdown" aria-haspopup="true"
                                                                     aria-expanded="false">
                                                                     <i class="feather icon-more-vertical"></i>

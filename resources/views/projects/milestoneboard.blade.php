@@ -80,6 +80,13 @@
 
 @section('action-button')
     <div class="d-flex justify-content-end row1">
+    <div id="modal-container" class="modal fade" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content" style="text-align: left; width: 800px;">
+            <!-- El contenido del modal se cargará aquí -->
+        </div>
+    </div>
+</div>
         @if (isset($currentWorkspace) && $currentWorkspace)
             <div class="col-sm-auto">
                 <button style="width: 100%" type="button" class="btn btn-primary addMilestone" data-ajax-popup="true"
@@ -209,37 +216,36 @@
                                                     @if ($milestone['tasks'])
                                                         <div class="col-sm-12  p-3"
                                                          >
-                                                            @foreach ($milestone['tasks'] as $task)
-                                                                <div class="taskList tooltipCus p-target mb-2 col-sm-12 marginText" data-title="{{ $task['technician']->name }}">
-                                                                    @php
-                                                                        $isLate =
-                                                                            strtotime($task['estimated_date']) <
-                                                                            strtotime(date('Y-m-d'));
-                                                                        $dateClass = $isLate ? 'danger' : 'success';
-                                                                        $icon =
-                                                                            $dateClass == 'danger'
-                                                                                ? '<i class="ms-2 me-2 fa-solid fa-hourglass-end fa-xs text-' .
-                                                                                    $dateClass .
-                                                                                    '"></i>'
-                                                                                : '<i class="ms-2 me-2 fa-solid fa-hourglass-start fa-xs p-0 m-0 text-' .
-                                                                                    $dateClass .
-                                                                                    '"></i>';
-                                                                    @endphp
-                                                                    {!! $icon !!}{{ __($task['name']) }}
-                                                                </div>
-                                                                @if ($project_id != -1)
-                                                                    <div class="tooltipCus col-sm-12 text-end"
-                                                                        data-title="{{ $task['technician']->name }}">
-                                                                        <a href="#">
+                                                         @foreach ($milestone['tasks'] as $task)
+    <div class="taskList tooltipCus p-target mb-2 col-sm-12 marginText"
+    role="button"
+         data-task-id="{{ $task['id'] }}"
+         data-task-name="{{ $task['name'] }}"
+         data-milestone-id="{{ $milestone['id'] }}"
+         data-project-id="{{ $milestone['project_id'] }}"
+         data-project-name="{{ $milestone['project_name'] }}"
+         data-technician-name="{{ $task['technician']->id }}"
+         data-url="{{ route('create.timesheet.from.orders', [$currentWorkspace->slug, $project_id]) }}"
+         data-ajax-timesheet-popup="true"
+         data-title="{{ $task['technician']->name }}">
+        @php
+            $isLate = strtotime($task['estimated_date']) < strtotime(date('Y-m-d'));
+            $dateClass = $isLate ? 'danger' : 'success';
+            $icon = $dateClass == 'danger'
+                        ? '<i class="ms-2 me-2 fa-solid fa-hourglass-end fa-xs text-' . $dateClass . '"></i>'
+                        : '<i class="ms-2 me-2 fa-solid fa-hourglass-start fa-xs p-0 m-0 text-' . $dateClass . '"></i>';
+        @endphp
+        {!! $icon !!}{{ __($task['name']) }}
+    </div>
+    @if ($project_id != -1)
+        <div class="taskList tooltipCus col-sm-12 text-end"
+             data-title="{{ $task['technician']->name }}">
+            <a href="#">
+            </a>
+        </div>
+    @endif
+@endforeach
 
-                                                                            <!-- <img alt="image"
-                                                                                class="tooltipCus user-groupTasks"
-                                                                                data-title="{{ $task['technician']->name }}"
-                                                                                @if ($task['technician']->avatar) src="{{ asset($task['technician']->avatar) }}" @else avatar="{{ $task['technician']->name }}" @endif> -->
-                                                                        </a>
-                                                                    </div>
-                                                                @endif
-                                                            @endforeach
                                                             @if ($project_id == -1)
                                                                 <div class="col-sm-11 text-end"
                                                                 data-title="{{ $task['technician']->name }}">
@@ -658,7 +664,45 @@
     });
 </script>
 @endif
+<script>
+    // Espera a que el DOM esté completamente cargado
+    document.addEventListener('DOMContentLoaded', function() {
+        
+        // Selecciona todos los elementos con la clase .taskList
+        const tasks = document.querySelectorAll('.taskList');
+        
 
+        tasks.forEach(task => {
+            task.addEventListener('click', function() {
+                // Obtiene los valores de los atributos data
+                const taskData = {
+                    task_id: this.getAttribute('data-task-id'),
+                    milestone_id: this.getAttribute('data-milestone-id'),
+                    project_id: this.getAttribute('data-project-id'),
+                    user_id: this.getAttribute('data-technician-name'),
+                    date : new Date().toISOString().split('T')[0],
+                };
+
+                // Muestra los datos en la consola del navegador
+                console.log(taskData);
+                $.ajax({
+                url : '{{ route('create.timesheet.from.orders', [$currentWorkspace->slug, $project_id]) }}',
+                type: 'GET',
+                data: taskData,
+                success: function(data) {
+    console.log('AJAX success', data); // Verificar contenido
+    $('#modal-container .modal-content').html(data);
+    var myModal = new bootstrap.Modal(document.getElementById('modal-container'));
+    myModal.show();
+},
+                error: function(xhr, status, error) {
+                    console.error('Error al actualizar el orden:', error);
+                }
+            });
+            });
+        });
+    });
+</script>
 
         @endpush
     @endif

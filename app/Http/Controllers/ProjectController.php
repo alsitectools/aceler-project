@@ -2172,19 +2172,71 @@ class ProjectController extends Controller
     }
 
 
-    public function timesheetEdit($slug, $timesheetID)
+    public function creatTimeshitFromOrderForms(Request $request,$slug,$project_id)
     {
-        $objUser = Auth::user();
-        $currentWorkspace = Utility::getWorkspaceBySlug($slug);
-        $projects = Project::select(
-            'projects.*'
-        )->join('user_projects', 'projects.id', '=', 'user_projects.project_id')
-            ->where('user_projects.user_id', '=', $objUser->id)
-            ->where('projects.workspace', '=', $currentWorkspace->id)->get();
-
-        $timesheet = Timesheet::find($timesheetID);
-
-        return view('projects.timesheetEdit', compact('currentWorkspace', 'timesheet', 'projects'));
+        \Log::info('Lets go');
+        \Log::info($request->all());
+        \Log::info($slug);
+        \Log::info($project_id);
+            $parseArray = [];
+            $objUser = Auth::user();
+            $currentWorkspace = Utility::getWorkspaceBySlug($slug);
+    
+            $project_id = $request->input('project_id');
+            $task_id = $request->input('task_id');
+            $selected_date = $request->input('date');
+            $user_id = $request->input('user_id');
+    
+            $project = Project::find($project_id);
+    
+            if (!$project) {
+                return redirect()->back()->with('error', 'Project not found');
+            }
+    
+            $project_name = $project->name;
+    
+            $task = Task::where('project_id', $project_id)
+                ->where('id', $task_id)
+                ->first();
+    
+            if (!$task) {
+                return redirect()->back()->with('error', 'Task not found');
+            }
+    
+            $taskType = TaskType::where('project_type', $project->type)
+                ->where('id', $task->type_id)
+                ->first();
+    
+            $task_name = $taskType ? $taskType->name : 'Unknown';
+    
+            $tasktime = Timesheet::where('task_id', $task->id)
+                ->where('created_by', $user_id)
+                ->pluck('time')
+                ->toArray();
+    
+            $milestone = Milestone::find($task->milestone_id);
+            $milestone_name = $milestone->title ?? 'Sin hito';
+            $milestone_id = $milestone->id ?? null;
+    
+            $totaltasktime = Utility::calculateTimesheetHours($tasktime);
+    
+            $totalhourstimes = explode(':', $totaltasktime);
+            $totaltaskhour = $totalhourstimes[0] ?? '00';
+            $totaltaskminute = $totalhourstimes[1] ?? '00';
+    
+            $parseArray = [
+                'project_id' => $project->id,
+                'project_name' => $project_name,
+                'task_id' => $task->id,
+                'task_name' => $task_name,
+                'milestone_id' => $milestone_id,
+                'milestone_name' => __($milestone_name),
+                'date' => $selected_date,
+                'totaltaskhour' => $totaltaskhour,
+                'totaltaskminute' => $totaltaskminute,
+            ];
+    
+            return view('projects.timesheet-create', compact('currentWorkspace', 'parseArray'));
     }
 
     public function timesheetUpdate($slug, $timesheetID, Request $request)
@@ -2999,7 +3051,7 @@ class ProjectController extends Controller
 
     public function projectTimesheetCreate(Request $request, $slug, $project_id)
     {
-
+        \Log::info($request->all());
         $parseArray = [];
         $objUser = Auth::user();
         $currentWorkspace = Utility::getWorkspaceBySlug($slug);
