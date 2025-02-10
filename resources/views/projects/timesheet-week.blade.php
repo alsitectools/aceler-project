@@ -206,6 +206,7 @@
                                                                                         {{ ucfirst($days['datePeriod'][$dateKey]->isoFormat('ddd')) }}
                                                                                     </div>
                                                                                     @if (Auth::user()->id == $dateSubArray['user_id'])
+                                                                                    
                                                                                         <div role="button"
                                                                                             class="form-control week inputsTask"
                                                                                             title="{{ $dateSubArray['type'] == 'edit' ? __('Click to Edit/Delete Timesheet') : __('Click to Add Timesheet') }}"

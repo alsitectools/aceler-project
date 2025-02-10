@@ -96,7 +96,7 @@ class Project extends Model
     }
     public function activeMilestones()
     {
-        return $this->hasMany(Milestone::class)->where('status', 2);
+        return $this->milestones()->where('status', 2);
     }
 
     public function updateProjectStatus()
@@ -204,6 +204,7 @@ class Project extends Model
                 ];
             }
         }
+        \Log::info(['processAllProjectsTimesheets-> timesheetArray' => $timesheetArray]);
 
         return [
             'timesheetArray' => $timesheetArray,
@@ -212,6 +213,7 @@ class Project extends Model
     }
     private static function processSingleProjectTimesheets($project, $timesheets, $days, $currentWorkspace, $userId, &$totalTaskTimes)
     {
+        \Log::info('processSingleProjectTimesheets');
         $timesheetArray = [];
         $totalrecords = 0;
 
@@ -308,7 +310,7 @@ class Project extends Model
 
             $dateArray['week'][$j] = [
                 'project_id' => $projectId,
-                'user_id' => $userId,
+                'user_id' => $task->assign_to,
                 'task_id' => $task->id,
                 'milestone_id' => $task->milestone_id,
                 'date' => $date,
