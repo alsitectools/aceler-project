@@ -321,15 +321,18 @@ class CalenderController extends Controller
                     if ($dataDay['date'] === $currentDate) {
                         $workedHours = $dataDay['hours'];
 
-                        if ($workedHours == 0) {
-                            $dayColor = '#e06c71'; // No se imputaron horas
-                        } elseif ($workedHours < $expectedHour) {
-                            $dayColor = '#fcf75e'; // Horas parciales
-                        } elseif ($workedHours == $expectedHour) {
-                            $dayColor = '#cbd7bf'; // Horas completas
-                        } else {
-                            $dayColor = '#b2e2f2'; // Horas extras
+                        $workedHoursFormatted = date('H:i', strtotime($workedHours));
+
+                        if ($workedHoursFormatted == '00:00') {
+                            $dayColor = '#e06c71'; // No se imputaron horas (rojo)
+                        } elseif ($workedHoursFormatted < $expectedHour) {
+                            $dayColor = '#fcf75e'; // Horas parciales (amarillo)
+                        } elseif ($workedHoursFormatted == $expectedHour) {
+                            $dayColor = '#89e186'; // Horas completas (verde)
+                        } elseif($workedHoursFormatted > $expectedHour) {
+                            $dayColor = '#b2e2f2'; // Horas extras (azul)
                         }
+                        
                         break;
                     }
                 }

@@ -30,11 +30,11 @@ class Milestone extends Model
         return  round((strtotime($this->end_date) - strtotime(date('Y-m-d'))) /   24 / 60 / 60,);
     }
 
-    // function tasks()
-    // {
-    //     return Task::join('task_types', 'task_types.id', 'tasks.type_id')
-    //         ->where('tasks.milestone_id', $this->id)->pluck('task_types.name');
-    // }
+    function showMilestonetasks()
+    {
+        return Task::join('task_types', 'task_types.id', 'tasks.type_id')
+            ->where('tasks.milestone_id', $this->id)->pluck('task_types.name');
+    }
     // public function tasks()
     // {
     //     return Task::join('task_types', 'task_types.id', '=', 'tasks.type_id')

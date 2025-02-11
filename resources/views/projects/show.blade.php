@@ -52,17 +52,11 @@
 
     .uploaded-files-container {
         display: grid;
-        /* Cambia a un diseño de cuadrícula */
         grid-template-columns: repeat(3, 1fr);
-        /* Limita a 3 elementos por fila */
         gap: 10px;
-        /* Espaciado entre los archivos */
         max-height: 140px;
-        /* Limita la altura del contenedor */
         overflow-y: auto;
-        /* Permite el desplazamiento vertical si hay demasiados archivos */
         overflow-x: hidden;
-        /* Evita el desplazamiento horizontal */
     }
 
     .uploaded-file {
@@ -95,13 +89,13 @@
     }
 
     .buttonFiles {
-        background-color: #aa182c;
-        width: 25px;
-        height: 25px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        border-radius: 5px;
+        background-color: #aa182c !important;
+        width: 25px !important;
+        height: 25px !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        border-radius: 5px !important;
     }
 
     .buttonFiles:hover {
@@ -126,6 +120,12 @@
         display: grid;
         grid-template-columns: repeat(3, 1fr);
         gap: 10px;
+    }
+    .styleIconFiles{
+        width: 12%;
+        height: 65%;
+        padding-left: 5px;
+        padding-right: 5px;
     }
     @media (max-width: 1300px) {
         .header_breadcrumb {
@@ -323,7 +323,6 @@
         }
     }
 </style>
-
 @section('content')
     <div class="row">
         <!-- [ sample-page ] start -->
@@ -543,7 +542,7 @@
                                                         <td>{{ $milestone->end_date ? Carbon::parse($milestone->end_date)->format('d-m-Y') : '...' }}
                                                         </td>
                                                         <td>{{ $milestone->taskStart() }}</td>
-                                                        
+                                                        <td>{{ $milestone->tasksEnd() }}</td>
                                                         <td class="text-right">
                                                             <div class="col-auto">
                                                                 <a href="#"
@@ -786,17 +785,33 @@
                                                 @endphp
 
                                                 @foreach ($cleanedFiles as $file)
+                                                    @php
+                                                        $extension = pathinfo($file['cleaned'], PATHINFO_EXTENSION);
+                                                        $iconPath = file_exists(public_path('assets/iconFilesTypes/' . $extension . '.png'))
+                                                            ? asset('assets/iconFilesTypes/' . $extension . '.png')
+                                                            : asset('assets/iconFilesTypes/default.png');
+                                                    @endphp
                                                     <div class="uploaded-file">
+                                                        <img src="{{ asset($iconPath) }}" alt="{{ $extension }} icon" class="styleIconFiles">
                                                         <p>{{ $file['cleaned'] }}</p>
                                                         <div class="uploaded-file-buttons">
                                                             <a onclick="downloadFile({{ $project->id }}, '', '{{ basename($file['original']) }}')"
                                                                 class="buttonFiles">
                                                                 <i class="ti ti-download" style="color:white"></i>
                                                             </a>
-                                                            <a onclick="deleteFile({{ $project->id }}, '', '{{ basename($file['original']) }}')"
-                                                                class="buttonFiles">
-                                                                <i class="fa-solid fa-trash" style="color:white"></i>
+                                                            <a href="#" class=" buttonFiles dropdown-item bs-pass-para"
+                                                                data-confirm="{{ __('Are You Sure?') }}"
+                                                                data-text="{{ __('This action can not be undone. Do you want to continue?') }}"
+                                                                data-confirm-yes="delete-file-{{ $file['original'] }}">
+                                                                <i class="ti ti-trash" style="color:white"></i>
                                                             </a>
+
+                                                            <form id="delete-file-{{ $file['original'] }}" style="display: none;">
+                                                                @csrf
+                                                                <input type="hidden" name="idProject" value="{{ $project->id }}">
+                                                                <input type="hidden" name="milestoneTitle" value="">
+                                                                <input type="hidden" name="fileName" value="{{ basename($file['original']) }}">
+                                                            </form>
                                                         </div>
                                                     </div>
                                                 @endforeach
@@ -804,26 +819,62 @@
                                                 <p class="text-muted">{{ __('No project files uploaded yet.') }}</p>
                                             @endif
                                             </div>
-                                            <div class="fatherMilestoneDiv">
+                                            <h6 style="padding-top: 1%;">{{ __('Milestone files') }}</h6>
+                                            <div class="fatherMilestoneDiv top-10-scroll">
                                                 <!-- Sección de archivos de Milestones -->
                                                 @if (!empty($milestoneFiles) && count($milestoneFiles) > 0)
-                                                    <h6>{{ __('Milestone files') }}</h6>
+                                                    
                                                     @foreach ($milestoneFiles as $milestone)
                                                         <div class="milestone-files" style="margin-bottom: 15px;">
                                                             <h6>{{ $milestone['title'] }}</h6>
                                                             
                                                             <div class="milestoneGridDisplay">
                                                                 @if (!empty($milestone['files']) && count($milestone['files']) > 0)
-                                                                    @foreach ($milestone['files'] as $file)
-                                                                        <div class="uploaded-file" style="display: flex; justify-content: space-between; align-items: center; padding: 5px; border: 1px solid #ccc; border-radius: 5px; background: #fff;">
-                                                                            <p style="margin: 0;">{{ basename($file) }}</p>
-                                                                            <div class="uploaded-file-buttons" style="display: flex; gap: 5px;">
-                                                                                <a onclick="downloadFile({{ $project->id }}, '{{ $milestone['title'] }}', '{{ basename($file) }}')" class="buttonFiles">
+                                                                    @php
+                                                                        $cleanedMilestoneFiles = [];
+                                                                        foreach ($milestone['files'] as $file) {
+                                                                            $filename = basename($file);
+                                                                            $parts = explode('_', $filename);
+                                                                            $cleanFilename = isset($parts[2])
+                                                                                ? implode('_', array_slice($parts, 2)) // Limpia el nombre eliminando el prefijo
+                                                                                : $filename;
+                                                                            $cleanedMilestoneFiles[] = [
+                                                                                'original' => $file,
+                                                                                'cleaned' => $cleanFilename,
+                                                                            ];
+                                                                        }
+                                                                        // Ordena alfabéticamente por el nombre limpio
+                                                                        usort($cleanedMilestoneFiles, function ($a, $b) {
+                                                                            return strcmp($a['cleaned'], $b['cleaned']);
+                                                                        });
+                                                                    @endphp
+                                                                    @foreach ($cleanedMilestoneFiles as $file)
+                                                                        @php
+                                                                            $extension = pathinfo($file['cleaned'], PATHINFO_EXTENSION);
+                                                                            $iconPath = file_exists(public_path('assets/iconFilesTypes/' . $extension . '.png'))
+                                                                                ? asset('assets/iconFilesTypes/' . $extension . '.png')
+                                                                                : asset('assets/iconFilesTypes/default.png');
+                                                                        @endphp
+                                                                        <div class="uploaded-file">
+                                                                            <img src="{{ asset($iconPath) }}" alt="{{ $extension }} icon" class="styleIconFiles">
+                                                                            <p style="margin: 0;">{{ $file['cleaned'] }}</p>
+                                                                            <div class="uploaded-file-buttons">
+                                                                                <a onclick="downloadFile({{ $project->id }}, '{{ $milestone['title'] }}', '{{ basename($file['original']) }}')" class="buttonFiles">
                                                                                     <i class="ti ti-download" style="color:white"></i>
                                                                                 </a>
-                                                                                <a onclick="deleteFile({{ $project->id }}, '{{ $milestone['title'] }}', '{{ basename($file) }}')" class="buttonFiles">
-                                                                                    <i class="fa-solid fa-trash" style="color:white"></i>
+                                                                                <a href="#" class=" buttonFiles dropdown-item bs-pass-para"
+                                                                                    data-confirm="{{ __('Are You Sure?') }}"
+                                                                                    data-text="{{ __('This action can not be undone. Do you want to continue?') }}"
+                                                                                    data-confirm-yes="delete-file-{{ $file['original'] }}">
+                                                                                    <i class="ti ti-trash" style="color:white"></i>
                                                                                 </a>
+
+                                                                                <form id="delete-file-{{ $file['original'] }}" style="display: none;">
+                                                                                    @csrf
+                                                                                    <input type="hidden" name="idProject" value="{{ $project->id }}">
+                                                                                    <input type="hidden" name="milestoneTitle" value="{{ $milestone['title'] }}">
+                                                                                    <input type="hidden" name="fileName" value="{{ basename($file['original']) }}">
+                                                                                </form>      
                                                                             </div>
                                                                         </div>
                                                                     @endforeach
@@ -880,7 +931,7 @@
                                                             <i class="fas fa-file"></i></span>
                                                     @elseif($activity->log_type == 'Create Milestone')
                                                         <span
-                                                            class="timeline-step timeline-step-sm border border-info text-white">
+                                                            class="timeline-step timeline-step-sm border border-success text-white">
                                                             <i class="fas fa-cubes"></i></span>
                                                     @elseif($activity->log_type == 'Create Timesheet')
                                                         <span
@@ -895,8 +946,20 @@
                                                         <span
                                                             class="timeline-step timeline-step-sm border border-success text-white">
                                                             <i class="fa-solid fa-diagram-project"></i></span>
+                                                    @elseif($activity->log_type =='has updated a milestone')
+                                                        <span
+                                                            class="timeline-step timeline-step-sm border border-info text-white">
+                                                            <i class="fas fa-cubes"></i></span>
+                                                    @elseif($activity->log_type=='has updated the milestone status to')   
+                                                        <span
+                                                            class="timeline-step timeline-step-sm border border-info text-white">
+                                                            <i class="fas fa-cubes"></i></span>    
+                                                    @elseif($activity->log_type=='has deleted a milestone')   
+                                                        <span
+                                                            class="timeline-step timeline-step-sm border border-primary text-white"
+                                                            style="border-color: #aa182c !important;">
+                                                            <i class="fas fa-cubes"></i></span>               
                                                     @endif
-
                                                     <div class="last_notification_text">
                                                         <!-- Person who did the notification -->
                                                         <p> {!! $activity->getRemark() !!} : </p>
@@ -963,27 +1026,47 @@
                 }
             });
         }
+        //implementation for delete files
+        document.addEventListener("DOMContentLoaded", function() {
+            document.querySelectorAll('.bs-pass-para').forEach(function(element) {
+                element.addEventListener("click", function(event) {
+                    event.preventDefault();
+
+
+                    const formId = this.getAttribute("data-confirm-yes");
+                    if (formId) {
+                        const form = document.getElementById(formId);
+                        if (form) {
+                            // Extraer datos del formulario
+                            const idProject = form.querySelector('input[name="idProject"]').value;
+                            const milestoneTitle = form.querySelector('input[name="milestoneTitle"]').value;
+                            const fileName = form.querySelector('input[name="fileName"]').value;
+
+                            deleteFile(idProject, milestoneTitle, fileName);
+                        }
+                    }
+                });
+            });
+        });
 
         function deleteFile(idProject, titleMilestone, file) {
-            const downloadUrl = '<?php echo url('projects/delete-file'); ?>';
+            // URL del backend
+            const deleteUrl = '<?php echo url('projects/delete-file'); ?>';
 
-            console.log(idProject)
-            console.log(titleMilestone)
-            console.log(file)
             $.ajax({
-                url: downloadUrl,
+                url: deleteUrl,
                 method: 'POST',
                 data: {
                     "idProject": idProject,
                     "milestoneTitle": titleMilestone,
                     "fileName": file,
-                    _token: $('meta[name="csrf-token"]').attr('content')
+                    _token: '{{ csrf_token() }}'
                 },
                 success: function(response) {
                     location.reload();
                 },
                 error: function(xhr) {
-                    alert("An error occurred while downloading the file.");
+                    alert("Ocurrió un error al eliminar el archivo.");
                     console.error(xhr.responseText);
                 }
             });
@@ -1088,12 +1171,18 @@
         $(document).ready(function() {
             if ($(".uploaded-files-container").length) {
                 $(".uploaded-files-container").css({
-                    "max-height": 100
+                    "max-height": 110
                 }).niceScroll();
             }
+            if ($(".fatherMilestoneDiv").length) {
+                $(".fatherMilestoneDiv").css({
+                    "max-height": 135
+                }).niceScroll();
+            }
+
             if ($(".top-10-scroll").length) {
                 $(".top-10-scroll").css({
-                    "max-height": 335
+                    "max-height": 515
                 }).niceScroll();
             }
         });

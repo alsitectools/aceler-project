@@ -46,8 +46,13 @@
                             <span> {{ __('Drop files here to upload') }}</span>
                             <p class="text-muted" style="font-size:15px; margin:5px;">200MB</p>
                             <small class="text-muted">.png .gif .pdf .txt .doc .docx .zip .rar .dwg .dxf</small>
+                            </div>
+                            </div>
                             <div id="file-list"></div>
-                            <div style="    display: grid;grid-template-columns: repeat(4, 1fr);gap: 5px;">
+                            <p style="margin-top: 1%;">
+                                <b>{{ __('Actual milestone files') }}</b>
+                            </p>
+                            <div class="actualMilestoneFiles">
                                 @foreach ($milestone->files as $file)
                                     @php
                                         $extension = pathinfo($file->name, PATHINFO_EXTENSION);
@@ -60,15 +65,13 @@
                                             style="width: 20px; height: 25px;">
                                         <div class="file-name ms-2">{{ $file->name }} <small
                                                 class="text-muted">({{ $file->file_size }})</small></div>
-                                        <button class="btn btn-danger btn-sm ms-2 btn-delete-file"
-                                            data-url="{{ route('milestone.destroy.file', [$currentWorkspace->slug, $milestone->id, $file->id, $milestone->project_id]) }}">
-                                            <i class="fa-solid fa-trash-alt"></i>
-                                        </button>
+                                        <a class="buttonFiles" 
+                                            onclick="deleteFile({{ $milestone->project_id }}, '{{ $milestone->id }}', '{{ $file->name }}')">
+                                            <i class="fa-solid fa-trash-alt" style="color:white"></i>
+                                        </a>
                                     </div>
                                 @endforeach
-                            </div>
-                        </div>
-                        </div>
+                            </div>        
                     </div>
                     <div id="hidden-file-inputs" style="display: none;"></div>
                 </div>
@@ -91,11 +94,35 @@
     </div>
 @endif
 <script>
-    const assetBasePath = "{{ asset('assets/iconFilesTypes') }}/";
+    var assetBasePath = "{{ asset('assets/iconFilesTypes') }}/";
 </script>
 
 <script>
-   let filesArray = [];
+   var filesArray = [];
+
+
+   function deleteFile(idProject, milestoneId, file) {
+            const deleteUrl = '<?php echo url('/milestone/delete_file'); ?>';
+
+            $.ajax({
+                url: deleteUrl,
+                method: 'POST',
+                data: {
+                    "idProject": idProject,
+                    "milestoneId": milestoneId,
+                    "fileName": file,
+                    _token: $('meta[name="csrf-token"]').attr('content')
+                },
+                success: function(response) {
+                    console.log("file succefully deleted")
+                    //location.reload();
+                },
+                error: function(xhr) {
+                    alert("An error occurred while downloading the file.");
+                    console.error(xhr.responseText);
+                }
+            });
+        }
 
 document.getElementById('dropzonewidgetMilestone').addEventListener('click', function() {
     document.getElementById('file-uploadMilestone').click();
@@ -130,7 +157,7 @@ document.getElementById('file-uploadMilestone').addEventListener('change', funct
     updateFileList();
 });
 
-// 🔹 Función para actualizar la lista visual y los inputs ocultos
+//  Función para actualizar la lista visual y los inputs ocultos
 function updateFileList() {
     const fileListElement = document.getElementById('file-list');
     const hiddenInputsContainer = document.getElementById('hidden-file-inputs');
@@ -156,14 +183,14 @@ function updateFileList() {
         fileNameContainer.textContent = file.name;
         fileContainer.appendChild(fileNameContainer);
 
-        const fileSize = document.createElement('small');
-        fileSize.classList.add('text-muted', 'ms-2');
-        fileSize.textContent = `(${formatFileSize(file.size)})`;
-        fileNameContainer.appendChild(fileSize);
+        // const fileSize = document.createElement('small');
+        // fileSize.classList.add('text-muted', 'ms-2');
+        // fileSize.textContent = `(${formatFileSize(file.size)})`;
+        // fileNameContainer.appendChild(fileSize);
 
-        const removeButton = document.createElement('button');
-        removeButton.classList.add('btn', 'btn-danger', 'btn-sm', 'ms-2');
-        removeButton.textContent = "X";
+        const removeButton = document.createElement('a');
+        removeButton.classList.add('buttonFiles');
+        removeButton.innerHTML = '<i class="fa-solid fa-trash" style="color:white"></i>';
         removeButton.addEventListener('click', function () {
             filesArray = filesArray.filter(f => `${f.name}-${f.size}-${f.lastModified}` !== fileKey);
             document.getElementById(fileKey).remove();
@@ -173,7 +200,7 @@ function updateFileList() {
 
         fileListElement.appendChild(fileContainer);
 
-        // 🔹 Crear un input oculto con ID único para cada archivo
+        //  Crear un input oculto con ID único para cada archivo
         if (!document.getElementById(fileKey)) {
             const input = document.createElement('input');
             input.type = 'file';
@@ -190,7 +217,7 @@ function updateFileList() {
     });
 }
 
-// 🔹 Funciones auxiliares para íconos, extensiones y tamaños de archivos
+//  Funciones auxiliares para íconos, extensiones y tamaños de archivos
 function getIconPath(filename) {
     const extension = getExtension(filename);
     const supportedExtensions = ['pdf', 'doc', 'jpg', 'png', 'xlsx', 'txt', 'dwg', 'dxf', 'img', 'docx', 'zip'];

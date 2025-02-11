@@ -161,7 +161,9 @@
                             <!-- Sección de Descripción (Izquierda) -->
                             <div class="col-md-6">
                                 <label for="description-text"
-                                    class="form-label"><strong>{{ __('Description') }}</strong></label>
+                                    class="form-label" style="margin-bottom: 3px;">
+                                    <strong>{{ __('Description') }}</strong>
+                                </label>
                                 <textarea style="height:82%" class="form-control mt-2" id="description-text" name="description" rows="5"
                                     placeholder="{{ __('Enter description...') }}"></textarea>
                             </div>
@@ -177,10 +179,11 @@
                                             <span> {{ __('Drop files here to upload') }}</span>
                                             <p class="text-muted" style="font-size:15px; margin:5px;">200MB</p>
                                             <small class="text-muted">.png .gif .pdf .txt .doc .docx .zip .rar .dwg .dxf</small>
-                                            <div id="file-list"></div>
+                                            
                                         </div>
                                     </div>
                                 </div>
+                                <div id="file-list" style="padding-top: 5px;"></div>
                                 <div id="hidden-file-inputs" style="display: none;"></div>
                             </div>
                         </div>
@@ -270,10 +273,10 @@
 @endif
 <script src="{{ asset('assets/custom/libs/nicescroll/jquery.nicescroll.min.js') }} "></script>
 <script>
-    const searchInput = document.getElementById('search');
-    const optionsList = document.getElementById('user-select');
-    const options = optionsList.getElementsByClassName('option');
-    const hiddenInput = document.getElementById('assing_To');
+    var searchInput = document.getElementById('search');
+    var optionsList = document.getElementById('user-select');
+    var options = optionsList.getElementsByClassName('option');
+    var hiddenInput = document.getElementById('assing_To');
 
     searchInput.addEventListener('click', function(event) {
 
@@ -410,8 +413,8 @@
         });
     });
 
-    const assetBasePath = '{{ asset('assets/iconFilesTypes') }}/';
-    let filesArray = [];
+    var assetBasePath = '{{ asset('assets/iconFilesTypes') }}/';
+    var filesArray = [];
 
     document.getElementById('dropzonewidgetMilestone').addEventListener('click', function() {
         document.getElementById('file-uploadMilestone').click();
@@ -453,15 +456,15 @@
             const fileNameContainer = document.createElement('div');
             fileNameContainer.classList.add('file-name');
             fileNameContainer.textContent = file.name;
+            fileNameContainer.style.maxWidth = "70%";
             fileContainer.appendChild(fileNameContainer);
 
             const fileDetailsSmall = document.createElement('small');
             fileDetailsSmall.classList.add('text-muted', 'ms-1');
-            fileDetailsSmall.innerHTML = ' · ' + `(${formatFileSize(file.size)})`;
 
-            const removeButton = document.createElement('button');
-            removeButton.classList.add('btn', 'btn-link', 'text-danger', 'p-0');
-            removeButton.innerHTML = '<i class="ps-2 fa-solid fa-xmark"></i>';
+            const removeButton = document.createElement('a');
+            removeButton.classList.add('buttonFiles');
+            removeButton.innerHTML = '<i class="fa-solid fa-trash" style="color:white"></i>';
             removeButton.addEventListener('click', function() {
                 filesArray.splice(index, 1);
                 updateFileList();
