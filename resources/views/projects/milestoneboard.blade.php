@@ -167,17 +167,27 @@
                                                                     <i class="ti ti-eye pr-1"></i>
                                                                     {{ __('View') }}
                                                                 </a>
-                                                                <a href="#" class="dropdown-item"  data-ajax-popup="true" title="{{ __('Add Task') }}" data-title="{{ __('Add Task') }}" data-url="{{ route('tasks.create', [$currentWorkspace->slug, 'project_id'=> $milestone['project_id'], 'milestoneTitle' => $milestone['title'], 'milestone_id' =>$milestone['id']]) }}"><i class="fas fa-tasks pr-1"></i> {{ __('Add Task') }}</a>
+                                                                <a href="#"
+   class="dropdown-item milestone-action"
+   data-ajax-popup="true"
+   title="{{ __('Add Task') }}"
+   data-title="{{ __('Add Task') }}"
+   data-url="{{ route('tasks.create', [$currentWorkspace->slug, 'project_id'=> $milestone['project_id'], 'milestoneTitle' => $milestone['title'], 'milestone_id' =>$milestone['id']]) }}">
+    <i class="fas fa-tasks pr-1"></i> {{ __('Add Task') }}
+</a>
                                                                 @if (
                                                                     $currentWorkspace->permission == 'Owner' ||
                                                                         ($currentWorkspace->permission == 'Member' && Auth::user()->type == 'user'))
-                                                                    <a href="#" class="dropdown-item"
-                                                                        data-ajax-popup="true" data-size="lg"
-                                                                        data-toggle="popover" title="{{ __('Edit') }}"
-                                                                        data-title="{{ __('Edit Milestone') }}"
-                                                                        data-url="{{ route('projects.milestone.edit', [$currentWorkspace->slug, $milestone['id']]) }}">
-                                                                        <i class="ti ti-edit pr-1"></i>{{ __('Edit') }}
-                                                                    </a>
+                                                                        <a href="#"
+   class="dropdown-item milestone-action"
+   data-ajax-popup="true"
+   data-size="lg"
+   data-toggle="popover"
+   title="{{ __('Edit') }}"
+   data-title="{{ __('Edit Milestone') }}"
+   data-url="{{ route('projects.milestone.edit', [$currentWorkspace->slug, $milestone['id']]) }}">
+    <i class="ti ti-edit pr-1"></i>{{ __('Edit') }}
+</a>
                                                                     @if (empty($milestone['tasks']))
                                                                         <a href="#" class="dropdown-item bs-pass-para"
                                                                             data-confirm="{{ __('Are You Sure?') }}"
@@ -193,13 +203,13 @@
                                                                             @method('DELETE')
                                                                         </form>
                                                                     @else
-                                                                    <a href="#" class="dropdown-item bs-pass-para"
-                                                                            data-confirm="{{ __('Are You Sure?') }}"
-                                                                            data-text="{{ __('This action can not be undone. Do you want to continue?') }}"
-                                                                            data-confirm-yes="delete-form-{{ $milestone['id'] }}">
-                                                                            <i class="ti ti-trash"></i>
-                                                                            {{ __('Delete') }}
-                                                                        </a>
+                                                                    <a href="#"
+   class="dropdown-item milestone-action bs-pass-para"
+   data-confirm="{{ __('Are You Sure?') }}"
+   data-text="{{ __('This action can not be undone. Do you want to continue?') }}"
+   data-confirm-yes="delete-form-{{ $milestone['id'] }}">
+    <i class="ti ti-trash"></i> {{ __('Delete') }}
+</a>
                                                                         <form id="delete-form-{{ $milestone['id'] }}"
                                                                             action="{{ route('projects.milestone.destroy', [$currentWorkspace->slug, $milestone['id']]) }}"
                                                                             method="POST" style="display: none;">
@@ -618,85 +628,116 @@ if (!(allowedTransitions[oldStatus] && allowedTransitions[oldStatus].includes(ne
     }(window.jQuery);
 </script>
 @if ($project_id == -1)
+<!-- Script encargado de mostrar/ocultar los proyectos completado -->
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        let showCompleted = false; // Variable global para rastrear el estado de visibilidad de proyectos completados
+document.addEventListener('DOMContentLoaded', function() {
+    let showCompleted = false; // Variable global para rastrear la visibilidad de proyectos completados
 
-        // Inicializa: Oculta grupos de milestones cuyo TODOS elementos tengan status 4
-        initializeCompletedProjects();
+    // Inicializa: Oculta grupos de milestones cuyo TODOS elementos tengan status 4
+    initializeCompletedProjects();
 
-        // Configura el listener para el toggle
-        const toggleIcon = document.getElementById('toggleCompletedProjectsIcon');
-        if (toggleIcon) {
-            toggleIcon.addEventListener('click', function() {
-                showCompleted = !showCompleted;
-                toggleCompletedProjects(showCompleted);
-                this.classList.toggle('showCompletedProjectsUnabled', !showCompleted);
-                this.title = showCompleted ? "{{ __('Hide Completed Projects') }}":"{{ __('Show Completed Projects') }}";
+    // Configura el listener para el toggle
+    const toggleIcon = document.getElementById('toggleCompletedProjectsIcon');
+    if (toggleIcon) {
+        toggleIcon.addEventListener('click', function() {
+            showCompleted = !showCompleted;
+            toggleCompletedProjects(showCompleted);
+            this.classList.toggle('showCompletedProjectsUnabled', !showCompleted);
+            this.title = showCompleted ? "{{ __('Hide Completed Projects') }}" : "{{ __('Show Completed Projects') }}";
+        });
+    }
 
-            });
-        }
+    function initializeCompletedProjects() {
+        const milestones = document.querySelectorAll('.card[data-project-id]');
+        const projectMap = new Map();
 
-        function initializeCompletedProjects() {
-            const milestones = document.querySelectorAll('.card[data-project-id]');
-            const projectMap = new Map();
-
-            milestones.forEach(milestone => {
-                const projectId = milestone.dataset.projectId;
-                if (!projectMap.has(projectId)) {
-                    projectMap.set(projectId, []);
-                }
-                projectMap.get(projectId).push(milestone);
-            });
-
-            projectMap.forEach((milestones, projectId) => {
-                const allInStatus4 = milestones.every(m => parseInt(m.dataset.status) === 4);
-                if (allInStatus4) {
-                    milestones.forEach(m => m.style.display = 'none');
-                }
-            });
-        }
-
-        function toggleCompletedProjects(shouldShow) {
-            const milestones = document.querySelectorAll('.card[data-project-id]');
-            const projectMap = new Map();
-
-            milestones.forEach(milestone => {
-                const projectId = milestone.dataset.projectId;
-                if (!projectMap.has(projectId)) {
-                    projectMap.set(projectId, []);
-                }
-                projectMap.get(projectId).push(milestone);
-            });
-
-            projectMap.forEach((milestones, projectId) => {
-                const allInStatus4 = milestones.every(m => parseInt(m.dataset.status) === 4);
-                milestones.forEach(m => m.style.display = allInStatus4 && !shouldShow ? 'none' : 'block');
-            });
-        }
-
-        function checkAndUpdateProjectVisibility(el) {
-            const projectId = el.dataset.projectId;
-            const projectMilestones = document.querySelectorAll(`.card[data-project-id='${projectId}']`);
-            const allInStatus4 = Array.from(projectMilestones).every(m => parseInt(m.dataset.status) === 4);
-
-            if (allInStatus4 && !showCompleted) {
-                projectMilestones.forEach(m => m.style.display = 'none');
+        milestones.forEach(milestone => {
+            const projectId = milestone.dataset.projectId;
+            if (!projectMap.has(projectId)) {
+                projectMap.set(projectId, []);
             }
+            projectMap.get(projectId).push(milestone);
+        });
+
+        projectMap.forEach((milestones, projectId) => {
+            const allInStatus4 = milestones.every(m => parseInt(m.dataset.status) === 4);
+            if (allInStatus4) {
+                milestones.forEach(m => m.style.display = 'none');
+            }
+        });
+    }
+
+    function toggleCompletedProjects(shouldShow) {
+        const milestones = document.querySelectorAll('.card[data-project-id]');
+        const projectMap = new Map();
+
+        milestones.forEach(milestone => {
+            const projectId = milestone.dataset.projectId;
+            if (!projectMap.has(projectId)) {
+                projectMap.set(projectId, []);
+            }
+            projectMap.get(projectId).push(milestone);
+        });
+
+        projectMap.forEach((milestones, projectId) => {
+            const allInStatus4 = milestones.every(m => parseInt(m.dataset.status) === 4);
+            milestones.forEach(m => m.style.display = (allInStatus4 && !shouldShow) ? 'none' : 'block');
+        });
+    }
+
+    function checkAndUpdateProjectVisibility(el) {
+        const projectId = el.dataset.projectId;
+        const projectMilestones = document.querySelectorAll(`.card[data-project-id='${projectId}']`);
+        const allInStatus4 = Array.from(projectMilestones).every(m => parseInt(m.dataset.status) === 4);
+
+        if (allInStatus4 && !showCompleted) {
+            projectMilestones.forEach(m => m.style.display = 'none');
         }
-    });
+    }
+
+    // Agrega un MutationObserver para detectar cambios en data-status y actualizar dinámicamente
+    function observeMilestoneStatusChanges() {
+        const milestoneCards = document.querySelectorAll('.card[data-project-id]');
+        milestoneCards.forEach(card => {
+            const observer = new MutationObserver(mutations => {
+                mutations.forEach(mutation => {
+                    if (mutation.type === 'attributes' && mutation.attributeName === 'data-status') {
+                        checkAndUpdateProjectVisibility(card);
+                    }
+                });
+            });
+            observer.observe(card, {
+                attributes: true,
+                attributeFilter: ['data-status']
+            });
+        });
+    }
+
+    observeMilestoneStatusChanges();
+});
 </script>
+
 @endif
+<!-- Script encargado de la acción de "Add Task on Timesheet" al hacer clic en una tarea (se desactiva si el milestone está en status 4) -->
 <script>
     // Espera a que el DOM esté completamente cargado
     document.addEventListener('DOMContentLoaded', function() {
         
         // Selecciona todos los elementos con la clase .taskList
         const tasks = document.querySelectorAll('.taskList');
-        
 
         tasks.forEach(task => {
             task.addEventListener('click', function() {
+                // Obtén el milestone asociado a la tarea
+                const milestone = this.closest('.card');
+                const milestoneStatus = milestone.getAttribute('data-status');
+
+                // Verifica si el milestone está en status 4
+                if (milestoneStatus === '4' || milestoneStatus === '3') {
+                    console.log('El milestone está en status 3 o 4, no se ejecutará la acción.');
+                    return; // Detiene la ejecución del código si el status es 4
+                }
+
                 // Obtiene los valores de los atributos data
                 const taskData = {
                     task_id: this.getAttribute('data-task-id'),
@@ -709,23 +750,62 @@ if (!(allowedTransitions[oldStatus] && allowedTransitions[oldStatus].includes(ne
                 // Muestra los datos en la consola del navegador
                 console.log(taskData);
                 $.ajax({
-                url : '{{ route('create.timesheet.from.orders', [$currentWorkspace->slug, $project_id]) }}',
-                type: 'GET',
-                data: taskData,
-                success: function(data) {
-    console.log('AJAX success'); // Verificar contenido
-    $('#modal-container .modal-content').html(data);
-    var myModal = new bootstrap.Modal(document.getElementById('modal-container'));
-    myModal.show();
-},
-                error: function(xhr, status, error) {
-                    console.error('Error al actualizar el orden:', error);
-                }
-            });
+                    url : '{{ route('create.timesheet.from.orders', [$currentWorkspace->slug, $project_id]) }}',
+                    type: 'GET',
+                    data: taskData,
+                    success: function(data) {
+                        console.log('AJAX success'); // Verificar contenido
+                        $('#modal-container .modal-content').html(data);
+                        var myModal = new bootstrap.Modal(document.getElementById('modal-container'));
+                        myModal.show();
+                    },
+                    error: function(xhr, status, error) {
+                        console.error('Error al actualizar el orden:', error);
+                    }
+                });
             });
         });
     });
 </script>
+<!-- Script encargado de mostrar/ocultar las opciones cuando el estado del proyecto esta en 4 (en Hecho) -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Actualiza la visibilidad de las opciones de acción según el status
+    updateMilestoneActions();
 
+    // Agrega un MutationObserver para detectar cambios en data-status y actualizar dinámicamente
+    function observeMilestoneStatusChanges() {
+        const milestoneCards = document.querySelectorAll('.card[data-project-id]');
+        milestoneCards.forEach(card => {
+            const observer = new MutationObserver(mutations => {
+                mutations.forEach(mutation => {
+                    if (mutation.type === 'attributes' && mutation.attributeName === 'data-status') {
+                        updateMilestoneActions();
+                    }
+                });
+            });
+            observer.observe(card, {
+                attributes: true,
+                attributeFilter: ['data-status']
+            });
+        });
+    }
+
+    function updateMilestoneActions() {
+        const milestoneCards = document.querySelectorAll('.card[data-project-id]');
+        milestoneCards.forEach(card => {
+            const status = parseInt(card.dataset.status);
+            const actionItems = card.querySelectorAll('.milestone-action');
+            if (status === 4) {
+                actionItems.forEach(item => item.style.display = 'none');
+            } else {
+                actionItems.forEach(item => item.style.display = '');
+            }
+        });
+    }
+
+    observeMilestoneStatusChanges();
+});
+</script>
         @endpush
     @endif
