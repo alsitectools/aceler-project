@@ -206,6 +206,7 @@ class ProjectController extends Controller
             );
 
             return response()->json(['success' => true, 'message' => 'Project created successfully.', 'project_id' => $objProject]);
+            
         } else {
 
             ActivityLog::create(
