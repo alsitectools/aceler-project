@@ -90,8 +90,10 @@ margin: 0px !important;    }
                 <div class="col-md-8">
                     <div class="grid filters-content">
                         @foreach ($projects as $project)
-                            <div onclick="redirectToCurrentProject('{{ route('projects.show', [$currentWorkspace->slug, $project->id]) }}')"  class="hover card mb-3 zoom mt-0 ml-0 m-2 All  {{ $project->status }} type-{{ $project->type }}"
-                                style="border-radius: 10px;">
+                        <div 
+    onclick="if (!event.target.closest('#deleteFormContainer')) { redirectToCurrentProject('{{ route('projects.show', [$currentWorkspace->slug, $project->id]) }}'); }" 
+    class="hover card mb-3 zoom mt-0 ml-0 m-2 All {{ $project->status }} type-{{ $project->type }}"
+>
                                 <div class="row ms-2">
                                     <div class="col-md-2 project-type text-center m-2">
                                         <img src="{{ asset('assets/img/' . $project_type[$project->type - 1]->name . '.png') }}"
@@ -134,6 +136,7 @@ margin: 0px !important;    }
                                                                 </button>
                                                                 <div class="dropdown-menu dropdown-menu-end">
                                                                     <a href="#"
+                                                                    id="deleteFormContainer"
                                                                         class="dropdown-item text-danger delete-popup bs-pass-para"
                                                                         data-confirm="{{ __('Are You Sure?') }}"
                                                                         data-text="{{ trans('This action can not be undone. Do you want to continue?') }}"
