@@ -796,7 +796,7 @@ document.addEventListener('DOMContentLoaded', function() {
         milestoneCards.forEach(card => {
             const status = parseInt(card.dataset.status);
             const actionItems = card.querySelectorAll('.milestone-action');
-            if (status === 4) {
+            if (status === 4 || status === 3) {
                 actionItems.forEach(item => item.style.display = 'none');
             } else {
                 actionItems.forEach(item => item.style.display = '');
