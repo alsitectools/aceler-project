@@ -640,7 +640,7 @@ Route::delete('/{slug}/projects/milestone/{id}', [ProjectController::class, 'mil
 Route::post('/{slug}/projects/{id}/file', [ProjectController::class, 'fileUpload'])->name('projects.file.upload')->middleware(['auth', 'XSS']);
 Route::get('/{slug}/projects/{id}/file/{fid}', [ProjectController::class, 'fileDownload'])->name('projects.file.download')->middleware(['auth', 'XSS']);
 // ______________________________ nueva ruta para descargar ficheros que se suben a encargos _________________________________________________________
-Route::get('/{slug}/milestoneboard/{id}/file/{fid}', [ProjectController::class, 'milestonefileDownload'])->name('milestone.file.download')->middleware(['auth', 'XSS']);
+Route::post('/projects/milestone/download-file', [ProjectController::class, 'milestonefileDownload'])->name('milestone.file.download')->middleware(['auth', 'XSS']);
 
 Route::delete('/{slug}/projects/{id}/file/delete/{fid}', [ProjectController::class, 'fileDelete'])->name('projects.file.delete')->middleware(['auth', 'XSS']);
 
@@ -680,7 +680,7 @@ Route::post('/{slug}/projects/{id}/comment/{tid}/file/{cid?}', [ProjectControlle
 Route::delete('/{slug}/projects/{id}/comment/{tid}/file/{fid}', [ProjectController::class, 'commentDestroyFile'])->name('comment.destroy.file');
 
 
-Route::delete('/{slug}/milestone-board/{milestoneID}/file/{fileID}/project/{projectID}', [ProjectController::class, 'milestoneDestroyFile'])->name('milestone.destroy.file');
+Route::post('/milestone/delete_file', [ProjectController::class, 'milestoneDestroyFile'])->name('milestone.destroy.file');
 
 
 Route::post('/{slug}/projects/{id}/comment/{tid}/{cid?}', [ProjectController::class, 'commentStore'])->name('comment.store');

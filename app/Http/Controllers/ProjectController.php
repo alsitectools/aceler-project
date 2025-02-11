@@ -536,12 +536,18 @@ class ProjectController extends Controller
         $milestoneName = strtr($inputs['milestoneTitle'], [' ' => '_']);
         // check if it's a milestone file or a project file
         $filePath = '';
+        $delete = false;
+        $milestoneId = null;
 
         \Log::debug($inputs['fileName']);
         if ($inputs['milestoneTitle'] !== null && isset($inputs['milestoneTitle'])) {
 
             $filePath = 'project_files/' . $projectName . '/' . $milestoneName . '/' . $inputs['fileName'];
-        } else {
+            // crear query para borrar el fichero de la bdd tambien
+            $milestone = Milestone::where('title', $inputs['milestoneTitle'])->first();
+            $milestoneId = $milestone->id;
+            $delete = true;
+        }else{
             // Construir la ruta del archivo basado en la estructura de almacenamiento
             $filePath = 'project_files/' . $projectName . '/' . $inputs['fileName'];
         }
@@ -551,6 +557,15 @@ class ProjectController extends Controller
             ? implode(' ', array_slice($fileNameParts, 2))  // Limpiar y unir las partes sin prefijo
             : strtr($inputs['fileName'], ['_' => ' ']);     // Reemplazar '_' por espacio si no hay prefijo
 
+        if($delete === true){
+            DB::table('milestone_files')
+            ->where('milestone_id', $milestone->id)
+            ->where('name', $cleanFileName)
+            ->delete();
+        }
+       // Storage::delete($filePath);
+        Storage::disk('local')->delete($filePath);
+        
         // Registrar la actividad
         ActivityLog::create([
             'user_id' => \Auth::user()->id,
@@ -559,9 +574,6 @@ class ProjectController extends Controller
             'log_type' => 'has delete a file',
             'remark' => json_encode(['file_name' => $cleanFileName]), // Usar el nombre limpio aquí
         ]);
-
-        // Storage::delete($filePath);
-        Storage::disk('local')->delete($filePath);
 
         return response()->json([
             'success' => true,
@@ -827,6 +839,7 @@ class ProjectController extends Controller
 
         // Función para obtener datos de un milestone
         $getMilestoneData = function ($milestone, $project, $objUser) {
+            \Log::debug($project);
             $projectType = ProjectType::where('id', $project->type)->value('name');
 
             if ($objUser) {
@@ -1022,17 +1035,30 @@ class ProjectController extends Controller
                 $milestone->status = $request->new_status;
                 $milestone->save();
 
+                if ($milestone->status == 4) {
+                    $tasksTomilestones = Task::where('milestone_id', $milestone->id)->get();
 
-                if (isset($project)) {
-                    $project->updateProjectStatus();
+                    foreach ($tasksTomilestones as $task) {
+                        $task->end_date = date('Y-m-d');
+                        $task->save();
+                    }
+
+                    $project = Project::find($milestone->project_id);
+                    if (isset($project)) {
+                        $project->updateProjectStatus();
+                    }
                 }
-                if ($request->old_status == 4 && $request->new_status != 4) {
 
-                    Task::where('milestone_id', $milestone->id)->update(['end_date' => null]);
-                } elseif ($request->new_status == 4) {
+                //Add log
+                $status = Stage::find($milestone->status);
 
-                    Task::where('milestone_id', $milestone->id)->update(['end_date' => now()->format('Y-m-d')]);
-                }
+                ActivityLog::create([
+                    'user_id' => \Auth::user()->id,
+                    'user_type' => get_class(\Auth::user()),
+                    'project_id' => $milestone->project_id,
+                    'log_type' => 'has updated the milestone status to',
+                    'remark' => json_encode(['milestoneStatus' => __($status->name)]), 
+                ]);
 
                 $name = $user->name;
                 $id = $user->id;
@@ -1688,50 +1714,71 @@ class ProjectController extends Controller
         return view('projects.milestoneEdit', compact('currentWorkspace', 'milestone'));
     }
 
-    public function milestoneDestroyFile(Request $request, $slug, $milestoneID, $fileID, $projectID)
-    {
-        try {
-            $milestoneFile = MilestoneFile::find($fileID);
+    public function milestoneDestroyFile(Request $request)
+{
+    $inputs = $request->input();
 
-            if (!$milestoneFile) {
-                return response()->json(['success' => false, 'error' => 'El archivo no existe.'], 404);
-            }
+    // Obtener el proyecto usando el ID
+    $project = Project::findOrFail($inputs['idProject']);
+    $projectName = strtr($project->name, [' ' => '_']);
 
-            $project = Project::find($projectID);
-            if (!$project) {
-                return response()->json(['success' => false, 'error' => 'El proyecto no existe.'], 404);
-            }
+    // Obtener el milestone
+    $milestone = Milestone::findOrFail($inputs['milestoneId']);
+    $milestoneName = strtr($milestone->title, [' ' => '_']);
 
-            $projectName = str_replace(' ', '_', $project->name);
+    // Directorio donde se almacenan los archivos del milestone
+    $milestoneFolder = 'project_files/' . $projectName . '/' . $milestoneName;
 
-            //GET milestone title
-            $milestone = Milestone::find($milestoneID);
-            $milestoneName = $milestone->title;
-            // Servidor
-            // $filePath = storage_path('milestones_files/' . $projectName . '/' . $milestoneName . '/' . $milestoneFile->file);
+    // Buscar el archivo en la base de datos
+    $fileEntry = DB::table('milestone_files')
+        ->where('milestone_id', $milestone->id)
+        ->where('name', $inputs['fileName'])
+        ->first();
 
-            // Local
-            $filePath = storage_path('app/public/milestones_files/' . $projectName . '/' . $milestoneName . '/' . $milestoneFile->file);
-
-            if (file_exists($filePath)) {
-                chmod($filePath, 0777);
-
-                if (\File::delete($filePath)) {
-
-                    \Log::info('Archivo eliminado correctamente', ['filePath' => $filePath]);
-                    $milestoneFile->delete();
-                }
-            } else {
-                \Log::warning('El archivo no existe en el sistema de archivos', ['filePath' => $filePath]);
-            }
-
-            return response()->json(['success' => true, 'message' => 'Archivo eliminado correctamente.'], 200);
-        } catch (\Exception $e) {
-            \Log::error('Error en la función milestoneDestroyFile', ['exception' => $e->getMessage()]);
-            return response()->json(['success' => false, 'error' => $e->getMessage()], 500);
-        }
+    if (!$fileEntry) {
+        return response()->json([
+            'success' => false,
+            'message' => __('File not found in database.')
+        ], 404);
     }
 
+    // Obtener la ruta del archivo desde la base de datos
+    $fileToDelete = $fileEntry->file; 
+
+    if (!Storage::disk('local')->exists($fileToDelete)) {
+        return response()->json([
+            'success' => false,
+            'message' => __('File not found in storage.')
+        ], 404);
+    }
+
+    \Log::debug("Deleting file: " . $fileToDelete);
+
+    // Eliminar el archivo del almacenamiento
+    Storage::disk('local')->delete($fileToDelete);
+
+    // Eliminar la entrada del archivo en la base de datos
+    DB::table('milestone_files')
+        ->where('milestone_id', $milestone->id)
+        ->where('name', $inputs['fileName'])
+        ->delete();
+
+    // Registrar la actividad
+    ActivityLog::create([
+        'user_id' => \Auth::user()->id,
+        'user_type' => get_class(\Auth::user()),
+        'project_id' => $inputs['idProject'],
+        'log_type' => 'has delete a file',
+        'remark' => json_encode(['file_name' => $inputs['fileName']]), 
+    ]);
+
+    return response()->json([
+        'success' => true,
+        'message' => __('File deleted successfully.')
+    ]);
+}
+
+    
     public function milestoneUpdate($slug, $milestoneID, Request $request)
     {
         $currentWorkspace = Utility::getWorkspaceBySlug($slug);
@@ -1810,6 +1857,15 @@ class ProjectController extends Controller
             'app_url' => env('APP_URL'),
             'app_name'  => $setting['app_name'],
         ];
+    
+        //Add log
+        ActivityLog::create([
+            'user_id' => \Auth::user()->id,
+            'user_type' => get_class(\Auth::user()),
+            'project_id' => $project->id,
+            'log_type' => 'has updated a milestone',
+            'remark' => json_encode(['milestoneTitle' => $milestone->title]), // milestone title
+        ]);
 
         if (isset($settings['milestonest_notificaation']) && $settings['milestonest_notificaation'] == 1) {
             Utility::send_slack_msg('Milestone Status Updated', $user1, $uArr);
@@ -1824,6 +1880,15 @@ class ProjectController extends Controller
         $currentWorkspace = Utility::getWorkspaceBySlug($slug);
         $milestone = Milestone::find($milestoneID);
         $milestone->delete();
+
+        //Add log
+        ActivityLog::create([
+            'user_id' => \Auth::user()->id,
+            'user_type' => get_class(\Auth::user()),
+            'project_id' => $milestone->project_id,
+            'log_type' => 'has deleted a milestone',
+            'remark' => json_encode(['milestoneTitle' => $milestone->title]), // milestone title
+        ]);
 
         return redirect()->back()->with('success', __('Milestone deleted Successfully!'));
     }
@@ -1946,39 +2011,26 @@ class ProjectController extends Controller
         return response()->json($return);
     }
 
-    public function milestonefileDownload($slug, $id, $file_id)
+    public function milestonefileDownload(Request $request)
     {
-        $project = Project::find($id);
-        $file = MilestoneFile::find($file_id);
+        $inputs = $request->input();
 
-        if (!$project) {
-            return redirect()->back()->with('error', __("Project does not exist."));
-        }
+        // Buscar el archivo en la base de datos
+        $filePath = MilestoneFile::where('id', $inputs['fileId'])
+        ->where('name', $inputs['fileName']) // Asegúrate de tener este campo en la BD
+        ->value('file');
 
-        if (!$file) {
-            return redirect()->back()->with('error', __('File is not exist.'));
-        }
+        \Log::debug("File Path: " . $filePath);        
+        $url = asset('storage/' . $filePath);
 
-        try {
-            $project_name = str_replace(' ', '_', $project->name);
+        \Log::debug("Generated URL: " . $url);
 
-            // Servidor
-            $file_path = storage_path('milestones_files/' . $project_name . '/' . $file->file);
-
-            // Local
-            // $file_path = storage_path('app/public/milestones_files/' . $project_name . '/' . $file->file);
-
-
-            if (!file_exists($file_path)) {
-                return redirect()->back()->with('error', __("File does not exist. Path: $file_path"));
-            }
-
-            return response()->download($file_path, $file->name, [
-                'Content-Length: ' . filesize($file_path),
-            ]);
-        } catch (\Exception $e) {
-            return redirect()->back()->with('error', __("An error occurred while trying to download the file."));
-        }
+        // Retornar la URL en formato JSON
+        return response()->json([
+            'success' => true,
+            'file_url' => $url
+        ]);
+        
     }
 
     public function fileDownload($slug, $id, $file_id)

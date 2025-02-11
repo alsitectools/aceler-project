@@ -1,5 +1,7 @@
 @php
+    use Carbon\Carbon;
     // dd($timesheetArray);
+    //print_r($workHoursWeek);
 @endphp
 <style>
     .custom-thead,
@@ -34,7 +36,7 @@
 </head>
 <div class="card-body table-border-style">
     <div class="table-responsive">
-        <div class="custom-thead d-grid">
+        <!-- <div class="custom-thead d-grid">
             <div class="header-cell">
                 <b>{{ isset($allProjects) && $allProjects == true ? __('Projects') : __('Tasks') }}</b>
             </div>
@@ -46,7 +48,7 @@
             <div class="header-cell">
                 <b>{{ __('Total') }}</b>
             </div>
-        </div>
+        </div> -->
         <table class="table table-borderless mb-0">
             <tbody>
                 @if (isset($allProjects) && $allProjects == true)
@@ -102,21 +104,40 @@
                                                                         @foreach ($dateTimeArray as $dateKey => $dateSubArray)
                                                                             <td>
                                                                                 <div class="day-container">
+                                                                                    @php
+
+                                                                                        // Convertir la fecha a un objeto Carbon
+                                                                                        $date = Carbon::parse($dateSubArray['date']);
+                                                                                        
+                                                                                        // Obtener el día de hoy
+                                                                                        $today = Carbon::today();
+
+                                                                                        // Determinar si el día es futuro
+                                                                                        $isFuture = $date->greaterThan($today);
+
+                                                                                        // Obtener el nombre del día en minúsculas (ejemplo: "monday", "tuesday", etc.)
+                                                                                        $dayName = strtolower($date->format('l'));
+
+                                                                                        // Verificar si el día está permitido en workHoursWeek
+                                                                                        $isAllowed = isset($workHoursWeek[$dayName]) && !$isFuture; 
+                                                                                    @endphp
+
                                                                                     <div class="day-label">
-                                                                                        {{ ucfirst($days['datePeriod'][$dateKey]->isoFormat('ddd')) }}
+                                                                                        {{ ucfirst($date->isoFormat('dddd')) }} <!-- Muestra el día de la semana -->
                                                                                     </div>
+
                                                                                     @if (Auth::user()->id == $dateSubArray['user_id'])
                                                                                         <div role="button"
-                                                                                            class="form-control week inputsTask"
-                                                                                            title="{{ $dateSubArray['type'] == 'edit' ? __('Click to Edit/Delete Timesheet') : __('Click to Add Timesheet') }}"
-                                                                                            data-ajax-timesheet-popup="true"
+                                                                                            class="form-control week inputsTask {{ $isAllowed ? '' : 'disabled' }}"
+                                                                                            title="{{ $isAllowed ? __('Click to Add/Edit Timesheet') : __('This day is not available or is in the future') }}"
+                                                                                            data-ajax-timesheet-popup="{{ $isAllowed ? 'true' : 'false' }}"
                                                                                             data-type="{{ $dateSubArray['type'] }}"
                                                                                             data-user-id="{{ $dateSubArray['user_id'] }}"
                                                                                             data-project-id="{{ $dateSubArray['project_id'] }}"
-                                                                                            data-milestone-id="{{ $dateSubArray['milestone_id'] }}"
                                                                                             data-task-id="{{ $dateSubArray['task_id'] }}"
                                                                                             data-date="{{ $dateSubArray['date'] }}"
-                                                                                            data-url="{{ $dateSubArray['url'] }}">
+                                                                                            data-url="{{ $dateSubArray['url'] }}"
+                                                                                            style="{{ $isAllowed ? '' : 'background-color: #a293933d; cursor: not-allowed;border: 2px solid #ced4da; color:black' }}">
                                                                                             {{ $dateSubArray['time'] != '00:00' ? $dateSubArray['time'] : '00:00' }}
                                                                                         </div>
                                                                                     @else
@@ -202,26 +223,45 @@
                                                                         @foreach ($dateTimeArray as $dateKey => $dateSubArray)
                                                                             <td>
                                                                                 <div class="day-container">
+                                                                                    @php
+
+                                                                                        // Convertir la fecha a un objeto Carbon
+                                                                                        $date = Carbon::parse($dateSubArray['date']);
+                                                                                        
+                                                                                        // Obtener el día de hoy
+                                                                                        $today = Carbon::today();
+
+                                                                                        // Determinar si el día es futuro
+                                                                                        $isFuture = $date->greaterThan($today);
+
+                                                                                        // Obtener el nombre del día en minúsculas (ejemplo: "monday", "tuesday", etc.)
+                                                                                        $dayName = strtolower($date->format('l'));
+
+                                                                                        // Verificar si el día está permitido en workHoursWeek y si no es futuro
+                                                                                        $isAllowed = isset($workHoursWeek[$dayName]) && !$isFuture; 
+                                                                                    @endphp
+
                                                                                     <div class="day-label">
-                                                                                        {{ ucfirst($days['datePeriod'][$dateKey]->isoFormat('ddd')) }}
+                                                                                        {{ ucfirst($date->isoFormat('dddd')) }} <!-- Muestra el día de la semana -->
                                                                                     </div>
+
                                                                                     @if (Auth::user()->id == $dateSubArray['user_id'])
                                                                                     
                                                                                         <div role="button"
-                                                                                            class="form-control week inputsTask"
-                                                                                            title="{{ $dateSubArray['type'] == 'edit' ? __('Click to Edit/Delete Timesheet') : __('Click to Add Timesheet') }}"
-                                                                                            data-ajax-timesheet-popup="true"
+                                                                                            class="form-control week inputsTask {{ $isAllowed ? '' : 'disabled' }}"
+                                                                                            title="{{ $isAllowed ? __('Click to Add/Edit Timesheet') : __('This day is not available or is in the future') }}"
+                                                                                            data-ajax-timesheet-popup="{{ $isAllowed ? 'true' : 'false' }}"
                                                                                             data-type="{{ $dateSubArray['type'] }}"
                                                                                             data-user-id="{{ $dateSubArray['user_id'] }}"
                                                                                             data-project-id="{{ $dateSubArray['project_id'] }}"
                                                                                             data-task-id="{{ $dateSubArray['task_id'] }}"
                                                                                             data-date="{{ $dateSubArray['date'] }}"
-                                                                                            data-url="{{ $dateSubArray['url'] }}">
+                                                                                            data-url="{{ $dateSubArray['url'] }}"
+                                                                                            style="{{ $isAllowed ? '' : 'background-color: #a293933d; cursor: not-allowed;border: 2px solid #ced4da; color:black' }}">
                                                                                             {{ $dateSubArray['time'] != '00:00' ? $dateSubArray['time'] : '00:00' }}
                                                                                         </div>
                                                                                     @else
-                                                                                        <div
-                                                                                            class="form-control week inputsTaskTotal">
+                                                                                        <div class="form-control week">
                                                                                             {{ $dateSubArray['time'] != '00:00' ? $dateSubArray['time'] : '00:00' }}
                                                                                         </div>
                                                                                     @endif
@@ -229,6 +269,7 @@
                                                                             </td>
                                                                         @endforeach
                                                                     @endforeach
+
                                                                     <td>
                                                                         <div class="day-label marginForTotalText"
                                                                             style="margin-left: 35px;">
@@ -255,19 +296,61 @@
             </tbody>
         </table>
         <div class="custom-tfoot d-grid">
-            <div class="footer-cell total-foot">
-                <div>{{ __('Total') }}</div>
-            </div>
-            @foreach ($totalDateTimes as $key => $totaldatetime)
+            @php
+                $combinedData = array_combine($days['datePeriod'], $totalDateTimes);
+            @endphp
+
+            @foreach ($combinedData as $perioddate => $totaldatetime)
+                @php
+                    // Convertir la fecha en un objeto Carbon
+                    $dateObj = Carbon::parse($perioddate);
+                    $dateFormatted = ucfirst($dateObj->isoFormat('ddd DD MMM')); // Día con formato
+
+                    // Obtener el día de hoy para comparación
+                    $today = Carbon::today();
+
+                    // Determinar si el día es futuro
+                    $isFuture = $dateObj->greaterThan($today);
+
+                    // Obtener el nombre del día en minúsculas (ejemplo: "monday", "tuesday", etc.)
+                    $dayName = strtolower($dateObj->format('l'));
+
+                    // Verificar si el día está en workHoursWeek (es laborable)
+                    $isWorkday = isset($workHoursWeek[$dayName]);
+
+                    // Convertir horas trabajadas y esperadas a formato decimal para comparación
+                    $workedHoursFormatted = $totaldatetime !== '00:00' ? floatval(str_replace(':', '.', $totaldatetime)) : 0;
+                    $expectedHour = $isWorkday ? floatval(str_replace(':', '.', $workHoursWeek[$dayName])) : 0;
+
+                    // Determinar color según la lógica proporcionada
+                    if (!$isWorkday || $isFuture) {
+                        $dayColor = '#d3d3d3'; // Gris para días no laborables o futuros
+                    } elseif ($workedHoursFormatted == 0) {
+                        $dayColor = '#e06c71'; // Rojo (sin horas)
+                    } elseif ($workedHoursFormatted < $expectedHour) {
+                        $dayColor = '#fcf75e'; // Amarillo (horas parciales)
+                    } elseif ($workedHoursFormatted == $expectedHour) {
+                        $dayColor = '#89e186'; // Verde (horas completas)
+                    } elseif ($workedHoursFormatted > $expectedHour) {
+                        $dayColor = '#b2e2f2'; // Azul (horas extras)
+                    }
+                @endphp
+
                 <div class="footer-cell">
-                    <div class="greyBackgroundTotalHours">{{ $totaldatetime != '00:00' ? $totaldatetime : '00:00' }}
+                    <p><b>{{ $dateFormatted }}</b></p> 
+                    <div class="greyBackgroundTotalHours" style="background-color: {{ $dayColor }} !important; padding: 5px; border-radius: 5px;">
+                        {{ $totaldatetime != '00:00' ? $totaldatetime : '00:00' }}
                     </div>
                 </div>
             @endforeach
+
             <div class="footer-cell">
-                <div class=" greyBackgroundTotalHours">
-                    {{ $calculatedTotalTaskTime ? $calculatedTotalTaskTime : 'error' }}</div>
+                <p><b>{{ __('Total') }}</b></p>
+                <div class="greyBackgroundTotalHours">
+                    {{ $calculatedTotalTaskTime ? $calculatedTotalTaskTime : 'error' }}
+                </div>
             </div>
+            
         </div>
     </div>
 </div>

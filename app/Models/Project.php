@@ -393,6 +393,22 @@ class Project extends Model
         $calculatedTotalTaskTime = Utility::calculateTimesheetHours($totalTaskTimes);
         $totalDateTimes = self::calculateDateTimes($days, $currentWorkspace, $project_id, $allProjects);
 
+        //get all timetable info of the user
+        $userTimetable = UserTimetable::where('user_id', $userId)->first();
+ 
+        //conver to array
+        $userTimetableArray = $userTimetable->toArray(); 
+
+        $daysOfWeek = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+        $workHoursWeek = []; // Array para almacenar los días laborables y horas
+
+        // iterate the user timetable array and check if the key is on the daysOfWeek array
+        foreach ($userTimetableArray as $key => $value) {
+            
+            if(in_array(strtolower($key), $daysOfWeek)){
+                $workHoursWeek[$key] = $value;
+            }
+        }
         $htmlContent = view('projects.timesheet-week', compact(
             'currentWorkspace',
             'timesheetArray',
@@ -400,7 +416,8 @@ class Project extends Model
             'calculatedTotalTaskTime',
             'days',
             'seeAsOwner',
-            'allProjects'
+            'allProjects',
+            'workHoursWeek'
         ))->render();
 
         return compact('htmlContent', 'totalrecords');
