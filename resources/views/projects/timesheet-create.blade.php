@@ -1,15 +1,9 @@
-<style>
-    .modal-dialog {
-        max-width: 50%;
-        margin: 1.75rem auto;
-    }
-</style>
 {{ Form::open(['url' => route('project.timesheet.store', ['slug' => $currentWorkspace->slug, 'project_id' => $parseArray['project_id']]), 'id' => 'project_form']) }}
 <div class="modal-body">
     <input type="hidden" name="project_id" value="{{ $parseArray['project_id'] }}">
     <input type="hidden" name="task_id" value="{{ $parseArray['task_id'] }}">
     <input type="hidden" name="milestone_id" value="{{ $parseArray['milestone_id'] }}">
-    <input type="hidden" name="date" value="{{ $parseArray['date'] }}">
+    <input type="hidden" name="date" value="{{ $parseArray['date'] }}" @disabled(!$fromTimesheet)>
     <input type="hidden" id="totaltasktime"
         value="{{ $parseArray['totaltaskhour'] . ':' . $parseArray['totaltaskminute'] }}">
 
@@ -28,8 +22,9 @@
         </div>
         <div class="form-group">
             <label class="col-form-label">{{ __('Date') }}</label>
-            <input type="date" class="form-control form-control-light date" value="{{ $parseArray['date'] }}"
-                placeholder="{{ __('Date') }}" disabled>
+            <input type="date" onclick="this.showPicker()" class="form-control form-control-light date"
+                value="{{ $parseArray['date'] }}" placeholder="{{ __('Date') }}" name="date"
+                @disabled($fromTimesheet)>
         </div>
     </div>
     <div class="row">
@@ -40,7 +35,7 @@
             <select class="form-control select2" name="time_hour" id="time_hour" required>
                 <option value="">{{ __('Hours') }}</option>
                 @for ($i = 0; $i <= 20; $i++)
-                    <option value="{{ str_pad($i, 2, '0', STR_PAD_LEFT) }}">{{ $i }}</option>
+                    <option value="{{ str_pad($i, 2, '0', STR_PAD_LEFT) }}">{{ $i == 0 ? '0' . $i : $i }}</option>
                 @endfor
             </select>
         </div>
@@ -49,7 +44,7 @@
             <select class="form-control select2" name="time_minute" id="time_minute" required>
                 <option value="">{{ __('Minutes') }}</option>
                 @for ($i = 0; $i < 60; $i += 5)
-                    <option value="{{ str_pad($i, 2, '0', STR_PAD_LEFT) }}">{{ $i }}</option>
+                    <option value="{{ str_pad($i, 2, '0', STR_PAD_LEFT) }}">{{ $i == 0 ? '0' . $i : $i }}</option>
                 @endfor
             </select>
         </div>
