@@ -204,7 +204,6 @@ class Project extends Model
                 ];
             }
         }
-        \Log::info(['processAllProjectsTimesheets-> timesheetArray' => $timesheetArray]);
 
         return [
             'timesheetArray' => $timesheetArray,
@@ -213,7 +212,6 @@ class Project extends Model
     }
     private static function processSingleProjectTimesheets($project, $timesheets, $days, $currentWorkspace, $userId, &$totalTaskTimes)
     {
-        \Log::info('processSingleProjectTimesheets');
         $timesheetArray = [];
         $totalrecords = 0;
 

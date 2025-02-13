@@ -3,9 +3,9 @@
     <input type="hidden" name="project_id" value="{{ $parseArray['project_id'] }}">
     <input type="hidden" name="task_id" value="{{ $parseArray['task_id'] }}">
     <input type="hidden" name="date" value="{{ $timesheet->date }}">
+
     <input type="hidden" id="totaltasktime"
         value="{{ $parseArray['totaltaskhour'] . ':' . $parseArray['totaltaskminute'] }}">
-
 
     <div class="form-group">
         <label class="col-form-label">{{ __('Project') }}</label>
@@ -29,7 +29,7 @@
         <div class="col-md-6">
             <select class="form-control select2" name="time_hour" id="time_hour" required="">
                 <option value="">{{ __('Hours') }}</option>
-                <?php for ($i = 0; $i < 9; $i++) { $i = $i < 10 ? '0' . $i : $i; ?>
+                <?php for ($i = 0; $i < 21; $i++) { $i = $i < 10 ? '0' . $i : $i; ?>
                 <option value="{{ $i }}" {{ $parseArray['time_hour'] == $i ? 'selected="selected"' : '' }}>
                     {{ $i }}</option>
                 <?php } ?>
@@ -39,7 +39,7 @@
         <div class="col-md-6">
             <select class="form-control select2" name="time_minute" id="time_minute" required>
                 <option value="">{{ __('Minutes') }}</option>
-                <?php for ($i = 0; $i < 60; $i += 10) { $i = $i < 10 ? '0' . $i : $i; ?>
+                <?php for ($i = 0; $i < 60; $i += 5) { $i = $i < 10 ? '0' . $i : $i; ?>
                 <option value="{{ $i }}"
                     {{ $parseArray['time_minute'] == $i ? 'selected="selected"' : '' }}>{{ $i }}</option>
                 <?php } ?>
