@@ -12,7 +12,7 @@
 
     @if ($project_id != -1)
         <li class="breadcrumb-item"><a
-                href="{{ route('projects.show', [$currentWorkspace->slug, $project_id]) }}">{{$project_name }}</a>
+                href="{{ route('projects.show', [$currentWorkspace->slug, $project_id]) }}">{{ $project_name }}</a>
         </li>
     @endif
     <li class="breadcrumb-item"> {{ __('Timesheet') }}</li>
@@ -43,11 +43,11 @@
         </div>
         @if ($project_id != '-1')
             <!-- <div class="col-auto">
-                <a href="{{ route($client_keyword . 'projects.show', [$currentWorkspace->slug, $project_id]) }}"
-                    class="btn btn-sm btn-primary">
-                    <i class=" ti ti-arrow-back-up"></i>
-                </a>
-            </div> -->
+                    <a href="{{ route($client_keyword . 'projects.show', [$currentWorkspace->slug, $project_id]) }}"
+                        class="btn btn-sm btn-primary">
+                        <i class=" ti ti-arrow-back-up"></i>
+                    </a>
+                </div> -->
         @endif
     </div>
 @endsection
@@ -120,7 +120,6 @@
                             .attr("value", i)
                             .text(item));
                     });
-                    console.log('totalrecords', data.totalrecords);
 
                     if (data.totalrecords == 0) {
                         mainEle.hide();
@@ -160,7 +159,7 @@
             e.preventDefault();
 
             var modalId = $(this).data('modal-id') ||
-            'commonModal'; // Usa 'commonModal' por defecto si no se especifica
+                'commonModal'; // Usa 'commonModal' por defecto si no se especifica
             var data = {};
             var url = $(this).data('url');
             var type = $(this).data('type');
@@ -168,7 +167,7 @@
             var task_id = $(this).data('task-id');
             var user_id = $(this).data('user-id');
             var p_id = $(this).data('project-id');
-            var milestone_id = $(this).data('milestone-id');
+            var milestone_id = $(this).data('milestone-id');          
 
             data.date = date;
             data.task_id = task_id;
@@ -185,7 +184,9 @@
                 data.project_id = data.p_id != '-1' ? data.p_id : p_id;
                 data.milestone_id = milestone_id;
             } else if (type == 'edit') {
+
                 title = '{{ __('Edit timesheet entry') }}';
+                data.milestone_id = milestone_id;
             }
 
             $("#" + modalId + " .modal-title").html(title + ` <small>(` + moment(date).format("ddd DD MMM") +

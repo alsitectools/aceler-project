@@ -137,6 +137,7 @@
                                                                                             data-task-id="{{ $dateSubArray['task_id'] }}"
                                                                                             data-date="{{ $dateSubArray['date'] }}"
                                                                                             data-url="{{ $dateSubArray['url'] }}"
+                                                                                            data-milestone-id="{{ $milestone['milestone_id'] }}"
                                                                                             style="{{ $isAllowed ? '' : 'background-color: #a293933d; cursor: not-allowed;border: 2px solid #ced4da; color:black' }}">
                                                                                             {{ $dateSubArray['time'] != '00:00' ? $dateSubArray['time'] : '00:00' }}
                                                                                         </div>
@@ -257,6 +258,7 @@
                                                                                             data-task-id="{{ $dateSubArray['task_id'] }}"
                                                                                             data-date="{{ $dateSubArray['date'] }}"
                                                                                             data-url="{{ $dateSubArray['url'] }}"
+                                                                                            data-milestone-id="{{ $timesheet['milestone_id'] }}"
                                                                                             style="{{ $isAllowed ? '' : 'background-color: #a293933d; cursor: not-allowed;border: 2px solid #ced4da; color:black' }}">
                                                                                             {{ $dateSubArray['time'] != '00:00' ? $dateSubArray['time'] : '00:00' }}
                                                                                         </div>

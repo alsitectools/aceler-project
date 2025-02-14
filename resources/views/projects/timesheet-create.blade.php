@@ -50,11 +50,15 @@
         </div>
     </div>
 
-    <div class="display-total-time">
+    <div class="display-total-time"
+        style="background-color: {{ $dayColor }}; padding: 10px; border-radius: 5px; color: #000; font-weight: bold;">
         <i class="fas fa-clock"></i>
-        <span>{{ __('Total Time') }} :
-            {{ $parseArray['totaltaskhour'] . ' ' . __('Hours') . ' ' . $parseArray['totaltaskminute'] . ' ' . __('Minutes') }}</span>
+        <span>
+            {{ __('Total Time') }} :
+            {{ $parseArray['totaltaskhour'] . ' ' . __('Hours') . ' ' . $parseArray['totaltaskminute'] . ' ' . __('Minutes') }}
+        </span>
     </div>
+
 </div>
 <div class="modal-footer">
     <button type="button" class="btn btn-light" data-bs-dismiss="modal">{{ __('Close') }}</button>
