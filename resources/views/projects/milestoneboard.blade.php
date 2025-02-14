@@ -141,12 +141,14 @@
                                                         <b id="mileTitle">{{ $milestone['title'] }}</b>
                                                     </div>
                                                     <div class="col-sm-2 pt-1 text-center">
-                                                        <a href="#" class=" tooltipCus"
-                                                            data-title="{{ $milestone['sales']->name }}">
-                                                            <img class="img-fluid"
-                                                                src="{{ asset('assets/img/salesManager.png') }}"
-                                                                alt="logo" />
-                                                        </a>
+                                                    <a href="#" class="tooltipCus" data-title="{{ $milestone['sales']->name ?? 'Nombre no disponible' }}">                                                   
+        <img alt="image" class="user-groupTasks" style="margin-top: -10;"
+            @if ($milestone['sales']->avatar)
+                src="{{ asset($milestone['sales']->avatar) }}"
+            @else
+                avatar="{{ $milestone['sales']->avatar ?? $milestone['sales']->name }}"
+            @endif> 
+</a>
 
                                                     </div>
                                                 </div>
