@@ -191,6 +191,7 @@ class Project extends Model
                 if (!empty($taskArray)) {
                     $milestoneArray[] = [
                         'milestone_name' => $milestone->title ?? 'unknown',
+                        'milestone_id' => $milestone->id ?? 'unknown',
                         'taskArray' => $taskArray,
                     ];
                 }
@@ -253,6 +254,7 @@ class Project extends Model
                     'project_id' => $project->id,
                     'project_name' => $project->name,
                     'milestone_name' => $milestone->title ?? 'unknown',
+                    'milestone_id' => $milestone->id ?? 'unknown',
                     'usersArray' => array_values($userArray),
                 ];
                 $totalrecords += array_sum(array_map(function ($user) {

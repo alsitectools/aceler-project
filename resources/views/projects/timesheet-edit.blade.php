@@ -3,25 +3,27 @@
     <input type="hidden" name="project_id" value="{{ $parseArray['project_id'] }}">
     <input type="hidden" name="task_id" value="{{ $parseArray['task_id'] }}">
     <input type="hidden" name="date" value="{{ $timesheet->date }}">
-
     <input type="hidden" id="totaltasktime"
         value="{{ $parseArray['totaltaskhour'] . ':' . $parseArray['totaltaskminute'] }}">
-
-    <div class="form-group">
-        <label class="col-form-label">{{ __('Project') }}</label>
-        <input type="text" class="form-control" value="{{ $parseArray['project_name'] }}" disabled="disabled">
+    <div class="row">
+        <div class="form-group">
+            <label class="col-form-label">{{ __('Project') }}</label>
+            <input type="text" class="form-control" value="{{ $parseArray['project_name'] }}" disabled="disabled">
+        </div>
+        <div class="form-group">
+            <label class="col-form-label">{{ __('Milestone') }}</label>
+            <input type="text" class="form-control" value="{{ $parseArray['milestone_name'] }}" disabled>
+        </div>
+        <div class="form-group">
+            <label class="col-form-label">{{ __('Task') }}</label>
+            <input type="text" class="form-control" value={{ __($parseArray['task_name']) }} disabled="disabled">
+        </div>
+        <div class="form-group">
+            <label class="col-form-label">{{ __('Date') }}</label>
+            <input type="date" class="form-control form-control-light date" value="{{ $timesheet->date }}"
+                placeholder="{{ __('Date') }}" disabled>
+        </div>
     </div>
-
-    <div class="form-group">
-        <label class="col-form-label">{{ __('Task') }}</label>
-        <input type="text" class="form-control" value={{ __($parseArray['task_name']) }} disabled="disabled">
-    </div>
-    <div class="form-group">
-        <label class="col-form-label">{{ __('Date') }}</label>
-        <input type="date" class="form-control form-control-light date" value="{{ $timesheet->date }}"
-            placeholder="{{ __('Date') }}" disabled>
-    </div>
-
     <div class="row">
         <div class="col-md-12">
             <label for="time" class="col-form-label">{{ __('Time') }}</label>
@@ -35,7 +37,6 @@
                 <?php } ?>
             </select>
         </div>
-
         <div class="col-md-6">
             <select class="form-control select2" name="time_minute" id="time_minute" required>
                 <option value="">{{ __('Minutes') }}</option>
@@ -45,26 +46,21 @@
                 <?php } ?>
             </select>
         </div>
-        <div class="col-md-12">
-            <div class="display-total-time">
-                <i class="fas fa-clock"></i>
-                <span>{{ __('Total Time') }} :
-                    {{ $parseArray['totaltaskhour'] . ' ' . __('Hours') . ' ' . $parseArray['totaltaskminute'] . ' ' . __('Minutes') }}</span>
-            </div>
-        </div>
         @php($id = str_replace('.', '', uniqid('', true)))
+    </div>
+    <div class="display-total-time"
+        style="background-color: {{ $dayColor }}; padding: 10px; border-radius: 5px; color: #000; font-weight: bold;">
+        <i class="fas fa-clock"></i>
+        <span>
+            {{ __('Total Time') }} :
+            {{ $parseArray['totaltaskhour'] . ' ' . __('Hours') . ' ' . $parseArray['totaltaskminute'] . ' ' . __('Minutes') }}
+        </span>
     </div>
 </div>
 
 <div>
     <div class="row">
         <div class="text-end">
-            {{-- <a href="#" class="action-btn btn-danger  btn btn-sm d-inline-flex"
-                data-confirm="{{ __('Are You Sure?') }}"
-                data-text="{{ trans('This action can not be undone. Do you want to continue?') }}"
-                data-confirm-yes="delete-form-{{ $id }}">
-                <i class="ti ti-trash"></i>
-            </a> --}}
             <button type="button" class="btn btn-light" data-bs-dismiss="modal">{{ __('Close') }}</button>
             <input type="submit" value="{{ __('Save Changes') }}" class="btn  btn-primary me-5">
 

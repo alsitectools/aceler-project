@@ -35,6 +35,7 @@ use App\Models\User;
 use App\Models\Log;
 use App\Models\MilestoneFile;
 use App\Models\UserProject;
+use App\Models\UserTimetable;
 use App\Models\UserWorkspace;
 use App\Models\Utility;
 use Carbon\Carbon;
@@ -206,7 +207,6 @@ class ProjectController extends Controller
             );
 
             return response()->json(['success' => true, 'message' => 'Project created successfully.', 'project_id' => $objProject]);
-            
         } else {
 
             ActivityLog::create(
@@ -548,7 +548,7 @@ class ProjectController extends Controller
             $milestone = Milestone::where('title', $inputs['milestoneTitle'])->first();
             $milestoneId = $milestone->id;
             $delete = true;
-        }else{
+        } else {
             // Construir la ruta del archivo basado en la estructura de almacenamiento
             $filePath = 'project_files/' . $projectName . '/' . $inputs['fileName'];
         }
@@ -558,15 +558,15 @@ class ProjectController extends Controller
             ? implode(' ', array_slice($fileNameParts, 2))  // Limpiar y unir las partes sin prefijo
             : strtr($inputs['fileName'], ['_' => ' ']);     // Reemplazar '_' por espacio si no hay prefijo
 
-        if($delete === true){
+        if ($delete === true) {
             DB::table('milestone_files')
-            ->where('milestone_id', $milestone->id)
-            ->where('name', $cleanFileName)
-            ->delete();
+                ->where('milestone_id', $milestone->id)
+                ->where('name', $cleanFileName)
+                ->delete();
         }
-       // Storage::delete($filePath);
+        // Storage::delete($filePath);
         Storage::disk('local')->delete($filePath);
-        
+
         // Registrar la actividad
         ActivityLog::create([
             'user_id' => \Auth::user()->id,
@@ -845,7 +845,7 @@ class ProjectController extends Controller
             }
             $projectType = ProjectType::where('id', $project->type)->value('name');
 
-            if ($objUser) { 
+            if ($objUser) {
                 $tasksOfmilestone = Task::where('milestone_id', $milestone->id)
                     ->where('project_id', $project->id)
                     ->where('assign_to', $objUser->id)
@@ -1064,7 +1064,7 @@ class ProjectController extends Controller
                     'user_type' => get_class(\Auth::user()),
                     'project_id' => $milestone->project_id,
                     'log_type' => 'has updated the milestone status to',
-                    'remark' => json_encode(['milestoneStatus' => __($status->name)]), 
+                    'remark' => json_encode(['milestoneStatus' => __($status->name)]),
                 ]);
 
                 $name = $user->name;
@@ -1722,70 +1722,70 @@ class ProjectController extends Controller
     }
 
     public function milestoneDestroyFile(Request $request)
-{
-    $inputs = $request->input();
+    {
+        $inputs = $request->input();
 
-    // Obtener el proyecto usando el ID
-    $project = Project::findOrFail($inputs['idProject']);
-    $projectName = strtr($project->name, [' ' => '_']);
+        // Obtener el proyecto usando el ID
+        $project = Project::findOrFail($inputs['idProject']);
+        $projectName = strtr($project->name, [' ' => '_']);
 
-    // Obtener el milestone
-    $milestone = Milestone::findOrFail($inputs['milestoneId']);
-    $milestoneName = strtr($milestone->title, [' ' => '_']);
+        // Obtener el milestone
+        $milestone = Milestone::findOrFail($inputs['milestoneId']);
+        $milestoneName = strtr($milestone->title, [' ' => '_']);
 
-    // Directorio donde se almacenan los archivos del milestone
-    $milestoneFolder = 'project_files/' . $projectName . '/' . $milestoneName;
+        // Directorio donde se almacenan los archivos del milestone
+        $milestoneFolder = 'project_files/' . $projectName . '/' . $milestoneName;
 
-    // Buscar el archivo en la base de datos
-    $fileEntry = DB::table('milestone_files')
-        ->where('milestone_id', $milestone->id)
-        ->where('name', $inputs['fileName'])
-        ->first();
+        // Buscar el archivo en la base de datos
+        $fileEntry = DB::table('milestone_files')
+            ->where('milestone_id', $milestone->id)
+            ->where('name', $inputs['fileName'])
+            ->first();
 
-    if (!$fileEntry) {
+        if (!$fileEntry) {
+            return response()->json([
+                'success' => false,
+                'message' => __('File not found in database.')
+            ], 404);
+        }
+
+        // Obtener la ruta del archivo desde la base de datos
+        $fileToDelete = $fileEntry->file;
+
+        if (!Storage::disk('local')->exists($fileToDelete)) {
+            return response()->json([
+                'success' => false,
+                'message' => __('File not found in storage.')
+            ], 404);
+        }
+
+        \Log::debug("Deleting file: " . $fileToDelete);
+
+        // Eliminar el archivo del almacenamiento
+        Storage::disk('local')->delete($fileToDelete);
+
+        // Eliminar la entrada del archivo en la base de datos
+        DB::table('milestone_files')
+            ->where('milestone_id', $milestone->id)
+            ->where('name', $inputs['fileName'])
+            ->delete();
+
+        // Registrar la actividad
+        ActivityLog::create([
+            'user_id' => \Auth::user()->id,
+            'user_type' => get_class(\Auth::user()),
+            'project_id' => $inputs['idProject'],
+            'log_type' => 'has delete a file',
+            'remark' => json_encode(['file_name' => $inputs['fileName']]),
+        ]);
+
         return response()->json([
-            'success' => false,
-            'message' => __('File not found in database.')
-        ], 404);
+            'success' => true,
+            'message' => __('File deleted successfully.')
+        ]);
     }
 
-    // Obtener la ruta del archivo desde la base de datos
-    $fileToDelete = $fileEntry->file; 
 
-    if (!Storage::disk('local')->exists($fileToDelete)) {
-        return response()->json([
-            'success' => false,
-            'message' => __('File not found in storage.')
-        ], 404);
-    }
-
-    \Log::debug("Deleting file: " . $fileToDelete);
-
-    // Eliminar el archivo del almacenamiento
-    Storage::disk('local')->delete($fileToDelete);
-
-    // Eliminar la entrada del archivo en la base de datos
-    DB::table('milestone_files')
-        ->where('milestone_id', $milestone->id)
-        ->where('name', $inputs['fileName'])
-        ->delete();
-
-    // Registrar la actividad
-    ActivityLog::create([
-        'user_id' => \Auth::user()->id,
-        'user_type' => get_class(\Auth::user()),
-        'project_id' => $inputs['idProject'],
-        'log_type' => 'has delete a file',
-        'remark' => json_encode(['file_name' => $inputs['fileName']]), 
-    ]);
-
-    return response()->json([
-        'success' => true,
-        'message' => __('File deleted successfully.')
-    ]);
-}
-
-    
     public function milestoneUpdate($slug, $milestoneID, Request $request)
     {
         $currentWorkspace = Utility::getWorkspaceBySlug($slug);
@@ -1864,7 +1864,7 @@ class ProjectController extends Controller
             'app_url' => env('APP_URL'),
             'app_name'  => $setting['app_name'],
         ];
-    
+
         //Add log
         ActivityLog::create([
             'user_id' => \Auth::user()->id,
@@ -2024,10 +2024,10 @@ class ProjectController extends Controller
 
         // Buscar el archivo en la base de datos
         $filePath = MilestoneFile::where('id', $inputs['fileId'])
-        ->where('name', $inputs['fileName']) // Asegúrate de tener este campo en la BD
-        ->value('file');
+            ->where('name', $inputs['fileName']) // Asegúrate de tener este campo en la BD
+            ->value('file');
 
-        \Log::debug("File Path: " . $filePath);        
+        \Log::debug("File Path: " . $filePath);
         $url = asset('storage/' . $filePath);
 
         \Log::debug("Generated URL: " . $url);
@@ -2037,7 +2037,6 @@ class ProjectController extends Controller
             'success' => true,
             'file_url' => $url
         ]);
-        
     }
 
     public function fileDownload($slug, $id, $file_id)
@@ -2279,6 +2278,30 @@ class ProjectController extends Controller
         $totaltaskhour = $totalhourstimes[0] ?? '00';
         $totaltaskminute = $totalhourstimes[1] ?? '00';
 
+        // Obtener horario esperado según el día de la semana
+        $timeTable = UserTimetable::where('user_id', $objUser->id)->first();
+        $dayOfWeek = strtolower(date('l')); // Día en inglés (ej: "monday")
+
+        $expectedHour = 0;
+        if ($timeTable && isset($timeTable->$dayOfWeek)) {
+            $expectedTime = explode(':', $timeTable->$dayOfWeek);
+            $expectedHour = (int) $expectedTime[0]; // Solo horas
+        }
+
+        // Convertir horas trabajadas a decimal
+        $workedHoursFormatted = $totaltaskhour + ($totaltaskminute / 60);
+        $dayColor = '';
+        // Determinar el color según la comparación
+        if ($workedHoursFormatted == 0) {
+            $dayColor = '#e06c71'; // Rojo (sin horas)
+        } elseif ($workedHoursFormatted < $expectedHour) {
+            $dayColor = '#fcf75e'; // Amarillo (horas parciales)
+        } elseif ($workedHoursFormatted == $expectedHour) {
+            $dayColor = '#89e186'; // Verde (horas completas)
+        } elseif ($workedHoursFormatted > $expectedHour) {
+            $dayColor = '#b2e2f2'; // Azul (horas extras)
+        }
+
         $parseArray = [
             'project_id' => $project->id,
             'project_name' => $project_name,
@@ -2287,11 +2310,11 @@ class ProjectController extends Controller
             'milestone_id' => $milestone_id,
             'milestone_name' => __($milestone_name),
             'date' => $selected_date,
-            'totaltaskhour' => $totaltaskhour,  
-            'totaltaskminute' => $totaltaskminute, 
+            'totaltaskhour' => $totaltaskhour,
+            'totaltaskminute' => $totaltaskminute,
         ];
 
-        return view('projects.timesheet-create', compact('currentWorkspace', 'parseArray', 'fromTimesheet'));
+        return view('projects.timesheet-create', compact('currentWorkspace', 'parseArray', 'fromTimesheet', 'dayColor'));
     }
 
     public function timesheetUpdate($slug, $timesheetID, Request $request)
@@ -3143,16 +3166,38 @@ class ProjectController extends Controller
 
         // Obtener todos los registros de Timesheet del día seleccionado
         $tasktime = Timesheet::where('created_by', $user_id)
-            ->whereDate('date', $selected_date) // Filtrar por fecha específica
+            ->whereDate('date', $selected_date)
             ->pluck('time')
             ->toArray();
 
         // Si hay registros, sumarlos, de lo contrario, devolver '00:00'
-        $totaltasktime = !empty($tasktime) ? Utility::calculateTimesheetHours($tasktime) : '00:00';
+        $totaltasktime = Utility::calculateTimesheetHours($tasktime);
 
         // Separar horas y minutos
         list($totaltaskhour, $totaltaskminute) = explode(':', $totaltasktime);
+        // Obtener horario esperado según el día de la semana
+        $timeTable = UserTimetable::where('user_id', $objUser->id)->first();
+        $dayOfWeek = strtolower(date('l')); // Día en inglés (ej: "monday")
 
+        $expectedHour = 0;
+        if ($timeTable && isset($timeTable->$dayOfWeek)) {
+            $expectedTime = explode(':', $timeTable->$dayOfWeek);
+            $expectedHour = (int) $expectedTime[0]; // Solo horas
+        }
+
+        // Convertir horas trabajadas a decimal
+        $workedHoursFormatted = $totaltaskhour + ($totaltaskminute / 60);
+        $dayColor = '';
+        // Determinar el color según la comparación
+        if ($workedHoursFormatted == 0) {
+            $dayColor = '#e06c71'; // Rojo (sin horas)
+        } elseif ($workedHoursFormatted < $expectedHour) {
+            $dayColor = '#fcf75e'; // Amarillo (horas parciales)
+        } elseif ($workedHoursFormatted == $expectedHour) {
+            $dayColor = '#89e186'; // Verde (horas completas)
+        } elseif ($workedHoursFormatted > $expectedHour) {
+            $dayColor = '#b2e2f2'; // Azul (horas extras)
+        }
 
         $parseArray = [
             'project_id' => $project->id,
@@ -3166,7 +3211,7 @@ class ProjectController extends Controller
             'totaltaskminute' => $totaltaskminute,
         ];
 
-        return view('projects.timesheet-create', compact('currentWorkspace', 'parseArray', 'fromTimesheet'));
+        return view('projects.timesheet-create', compact('currentWorkspace', 'parseArray', 'fromTimesheet', 'dayColor'));
     }
 
 
@@ -3253,7 +3298,7 @@ class ProjectController extends Controller
                 $taskType = TaskType::select('name')->where('id', $task)->first();
                 $task_name = $taskType->name;
 
-                $tasktime = Timesheet::where('task_id', $task_id)->where('created_by', $created_by)->whereDate('date', $selected_date)->pluck('time')->toArray();
+                $tasktime = Timesheet::where('created_by', $created_by)->whereDate('date', $selected_date)->pluck('time')->toArray();
 
                 $totaltasktime = Utility::calculateTimesheetHours($tasktime);
 
@@ -3264,9 +3309,34 @@ class ProjectController extends Controller
 
                 $time = explode(':', $timesheet->time);
 
+                $timeTable = UserTimetable::where('user_id', $objUser->id)->first();
+                $dayOfWeek = strtolower(date('l'));
+
+                $expectedHour = 0;
+                if ($timeTable && isset($timeTable->$dayOfWeek)) {
+                    $expectedTime = explode(':', $timeTable->$dayOfWeek);
+                    $expectedHour = (int) $expectedTime[0];
+                }
+
+                $workedHoursFormatted = $totaltaskhour + ($totaltaskminute / 60);
+                $dayColor = '';
+
+                if ($workedHoursFormatted == 0) {
+                    $dayColor = '#e06c71'; // Rojo (sin horas)
+                } elseif ($workedHoursFormatted < $expectedHour) {
+                    $dayColor = '#fcf75e'; // Amarillo (horas parciales)
+                } elseif ($workedHoursFormatted == $expectedHour) {
+                    $dayColor = '#89e186'; // Verde (horas completas)
+                } elseif ($workedHoursFormatted > $expectedHour) {
+                    $dayColor = '#b2e2f2'; // Azul (horas extras)
+                }
+                $milestone = Milestone::find($request->milestone_id);
+
                 $parseArray = [
                     'project_id' => $project_id,
                     'project_name' => $project_name,
+                    'milestone_name' => $milestone->title,
+                    'milestone_id' => $milestone->id,
                     'task_id' => $task_id,
                     'task_name' => $task_name,
                     'time_hour' => $time[0] < 10 ? $time[0] : $time[0],
@@ -3276,7 +3346,7 @@ class ProjectController extends Controller
                 ];
 
 
-                return view('projects.timesheet-edit', compact('timesheet', 'currentWorkspace', 'parseArray', 'project_id'));
+                return view('projects.timesheet-edit', compact('timesheet', 'currentWorkspace', 'parseArray', 'project_id', 'dayColor'));
             }
         }
     }
