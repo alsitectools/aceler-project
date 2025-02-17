@@ -432,9 +432,7 @@ $logo = 'storage/app/public/';
                             },
                             success: function(data) {
                                console.log("success");
-                               document.getElementById('saving-overlay').style.display = 'none';
-                               //reactivar scroll
-                               document.body.style.overflow = 'auto';
+                               window.location.reload();
                             },
                             fail:function() {
                                 console.log("fail");
