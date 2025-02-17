@@ -799,19 +799,11 @@
                                                                 class="buttonFiles">
                                                                 <i class="ti ti-download" style="color:white"></i>
                                                             </a>
-                                                            <a href="#" class=" buttonFiles dropdown-item bs-pass-para"
-                                                                data-confirm="{{ __('Are You Sure?') }}"
-                                                                data-text="{{ __('This action can not be undone. Do you want to continue?') }}"
-                                                                data-confirm-yes="delete-file-{{ $file['original'] }}">
-                                                                <i class="ti ti-trash" style="color:white"></i>
+                                                            <a onclick="deleteFile({{ $project->id }}, '', '{{ basename($file['original']) }}')"
+                                                                class="buttonFiles">
+                                                                <i class="fa-solid fa-trash" style="color:white"></i>
                                                             </a>
-
-                                                            <form id="delete-file-{{ $file['original'] }}" style="display: none;">
-                                                                @csrf
-                                                                <input type="hidden" name="idProject" value="{{ $project->id }}">
-                                                                <input type="hidden" name="milestoneTitle" value="">
-                                                                <input type="hidden" name="fileName" value="{{ basename($file['original']) }}">
-                                                            </form>
+                                                            
                                                         </div>
                                                     </div>
                                                 @endforeach
@@ -862,19 +854,10 @@
                                                                                 <a onclick="downloadFile({{ $project->id }}, '{{ $milestone['title'] }}', '{{ basename($file['original']) }}')" class="buttonFiles">
                                                                                     <i class="ti ti-download" style="color:white"></i>
                                                                                 </a>
-                                                                                <a href="#" class=" buttonFiles dropdown-item bs-pass-para"
-                                                                                    data-confirm="{{ __('Are You Sure?') }}"
-                                                                                    data-text="{{ __('This action can not be undone. Do you want to continue?') }}"
-                                                                                    data-confirm-yes="delete-file-{{ $file['original'] }}">
-                                                                                    <i class="ti ti-trash" style="color:white"></i>
-                                                                                </a>
-
-                                                                                <form id="delete-file-{{ $file['original'] }}" style="display: none;">
-                                                                                    @csrf
-                                                                                    <input type="hidden" name="idProject" value="{{ $project->id }}">
-                                                                                    <input type="hidden" name="milestoneTitle" value="{{ $milestone['title'] }}">
-                                                                                    <input type="hidden" name="fileName" value="{{ basename($file['original']) }}">
-                                                                                </form>      
+                                                                                <a onclick="deleteFile({{ $project->id }}, '{{ $milestone['title'] }}', '{{ basename($file['original']) }}')"
+                                                                                    class="buttonFiles">
+                                                                                    <i class="fa-solid fa-trash" style="color:white"></i>
+                                                                                </a>   
                                                                             </div>
                                                                         </div>
                                                                     @endforeach
@@ -1026,32 +1009,16 @@
                 }
             });
         }
-        //implementation for delete files
-        document.addEventListener("DOMContentLoaded", function() {
-            document.querySelectorAll('.bs-pass-para').forEach(function(element) {
-                element.addEventListener("click", function(event) {
-                    event.preventDefault();
 
 
-                    const formId = this.getAttribute("data-confirm-yes");
-                    if (formId) {
-                        const form = document.getElementById(formId);
-                        if (form) {
-                            // Extraer datos del formulario
-                            const idProject = form.querySelector('input[name="idProject"]').value;
-                            const milestoneTitle = form.querySelector('input[name="milestoneTitle"]').value;
-                            const fileName = form.querySelector('input[name="fileName"]').value;
-
-                            deleteFile(idProject, milestoneTitle, fileName);
-                        }
-                    }
-                });
-            });
-        });
 
         function deleteFile(idProject, titleMilestone, file) {
             // URL del backend
             const deleteUrl = '<?php echo url('projects/delete-file'); ?>';
+
+            if (!confirm("{{ __('This action cannot be undone. Do you want to continue?') }}")) {
+                return;
+            }
 
             $.ajax({
                 url: deleteUrl,

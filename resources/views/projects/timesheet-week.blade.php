@@ -105,21 +105,14 @@
                                                                             <td>
                                                                                 <div class="day-container">
                                                                                     @php
-
                                                                                         // Convertir la fecha a un objeto Carbon
                                                                                         $date = Carbon::parse($dateSubArray['date']);
-                                                                                        
+
                                                                                         // Obtener el día de hoy
                                                                                         $today = Carbon::today();
 
                                                                                         // Determinar si el día es futuro
                                                                                         $isFuture = $date->greaterThan($today);
-
-                                                                                        // Obtener el nombre del día en minúsculas (ejemplo: "monday", "tuesday", etc.)
-                                                                                        $dayName = strtolower($date->format('l'));
-
-                                                                                        // Verificar si el día está permitido en workHoursWeek
-                                                                                        $isAllowed = isset($workHoursWeek[$dayName]) && !$isFuture; 
                                                                                     @endphp
 
                                                                                     <div class="day-label">
@@ -128,16 +121,16 @@
 
                                                                                     @if (Auth::user()->id == $dateSubArray['user_id'])
                                                                                         <div role="button"
-                                                                                            class="form-control week inputsTask {{ $isAllowed ? '' : 'disabled' }}"
-                                                                                            title="{{ $isAllowed ? __('Click to Add/Edit Timesheet') : __('This day is not available or is in the future') }}"
-                                                                                            data-ajax-timesheet-popup="{{ $isAllowed ? 'true' : 'false' }}"
+                                                                                            class="form-control week inputsTask {{ $isFuture ? 'disabled-day' : '' }}"
+                                                                                            title="{{ $isFuture ? __('This day is in the future and cannot be edited') : __('Click to Add/Edit Timesheet') }}"
+                                                                                            data-ajax-timesheet-popup="{{ $isFuture ? 'false' : 'true' }}"
                                                                                             data-type="{{ $dateSubArray['type'] }}"
                                                                                             data-user-id="{{ $dateSubArray['user_id'] }}"
                                                                                             data-project-id="{{ $dateSubArray['project_id'] }}"
                                                                                             data-task-id="{{ $dateSubArray['task_id'] }}"
                                                                                             data-date="{{ $dateSubArray['date'] }}"
                                                                                             data-url="{{ $dateSubArray['url'] }}"
-                                                                                            style="{{ $isAllowed ? '' : 'background-color: #a293933d; cursor: not-allowed;border: 2px solid #ced4da; color:black' }}">
+                                                                                            style="{{ $isFuture ? 'background-color: #a293933d; cursor: not-allowed; border: 2px solid #ced4da; color:black' : '' }}">
                                                                                             {{ $dateSubArray['time'] != '00:00' ? $dateSubArray['time'] : '00:00' }}
                                                                                         </div>
                                                                                     @else
@@ -149,6 +142,7 @@
                                                                             </td>
                                                                         @endforeach
                                                                     @endforeach
+
                                                                     <td>
                                                                         <div class="day-label marginForTotalText"
                                                                             style="margin-left: 35px;">

@@ -998,3 +998,4 @@ Route::get('/get-timesheetCalendar', [CalenderController::class, 'getTimesheetCo
 Route::post('/projects/download-file', [ProjectController::class, 'downloadFile'])->name('project.downloadFile');
 //Delete project files
 Route::post('/projects/delete-file', [ProjectController::class, 'deleteFile'])->name('project.deleteFile');
+Route::get('/home/tutorial/{slug}', [HomeController::class, 'showTutorial'])->name('home.showTutorial');

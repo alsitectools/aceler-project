@@ -231,4 +231,9 @@ class HomeController extends Controller
             return view('home', compact('currentWorkspace'));
         }
     }
+
+    public function showTutorial($slug){
+        $currentWorkspace = Utility::getWorkspaceBySlug($slug);
+        return view('tutorial.tutorialHome', compact('currentWorkspace'));
+    }
 }
