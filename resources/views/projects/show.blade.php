@@ -109,23 +109,30 @@
         margin-left: 10px;
     }
 
-    .fatherMilestoneDiv{
+    .fatherMilestoneDiv {
         max-height: 140px;
         overflow-y: auto;
         overflow-x: hidden;
         display: flex;
         flex-direction: column;
     }
-    .milestoneGridDisplay{
+
+    .milestoneGridDisplay {
         display: grid;
         grid-template-columns: repeat(3, 1fr);
         gap: 10px;
     }
-    .styleIconFiles{
+
+    .styleIconFiles {
         width: 12%;
         height: 65%;
         padding-left: 5px;
         padding-right: 5px;
+    }
+
+    .size40AndBold{
+        font-weight: bold;
+        font-size: 40px;
     }
     @media (max-width: 1300px) {
         .header_breadcrumb {
@@ -285,6 +292,12 @@
         margin-left: 10px;
     }
 
+    .alignMiddle {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
     @media (max-width: 1300px) {
         .header_breadcrumb {
             width: 100% !important;
@@ -416,73 +429,73 @@
                         </div>
                     </div>
                     <!---<div class="row">
-                                                            <div class="col-lg-3 col-sm-6">
-                                                                <div class="card">
-                                                                    <div class="card-body">
-                                                                        <div class="row">
-                                                                            <div class="theme-avtar bg-primary">
-                                                                                <i class="fas fas fa-calendar-day"></i>
-                                                                            </div>
-                                                                            <div class="col text-end">
-                                                                                <h6 class="text-muted mb-1">{{ __('Created date') }}</h6>
-                                                                                <span
-                                                                                    class="h6 font-weight-bold mb-0 ">{{ App\Models\Utility::dateFormat($project->start_date) }}</span>
-                                                                            </div>
-                                                                        </div>
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-                                                            <div class="col-lg-3 col-sm-6">
-                                                                <div class="card">
-                                                                    <div class="card-body">
-                                                                        <div class="row">
-                                                                            <div class="theme-avtar bg-danger">
-                                                                                <i class="fas fa-tasks text-white"></i>
-                                                                            </div>
-                                                                            <div class="col text-end">
-                                                                                <h6 class="text-muted mb-1">{{ __('Tasks') }}</h6>
-                                                                                <span class="h6 font-weight-bold mb-0 ">{{ $project->countTask() }}</span>
+                                                                        <div class="col-lg-3 col-sm-6">
+                                                                            <div class="card">
+                                                                                <div class="card-body">
+                                                                                    <div class="row">
+                                                                                        <div class="theme-avtar bg-primary">
+                                                                                            <i class="fas fas fa-calendar-day"></i>
+                                                                                        </div>
+                                                                                        <div class="col text-end">
+                                                                                            <h6 class="text-muted mb-1">{{ __('Created date') }}</h6>
+                                                                                            <span
+                                                                                                class="h6 font-weight-bold mb-0 ">{{ App\Models\Utility::dateFormat($project->start_date) }}</span>
+                                                                                        </div>
+                                                                                    </div>
+                                                                                </div>
                                                                             </div>
                                                                         </div>
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-                                                            <div class="col-lg-3 col-sm-6">
-                                                                <div class="card">
-                                                                    <div class="card-body">
-                                                                        <div class="row">
-                                                                            <div class="theme-avtar" style="background-color: #B197FC;">
-                                                                                <i class="fa-solid fa-file-lines fa-lg text-white"
-                                                                                    style="color: #B197FC;"></i>
-                                                                            </div>
-                                                                            <div class="col text-end">
-                                                                                <h6 class="text-muted mb-1">{{ __('Milestones') }}</h6>
-                                                                                <span
-                                                                                    class="h6 font-weight-bold mb-0 ">{{ $project->milestonescount() }}</span>
+                                                                        <div class="col-lg-3 col-sm-6">
+                                                                            <div class="card">
+                                                                                <div class="card-body">
+                                                                                    <div class="row">
+                                                                                        <div class="theme-avtar bg-danger">
+                                                                                            <i class="fas fa-tasks text-white"></i>
+                                                                                        </div>
+                                                                                        <div class="col text-end">
+                                                                                            <h6 class="text-muted mb-1">{{ __('Tasks') }}</h6>
+                                                                                            <span class="h6 font-weight-bold mb-0 ">{{ $project->countTask() }}</span>
+                                                                                        </div>
+                                                                                    </div>
+                                                                                </div>
                                                                             </div>
                                                                         </div>
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-                                                            <div class="col-lg-3 col-sm-6">
-                                                                <div class="card">
-                                                                    <div class="card-body">
-                                                                        <div class="row">
-                                                                            <div class="theme-avtar bg-success">
-                                                                                <i class="fa-solid fa-diagram-project bg-success text-white"></i>
-                                                                            </div>
-                                                                            <div class="col text-end">
-                                                                                <h6 class="text-muted mb-1">
-                                                                                    {{ $project->type != 1 ? __('Project type') : __('MO') }}</h6>
-                                                                                <span
-                                                                                    class="h6 font-weight-bold mb-0 ">{{ $project->ref_mo != '' ? $project->ref_mo : __($project->typeName()) }}
-                                                                                </span>
+                                                                        <div class="col-lg-3 col-sm-6">
+                                                                            <div class="card">
+                                                                                <div class="card-body">
+                                                                                    <div class="row">
+                                                                                        <div class="theme-avtar" style="background-color: #B197FC;">
+                                                                                            <i class="fa-solid fa-file-lines fa-lg text-white"
+                                                                                                style="color: #B197FC;"></i>
+                                                                                        </div>
+                                                                                        <div class="col text-end">
+                                                                                            <h6 class="text-muted mb-1">{{ __('Milestones') }}</h6>
+                                                                                            <span
+                                                                                                class="h6 font-weight-bold mb-0 ">{{ $project->milestonescount() }}</span>
+                                                                                        </div>
+                                                                                    </div>
+                                                                                </div>
                                                                             </div>
                                                                         </div>
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-                                                        </div>-->
+                                                                        <div class="col-lg-3 col-sm-6">
+                                                                            <div class="card">
+                                                                                <div class="card-body">
+                                                                                    <div class="row">
+                                                                                        <div class="theme-avtar bg-success">
+                                                                                            <i class="fa-solid fa-diagram-project bg-success text-white"></i>
+                                                                                        </div>
+                                                                                        <div class="col text-end">
+                                                                                            <h6 class="text-muted mb-1">
+                                                                                                {{ $project->type != 1 ? __('Project type') : __('MO') }}</h6>
+                                                                                            <span
+                                                                                                class="h6 font-weight-bold mb-0 ">{{ $project->ref_mo != '' ? $project->ref_mo : __($project->typeName()) }}
+                                                                                            </span>
+                                                                                        </div>
+                                                                                    </div>
+                                                                                </div>
+                                                                            </div>
+                                                                        </div>
+                                                                    </div>-->
                     <div class="col-lg-12 widthAdjustDiv">
                         @if ($currentWorkspace->permission == 'Member' || $currentWorkspace->permission == 'Owner')
                             <div class="card">
@@ -578,6 +591,70 @@
                         @endif
                     </div>
                     {{-- ======================================================================================== --}}
+                    <div class="row">
+                        <div class="col-md-3">
+                            <div class="card min-h">
+                                <div class="card-header">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <h5 class="mb-0">
+                                                {{ __('Average delivery time') }}
+                                            </h5>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="card-body alignMiddle">
+                                    <span class="size40AndBold">
+                                        50
+                                    </span>
+                                    {{-- @php
+                                        foreach ($milestoneData as $value) {
+                                            print_r( $value);
+                                        }
+                                    @endphp --}}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card min-h">
+                                <div class="card-header">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <h5 class="mb-0">
+                                                {{ __('Average working time') }}
+                                            </h5>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card min-h">
+                                <div class="card-header">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <h5 class="mb-0">
+                                                {{ __('Average start-up time') }}
+                                            </h5>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card min-h">
+                                <div class="card-header">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <h5 class="mb-0">
+                                                {{ __('Average delay time') }}
+                                            </h5>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                     <div class="row">
                         <div class="col-md-6">
                             <div class="card min-h">
@@ -787,12 +864,15 @@
                                                 @foreach ($cleanedFiles as $file)
                                                     @php
                                                         $extension = pathinfo($file['cleaned'], PATHINFO_EXTENSION);
-                                                        $iconPath = file_exists(public_path('assets/iconFilesTypes/' . $extension . '.png'))
+                                                        $iconPath = file_exists(
+                                                            public_path('assets/iconFilesTypes/' . $extension . '.png'),
+                                                        )
                                                             ? asset('assets/iconFilesTypes/' . $extension . '.png')
                                                             : asset('assets/iconFilesTypes/default.png');
                                                     @endphp
                                                     <div class="uploaded-file">
-                                                        <img src="{{ asset($iconPath) }}" alt="{{ $extension }} icon" class="styleIconFiles">
+                                                        <img src="{{ asset($iconPath) }}"
+                                                            alt="{{ $extension }} icon" class="styleIconFiles">
                                                         <p>{{ $file['cleaned'] }}</p>
                                                         <div class="uploaded-file-buttons">
                                                             <a onclick="downloadFile({{ $project->id }}, '', '{{ basename($file['original']) }}')"
@@ -803,96 +883,116 @@
                                                                 class="buttonFiles">
                                                                 <i class="fa-solid fa-trash" style="color:white"></i>
                                                             </a>
-                                                            
+
                                                         </div>
                                                     </div>
                                                 @endforeach
                                             @else
                                                 <p class="text-muted">{{ __('No project files uploaded yet.') }}</p>
                                             @endif
-                                            </div>
-                                            <h6 style="padding-top: 1%;">{{ __('Milestone files') }}</h6>
-                                            <div class="fatherMilestoneDiv top-10-scroll">
-                                                <!-- Sección de archivos de Milestones -->
-                                                @if (!empty($milestoneFiles) && count($milestoneFiles) > 0)
-                                                    
-                                                    @foreach ($milestoneFiles as $milestone)
-                                                        <div class="milestone-files" style="margin-bottom: 15px;">
-                                                            <h6>{{ $milestone['title'] }}</h6>
-                                                            
-                                                            <div class="milestoneGridDisplay">
-                                                                @if (!empty($milestone['files']) && count($milestone['files']) > 0)
+                                        </div>
+                                        <h6 style="padding-top: 1%;">{{ __('Milestone files') }}</h6>
+                                        <div class="fatherMilestoneDiv top-10-scroll">
+                                            <!-- Sección de archivos de Milestones -->
+                                            @if (!empty($milestoneFiles) && count($milestoneFiles) > 0)
+                                                @foreach ($milestoneFiles as $milestone)
+                                                    <div class="milestone-files" style="margin-bottom: 15px;">
+                                                        <h6>{{ $milestone['title'] }}</h6>
+
+                                                        <div class="milestoneGridDisplay">
+                                                            @if (!empty($milestone['files']) && count($milestone['files']) > 0)
+                                                                @php
+                                                                    $cleanedMilestoneFiles = [];
+                                                                    foreach ($milestone['files'] as $file) {
+                                                                        $filename = basename($file);
+                                                                        $parts = explode('_', $filename);
+                                                                        $cleanFilename = isset($parts[2])
+                                                                            ? implode('_', array_slice($parts, 2)) // Limpia el nombre eliminando el prefijo
+                                                                            : $filename;
+                                                                        $cleanedMilestoneFiles[] = [
+                                                                            'original' => $file,
+                                                                            'cleaned' => $cleanFilename,
+                                                                        ];
+                                                                    }
+                                                                    // Ordena alfabéticamente por el nombre limpio
+                                                                    usort($cleanedMilestoneFiles, function ($a, $b) {
+                                                                        return strcmp($a['cleaned'], $b['cleaned']);
+                                                                    });
+                                                                @endphp
+                                                                @foreach ($cleanedMilestoneFiles as $file)
                                                                     @php
-                                                                        $cleanedMilestoneFiles = [];
-                                                                        foreach ($milestone['files'] as $file) {
-                                                                            $filename = basename($file);
-                                                                            $parts = explode('_', $filename);
-                                                                            $cleanFilename = isset($parts[2])
-                                                                                ? implode('_', array_slice($parts, 2)) // Limpia el nombre eliminando el prefijo
-                                                                                : $filename;
-                                                                            $cleanedMilestoneFiles[] = [
-                                                                                'original' => $file,
-                                                                                'cleaned' => $cleanFilename,
-                                                                            ];
-                                                                        }
-                                                                        // Ordena alfabéticamente por el nombre limpio
-                                                                        usort($cleanedMilestoneFiles, function ($a, $b) {
-                                                                            return strcmp($a['cleaned'], $b['cleaned']);
-                                                                        });
+                                                                        $extension = pathinfo(
+                                                                            $file['cleaned'],
+                                                                            PATHINFO_EXTENSION,
+                                                                        );
+                                                                        $iconPath = file_exists(
+                                                                            public_path(
+                                                                                'assets/iconFilesTypes/' .
+                                                                                    $extension .
+                                                                                    '.png',
+                                                                            ),
+                                                                        )
+                                                                            ? asset(
+                                                                                'assets/iconFilesTypes/' .
+                                                                                    $extension .
+                                                                                    '.png',
+                                                                            )
+                                                                            : asset(
+                                                                                'assets/iconFilesTypes/default.png',
+                                                                            );
                                                                     @endphp
-                                                                    @foreach ($cleanedMilestoneFiles as $file)
-                                                                        @php
-                                                                            $extension = pathinfo($file['cleaned'], PATHINFO_EXTENSION);
-                                                                            $iconPath = file_exists(public_path('assets/iconFilesTypes/' . $extension . '.png'))
-                                                                                ? asset('assets/iconFilesTypes/' . $extension . '.png')
-                                                                                : asset('assets/iconFilesTypes/default.png');
-                                                                        @endphp
-                                                                        <div class="uploaded-file">
-                                                                            <img src="{{ asset($iconPath) }}" alt="{{ $extension }} icon" class="styleIconFiles">
-                                                                            <p style="margin: 0;">{{ $file['cleaned'] }}</p>
-                                                                            <div class="uploaded-file-buttons">
-                                                                                <a onclick="downloadFile({{ $project->id }}, '{{ $milestone['title'] }}', '{{ basename($file['original']) }}')" class="buttonFiles">
-                                                                                    <i class="ti ti-download" style="color:white"></i>
-                                                                                </a>
-                                                                                <a onclick="deleteFile({{ $project->id }}, '{{ $milestone['title'] }}', '{{ basename($file['original']) }}')"
-                                                                                    class="buttonFiles">
-                                                                                    <i class="fa-solid fa-trash" style="color:white"></i>
-                                                                                </a>   
-                                                                            </div>
+                                                                    <div class="uploaded-file">
+                                                                        <img src="{{ asset($iconPath) }}"
+                                                                            alt="{{ $extension }} icon"
+                                                                            class="styleIconFiles">
+                                                                        <p style="margin: 0;">{{ $file['cleaned'] }}</p>
+                                                                        <div class="uploaded-file-buttons">
+                                                                            <a onclick="downloadFile({{ $project->id }}, '{{ $milestone['title'] }}', '{{ basename($file['original']) }}')"
+                                                                                class="buttonFiles">
+                                                                                <i class="ti ti-download"
+                                                                                    style="color:white"></i>
+                                                                            </a>
+                                                                            <a onclick="deleteFile({{ $project->id }}, '{{ $milestone['title'] }}', '{{ basename($file['original']) }}')"
+                                                                                class="buttonFiles">
+                                                                                <i class="fa-solid fa-trash"
+                                                                                    style="color:white"></i>
+                                                                            </a>
                                                                         </div>
-                                                                    @endforeach
-                                                                @else
-                                                                    <p class="text-muted">{{ __('No files uploaded for this milestone.') }}</p>
-                                                                @endif
-                                                            </div>
+                                                                    </div>
+                                                                @endforeach
+                                                            @else
+                                                                <p class="text-muted">
+                                                                    {{ __('No files uploaded for this milestone.') }}</p>
+                                                            @endif
                                                         </div>
-                                                    @endforeach
-                                                @endif
-                                            </div>
+                                                    </div>
+                                                @endforeach
+                                            @endif
+                                        </div>
 
                                     </div>
                                 </div>
                             </div>
                         </div>
                         <!---
-                                                            <div class="col-md-4">
-                                                                <div class="card min-end">
-                                                                    <div class="card-header" style="padding: 25px 35px !important;">
-                                                                        <div class="d-flex justify-content-between align-items-center">
-                                                                            <div class="row">
-                                                                                <h5 class="mb-0">{{ __('Progress') }}<span
-                                                                                        class="text-end">({{ __('Last week tasks') }}) </span></h5>
+                                                                        <div class="col-md-4">
+                                                                            <div class="card min-end">
+                                                                                <div class="card-header" style="padding: 25px 35px !important;">
+                                                                                    <div class="d-flex justify-content-between align-items-center">
+                                                                                        <div class="row">
+                                                                                            <h5 class="mb-0">{{ __('Progress') }}<span
+                                                                                                    class="text-end">({{ __('Last week tasks') }}) </span></h5>
+                                                                                        </div>
+                                                                                    </div>
+                                                                                </div>
+                                                                                <div class="card-body">
+                                                                                    <div class="d-flex align-items-start">
+                                                                                    </div>
+                                                                                </div>
+                                                                                <div id="task-chart"></div>
                                                                             </div>
                                                                         </div>
-                                                                    </div>
-                                                                    <div class="card-body">
-                                                                        <div class="d-flex align-items-start">
-                                                                        </div>
-                                                                    </div>
-                                                                    <div id="task-chart"></div>
-                                                                </div>
-                                                            </div>
-                                                            --->
+                                                                        --->
                         <div class="col-md-6">
                             <div class="card min-end">
                                 <div class="card-header">
@@ -929,19 +1029,19 @@
                                                         <span
                                                             class="timeline-step timeline-step-sm border border-success text-white">
                                                             <i class="fa-solid fa-diagram-project"></i></span>
-                                                    @elseif($activity->log_type =='has updated a milestone')
+                                                    @elseif($activity->log_type == 'has updated a milestone')
                                                         <span
                                                             class="timeline-step timeline-step-sm border border-info text-white">
                                                             <i class="fas fa-cubes"></i></span>
-                                                    @elseif($activity->log_type=='has updated the milestone status to')   
+                                                    @elseif($activity->log_type == 'has updated the milestone status to')
                                                         <span
                                                             class="timeline-step timeline-step-sm border border-info text-white">
-                                                            <i class="fas fa-cubes"></i></span>    
-                                                    @elseif($activity->log_type=='has deleted a milestone')   
+                                                            <i class="fas fa-cubes"></i></span>
+                                                    @elseif($activity->log_type == 'has deleted a milestone')
                                                         <span
                                                             class="timeline-step timeline-step-sm border border-primary text-white"
                                                             style="border-color: #aa182c !important;">
-                                                            <i class="fas fa-cubes"></i></span>               
+                                                            <i class="fas fa-cubes"></i></span>
                                                     @endif
                                                     <div class="last_notification_text">
                                                         <!-- Person who did the notification -->

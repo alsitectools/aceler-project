@@ -480,6 +480,26 @@ class ProjectController extends Controller
 
                 \Log::debug("Archivos por milestone:", $milestoneFiles);
 
+                //Implementation of average time
+                
+                /*Completion date is not working correctly
+                $milestones = DB::table('milestones')
+                    ->where('project_id', '=', $projectID)
+                    ->select('id', 'title', 'created_at', 'end_date', 'start_date')
+                    ->get();
+                
+                $milestoneData = [];
+
+                foreach ($milestones as $milestone) {
+                    $milestoneData[] = [
+                        'title' => $milestone->title,
+                        'created_at' => date('Y-m-d', strtotime($milestone->created_at)), // Fecha de creación
+                        'due_date' => $milestone->due_date ? date('Y-m-d', strtotime($milestone->due_date)) : 'N/A', // Fecha de entrega deseada
+                        'start_date' => $milestone->start_date ? date('Y-m-d', strtotime($milestone->start_date)) : 'N/A', // Task started date
+                        'completion_date' => $milestone->completion_date ? date('Y-m-d', strtotime($milestone->completion_date)) : 'N/A', // Completion date
+                    ];
+                }*/
+                    
                 return view('projects.show', compact(
                     'currentWorkspace',
                     'project',
