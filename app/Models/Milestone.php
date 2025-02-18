@@ -19,8 +19,10 @@ class Milestone extends Model
         'contractor',
         'contractorAdress',
         'jobsiteAdress',
-        'start_date',
-        'end_date',
+        'start_date', //creation_date
+        'end_date', //stimated_date
+        'task_start_date',
+        'finalization_date',
         'summary'
     ];
 
@@ -35,13 +37,6 @@ class Milestone extends Model
         return Task::join('task_types', 'task_types.id', 'tasks.type_id')
             ->where('tasks.milestone_id', $this->id)->pluck('task_types.name');
     }
-    // public function tasks()
-    // {
-    //     return Task::join('task_types', 'task_types.id', '=', 'tasks.type_id')
-    //         ->where('tasks.milestone_id', $this->id)
-    //         ->select('tasks.*', 'task_types.name as task_name')
-    //         ->get();
-    // }
 
     public function project()
     {
@@ -52,7 +47,7 @@ class Milestone extends Model
     {
         return $this->hasMany(Task::class)->where('assign_to', $userId);
     }
-    
+
     public function tasks()
     {
         return $this->hasMany(Task::class);
@@ -64,46 +59,6 @@ class Milestone extends Model
                 $query->where('start_date', '>=', $startDate)
                     ->where('estimated_date', '<=', $estimatedDate);
             });
-    }
-    public function taskStart()
-    {
-        $milestoneIds = Milestone::where('project_id', function ($query) {
-            $query->select('project_id')
-                ->from('milestones')
-                ->where('id', $this->id);
-        })->pluck('id');
-
-        $firstTask = Task::whereIn('milestone_id', $milestoneIds)
-            ->whereNotNull('start_date')
-            ->orderBy('start_date', 'asc')
-            ->first();
-
-
-        return $firstTask ? Carbon::parse($firstTask->start_date)->format('d-m-Y') : '...';
-    }
-
-    public function tasksEnd()
-    {
-        $milestoneIds = Milestone::where('project_id', function ($query) {
-            $query->select('project_id')
-                ->from('milestones')
-                ->where('id', $this->id);
-        })->pluck('id');
-
-        $unfinishedTasks = Task::whereIn('milestone_id', $milestoneIds)
-            ->whereNull('end_date')
-            ->exists();
-
-        if ($unfinishedTasks) {
-            return '...';
-        }
-
-        $lastTask = Task::whereIn('milestone_id', $milestoneIds)
-            ->whereNotNull('end_date')
-            ->orderBy('end_date', 'desc')
-            ->first();
-
-        return $lastTask ? Carbon::parse($lastTask->end_date)->format('d-m-Y') : '...';
     }
 
     public function salesManager()

@@ -541,8 +541,8 @@
                                                         </td>
                                                         <td>{{ $milestone->end_date ? Carbon::parse($milestone->end_date)->format('d-m-Y') : '...' }}
                                                         </td>
-                                                        <td>{{ $milestone->taskStart() }}</td>
-                                                        <td>{{ $milestone->tasksEnd() }}</td>
+                                                        <td>{{ $milestone->task_start_date ? Carbon::parse($milestone->task_start_date)->format('d-m-Y')  : '...'}}</td>
+                                                        <td>{{ $milestone->finalization_date ? Carbon::parse($milestone->finalization_date)->format('d-m-Y')  : '...' }}</td>
                                                         <td class="text-right">
                                                             <div class="col-auto">
                                                                 <a href="#"

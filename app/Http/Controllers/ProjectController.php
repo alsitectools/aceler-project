@@ -791,17 +791,35 @@ class ProjectController extends Controller
         $objUser = Auth::user();
         $project = Project::find($projectID);
 
-        if ($project && $objUser->id == $project->created_by) {
-            UserProject::where('project_id', '=', $projectID)->delete();
-            MasterObra::where('project_id', $projectID)->update(['project_id' => 0]);
-            ProjectFile::where('project_id', '=', $projectID)->delete();
-            $project->delete();
-
-            return redirect()->route('projects.index', $slug)->with('success', __('Project Deleted Successfully!'));
-        } else {
-            return redirect()->route('projects.index', $slug)->with('error', __("You can't Delete Project!"));
+        if (!$project) {
+            return redirect()->route('projects.index', $slug)->with('error', __('Project not found!'));
         }
+
+        if ($objUser->id !== $project->created_by) {
+            return redirect()->route('projects.index', $slug)->with('error', __("You can't delete this project!"));
+        }
+
+        DB::transaction(function () use ($projectID, $project) {
+            UserProject::where('project_id', $projectID)->delete();
+            MasterObra::where('project_id', $projectID)->update(['project_id' => 0]);
+            ProjectFile::where('project_id', $projectID)->delete();
+
+            $milestones = Milestone::where('project_id', $projectID)->get();
+            foreach ($milestones as $milestone) {
+                $milestone->files()->delete(); // Elimina todos los MilestoneFile relacionados
+            }
+
+            Milestone::where('project_id', $projectID)->delete();
+            Task::where('project_id', $projectID)->delete();
+            Timesheet::where('project_id', $projectID)->delete();
+
+            $project->delete();
+        });
+
+
+        return redirect()->route('projects.index', $slug)->with('success', __('Project Deleted Successfully!'));
     }
+
 
     public function leave($slug, $projectID)
     {
@@ -984,6 +1002,7 @@ class ProjectController extends Controller
 
     public function taskStore(Request $request, $slug)
     {
+
         $request->validate([
             'project_id' => 'required',
             'milestone_id' => 'required',
@@ -1015,6 +1034,7 @@ class ProjectController extends Controller
             $milestone->status = 2;
             $milestone->update();
 
+
             return redirect()->back()->with(['success' => __('Task Created Successfully!')]);
         }
     }
@@ -1043,12 +1063,8 @@ class ProjectController extends Controller
                 $milestone->save();
 
                 if ($milestone->status == 4) {
-                    $tasksTomilestones = Task::where('milestone_id', $milestone->id)->get();
-
-                    foreach ($tasksTomilestones as $task) {
-                        $task->end_date = date('Y-m-d');
-                        $task->save();
-                    }
+                    $milestone->finalization_date = date('Y-m-d');
+                    $milestone->save();
 
                     $project = Project::find($milestone->project_id);
                     if (isset($project)) {
@@ -1215,17 +1231,26 @@ class ProjectController extends Controller
 
     public function taskDestroy($slug, $projectID, $taskID)
     {
-        $objUser = Auth::user();
         $task = Task::find($taskID);
+        $project = Project::find($projectID);
+
+        if (!$task) {
+            return redirect()->back()->with('error', __("Task not found!"));
+        }
+
         try {
-            if ($task) {
-                $task = Task::where('id', $taskID)->delete();
-                return redirect()->back()->with('success', __('Task Deleted Successfully!'));
-            } else {
-                return redirect()->back()->with('error', __("You can't Delete Task!"));
-            }
+            DB::transaction(function () use ($task) {
+                Timesheet::where('task_id', $task->id)->delete();
+
+                $task->delete();
+                if (isset($project)) {
+                    $project->updateProjectStatus();
+                }
+            });
+
+            return redirect()->back()->with('success', __('Task Deleted Successfully!'));
         } catch (\Exception $e) {
-            return redirect()->back()->with('error', __("You can't Delete Task!"));
+            return redirect()->back()->with('error', __("Error deleting task!"));
         }
     }
 
@@ -1871,7 +1896,7 @@ class ProjectController extends Controller
             'user_type' => get_class(\Auth::user()),
             'project_id' => $project->id,
             'log_type' => 'has updated a milestone',
-            'remark' => json_encode(['milestoneTitle' => $milestone->title]), // milestone title
+            'remark' => json_encode(['milestoneTitle' => $milestone->title]),
         ]);
 
         if (isset($settings['milestonest_notificaation']) && $settings['milestonest_notificaation'] == 1) {
@@ -1886,19 +1911,30 @@ class ProjectController extends Controller
     {
         $currentWorkspace = Utility::getWorkspaceBySlug($slug);
         $milestone = Milestone::find($milestoneID);
+
+        if (!$milestone) {
+            return redirect()->back()->with('error', __('Milestone not found!'));
+        }
+
+        $milestone->tasks()->delete();
         $milestone->delete();
 
-        //Add log
+        $project = Project::find($milestone->project_id);
+        if (isset($project)) {
+            $project->updateProjectStatus();
+        }
+        // Registrar en el log
         ActivityLog::create([
-            'user_id' => \Auth::user()->id,
-            'user_type' => get_class(\Auth::user()),
+            'user_id' => Auth::user()->id,
+            'user_type' => get_class(Auth::user()),
             'project_id' => $milestone->project_id,
             'log_type' => 'has deleted a milestone',
-            'remark' => json_encode(['milestoneTitle' => $milestone->title]), // milestone title
+            'remark' => json_encode(['milestoneTitle' => $milestone->title]),
         ]);
 
-        return redirect()->back()->with('success', __('Milestone deleted Successfully!'));
+        return redirect()->back()->with('success', __('Milestone and associated tasks deleted successfully!'));
     }
+
 
     public function milestoneShow($slug, $milestoneID)
     {
@@ -2216,6 +2252,9 @@ class ProjectController extends Controller
         $milestone = Milestone::find($task->milestone_id);
 
         if ($milestone) {
+            if (is_null($milestone->task_start_date)) {
+                $milestone->task_start_date = $request->date;
+            }
             $milestone->status = 2;
             $milestone->save();
         }
