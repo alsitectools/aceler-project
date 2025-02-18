@@ -101,11 +101,13 @@ class Project extends Model
 
     public function updateProjectStatus()
     {
-        if ($this->milestones()->where('status', 3)->exists() || $this->milestones()->exists()) {
+        if ($this->milestones()->where('status', '!=', 4)->exists() || $this->milestones()->exists()) {
             $this->status = 'Ongoing';
         }
-
-        if (!$this->milestones()->where('status', '!=', 4)->exists()) {
+        if (!$this->milestones()->exists()) {
+            $this->status = 'OnHold';
+        }
+        if ($this->milestones()->where('status', '==', 4)->exists()) {
             $this->status = 'Finished';
         }
 
@@ -395,17 +397,17 @@ class Project extends Model
 
         //get all timetable info of the user
         $userTimetable = UserTimetable::where('user_id', $userId)->first();
- 
+
         //conver to array
-        $userTimetableArray = $userTimetable->toArray(); 
+        $userTimetableArray = $userTimetable->toArray();
 
         $daysOfWeek = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
         $workHoursWeek = []; // Array para almacenar los días laborables y horas
 
         // iterate the user timetable array and check if the key is on the daysOfWeek array
         foreach ($userTimetableArray as $key => $value) {
-            
-            if(in_array(strtolower($key), $daysOfWeek)){
+
+            if (in_array(strtolower($key), $daysOfWeek)) {
                 $workHoursWeek[$key] = $value;
             }
         }
