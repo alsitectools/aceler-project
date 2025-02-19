@@ -13,6 +13,7 @@ use App\Models\BugStage;
 use App\Models\Client;
 use App\Models\ClientProject;
 use App\Models\ClientsMo;
+use App\Models\Notification;
 use App\Models\Comment;
 use App\Models\Mail\SendInvication;
 use App\Models\Mail\SendLoginDetail;
@@ -2543,6 +2544,29 @@ class ProjectController extends Controller
             return redirect()->back()->with('error', __("You can't Add Bug!"));
         }
     }
+
+public function AddSingleNotification(Request $request)
+{
+    \Log::info(['Request: '=> $request->all()]);
+    $request->validate([
+        'workspace_id' => 'required|integer',
+        'msg' => 'required|string|max:255',
+    ]);
+
+    $notification = new Notification();
+    $notification->workspace_id = $request->workspace_id;
+    $notification->user_id = Auth::id();
+    $notification->type = $request->ntipe;
+    $notification->data = $request->msg;
+    $notification->save();
+
+    return response()->json([
+        'success' => true,
+        'message' => 'Notificación agregada correctamente',
+        'notification' => $notification,
+    ]);
+}
+
 
     public function bugReportOrderUpdate(Request $request, $slug, $project_id)
     {

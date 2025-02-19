@@ -494,6 +494,7 @@ Route::get('/{slug}/notification/seen', [UserController::class, 'notificationSee
 Route::get('/{slug}/message/seen', [UserController::class, 'messageSeen'])->name('message.seen');
 
 // End Chats
+Route::post('/notifications/add', [ProjectController::class, 'AddSingleNotification'])->name('notifications.add');
 
 Route::get('/settings', [SettingsController::class, 'index'])->name('settings.index')->middleware(['auth', 'XSS']);
 Route::post('/settings', [SettingsController::class, 'store'])->name('settings.store')->middleware(['XSS']);
@@ -974,7 +975,10 @@ Route::post(
   [UserController::class, 'delete_all_notification',]
 )->name('delete_all.notifications');
 
-
+Route::post(
+  '/{slug}/Notification/{notificationId}/Delete',
+  [UserController::class, 'delete_notification']
+)->name('notifications.delete');
 //=============================================Webhook===================================================
 Route::resource('/{slug}/webhook', WebhookController::class)->middleware(['auth', 'XSS']);
 Route::post('webhooks/response/get', [WebhookController::class, 'WebhookResponse'])->name('webhooks.response.get');

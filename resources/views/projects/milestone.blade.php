@@ -33,7 +33,7 @@
                     <i class="fa-solid fa-file-lines me-2"></i> {{ __('Create Milestone') }}
                 </a>
             </li>
-            @if(isset($project_id) && $project_id == -1)
+            @if (isset($project_id) && $project_id == -1)
                 <li class="nav-item" role="presentation">
                     <a class="nav-link" id="project-tab" data-bs-toggle="tab" href="#projectForm" role="tab"
                         aria-controls="project" aria-selected="false">
@@ -60,7 +60,8 @@
                                     </div>
                                 @else
                                     <label class="col-form-label">{{ __('Project') }}</label>
-                                    <input class="form-control" type="text" value="{{ $project->name }}" disabled>
+                                    <input class="form-control" type="text" id="projectIdDisabled"
+                                        value="{{ $project->name }}" disabled>
                                     <input class="form-control" type="text" id="project_id" name="project_id"
                                         value="{{ $project->id }}" autocomplete="off" style="display: none;">
                                 @endif
@@ -160,8 +161,7 @@
                         <div class="row">
                             <!-- Sección de Descripción (Izquierda) -->
                             <div class="col-md-6">
-                                <label for="description-text"
-                                    class="form-label" style="margin-bottom: 3px;">
+                                <label for="description-text" class="form-label" style="margin-bottom: 3px;">
                                     <strong>{{ __('Description') }}</strong>
                                 </label>
                                 <textarea style="height:82%" class="form-control mt-2" id="description-text" name="description" rows="5"
@@ -172,14 +172,16 @@
                             <div class="col-md-6">
                                 <label for="file-uploadMilestone"
                                     class="form-label"><strong>{{ __('Upload files') }}</strong></label>
-                                <div >
-                                <div class="col-md-12 dropzone browse-file" id="dropzonewidgetMilestone">
+                                <div>
+                                    <div class="col-md-12 dropzone browse-file" id="dropzonewidgetMilestone">
                                         <div class="dz-message" data-dz-message>
-                                            <input type="file" id="file-uploadMilestone" style="display:none" multiple/>
+                                            <input type="file" id="file-uploadMilestone" style="display:none"
+                                                multiple />
                                             <span> {{ __('Drop files here to upload') }}</span>
                                             <p class="text-muted" style="font-size:15px; margin:5px;">200MB</p>
-                                            <small class="text-muted">.png .gif .pdf .txt .doc .docx .zip .rar .dwg .dxf</small>
-                                            
+                                            <small class="text-muted">.png .gif .pdf .txt .doc .docx .zip .rar .dwg
+                                                .dxf</small>
+
                                         </div>
                                     </div>
                                 </div>
@@ -272,6 +274,7 @@
     </div>
 @endif
 <script src="{{ asset('assets/custom/libs/nicescroll/jquery.nicescroll.min.js') }} "></script>
+<!-- Scripts para el dropdown de usuarios -->
 <script>
     var searchInput = document.getElementById('search');
     var optionsList = document.getElementById('user-select');
@@ -279,7 +282,6 @@
     var hiddenInput = document.getElementById('assing_To');
 
     searchInput.addEventListener('click', function(event) {
-
         event.stopPropagation();
         optionsList.style.display = 'block';
     });
@@ -287,7 +289,6 @@
     searchInput.addEventListener('input', function() {
         const filter = searchInput.value.toLowerCase();
         let hasVisibleOption = false;
-
         for (let i = 0; i < options.length; i++) {
             const option = options[i];
             const text = option.innerText.toLowerCase();
@@ -298,7 +299,6 @@
                 option.style.display = 'none';
             }
         }
-
         optionsList.style.display = hasVisibleOption ? 'block' : 'none';
     });
 
@@ -317,7 +317,6 @@
         }
     });
 
-
     $(document).ready(function() {
         $('#toggleFormSwitch').change(function() {
             if ($(this).is(':checked')) {
@@ -328,6 +327,7 @@
         });
     });
 </script>
+
 @if (isset($projects))
     <script>
         const projects = @json($projects);
@@ -340,13 +340,11 @@
     <script src="{{ asset('assets/js/create_project.js') }}"></script>
 @endif
 
+<!-- Código para el envío del formulario "Add New project" -->
 <script>
-    
     $(document).ready(function() {
-
         $('#projectForm').on('submit', function(event) {
             event.preventDefault();
-
             const data = {
                 project_type: $('#project_type').val(),
                 name: $('#projectname').val(),
@@ -354,11 +352,9 @@
                 clipo: $('#searchClipo').val(),
                 isReload: false
             };
-
             const slug = "{{ $currentWorkspace->slug }}";
             const url = "{{ route('project.milestone.store', ['slug' => 'slug']) }}";
             const finalUrl = url.replace('slug', slug);
-
             $.ajax({
                 url: finalUrl,
                 method: 'POST',
@@ -368,21 +364,16 @@
                     'X-CSRF-TOKEN': '{{ csrf_token() }}'
                 },
                 success: function(response) {
-                    // Limpiar campos
                     $('#projectname').val("");
                     $('#searchMo').val("");
                     $('#searchClipo').val("");
-
-                    msg = '{{ __('Project Created Successfully!') }}'
-                    // Mostrar el mensaje en el *toast*
+                    let msg = '{{ __('Project Created Successfully!') }}';
                     $('#toastMessage').text(msg);
-
                     const toast = new bootstrap.Toast(document.getElementById(
                         'successToast'), {
                         delay: 2000
                     });
                     toast.show();
-
                 },
                 error: function(xhr, status, error) {
                     console.error('Error:', xhr.responseText);
@@ -393,26 +384,27 @@
                     });
                     toast.show();
                 }
-
             });
         });
     });
 </script>
 
+<!-- Actualiza el action del formulario de milestone cuando cambia el project_id -->
 <script>
     $(document).ready(function() {
         $('#project_id').on('change', function() {
             var selectedProjectId = $(this).val();
             var currentWorkspaceSlug = "{{ $currentWorkspace->slug }}";
-
             var actionUrl =
                 `{{ route('projects.milestone.store', [$currentWorkspace->slug, 'PLACEHOLDER']) }}`;
             actionUrl = actionUrl.replace('PLACEHOLDER', selectedProjectId);
-
             $('#milestone-form').attr('action', actionUrl);
         });
     });
+</script>
 
+<!-- Funciones para manejar la carga y listado de archivos -->
+<script>
     var assetBasePath = '{{ asset('assets/iconFilesTypes') }}/';
     var filesArray = [];
 
@@ -422,7 +414,6 @@
 
     document.getElementById('file-uploadMilestone').addEventListener('change', function(event) {
         const newFiles = Array.from(event.target.files);
-
         newFiles.forEach((file) => {
             if (!filesArray.some((f) => f.name === file.name && f.size === file.size)) {
                 filesArray.push(file);
@@ -430,38 +421,30 @@
                 console.warn(`Archivo duplicado ignorado: ${file.name}`);
             }
         });
-
         updateFileList();
     });
 
     function updateFileList() {
         const fileListElement = document.getElementById('file-list');
         const hiddenInputsContainer = document.getElementById('hidden-file-inputs');
-
         fileListElement.innerHTML = '';
         hiddenInputsContainer.innerHTML = '';
-
         filesArray.forEach((file, index) => {
             const fileContainer = document.createElement('div');
             fileContainer.classList.add('file');
-
-            // Ícono de la extensión
             const icon = document.createElement('img');
             icon.src = getIconPath(file.name);
             icon.alt = `${getExtension(file.name)} icon`;
             icon.style.width = '20px';
             icon.style.height = '25px';
             fileContainer.appendChild(icon);
-
             const fileNameContainer = document.createElement('div');
             fileNameContainer.classList.add('file-name');
             fileNameContainer.textContent = file.name;
             fileNameContainer.style.maxWidth = "70%";
             fileContainer.appendChild(fileNameContainer);
-
             const fileDetailsSmall = document.createElement('small');
             fileDetailsSmall.classList.add('text-muted', 'ms-1');
-
             const removeButton = document.createElement('a');
             removeButton.classList.add('buttonFiles');
             removeButton.innerHTML = '<i class="fa-solid fa-trash" style="color:white"></i>';
@@ -471,44 +454,89 @@
             });
             fileNameContainer.appendChild(fileDetailsSmall);
             fileContainer.appendChild(removeButton);
-
-            // Añadir a la lista visual
             fileListElement.appendChild(fileContainer);
-
-            // Crear un input oculto para cada archivo
             const input = document.createElement('input');
             input.type = 'file';
             input.name = 'files[]';
             input.style.display = 'none';
-
             const dataTransfer = new DataTransfer();
             dataTransfer.items.add(file);
             input.files = dataTransfer.files;
-
-            // Agregar el input al contenedor oculto
             hiddenInputsContainer.appendChild(input);
         });
     }
 
-    // Función para obtener la ruta del ícono basado en la extensión del archivo
     function getIconPath(filename) {
         const extension = getExtension(filename);
         const iconPath = `${assetBasePath}${extension}.png`;
         const defaultIcon = `${assetBasePath}default.png`;
-
         const supportedExtensions = ['pdf', 'doc', 'jpg', 'png', 'xlsx', 'txt', 'dwg', 'dxf', 'img', 'docx', 'zip'];
         return supportedExtensions.includes(extension) ? iconPath : defaultIcon;
     }
 
-    // Función para obtener la extensión del archivo
     function getExtension(filename) {
         return filename.split('.').pop().toLowerCase();
     }
 
-    // Función para formatear el tamaño del archivo (bytes a KB/MB)
     function formatFileSize(bytes) {
         if (bytes < 1024) return `${bytes} B`;
         if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(2)} KB`;
         return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
     }
+</script>
+
+<!-- NUEVO: Función para notificación antes del submit del formulario de milestone -->
+<script>
+    async function displayNotification() {
+        console.log('Generando notificacion de encargo creado');
+        let milestoneTitle = document.getElementById('milestone-title').value;
+        let milestoneParent;
+        try {
+            milestoneParent = document.getElementById('searchProject').value;
+            console.log("Milestone parent:", milestoneParent);
+        } catch (error) {
+            milestoneParent = document.getElementById('projectIdDisabled').value;
+            console.log("Milestone parent pero en el catch:", milestoneParent);
+        }
+
+
+
+        let msg = milestoneTitle + ' en ' + milestoneParent;
+        let ntipe = 2;
+        if (!msg) return;
+        try {
+            const response = await fetch("{{ route('notifications.add') }}", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRF-TOKEN": "{{ csrf_token() }}"
+                },
+                body: JSON.stringify({
+                    workspace_id: {{ $currentWorkspace->id }},
+                    msg: msg,
+                    ntipe: ntipe
+                })
+            });
+            const data = await response.json();
+            if (data.success) {
+                let notificationList = document.querySelector('.limited');
+                let newNotification = document.createElement('div');
+                newNotification.classList.add('notificationSTL');
+                newNotification.innerHTML = `
+                    <span class="textRepo">${data.data.msg}</span>
+                    <span class="textRepo">${data.data.type}</span>
+                    <button type="button" class="btn-close repoIcon" aria-label="Close"></button>
+                `;
+                notificationList.prepend(newNotification);
+            }
+        } catch (error) {
+            console.error("Error al agregar notificación:", error);
+        }
+    }
+
+    document.getElementById('milestone-form').addEventListener('submit', async function(event) {
+        event.preventDefault(); // Prevenir el envío inmediato
+        await displayNotification(); // Esperar a que se complete la notificación
+        this.submit(); // Enviar el formulario (normalmente o puedes usar AJAX)
+    });
 </script>
