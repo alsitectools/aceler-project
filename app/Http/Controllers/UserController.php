@@ -1477,4 +1477,28 @@ public function update($slug = null, $id = null, Request $request)
             200
         );
     }
+    public function delete_notification($slug, $notificationId)
+{
+    $currentWorkspace = Utility::getWorkspaceBySlug($slug);
+    $user = Auth::user();
+
+    $notification = Notification::where('id', $notificationId)
+        ->where('user_id', $user->id)
+        ->where('workspace_id', $currentWorkspace->id)
+        ->first();
+
+    if ($notification) {
+        $notification->delete();
+        return response()->json([
+            'is_success' => true,
+            'success'    => __('Notification successfully deleted!'),
+        ], 200);
+    } else {
+        return response()->json([
+            'is_success' => false,
+            'error'      => __('Notification not found!'),
+        ], 404);
+    }
+}
+
 }

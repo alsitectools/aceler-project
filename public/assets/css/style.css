@@ -19106,7 +19106,7 @@ body:not(.minimenu) .dash-sidebar .dash-submenu .dash-submenu .dash-submenu>.das
 }
 
 .dash-header .drp-notification .dropdown-menu {
-    min-width: 450px;
+    min-width: 600px;
 }
 
 .dash-header .drp-notification .noti-header,
