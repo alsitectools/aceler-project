@@ -2545,27 +2545,36 @@ class ProjectController extends Controller
         }
     }
 
-public function AddSingleNotification(Request $request)
-{
-    \Log::info(['Request: '=> $request->all()]);
-    $request->validate([
-        'workspace_id' => 'required|integer',
-        'msg' => 'required|string|max:255',
-    ]);
-
-    $notification = new Notification();
-    $notification->workspace_id = $request->workspace_id;
-    $notification->user_id = Auth::id();
-    $notification->type = $request->ntipe;
-    $notification->data = $request->msg;
-    $notification->save();
-
-    return response()->json([
-        'success' => true,
-        'message' => 'Notificación agregada correctamente',
-        'notification' => $notification,
-    ]);
-}
+    public function AddSingleNotification(Request $request)
+    {
+        \Log::info(['Request:' => $request->all()]);
+        
+        $request->validate([
+            'workspace_id' => 'required|integer',
+            'msg'          => 'required|string|max:255',
+        ]);
+    
+        // Se obtiene la lista de user_id asociados al workspace desde la tabla user_workspaces
+        $userIds = \DB::table('user_workspaces')
+                    ->where('workspace_id', $request->workspace_id)
+                    ->pluck('user_id');
+        
+        // Se recorre cada user_id y se crea una notificación para cada usuario
+        foreach ($userIds as $userId) {
+            $notification = new Notification();
+            $notification->workspace_id = $request->workspace_id;
+            $notification->user_id      = $userId;
+            $notification->type         = $request->ntipe; // Asegúrate de que 'ntipe' se esté enviando correctamente
+            $notification->data         = $request->msg;
+            $notification->save();
+        }
+    
+        return response()->json([
+            'success'  => true,
+            'message'  => 'Notificación agregada correctamente para ' . count($userIds) . ' usuarios.',
+        ]);
+    }
+    
 
 
     public function bugReportOrderUpdate(Request $request, $slug, $project_id)

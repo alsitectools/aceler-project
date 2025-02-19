@@ -130,10 +130,11 @@
         padding-right: 5px;
     }
 
-    .size40AndBold{
+    .size40AndBold {
         font-weight: bold;
         font-size: 40px;
     }
+
     @media (max-width: 1300px) {
         .header_breadcrumb {
             width: 100% !important;
@@ -429,73 +430,73 @@
                         </div>
                     </div>
                     <!---<div class="row">
-                                                                        <div class="col-lg-3 col-sm-6">
-                                                                            <div class="card">
-                                                                                <div class="card-body">
-                                                                                    <div class="row">
-                                                                                        <div class="theme-avtar bg-primary">
-                                                                                            <i class="fas fas fa-calendar-day"></i>
-                                                                                        </div>
-                                                                                        <div class="col text-end">
-                                                                                            <h6 class="text-muted mb-1">{{ __('Created date') }}</h6>
-                                                                                            <span
-                                                                                                class="h6 font-weight-bold mb-0 ">{{ App\Models\Utility::dateFormat($project->start_date) }}</span>
-                                                                                        </div>
-                                                                                    </div>
-                                                                                </div>
-                                                                            </div>
-                                                                        </div>
-                                                                        <div class="col-lg-3 col-sm-6">
-                                                                            <div class="card">
-                                                                                <div class="card-body">
-                                                                                    <div class="row">
-                                                                                        <div class="theme-avtar bg-danger">
-                                                                                            <i class="fas fa-tasks text-white"></i>
-                                                                                        </div>
-                                                                                        <div class="col text-end">
-                                                                                            <h6 class="text-muted mb-1">{{ __('Tasks') }}</h6>
-                                                                                            <span class="h6 font-weight-bold mb-0 ">{{ $project->countTask() }}</span>
+                                                                            <div class="col-lg-3 col-sm-6">
+                                                                                <div class="card">
+                                                                                    <div class="card-body">
+                                                                                        <div class="row">
+                                                                                            <div class="theme-avtar bg-primary">
+                                                                                                <i class="fas fas fa-calendar-day"></i>
+                                                                                            </div>
+                                                                                            <div class="col text-end">
+                                                                                                <h6 class="text-muted mb-1">{{ __('Created date') }}</h6>
+                                                                                                <span
+                                                                                                    class="h6 font-weight-bold mb-0 ">{{ App\Models\Utility::dateFormat($project->start_date) }}</span>
+                                                                                            </div>
                                                                                         </div>
                                                                                     </div>
                                                                                 </div>
                                                                             </div>
-                                                                        </div>
-                                                                        <div class="col-lg-3 col-sm-6">
-                                                                            <div class="card">
-                                                                                <div class="card-body">
-                                                                                    <div class="row">
-                                                                                        <div class="theme-avtar" style="background-color: #B197FC;">
-                                                                                            <i class="fa-solid fa-file-lines fa-lg text-white"
-                                                                                                style="color: #B197FC;"></i>
-                                                                                        </div>
-                                                                                        <div class="col text-end">
-                                                                                            <h6 class="text-muted mb-1">{{ __('Milestones') }}</h6>
-                                                                                            <span
-                                                                                                class="h6 font-weight-bold mb-0 ">{{ $project->milestonescount() }}</span>
+                                                                            <div class="col-lg-3 col-sm-6">
+                                                                                <div class="card">
+                                                                                    <div class="card-body">
+                                                                                        <div class="row">
+                                                                                            <div class="theme-avtar bg-danger">
+                                                                                                <i class="fas fa-tasks text-white"></i>
+                                                                                            </div>
+                                                                                            <div class="col text-end">
+                                                                                                <h6 class="text-muted mb-1">{{ __('Tasks') }}</h6>
+                                                                                                <span class="h6 font-weight-bold mb-0 ">{{ $project->countTask() }}</span>
+                                                                                            </div>
                                                                                         </div>
                                                                                     </div>
                                                                                 </div>
                                                                             </div>
-                                                                        </div>
-                                                                        <div class="col-lg-3 col-sm-6">
-                                                                            <div class="card">
-                                                                                <div class="card-body">
-                                                                                    <div class="row">
-                                                                                        <div class="theme-avtar bg-success">
-                                                                                            <i class="fa-solid fa-diagram-project bg-success text-white"></i>
-                                                                                        </div>
-                                                                                        <div class="col text-end">
-                                                                                            <h6 class="text-muted mb-1">
-                                                                                                {{ $project->type != 1 ? __('Project type') : __('MO') }}</h6>
-                                                                                            <span
-                                                                                                class="h6 font-weight-bold mb-0 ">{{ $project->ref_mo != '' ? $project->ref_mo : __($project->typeName()) }}
-                                                                                            </span>
+                                                                            <div class="col-lg-3 col-sm-6">
+                                                                                <div class="card">
+                                                                                    <div class="card-body">
+                                                                                        <div class="row">
+                                                                                            <div class="theme-avtar" style="background-color: #B197FC;">
+                                                                                                <i class="fa-solid fa-file-lines fa-lg text-white"
+                                                                                                    style="color: #B197FC;"></i>
+                                                                                            </div>
+                                                                                            <div class="col text-end">
+                                                                                                <h6 class="text-muted mb-1">{{ __('Milestones') }}</h6>
+                                                                                                <span
+                                                                                                    class="h6 font-weight-bold mb-0 ">{{ $project->milestonescount() }}</span>
+                                                                                            </div>
                                                                                         </div>
                                                                                     </div>
                                                                                 </div>
                                                                             </div>
-                                                                        </div>
-                                                                    </div>-->
+                                                                            <div class="col-lg-3 col-sm-6">
+                                                                                <div class="card">
+                                                                                    <div class="card-body">
+                                                                                        <div class="row">
+                                                                                            <div class="theme-avtar bg-success">
+                                                                                                <i class="fa-solid fa-diagram-project bg-success text-white"></i>
+                                                                                            </div>
+                                                                                            <div class="col text-end">
+                                                                                                <h6 class="text-muted mb-1">
+                                                                                                    {{ $project->type != 1 ? __('Project type') : __('MO') }}</h6>
+                                                                                                <span
+                                                                                                    class="h6 font-weight-bold mb-0 ">{{ $project->ref_mo != '' ? $project->ref_mo : __($project->typeName()) }}
+                                                                                                </span>
+                                                                                            </div>
+                                                                                        </div>
+                                                                                    </div>
+                                                                                </div>
+                                                                            </div>
+                                                                        </div>-->
                     <div class="col-lg-12 widthAdjustDiv">
                         @if ($currentWorkspace->permission == 'Member' || $currentWorkspace->permission == 'Owner')
                             <div class="card">
@@ -540,13 +541,17 @@
                                                             </a>
                                                         </td>
                                                         <td>
+                                                            @if ($milestone->status == 3)
+                                                                <label
+                                                                    class="badge bg-warning p-2 px-3 rounded">{{ __('OnHold') }}</label>
+                                                            @endif
                                                             @if ($milestone->status == 4)
                                                                 <label
                                                                     class="badge bg-success p-2 px-3 rounded">{{ __('Finished') }}</label>
                                                             @else
                                                                 <label
-                                                                    class="badge p-2 px-3 rounded {{ $milestone->status == 1 ? 'bg-warning' : 'bg-secondary' }}">
-                                                                    {{ $milestone->status == 1 ? __('For Review') : __('Ongoing') }}
+                                                                    class="badge p-2 px-3 rounded {{ $milestone->status == 1 ? 'bg-info' : 'bg-secondary' }}">
+                                                                    {{ $milestone->status == 1 ? __('To Do') : __('Ongoing') }}
                                                                 </label>
                                                             @endif
                                                         </td>
@@ -554,8 +559,10 @@
                                                         </td>
                                                         <td>{{ $milestone->end_date ? Carbon::parse($milestone->end_date)->format('d-m-Y') : '...' }}
                                                         </td>
-                                                        <td>{{ $milestone->task_start_date ? Carbon::parse($milestone->task_start_date)->format('d-m-Y')  : '...'}}</td>
-                                                        <td>{{ $milestone->finalization_date ? Carbon::parse($milestone->finalization_date)->format('d-m-Y')  : '...' }}</td>
+                                                        <td>{{ $milestone->task_start_date ? Carbon::parse($milestone->task_start_date)->format('d-m-Y') : '...' }}
+                                                        </td>
+                                                        <td>{{ $milestone->finalization_date ? Carbon::parse($milestone->finalization_date)->format('d-m-Y') : '...' }}
+                                                        </td>
                                                         <td class="text-right">
                                                             <div class="col-auto">
                                                                 <a href="#"
@@ -975,24 +982,24 @@
                             </div>
                         </div>
                         <!---
-                                                                        <div class="col-md-4">
-                                                                            <div class="card min-end">
-                                                                                <div class="card-header" style="padding: 25px 35px !important;">
-                                                                                    <div class="d-flex justify-content-between align-items-center">
-                                                                                        <div class="row">
-                                                                                            <h5 class="mb-0">{{ __('Progress') }}<span
-                                                                                                    class="text-end">({{ __('Last week tasks') }}) </span></h5>
+                                                                            <div class="col-md-4">
+                                                                                <div class="card min-end">
+                                                                                    <div class="card-header" style="padding: 25px 35px !important;">
+                                                                                        <div class="d-flex justify-content-between align-items-center">
+                                                                                            <div class="row">
+                                                                                                <h5 class="mb-0">{{ __('Progress') }}<span
+                                                                                                        class="text-end">({{ __('Last week tasks') }}) </span></h5>
+                                                                                            </div>
                                                                                         </div>
                                                                                     </div>
-                                                                                </div>
-                                                                                <div class="card-body">
-                                                                                    <div class="d-flex align-items-start">
+                                                                                    <div class="card-body">
+                                                                                        <div class="d-flex align-items-start">
+                                                                                        </div>
                                                                                     </div>
+                                                                                    <div id="task-chart"></div>
                                                                                 </div>
-                                                                                <div id="task-chart"></div>
                                                                             </div>
-                                                                        </div>
-                                                                        --->
+                                                                            --->
                         <div class="col-md-6">
                             <div class="card min-end">
                                 <div class="card-header">

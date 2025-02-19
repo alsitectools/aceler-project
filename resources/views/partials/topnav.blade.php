@@ -245,11 +245,15 @@
                 @endif
 
                 <li class="dropdown dash-h-item drp-notification">
-                    {{-- <button id="addNotificationBtn" class="btn btn-primary">Añadir Notificación</button> --}}
+                    <button id="addNotificationBtn" class="btn btn-primary">Añadir Notificación</button>
+                    {{-- $notifications = \App\Models\Notification::where('workspace_id', $currentWorkspace->id)
+                    ->orderBy('created_at', 'desc')
+                    ->get(); --}}
 
                     @if (isset($currentWorkspace) && $currentWorkspace)
                         @auth('web')
                             @php
+
                                 $notifications = Auth::user()->notifications($currentWorkspace->id);
 
                             @endphp
@@ -257,7 +261,8 @@
                                 href="#" role="button" aria-haspopup="false" aria-expanded="false">
 
                                 <i class="ti ti-bell"></i>
-                                <span class="@if (count($notifications) > 0) bg-danger dash-h-badge dots @endif"><span
+                                <span id="notificationBadge"
+                                    class="@if (count($notifications) > 0) bg-danger dash-h-badge dots @endif"><span
                                         class="sr-only"></span></span>
                             </a>
                             <div class="dropdown-menu dash-h-dropdown dropdown-menu-end notification_menu_all">
@@ -415,6 +420,7 @@
                     <button type="button" class="btn-close repoIcon" aria-label="Close"></button>
                 `;
                     notificationList.prepend(newNotification);
+                    checkEmptyState()
                 }
             })
             .catch(error => console.error("Error al agregar notificación:", error));
@@ -447,6 +453,7 @@
                         // Una vez finalizada la transición, elimina el elemento del DOM
                         notificationElement.addEventListener('transitionend', function() {
                             notificationElement.remove();
+                            checkEmptyState();
                         });
                     } else {
                         console.error("Error:", data.error);
@@ -486,6 +493,7 @@
                             notificationElement.addEventListener('transitionend',
                                 function() {
                                     notificationElement.remove();
+                                    checkEmptyState();
                                 });
                         }, index * 300); // 300ms de delay entre cada eliminación
                     });
@@ -495,4 +503,31 @@
             })
             .catch(error => console.error("Error al eliminar todas las notificaciones:", error));
     });
+</script>
+{{-- comprobar dinamicamente si hay notificaciones --}}
+<script>
+    function checkEmptyState() {
+        const notificationContainer = document.querySelector('.limited');
+        const emptyStateHtml = `
+        <div class="noNotificationsContainer"> 
+            <i class="fa-duotone fa-solid fa-bell-slash" aria-hidden="true" style="font-size: 48px; margin-bottom: 30px; color: #d1d1d1;"></i>
+            <p style="font-size: 15px; color: #d1d1d1;">¡Estás al día! No hay notificaciones</p>
+        </div>
+    `;
+
+        const hasNotifications = notificationContainer.querySelector('.notificationSTL') !== null;
+
+        if (!hasNotifications) {
+            if (!notificationContainer.querySelector('.noNotificationsContainer')) {
+                notificationContainer.innerHTML = emptyStateHtml;
+                document.getElementById('notificationBadge').style.display = 'none';
+            }
+        } else {
+            document.getElementById('notificationBadge').style.display = '';
+            const emptyState = notificationContainer.querySelector('.noNotificationsContainer');
+            if (emptyState) {
+                emptyState.remove();
+            }
+        }
+    }
 </script>
