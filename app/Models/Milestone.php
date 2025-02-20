@@ -20,7 +20,7 @@ class Milestone extends Model
         'contractorAdress',
         'jobsiteAdress',
         'start_date', //creation_date
-        'end_date', //stimated_date
+        'end_date', //estimated_date
         'task_start_date',
         'finalization_date',
         'summary'

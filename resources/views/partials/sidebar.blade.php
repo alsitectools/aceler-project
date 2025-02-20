@@ -43,22 +43,22 @@
     if ($SITE_RTL == '' || $SITE_RTL == null) {
         $SITE_RTL = env('SITE_RTL');
     }
+    // NOT NEEDED NOW
+    // $week = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+    // $workHoursWeek = []; 
 
-    $week = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
-    $workHoursWeek = []; 
+    // //userTimetable is an array of arrays, we need to take the first element of the array
+    // $timetable = $userTimetable[0]; 
 
-    //userTimetable is an array of arrays, we need to take the first element of the array
-    $timetable = $userTimetable[0]; 
-
-    //get the days and the hours 
-    foreach ($timetable as $key => $value) {
+    // //get the days and the hours 
+    // foreach ($timetable as $key => $value) {
             
-            if(in_array(strtolower($key), $week)){
-                $workHoursWeek[$key] = $value;
-            }
-        }
-    //check if the user implemented his timetable 
-    $emptyTimetable = empty(array_filter($workHoursWeek, fn($value) => !is_null($value)));
+    //         if(in_array(strtolower($key), $week)){
+    //             $workHoursWeek[$key] = $value;
+    //         }
+    //     }
+    // //check if the user implemented his timetable 
+    // $emptyTimetable = empty(array_filter($workHoursWeek, fn($value) => !is_null($value)));
 @endphp
 
 <style>
@@ -285,7 +285,7 @@
                                 <span
                                     class="dash-mtext">Tutorial</span></a>
                         </li>
-                        @if($emptyTimetable == 1 && $userType != 'client')
+                        {{-- @if($emptyTimetable == 1 && $userType != 'client')
                             <div id="container-alert">
                                 <div id="error-boxAlert">
                                     <div style="padding-bottom: 1px;"></div>
@@ -302,7 +302,7 @@
                                     </button>
                                 </div>
                             </div>
-                        @endif
+                        @endif --}}
                     <!-- <li class="dash-item dash-hasmenu">
                         <a href="{{ route('clients.index', $currentWorkspace->slug) }}"
                             class="dash-link {{ Request::route()->getName() == 'clients.index' ? ' active' : '' }} "><span
@@ -338,13 +338,13 @@
 
 <script>
     //when the user clicks on create timetable redirect it to timetable creation
-    $(document).ready(function() {
+    /*$(document).ready(function() {
         $('.buttonAlertCreate').click(function() {
             let currentUrl = window.location.href;
             let nuevaUrl = url.replace(/\/[^/]*$/, "/my-account#v-pills-timetable");
 
             window.location.href = nuevaUrl;
         });
-    });
+    });*/
 </script>
 

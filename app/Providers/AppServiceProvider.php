@@ -28,19 +28,19 @@ class AppServiceProvider extends ServiceProvider
 {
     Schema::defaultStringLength(191);
 
-    \View::composer('*', function ($view) { // '*' aplica a TODAS las vistas
-        if (Auth::check()) { // Verifica si el usuario está autenticado
-            $userTimetable = UserTimetable::where('user_id', Auth::id())->get()->toArray();
+    // \View::composer('*', function ($view) { // '*' aplica a TODAS las vistas
+    //     if (Auth::check()) { // Verifica si el usuario está autenticado
+    //         $userTimetable = UserTimetable::where('user_id', Auth::id())->get()->toArray();
             
-            //comprobar el tipo de usuario
-            $userType = Auth::check() ? Auth::user()->type : null; // Evitar errores si no hay usuario autenticado
+    //         //comprobar el tipo de usuario
+    //         $userType = Auth::check() ? Auth::user()->type : null; // Evitar errores si no hay usuario autenticado
 
-            $view->with('userType', $userType);
-        } else {
-            $userTimetable = collect(); // Colección vacía si no está autenticado
-        }
+    //         $view->with('userType', $userType);
+    //     } else {
+    //         $userTimetable = collect(); // Colección vacía si no está autenticado
+    //     }
 
-        $view->with('userTimetable', $userTimetable);
-    });
+    //     $view->with('userTimetable', $userTimetable);
+    // });
 }
 }

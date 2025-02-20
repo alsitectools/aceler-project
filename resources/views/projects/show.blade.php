@@ -612,13 +612,8 @@
                                 </div>
                                 <div class="card-body alignMiddle">
                                     <span class="size40AndBold">
-                                        50
+                                        {{$averageDelivery}}
                                     </span>
-                                    {{-- @php
-                                        foreach ($milestoneData as $value) {
-                                            print_r( $value);
-                                        }
-                                    @endphp --}}
                                 </div>
                             </div>
                         </div>
@@ -633,6 +628,11 @@
                                         </div>
                                     </div>
                                 </div>
+                                <div class="card-body alignMiddle">
+                                    <span class="size40AndBold">
+                                        {{$averageWorkingTime}}
+                                    </span>
+                                </div>
                             </div>
                         </div>
                         <div class="col-md-3">
@@ -646,6 +646,11 @@
                                         </div>
                                     </div>
                                 </div>
+                                <div class="card-body alignMiddle">
+                                    <span class="size40AndBold">
+                                        {{$averageStartUpTime}}
+                                    </span>
+                                </div>
                             </div>
                         </div>
                         <div class="col-md-3">
@@ -658,6 +663,11 @@
                                             </h5>
                                         </div>
                                     </div>
+                                </div>
+                                <div class="card-body alignMiddle">
+                                    <span class="size40AndBold">
+                                        {{$averageDelayTime}}
+                                    </span>
                                 </div>
                             </div>
                         </div>
