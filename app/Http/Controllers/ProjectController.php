@@ -481,32 +481,107 @@ class ProjectController extends Controller
                 \Log::debug("Archivos por milestone:", $milestoneFiles);
 
                 //Implementation of average time
-                
-                /*Completion date is not working correctly
+
+                //getting all the info about the project milestones
                 $milestones = DB::table('milestones')
                     ->where('project_id', '=', $projectID)
-                    ->select('id', 'title', 'created_at', 'end_date', 'start_date')
+                    ->select('id', 'title', 'end_date', 'start_date','task_start_date','finalization_date')
                     ->get();
                 
-                $milestoneData = [];
-
+                $milestoneDelivery = [];
+                $milestoneWorkingTime = [];
+                $milestoneStartUpTime = [];
+                $milestoneDelayTime = [];
+        
                 foreach ($milestones as $milestone) {
-                    $milestoneData[] = [
-                        'title' => $milestone->title,
-                        'created_at' => date('Y-m-d', strtotime($milestone->created_at)), // Fecha de creación
-                        'due_date' => $milestone->due_date ? date('Y-m-d', strtotime($milestone->due_date)) : 'N/A', // Fecha de entrega deseada
-                        'start_date' => $milestone->start_date ? date('Y-m-d', strtotime($milestone->start_date)) : 'N/A', // Task started date
-                        'completion_date' => $milestone->completion_date ? date('Y-m-d', strtotime($milestone->completion_date)) : 'N/A', // Completion date
-                    ];
-                }*/
+    
+                    $creation_date = Carbon::parse($milestone->start_date);
+                    $estimated_date = Carbon::parse($milestone->end_date);
+                    $task_start_date = Carbon::parse($milestone->task_start_date);
+                    $finalization_date = $milestone->finalization_date ? Carbon::parse($milestone->finalization_date) : Carbon::now();
                     
+                    // Tiempo total de entrega desde la creación hasta la finalización
+                    $deliveryTime = $creation_date->diffInDays($finalization_date);
+                    $milestoneDelivery[] = $deliveryTime;
+                
+                    // Tiempo de inicio desde la creación hasta el inicio real de la tarea
+                    $startUpTime = $creation_date->diffInDays($task_start_date);
+                    $milestoneStartUpTime[] = $startUpTime;
+                
+                    // Tiempo de retraso (finalización - fecha estimada)
+                    $delayTime = max(0, $estimated_date->diffInDays($finalization_date, false)); // Evita valores negativos
+                    $milestoneDelayTime[] = $delayTime;
+                
+                    // Corrección: Tiempo de trabajo real
+                    $workingTime = $deliveryTime - $startUpTime - $delayTime;
+                    $milestoneWorkingTime[] = $workingTime;
+                }
+
+                if(count($milestoneDelivery) != 0){
+                    //Average for statistics
+                    $averageDelivery = round(array_sum($milestoneDelivery) / count($milestoneDelivery));
+                    $averageWorkingTime = round(array_sum($milestoneWorkingTime) / count($milestoneWorkingTime));
+                    $averageStartUpTime = round(array_sum($milestoneStartUpTime) / count($milestoneStartUpTime));
+                    $averageDelayTime = round(array_sum($milestoneDelayTime) / count($milestoneDelayTime));
+                }else{
+                    $averageDelivery = 0;
+                    $averageWorkingTime = 0;
+                    $averageStartUpTime = 0;
+                    $averageDelayTime = 0;
+                }
+                
+
+                
+                // foreach ($milestones as $milestone) {
+
+                //     //average delivery time
+                //     $startDate = Carbon::parse($milestone->start_date);
+                //     //average working time
+                //     $task_start_date = Carbon::parse($milestone->task_start_date);
+                //     //average delay time
+                //     $end_date = Carbon::parse($milestone->end_date);
+
+                //     //if the finalizationdate is null, we should use the current date
+                //     $finalizationDateDelivery = $milestone->finalization_date ? Carbon::parse($milestone->finalization_date) : Carbon::now();
+                
+                //     // if there is not a finalization date, use null (this milestone won't be used for the average)
+                //     $finalizationDate = $milestone->finalization_date ? Carbon::parse($milestone->finalization_date) : null;
+       
+                //     // Calculate the difference in days
+                //     $deliveryTime = $finalizationDateDelivery->diffInDays($startDate); 
+                //     // Store an arrays
+                //     $milestoneDelivery[] = $deliveryTime;
+
+                //     // Calculate the difference in days
+                //     if ($finalizationDate != null) {
+                //         $workingTime = $finalizationDate->diffInDays($task_start_date);
+                //         $milestoneWorkingTime[] = $workingTime;
+
+                //         $startupTime = $finalizationDate->diffInDays($startDate);
+                //         $milestoneStartUpTime[] = $startupTime;
+
+                //         $delayTime = $finalizationDate->diffInDays($end_date);
+                //         $milestoneDelayTime[] = $delayTime;
+                //     }      
+
+                // }
+                // //Average for the statistics
+                // $averageDelivery = round(array_sum($milestoneDelivery) / count($milestoneDelivery));
+                // $averageWorkingTime = round(array_sum($milestoneWorkingTime) / count($milestoneWorkingTime));
+                // $averageStartUpTime = round(array_sum($milestoneStartUpTime) / count($milestoneStartUpTime));
+                // $averageDelayTime = round(array_sum($milestoneDelayTime) / count($milestoneDelayTime));
+
                 return view('projects.show', compact(
                     'currentWorkspace',
                     'project',
                     'chartData',
                     'daysleft',
                     'projectFiles',
-                    'milestoneFiles'
+                    'milestoneFiles',
+                    'averageDelivery',
+                    'averageWorkingTime',
+                    'averageStartUpTime',
+                    'averageDelayTime'
                 ));
             } else {
                 return redirect()->back()->with('error', __("Project Not Found."));
@@ -2272,9 +2347,7 @@ class ProjectController extends Controller
         $milestone = Milestone::find($task->milestone_id);
 
         if ($milestone) {
-            if (is_null($milestone->task_start_date)) {
-                $milestone->task_start_date = $request->date;
-            }
+            if (is_null($milestone->task_start_date) || $request->date < $milestone->task_start_date) {     $milestone->task_start_date = $request->date; }
             $milestone->status = 2;
             $milestone->save();
         }
