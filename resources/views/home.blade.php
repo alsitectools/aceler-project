@@ -51,7 +51,7 @@
 
     }
 
-    .titleTecAndCom{
+    .titleTecAndCom {
         padding-left: 10px;
         font-size: 16px;
     }
@@ -64,7 +64,7 @@
         display: flex;
         justify-content: center;
         align-items: center;
-        border-radius: 16px;
+        border-radius: 10px;
         filter: drop-shadow(0px 1px 3px rgba(0, 0, 0, 0.2));
     }
 
@@ -96,8 +96,8 @@
         background-color: white;
         display: flex;
         align-items: center;
-        width: 28px;
-        height: 30px;
+        width: 40px;
+        height: 35px;
         justify-content: center;
         border-radius: 7px;
         box-shadow: 2px 2px 5px 0px rgb(0 0 0 / 30%);
@@ -182,7 +182,7 @@
         background-color: #F8FAF9;
         margin-top: 20px;
         height: 60px;
-        width: 100%;
+        width: 99%;
         border-radius: 9px;
         box-shadow: 0px 0px 5px rgb(0 0 0 / 22%);
         display: flex;
@@ -293,10 +293,55 @@
 
     .modifiedDivTecAndCom {
         max-height: 400px;
-        height: 500px;
+        /* Asegura que el div tenga un límite de altura */
+        overflow-y: auto;
+        /* Permite el desplazamiento vertical si hay demasiado contenido */
+        overflow-x: hidden;
+        /* Evita desplazamiento horizontal */
+        height: auto;
+        /* Se ajusta automáticamente sin forzar una altura fija */
         display: flex;
         flex-direction: column;
         align-items: center;
+        padding: 10px;
+        margin-bottom: 20px;
+    }
+
+    .divStatisticsButtons {
+        margin-bottom: 10px;
+        display: flex;
+        flex-direction: row;
+        justify-content: flex-start;
+        align-items: center;
+    }
+
+    .formControlModified {
+        cursor: pointer;
+        width: 10% !important;
+        margin-right: 1%;
+        margin-left: 1%;
+    }
+
+    .marginRight1 {
+        margin-right: 1%;
+    }
+
+    .yearListDiv {
+        position: absolute;
+        background: white;
+        border: 1px solid rgb(204, 204, 204);
+        width: 10%;
+        left: 30px;
+        z-index: 1000;
+        top: 23%;
+        border-radius: 10px;
+        display: none;
+    }
+
+    .yearOption:hover {
+        background-color: #AA182C;
+        color: white;
+        border-radius: 8px;
     }
 
     @media screen and (min-width:1440px) and (max-width: 1490px) {
@@ -314,11 +359,30 @@
     }
 
     .filter-input {
-        width: 100%;
+        width: 97%;
         padding: 10px;
-        margin: 10px 0;
+        margin: 10px;
         border: 1px solid #ccc;
         border-radius: 5px;
+        margin-bottom: 0;
+    }
+
+    .milestonesTextSpan {
+        font-size: 13px;
+        font-weight: 800;
+        margin-left: 9px;
+    }
+
+    .displayFlexAlignCenter {
+        display: flex;
+        align-content: center;
+        align-items: center;
+    }
+
+    .alignArrowSelect {
+        position: absolute;
+        left: 10%;
+        top: 102px;
     }
 </style>
 
@@ -420,10 +484,12 @@
                 </div>
             </div>
         @elseif($currentWorkspace)
-            <div class="row" onclick="resetCards(event)">
+            <div class="row">
                 <div class="col-lg-12 col-md-12">
                     <!-- <div class="row"> -->
-
+                    <div class="page-header-title">
+                        <h4 class="m-b-10">{{ __('Resume of') }} {{ $currentWorkspace->name }}</h4>
+                    </div>
                     <div class="summary">
                         <div class="tabs ctr">
                             <div class="tabIcon projectIcon">
@@ -472,11 +538,23 @@
                             <div class="tabTexts">
                                 {{ __('Milestones') }}
                             </div>
-                            <div class="tabTexts tabNumCounter">
-                                <span>
-                                    {{ $totalMilestones ?? 0 }}
-                                </span>
-
+                            <div>
+                                <div class="displayFlexAlignCenter">
+                                    <div class="tabTexts tabNumCounter" style="margin-bottom: 2%;">
+                                        <span>
+                                            {{ $totalWorkspaceMilestones ?? 0 }}
+                                        </span>
+                                    </div>
+                                    <span class="milestonesTextSpan">{{ $currentWorkspace->name }}</span>
+                                </div>
+                                <div class="displayFlexAlignCenter">
+                                    <div class="tabTexts tabNumCounter">
+                                        <span>
+                                            {{ $totalMilestones ?? 0 }}
+                                        </span>
+                                    </div>
+                                    <span class="milestonesTextSpan">{{ __('Your milestones') }}</span>
+                                </div>
                             </div>
                         </div>
                         <div class="tabs ctr">
@@ -487,13 +565,50 @@
 
                             </div>
                             <div class="tabTexts">
-                                {{ __('Tasks') }}
+                                {{ __('Your tasks') }}
                             </div>
                             <div class="tabTexts tabNumCounter">
                                 <span>
                                     {{ $totalTask ?? 0 }}
                                 </span>
 
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-12">
+                        <div class="card min-h">
+                            <div class="card-header">
+                                Statistics
+                            </div>
+                            <div class="card-body p-3">
+                                <div class="divStatisticsButtons">
+                                    <div>
+                                        <input type="hidden" id="yearSelect" name="yearSelect"
+                                            value="{{ collect($averageTimesKeys)->sortDesc()->first() }}">
+                                        <i class="fa-solid fa-chevron-down alignArrowSelect"></i>
+                                    </div>
+                                    <div class="formControlModified form-control" id="yearDropdown"
+                                        style="cursor: pointer;">
+                                        <span
+                                            id="yearDisplay">{{ collect($averageTimesKeys)->sortDesc()->first() }}</span>
+                                    </div>
+
+                                    <!-- Lista de años como opciones (Oculto inicialmente) -->
+                                    <div id="yearList" class="yearListDiv">
+                                        @foreach (collect($averageTimesKeys)->sortDesc() as $year)
+                                            <div class="yearOption" data-year="{{ $year }}"
+                                                style="padding: 5px; cursor: pointer;">{{ $year }}</div>
+                                        @endforeach
+                                    </div>
+
+                                    <button onclick="updateChart('monthly')" class="marginRight1 btn btn-primary">Mostrar
+                                        por Meses</button>
+                                    <button onclick="updateChart('quarterly')"
+                                        class="marginRight1 btn btn-primary">Mostrar por Trimestres</button>
+                                    <button onclick="updateChart('yearly')" class="btn btn-primary">Mostrar por
+                                        Año</button>
+                                </div>
+                                <canvas id="myChart" style="height: 400px; width:100%"></canvas>
                             </div>
                         </div>
                     </div>
@@ -504,10 +619,11 @@
                                     <img src="{{ asset('assets/img/salesManager.png') }}" class="comercialTecIcons" />
                                     <span class="titleTecAndCom">{{ __('Sales managers') }}</span>
                                 </div>
-                                <div class="card-body pb-1 modifiedDivTecAndCom" id="contentCom">
+                                <div class="modifiedDivTecAndCom top-10-scroll" id="contentCom">
                                     <input type="text" class="filter-input" id="filterComerciales"
                                         placeholder="Filtrar comerciales..."
-                                        oninput="filterList('filterComerciales', 'contentCom')">
+                                        oninput="filterList('filterComerciales', 'contentCom')" />
+
                                     @foreach ($comerciales as $comercial)
                                         <div class="comercialAndTechnicians">
                                             <div class="ppcontainer">
@@ -520,7 +636,6 @@
                                             </div>
                                         </div>
                                     @endforEach
-                                    <!-- final info real comercial  -->
                                 </div>
                             </div>
                         </div>
@@ -530,10 +645,11 @@
                                     <img src="{{ asset('assets/img/technicians.png') }}" class="comercialTecIcons" />
                                     <span class="titleTecAndCom">{{ __('Technicians') }}</span>
                                 </div>
-                                <div class="card-body pb-1 modifiedDivTecAndCom" id="contentTec">
-                                    <input type="text" class="filter-input" id="filterTechnicians"
-                                        placeholder="Filtrar técnicos/as..."
-                                        oninput="filterList('filterTechnicians', 'contentTec')">
+                                <input type="text" class="filter-input" id="filterTechnicians"
+                                    placeholder="Filtrar técnicos/as..."
+                                    oninput="filterList('filterTechnicians', 'contentTec')" />
+                                <div class="modifiedDivTecAndCom top-10-scroll" id="contentTec">
+
                                     @foreach ($technicians as $technician)
                                         <div class="comercialAndTechnicians">
                                             <div class="ppcontainer">
@@ -546,6 +662,7 @@
                                             </div>
                                         </div>
                                     @endforEach
+
                                 </div>
                             </div>
                         </div>
@@ -564,32 +681,295 @@
         @endif
     </section>
 @endsection
-<script>
+@push('scripts')
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+    <script src="{{ asset('assets/custom/libs/nicescroll/jquery.nicescroll.min.js') }} "></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels"></script>
 
-    function filterList(inputId, containerId) {
-        const input = document.getElementById(inputId);
-        const filter = input.value.toLowerCase();
-        const container = document.getElementById(containerId);
-        const items = container.getElementsByClassName('comercialAndTechnicians');
+    <script>
+        $(document).ready(function() {
+            if ($(".modifiedDivTecAndCom").length) {
+                $(".modifiedDivTecAndCom").css({
+                    "max-height": 300
+                }).niceScroll();
+            }
 
-        for (let i = 0; i < items.length; i++) {
-            const name = items[i].getElementsByClassName('fullName')[0];
-            const email = items[i].getElementsByClassName('emailName')[0];
-            const emailPrefix = email.innerHTML.split('@')[0].toLowerCase();
-            if (filter === "" || name.innerHTML.toLowerCase().indexOf(filter) > -1 || emailPrefix.indexOf(filter) > -
-                1) {
-                items[i].style.display = "";
-            } else {
-                items[i].style.display = "none";
+            $("#yearDropdown").click(function() {
+                $("#yearList").toggle();
+            });
+
+            // Cuando se selecciona un año, actualiza el input y la vista actual sin cambiar la modalidad
+            $(".yearOption").click(function() {
+                let selectedYear = $(this).data("year");
+
+                $("#yearSelect").val(selectedYear); // Actualiza el input oculto
+                $("#yearDisplay").text(selectedYear); // Muestra el año seleccionado
+                $("#yearList").hide(); // Oculta la lista de años
+
+                updateYear(); // Actualiza la gráfica sin cambiar la vista
+            });
+
+            // Ocultar la lista si se hace clic fuera de ella
+            $(document).click(function(event) {
+                if (!$(event.target).closest("#yearDropdown, #yearList").length) {
+                    $("#yearList").hide();
+                }
+            });
+        });
+    </script>
+    <script>
+        // all average data 
+        var averageTimes = @json($averageTimes);
+        let selectedYear = document.getElementById('yearSelect').value;
+        //updateChartData(averageTimes[selectedYear]); // Inicializa con el primer año
+
+        function updateYear() {
+            let selectedYear = $("#yearSelect").val();
+
+            if (!averageTimes[selectedYear]) {
+                console.log(`No hay datos para el año ${selectedYear}`);
+                return;
+            }
+
+            // Mantiene la vista activa cuando cambia el año
+            updateChart(currentView);
+        }
+
+        function updateChart(view) {
+            let selectedYear = $("#yearSelect").val();
+
+            if (!averageTimes[selectedYear]) {
+                console.log(`No hay datos para el año ${selectedYear}`);
+                return;
+            }
+
+            let data = averageTimes[selectedYear];
+
+            // Mantiene la vista seleccionada
+            currentView = view;
+
+            if (view === 'monthly') {
+                updateChartData(data.months, 'Meses');
+            } else if (view === 'quarterly') {
+                updateChartData(data.quarters, 'Trimestres');
+            } else if (view === 'yearly') {
+                updateYearlyChart(data.yearly);
             }
         }
-    }
 
-    document.getElementById('filterComerciales').addEventListener('input', function() {
-        filterList('filterComerciales', 'contentCom');
-    });
+        function updateYearlyChart(data) {
+            if (!window.chart) {
+                console.log("Error: El gráfico aún no ha sido inicializado.");
+                return;
+            }
 
-    document.getElementById('filterTechnicians').addEventListener('input', function() {
-        filterList('filterTechnicians', 'contentTec');
-    });
-</script>
+            if (!data) {
+                console.log("No hay datos disponibles para la vista anual.");
+                return;
+            }
+
+            let selectedYear = $("#yearSelect").val(); // Obtener el año seleccionado
+
+            let labels = [selectedYear]; // Mostrar el año actual en el eje X
+            let tiempo_inicio = [data.averageStartUp || 0];
+            let tiempo_bueno = [data.averageWorking || 0];
+            let retraso = [data.averageDelay || 0];
+
+            // Mantener las barras apiladas
+            window.chart.config.type = 'bar';
+            window.chart.options.scales.x.stacked = true;
+            window.chart.options.scales.y.stacked = true;
+
+            window.chart.data.labels = labels;
+            window.chart.data.datasets[0].data = tiempo_inicio;
+            window.chart.data.datasets[1].data = tiempo_bueno;
+            window.chart.data.datasets[2].data = retraso;
+
+            window.chart.options.plugins.title.text = `Promedio Anual (${selectedYear})`;
+            window.chart.update();
+        }
+
+
+        function updateChartData(data, labelType) {
+            if (!window.chart) {
+                console.log("Error: El gráfico aún no ha sido inicializado.");
+                return;
+            }
+
+            if (!data) {
+                console.log("No hay datos disponibles para la vista seleccionada.");
+                return;
+            }
+
+            // Ordenar etiquetas correctamente
+            const monthOrder = ["January", "February", "March", "April", "May", "June", "July", "August", "September",
+                "October", "November", "December"
+            ];
+            const quarterOrder = ["Q1", "Q2", "Q3", "Q4"];
+
+            let labels = Object.keys(data);
+
+            if (labelType === "Meses") {
+                labels.sort((a, b) => monthOrder.indexOf(a) - monthOrder.indexOf(b));
+            } else if (labelType === "Trimestres") {
+                labels.sort((a, b) => quarterOrder.indexOf(a) - quarterOrder.indexOf(b));
+            }
+
+            let tiempo_inicio = [];
+            let tiempo_bueno = [];
+            let retraso = [];
+
+            labels.forEach(periodo => {
+                let periodoData = data[periodo] || {};
+                tiempo_inicio.push(periodoData.averageStartUp || 0);
+                tiempo_bueno.push(periodoData.averageWorking || 0);
+                retraso.push(periodoData.averageDelay || 0);
+            });
+
+            window.chart.config.type = 'bar';
+            window.chart.options.scales.x.stacked = true;
+            window.chart.options.scales.y.stacked = true;
+
+            window.chart.data.labels = labels;
+            window.chart.data.datasets[0].data = tiempo_inicio;
+            window.chart.data.datasets[1].data = tiempo_bueno;
+            window.chart.data.datasets[2].data = retraso;
+
+            window.chart.options.plugins.title.text = `Promedio por ${labelType}`;
+            window.chart.update();
+        }
+
+        document.addEventListener("DOMContentLoaded", function() {
+            const ctx = document.getElementById('myChart').getContext('2d');
+
+            window.chart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: [],
+                    datasets: [{
+                            label: 'Tiempo inicio',
+                            data: [],
+                            backgroundColor: 'rgba(211, 211, 211, 0.8)',
+                            hidden: false
+                        },
+                        {
+                            label: 'Tiempo bueno',
+                            data: [],
+                            backgroundColor: 'rgba(201, 237, 185, 0.8)',
+                            hidden: false
+                        },
+                        {
+                            label: 'Retraso',
+                            data: [],
+                            backgroundColor: 'rgba(224, 108, 113, 0.8)',
+                            hidden: false
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                            align: 'end',
+                            labels: {
+                                generateLabels: function(chart) {
+                                    let labels = Chart.defaults.plugins.legend.labels.generateLabels(
+                                        chart);
+
+                                    labels.push({
+                                        text: 'Mostrar Números',
+                                        fillStyle: 'black',
+                                        strokeStyle: 'black',
+                                        hidden: !chart.options.plugins.datalabels.display,
+                                        datasetIndex: -1
+                                    });
+
+                                    return labels;
+                                }
+                            },
+                            onClick: function(e, legendItem, legend) {
+                                if (legendItem.datasetIndex === -1) {
+                                    let currentDisplay = legend.chart.options.plugins.datalabels
+                                        .display;
+                                    legend.chart.options.plugins.datalabels.display = !currentDisplay;
+
+                                    legend.options.labels.generateLabels(legend.chart);
+                                    legend.chart.update();
+                                } else {
+                                    let dataset = legend.chart.data.datasets[legendItem.datasetIndex];
+                                    dataset.hidden = !dataset.hidden;
+                                    legend.chart.update();
+                                }
+                            }
+                        },
+                        title: {
+                            display: true,
+                            text: 'Promedio por Meses'
+                        },
+                        datalabels: {
+                            anchor: 'center',
+                            align: 'center',
+                            display: true,
+                            color: 'black',
+                            font: {
+                                weight: 'bold',
+                                size: 12
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            stacked: true
+                        },
+                        y: {
+                            stacked: true,
+                            title: {
+                                display: true,
+                                text: 'Días'
+                            }
+                        }
+                    },
+                    elements: {
+                        bar: {
+                            borderRadius: 8
+                        }
+                    }
+                },
+                plugins: [ChartDataLabels]
+            });
+
+            let selectedYear = document.getElementById('yearSelect').value;
+            updateChart('monthly');
+        });
+    </script>
+    <script>
+        function filterList(inputId, containerId) {
+            const input = document.getElementById(inputId);
+            const filter = input.value.toLowerCase();
+            const container = document.getElementById(containerId);
+            const items = container.getElementsByClassName('comercialAndTechnicians');
+
+            for (let i = 0; i < items.length; i++) {
+                const name = items[i].getElementsByClassName('fullName')[0];
+                const email = items[i].getElementsByClassName('emailName')[0];
+                const emailPrefix = email.innerHTML.split('@')[0].toLowerCase();
+                if (filter === "" || name.innerHTML.toLowerCase().indexOf(filter) > -1 || emailPrefix.indexOf(filter) > -
+                    1) {
+                    items[i].style.display = "";
+                } else {
+                    items[i].style.display = "none";
+                }
+            }
+        }
+
+        document.getElementById('filterComerciales').addEventListener('input', function() {
+            filterList('filterComerciales', 'contentCom');
+        });
+
+        document.getElementById('filterTechnicians').addEventListener('input', function() {
+            filterList('filterTechnicians', 'contentTec');
+        });
+    </script>
+@endpush

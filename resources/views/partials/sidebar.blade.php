@@ -250,7 +250,7 @@
                             : '' }}">
 
                         <span class="dash-micon"><i class="fa-solid fa-bookmark"></i></span>
-                        <span class="dash-mtext">{{ __('Summary') }}</span>
+                        <span class="dash-mtext">{{ __('Summary') }} {{$currentWorkspace->name}}</span>
                     </a>
                 </li>
                 @if (isset($currentWorkspace) && $currentWorkspace)

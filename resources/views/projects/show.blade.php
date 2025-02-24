@@ -5,7 +5,6 @@
 @endsection
 @section('links')
     <li class="breadcrumb-item"><a href="{{ route('home') }}">{{ __('Home') }}</a>
-    <li class="breadcrumb-item"><a href="{{ route('home') }}">{{ __('Home') }}</a>
     </li>
     <li class="breadcrumb-item"><a href="{{ route('projects.index', $currentWorkspace->slug) }}">{{ __('Projects') }}</a>
     </li>

@@ -245,7 +245,7 @@
                 @endif
 
                 <li class="dropdown dash-h-item drp-notification">
-                    <button id="addNotificationBtn" class="btn btn-primary">Añadir Notificación</button>
+                    {{-- <button id="addNotificationBtn" class="btn btn-primary">Añadir Notificación</button> --}}
                     {{-- $notifications = \App\Models\Notification::where('workspace_id', $currentWorkspace->id)
                     ->orderBy('created_at', 'desc')
                     ->get(); --}}
