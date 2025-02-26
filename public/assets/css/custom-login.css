@@ -1,0 +1,451 @@
+ .card {
+    transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+}
+
+#technicianCard {
+    transform: rotate(-4deg);
+}
+
+#comercialCard {
+    transform: rotate(4deg);
+}
+
+#technicianCard:hover {
+    transform: scale(1.05) rotate(-4deg);
+    box-shadow: 0px 10px 20px rgba(0, 0, 0, 0.2);
+}
+
+#comercialCard:hover {
+    transform: scale(1.05) rotate(4deg);
+    box-shadow: 0px 10px 20px rgba(0, 0, 0, 0.2);
+}
+.custom-fieldset {
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    padding: 10px 15px;
+    display: flex;
+    align-items: center;
+    position: relative;
+}
+
+.custom-legend {
+    font-size: 14px;
+    color: #666;
+    padding: 0 5px;
+    position: absolute;
+    top: -10px;
+    left: 15px;
+    background: white;
+    display: inline-block;
+    /* Permite que se ajuste al texto */
+    width: auto;
+    /* Hace que el ancho se adapte al contenido */
+    white-space: nowrap;
+    /* Evita que el texto se divida en varias líneas */
+}
+
+.custom-input {
+    border: none;
+    outline: none;
+    font-size: 18px;
+    width: 100%;
+    padding: 5px;
+    background: transparent;
+}
+
+/* General Styles */
+.slider.round {
+    border-radius: 34px;
+}
+
+.slider.round:before {
+    border-radius: 99%;
+}
+
+.dayToggle {
+    /* width: 100%; */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+
+/* Estilos comunes para inputs */
+.inputToggle,
+.intensiveWorkInput {
+    background-color: #E4DEDE;
+    border: none;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    border-radius: 5px;
+    height: 35px;
+    padding: 0 10%;
+}
+
+.intensiveWorkInput {
+    width: 40%;
+    margin-top: 4%;
+}
+
+/* Botones */
+.saveButton {
+    width: 13%;
+    margin-bottom: 2%;
+    height: 55%;
+}
+
+/* Centrado de elementos */
+.alignCenterItems {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* Botón de colapso */
+.buttonColapse {
+    width: 35px;
+    height: 35px;
+}
+
+/* Timetable */
+.divTimetable {
+    width: 100%;
+}
+
+.timetable-content {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-around;
+    align-items: center;
+}
+
+/* Input Date Picker */
+.inputDatePicker {
+    width: 4%;
+    background-color: #aa182c;
+    border: none;
+    border-radius: 8px;
+    height: 40px;
+    padding: 0;
+    color: white;
+    margin-top: 43px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.inputDatePicker:hover {
+    background-color: #b9515f;
+    border-color: #b9515f;
+}
+
+.inputDateDisplay {
+    width: 65%;
+    background-color: #aa182c;
+    color: white;
+    border: none;
+}
+
+/* Estilos para el perfil */
+.collapse-section {
+    display: block;
+}
+
+.buttonColocation {
+    display: flex;
+    justify-content: space-between;
+}
+
+/* Estilos para el toggle */
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 100%;
+    height: 29px;
+    margin: 5%;
+}
+
+.switchHoliday {
+    width: 100% !important;
+    margin-left: 15px;
+    margin-right: 15px;
+    padding-right: 6px;
+}
+
+.switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgb(228, 222, 222);
+    transition: .4s;
+}
+
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 20px;
+    width: 20px;
+    left: 4px;
+    bottom: 4px;
+    background-color: white;
+    transition: .4s;
+}
+
+input:checked+.slider {
+    background-color: #aa182c;
+}
+
+input:checked+.slider:before {
+    transition: .4s;
+    left: unset;  
+    right: 4px;
+}
+.modal-dialog {
+    min-width: 70%;
+}
+
+.modal-content {
+    height: 70vh;
+    /* 70% de la altura del viewport */
+    display: flex;
+    flex-direction: column;
+}
+
+
+html,
+body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    overflow: hidden;
+}
+
+/* Estilo para la imagen de fondo */
+.backgroundImageLogin {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-size: cover;
+    /* Hace que la imagen ocupe toda la pantalla sin deformarse */
+    background-position: center;
+    /* Centra la imagen */
+    background-repeat: no-repeat;
+    /* Evita que la imagen se repita */
+    z-index: -1;
+    /* Envía la imagen al fondo */
+}
+
+.delegationFieldset {
+    position: relative;
+    /* Asegura que los elementos absolutos se ubiquen dentro de este contenedor */
+}
+
+.workspace-select {
+    position: absolute;
+    width: 100%;
+    /* Ajusta el ancho al del input */
+    top: 100%;
+    /* Coloca la lista justo debajo del input */
+    left: 0;
+    z-index: 1000;
+    /* Asegura que esté sobre otros elementos */
+    background: white;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.textWorkspace {
+    font-size: 16px;
+    color: #505050;
+    border-radius: 6px;
+    background: #e9ecf9;
+}
+
+.closeBut {
+    border: transparent;
+    background-color: transparent;
+    color: #505050;
+    border-radius: 5px;
+}
+
+.divLogin {
+    box-shadow: 0px 4px 4px 0px rgb(0 0 0 / 25%);
+    -webkit-box-shadow: 0px 4px 4px 0px rgb(0 0 0 / 25%);
+    -moz-box-shadow: 0px 4px 4px 0px rgb(0 0 0 / 25%);
+    background-color: white;
+    width: 30%;
+    height: 60%;
+    margin-left: 33%;
+    margin-top: 9%;
+    border-radius: 15px;
+}
+
+.imgDiv {
+    width: 90%;
+    padding-top: 5%;
+    margin-left: 12%;
+}
+
+.loginText {
+    display: flex;
+    align-content: center;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+}
+
+.loginTitle {
+    font-size: 50px;
+    padding-top: 4%;
+    padding-bottom: 5%;
+}
+
+.loginExplanation {
+    width: 79%;
+    font-size: 18px;
+    padding-left: 5%;
+}
+
+.azureLogo {
+    width: 26px;
+}
+
+.copyText {
+    color: #AA182C;
+    padding-left: 41%;
+}
+
+@media screen and (max-width: 2400px) and (min-width: 2000px) {
+    .buttonLogin {
+        margin-top: 18%;
+    }
+
+    .copyText {
+        padding-left: 42%;
+    }
+
+    .backgroundMainDiv {
+        width: 6%;
+    }
+}
+
+@media screen and (max-width: 1710px) and (min-width: 1555px) {
+
+    .buttonLogin {
+        font-size: 17px;
+    }
+
+    .azureLogo {
+        width: 20px;
+    }
+}
+
+@media screen and (max-width: 1553px) and (min-width: 1479px) {
+
+    .buttonLogin {
+        font-size: 15px;
+    }
+
+    .loginExplanation {
+        font-size: 16px;
+    }
+
+    .loginTitle {
+        font-size: 48px;
+    }
+
+    .imgDiv {
+        padding-top: 8%;
+    }
+}
+
+@media screen and (max-width: 1479px) and (min-width: 1240px) {
+
+    .azureLogo {
+        width: 20px;
+    }
+
+    .divLogin {
+        margin-top: 10%;
+    }
+
+    .loginTitle {
+        font-size: 41px;
+        padding-bottom: 10%;
+        padding-top: 7%;
+    }
+
+    .loginExplanation {
+        font-size: 16px;
+    }
+
+    .imgDiv {
+        padding-top: 12%;
+    }
+}
+
+@media screen and (max-width: 1240px) and (min-width: 1208px) {
+
+    .azureLogo {
+        width: 20px;
+    }
+
+    .loginTitle {
+        font-size: 40px;
+    }
+
+    .loginExplanation {
+        width: 75%;
+        font-size: 15px;
+    }
+
+    .divLogin {
+        margin-top: 11%;
+    }
+
+    .copyText {
+        padding-left: 20%;
+    }
+
+    .buttonLogin {
+        font-size: 12px;
+    }
+
+    .imgDiv {
+        padding-top: 11%;
+        padding-bottom: 8%;
+    }
+}
+
+@media screen and (max-width: 1207px) and (min-width: 800px) {
+
+    .divLogin {
+        margin-top: 11%;
+    }
+
+    .imgDiv {
+        padding-top: 9%;
+    }
+
+    .loginTitle {
+        font-size: 41px;
+        padding-top: 7%;
+    }
+
+    .loginExplanation {
+        font-size: 16px;
+    }
+
+}

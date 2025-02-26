@@ -10,6 +10,7 @@ class UserTimetable extends Model
     use HasFactory;
 
     protected $table = 'user_timetable';
+    public $timestamps = false;
 
     protected $fillable = [
         'user_id',
@@ -20,7 +21,7 @@ class UserTimetable extends Model
         'friday',
         'saturday',
         'sunday',
-        'special_days_range',
-        'intensive_workday',
+        'range_holidays',
+        'range_intensive_workday',
     ];
 }
