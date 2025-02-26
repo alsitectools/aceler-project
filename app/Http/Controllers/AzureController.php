@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Models\UserTimetable;
 use App\Models\UserWorkspace;
 use App\Models\Workspace;
 use Illuminate\Http\Request;
@@ -11,7 +12,8 @@ use Laravel\Socialite\Facades\Socialite;
 use GuzzleHttp\Client;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
-
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\DB;
 
 class AzureController extends Controller
 {
@@ -26,7 +28,6 @@ class AzureController extends Controller
             $token = $azureUser->token;
 
             $client = new Client();
-
             $response = $client->get('https://graph.microsoft.com/v1.0/me?$select=mail,userPrincipalName,displayName,officeLocation,companyName,jobTitle,department,city,country', [
                 'headers' => [
                     'Authorization' => 'Bearer ' . $token,
@@ -87,136 +88,116 @@ class AzureController extends Controller
                 $userProfile['photo_path'] = null;
             }
 
+            $mail = $userProfile['mail'] ?? 'No especificado';
+            $userPrincipalName = $userProfile['userPrincipalName'] ?? 'No especificado';
 
-            $user = $this->findOrcreate($userProfile);
+            $user = User::where('email', $mail)->orWhere('userPrincipalName', $userPrincipalName)->first();
 
-            if (isset($user)) {
-                $filePath = public_path($user->avatar);
-
-                if (isset($userProfile['photo_path']) && $userProfile['photo_path'] == null) {
-                    if (file_exists($filePath)) {
-                        chmod($filePath, 0777);
-
-                        if (\File::delete($filePath)) {
-                            $user->avatar = null;
-                            $user->save();
-                        }
-                    }
-                } else {
-                    $user->avatar = $userProfile['photo_path'];
-                    $user->save();
-                }
+            if (!$user) {
+                session(['showModal' => true, 'userProfile' => $userProfile]);
+                return redirect()->route('login');
             }
-            Auth::login($user, true);
 
+            if (isset($userProfile['photo_path'])) {
+                $user->avatar = $userProfile['photo_path'];
+                $user->save();
+            }
+
+            Auth::login($user, true);
             return redirect()->intended('/');
         } catch (\Exception $e) {
             return redirect('/login')->with('error', 'Hubo un problema al iniciar sesión con Azure.');
         }
     }
 
-    public function findOrcreate($userProfile)
+    public function showRegistrationForm()
     {
-        $undefined = 'No especificado';
+        $azureUser = session('azure_user_data');
 
-        $mail = $userProfile['mail'] ?? $undefined;
-        $userPrincipalName = $userProfile['userPrincipalName'] ?? $undefined;
-
-        // Busca al usuario por su email o userPrincipalName
-        $user = User::where('email', $mail)->orWhere('email', $userPrincipalName)->first();
-
-        if (!$user) {
-            $name = $userProfile['displayName'] ?? $undefined;
-            $company = $userProfile['companyName'] ?? $undefined;
-            $country = $userProfile['country'] ?? $undefined;
-            $branch = $userProfile['city'] ?? $undefined;
-            $department = $userProfile['department'] ?? $undefined;
-            $jobTitle = $userProfile['jobTitle'] ?? $undefined;
-            $location = $userProfile['officeLocation'] ?? $undefined;
-
-            switch ($location) {
-                case 'Central Logística' || 'Central':
-                    $location = 'Catalunya';
-                    break;
-
-                case 'Norte y Castilla' || 'Olloniego':
-                    $location = 'Asturias';
-                    break;
-
-                case 'Levante Sur':
-                    $location = 'Alicante';
-                    break;
-
-                case 'Andalucía Occidental':
-                    $location = 'Sevilla';
-                    break;
-
-                case 'Andalucía Oriental':
-                    $location = 'Málaga';
-                    break;
-
-                case 'Morocco':
-                    $location = 'Marruecos';
-                    break;
-                case 'Houston':
-                    $location = 'Texas';
-                    break;
-                case 'Miami':
-                    $location = 'Florida';
-                    break;
-
-                default:
-
-                    break;
-            }
-
-            // Si es la central
-            if (isset($department) && str_starts_with($department, 'BU')) {
-
-                if (strpos($department, '/') === false) {
-                    $workspaceName = explode(' ', $department);
-                    $name = $workspaceName[1];
-                    $type = 'user';
-                } else {
-                    $arrayDepartment = explode('/', $department);
-                    $workspaceName = explode(' ', $arrayDepartment[0]);
-                    $name = $workspaceName[1];
-                    $type = in_array($arrayDepartment[1], ['Técnico', 'Sistemas', 'I+D']) ? 'user' : 'client';
-                }
-
-                $workspace = Workspace::select('id')->where('name', $name)->first();
-            } else {
-                $arrayDepartment = explode('/', $department);
-
-                $type = in_array($arrayDepartment[1], ['Técnico', 'Sistemas', 'I+D']) ? 'user' : 'client';
-                $workspace = Workspace::select('id')->where('name', $location)->first();
-            }
-
-            // Si el usuario no existe, lo creamos
-            $user = User::create([
-                'name' => $name,
-                'userPrincipalName' => $userPrincipalName,
-                'email' => $mail,
-                'company' => $company,
-                'branch' => $branch,
-                'department' => $department,
-                'country' => $country,
-                'jobTitle' => $jobTitle,
-                'officeLocation' => $location,
-                'type' => $type,
-                'currant_workspace' => $workspace ? $workspace->id : '',
-                'email_verified_at' => now(),
-                'avatar' => $userProfile['photo_path'] ?? null,
-            ]);
-
-            UserWorkspace::create([
-                'user_id' => $user->id,
-                'workspace_id' => $user->currant_workspace,
-                'permission' => 'Member',
-                'is_active' => 1,
-            ]);
+        if (!$azureUser) {
+            return redirect('/login')->with('error', 'No se encontró la información del usuario. Intenta nuevamente.');
         }
 
-        return $user;
+        return view('auth.register_azure', compact('azureUser'));
+    }
+
+    public function registerUser(Request $request)
+    {
+
+        DB::beginTransaction();
+        try {
+            $data = $request->all();
+
+            $user = User::updateOrCreate(
+                ['email' => $data['mail']],
+                [
+                    'name' => $data['name'],
+                    'userPrincipalName' => $data['userPrincipalName'],
+                    'company' => $data['companyName'],
+                    'branch' => $data['city'],
+                    'department' => $data['department'],
+                    'country' => $data['country'],
+                    'jobTitle' => $data['jobTitle'],
+                    'officeLocation' => $data['officeLocation'],
+                    'type' => $data['type'],
+                    'currant_workspace' => 1,
+                    'lang' => app()->getLocale(),
+                    'avatar' => null,
+                    'email_verified_at' => now(),
+                    'messenger_color' => '#2180f3',
+                    'dark_mode' => 0,
+                    'active_status' => 1,
+                ]
+            );
+
+            $workspaceIds = explode(',', $data['selectedWorkspaceIds']);
+            if (!empty($workspaceIds)) {
+                $firstWorkspaceId = (int) $workspaceIds[0];
+
+                $workspace = Workspace::find($firstWorkspaceId);
+                if ($workspace) {
+                    $user->currant_workspace = $firstWorkspaceId;
+                    $user->save();
+                }
+
+                foreach ($workspaceIds as $workspaceId) {
+                    UserWorkspace::create([
+                        'user_id' => $user->id,
+                        'workspace_id' => (int) $workspaceId,
+                        'permission' => 'Member',
+                        'is_active' => 1,
+                        'created_at' => now(),
+                        'updated_at' => now(),
+                    ]);
+                }
+            }
+
+            $workday = json_decode($data['workday'], true);
+
+            UserTimetable::updateOrCreate(
+                ['user_id' => $user->id],
+                [
+                    'monday' => $workday['monday'] ?? '',
+                    'tuesday' => $workday['tuesday'] ?? '',
+                    'wednesday' => $workday['wednesday'] ?? '',
+                    'thursday' => $workday['thursday'] ?? '',
+                    'friday' => $workday['friday'] ?? '',
+                    'saturday' => $workday['saturday'] ?? '',
+                    'sunday' => $workday['sunday'] ?? '',
+                    'range_holidays' => '',
+                    'range_intensive_workday' => '',
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]
+            );
+
+            DB::commit();
+            Auth::login($user, true);
+            return redirect()->intended('/');
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json(['error' => 'Error al registrar usuario', 'message' => $e->getMessage()], 500);
+        }
     }
 }
