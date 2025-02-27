@@ -88,6 +88,7 @@
     });
 </script>
 
+
 @if (session('showModal'))
     <div class="modal fade" id="registerModal" tabindex="-1" aria-labelledby="registerModalLabel"
         data-bs-backdrop="static" data-bs-keyboard="false"
@@ -215,7 +216,7 @@
                             </fieldset>
                             <div class="selectedWorkspacesContainer d-flex flex-wrap gap-2 p-2 rounded"></div>
                             <input type="hidden" class="selectedWorkspaceIds" name="selectedWorkspaceIds"
-                                value="">
+                                value="" required>
                         </div>
 
                         <!-- Workday Information -->
@@ -223,6 +224,14 @@
                             <fieldset class="custom-fieldset">
                                 <legend class="custom-legend">{{ __('Complete your workday information') }}</legend>
                                 <div class="m-3 divTimetable" id="v-pills-timetable">
+                                    <div class="mb-3" id="timetableErrorMessage" style="display: none;">
+                                        <div class="bg-danger"
+                                            style="display: inline-block; padding: 8px; margin: 5px; border-radius: 40%;">
+                                            <i class="fa-solid fa-circle-xmark text-white"></i>
+                                        </div>
+                                        <span
+                                            class="text-danger">{{ __('Please, complete your workday information') }}</span>
+                                    </div>
                                     <div class="card-body collapse-section timetable-content" id="timetable-content"
                                         style="display: flex; flex-direction: row;">
                                         @foreach (['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'] as $day)
@@ -234,14 +243,12 @@
                                                     <span class="slider round"></span>
                                                 </label>
                                                 <input id="{{ strtolower($day) }}Input" type="time"
-                                                    class="inputToggle" onclick="this.showPicker()">
+                                                    class="inputToggle">
                                             </div>
                                         @endforeach
                                     </div>
                                 </div>
                             </fieldset>
-
-
                             <!-- Input oculto para los días seleccionados -->
                             <input type="hidden" name="workday" id="workdayInput">
                             <p class="text-muted text-end mt-3">
@@ -293,7 +300,7 @@
                             <fieldset class="custom-fieldset delegationFieldset">
                                 <legend class="custom-legend">{{ __('Delegation') }}</legend>
                                 <input type="text" class="custom-input mt-2 searchWorkspace"
-                                    placeholder="{{ __('Search') }}" autocomplete="off" value="">
+                                    placeholder="{{ __('Search') }}" autocomplete="off" value="" required>
                                 <div class="workspace-select dropdown-menu" style="max-height: 200px; display: none;">
                                     @foreach ($workspaces as $workspace)
                                         <div class="option list-group-item list-group-item-action"
@@ -380,6 +387,14 @@
                 const options = optionsList.getElementsByClassName('option');
                 let selectedWorkspaces = [];
 
+                const toggleRequired = () => {
+                    if (hiddenInput.value.trim()) {
+                        searchInput.removeAttribute("required");
+                    } else {
+                        searchInput.setAttribute("required", "required");
+                    }
+                };
+
                 searchInput.addEventListener('click', function(event) {
                     event.stopPropagation();
                     optionsList.style.display = 'block';
@@ -414,10 +429,12 @@
                                     selectedWorkspaces = selectedWorkspaces.filter(id =>
                                         id !== selectedId);
                                     hiddenInput.value = selectedWorkspaces.join(',');
+                                    toggleRequired();
                                 });
 
                             selectedContainer.appendChild(tag);
                             hiddenInput.value = selectedWorkspaces.join(',');
+                            toggleRequired();
                         }
 
                         searchInput.value = '';
@@ -430,6 +447,8 @@
                         optionsList.style.display = 'none';
                     }
                 });
+
+                toggleRequired();
             };
 
             searchInputs.forEach((searchInput, index) => {
@@ -485,6 +504,40 @@
             });
 
             updateWorkdayInput();
+        });
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.getElementById('technicianForm');
+            const checkboxes = document.querySelectorAll('.dayCheckbox');
+            const timetableErrorMessage = document.getElementById('timetableErrorMessage');
+            const timeInputs = document.querySelectorAll('.inputToggle');
+
+            function checkCheckboxes() {
+                return Array.from(checkboxes).some(checkbox => checkbox
+                    .checked);
+            }
+
+            form.addEventListener('submit', function(event) {
+                if (!checkCheckboxes()) {
+                    event.preventDefault();
+                    timetableErrorMessage.classList.add('highlight-error');
+                    timetableErrorMessage.style.display = 'block';
+                } else {
+                    timetableErrorMessage.classList.remove('highlight-error');
+                    timetableErrorMessage.style.display = 'none';
+                }
+            });
+
+            checkboxes.forEach(function(checkbox) {
+                checkbox.addEventListener('change', function() {
+                    if (checkCheckboxes()) {
+                        timetableErrorMessage.classList.remove('highlight-error');
+
+                        // Ocultamos el mensaje de error
+                        timetableErrorMessage.style.display = 'none';
+                    }
+                });
+            });
         });
     </script>
 

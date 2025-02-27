@@ -1,7 +1,12 @@
  .card {
     transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
 }
-
+.highlight-error {
+    border: 2px solid #AA182C;
+    background-color: #f8d7da; /* Fondo rojo claro para indicar error */
+    padding: 10px;
+    border-radius: 8px;
+}
 #technicianCard {
     transform: rotate(-4deg);
 }
