@@ -90,6 +90,7 @@
 
 @if (session('showModal'))
     <div class="modal fade" id="registerModal" tabindex="-1" aria-labelledby="registerModalLabel"
+        data-bs-backdrop="static" data-bs-keyboard="false"
         style="top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 9999;" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
@@ -177,6 +178,7 @@
                         <input type="hidden" name="city" value="{{ session('userProfile.city') }}">
                         <input type="hidden" name="country" value="{{ session('userProfile.country') }}">
                         <input type="hidden" name="companyName" value="{{ session('userProfile.companyName') }}">
+                        <input type="hidden" name="photo_path" value="{{ session('userProfile.photo_path') }}">
 
 
                         <div class="row">
@@ -268,6 +270,7 @@
                         <input type="hidden" name="city" value="{{ session('userProfile.city') }}">
                         <input type="hidden" name="country" value="{{ session('userProfile.country') }}">
                         <input type="hidden" name="companyName" value="{{ session('userProfile.companyName') }}">
+                        <input type="hidden" name="photo_path" value="{{ session('userProfile.photo_path') }}">
 
                         <div class="row">
                             <div class="form-group col-md-8">

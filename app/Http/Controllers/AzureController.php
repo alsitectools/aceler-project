@@ -19,6 +19,8 @@ class AzureController extends Controller
 {
     public function redirectToAzure()
     {
+        session()->forget(['showModal', 'userProfile']); // Elimina datos de sesión previos
+
         return Socialite::driver('azure')->redirect();
     }
     public function handleAzureCallback()
@@ -94,6 +96,7 @@ class AzureController extends Controller
             $user = User::where('email', $mail)->orWhere('userPrincipalName', $userPrincipalName)->first();
 
             if (!$user) {
+                session()->forget(['showModal', 'userProfile']); // Limpiar datos previos
                 session(['showModal' => true, 'userProfile' => $userProfile]);
                 return redirect()->route('login');
             }
@@ -110,20 +113,11 @@ class AzureController extends Controller
         }
     }
 
-    public function showRegistrationForm()
-    {
-        $azureUser = session('azure_user_data');
-
-        if (!$azureUser) {
-            return redirect('/login')->with('error', 'No se encontró la información del usuario. Intenta nuevamente.');
-        }
-
-        return view('auth.register_azure', compact('azureUser'));
-    }
-
     public function registerUser(Request $request)
     {
-
+        if (!session()->has('userProfile')) {
+            return redirect('/login')->with('error', 'Sesión no válida, intente nuevamente.');
+        }
         DB::beginTransaction();
         try {
             $data = $request->all();
@@ -142,7 +136,7 @@ class AzureController extends Controller
                     'type' => $data['type'],
                     'currant_workspace' => 1,
                     'lang' => app()->getLocale(),
-                    'avatar' => null,
+                    'avatar' => $data['photo_path'],
                     'email_verified_at' => now(),
                     'messenger_color' => '#2180f3',
                     'dark_mode' => 0,
@@ -194,7 +188,6 @@ class AzureController extends Controller
             DB::commit();
             Auth::login($user, true);
             return redirect()->intended('/');
-
         } catch (\Exception $e) {
             DB::rollBack();
             return response()->json(['error' => 'Error al registrar usuario', 'message' => $e->getMessage()], 500);
