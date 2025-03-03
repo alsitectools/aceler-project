@@ -101,7 +101,8 @@
                 body: JSON.stringify({
                     workspace_id: {{ $currentWorkspace->id }},
                     msg: msg,
-                    ntipe: ntipe
+                    ntipe: ntipe,
+                    milestoneAssignedTo: -2
                 })
             });
             const data = await response.json();

@@ -295,7 +295,8 @@
                                                         <div class="notificationSTL PC"
                                                             data-notification-id="{{ $notification->id }}">
                                                             <span class="textRepo">Se ha creado el proyecto
-                                                                {{ $notification->data }}</span>
+                                                                <b>{{ $notification->data }}</b>
+                                                            </span>
                                                             <small
                                                                 class="text-muted smallDate">{{ ucfirst($notification->created_at->diffForHumans()) }}</small>
                                                             <button type="button" class="btn-close repoIcon"
@@ -304,7 +305,7 @@
                                                             <div class="notificationSTL MC"
                                                                 data-notification-id="{{ $notification->id }}">
                                                                 <span class="textRepo">Se ha creado el encargo
-                                                                    {{ $notification->data }}</span>
+                                                                    <b>{{ $notification->data }}</b></span>
                                                                 <small
                                                                     class="text-muted smallDate">{{ ucfirst($notification->created_at->diffForHumans()) }}</small>
                                                                 <button type="button" class="btn-close repoIcon"
@@ -313,7 +314,7 @@
                                                                 <div class="notificationSTL MF"
                                                                     data-notification-id="{{ $notification->id }}">
                                                                     <span class="textRepo">Se ha acabado el encargo
-                                                                        {{ $notification->data }}</span>
+                                                                        <b>{{ $notification->data }}</b></span>
                                                                     <small
                                                                         class="text-muted smallDate">{{ ucfirst($notification->created_at->diffForHumans()) }}</small>
                                                                     <button type="button" class="btn-close repoIcon"
@@ -321,8 +322,9 @@
                                                                 @elseif($notification->type == '4')
                                                                     <div class="notificationSTL AP"
                                                                         data-notification-id="{{ $notification->id }}">
-                                                                        <span class="textRepo">Se te ha añadido al proyecto
-                                                                            {{ $notification->data }}</span>
+                                                                        <span class="textRepo">Se te ha asignado el
+                                                                            encargo
+                                                                            <b>{{ $notification->data }}</b></span>
                                                                         <small
                                                                             class="text-muted smallDate">{{ ucfirst($notification->created_at->diffForHumans()) }}</small>
                                                                         <button type="button" class="btn-close repoIcon"
@@ -405,7 +407,8 @@
                 body: JSON.stringify({
                     workspace_id: {{ $currentWorkspace->id }},
                     msg: msg,
-                    ntipe: ntipe
+                    ntipe: ntipe,
+                    milestoneAssignedTo: -2
                 })
             })
             .then(response => response.json())
