@@ -947,7 +947,7 @@ class ProjectController extends Controller
 
             // Obtener milestones creadas o asignadas al usuario
             $allmilestones = Milestone::where(function ($query) use ($objUser) {
-                $query->where('assign_to', $objUser->id);
+                $query->where('assign_to', $objUser->id)->orWhere('milestone_assigned_to_user', $objUser->id);
             })->get();
 
             $milestones = $groupMilestonesByStatus($allmilestones, $objUser);
@@ -1679,17 +1679,20 @@ class ProjectController extends Controller
             $messages = $validator->getMessageBag();
             return redirect()->back()->with('error', $messages->first());
         }
+        \Log::info($request->all());
 
         // Crear el milestone
         $milestone = new Milestone();
         $milestone->project_id = $project->id;
         $milestone->title = $request->title;
+        // $milestone->assign_to = '7'; //pongo 7 de momento porque es el id de la karla
         $milestone->assign_to = Auth::user()->id;
         $milestone->start_date = date('Y-m-d');
         $milestone->company = $request->company ?? '';
         $milestone->contractor = $request->contractor ?? '';
         $milestone->contractorAdress = $request->contractorAdress ?? '';
         $milestone->jobsiteAdress = $request->jobsiteAdress ?? '';
+        $milestone->milestone_assigned_to_user = $request->req_assing_to ?? '';
         $milestone->end_date = $request->end_date;
         $milestone->summary = $request->description ?? '';
         $milestone->save();
@@ -1756,6 +1759,17 @@ class ProjectController extends Controller
 
         return redirect()->back()->with('success', __('Milestone creado con éxito!'));
     }
+
+    public function milestoneAssign($slug, $milestoneID,Request $request)
+{
+    $currentWorkspace = Utility::getWorkspaceBySlug($slug);
+    $milestone = Milestone::find($milestoneID);
+    $users = User::where('currant_workspace', '=', $currentWorkspace->id)->get();
+    $project_type = ProjectType::select('id', 'name')->get();
+    
+
+    return view('projects.milestone_assign', compact('currentWorkspace', 'milestone', 'users', 'project_type'));
+}
 
 
 
@@ -1830,10 +1844,15 @@ class ProjectController extends Controller
             'message' => __('File deleted successfully.')
         ]);
     }
-
+public function getProjectNameByID($projectId)
+    {
+        $project = Project::find($projectId);
+        return $project->name;
+    }
 
     public function milestoneUpdate($slug, $milestoneID, Request $request)
     {
+        \Log::info($request->all());
         $currentWorkspace = Utility::getWorkspaceBySlug($slug);
         $user1 = $currentWorkspace->id;
 
@@ -1846,8 +1865,8 @@ class ProjectController extends Controller
         if (!$milestone) {
             return redirect()->back()->with('error', 'Milestone no encontrado.');
         }
-
         $milestone->summary = $request->summary;
+        $milestone->milestone_assigned_to_user = $request->req_assing_to ?? '';
         $milestone->end_date = $request->end_date;
         $milestone->save();
 
@@ -2546,34 +2565,48 @@ class ProjectController extends Controller
     }
 
     public function AddSingleNotification(Request $request)
-    {
-        \Log::info(['Request:' => $request->all()]);
-        
-        $request->validate([
-            'workspace_id' => 'required|integer',
-            'msg'          => 'required|string|max:255',
-        ]);
-    
+{
+    \Log::info(['Request:' => $request->all()]);
+
+    $request->validate([
+        'workspace_id' => 'required|integer',
+        'msg'          => 'required|string|max:255',
+    ]);
+
+    if ($request->milestoneAssignedTo != -2) {
+        // Crear notificación para el usuario indicado en milestoneAssignedTo
+        $notification = new Notification();
+        $notification->workspace_id = $request->workspace_id;
+        $notification->user_id      = $request->milestoneAssignedTo;
+        $notification->type         = $request->ntipe; // Asegúrate de que 'ntipe' se esté enviando correctamente
+        $notification->data         = $request->msg;
+        $notification->save();
+
+        $usersNotified = 1;
+    } else {
         // Se obtiene la lista de user_id asociados al workspace desde la tabla user_workspaces
         $userIds = \DB::table('user_workspaces')
                     ->where('workspace_id', $request->workspace_id)
                     ->pluck('user_id');
-        
+
         // Se recorre cada user_id y se crea una notificación para cada usuario
         foreach ($userIds as $userId) {
             $notification = new Notification();
             $notification->workspace_id = $request->workspace_id;
             $notification->user_id      = $userId;
-            $notification->type         = $request->ntipe; // Asegúrate de que 'ntipe' se esté enviando correctamente
+            $notification->type         = $request->ntipe;
             $notification->data         = $request->msg;
             $notification->save();
         }
-    
-        return response()->json([
-            'success'  => true,
-            'message'  => 'Notificación agregada correctamente para ' . count($userIds) . ' usuarios.',
-        ]);
+        $usersNotified = count($userIds);
     }
+
+    return response()->json([
+        'success'  => true,
+        'message'  => 'Notificación agregada correctamente para ' . $usersNotified . ' usuario(s).',
+    ]);
+}
+
     
 
 

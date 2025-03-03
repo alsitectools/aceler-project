@@ -295,6 +295,7 @@ Route::prefix('client')->as('client.')->group(function () {
   Route::post('/{slug}/projects/milestone/{id}/store', [ProjectController::class, 'milestoneStore'])->name('projects.milestone.store')->middleware(['auth:client', 'XSS']);
   Route::get('/{slug}/projects/milestone/{id}/show', [ProjectController::class, 'milestoneShow'])->name('projects.milestone.show')->middleware(['auth:client', 'XSS']);
   Route::get('/{slug}/projects/milestone/{id}/edit', [ProjectController::class, 'milestoneEdit'])->name('projects.milestone.edit')->middleware(['auth:client', 'XSS']);
+
   // Route::post('/{slug}/projects/milestone/{id}/update', [ProjectController::class, 'milestoneUpdate'])->name('projects.milestone.update')->middleware(['auth:client', 'XSS']);
   Route::delete('/{slug}/projects/milestone/{id}', [ProjectController::class, 'milestoneDestroy'])->name('projects.milestone.destroy')->middleware(['auth:client', 'XSS']);
   Route::get('/{slug}/projects/{id}/file/{fid}', [ProjectController::class, 'fileDownload'])->name('projects.file.download')->middleware(['auth:client', 'XSS']);
@@ -320,6 +321,7 @@ Route::prefix('client')->as('client.')->group(function () {
   Route::post('/{slug}/projects/milestone-board/{id}/store', [ProjectController::class, 'milestoneStore'])->name('projects.milestone.store')->middleware(['auth', 'XSS']);
   Route::get('/{slug}/projects/milestone-board/{id}/show', [ProjectController::class, 'milestoneShow'])->name('projects.milestone.show')->middleware(['auth', 'XSS']);
   Route::get('/{slug}/projects/milestone-board/{id}/edit', [ProjectController::class, 'milestoneEdit'])->name('projects.milestone.edit')->middleware(['auth', 'XSS']);
+
   // Route::post('/{slug}/projects/milestone-board/{id}/update', [ProjectController::class, 'milestoneUpdate'])->name('projects.milestone.update')->middleware(['auth', 'XSS']);
   Route::delete('/{slug}/projects/milestone-board/{id}', [ProjectController::class, 'milestoneDestroy'])->name('projects.milestone.destroy')->middleware(['auth', 'XSS']);
   //========
@@ -636,6 +638,11 @@ Route::get('/{slug}/projects/milestone/{id}', [ProjectController::class, 'milest
 Route::post('/{slug}/projects/milestone/{id}/store', [ProjectController::class, 'milestoneStore'])->name('projects.milestone.store')->middleware(['auth', 'XSS']);
 Route::get('/{slug}/projects/milestone/{id}/show', [ProjectController::class, 'milestoneShow'])->name('projects.milestone.show')->middleware(['auth', 'XSS']);
 Route::get('/{slug}/projects/milestone/{id}/edit', [ProjectController::class, 'milestoneEdit'])->name('projects.milestone.edit')->middleware(['auth', 'XSS']);
+Route::get('/{slug}/projects/milestone-board/{id}/asign', [ProjectController::class, 'milestoneAssign'])->name('projects.milestone.assign')->middleware(['auth', 'XSS']);
+Route::get('/projects/milestone-board/{id}/getProjectName', [ProjectController::class, 'getProjectNameByID'])
+    ->name('projects.milestone.getNameByID')
+    ->middleware(['auth', 'XSS']);
+
 Route::post('/{slug}/projects/milestone/{id}/update', [ProjectController::class, 'milestoneUpdate'])->name('projects.milestone.update')->middleware(['auth', 'XSS']);
 Route::delete('/{slug}/projects/milestone/{id}', [ProjectController::class, 'milestoneDestroy'])->name('projects.milestone.destroy')->middleware(['auth', 'XSS']);
 Route::post('/{slug}/projects/{id}/file', [ProjectController::class, 'fileUpload'])->name('projects.file.upload')->middleware(['auth', 'XSS']);

@@ -80,6 +80,27 @@
                                     style="color: #FFD43B;"></i>{{ __('If the project does not exist, create a new project.') }}
                             </p>
                         </div>
+                        {{-- Inicio apartado asignado a --}}
+                        {{-- <div class="col-md-6" id="requestBy-req">
+                            <label class="col-form-label">Asignado a</label>
+                            <input type="text" class="form-control" id="search-requested-by"
+                                placeholder="{{ __('Search') }}" name="search-requested-by" value=""
+                                autocomplete="off">
+
+                            <div id="user-select-req-by" aria-label="Default select example" class="dropdown-menu"
+                                style="width: 45% !important;">
+                                @foreach ($users as $user)
+                                    <div class="option list-group-item list-group-item-action stylelist ps-3"
+                                        collected-data-id="{{ $user->id }}"
+                                        style="padding: 8px; cursor: pointer;">
+                                        {{ $user->name }}
+                                    </div>
+                                @endforeach
+                                <input type="text" name="req_assing_to" id="req_assing_To"
+                                    style="display: none;">
+                            </div>
+                        </div> --}}
+                        {{-- Final apartado --}}
                         <div class="col-md-6">
                             <div class="form-group">
                                 <label class="col-form-label">{{ __('Title') }}</label>
@@ -87,6 +108,7 @@
                                     placeholder="{{ __('Title') }}" name="title" required>
                             </div>
                         </div>
+
                         <div class="col-md-6" id="requestBy">
                             <label class="col-form-label">{{ __('Requested by') }}</label>
                             <input type="text" class="form-control" id="search"
@@ -327,6 +349,55 @@
         });
     });
 </script>
+{{-- // Script para el dropdown de "Asignado a" --}}
+{{-- <script>
+    // Variables para el apartado "Asignado a"
+    var searchInputReq = document.getElementById('search-requested-by');
+    var optionsListReq = document.getElementById('user-select-req-by');
+    var optionsReq = optionsListReq.getElementsByClassName('option');
+    var hiddenInputReq = document.getElementById('req_assing_To');
+
+    // Muestra el menú al hacer clic en el input
+    searchInputReq.addEventListener('click', function(event) {
+        event.stopPropagation();
+        optionsListReq.style.display = 'block';
+    });
+
+    // Filtra las opciones conforme se escribe
+    searchInputReq.addEventListener('input', function() {
+        const filter = searchInputReq.value.toLowerCase();
+        let hasVisibleOption = false;
+        for (let i = 0; i < optionsReq.length; i++) {
+            const option = optionsReq[i];
+            const text = option.innerText.toLowerCase();
+            if (text.includes(filter)) {
+                option.style.display = 'block';
+                hasVisibleOption = true;
+            } else {
+                option.style.display = 'none';
+            }
+        }
+        optionsListReq.style.display = hasVisibleOption ? 'block' : 'none';
+    });
+
+    // Asigna el valor seleccionado y oculta el menú
+    for (let i = 0; i < optionsReq.length; i++) {
+        optionsReq[i].addEventListener('click', function() {
+            const selectedUserId = this.getAttribute('collected-data-id');
+            searchInputReq.value = this.innerText;
+            hiddenInputReq.value = selectedUserId;
+            optionsListReq.style.display = 'none';
+        });
+    }
+
+    // Cierra el menú si se hace clic fuera del contenedor
+    document.addEventListener('click', function(event) {
+        if (!event.target.closest('#requestBy-req') && !event.target.closest('#search-requested-by')) {
+            optionsListReq.style.display = 'none';
+        }
+    });
+</script> --}}
+
 
 @if (isset($projects))
     <script>
@@ -491,6 +562,11 @@
         console.log('Generando notificacion de encargo creado');
         let milestoneTitle = document.getElementById('milestone-title').value;
         let milestoneParent;
+        milestoneAssignedTo = -2;
+        // let milestoneAssignedTo = document.getElementById('req_assing_To').value
+        // if (milestoneAssignedTo == '') {
+        //     milestoneAssignedTo = -2;
+        // }
         try {
             milestoneParent = document.getElementById('searchProject').value;
             console.log("Milestone parent:", milestoneParent);
@@ -503,6 +579,7 @@
 
         let msg = milestoneTitle + ' en ' + milestoneParent;
         let ntipe = 2;
+
         if (!msg) return;
         try {
             const response = await fetch("{{ route('notifications.add') }}", {
@@ -514,7 +591,8 @@
                 body: JSON.stringify({
                     workspace_id: {{ $currentWorkspace->id }},
                     msg: msg,
-                    ntipe: ntipe
+                    ntipe: ntipe,
+                    milestoneAssignedTo: milestoneAssignedTo
                 })
             });
             const data = await response.json();
