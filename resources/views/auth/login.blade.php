@@ -291,7 +291,7 @@
                                 <fieldset class="custom-fieldset">
                                     <legend class="custom-legend">{{ __('Department') }}</legend>
                                     <input type="text" class="custom-input"
-                                        value="session('userProfile.department') " readonly>
+                                        value="{{ session('userProfile.department') }}" readonly>
                                 </fieldset>
                             </div>
                         </div>
@@ -517,8 +517,12 @@
                     .checked);
             }
 
+            function checkTimeInputs() {
+                return Array.from(timeInputs).some(input => input.value.trim() != '');
+            }
+
             form.addEventListener('submit', function(event) {
-                if (!checkCheckboxes()) {
+                if (!checkCheckboxes() || !checkTimeInputs()) {
                     event.preventDefault();
                     timetableErrorMessage.classList.add('highlight-error');
                     timetableErrorMessage.style.display = 'block';
@@ -533,7 +537,6 @@
                     if (checkCheckboxes()) {
                         timetableErrorMessage.classList.remove('highlight-error');
 
-                        // Ocultamos el mensaje de error
                         timetableErrorMessage.style.display = 'none';
                     }
                 });
