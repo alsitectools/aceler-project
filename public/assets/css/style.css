@@ -24928,11 +24928,11 @@ select.dataTable-input[data-multiselectsplitter-secondselect-selector] {
 }
 
 .horizontal-scroll-cards::-webkit-scrollbar-thumb {
-    background: #dcdaeb;
+    background: none;
 }
 
 .horizontal-scroll-cards::-webkit-scrollbar-thumb:hover {
-    background: #51459d;
+    background: none;
 }
 
 .btn-addnew-project {

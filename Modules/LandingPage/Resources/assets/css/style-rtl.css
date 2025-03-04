@@ -24313,11 +24313,11 @@ select.form-control[data-multiselectsplitter-firstselect-selector], select.custo
 }
 
 .horizontal-scroll-cards::-webkit-scrollbar-thumb {
-    background: #dcdaeb;
+    background: none;
 }
 
 .horizontal-scroll-cards::-webkit-scrollbar-thumb:hover {
-    background: #51459d;
+    background: none;
 }
 
 .btn-addnew-project {
