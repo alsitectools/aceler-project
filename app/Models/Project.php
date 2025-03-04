@@ -101,18 +101,22 @@ class Project extends Model
 
     public function updateProjectStatus()
     {
-        if ($this->milestones()->where('status', '!=', 4)->exists() || $this->milestones()->exists()) {
-            $this->status = 'Ongoing';
-        }
-        if (!$this->milestones()->exists()) {
+        $this->load('milestones'); // Recarga la relación para obtener datos actualizados.
+
+        if (!$this->milestones->count()) {
             $this->status = 'OnHold';
-        }
-        if ($this->milestones()->where('status', '==', 4)->exists()) {
-            $this->status = 'Finished';
+        } else {
+            // Verificamos si existe al menos un hito con status distinto de 4.
+            if ($this->milestones->where('status', '<>', 4)->count()) {
+                $this->status = 'Ongoing';
+            } else {
+                $this->status = 'Finished';
+            }
         }
 
         $this->save();
     }
+
 
     public function milestonesCount()
     {
