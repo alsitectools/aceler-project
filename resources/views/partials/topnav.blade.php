@@ -100,6 +100,7 @@
     }
 
     .MC {
+        margin-bottom: 10px;
         background-color: #c7c7c74f;
         border-left: 6px solid #595959;
         border-top: 2px solid #c7c7c74f;
@@ -108,6 +109,7 @@
     }
 
     .PC {
+        margin-bottom: 10px;
         background-color: #03c8ff36;
         border-left: 6px solid #0794bb;
         border-top: 2px solid #03c8ff36;
@@ -116,6 +118,7 @@
     }
 
     .MF {
+        margin-bottom: 10px;
         background-color: #25c74336;
         border-left: 6px solid #25C743;
         border-top: 2px solid #25c74336;
@@ -124,6 +127,7 @@
     }
 
     .AP {
+        margin-bottom: 10px;
         background-color: #ffff0038;
         border-left: 6px solid #dfdf00;
         border-top: 2px solid #ffff0038;
@@ -253,9 +257,14 @@
                     @if (isset($currentWorkspace) && $currentWorkspace)
                         @auth('web')
                             @php
-
-                                $notifications = Auth::user()->notifications($currentWorkspace->id);
-
+                                // Se obtiene las notificaciones del usuario filtrando por el workspace actual
+                                // y se agregan las notificaciones de tipo 4, que serán globales.
+                                $notifications = \App\Models\Notification::where('user_id', Auth::user()->id)
+                                    ->where(function ($query) use ($currentWorkspace) {
+                                        $query->where('workspace_id', $currentWorkspace->id)->orWhere('type', 4);
+                                    })
+                                    ->orderBy('created_at', 'desc')
+                                    ->get();
                             @endphp
                             <a class="dash-head-link dropdown-toggle arrow-none me-0" data-bs-toggle="dropdown"
                                 href="#" role="button" aria-haspopup="false" aria-expanded="false">
@@ -275,11 +284,6 @@
                                 <div class="noti-body">
                                     <div class="limited">
 
-                                        {{-- <div style="margin-bottom: 5px;">
-                                            <div class="notificationSTL"><span class="textRepo">Se ha creado el proyecto
-                                                    merequetengue</span> <button type="button" class="btn-close repoIcon"
-                                                    aria-label="Close"></button></div>
-                                        </div> --}}
                                         @if ($notifications->isEmpty())
                                             <div class="noNotificationsContainer"> <i
                                                     class="fa-duotone fa-solid fa-bell-slash" aria-hidden="true"
@@ -332,64 +336,64 @@
                                                     @endif
 
                                                 </div>
+                                            @endforeach
+                                        @endif
                                     </div>
-                        @endforeach
+
+                                    <div class="all_notification">
+                                    </div>
+
+                                </div>
+                            </div>
+                        @endauth
+                    @endif
+                </li>
+
+                <li class="dropdown dash-h-item drp-language">
+                    <a class="dash-head-link dropdown-toggle arrow-none me-0" data-bs-toggle="dropdown"
+                        href="#" role="button" aria-haspopup="false" aria-expanded="false">
+                        <i class="ti ti-world nocolor"></i>
+                        <span
+                            class="drp-text hide-mob">{{ ucfirst(\App\Models\Utility::getlang_fullname($currantLang)) }}</span>
+                        <i class="ti ti-chevron-down drp-arrow nocolor"></i>
+                    </a>
+                    <div class="dropdown-menu dash-h-dropdown dropdown-menu-end">
+                        @if (\Auth::guard('client')->check())
+                            @foreach ($languages as $languageCode => $languageFullName)
+                                <a href="{{ route('change_lang_workspace1', [$currentWorkspace->id, $languageCode]) }}"
+                                    class="dropdown-item {{ $currantLang == $languageCode ? 'text-danger' : '' }}">
+                                    <span>{{ $languageFullName }}</span>
+                                </a>
+                            @endforeach
                         @endif
-            </div>
-
-            <div class="all_notification">
-            </div>
-
+                        @if (\Auth::user()->type == 'admin')
+                            @foreach ($languages as $languageCode => $languageFullName)
+                                <a href="{{ route('change_lang_admin', $languageCode) }}"
+                                    class="dropdown-item {{ $currantLang == $languageCode ? 'text-danger' : '' }}">
+                                    <span>{{ $languageFullName }}</span>
+                                </a>
+                            @endforeach
+                            <div class="dropdown-divider m-0"></div>
+                            <a href="#" class="dropdown-item text-primary" data-ajax-popup="true"
+                                data-size="md" data-title="{{ __('Create Language') }}" data-toggle="tooltip"
+                                title="{{ __('Create Language') }}" data-url="{{ route('create_lang_workspace') }}">
+                                <span class="dash-mtext">{{ __('Create Language') }}</span></a>
+                            <div class="dropdown-divider m-0"></div>
+                            <a href="{{ route('lang_workspace') }}" class="dropdown-item text-primary"><span
+                                    class="dash-mtext">{{ __('Manage Language') }}</span></a>
+                        @elseif(isset($currentWorkspace) && $currentWorkspace && \Auth::guard('web')->check())
+                            @foreach ($languages as $languageCode => $languageFullName)
+                                <a href="{{ route('change_lang_workspace', [$currentWorkspace->id, $languageCode]) }}"
+                                    class="dropdown-item {{ $currantLang == $languageCode ? 'text-danger' : '' }}">
+                                    <span>{{ $languageFullName }}</span>
+                                </a>
+                            @endforeach
+                        @endif
+                        </a>
+                    </div>
+                </li>
+            </ul>
         </div>
-        </div>
-    @endauth
-    @endif
-    </li>
-
-    <li class="dropdown dash-h-item drp-language">
-        <a class="dash-head-link dropdown-toggle arrow-none me-0" data-bs-toggle="dropdown" href="#"
-            role="button" aria-haspopup="false" aria-expanded="false">
-            <i class="ti ti-world nocolor"></i>
-            <span class="drp-text hide-mob">{{ ucfirst(\App\Models\Utility::getlang_fullname($currantLang)) }}</span>
-            <i class="ti ti-chevron-down drp-arrow nocolor"></i>
-        </a>
-        <div class="dropdown-menu dash-h-dropdown dropdown-menu-end">
-            @if (\Auth::guard('client')->check())
-                @foreach ($languages as $languageCode => $languageFullName)
-                    <a href="{{ route('change_lang_workspace1', [$currentWorkspace->id, $languageCode]) }}"
-                        class="dropdown-item {{ $currantLang == $languageCode ? 'text-danger' : '' }}">
-                        <span>{{ $languageFullName }}</span>
-                    </a>
-                @endforeach
-            @endif
-            @if (\Auth::user()->type == 'admin')
-                @foreach ($languages as $languageCode => $languageFullName)
-                    <a href="{{ route('change_lang_admin', $languageCode) }}"
-                        class="dropdown-item {{ $currantLang == $languageCode ? 'text-danger' : '' }}">
-                        <span>{{ $languageFullName }}</span>
-                    </a>
-                @endforeach
-                <div class="dropdown-divider m-0"></div>
-                <a href="#" class="dropdown-item text-primary" data-ajax-popup="true" data-size="md"
-                    data-title="{{ __('Create Language') }}" data-toggle="tooltip"
-                    title="{{ __('Create Language') }}" data-url="{{ route('create_lang_workspace') }}">
-                    <span class="dash-mtext">{{ __('Create Language') }}</span></a>
-                <div class="dropdown-divider m-0"></div>
-                <a href="{{ route('lang_workspace') }}" class="dropdown-item text-primary"><span
-                        class="dash-mtext">{{ __('Manage Language') }}</span></a>
-            @elseif(isset($currentWorkspace) && $currentWorkspace && \Auth::guard('web')->check())
-                @foreach ($languages as $languageCode => $languageFullName)
-                    <a href="{{ route('change_lang_workspace', [$currentWorkspace->id, $languageCode]) }}"
-                        class="dropdown-item {{ $currantLang == $languageCode ? 'text-danger' : '' }}">
-                        <span>{{ $languageFullName }}</span>
-                    </a>
-                @endforeach
-            @endif
-            </a>
-        </div>
-    </li>
-    </ul>
-    </div>
     </div>
 </header>
 <script>
@@ -417,11 +421,10 @@
                     let notificationList = document.querySelector('.limited');
                     let newNotification = document.createElement('div');
                     newNotification.classList.add('notificationSTL');
-                    newNotification.innerHTML = `
-                    <span class="textRepo">${data.data.msg}</span>
-                    <span class="textRepo">${data.data.type}</span>
-                    <button type="button" class="btn-close repoIcon" aria-label="Close"></button>
-                `;
+                    newNotification.innerHTML =
+                        `<span class="textRepo">${data.data.msg}</span>
+                     <span class="textRepo">${data.data.type}</span>
+                     <button type="button" class="btn-close repoIcon" aria-label="Close"></button>`;
                     notificationList.prepend(newNotification);
                     checkEmptyState()
                 }
@@ -507,16 +510,15 @@
             .catch(error => console.error("Error al eliminar todas las notificaciones:", error));
     });
 </script>
-{{-- comprobar dinamicamente si hay notificaciones --}}
+{{-- Comprobar dinámicamente si hay notificaciones --}}
 <script>
     function checkEmptyState() {
         const notificationContainer = document.querySelector('.limited');
-        const emptyStateHtml = `
-        <div class="noNotificationsContainer"> 
+        const emptyStateHtml =
+            `<div class="noNotificationsContainer"> 
             <i class="fa-duotone fa-solid fa-bell-slash" aria-hidden="true" style="font-size: 48px; margin-bottom: 30px; color: #d1d1d1;"></i>
             <p style="font-size: 15px; color: #d1d1d1;">¡Estás al día! No hay notificaciones</p>
-        </div>
-    `;
+        </div>`;
 
         const hasNotifications = notificationContainer.querySelector('.notificationSTL') !== null;
 
