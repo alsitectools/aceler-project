@@ -179,10 +179,10 @@
                                                                 </a>
                                                                 <a href="#" class="dropdown-item milestone-action"
                                                                     data-ajax-popup="true" title="assign_to_someone"
-                                                                    data-title="Asignar encargo"
+                                                                    data-title="{{ __('Assign Milestone') }}"
                                                                     data-url="{{ route('projects.milestone.assign', [$currentWorkspace->slug, $milestone['id']]) }}">
                                                                     <i class="fa-solid fa-user-plus"></i>
-                                                                    Asignar encargo
+                                                                    {{ __('Assign Milestone') }}
                                                                 </a>
                                                                 <a href="#" class="dropdown-item milestone-action"
                                                                     data-ajax-popup="true" title="{{ __('Add Task') }}"
@@ -283,7 +283,7 @@
                                                                     data-title="{{ $task['technician']->name }}">
                                                                     <a href="#">
                                                                         <!-- <img alt="image" class="user-groupTasks"
-                                                                                                                                                        @if ($task['technician']->avatar) src="{{ asset($task['technician']->avatar) }}" @else avatar="{{ $task['technician']->name }}" @endif> -->
+                                                                                                                                                                @if ($task['technician']->avatar) src="{{ asset($task['technician']->avatar) }}" @else avatar="{{ $task['technician']->name }}" @endif> -->
                                                                     </a>
                                                                 </div>
                                                             @endif

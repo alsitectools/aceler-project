@@ -298,7 +298,8 @@
                                                     @if ($notification->type == '1')
                                                         <div class="notificationSTL PC"
                                                             data-notification-id="{{ $notification->id }}">
-                                                            <span class="textRepo">Se ha creado el proyecto
+                                                            <span
+                                                                class="textRepo">{{ __('A new project has been created:') }}
                                                                 <b>{{ $notification->data }}</b>
                                                             </span>
                                                             <small
@@ -308,8 +309,15 @@
                                                         @elseif($notification->type == '2')
                                                             <div class="notificationSTL MC"
                                                                 data-notification-id="{{ $notification->id }}">
-                                                                <span class="textRepo">Se ha creado el encargo
-                                                                    <b>{{ $notification->data }}</b></span>
+                                                                <span
+                                                                    class="textRepo">{{ __('A new milestone has been created:') }}
+                                                                    <b>
+                                                                        @if (app()->getLocale() === 'en')
+                                                                            {{ preg_replace('/\ben\b/', 'in', $notification->data) }}
+                                                                        @else
+                                                                            {{ $notification->data }}
+                                                                        @endif
+                                                                    </b></span>
                                                                 <small
                                                                     class="text-muted smallDate">{{ ucfirst($notification->created_at->diffForHumans()) }}</small>
                                                                 <button type="button" class="btn-close repoIcon"
@@ -317,7 +325,8 @@
                                                             @elseif($notification->type == '3')
                                                                 <div class="notificationSTL MF"
                                                                     data-notification-id="{{ $notification->id }}">
-                                                                    <span class="textRepo">Se ha acabado el encargo
+                                                                    <span
+                                                                        class="textRepo">{{ __('The following milestone has been finished:') }}
                                                                         <b>{{ $notification->data }}</b></span>
                                                                     <small
                                                                         class="text-muted smallDate">{{ ucfirst($notification->created_at->diffForHumans()) }}</small>
@@ -326,9 +335,15 @@
                                                                 @elseif($notification->type == '4')
                                                                     <div class="notificationSTL AP"
                                                                         data-notification-id="{{ $notification->id }}">
-                                                                        <span class="textRepo">Se te ha asignado el
-                                                                            encargo
-                                                                            <b>{{ $notification->data }}</b></span>
+                                                                        <span
+                                                                            class="textRepo">{{ __('You got assigned the milestone') }}
+                                                                            <b>
+                                                                                @if (app()->getLocale() === 'en')
+                                                                                    {{ preg_replace('/\ben\b/', 'in', $notification->data) }}
+                                                                                @else
+                                                                                    {{ $notification->data }}
+                                                                                @endif
+                                                                            </b></span>
                                                                         <small
                                                                             class="text-muted smallDate">{{ ucfirst($notification->created_at->diffForHumans()) }}</small>
                                                                         <button type="button" class="btn-close repoIcon"
@@ -353,7 +368,7 @@
                     <a class="dash-head-link dropdown-toggle arrow-none me-0" data-bs-toggle="dropdown"
                         href="#" role="button" aria-haspopup="false" aria-expanded="false">
                         <i class="ti ti-world nocolor"></i>
-                        <span
+                        <span id="selectedlenguage"
                             class="drp-text hide-mob">{{ ucfirst(\App\Models\Utility::getlang_fullname($currantLang)) }}</span>
                         <i class="ti ti-chevron-down drp-arrow nocolor"></i>
                     </a>

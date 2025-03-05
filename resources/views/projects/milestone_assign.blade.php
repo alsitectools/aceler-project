@@ -58,7 +58,7 @@
             <!-- Apartado "Asignado a" -->
             <div class="row mt-3 ctr">
                 <div id="requestBy-req">
-                    <label class="col-form-label">Asignado a</label>
+                    <label class="col-form-label">{{ __('Assigned to') }}</label>
                     <input type="text" class="form-control" id="search-requested-by"
                         placeholder="{{ __('Search') }}" name="search-requested-by" value="{{ $user->name ?? '' }}"
                         autocomplete="off">
