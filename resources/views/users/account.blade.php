@@ -9,12 +9,12 @@
 @endsection
 @php
 
-$logo = 'storage/app/public/';
+    $logo = 'storage/app/public/';
 @endphp
 
 @section('content')
-@include('loader.loader')
-@include('saver.saver')
+    @include('loader.loader')
+    @include('saver.saver')
 
     <div class="row">
         <div class="col-xl-3">
@@ -45,7 +45,8 @@ $logo = 'storage/app/public/';
             <div id="v-pills-home" class="card">
                 <div class="card-header buttonColocation">
                     <h5>{{ __('Avatar') }}</h5>
-                    <button style="margin-right: 1%;" class="btn btn-sm btn-primary toggle-section buttonColapse" data-target="#avatar-content">-</button>
+                    <button style="margin-right: 1%;" class="btn btn-sm btn-primary toggle-section buttonColapse"
+                        data-target="#avatar-content">-</button>
                 </div>
                 @php
                     $workspace = $currentWorkspace ? $currentWorkspace->id : 0;
@@ -123,7 +124,8 @@ $logo = 'storage/app/public/';
             <div class="card" id="v-pills-profile">
                 <div class="card-header buttonColocation">
                     <h5>{{ __('Add another workspace') }}</h5>
-                    <button style="margin-right: 1%;" class="btn btn-sm btn-primary toggle-section buttonColapse" data-target="#workspace-content">-</button>
+                    <button style="margin-right: 1%;" class="btn btn-sm btn-primary toggle-section buttonColapse"
+                        data-target="#workspace-content">-</button>
                 </div>
                 <div class="card-body collapse-section" id="workspace-content">
                     <div class="col-12 d-flex">
@@ -177,170 +179,140 @@ $logo = 'storage/app/public/';
 
         <!-- timetable-->
         <div class="card divTimetable" id="v-pills-timetable">
-
             <div class="card-header buttonColocation">
                 <h5>{{ __('Timetable') }}</h5>
-                <button class="btn btn-sm btn-primary toggle-section buttonColapse" data-target="#timetable-content">-</button>
+                <button class="btn btn-sm btn-primary toggle-section buttonColapse"
+                    data-target="#timetable-content">-</button>
             </div>
-
-            <div class="card-body collapse-section" id="timetable-content" style="display: flex; flex-direction: row;">
-                <div class="dayToggle">
-                    <p>{{__('Monday')}}</p>
-                    <label class="switch">
-                        <input type="checkbox">
-                        <span class="slider round"></span>
-                    </label>
-                    <input id="mondayInput" type="time" class="inputToggle" onclick="this.showPicker()"></input> 
+            <div class="mb-3 highlight-error" id="timetableErrorMessage" style="display: none;">
+                <div class="bg-danger" style="display: inline-block; padding: 8px; margin: 5px; border-radius: 40%;">
+                    <i class="fa-solid fa-circle-xmark text-white"></i>
                 </div>
-
-                <div class="dayToggle">
-                    <p>{{__('Tuesday')}}</p>
-                    <label class="switch">
-                        <input type="checkbox">
-                        <span class="slider round"></span>
-                    </label>
-                    <input id="tuesdayInput" type="time" class="inputToggle" onclick="this.showPicker()"></input> 
-                </div>
-
-                <div class="dayToggle">
-                    <p>{{__('Wednesday')}}</p>
-                    <label class="switch">
-                        <input type="checkbox">
-                        <span class="slider round"></span>
-                    </label>
-                    <input id="wednesdayInput" type="time" class="inputToggle" onclick="this.showPicker()"></input> 
-                </div>
-
-                <div class="dayToggle">
-                    <p>{{__('Thursday')}}</p>
-                    <label class="switch">
-                        <input type="checkbox">
-                        <span class="slider round"></span>
-                    </label>
-                    <input id="thursdayInput" type="time" class="inputToggle" onclick="this.showPicker()"></input> 
-                </div>
-
-                <div class="dayToggle">
-                    <p>{{__('Friday')}}</p>
-                    <label class="switch">
-                        <input type="checkbox">
-                        <span class="slider round"></span>
-                    </label>
-                    <input id="fridayInput" type="time" class="inputToggle" onclick="this.showPicker()"></input> 
-                </div>
-
-                <div class="dayToggle">
-                    <p>{{__('Saturday')}}</p>
-                    <label class="switch">
-                        <input type="checkbox">
-                        <span class="slider round"></span>
-                    </label>
-                    <input id="saturdayInput" type="time" class="inputToggle" onclick="this.showPicker()"></input> 
-                </div>
-
-                <div class="dayToggle">
-                    <p>{{__('Sunday')}}</p>
-                    <label class="switch">
-                        <input type="checkbox">
-                        <span class="slider round"></span>
-                    </label>
-                    <input id="sundayInput" type="time" class="inputToggle" onclick="this.showPicker()"></input> 
-                </div>
+                <span class="text-danger">{{ __('Make sure you have a day selected and the hours imputed correctly.') }}</span>
             </div>
-
-            <div class="alignCenterItems" >
-                <button id="saveTimetable" class="btn btn-sm btn-primary saveButton">{{_('Save')}}</button>
-            </div>       
+            <div class="card-body collapse-section timetable-content" id="timetable-content"
+                style="display: flex; flex-direction: row;">
+                @foreach (['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'] as $day)
+                    <div class="dayToggle">
+                        <p>{{ __($day) }}</p>
+                        <label class="switch">
+                            <input type="checkbox" class="dayCheckbox" id="{{ strtolower($day) }}Checkbox">
+                            <span class="slider round"></span>
+                        </label>
+                        <input id="{{ strtolower($day) }}Input" type="time" class="inputToggle">
+                    </div>
+                @endforeach
+            </div>
+            <div class="alignCenterItems">
+                <button id="saveTimetable" class="btn btn-sm btn-primary saveButton">{{ _('Save') }}</button>
+            </div>
         </div>
 
         <!-- holiday picker-->
         <div class="card divTimetable" id="v-pills-HolidayPicker">
             <div class="card-header buttonColocation">
                 <h5>{{ __('Holiday') }}</h5>
-                <button class="btn btn-sm btn-primary toggle-section buttonColapse" data-target="#Holiday-content">-</button>
+                <button class="btn btn-sm btn-primary toggle-section buttonColapse"
+                    data-target="#Holiday-content">-</button>
             </div>
             <div class="collapse-section card-body divHolidayContent" id="Holiday-content">
-                <div id="startDayPick" >
+                <div id="startDayPick">
                     @include('calendar.customCalendar')
-                    
+
                 </div>
                 <div style="display: flex; flex-direction: column; align-items: center;">
                     <div class="HolidayToggleDiv">
-                        <p class="holidayP">{{__('Holiday')}}</p>
-                        <label class="switch switchHoliday" >
+                        <p class="holidayP">{{ __('Holiday') }}</p>
+                        <label class="switch switchHoliday">
                             <input type="checkbox">
                             <span class="slider round"></span>
                         </label>
-                        <p class="holidayPIntenisve">{{__('Intensive workday')}}</p>
+                        <p class="holidayPIntenisve">{{ __('Intensive workday') }}</p>
                     </div>
-                    <input class="intensiveWorkInput" type="time" id="intesiveWordaykInput" onclick="this.showPicker()" disabled></input>
+                    <input class="intensiveWorkInput" type="time" id="intesiveWordaykInput"
+                        onclick="this.showPicker()" disabled></input>
                 </div>
             </div>
-            <div class="alignCenterItems" >
-                <button id="saveHoliday" class="btn btn-sm btn-primary saveButton">{{__('Save')}}</button>
-            </div>   
+            <div class="alignCenterItems">
+                <button id="saveHoliday" class="btn btn-sm btn-primary saveButton">{{ __('Save') }}</button>
+            </div>
         </div>
-
     @endsection
     @push('scripts')
-     
         <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
         <script type="text/javascript">
-
+            function toggleErrorMessage(show) {
+                if (show) {
+                    $('#timetableErrorMessage').show();
+                } else {
+                    $('#timetableErrorMessage').hide();
+                }
+            }
             let days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
             //onload get user timetable info
             window.onload = function() {
-
-                // Deshabilitar el scroll
                 document.body.style.overflow = 'hidden';
 
-                operationUrl = '<?php echo url("user/get-timetable"); ?>';
+                operationUrl = '<?php echo url('user/get-timetable'); ?>';
                 $.ajax({
                     type: 'GET',
                     url: operationUrl,
-                            headers: {
-                                "Content-Type": "application/json",
-                            },
-                            headers: {
-                                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') // Incluye el token CSRF
-                            },
-                            success: function(data) {
-                                console.log("success");
+                    headers: {
+                        "Content-Type": "application/json",
+                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') // Incluye el token CSRF
+                    },
+                    success: function(data) {
+                        console.log("success");
 
-                                //reactivar scroll
-                                document.body.style.overflow = 'auto';
-                                //esconder el loader
-                                document.getElementById('loader-overlay').style.display = 'none';
+                        // Reactivar scroll
+                        document.body.style.overflow = 'auto';
+                        // Esconder el loader
+                        document.getElementById('loader-overlay').style.display = 'none';
 
-                               //deleting the id and user_id from the data
+                        // Eliminar id y user_id de los datos recibidos
+                        delete data[0].id;
+                        delete data[0].user_id;
 
-                                delete data[0].id;
-                                delete data[0].user_id;
+                        console.log("actual data", data);
 
-                               console.log("actual data", data);
+                        // Contador de checkboxes activos
+                        let checkedCount = 0;
 
-                               //Iterate over the days and set the value of the inputs
-                               days.forEach(day => {
-                                let value = data[0][day]; // Obtener el valor del día actual
-                                let input = document.getElementById(`${day}Input`);
-                                let toggle = input.previousElementSibling.querySelector('input[type="checkbox"]'); // Obtener el toggle asociado
+                        // Iterar sobre los días y establecer valores en los inputs
+                        days.forEach(day => {
+                            let value = data[0][day]; // Obtener el valor del día actual
+                            let input = document.getElementById(`${day}Input`);
+                            let toggle = input.previousElementSibling.querySelector(
+                                'input[type="checkbox"]'); // Obtener el toggle asociado
 
-                                   if(value){
-                                       input.value = value;
-                                       toggle.checked = true;
-                                   }
-                               });
-                               
-                            },
-                            error: function(xhr, status, error) {
-                                console.error("Error:", error);
+                            if (value) {
+                                input.value = value;
+                                toggle.checked = true;
+                                input.disabled = false;
+                                input.style.backgroundColor = 'white';
+                                checkedCount++;
                             }
+                        });
+
+                        // Si solo hay un checkbox marcado, deshabilitarlo junto con su inputToggle
+                        if (checkedCount === 1) {
+                            let lastChecked = $('.dayCheckbox:checked').closest('.dayToggle');
+                            lastChecked.find('.dayCheckbox').prop('disabled', true);
+                            lastChecked.find('.inputToggle').prop('disabled', true)
+                                .css('background-color', '#E4DEDE')
+                                .css('-webkit-box-shadow', 'rgb(0 0 0 / 10%) 0px 4px 10px 0px');
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        console.error("Error:", error);
+                    }
                 });
             };
 
+
             let saveButtonHoliday = document.getElementById('saveHoliday');
 
-            saveButtonHoliday.addEventListener('click', function(){
+            saveButtonHoliday.addEventListener('click', function() {
 
                 //when the user save, show the loader
                 document.getElementById('saving-overlay').style.display = 'flex';
@@ -354,8 +326,10 @@ $logo = 'storage/app/public/';
 
                 //check if the days will be Holidays or intensive workdays
                 let HolidayToggle = document.querySelector('.HolidayToggleDiv .switch input[type="checkbox"]');
-                
-                let rangeAndInput ={ "rangeDate": rangeDate};
+
+                let rangeAndInput = {
+                    "rangeDate": rangeDate
+                };
                 if (HolidayToggle.checked) {
                     //check the value of the input 
                     let intensiveWorkInput = document.getElementById('intesiveWordaykInput');
@@ -365,136 +339,164 @@ $logo = 'storage/app/public/';
 
                 }
 
-                console.log("range and Input::",rangeAndInput);
-                operationUrl = '<?php echo url("user/specialUpdate-timetable"); ?>';
+                console.log("range and Input::", rangeAndInput);
+                operationUrl = '<?php echo url('user/specialUpdate-timetable'); ?>';
                 $.ajax({
                     type: 'POST',
                     url: operationUrl,
-                            data: {
-                                "rangeAndInput" : JSON.stringify (rangeAndInput),
-                            }, 
-                            headers: {
-                                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') // Incluye el token CSRF
-                            },
-                            success: function(data) {
-                               console.log("success");
-                               document.getElementById('saving-overlay').style.display = 'none';
-                               //reactivar scroll
-                               document.body.style.overflow = 'auto';
-                            },
-                            fail:function() {
-                                console.log("fail");
-                                document.getElementById('saving-overlay').style.display = 'none';
-                                //reactivar scroll
-                                document.body.style.overflow = 'auto';
-                            },
+                    data: {
+                        "rangeAndInput": JSON.stringify(rangeAndInput),
+                    },
+                    headers: {
+                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') // Incluye el token CSRF
+                    },
+                    success: function(data) {
+                        console.log("success");
+                        document.getElementById('saving-overlay').style.display = 'none';
+                        //reactivar scroll
+                        document.body.style.overflow = 'auto';
+                    },
+                    fail: function() {
+                        console.log("fail");
+                        document.getElementById('saving-overlay').style.display = 'none';
+                        //reactivar scroll
+                        document.body.style.overflow = 'auto';
+                    },
                 });
             });
 
             let saveButton = document.getElementById('saveTimetable');
-
-            saveButton.addEventListener('click', function(){
-
-                //when the user save, show the loader
+            saveButton.addEventListener('click', function() {
+                // Mostrar el loader cuando el usuario guarda
                 document.getElementById('saving-overlay').style.display = 'flex';
 
                 // Deshabilitar el scroll
                 document.body.style.overflow = 'hidden';
 
-                //check the value of the inputs
+                // Recoger los valores de los inputs
                 let inputs = document.querySelectorAll(".inputToggle");
-                     // Diccionario para almacenar los días y sus valores
-                    let schedule = {};
-                    inputs.forEach(input => {
-                        // Extraer el día de la semana desde el ID del input
-                        let day = input.id.replace("Input", "").toLowerCase(); // Quitar "Input" del ID
+                let schedule = {}; // Diccionario para almacenar los valores de horarios
 
-                        // Obtener el valor del input o asignar null si está vacío
-                        let value = input.value ? input.value : null;
+                inputs.forEach(input => {
+                    let day = input.id.replace("Input", "").toLowerCase(); // Obtener el día de la semana
+                    let value = input.value && input.value !== '00:00' ? input.value : null;
 
-                        // Agregar el día y el valor al diccionario
+                    if (value !== null) { // Solo agregar al diccionario si el valor es válido
                         schedule[day] = value;
-                    });
-
-                    console.log(schedule);
-
-                //llamada ajax al backend
-                
-                operationUrl = '<?php echo url("user/update-timetable"); ?>';
-                $.ajax({
-                    type: 'POST',
-                    url: operationUrl,
-                            data: {
-                                "inputHours" : JSON.stringify (schedule),
-                            }, 
-                            headers: {
-                                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') // Incluye el token CSRF
-                            },
-                            success: function(data) {
-                               console.log("success");
-                               window.location.reload();
-                            },
-                            fail:function() {
-                                console.log("fail");
-                                document.getElementById('saving-overlay').style.display = 'none';
-                               //reactivar scroll
-                               document.body.style.overflow = 'auto';
-                            },
-                });
-            });
-
-            $(document).ready(function () {
-        // Manejar el cambio en el checkbox de la sección de Holiday
-                $('.HolidayToggleDiv .switch input[type="checkbox"]').on('change', function () {
-                    var intensiveWorkInput = $('#intesiveWordaykInput');
-
-                    if ($(this).is(':checked')) {
-                        // Habilitar el input cuando el checkbox esté marcado
-                        intensiveWorkInput.prop('disabled', false);
-                        intensiveWorkInput.css({
-                            'background-color': 'white',
-                            '-webkit-box-shadow': 'rgb(0 0 0 / 20%) 0px 4px 10px 0px'
-                        });
-                    } else {
-                        // Deshabilitar el input cuando el checkbox no esté marcado
-                        intensiveWorkInput.prop('disabled', true).val('');
-                        intensiveWorkInput.css({
-                            'background-color': '#E4DEDE',
-                            '-webkit-box-shadow': 'rgb(0 0 0 / 10%) 0px 4px 10px 0px'
-                        });
                     }
                 });
 
-                $('.toggle-section').on('click', function () {
+                console.log(schedule);
+
+                if (Object.keys(schedule).length === 0) {
+
+                    // Mostrar el mensaje de error
+                    toggleErrorMessage(true);
+
+                    // Ocultar el loader y reactivar el scroll
+                    document.getElementById('saving-overlay').style.display = 'none';
+                    document.body.style.overflow = 'auto';
+
+                    return; // Salir de la función sin hacer la llamada AJAX
+                }
+
+                // Llamada AJAX para actualizar el horario
+                operationUrl = '<?php echo url('user/update-timetable'); ?>';
+                $.ajax({
+                    type: 'POST',
+                    url: operationUrl,
+                    data: {
+                        "inputHours": JSON.stringify(schedule),
+                    },
+                    headers: {
+                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') // Incluye el token CSRF
+                    },
+                    success: function(data) {
+                        console.log("success");
+                        window.location.reload();
+                    },
+                    fail: function() {
+                        console.log("fail");
+                        document.getElementById('saving-overlay').style.display = 'none';
+                        document.body.style.overflow = 'auto';
+                    },
+                });
+            });
+
+
+            $(document).ready(function() {
+                function checkAtLeastOneCheckbox() {
+                    let isChecked = false;
+                    $('.dayCheckbox').each(function() {
+                        if ($(this).is(':checked')) {
+                            isChecked = true;
+                            return false;
+                        }
+                    });
+                    return isChecked;
+                }
+
+                $('.dayToggle .switch input[type="checkbox"]').on('change', function() {
+                    var inputToggle = $(this).closest('.dayToggle').find('.inputToggle');
+
+                    if ($(this).is(':checked')) {
+                        inputToggle.css('background-color', 'white');
+                        inputToggle.css('-webkit-box-shadow', 'rgb(0 0 0 / 20%) 0px 4px 10px 0px ');
+                        inputToggle.prop('disabled', false);
+                    } else {
+                        if (!checkAtLeastOneCheckbox()) {
+                            $(this).prop('checked', true);
+                            inputToggle.prop('disabled', false).css('background-color', 'white');
+                            toggleErrorMessage(true);
+                        } else {
+                            inputToggle.css('background-color', '#E4DEDE');
+                            inputToggle.css('-webkit-box-shadow', 'rgb(0 0 0 / 10%) 0px 4px 10px 0px');
+                            inputToggle.prop('disabled', true).val('');
+                            toggleErrorMessage(false);
+                        }
+                    }
+                    // Verificar si es el último checkbox marcado
+                    if ($('.dayCheckbox:checked').length === 1) {
+                        var lastChecked = $('.dayCheckbox:checked').closest('.dayToggle');
+                        lastChecked.find('.dayCheckbox').prop('disabled', true);
+                        lastChecked.find('.inputToggle').prop('disabled', true)
+                            .css('background-color', '#E4DEDE')
+                            .css('-webkit-box-shadow', 'rgb(0 0 0 / 10%) 0px 4px 10px 0px');
+                        toggleErrorMessage(true);
+                    } else {
+                        $('.dayCheckbox').prop('disabled', false);
+                        $('.inputToggle').prop('disabled', false).css('background-color', 'white');
+                    }
+                });
+
+                $('.toggle-section').on('click', function() {
                     var target = $(this).data('target');
                     var saveButton = $('#saveTimetable');
                     var saveButtonHoliday = $('#saveHoliday');
 
-                    $(target).slideToggle(function () {
-                        // Si el objetivo es la sección Timetable
+                    $(target).slideToggle(function() {
                         if (target === "#timetable-content") {
                             if ($(target).is(':visible')) {
                                 $(target).css({
                                     display: 'flex',
                                     justifyContent: 'space-evenly'
                                 });
-                                saveButton.show(); // Mostrar el botón Save si la sección está visible
+                                saveButton.show();
                             } else {
                                 $(target).css({
                                     display: 'none'
                                 });
-                                saveButton.hide(); // Ocultar el botón Save si la sección está oculta
+                                saveButton.hide();
                             }
-                        }else if(target == "#Holiday-content"){
+                        } else if (target == "#Holiday-content") {
                             if ($(target).is(':visible')) {
                                 saveButtonHoliday.show();
-                            }else{
+                            } else {
                                 saveButtonHoliday.hide();
                             }
                         }
                     });
 
-                    // Cambia el símbolo del botón entre "+" y "-"
                     var currentSymbol = $(this).text();
                     $(this).text(currentSymbol === '-' ? '+' : '-');
                 });
@@ -504,20 +506,21 @@ $logo = 'storage/app/public/';
                     '-webkit-box-shadow': 'rgb(0 0 0 / 10%) 0px 4px 10px 0px'
                 });
 
-                $('.dayToggle .switch input[type="checkbox"]').on('change', function () {
-                    // Encuentra el input más cercano al toggle actual
-                    var inputToggle = $(this).closest('.dayToggle').find('.inputToggle');
+                $('.HolidayToggleDiv .switch input[type="checkbox"]').on('change', function() {
+                    var intensiveWorkInput = $('#intesiveWordaykInput');
 
                     if ($(this).is(':checked')) {
-                        // Si el toggle está activo, cambia el fondo del input
-                        inputToggle.css('background-color', 'white');
-                        inputToggle.css('-webkit-box-shadow', 'rgb(0 0 0 / 20%) 0px 4px 10px 0px ');
-                        inputToggle.prop('disabled', false);
+                        intensiveWorkInput.prop('disabled', false);
+                        intensiveWorkInput.css({
+                            'background-color': 'white',
+                            '-webkit-box-shadow': 'rgb(0 0 0 / 20%) 0px 4px 10px 0px'
+                        });
                     } else {
-                        // Si el toggle está desactivado, restablece el color del fondo
-                        inputToggle.css('background-color', '#E4DEDE');
-                        inputToggle.css('-webkit-box-shadow', 'rgb(0 0 0 / 10%) 0px 4px 10px 0px');
-                        inputToggle.prop('disabled', true).val('');;
+                        intensiveWorkInput.prop('disabled', true).val('');
+                        intensiveWorkInput.css({
+                            'background-color': '#E4DEDE',
+                            '-webkit-box-shadow': 'rgb(0 0 0 / 10%) 0px 4px 10px 0px'
+                        });
                     }
                 });
             });

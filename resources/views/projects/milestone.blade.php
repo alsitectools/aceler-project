@@ -68,11 +68,20 @@
                             </div>
                         </div>
                         <div class="col-md-6">
-                            <div class="form-group">
-                                <label class="col-form-label">{{ __('MO') }}</label>
-                                <input type="text" class="form-control form-control-light" id="milestone_mo"
-                                    placeholder="{{ __('MO') }}" name="ref_mo" required readonly>
-                            </div>
+                            @if (isset($project_id) && $project_id == -1)
+                                <div class="form-group">
+                                    <label class="col-form-label">{{ __('MO') }}</label>
+                                    <input type="text" class="form-control form-control-light" id="milestone_mo"
+                                        placeholder="{{ __('MO') }}" name="ref_mo" required readonly>
+                                </div>
+                            @else
+                                <div class="form-group">
+                                    <label class="col-form-label">{{ __('MO') }}</label>
+                                    <input type="text" class="form-control form-control-light"
+                                        placeholder="{{ $project->ref_mo }}"  disabled>
+                                    <input type="text" name="ref_mo" value="{{ $project->ref_mo }}"  style="display: none;">
+                                </div>
+                            @endif
                         </div>
                         <div class="col-md-12">
                             <p class="text-muted">

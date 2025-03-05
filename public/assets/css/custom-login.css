@@ -1,456 +1,466 @@
  .card {
-    transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
-}
-.highlight-error {
-    border: 2px solid #AA182C;
-    background-color: #f8d7da; /* Fondo rojo claro para indicar error */
-    padding: 10px;
-    border-radius: 8px;
-}
-#technicianCard {
-    transform: rotate(-4deg);
-}
+     transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+ }
 
-#comercialCard {
-    transform: rotate(4deg);
-}
+ .highlight-error {
+     border: 2px solid #AA182C;
+     background-color: #f8d7da;
+     /* Fondo rojo claro para indicar error */
+     padding: 10px;
+     border-radius: 8px;
+ }
 
-#technicianCard:hover {
-    transform: scale(1.05) rotate(-4deg);
-    box-shadow: 0px 10px 20px rgba(0, 0, 0, 0.2);
-}
+ #technicianCard {
+     transform: rotate(-4deg);
+ }
 
-#comercialCard:hover {
-    transform: scale(1.05) rotate(4deg);
-    box-shadow: 0px 10px 20px rgba(0, 0, 0, 0.2);
-}
-.custom-fieldset {
-    border: 1px solid #ccc;
-    border-radius: 8px;
-    padding: 10px 15px;
-    display: flex;
-    align-items: center;
-    position: relative;
-}
+ #comercialCard {
+     transform: rotate(4deg);
+ }
 
-.custom-legend {
-    font-size: 14px;
-    color: #666;
-    padding: 0 5px;
-    position: absolute;
-    top: -10px;
-    left: 15px;
-    background: white;
-    display: inline-block;
-    /* Permite que se ajuste al texto */
-    width: auto;
-    /* Hace que el ancho se adapte al contenido */
-    white-space: nowrap;
-    /* Evita que el texto se divida en varias líneas */
-}
+ #technicianCard:hover {
+     transform: scale(1.05) rotate(-4deg);
+     box-shadow: 0px 10px 20px rgba(0, 0, 0, 0.2);
+ }
 
-.custom-input {
-    border: none;
-    outline: none;
-    font-size: 18px;
-    width: 100%;
-    padding: 5px;
-    background: transparent;
-}
-
-/* General Styles */
-.slider.round {
-    border-radius: 34px;
-}
-
-.slider.round:before {
-    border-radius: 99%;
-}
-
-.dayToggle {
-    /* width: 100%; */
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-}
+ #comercialCard:hover {
+     transform: scale(1.05) rotate(4deg);
+     box-shadow: 0px 10px 20px rgba(0, 0, 0, 0.2);
+ }
 
 
-/* Estilos comunes para inputs */
-.inputToggle,
-.intensiveWorkInput {
-    background-color: #E4DEDE;
-    border: none;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-    border-radius: 5px;
-    height: 35px;
-    padding: 0 10%;
-}
 
-.intensiveWorkInput {
-    width: 40%;
-    margin-top: 4%;
-}
+ .custom-fieldset {
+     border: 1px solid #ccc;
+     border-radius: 8px;
+     padding: 10px 15px;
+     display: flex;
+     position: relative;
+     flex-direction: column;
+     margin-top: 1%;
+ }
 
-/* Botones */
-.saveButton {
-    width: 13%;
-    margin-bottom: 2%;
-    height: 55%;
-}
+ .custom-legend {
+     font-size: 14px;
+     color: #666;
+     padding: 0 5px;
+     position: absolute;
+     top: -10px;
+     left: 15px;
+     background: white;
+     display: inline-block;
+     /* Permite que se ajuste al texto */
+     width: auto;
+     /* Hace que el ancho se adapte al contenido */
+     white-space: nowrap;
+     /* Evita que el texto se divida en varias líneas */
+ }
 
-/* Centrado de elementos */
-.alignCenterItems {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
+ .custom-input {
+     border: none;
+     outline: none;
+     font-size: 18px;
+     width: 100%;
+     padding: 5px;
+     background: transparent;
+ }
 
-/* Botón de colapso */
-.buttonColapse {
-    width: 35px;
-    height: 35px;
-}
+ /* General Styles */
+ .slider.round {
+     border-radius: 34px;
+ }
 
-/* Timetable */
-.divTimetable {
-    width: 100%;
-}
+ .slider.round:before {
+     border-radius: 99%;
+ }
 
-.timetable-content {
-    display: flex;
-    flex-direction: row;
-    justify-content: space-around;
-    align-items: center;
-}
+ .dayToggle {
+     /* width: 100%; */
+     display: flex;
+     flex-direction: column;
+     align-items: center;
+ }
 
-/* Input Date Picker */
-.inputDatePicker {
-    width: 4%;
-    background-color: #aa182c;
-    border: none;
-    border-radius: 8px;
-    height: 40px;
-    padding: 0;
-    color: white;
-    margin-top: 43px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
 
-.inputDatePicker:hover {
-    background-color: #b9515f;
-    border-color: #b9515f;
-}
+ /* Estilos comunes para inputs */
+ .inputToggle,
+ .intensiveWorkInput {
+     background-color: #E4DEDE;
+     border: none;
+     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+     border-radius: 5px;
+     height: 35px;
+     padding: 0 10%;
+ }
 
-.inputDateDisplay {
-    width: 65%;
-    background-color: #aa182c;
-    color: white;
-    border: none;
-}
+ .intensiveWorkInput {
+     width: 40%;
+     margin-top: 4%;
+ }
 
-/* Estilos para el perfil */
-.collapse-section {
-    display: block;
-}
+ /* Botones */
+ .saveButton {
+     width: 13%;
+     margin-bottom: 2%;
+     height: 55%;
+ }
 
-.buttonColocation {
-    display: flex;
-    justify-content: space-between;
-}
+ /* Centrado de elementos */
+ .alignCenterItems {
+     display: flex;
+     justify-content: center;
+     align-items: center;
+ }
 
-/* Estilos para el toggle */
-.switch {
-    position: relative;
-    display: inline-block;
-    width: 100%;
-    height: 29px;
-    margin: 5%;
-}
+ /* Botón de colapso */
+ .buttonColapse {
+     width: 35px;
+     height: 35px;
+ }
 
-.switchHoliday {
-    width: 100% !important;
-    margin-left: 15px;
-    margin-right: 15px;
-    padding-right: 6px;
-}
+ /* Timetable */
+ .divTimetable {
+     width: 100%;
+ }
 
-.switch input {
-    opacity: 0;
-    width: 0;
-    height: 0;
-}
+ .timetable-content {
+     display: flex;
+     flex-direction: row;
+     justify-content: space-around;
+     align-items: center;
+ }
 
-.slider {
-    position: absolute;
-    cursor: pointer;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-color: rgb(228, 222, 222);
-    transition: .4s;
-}
+ /* Input Date Picker */
+ .inputDatePicker {
+     width: 4%;
+     background-color: #aa182c;
+     border: none;
+     border-radius: 8px;
+     height: 40px;
+     padding: 0;
+     color: white;
+     margin-top: 43px;
+     display: flex;
+     align-items: center;
+     justify-content: center;
+ }
 
-.slider:before {
-    position: absolute;
-    content: "";
-    height: 20px;
-    width: 20px;
-    left: 4px;
-    bottom: 4px;
-    background-color: white;
-    transition: .4s;
-}
+ .inputDatePicker:hover {
+     background-color: #b9515f;
+     border-color: #b9515f;
+ }
 
-input:checked+.slider {
-    background-color: #aa182c;
-}
+ .inputDateDisplay {
+     width: 65%;
+     background-color: #aa182c;
+     color: white;
+     border: none;
+ }
 
-input:checked+.slider:before {
-    transition: .4s;
-    left: unset;  
-    right: 4px;
-}
-.modal-dialog {
+ /* Estilos para el perfil */
+ .collapse-section {
+     display: block;
+ }
+
+ .buttonColocation {
+     display: flex;
+     justify-content: space-between;
+ }
+
+ /* Estilos para el toggle */
+ .switch {
+     position: relative;
+     display: inline-block;
+     width: 100%;
+     height: 29px;
+     margin: 5%;
+ }
+
+ .switchHoliday {
+     width: 100% !important;
+     margin-left: 15px;
+     margin-right: 15px;
+     padding-right: 6px;
+ }
+
+ .switch input {
+     opacity: 0;
+     width: 0;
+     height: 0;
+ }
+
+ .slider {
+     position: absolute;
+     cursor: pointer;
+     top: 0;
+     left: 0;
+     right: 0;
+     bottom: 0;
+     background-color: rgb(228, 222, 222);
+     transition: .4s;
+ }
+
+ .slider:before {
+     position: absolute;
+     content: "";
+     height: 20px;
+     width: 20px;
+     left: 4px;
+     bottom: 4px;
+     background-color: white;
+     transition: .4s;
+ }
+
+ input:checked+.slider {
+     background-color: #aa182c;
+ }
+
+ input:checked+.slider:before {
+     transition: .4s;
+     left: unset;
+     right: 4px;
+ }
+
+ .modal-dialog {
+    width: auto; 
     min-width: 70%;
+    height: auto;
+    min-height: 80vh;
+    overflow-y: auto; 
 }
 
 .modal-content {
-    height: 70vh;
-    /* 70% de la altura del viewport */
-    display: flex;
-    flex-direction: column;
-}
-
-
-html,
-body {
-    margin: 0;
-    padding: 0;
-    height: 100%;
-    overflow: hidden;
-}
-
-/* Estilo para la imagen de fondo */
-.backgroundImageLogin {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-size: cover;
-    /* Hace que la imagen ocupe toda la pantalla sin deformarse */
-    background-position: center;
-    /* Centra la imagen */
-    background-repeat: no-repeat;
-    /* Evita que la imagen se repita */
-    z-index: -1;
-    /* Envía la imagen al fondo */
-}
-
-.delegationFieldset {
-    position: relative;
-    /* Asegura que los elementos absolutos se ubiquen dentro de este contenedor */
-}
-
-.workspace-select {
-    position: absolute;
-    width: 100%;
-    /* Ajusta el ancho al del input */
-    top: 100%;
-    /* Coloca la lista justo debajo del input */
-    left: 0;
-    z-index: 1000;
-    /* Asegura que esté sobre otros elementos */
-    background: white;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    max-height: 200px;
+    height: auto;
+    min-height: 80vh;
     overflow-y: auto;
 }
 
-.textWorkspace {
-    font-size: 16px;
-    color: #505050;
-    border-radius: 6px;
-    background: #e9ecf9;
+ html,
+ body {
+     margin: 0;
+     padding: 0;
+     height: 100%;
+     overflow: hidden;
+ }
+
+ /* Estilo para la imagen de fondo */
+ .backgroundImageLogin {
+     position: fixed;
+     top: 0;
+     left: 0;
+     width: 100%;
+     height: 100%;
+     background-size: cover;
+     /* Hace que la imagen ocupe toda la pantalla sin deformarse */
+     background-position: center;
+     /* Centra la imagen */
+     background-repeat: no-repeat;
+     /* Evita que la imagen se repita */
+     z-index: -1;
+     /* Envía la imagen al fondo */
+ }
+
+ .delegationFieldset {
+     position: relative;
+ }
+
+ .workspace-select {
+     position: absolute;
+     width: 100%;
+     top: 100%;
+     left: 0;
+     z-index: 1000;
+     background: white;
+     border: 1px solid #ccc;
+     border-radius: 5px;
+     max-height: 200px;
+     overflow-y: auto;
+ }
+ .workspace-select .option:hover {
+    background-color: #aa182c !important;
+    color: white !important;
 }
 
-.closeBut {
-    border: transparent;
-    background-color: transparent;
-    color: #505050;
-    border-radius: 5px;
-}
+ .textWorkspace {
+     font-size: 16px;
+     color: #505050;
+     border-radius: 6px;
+     background: #e9ecf9;
+ }
 
-.divLogin {
-    box-shadow: 0px 4px 4px 0px rgb(0 0 0 / 25%);
-    -webkit-box-shadow: 0px 4px 4px 0px rgb(0 0 0 / 25%);
-    -moz-box-shadow: 0px 4px 4px 0px rgb(0 0 0 / 25%);
-    background-color: white;
-    width: 30%;
-    height: 60%;
-    margin-left: 33%;
-    margin-top: 9%;
-    border-radius: 15px;
-}
+ .closeBut {
+     border: transparent;
+     background-color: transparent;
+     color: #505050;
+     border-radius: 5px;
+ }
 
-.imgDiv {
-    width: 90%;
-    padding-top: 5%;
-    margin-left: 12%;
-}
+ .divLogin {
+     box-shadow: 0px 4px 4px 0px rgb(0 0 0 / 25%);
+     -webkit-box-shadow: 0px 4px 4px 0px rgb(0 0 0 / 25%);
+     -moz-box-shadow: 0px 4px 4px 0px rgb(0 0 0 / 25%);
+     background-color: white;
+     width: 30%;
+     height: 60%;
+     margin-left: 33%;
+     margin-top: 9%;
+     border-radius: 15px;
+ }
 
-.loginText {
-    display: flex;
-    align-content: center;
-    justify-content: center;
-    align-items: center;
-    flex-direction: column;
-}
+ .imgDiv {
+     width: 90%;
+     padding-top: 5%;
+     margin-left: 12%;
+ }
 
-.loginTitle {
-    font-size: 50px;
-    padding-top: 4%;
-    padding-bottom: 5%;
-}
+ .loginText {
+     display: flex;
+     align-content: center;
+     justify-content: center;
+     align-items: center;
+     flex-direction: column;
+ }
 
-.loginExplanation {
-    width: 79%;
-    font-size: 18px;
-    padding-left: 5%;
-}
+ .loginTitle {
+     font-size: 50px;
+     padding-top: 4%;
+     padding-bottom: 5%;
+ }
 
-.azureLogo {
-    width: 26px;
-}
+ .loginExplanation {
+     width: 79%;
+     font-size: 18px;
+     padding-left: 5%;
+ }
 
-.copyText {
-    color: #AA182C;
-    padding-left: 41%;
-}
+ .azureLogo {
+     width: 26px;
+ }
 
-@media screen and (max-width: 2400px) and (min-width: 2000px) {
-    .buttonLogin {
-        margin-top: 18%;
-    }
+ .copyText {
+     color: #AA182C;
+     padding-left: 41%;
+ }
 
-    .copyText {
-        padding-left: 42%;
-    }
+ @media screen and (max-width: 2400px) and (min-width: 2000px) {
+     .buttonLogin {
+         margin-top: 18%;
+     }
 
-    .backgroundMainDiv {
-        width: 6%;
-    }
-}
+     .copyText {
+         padding-left: 42%;
+     }
 
-@media screen and (max-width: 1710px) and (min-width: 1555px) {
+     .backgroundMainDiv {
+         width: 6%;
+     }
+ }
 
-    .buttonLogin {
-        font-size: 17px;
-    }
+ @media screen and (max-width: 1710px) and (min-width: 1555px) {
 
-    .azureLogo {
-        width: 20px;
-    }
-}
+     .buttonLogin {
+         font-size: 17px;
+     }
 
-@media screen and (max-width: 1553px) and (min-width: 1479px) {
+     .azureLogo {
+         width: 20px;
+     }
+ }
 
-    .buttonLogin {
-        font-size: 15px;
-    }
+ @media screen and (max-width: 1553px) and (min-width: 1479px) {
 
-    .loginExplanation {
-        font-size: 16px;
-    }
+     .buttonLogin {
+         font-size: 15px;
+     }
 
-    .loginTitle {
-        font-size: 48px;
-    }
+     .loginExplanation {
+         font-size: 16px;
+     }
 
-    .imgDiv {
-        padding-top: 8%;
-    }
-}
+     .loginTitle {
+         font-size: 48px;
+     }
 
-@media screen and (max-width: 1479px) and (min-width: 1240px) {
+     .imgDiv {
+         padding-top: 8%;
+     }
+ }
 
-    .azureLogo {
-        width: 20px;
-    }
+ @media screen and (max-width: 1479px) and (min-width: 1240px) {
 
-    .divLogin {
-        margin-top: 10%;
-    }
+     .azureLogo {
+         width: 20px;
+     }
 
-    .loginTitle {
-        font-size: 41px;
-        padding-bottom: 10%;
-        padding-top: 7%;
-    }
+     .divLogin {
+         margin-top: 10%;
+     }
 
-    .loginExplanation {
-        font-size: 16px;
-    }
+     .loginTitle {
+         font-size: 41px;
+         padding-bottom: 10%;
+         padding-top: 7%;
+     }
 
-    .imgDiv {
-        padding-top: 12%;
-    }
-}
+     .loginExplanation {
+         font-size: 16px;
+     }
 
-@media screen and (max-width: 1240px) and (min-width: 1208px) {
+     .imgDiv {
+         padding-top: 12%;
+     }
+ }
 
-    .azureLogo {
-        width: 20px;
-    }
+ @media screen and (max-width: 1240px) and (min-width: 1208px) {
 
-    .loginTitle {
-        font-size: 40px;
-    }
+     .azureLogo {
+         width: 20px;
+     }
 
-    .loginExplanation {
-        width: 75%;
-        font-size: 15px;
-    }
+     .loginTitle {
+         font-size: 40px;
+     }
 
-    .divLogin {
-        margin-top: 11%;
-    }
+     .loginExplanation {
+         width: 75%;
+         font-size: 15px;
+     }
 
-    .copyText {
-        padding-left: 20%;
-    }
+     .divLogin {
+         margin-top: 11%;
+     }
 
-    .buttonLogin {
-        font-size: 12px;
-    }
+     .copyText {
+         padding-left: 20%;
+     }
 
-    .imgDiv {
-        padding-top: 11%;
-        padding-bottom: 8%;
-    }
-}
+     .buttonLogin {
+         font-size: 12px;
+     }
 
-@media screen and (max-width: 1207px) and (min-width: 800px) {
+     .imgDiv {
+         padding-top: 11%;
+         padding-bottom: 8%;
+     }
+ }
 
-    .divLogin {
-        margin-top: 11%;
-    }
+ @media screen and (max-width: 1207px) and (min-width: 800px) {
 
-    .imgDiv {
-        padding-top: 9%;
-    }
+     .divLogin {
+         margin-top: 11%;
+     }
 
-    .loginTitle {
-        font-size: 41px;
-        padding-top: 7%;
-    }
+     .imgDiv {
+         padding-top: 9%;
+     }
 
-    .loginExplanation {
-        font-size: 16px;
-    }
+     .loginTitle {
+         font-size: 41px;
+         padding-top: 7%;
+     }
 
-}
+     .loginExplanation {
+         font-size: 16px;
+     }
+
+ }

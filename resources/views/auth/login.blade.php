@@ -1,6 +1,6 @@
 @php
     use App\Models\Workspace;
-    $workspaces = Workspace::all();
+    $workspaces = Workspace::select('id', 'name')->orderBy('name')->get();
 @endphp
 <style>
     .backgroundImageLogin {
@@ -91,8 +91,7 @@
 
 @if (session('showModal'))
     <div class="modal fade" id="registerModal" tabindex="-1" aria-labelledby="registerModalLabel"
-        data-bs-backdrop="static" data-bs-keyboard="false"
-        style="top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 9999;" aria-hidden="true">
+        data-bs-backdrop="static" data-bs-keyboard="false" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header">
@@ -105,7 +104,6 @@
                             @php
                                 $languages = \App\Models\Utility::languages();
                                 $setting = \App\Models\Utility::getAdminPaymentSettings();
-                                // dump(session('userProfile'));
                             @endphp
                             <ul class="nav">
                                 <li class="dropdown dash-h-item drp-language">
@@ -127,17 +125,17 @@
 
                         <!-- Profile selection cards -->
                         <div class="d-flex justify-content-center">
-                            <div class="col-md-2 text-center m-4">
+                            <div class="text-center m-4">
                                 <div class="card" id="technicianCard">
                                     <img class="card-img-top" src="{{ asset('assets/img/technicians_cardImg.png') }}"
                                         alt="Alsina Project logo">
                                     <div class="card-body">
-                                        <h5 class="card-title">{{ __('Sales technician') }}</h5>
+                                        <h5 class="card-title">{{ __('Sales manager') }}</h5>
                                         <p class="card-text">{{ __('Business profile') }}</p>
                                     </div>
                                 </div>
                             </div>
-                            <div class="col-md-2 text-center m-4">
+                            <div class="text-center m-4">
                                 <div class="card" id="comercialCard">
                                     <img class="card-img-top" src="{{ asset('assets/img/salesManager_cardImg.png') }}"
                                         alt="Sales manager logo">
@@ -155,7 +153,7 @@
                                 style="display: flex; align-items: center; flex-direction: column;">
                                 <h2>{{ __('Choose your job title') }}</h2>
                                 <p class="col-5 text-center">
-                                    {{ __('To complete the user information according to your role, choose the profile that best represents you. Other (R&D, engineering, administration or other support areas)') }}
+                                    {{ __('To complete the user information according to your role, choose the profile that best represents you. Another (R&D, engineering, administration or other support areas)') }}
                                 </p>
                             </div>
                         </div>
@@ -202,7 +200,11 @@
                         <!-- Workspace Selection -->
                         <div class="form-group col-md-12">
                             <fieldset class="custom-fieldset delegationFieldset">
-                                <legend class="custom-legend">{{ __('Company') }}</legend>
+                                <legend class="custom-legend">{{ __('Delegation or group') }}</legend>
+                                <div class="text-muted ps-2 mt-2">
+                                    {{ __('You can choose more than one group or delegation to interact with other delegations/groups.') }}
+                                </div>
+
                                 <input type="text" class="custom-input mt-2 searchWorkspace"
                                     placeholder="{{ __('Search') }}" autocomplete="off" value="">
                                 <div class="workspace-select dropdown-menu" style="max-height: 200px; display: none;">
@@ -223,6 +225,9 @@
                         <div class="form-group col-md-12">
                             <fieldset class="custom-fieldset">
                                 <legend class="custom-legend">{{ __('Complete your workday information') }}</legend>
+                                <div class="text-muted ps-2 mt-2">
+                                    {{ __('The Project now includes new functionalities, completes the working hours of each day.') }}
+                                </div>
                                 <div class="m-3 divTimetable" id="v-pills-timetable">
                                     <div class="mb-3" id="timetableErrorMessage" style="display: none;">
                                         <div class="bg-danger"
@@ -230,7 +235,7 @@
                                             <i class="fa-solid fa-circle-xmark text-white"></i>
                                         </div>
                                         <span
-                                            class="text-danger">{{ __('Please, complete your workday information') }}</span>
+                                            class="text-danger">{{ __('Please verify that days have been selected and times have been filled in.') }}</span>
                                     </div>
                                     <div class="card-body collapse-section timetable-content" id="timetable-content"
                                         style="display: flex; flex-direction: row;">
@@ -249,7 +254,6 @@
                                     </div>
                                 </div>
                             </fieldset>
-                            <!-- Input oculto para los días seleccionados -->
                             <input type="hidden" name="workday" id="workdayInput">
                             <p class="text-muted text-end mt-3">
                                 {{ __('Once logged in, you can modify your information from the My profile section.') }}
@@ -282,7 +286,7 @@
                         <div class="row">
                             <div class="form-group col-md-8">
                                 <fieldset class="custom-fieldset disabled">
-                                    <legend class="custom-legend">{{ __('Name ') }}:</legend>
+                                    <legend class="custom-legend">{{ __('Name') }}:</legend>
                                     <input type="text" class="custom-input"
                                         value="{{ session('userProfile.displayName') }}" readonly>
                                 </fieldset>
@@ -298,7 +302,10 @@
 
                         <div class="form-group col-md-12">
                             <fieldset class="custom-fieldset delegationFieldset">
-                                <legend class="custom-legend">{{ __('Delegation') }}</legend>
+                                <legend class="custom-legend">{{ __('Delegation or group') }}</legend>
+                                <div class="text-muted ps-2 mt-2">
+                                    {{ __('You can choose more than one group or delegation to interact with other delegations/groups.') }}
+                                </div>
                                 <input type="text" class="custom-input mt-2 searchWorkspace"
                                     placeholder="{{ __('Search') }}" autocomplete="off" value="" required>
                                 <div class="workspace-select dropdown-menu" style="max-height: 200px; display: none;">
@@ -317,7 +324,7 @@
                         <p class="text-muted text-end mt-3">
                             {{ __('Once logged in, you can modify your information from the My profile section.') }}
                         </p>
-                        <div class="d-flex justify-content-end mt-2">
+                        <div class="d-flex justify-content-end mt-2 mb-3">
                             <button type="submit" class="btn btn-primary">{{ __('Save') }}</button>
                         </div>
                     </form>
@@ -325,7 +332,16 @@
             </div>
         </div>
     </div>
+    <script>
+        window.onload = function() {
+            const defaultTime = '08:00';
+            const days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday'];
 
+            days.forEach(day => {
+                document.getElementById(`${day}Input`).value = defaultTime;
+            });
+        };
+    </script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.nicescroll/3.7.6/jquery.nicescroll.min.js"></script>
     <script>
         document.addEventListener("DOMContentLoaded", function() {
@@ -419,7 +435,7 @@
                             selectedWorkspaces.push(selectedId);
 
                             const tag = document.createElement('span');
-                            tag.className = 'textWorkspace p-2 d-flex align-items-center';
+                            tag.className = 'textWorkspace mb-2 p-2 d-flex align-items-center';
                             tag.innerHTML =
                                 `${selectedText} <button type="button" class="closeBut ms-2 text-danger" aria-label="Close">×</button>`;
 
