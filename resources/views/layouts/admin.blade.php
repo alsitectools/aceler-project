@@ -54,6 +54,7 @@
 {{-- --------- COPILOT ------------ --}}
 {{-- @include('layouts.chatCopilot') --}}
 {{-- ---------------------------- --}}
+
 <head>
 
     <meta charset="utf-8">
@@ -185,17 +186,28 @@
         }
     }
 
+    .highlight-error {
+        border: 2px solid #AA182C;
+        background-color: #f8d7da;
+        /* Fondo rojo claro para indicar error */
+        padding: 10px;
+        border-radius: 8px;
+    }
+
     [dir="rtl"] #calender_type {
         float: left !important;
     }
+
     /* Style por profile */
     .collapse-section {
         display: block;
     }
-    .buttonColocation{
+
+    .buttonColocation {
         display: flex;
         justify-content: space-between;
     }
+
     /*toggle */
     .switch {
         position: relative;
@@ -203,69 +215,74 @@
         width: 40%;
         height: 34px;
     }
+
     .switchHoliday {
         width: 100% !important;
         margin-left: 15px;
         margin-right: 15px;
         padding-right: 6px;
     }
-    .switch input { 
-    opacity: 0;
-    width: 0;
-    height: 0;
+
+    .switch input {
+        opacity: 0;
+        width: 0;
+        height: 0;
     }
 
     .slider {
-    position: absolute;
-    cursor: pointer;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-color: rgb(228, 222, 222);
-    -webkit-transition: .4s;
-    transition: .4s;
+        position: absolute;
+        cursor: pointer;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: rgb(228, 222, 222);
+        -webkit-transition: .4s;
+        transition: .4s;
     }
 
     .slider:before {
-    position: absolute;
-    content: "";
-    height: 26px;
-    width: 26px;
-    left: 4px;
-    bottom: 4px;
-    background-color: white;
-    -webkit-transition: .4s;
-    transition: .4s;
+        position: absolute;
+        content: "";
+        height: 26px;
+        width: 26px;
+        left: 4px;
+        bottom: 4px;
+        background-color: white;
+        -webkit-transition: .4s;
+        transition: .4s;
     }
 
-    input:checked + .slider {
-    background-color:  #aa182c;;
+    input:checked+.slider {
+        background-color: #aa182c;
+        ;
     }
 
-    input:checked + .slider:before {
-    -webkit-transform: translateX(31px);
-    -ms-transform: translateX(31px);
-    transform: translateX(31px);
+    input:checked+.slider:before {
+        -webkit-transform: translateX(31px);
+        -ms-transform: translateX(31px);
+        transform: translateX(31px);
     }
 
     /* Rounded sliders */
     .slider.round {
-    border-radius: 34px;
+        border-radius: 34px;
     }
 
     .slider.round:before {
-    border-radius: 50%;
+        border-radius: 50%;
     }
+
     /*Div day + toggle */
-    .dayToggle{
+    .dayToggle {
         width: 100%;
         display: flex;
         flex-direction: column;
         align-items: center;
     }
+
     /*input */
-    .inputToggle{
+    .inputToggle {
         background-color: #E4DEDE;
         border: none;
         box-shadow: rgb(0 0 0 / 10%) 0px 4px 10px 0px;
@@ -278,26 +295,31 @@
         padding-left: 5%;
         padding-right: 5%;
     }
-    .saveButton{
+
+    .saveButton {
         width: 13%;
         margin-bottom: 2%;
         height: 55%;
     }
-    .alignCenterItems{
+
+    .alignCenterItems {
         display: flex;
         align-content: center;
         justify-content: center;
         align-items: center;
     }
-    .buttonColapse{
+
+    .buttonColapse {
         width: 35px;
         height: 35px;
     }
-    .divTimetable{
+
+    .divTimetable {
         width: 73.4%;
         margin-left: 25.8%;
     }
-    .inputDatePicker{
+
+    .inputDatePicker {
         width: 4%;
         background-color: #aa182c;
         border: none;
@@ -310,13 +332,15 @@
         align-items: center;
         justify-content: center;
     }
-    .inputDatePicker:hover{
+
+    .inputDatePicker:hover {
         color: #ffffff;
         text-decoration: none;
         background-color: #b9515f;
         border-color: #b9515f;
     }
-    .HolidayToggleDiv{
+
+    .HolidayToggleDiv {
         display: flex;
         flex-direction: row;
         justify-content: center;
@@ -325,10 +349,11 @@
         align-items: center;
     }
 
-    .HolidayModifiedPadding{
+    .HolidayModifiedPadding {
         padding-left: 28% !important;
     }
-    .HolidayDivPAndInput{
+
+    .HolidayDivPAndInput {
         display: flex;
         flex-direction: column;
         flex-wrap: wrap;
@@ -337,21 +362,25 @@
         padding-top: 2%;
         padding-bottom: 2%;
     }
-    .HolidayP{
+
+    .HolidayP {
         font-size: 18px;
     }
-    .divHolidayContent{
+
+    .divHolidayContent {
         display: flex;
         flex-direction: column;
         align-items: center;
     }
-    .inputDateDisplay{
+
+    .inputDateDisplay {
         border: none;
         width: 65%;
         background-color: #aa182c;
         color: white;
     }
-    .intensiveWorkInput{
+
+    .intensiveWorkInput {
         background-color: #E4DEDE;
         border: none;
         box-shadow: rgb(0 0 0 / 10%) 0px 4px 10px 0px;
@@ -364,33 +393,41 @@
         padding-left: 4%;
         padding-right: 4%;
     }
-    .holidayP{
-        padding-top:5%;
+
+    .holidayP {
+        padding-top: 5%;
     }
-    .holidayPIntenisve{
+
+    .holidayPIntenisve {
         width: 100%;
         padding-top: 5%;
     }
-    /*Responsive laptop */
-    @media screen and (max-width: 1200px){
 
-        .saveButton{
+    /*Responsive laptop */
+    @media screen and (max-width: 1200px) {
+
+        .saveButton {
             height: 70%;
             width: 15%;
         }
-        .switch{
+
+        .switch {
             width: 70%;
         }
-        .inputToggle{
+
+        .inputToggle {
             width: 80%;
         }
-        .HolidayToggleDiv{
+
+        .HolidayToggleDiv {
             padding-top: 7%;
         }
-        .inputDatePicker{
+
+        .inputDatePicker {
             width: 6%;
         }
-        .holidayP{
+
+        .holidayP {
             font-size: 14px;
         }
 
@@ -528,8 +565,8 @@
             </div>
         </div>
     </div>
-    <div class="modal fade" id="commonModalModified" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
-        aria-hidden="true">
+    <div class="modal fade" id="commonModalModified" tabindex="-1" role="dialog"
+        aria-labelledby="exampleModalLabel" aria-hidden="true">
         <div class="modal-dialog" role="document">
             <div class="modal-content-modified">
                 <div class="modal-header">
@@ -605,7 +642,6 @@
                 console.log('/* No existe el elemento datepicker en la página */');
             }
         });
-
     </script>
 
 
@@ -778,7 +814,7 @@
                 document.querySelector("body").classList.add(temp);
             });
         }
-              
+
         function removeClassByPrefix(node, prefix) {
             for (let i = 0; i < node.classList.length; i++) {
                 let value = node.classList[i];
@@ -869,7 +905,7 @@
 
         document.addEventListener('DOMContentLoaded', function() {
             const scrollSpyTarget = document.querySelector('#useradd-sidenav');
-            
+
             if (scrollSpyTarget) {
                 var scrollSpy = new bootstrap.ScrollSpy(document.body, {
                     target: '#useradd-sidenav',
@@ -889,7 +925,8 @@
                 switch_event.addEventListener('change', function() {
                     const consoleEvent = document.querySelector("#console_event");
                     if (consoleEvent) {
-                        consoleEvent.innerHTML = switch_event.checked ? "Switch Button Checked" : "Switch Button Unchecked";
+                        consoleEvent.innerHTML = switch_event.checked ? "Switch Button Checked" :
+                            "Switch Button Unchecked";
                     } else {
                         console.log('/* No existe el elemento console_event en la página */');
                     }

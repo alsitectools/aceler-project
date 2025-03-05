@@ -488,12 +488,13 @@ class UserController extends Controller
     {
         $user = Auth::user();
         $currentWorkspace = Utility::getWorkspaceBySlug('');
-        $workspaces = Workspace::select('id', 'name')->get();
-        $anotherWorkspaces = UserWorkspace::where('user_id', '=', $user->id)->pluck('workspace_id')->toArray();
+        $workspaces = Workspace::select('id', 'name')->orderBy('name')->get();
+        $anotherWorkspaces = UserWorkspace::where('user_id', '=', $user->id)
+            ->pluck('workspace_id')
+            ->toArray();
 
         return view('users.account', compact('currentWorkspace', 'user', 'workspaces', 'anotherWorkspaces'));
     }
-
     public function edit($slug, $id)
     {
         $user = User::find($id);
