@@ -288,8 +288,8 @@
                                             <div class="noNotificationsContainer"> <i
                                                     class="fa-duotone fa-solid fa-bell-slash" aria-hidden="true"
                                                     style="font-size: 48px; margin-bottom: 30px; color: #d1d1d1;"></i>
-                                                <p style="font-size: 15px; color: #d1d1d1;">¡Estás al día! No hay
-                                                    notificaciones</p>
+                                                <p style="font-size: 15px; color: #d1d1d1;">
+                                                    {{ __("You're up to date! No notifications") }}</p>
                                             </div>
                                         @else
                                             @foreach ($notifications as $notification)
@@ -532,7 +532,7 @@
         const emptyStateHtml =
             `<div class="noNotificationsContainer"> 
             <i class="fa-duotone fa-solid fa-bell-slash" aria-hidden="true" style="font-size: 48px; margin-bottom: 30px; color: #d1d1d1;"></i>
-            <p style="font-size: 15px; color: #d1d1d1;">¡Estás al día! No hay notificaciones</p>
+            <p style="font-size: 15px; color: #d1d1d1;">{{ __("You're up to date! No notifications") }}</</p>
         </div>`;
 
         const hasNotifications = notificationContainer.querySelector('.notificationSTL') !== null;

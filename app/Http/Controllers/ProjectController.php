@@ -1855,7 +1855,7 @@ class ProjectController extends Controller
             Utility::send_slack_msg('New Milestone', $currentWorkspace->id, $uArr);
         }
 
-        return redirect()->back()->with('success', __('Milestone creado con éxito!'));
+        return redirect()->back()->with('success', __('Milestone created successfully!'));
     }
 
     public function milestoneAssign($slug, $milestoneID, Request $request)
