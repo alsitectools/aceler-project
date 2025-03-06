@@ -7,10 +7,12 @@
 @endsection
 @section('links')
     <li class="breadcrumb-item"><a href="{{ route('home') }}">{{ __('Home') }}</a></li>
+    <li class="breadcrumb-item"><a href="{{ route('projects.index', $currentWorkspace->slug) }}">{{ __('Projects') }}</a></li>
+
 
     @if ($project_id != -1)
         <li class="breadcrumb-item"><a
-                href="{{ route('projects.show', [$currentWorkspace->slug, $project_id]) }}">{{ __('Project Details') }}</a>
+                href="{{ route('projects.show', [$currentWorkspace->slug, $project_id]) }}">{{ $project_name }}</a>
         </li>
     @endif
     <li class="breadcrumb-item"> {{ __('Timesheet') }}</li>
@@ -22,14 +24,14 @@
                 <div class="col-sm-auto">
                     <button id="add_task" type="button" class="btn btn-primary add_task" data-ajax-popup="true"
                         data-size="lg" data-title="{{ __('Create New Task') }}"
-                        data-url="{{ route('timesheet.create', $currentWorkspace->slug) }}" title="{{ __('Add Task') }}"><i
+                        data-url="{{ route('tasks.create', $currentWorkspace->slug) }}" title="{{ __('Add Task') }}"><i
                             class="fa-solid fa-thumbtack"></i>
                         {{ __('Add Task on Timesheet') }}</button>
                 </div>
             @endif
         @endif
         <div class="col-sm-auto">
-            <div class="weekly-dates-div">
+            <div class="weekly-dates-div weekArrowsPadding">
                 <i role="button" class="fa fa-arrow-left previous"></i>
 
                 <span class="weekly-dates"></span>
@@ -40,12 +42,12 @@
             </div>
         </div>
         @if ($project_id != '-1')
-            <div class="col-auto">
-                <a href="{{ route($client_keyword . 'projects.show', [$currentWorkspace->slug, $project_id]) }}"
-                    class="btn btn-sm btn-primary">
-                    <i class=" ti ti-arrow-back-up"></i>
-                </a>
-            </div>
+            <!-- <div class="col-auto">
+                    <a href="{{ route($client_keyword . 'projects.show', [$currentWorkspace->slug, $project_id]) }}"
+                        class="btn btn-sm btn-primary">
+                        <i class=" ti ti-arrow-back-up"></i>
+                    </a>
+                </div> -->
         @endif
     </div>
 @endsection
@@ -55,7 +57,7 @@
             <div class="row">
                 <div class="col-md-12">
 
-                    <div class="card border">
+                    <div class="card border modifiedWidthTime">
                         <div id="timesheet-table-view"></div>
                     </div>
                     <div class="card notfound-timesheet text-center">
@@ -126,6 +128,7 @@
                         notfound.hide();
                         mainEle.show();
                     }
+
                     mainEle.html(data.html);
                 }
             });
@@ -155,6 +158,8 @@
         $(document).on('click', '[data-ajax-timesheet-popup="true"]', function(e) {
             e.preventDefault();
 
+            var modalId = $(this).data('modal-id') ||
+                'commonModal'; // Usa 'commonModal' por defecto si no se especifica
             var data = {};
             var url = $(this).data('url');
             var type = $(this).data('type');
@@ -162,24 +167,29 @@
             var task_id = $(this).data('task-id');
             var user_id = $(this).data('user-id');
             var p_id = $(this).data('project-id');
+            var milestone_id = $(this).data('milestone-id');          
 
             data.date = date;
             data.task_id = task_id;
+            data.milestone_id = milestone_id;
 
             if (user_id != undefined) {
                 data.user_id = user_id;
             }
 
+            var title;
             if (type == 'create') {
-                var title = '{{ __('Create Timesheet') }}';
+                title = '{{ __('Add record to timesheet') }}';
                 data.p_id = '{{ $project_id }}';
                 data.project_id = data.p_id != '-1' ? data.p_id : p_id;
-
+                data.milestone_id = milestone_id;
             } else if (type == 'edit') {
-                var title = '{{ __('Edit Timesheet') }}';
+
+                title = '{{ __('Edit timesheet entry') }}';
+                data.milestone_id = milestone_id;
             }
 
-            $("#commonModal .modal-title").html(title + ` <small>(` + moment(date).format("ddd DD MMM") +
+            $("#" + modalId + " .modal-title").html(title + ` <small>(` + moment(date).format("ddd DD MMM") +
                 `)</small>`);
 
             $.ajax({
@@ -187,9 +197,8 @@
                 data: data,
                 dataType: 'html',
                 success: function(data) {
-                    $('#commonModal .body').html(data);
-                    // $('#commonModal .modal-body').html(data);
-                    $("#commonModal").modal('show');
+                    $('#' + modalId + ' .body').html(data);
+                    $("#" + modalId).modal('show');
                     commonLoader();
                     loadConfirm();
                 }
@@ -228,7 +237,17 @@
 @endpush
 <style type="text/css">
     .weekly-dates-div {
-        padding: 8px 12px 8px 5px !important;
+        padding: 8px 12px 8px 15px !important;
+    }
+
+    @media screen and (max-width:1200px) and (min-width:1000px) {
+        .weekly-dates-div {
+            padding: 8px 12px 8px 25px !important;
+        }
+
+        .modifiedWidthTime {
+            width: 99% !important;
+        }
     }
 
     #add_task {

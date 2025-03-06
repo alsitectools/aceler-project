@@ -24,8 +24,10 @@ class CreateMilestonesTable extends Migration
             $table->string('contractor')->nullable();
             $table->string('contractorAdress')->nullable();
             $table->string('jobsiteAdress')->nullable();
-            $table->date('end_date');
-            $table->date('start_date')->nullable();
+            $table->date('end_date');//stimated_date
+            $table->date('start_date')->nullable(); //creation_date
+            $table->date('task_start_date')->nullable();
+            $table->date('finalization_date')->nullable();
             $table->text('summary');
             $table->timestamps();
         });

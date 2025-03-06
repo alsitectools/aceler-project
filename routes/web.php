@@ -83,6 +83,9 @@ Route::get('login/azure/callback', [AzureController::class, 'handleAzureCallback
 
 // Ruta protegida por autenticación
 Route::get('/home', [HomeController::class, 'index'])->middleware('auth')->name('home');
+Route::get('/register/azure', [AzureController::class, 'showRegistrationForm'])->name('register.azure');
+Route::post('/register/azure', [AzureController::class, 'registerUser'])->name('register.azure.post');
+
 
 //----------------------- FIN AZURE --------------------------------------//
 
@@ -117,8 +120,7 @@ Route::get('/{slug}/projects{id}/edit', [ProjectController::class, 'copylink_set
 Route::get('/{slug}/projects/{id}/bug_report/{bid}/show', [ProjectController::class, 'bugReportShow'])->name('projects.bug.report.show')->middleware(['XSS']);
 Route::get('/{slug}/timesheet-table-view', [ProjectController::class, 'filterTimesheetTableView'])->name('filter.timesheet.table.view')->middleware(['XSS']);
 
-
-
+Route::get('/{slug}/timesheet/createOrderForms/{project_id}', [ProjectController::class, 'creatTimeshitFromOrderForms'])->name('create.timesheet.from.orders')->middleware(['auth', 'XSS']);
 
 //================================= Invoice Payment Gateways for Copylink ====================================//
 
@@ -245,6 +247,7 @@ Route::prefix('client')->as('client.')->group(function () {
 
   Route::post('/{slug}/projects/{id}/comment/{tid}/file/{cid?}', [ProjectController::class, 'commentStoreFile'])->name('comment.store.file')->middleware(['auth:client', 'XSS']);
   Route::delete('/{slug}/projects/{id}/comment/{tid}/file/{fid}', [ProjectController::class, 'commentDestroyFile'])->name('comment.destroy.file')->middleware(['auth:client', 'XSS']);
+
   Route::post('/{slug}/projects/{id}/comment/{tid}/{cid?}', [ProjectController::class, 'commentStore'])->name('comment.store')->middleware(['auth:client', 'XSS']);
   Route::delete('/{slug}/projects/{id}/comment/{tid}/{cid}', [ProjectController::class, 'commentDestroy'])->name('comment.destroy')->middleware(['auth:client', 'XSS']);
   Route::post('/{slug}/projects/{id}/sub-task/update/{stid}', [ProjectController::class, 'subTaskUpdate'])->name('subtask.update')->middleware(['auth:client', 'XSS']);
@@ -295,7 +298,8 @@ Route::prefix('client')->as('client.')->group(function () {
   Route::post('/{slug}/projects/milestone/{id}/store', [ProjectController::class, 'milestoneStore'])->name('projects.milestone.store')->middleware(['auth:client', 'XSS']);
   Route::get('/{slug}/projects/milestone/{id}/show', [ProjectController::class, 'milestoneShow'])->name('projects.milestone.show')->middleware(['auth:client', 'XSS']);
   Route::get('/{slug}/projects/milestone/{id}/edit', [ProjectController::class, 'milestoneEdit'])->name('projects.milestone.edit')->middleware(['auth:client', 'XSS']);
-  Route::post('/{slug}/projects/milestone/{id}/update', [ProjectController::class, 'milestoneUpdate'])->name('projects.milestone.update')->middleware(['auth:client', 'XSS']);
+
+  // Route::post('/{slug}/projects/milestone/{id}/update', [ProjectController::class, 'milestoneUpdate'])->name('projects.milestone.update')->middleware(['auth:client', 'XSS']);
   Route::delete('/{slug}/projects/milestone/{id}', [ProjectController::class, 'milestoneDestroy'])->name('projects.milestone.destroy')->middleware(['auth:client', 'XSS']);
   Route::get('/{slug}/projects/{id}/file/{fid}', [ProjectController::class, 'fileDownload'])->name('projects.file.download')->middleware(['auth:client', 'XSS']);
   Route::delete('/{slug}/projects/{id}/file/delete/{fid}', [ProjectController::class, 'fileDelete'])->name('projects.file.delete')->middleware(['auth:client', 'XSS']);
@@ -315,13 +319,16 @@ Route::prefix('client')->as('client.')->group(function () {
   Route::get('/{slug}/milestone-board/{id}', [ProjectController::class, 'milestoneBoard'])->name('projects.milestone.board')->middleware(['auth:client', 'XSS']);
   Route::get('/{slug}/milestone-board/{id}', [ProjectController::class, 'milestoneBoard'])->name('projects.milestone.board')->middleware(['auth', 'XSS']);
 
+
+
   Route::post('/{slug}/projects/milestone-board/{id}/store', [ProjectController::class, 'milestoneStore'])->name('projects.milestone.store')->middleware(['auth', 'XSS']);
   Route::get('/{slug}/projects/milestone-board/{id}/show', [ProjectController::class, 'milestoneShow'])->name('projects.milestone.show')->middleware(['auth', 'XSS']);
   Route::get('/{slug}/projects/milestone-board/{id}/edit', [ProjectController::class, 'milestoneEdit'])->name('projects.milestone.edit')->middleware(['auth', 'XSS']);
-  Route::post('/{slug}/projects/milestone-board/{id}/update', [ProjectController::class, 'milestoneUpdate'])->name('projects.milestone.update')->middleware(['auth', 'XSS']);
+
+  // Route::post('/{slug}/projects/milestone-board/{id}/update', [ProjectController::class, 'milestoneUpdate'])->name('projects.milestone.update')->middleware(['auth', 'XSS']);
   Route::delete('/{slug}/projects/milestone-board/{id}', [ProjectController::class, 'milestoneDestroy'])->name('projects.milestone.destroy')->middleware(['auth', 'XSS']);
   //========
-  Route::get('/{slug}/projects/task-create', [ProjectController::class, 'taskCreate'])->name('tasks.create')->middleware(['auth', 'XSS']);
+  Route::get('/{slug}/timesheet/task-create', [ProjectController::class, 'taskCreate'])->name('tasks.create')->middleware(['auth', 'XSS']);
 
   //============================================================================AQUIIII
   // Route::post('/{slug}/timesheet/taskForm', [ProjectController::class, 'taskStore'])->name('tasks.store.form')->middleware(['auth', 'XSS']);
@@ -492,6 +499,7 @@ Route::get('/{slug}/notification/seen', [UserController::class, 'notificationSee
 Route::get('/{slug}/message/seen', [UserController::class, 'messageSeen'])->name('message.seen');
 
 // End Chats
+Route::post('/notifications/add', [ProjectController::class, 'AddSingleNotification'])->name('notifications.add');
 
 Route::get('/settings', [SettingsController::class, 'index'])->name('settings.index')->middleware(['auth', 'XSS']);
 Route::post('/settings', [SettingsController::class, 'store'])->name('settings.store')->middleware(['XSS']);
@@ -633,10 +641,18 @@ Route::get('/{slug}/projects/milestone/{id}', [ProjectController::class, 'milest
 Route::post('/{slug}/projects/milestone/{id}/store', [ProjectController::class, 'milestoneStore'])->name('projects.milestone.store')->middleware(['auth', 'XSS']);
 Route::get('/{slug}/projects/milestone/{id}/show', [ProjectController::class, 'milestoneShow'])->name('projects.milestone.show')->middleware(['auth', 'XSS']);
 Route::get('/{slug}/projects/milestone/{id}/edit', [ProjectController::class, 'milestoneEdit'])->name('projects.milestone.edit')->middleware(['auth', 'XSS']);
+Route::get('/{slug}/projects/milestone-board/{id}/asign', [ProjectController::class, 'milestoneAssign'])->name('projects.milestone.assign')->middleware(['auth', 'XSS']);
+Route::get('/projects/milestone-board/{id}/getProjectName', [ProjectController::class, 'getProjectNameByID'])
+    ->name('projects.milestone.getNameByID')
+    ->middleware(['auth', 'XSS']);
+
 Route::post('/{slug}/projects/milestone/{id}/update', [ProjectController::class, 'milestoneUpdate'])->name('projects.milestone.update')->middleware(['auth', 'XSS']);
 Route::delete('/{slug}/projects/milestone/{id}', [ProjectController::class, 'milestoneDestroy'])->name('projects.milestone.destroy')->middleware(['auth', 'XSS']);
 Route::post('/{slug}/projects/{id}/file', [ProjectController::class, 'fileUpload'])->name('projects.file.upload')->middleware(['auth', 'XSS']);
 Route::get('/{slug}/projects/{id}/file/{fid}', [ProjectController::class, 'fileDownload'])->name('projects.file.download')->middleware(['auth', 'XSS']);
+// ______________________________ nueva ruta para descargar ficheros que se suben a encargos _________________________________________________________
+Route::post('/projects/milestone/download-file', [ProjectController::class, 'milestonefileDownload'])->name('milestone.file.download')->middleware(['auth', 'XSS']);
+
 Route::delete('/{slug}/projects/{id}/file/delete/{fid}', [ProjectController::class, 'fileDelete'])->name('projects.file.delete')->middleware(['auth', 'XSS']);
 
 // Task Board
@@ -660,19 +676,24 @@ Route::get('/{slug}/tasks', [ProjectController::class, 'allTasks'])->name('tasks
 Route::post('/{slug}/tasks', [ProjectController::class, 'ajax_tasks'])->name('tasks.ajax')->middleware(['auth', 'XSS']);
 
 // Timesheet
-Route::post('/{slug}/timesheet/taskCreate', [ProjectController::class, 'taskStore'])->name('tasks.store')->middleware(['auth', 'XSS']);
+Route::post('/{slug}/timesheet/taskStore', [ProjectController::class, 'taskStore'])->name('tasks.store')->middleware(['auth', 'XSS']);
 
 Route::get('/{slug}/tasks/{id?}', [ProjectController::class, 'getTask'])->name('tasks.ajax')->middleware(['auth', 'XSS']);
 Route::get('/{slug}/timesheet', [ProjectController::class, 'timesheet'])->name('timesheet.index')->middleware(['auth', 'XSS']);
 // Route::get('/{slug}/timesheet/{id}', [ProjectController::class, 'timesheet'])->name('timesheet.index')->middleware(['auth', 'XSS']);
 Route::get('/{slug}/timesheet/create', [ProjectController::class, 'timesheetCreate'])->name('timesheet.create')->middleware(['auth', 'XSS']);
 Route::post('/{slug}/timesheet/store', [ProjectController::class, 'timesheetStore'])->name('timesheet.store')->middleware(['auth', 'XSS']);
-Route::get('/{slug}/timesheet/{id}/edit', [ProjectController::class, 'timesheetEdit'])->name('timesheet.edit')->middleware(['auth', 'XSS']);
+// Route::get('/{slug}/timesheet/{id}/edit', [ProjectController::class, 'timesheetEdit'])->name('timesheet.edit')->middleware(['auth', 'XSS']);
 Route::post('/{slug}/timesheet/{id}/update', [ProjectController::class, 'timesheetUpdate'])->name('timesheet.update')->middleware(['auth', 'XSS']);
 Route::delete('/{slug}/timesheet/{id}', [ProjectController::class, 'timesheetDestroy'])->name('timesheet.destroy')->middleware(['auth', 'XSS']);
 
 Route::post('/{slug}/projects/{id}/comment/{tid}/file/{cid?}', [ProjectController::class, 'commentStoreFile'])->name('comment.store.file');
 Route::delete('/{slug}/projects/{id}/comment/{tid}/file/{fid}', [ProjectController::class, 'commentDestroyFile'])->name('comment.destroy.file');
+
+
+Route::post('/milestone/delete_file', [ProjectController::class, 'milestoneDestroyFile'])->name('milestone.destroy.file');
+
+
 Route::post('/{slug}/projects/{id}/comment/{tid}/{cid?}', [ProjectController::class, 'commentStore'])->name('comment.store');
 Route::delete('/{slug}/projects/{id}/comment/{tid}/{cid}', [ProjectController::class, 'commentDestroy'])->name('comment.destroy');
 Route::post('/{slug}/projects/{id}/sub-task/update/{stid}', [ProjectController::class, 'subTaskUpdate'])->name('subtask.update');
@@ -747,7 +768,7 @@ Route::get('/{slug}/append-timesheet-task-html', [ProjectController::class, 'app
 
 Route::get('/{slug}/timesheet/create/{project_id}', [ProjectController::class, 'projectTimesheetCreate'])->name('project.timesheet.create')->middleware(['auth', 'XSS']);
 
-Route::post('/{slug}/timesheet/store/{project_id}', [ProjectController::class, 'projectTimesheetStore'])->name('project.timesheet.store')->middleware(['auth', 'XSS']);
+Route::post('/{slug}/timesheet/store/{project_id}', [ProjectController::class, 'TimesheetStore'])->name('project.timesheet.store')->middleware(['auth', 'XSS']);
 
 Route::get('/{slug}/timesheet/{timesheet_id}/edit/{project_id}', [ProjectController::class, 'projectTimesheetEdit'])->name('project.timesheet.edit')->middleware(['auth', 'XSS']);
 
@@ -964,10 +985,31 @@ Route::post(
   [UserController::class, 'delete_all_notification',]
 )->name('delete_all.notifications');
 
-
+Route::post(
+  '/{slug}/Notification/{notificationId}/Delete',
+  [UserController::class, 'delete_notification']
+)->name('notifications.delete');
 //=============================================Webhook===================================================
 Route::resource('/{slug}/webhook', WebhookController::class)->middleware(['auth', 'XSS']);
 Route::post('webhooks/response/get', [WebhookController::class, 'WebhookResponse'])->name('webhooks.response.get');
 // });
 
 Route::get('/{slug}/projects/{id}/task-board/{tid}/{cid?}', [ProjectController::class, 'taskShow'])->name('tasks.show');
+
+//Ruta creada para recibir la task_id y en la funcion buscar los otros parametros 
+Route::get('/{slug}/timesheet-task/{task_id}/{first_day}/{seventh_day}', [ProjectController::class, 'showTask'])->name('show.task');
+
+//Modify user timetable
+Route::post('/user/specialDelete-timetable', [UserController::class, 'deleteSpecialDay'])->name('user.deleteSpecialDay');
+Route::post('/user/specialUpdate-timetable', [UserController::class, 'specialDays'])->name('user.specialDays');
+Route::post('/user/update-timetable', [UserController::class, 'updateTimetable'])->name('user.updateTimetable');
+Route::get('/user/get-timetable', [UserController::class, 'getTimetable'])->name('user.getTimetable');
+
+//Get timesheet of the calendar 
+Route::get('/get-timesheetCalendar', [CalenderController::class, 'getTimesheetColor'])->name('calender.getTimesheetColor');
+
+//Download project files
+Route::post('/projects/download-file', [ProjectController::class, 'downloadFile'])->name('project.downloadFile');
+//Delete project files
+Route::post('/projects/delete-file', [ProjectController::class, 'deleteFile'])->name('project.deleteFile');
+Route::get('/home/tutorial/{slug}', [HomeController::class, 'showTutorial'])->name('home.showTutorial');

@@ -17,14 +17,18 @@ class Timesheet extends Model
 
     public function task()
     {
-        return $this->hasOne('App\Models\Task', 'id', 'task_id');
+        return $this->belongsTo(Task::class);
     }
+
+
+    // Relación con Project
     public function project()
     {
-        return $this->hasOne('App\Models\Project', 'id', 'project_id');
+        return $this->belongsTo('App\Models\Project', 'project_id');
     }
+
     public function getUser()
     {
-        return $this->hasOne('App\Models\User', 'id', 'created_by');
+        return $this->belongsTo('App\Models\User', 'created_by');
     }
 }

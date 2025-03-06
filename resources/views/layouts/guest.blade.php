@@ -64,43 +64,73 @@
             .azureLogo{
                 width: 20px;
             }
+
+            .backgroundMainDiv{
+                width: 8%;
+            }
         }
 
-        @media screen and (max-width: 1553px) and (min-width: 1479px){
+        @media screen and (max-width: 1553px) and (min-width:1480px){
 
             .buttonLogin{
                 font-size: 15px;
             }
         }
 
-        @media screen and (max-width: 1479px) and (min-width: 1240px ){
+        @media screen and (max-width: 1479px) and (min-width:1266px){
+
+            .azureLogo {
+                width: 20px;
+            }
+            .backgroundMainDiv{
+                width: 8%;
+            }
+            .buttonLogin{
+                font-size: 15px;
+                margin-top: 27%;
+                margin-bottom: 6%;
+            }
+            .copyText{
+                padding-left: 39%;
+            }
+        }
+
+        @media screen and (max-width: 1265px) and (min-width:1208px){
 
             .azureLogo {
                 width: 20px;
             }
 
+            .backgroundMainDiv{
+                width: 10%;
+            }
             .buttonLogin{
-                font-size: 15px;
+                font-size: 14px;
+                margin-top: 28%;
+            }
+            .copyText{
+                padding-left: 39%;
+            }
+        }
+        
+        @media screen and (max-width: 1207px) and (min-width: 800px){
+
+            .buttonLogin{
+                font-size: 13px;
                 margin-top: 25%;
+                margin-bottom: 2%;
             }
-        }
-
-        @media screen and (max-width: 1240px) and (min-width: 800px ){
-
             .azureLogo {
-                width: 20px;
+                width: 18px;
             }
-
-            
-            .buttonLogin{
-                font-size: 12px;
+            .backgroundMainDiv{
+                width: 10%;
+            }
+            .copyText{
+                padding-left: 37%;
             }
         }
-    @media screen and (max-width: 1669px){
-        .backgroundMainDiv{
-            width: 8%;
-        }
-    }
+       
 </style>
 
 <!DOCTYPE html>

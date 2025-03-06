@@ -18,6 +18,7 @@ use App\Models\TaskFile;
 use App\Models\Tax;
 use App\Models\Timesheet;
 use App\Models\User;
+use App\Models\UserTimetable;
 use App\Models\UserProject;
 use App\Models\UserWorkspace;
 use App\Models\Utility;
@@ -46,6 +47,8 @@ use App\Models\Client;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Intervention\Image\Facades\Image;
+use DB;
+
 class UserController extends Controller
 {
     public function companyInfo(Request $request, $id)
@@ -485,12 +488,13 @@ class UserController extends Controller
     {
         $user = Auth::user();
         $currentWorkspace = Utility::getWorkspaceBySlug('');
-        $workspaces = Workspace::select('id', 'name')->get();
-        $anotherWorkspaces = UserWorkspace::where('user_id', '=', $user->id)->pluck('workspace_id')->toArray();
+        $workspaces = Workspace::select('id', 'name')->orderBy('name')->get();
+        $anotherWorkspaces = UserWorkspace::where('user_id', '=', $user->id)
+            ->pluck('workspace_id')
+            ->toArray();
 
         return view('users.account', compact('currentWorkspace', 'user', 'workspaces', 'anotherWorkspaces'));
     }
-
     public function edit($slug, $id)
     {
         $user = User::find($id);
@@ -515,150 +519,313 @@ class UserController extends Controller
 
         return redirect()->back()->with('success', 'Avatar deleted successfully');
     }
-//     public function update($slug = null, $id = null, Request $request)
-// {
-//     Log::info('Update method called'); // Log para verificar entrada al método
 
-//     $objUser = User::find($id); // Se busca el usuario por ID
+    /*Timetable */
 
-//     if (!$objUser) {
-//         Log::error('User not found', ['user_id' => $id]);
-//         return redirect()->back()->with('error', __('User not found'));
-//     }
 
-//     Log::info('User found', ['user_id' => $objUser->id]);
+    //function to delete a special day from timetable
+    public function deleteSpecialDay(Request $request)
+    {
+        $userId = Auth::id();
+        $inputs = $request->input();
 
-//     // Validación para asegurarnos de que el archivo avatar está presente y es una imagen válida
-//     $validator = \Validator::make($request->all(), [
-//         'avatar' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
-//     ]);
+        $event = $inputs['eventId'];
 
-//     if ($validator->fails()) {
-//         Log::error('Validation failed', ['errors' => $validator->errors()]);
-//         return redirect()->back()->with('error', $validator->getMessageBag()->first());
-//     }
+        // Determinar el tipo de evento a eliminar
+        $splitEvent = explode('_', $event); // Separar el tipo de evento y la fecha
 
-//     if ($request->hasFile('avatar')) {
-//         Log::info('Avatar file detected', ['file' => $request->file('avatar')->getClientOriginalName()]);
+        $typeEvent = "";
 
-//         // Eliminar el avatar anterior si existe
-//         if ($objUser->avatar && Storage::disk('public')->exists($objUser->avatar)) {
-//             Storage::disk('public')->delete($objUser->avatar);
-//             Log::info('Old avatar deleted', ['avatar' => $objUser->avatar]);
-//         }
-
-//         try {
-//             // Procesar y redimensionar la nueva imagen usando GD
-//             $image = $request->file('avatar');
-//             $imagePath = 'avatars/' . uniqid() . '.' . $image->getClientOriginalExtension();
-//             $destinationPath = storage_path('app/public/' . $imagePath);
-
-//             // Asegurarse de que el directorio de destino existe
-//             if (!file_exists(dirname($destinationPath))) {
-//                 mkdir(dirname($destinationPath), 0777, true); // Crear el directorio si no existe
-//             }
-
-//             // Redimensionar la imagen
-//             list($width, $height) = getimagesize($image);
-//             $newWidth = 300;
-//             $newHeight = 300;
-
-//             $imageResource = imagecreatetruecolor($newWidth, $newHeight);
-
-//             switch ($image->getClientOriginalExtension()) {
-//                 case 'jpeg':
-//                 case 'jpg':
-//                     $source = imagecreatefromjpeg($image);
-//                     imagecopyresampled($imageResource, $source, 0, 0, 0, 0, $newWidth, $newHeight, $width, $height);
-//                     imagejpeg($imageResource, $destinationPath, 80); // Guarda la imagen redimensionada
-//                     break;
-
-//                 case 'png':
-//                     $source = imagecreatefrompng($image);
-//                     imagecopyresampled($imageResource, $source, 0, 0, 0, 0, $newWidth, $newHeight, $width, $height);
-//                     imagepng($imageResource, $destinationPath); // Guarda la imagen redimensionada
-//                     break;
-
-//                 case 'gif':
-//                     $source = imagecreatefromgif($image);
-//                     imagecopyresampled($imageResource, $source, 0, 0, 0, 0, $newWidth, $newHeight, $width, $height);
-//                     imagegif($imageResource, $destinationPath); // Guarda la imagen redimensionada
-//                     break;
-
-//                 default:
-//                     return redirect()->back()->with('error', __('Unsupported image format.'));
-//             }
-
-//             imagedestroy($imageResource); // Libera la memoria
-
-//             Log::info('New avatar stored', ['path' => $imagePath]);
-
-//             // Actualizar el campo avatar en la base de datos
-//             $objUser->avatar = $imagePath;
-//             $objUser->save();
-
-//             Log::info('User avatar updated successfully', ['user_id' => $objUser->id]);
-
-//             return redirect()->back()->with('success', __('User Updated Successfully!'));
-//         } catch (\Exception $e) {
-//             Log::error('Error storing avatar', ['message' => $e->getMessage()]);
-//             return redirect()->back()->with('error', __('Error saving avatar'));
-//         }
-//     }
-
-//     Log::error('Avatar not found in the request');
-//     return redirect()->back()->with('error', __('No avatar file found in the request'));
-// }
-
-public function update($slug = null, $id = null, Request $request)
-{
-    $currentWorkspace = Utility::getWorkspaceBySlug($slug);
-    if ($id) {
-        $objUser = User::find($id);
-    } else {
-        $objUser = Auth::user();
-    }
-    $validation = [];
-    $validation['name'] = 'required';
-    $validation['email'] = 'required|email|max:100|unique:users,email,' . $objUser->id . ',id';
-
-    if ($request->has('avatar')) {
-        $validation['avatar'] = 'required';
-    }
-
-    $validator = \Validator::make($request->all(), $validation);
-    if ($validator->fails()) {
-        $messages = $validator->getMessageBag();
-        return redirect()->back()->with('error', $messages->first());
-    }
-
-    $objUser->name = $request->name;
-    $objUser->email = $request->email;
-    $dir = 'avatars/';
-    $logo = Utility::get_file('avatars/');
-    if ($request->has('avatar')) {
-        // if(asset(\Storage::exists('avatars/'.$objUser->avatar)))
-        // {
-        //     asset(\Storage::delete('avatars/'.$objUser->avatar));
-        // }
-        if (\File::exists($logo . $objUser->avatar)) {
-            \File::delete($logo . $objUser->avatar);
-        }
-
-        $logoName = uniqid() . '.png';
-        // $request->avatar->storeAs('avatars', $logoName);
-        $path = Utility::upload_file($request, 'avatar', $logoName, $dir, []);
-        if ($path['flag'] == 1) {
-            $avatar = $path['url'];
+        if ($splitEvent[0] == "holiday") {
+            $typeEvent = "range_holidays";
         } else {
-            return redirect()->back()->with('error', __($path['msg']));
+            $typeEvent = "range_intensive_workday";
         }
-        $objUser->avatar = $logoName;
+
+        $dateToRemove = $splitEvent[1];  // La fecha que queremos eliminar
+
+        // Obtener el contenido JSON de la columna correspondiente
+        $jsonField = DB::table('user_timetable')
+            ->where('user_id', $userId)
+            ->value($typeEvent);
+
+        // Decodificar JSON a un array PHP
+        $jsonArray = json_decode($jsonField, true);
+
+        // Buscar la posición del valor a eliminar
+        if (($key = array_search($dateToRemove, $jsonArray)) !== false) {
+            // Construcción de la ruta JSON para JSON_REMOVE (por índice)
+            $jsonPath = '$[' . $key . ']';
+
+            // Ejecutar la consulta para eliminar el valor específico usando JSON_REMOVE
+            DB::table('user_timetable')
+                ->where('user_id', $userId)
+                ->update([
+                    $typeEvent => DB::raw("JSON_REMOVE($typeEvent, '$jsonPath')")
+                ]);
+
+            return response()->json(['success' => true, 'message' => 'Date removed successfully.']);
+        }
+
+        return response()->json(['success' => false, 'message' => 'Date not found in JSON field.']);
     }
 
-    $objUser->save();
-    return redirect()->back()->with('success', __('User Updated Successfully!'));
-}
+
+    //function to set specials days for timetable
+
+    public function specialDays(Request $request)
+    {
+        // Get the current authenticated user ID
+        $userId = Auth::id();
+
+        // Get input data from the request and decode JSON input
+        $inputs = $request->input();
+        $rangeAndInput = json_decode($inputs["rangeAndInput"], true);
+
+        // Retrieve the existing record for the user
+        $existingData = DB::table('user_timetable')->where('user_id', $userId)->first();
+
+        // Initialize update data array
+        $updateData = [];
+
+        // Handling holidays and intensive workdays separately
+        if (isset($rangeAndInput['rangeDate'])) {
+            $newDates = json_decode($rangeAndInput['rangeDate'], true);
+
+            if (isset($rangeAndInput['intensiveWorkday']) && !empty($rangeAndInput['intensiveWorkday'])) {
+                // Handle intensive workday storage
+                $newIntensiveHours = $rangeAndInput['intensiveWorkday'];
+
+                // Decode existing intensive workdays
+                $existingIntensiveWorkdays = $existingData && $existingData->range_intensive_workday
+                    ? json_decode($existingData->range_intensive_workday, true)
+                    : [];
+
+                if (!is_array($existingIntensiveWorkdays)) {
+                    $existingIntensiveWorkdays = [];
+                }
+
+                // Add or update the intensive workday dates with the provided time
+                foreach ($newDates as $date) {
+                    $existingIntensiveWorkdays[$newIntensiveHours][] = $date;
+                }
+
+                // Ensure unique dates under each hour key
+                foreach ($existingIntensiveWorkdays as $hour => $dates) {
+                    $existingIntensiveWorkdays[$hour] = array_unique($dates);
+                }
+
+                $updateData['range_intensive_workday'] = json_encode($existingIntensiveWorkdays);
+            } else {
+                // Handle holiday storage when no intensive workday is provided
+                $existingHolidays = $existingData && $existingData->range_holidays
+                    ? json_decode($existingData->range_holidays, true)
+                    : [];
+
+                if (!is_array($existingHolidays)) {
+                    $existingHolidays = [];
+                }
+
+                // Merge new holidays and ensure uniqueness
+                $mergedHolidays = array_unique(array_merge($existingHolidays, $newDates));
+
+                $updateData['range_holidays'] = json_encode($mergedHolidays);
+            }
+        }
+
+        // Perform the update only if there's data to update
+        if (!empty($updateData)) {
+            DB::table('user_timetable')
+                ->where('user_id', $userId)
+                ->update($updateData);
+        }
+
+        return redirect()->back()->with('success', __('Timetable updated successfully.'));
+    }
+
+    public function getTimetable()
+    {
+        // Obtener el usuario actual
+        $userId = Auth::id();
+
+        // Obtener el horario del usuario actual
+        $timetableUser = DB::table('user_timetable')->where('user_id', $userId)->get();
+
+        return response()->json($timetableUser);
+    }
+
+    public function updateTimetable(Request $request)
+    {
+        // Obtiene el usuario actual
+        $userId = Auth::id();
+
+
+        $inputs = $request->input();
+
+        $weekTime = json_decode($inputs["inputHours"], true);
+
+        DB::table('user_timetable')
+            ->updateOrInsert(
+                // Condición para encontrar el registro del usuario actual
+                ['user_id' => $userId],
+                // Valores a insertar o actualizar
+                [
+                    'monday' => $weekTime['monday'] ?? null,
+                    'tuesday' => $weekTime['tuesday'] ?? null,
+                    'wednesday' => $weekTime['wednesday'] ?? null,
+                    'thursday' => $weekTime['thursday'] ?? null,
+                    'friday' => $weekTime['friday'] ?? null,
+                    'saturday' => $weekTime['saturday'] ?? null,
+                    'sunday' => $weekTime['sunday'] ?? null
+                ]
+            );
+
+        return redirect()->back()->with('success', __('Timetable updated successfully.'));
+    }
+
+    //     public function update($slug = null, $id = null, Request $request)
+    // {
+    //     Log::info('Update method called'); // Log para verificar entrada al método
+
+    //     $objUser = User::find($id); // Se busca el usuario por ID
+
+    //     if (!$objUser) {
+    //         Log::error('User not found', ['user_id' => $id]);
+    //         return redirect()->back()->with('error', __('User not found'));
+    //     }
+
+    //     Log::info('User found', ['user_id' => $objUser->id]);
+
+    //     // Validación para asegurarnos de que el archivo avatar está presente y es una imagen válida
+    //     $validator = \Validator::make($request->all(), [
+    //         'avatar' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
+    //     ]);
+
+    //     if ($validator->fails()) {
+    //         Log::error('Validation failed', ['errors' => $validator->errors()]);
+    //         return redirect()->back()->with('error', $validator->getMessageBag()->first());
+    //     }
+
+    //     if ($request->hasFile('avatar')) {
+    //         Log::info('Avatar file detected', ['file' => $request->file('avatar')->getClientOriginalName()]);
+
+    //         // Eliminar el avatar anterior si existe
+    //         if ($objUser->avatar && Storage::disk('public')->exists($objUser->avatar)) {
+    //             Storage::disk('public')->delete($objUser->avatar);
+    //             Log::info('Old avatar deleted', ['avatar' => $objUser->avatar]);
+    //         }
+
+    //         try {
+    //             // Procesar y redimensionar la nueva imagen usando GD
+    //             $image = $request->file('avatar');
+    //             $imagePath = 'avatars/' . uniqid() . '.' . $image->getClientOriginalExtension();
+    //             $destinationPath = storage_path('app/public/' . $imagePath);
+
+    //             // Asegurarse de que el directorio de destino existe
+    //             if (!file_exists(dirname($destinationPath))) {
+    //                 mkdir(dirname($destinationPath), 0777, true); // Crear el directorio si no existe
+    //             }
+
+    //             // Redimensionar la imagen
+    //             list($width, $height) = getimagesize($image);
+    //             $newWidth = 300;
+    //             $newHeight = 300;
+
+    //             $imageResource = imagecreatetruecolor($newWidth, $newHeight);
+
+    //             switch ($image->getClientOriginalExtension()) {
+    //                 case 'jpeg':
+    //                 case 'jpg':
+    //                     $source = imagecreatefromjpeg($image);
+    //                     imagecopyresampled($imageResource, $source, 0, 0, 0, 0, $newWidth, $newHeight, $width, $height);
+    //                     imagejpeg($imageResource, $destinationPath, 80); // Guarda la imagen redimensionada
+    //                     break;
+
+    //                 case 'png':
+    //                     $source = imagecreatefrompng($image);
+    //                     imagecopyresampled($imageResource, $source, 0, 0, 0, 0, $newWidth, $newHeight, $width, $height);
+    //                     imagepng($imageResource, $destinationPath); // Guarda la imagen redimensionada
+    //                     break;
+
+    //                 case 'gif':
+    //                     $source = imagecreatefromgif($image);
+    //                     imagecopyresampled($imageResource, $source, 0, 0, 0, 0, $newWidth, $newHeight, $width, $height);
+    //                     imagegif($imageResource, $destinationPath); // Guarda la imagen redimensionada
+    //                     break;
+
+    //                 default:
+    //                     return redirect()->back()->with('error', __('Unsupported image format.'));
+    //             }
+
+    //             imagedestroy($imageResource); // Libera la memoria
+
+    //             Log::info('New avatar stored', ['path' => $imagePath]);
+
+    //             // Actualizar el campo avatar en la base de datos
+    //             $objUser->avatar = $imagePath;
+    //             $objUser->save();
+
+    //             Log::info('User avatar updated successfully', ['user_id' => $objUser->id]);
+
+    //             return redirect()->back()->with('success', __('User Updated Successfully!'));
+    //         } catch (\Exception $e) {
+    //             Log::error('Error storing avatar', ['message' => $e->getMessage()]);
+    //             return redirect()->back()->with('error', __('Error saving avatar'));
+    //         }
+    //     }
+
+    //     Log::error('Avatar not found in the request');
+    //     return redirect()->back()->with('error', __('No avatar file found in the request'));
+    // }
+    public function update($slug = null, $id = null, Request $request)
+    {
+        $currentWorkspace = Utility::getWorkspaceBySlug($slug);
+        if ($id) {
+            $objUser = User::find($id);
+        } else {
+            $objUser = Auth::user();
+        }
+        $validation = [];
+        $validation['name'] = 'required';
+        $validation['email'] = 'required|email|max:100|unique:users,email,' . $objUser->id . ',id';
+
+        if ($request->has('avatar')) {
+            $validation['avatar'] = 'required';
+        }
+
+        $validator = \Validator::make($request->all(), $validation);
+        if ($validator->fails()) {
+            $messages = $validator->getMessageBag();
+            return redirect()->back()->with('error', $messages->first());
+        }
+
+        $objUser->name = $request->name;
+        $objUser->email = $request->email;
+        $dir = 'avatars/';
+        $logo = Utility::get_file('avatars/');
+        if ($request->has('avatar')) {
+            // if(asset(\Storage::exists('avatars/'.$objUser->avatar)))
+            // {
+            //     asset(\Storage::delete('avatars/'.$objUser->avatar));
+            // }
+            if (\File::exists($logo . $objUser->avatar)) {
+                \File::delete($logo . $objUser->avatar);
+            }
+
+            $logoName = uniqid() . '.png';
+            // $request->avatar->storeAs('avatars', $logoName);
+            $path = Utility::upload_file($request, 'avatar', $logoName, $dir, []);
+            if ($path['flag'] == 1) {
+                $avatar = $path['url'];
+            } else {
+                return redirect()->back()->with('error', __($path['msg']));
+            }
+            $objUser->avatar = $logoName;
+        }
+
+        $objUser->save();
+        return redirect()->back()->with('success', __('User Updated Successfully!'));
+    }
 
     // public function destroy($user_id)
     // {
@@ -1299,7 +1466,7 @@ public function update($slug = null, $id = null, Request $request)
         $currentWorkspace = Utility::getWorkspaceBySlug($slug);
 
         $user = Auth::user();
-        $get_notification = Notification::where('user_id', $user->id)->where('workspace_id', $currentWorkspace->id)->delete();
+        $get_notification = Notification::where('user_id', $user->id)->delete();
 
         // $get_notification->delete();
 
@@ -1310,5 +1477,28 @@ public function update($slug = null, $id = null, Request $request)
             ],
             200
         );
+    }
+    public function delete_notification($slug, $notificationId)
+    {
+        $currentWorkspace = Utility::getWorkspaceBySlug($slug);
+        $user = Auth::user();
+
+        $notification = Notification::where('id', $notificationId)
+            ->where('user_id', $user->id)
+
+            ->first();
+
+        if ($notification) {
+            $notification->delete();
+            return response()->json([
+                'is_success' => true,
+                'success'    => __('Notification successfully deleted!'),
+            ], 200);
+        } else {
+            return response()->json([
+                'is_success' => false,
+                'error'      => __('Notification not found!'),
+            ], 404);
+        }
     }
 }

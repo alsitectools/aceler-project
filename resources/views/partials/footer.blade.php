@@ -1,7 +1,7 @@
 @php
   use App\Models\Utility;
 @endphp
-<footer class="dash-footer">
+{{-- <footer class="dash-footer">
   <div class="footer-wrapper">
     <div>
       <span class="text-muted" style="text-align: left;">
@@ -10,4 +10,4 @@
       </span>
     </div>
   </div>
-</footer>
+</footer> --}}

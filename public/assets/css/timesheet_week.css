@@ -50,7 +50,7 @@
     padding-bottom: 10px;
     margin-left: 2%;
     width: 95%;
-    border-bottom: 1px solid black;
+    border-bottom: 1px solid #abaaaa;
 }
 
 .custom-accordion-button {
@@ -117,13 +117,6 @@
     border-color: #b9515f !important;
 }
 
-.inputsTaskTotal:hover {
-    color: #ffffff;
-    text-decoration: none;
-    background-color: #b9515f !important;
-    border-color: #b9515f !important;
-}
-
 /*ESTILO INPUTS PARA TAREAS INSIDE PROJECT*/
 .inputsTaskTotalModify {
     display: block;
@@ -168,13 +161,6 @@
     border-color: #b9515f !important;
 }
 
-.inputsTaskTotalModify:hover {
-    color: #ffffff;
-    text-decoration: none;
-    background-color: #b9515f !important;
-    border-color: #b9515f !important;
-}
-
 .accordion-item {
     color: var(--bs-accordion-color);
     background-color: '';
@@ -204,6 +190,61 @@
     flex-wrap: wrap;
     width: 100%;
     background-color: transparent !important;
+}
+
+.firstTdInWeek {
+    font-size: 15px;
+}
+
+.marginForTotalText {
+    margin-left: 35px;
+}
+
+.totalChangeSpaceVariant {
+    padding-right: 10px !important;
+}
+
+@media screen and (max-width:1200px) and (min-width:1099px) {
+    .header-days {
+        width: 11%;
+    }
+
+    .totalChangeSpace {
+        padding-right: 40px !important;
+    }
+
+    .accordion {
+        width: 98% !important;
+    }
+
+    .weekRow {
+        width: 94% !important;
+    }
+
+    .firstTdInWeek {
+        font-size: 13px !important;
+        padding-left: 5px !important;
+    }
+
+    .inputsTask {
+        width: 110% !important;
+    }
+
+    .inputsTaskTotal {
+        width: 110% !important;
+    }
+
+    .marginForTotalText {
+        margin-left: 10px !important;
+    }
+
+    .inputsTaskModify {
+        width: 90%;
+    }
+
+    .inputsTaskTotalModify {
+        width: 90%;
+    }
 }
 
 .wid {
@@ -276,9 +317,12 @@
 .greyBackgroundTotalHours {
     background-color: #a293933d !important;
     border-radius: 10px;
+    height: 35px;
     box-shadow: 1px 1px 2px 1px rgb(0 0 0 / 16%) !important;
-    -webkit-box-shadow: 1px 1px 2px 1px rgb(0 0 0 / 16%) !important;
-    -moz-box-shadow: 1px 1px 2px 1px rgb(0 0 0 / 16%) !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
 }
 
 .custom-accordion-button:hover {

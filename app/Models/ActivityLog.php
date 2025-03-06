@@ -36,6 +36,16 @@ class ActivityLog extends Model
                 return $user_name . " " . __('Move Task') . " <b>" . $remark['title'] . "</b> " . __('from') . " " . __(ucwords($remark['old_status'])) . " " . __('to') . " " . __(ucwords($remark['new_status']));
             } elseif ($this->log_type == 'Create Milestone'){
                 return $user_name . " " . __('Create new Milestone') . " <b>" . $remark['title'] . "</b>";
+            }elseif ($this->log_type == 'has delete a file'){
+                return $user_name . " " . __('has delete a file') . " <b>" . $remark['file_name'] . "</b>";
+            }elseif ($this->log_type == 'has created a new project'){
+                return $user_name . " " . __('has created a new project') . " <b>" . $remark['projectName'] . "</b>";
+            }elseif ($this->log_type == 'has updated a milestone'){
+                return $user_name . " " . __('has updated a milestone') . " <b>" . $remark['milestoneTitle'] . "</b>";
+            }elseif ($this->log_type == 'has updated the milestone status to'){
+                return $user_name . " " . __('has updated the milestone status to') . " <b>" . $remark['milestoneStatus'] . "</b>";
+            }elseif ($this->log_type == 'has deleted a milestone'){
+                return $user_name . " " . __('has deleted a milestone') . " <b>" . $remark['milestoneTitle'] . "</b>";
             }
         }else{
             return $this->remark;

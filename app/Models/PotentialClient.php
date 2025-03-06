@@ -18,4 +18,16 @@ class PotentialClient extends Model
     {
         return $this->hasMany(ClientsMo::class, 'potential_customer_id', 'potential_customer_id');
     }
+    // Relación con la tabla intermedia ClientsMo para obtener las obras asociadas
+    public function obras()
+    {
+        return $this->hasManyThrough(
+            MasterObra::class,
+            ClientsMo::class,
+            'potential_customer_id', 
+            'ref_mo',
+            'potential_customer_id',
+            'ref_mo'
+        );
+    }
 }
