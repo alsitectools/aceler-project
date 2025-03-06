@@ -601,12 +601,13 @@
                                         @endforeach
                                     </div>
 
-                                    <button onclick="updateChart('monthly')" class="marginRight1 btn btn-primary">Mostrar
-                                        por Meses</button>
+                                    <button onclick="updateChart('monthly')"
+                                        class="marginRight1 btn btn-primary">{{ __('Monthly') }}
+                                    </button>
                                     <button onclick="updateChart('quarterly')"
-                                        class="marginRight1 btn btn-primary">Mostrar por Trimestres</button>
-                                    <button onclick="updateChart('yearly')" class="btn btn-primary">Mostrar por
-                                        Año</button>
+                                        class="marginRight1 btn btn-primary">{{ __('Quarterly') }}</button>
+                                    <button onclick="updateChart('yearly')"
+                                        class="btn btn-primary">{{ __('Yearly') }}</button>
                                 </div>
                                 <canvas id="myChart" style="height: 400px; width:100%"></canvas>
                             </div>
@@ -621,7 +622,7 @@
                                 </div>
                                 <div class="modifiedDivTecAndCom top-10-scroll" id="contentCom">
                                     <input type="text" class="filter-input" id="filterComerciales"
-                                        placeholder="Filtrar comerciales..."
+                                        placeholder="{{ __('Filter sales managers') }}"
                                         oninput="filterList('filterComerciales', 'contentCom')" />
 
                                     @foreach ($comerciales as $comercial)
@@ -646,7 +647,7 @@
                                     <span class="titleTecAndCom">{{ __('Technicians') }}</span>
                                 </div>
                                 <input type="text" class="filter-input" id="filterTechnicians"
-                                    placeholder="Filtrar técnicos/as..."
+                                    placeholder="{{ __('Filter technicians') }}"
                                     oninput="filterList('filterTechnicians', 'contentTec')" />
                                 <div class="modifiedDivTecAndCom top-10-scroll" id="contentTec">
 
@@ -750,9 +751,9 @@
             currentView = view;
 
             if (view === 'monthly') {
-                updateChartData(data.months, 'Meses');
+                updateChartData(data.months, "{{ __('Month') }}");
             } else if (view === 'quarterly') {
-                updateChartData(data.quarters, 'Trimestres');
+                updateChartData(data.quarters, "{{ __('Quarter') }}");
             } else if (view === 'yearly') {
                 updateYearlyChart(data.yearly);
             }
@@ -786,7 +787,7 @@
             window.chart.data.datasets[1].data = tiempo_bueno;
             window.chart.data.datasets[2].data = retraso;
 
-            window.chart.options.plugins.title.text = `Promedio Anual (${selectedYear})`;
+            window.chart.options.plugins.title.text = `{{ __('Annual average') }} (${selectedYear})`;
             window.chart.update();
         }
 
@@ -836,7 +837,7 @@
             window.chart.data.datasets[1].data = tiempo_bueno;
             window.chart.data.datasets[2].data = retraso;
 
-            window.chart.options.plugins.title.text = `Promedio por ${labelType}`;
+            window.chart.options.plugins.title.text = `{{ __('Average per') }} ${labelType}`;
             window.chart.update();
         }
 
@@ -848,19 +849,19 @@
                 data: {
                     labels: [],
                     datasets: [{
-                            label: 'Tiempo inicio',
+                            label: "{{ __('Starting time') }}",
                             data: [],
                             backgroundColor: 'rgba(211, 211, 211, 0.8)',
                             hidden: false
                         },
                         {
-                            label: 'Tiempo bueno',
+                            label: "{{ __('On time') }}",
                             data: [],
                             backgroundColor: 'rgba(201, 237, 185, 0.8)',
                             hidden: false
                         },
                         {
-                            label: 'Retraso',
+                            label: "{{ __('Delay') }}",
                             data: [],
                             backgroundColor: 'rgba(224, 108, 113, 0.8)',
                             hidden: false
@@ -879,7 +880,7 @@
                                         chart);
 
                                     labels.push({
-                                        text: 'Mostrar Números',
+                                        text: "{{ __('Show Values') }}",
                                         fillStyle: 'black',
                                         strokeStyle: 'black',
                                         hidden: !chart.options.plugins.datalabels.display,
@@ -906,7 +907,6 @@
                         },
                         title: {
                             display: true,
-                            text: 'Promedio por Meses'
                         },
                         datalabels: {
                             anchor: 'center',
