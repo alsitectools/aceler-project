@@ -206,7 +206,7 @@ class CalenderController extends Controller
     public function getCalendarData()
     {
         $userId = Auth::id();
-        $timetable = Timetable::where('user_id', $userId)->first();
+        $timetable = UserTimetable::where('user_id', $userId)->first();
         $timesheets = Timesheet::where('user_id', $userId)->get();
     
         if (!$timetable) {
@@ -365,7 +365,7 @@ class CalenderController extends Controller
         $specialColorData = [];
         
         // Procesar el campo `range_holidays` si no es null
-        if (!is_null($rangeDays->range_holidays)) {
+        if (isset($rangeDays) && !is_null($rangeDays->range_holidays)) {
             $holidays = json_decode($rangeDays->range_holidays, true); // Decodificar JSON
         
             $holidayDays = [];
@@ -379,7 +379,7 @@ class CalenderController extends Controller
         }
         
         // Procesar el campo `range_intensive_workday` si no es null
-        if (!is_null($rangeDays->range_intensive_workday)) {
+        if (isset($rangeDays) && !is_null($rangeDays->range_intensive_workday)) {
             $intensiveWorkdays = json_decode($rangeDays->range_intensive_workday, true);
         
             $intensiveData = [];

@@ -188,7 +188,8 @@
                 <div class="bg-danger" style="display: inline-block; padding: 8px; margin: 5px; border-radius: 40%;">
                     <i class="fa-solid fa-circle-xmark text-white"></i>
                 </div>
-                <span class="text-danger">{{ __('Make sure you have a day selected and the hours imputed correctly.') }}</span>
+                <span
+                    class="text-danger">{{ __('Make sure you have a day selected and the hours imputed correctly.') }}</span>
             </div>
             <div class="card-body collapse-section timetable-content" id="timetable-content"
                 style="display: flex; flex-direction: row;">
@@ -295,7 +296,7 @@
                         });
 
                         // Si solo hay un checkbox marcado, deshabilitarlo junto con su inputToggle
-                        if (checkedCount === 1) {
+                        if (checkedCount < 1) {
                             let lastChecked = $('.dayCheckbox:checked').closest('.dayToggle');
                             lastChecked.find('.dayCheckbox').prop('disabled', true);
                             lastChecked.find('.inputToggle').prop('disabled', true)
@@ -378,26 +379,24 @@
                 let schedule = {}; // Diccionario para almacenar los valores de horarios
 
                 inputs.forEach(input => {
-                    let day = input.id.replace("Input", "").toLowerCase(); // Obtener el día de la semana
+                    let day = input.id.replace("Input", "").toLowerCase();
+                    let checkbox = input.previousElementSibling.querySelector('input[type="checkbox"]');
                     let value = input.value && input.value !== '00:00' ? input.value : null;
 
-                    if (value !== null) { // Solo agregar al diccionario si el valor es válido
+                    if (checkbox.checked && value !== null) {
                         schedule[day] = value;
                     }
                 });
 
-                console.log(schedule);
 
-                if (Object.keys(schedule).length === 0) {
+                if (Object.keys(schedule).length < 1) {
 
-                    // Mostrar el mensaje de error
                     toggleErrorMessage(true);
 
-                    // Ocultar el loader y reactivar el scroll
                     document.getElementById('saving-overlay').style.display = 'none';
                     document.body.style.overflow = 'auto';
 
-                    return; // Salir de la función sin hacer la llamada AJAX
+                    return;
                 }
 
                 // Llamada AJAX para actualizar el horario
@@ -437,37 +436,33 @@
                 }
 
                 $('.dayToggle .switch input[type="checkbox"]').on('change', function() {
-                    var inputToggle = $(this).closest('.dayToggle').find('.inputToggle');
+                    var inputToggle = $(this).closest('.dayToggle').find(
+                        '.inputToggle'); // Obtiene el input relacionado al checkbox
 
+                    // Si el checkbox está marcado
                     if ($(this).is(':checked')) {
-                        inputToggle.css('background-color', 'white');
-                        inputToggle.css('-webkit-box-shadow', 'rgb(0 0 0 / 20%) 0px 4px 10px 0px ');
+                        // Habilitar solo el input relacionado con el checkbox
                         inputToggle.prop('disabled', false);
+                        inputToggle.css('background-color', 'white');
+                        inputToggle.css('-webkit-box-shadow', 'rgb(0 0 0 / 20%) 0px 4px 10px 0px');
                     } else {
-                        if (!checkAtLeastOneCheckbox()) {
-                            $(this).prop('checked', true);
-                            inputToggle.prop('disabled', false).css('background-color', 'white');
+                        // Si el checkbox está desmarcado
+                        inputToggle.css('background-color', '#E4DEDE'); // Cambia el fondo a gris
+                        inputToggle.css('-webkit-box-shadow', 'rgb(0 0 0 / 10%) 0px 4px 10px 0px');
+                        inputToggle.prop('disabled', true).val(''); // Deshabilita el input y limpia el valor
+
+                        // Verifica si al menos un checkbox está marcado
+                        if ($('.dayToggle .switch input[type="checkbox"]:checked').length < 1) {
+                            inputToggle.css('background-color', '#E4DEDE'); // Cambia el fondo a gris
+                            inputToggle.css('-webkit-box-shadow', 'rgb(0 0 0 / 10%) 0px 4px 10px 0px');
+                            inputToggle.prop('disabled', true)
                             toggleErrorMessage(true);
                         } else {
-                            inputToggle.css('background-color', '#E4DEDE');
-                            inputToggle.css('-webkit-box-shadow', 'rgb(0 0 0 / 10%) 0px 4px 10px 0px');
-                            inputToggle.prop('disabled', true).val('');
                             toggleErrorMessage(false);
                         }
                     }
-                    // Verificar si es el último checkbox marcado
-                    if ($('.dayCheckbox:checked').length === 1) {
-                        var lastChecked = $('.dayCheckbox:checked').closest('.dayToggle');
-                        lastChecked.find('.dayCheckbox').prop('disabled', true);
-                        lastChecked.find('.inputToggle').prop('disabled', true)
-                            .css('background-color', '#E4DEDE')
-                            .css('-webkit-box-shadow', 'rgb(0 0 0 / 10%) 0px 4px 10px 0px');
-                        toggleErrorMessage(true);
-                    } else {
-                        $('.dayCheckbox').prop('disabled', false);
-                        $('.inputToggle').prop('disabled', false).css('background-color', 'white');
-                    }
                 });
+
 
                 $('.toggle-section').on('click', function() {
                     var target = $(this).data('target');
