@@ -927,7 +927,7 @@
                             stacked: true,
                             title: {
                                 display: true,
-                                text: 'Días'
+                                text: "{{ __('Days') }}"
                             }
                         }
                     },

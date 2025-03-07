@@ -18,6 +18,7 @@ use Carbon\Carbon;
 use Carbon\CarbonPeriod;
 use App\Models\Project;
 use App\Models\Milestone;
+use Illuminate\Support\Facades\App;
 
 class HomeController extends Controller
 {
@@ -61,9 +62,9 @@ class HomeController extends Controller
                 'projects.end_date as project_end_date',
                 'milestones.start_date',
                 'milestones.end_date',
-                'milestones.id', 
-                'milestones.title', 
-                'milestones.task_start_date', 
+                'milestones.id',
+                'milestones.title',
+                'milestones.task_start_date',
                 'milestones.finalization_date'
             )
             ->get();
@@ -72,7 +73,10 @@ class HomeController extends Controller
 
         foreach ($milestones as $milestone) {
             $year = date('Y', strtotime($milestone->project_start_date));
-            $month = date('F', strtotime($milestone->start_date)); // Nombre del mes
+
+            $locale = App::getLocale();
+            Carbon::setLocale($locale);
+            $month = Carbon::parse($milestone->start_date)->translatedFormat('F'); // Nombre del mes
             $quarter = 'Q' . ceil(date('n', strtotime($milestone->start_date)) / 3); // Trimestre
 
             $creation_date = Carbon::parse($milestone->start_date);
@@ -188,7 +192,7 @@ class HomeController extends Controller
             }
             unset($yearData['yearly']['sumDelivery'], $yearData['yearly']['sumStartUp'], $yearData['yearly']['sumWorking'], $yearData['yearly']['sumDelay'], $yearData['yearly']['total']);
         }
-       //\Log::debug("Milestones organizados por año: " . json_encode($groupedMilestones, JSON_PRETTY_PRINT));
+        //\Log::debug("Milestones organizados por año: " . json_encode($groupedMilestones, JSON_PRETTY_PRINT));
 
         return $groupedMilestones;
     }
@@ -202,8 +206,8 @@ class HomeController extends Controller
             return view('users.index', compact('users'));
         }
 
-        $technicians = User::where('type','=','user')->get();
-        $comerciales = User::where('type','=','client')->get();
+        $technicians = User::where('type', '=', 'user')->get();
+        $comerciales = User::where('type', '=', 'client')->get();
 
         $currentWorkspace = Utility::getWorkspaceBySlug($slug);
         if ($currentWorkspace) {
@@ -220,7 +224,7 @@ class HomeController extends Controller
                 ->where('projects.workspace', '=', $currentWorkspace->id)->count();*/
 
             if ($currentWorkspace->permission == 'Owner' || $currentWorkspace->permission == 'Member') {
-                
+
                 $totalBugs = UserProject::join("bug_reports", "bug_reports.project_id", "=", "user_projects.project_id")
                     ->join("projects", "projects.id", "=", "user_projects.project_id")
                     ->where("user_id", "=", $userObj->id)
@@ -399,7 +403,8 @@ class HomeController extends Controller
         }
     }
 
-    public function showTutorial($slug){
+    public function showTutorial($slug)
+    {
         $currentWorkspace = Utility::getWorkspaceBySlug($slug);
         return view('tutorial.tutorialHome', compact('currentWorkspace'));
     }

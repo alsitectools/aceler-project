@@ -243,6 +243,7 @@
                                                     @if ($milestone['tasks'])
                                                         <div class="col-sm-12  p-3">
                                                             @foreach ($milestone['tasks'] as $task)
+                                                                <?php \Log::info($task); ?>
                                                                 <div class="taskList tooltipCus p-target mb-2 col-sm-12 marginText"
                                                                     role="button" data-task-id="{{ $task['id'] }}"
                                                                     data-task-name="{{ $task['name'] }}"
@@ -252,7 +253,7 @@
                                                                     data-technician-name="{{ $task['technician']->id }}"
                                                                     data-url="{{ route('create.timesheet.from.orders', [$currentWorkspace->slug, $project_id]) }}"
                                                                     data-ajax-timesheet-popup="true"
-                                                                    data-title="{{ $task['technician']->name }}">
+                                                                    data-title="{{ $task['technician']->name . ' ' . \Carbon\Carbon::parse($task['estimated_date'])->format('d/m/Y') }}">
                                                                     @php
                                                                         $isLate =
                                                                             strtotime($task['estimated_date']) <
@@ -283,7 +284,7 @@
                                                                     data-title="{{ $task['technician']->name }}">
                                                                     <a href="#">
                                                                         <!-- <img alt="image" class="user-groupTasks"
-                                                                                                                                                                @if ($task['technician']->avatar) src="{{ asset($task['technician']->avatar) }}" @else avatar="{{ $task['technician']->name }}" @endif> -->
+                                                                                                                                                                    @if ($task['technician']->avatar) src="{{ asset($task['technician']->avatar) }}" @else avatar="{{ $task['technician']->name }}" @endif> -->
                                                                     </a>
                                                                 </div>
                                                             @endif
