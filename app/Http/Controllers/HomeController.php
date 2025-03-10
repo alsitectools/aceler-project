@@ -74,9 +74,12 @@ class HomeController extends Controller
         foreach ($milestones as $milestone) {
             $year = date('Y', strtotime($milestone->project_start_date));
 
+            // Set the locale for Carbon based on the application's locale
             $locale = App::getLocale();
             Carbon::setLocale($locale);
-            $month = Carbon::parse($milestone->start_date)->translatedFormat('F'); // Nombre del mes
+
+
+            $month = Carbon::parse($milestone->start_date)->translatedFormat('F'); // Nombre del mes traducido
             $quarter = 'Q' . ceil(date('n', strtotime($milestone->start_date)) / 3); // Trimestre
 
             $creation_date = Carbon::parse($milestone->start_date);
