@@ -1170,6 +1170,7 @@ class ProjectController extends Controller
                     $milestone->save();
                 }
             }
+            $milestone = Milestone::find($request->id);
 
             $project = Project::find($milestone->project_id);
 

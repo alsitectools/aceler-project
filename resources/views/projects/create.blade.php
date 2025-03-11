@@ -62,6 +62,11 @@
                 <input class="form-control" type="text" id="projectname" name="name" required
                     placeholder="{{ __('Project Name') }}">
             </div>
+            <div class="form-group col-md-12">
+                <label for="milestone-title" class="col-form-label">{{ __('Title') }}</label>
+                <input type="text" class="form-control form-control-light" id="milestone-title"
+                    placeholder="{{ __('Title') }}" name="title" required>
+            </div>
         </div>
     </div>
     <div class="modal-footer">
@@ -130,5 +135,21 @@
         event.preventDefault(); // Prevenir el envío inmediato
         await displayNotificationProject(); // Esperar a que se complete la notificación
         this.submit(); // Luego se envía el formulario (puedes optar por usar AJAX si lo prefieres)
+    });
+
+    // Add event listener to capitalize the first letter of the project name
+    document.getElementById('projectname').addEventListener('input', function() {
+        let value = this.value;
+        if (value.length > 0) {
+            this.value = value.charAt(0).toUpperCase() + value.slice(1);
+        }
+    });
+
+    // Add event listener to capitalize the first letter of the milestone title
+    document.getElementById('milestone-title').addEventListener('input', function() {
+        let value = this.value;
+        if (value.length > 0) {
+            this.value = value.charAt(0).toUpperCase() + value.slice(1);
+        }
     });
 </script>

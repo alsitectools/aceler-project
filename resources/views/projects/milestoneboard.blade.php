@@ -629,7 +629,7 @@ $icon =
                             console.log('De por hacer a in progress');
 
                             var url = '{{ route('tasks.create', $currentWorkspace->slug) }}' + '?project_id=' + project_id +
-                                '&milestoneTitle=' + milestoneTitle + '&milestone_id=' + cardId;
+                                '&milestoneTitle=' + milestoneTitle + '&milestone_id=' + cardId + '&fromMilestoneBoard=true';
                             var title = '{{ __('Create New Task') }}';
                             var modalId = 'commonModal';
 
