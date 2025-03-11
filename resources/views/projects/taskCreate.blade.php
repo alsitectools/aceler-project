@@ -4,6 +4,7 @@
     $selectedProjectId = request()->get('project_id');
     $selectedMilestoneTitle = request()->get('milestoneTitle');
     $selectedMilestoneId = request()->get('milestone_id');
+    $fromMilestoneBoard = request()->get('fromMilestoneBoard');
 @endphp
 
 @if ($projects && $currentWorkspace)
@@ -17,11 +18,13 @@
                     @if ($selectedProjectId)
                         <!-- Si existe proyecto preseleccionado, se muestra un select con el único option seleccionado -->
                         <input type="hidden" name="project_id" value="{{ $selectedProjectId }}" style="display: none;">
-                        <select class="form-control form-control-light select2" name="project_id" id="project_id" required disabled>
+                        <select class="form-control form-control-light select2" name="project_id" id="project_id"
+                            required disabled>
                             <option value="">{{ __('Select Project') }}</option>
                             @foreach ($projects as $project)
                                 @if ($selectedProjectId == $project->id)
-                                    <option value="{{ $project->id }}" data-project='{{ json_encode($project) }}' selected>
+                                    <option value="{{ $project->id }}" data-project='{{ json_encode($project) }}'
+                                        selected>
                                         {{ $project->name }}
                                     </option>
                                 @endif
@@ -29,7 +32,8 @@
                         </select>
                     @else
                         <!-- En caso contrario se muestran todos los proyectos -->
-                        <select class="form-control form-control-light select2" name="project_id" id="project_id" required>
+                        <select class="form-control form-control-light select2" name="project_id" id="project_id"
+                            required>
                             <option value="">{{ __('Select Project') }}</option>
                             @foreach ($projects as $project)
                                 <option value="{{ $project->id }}" data-project='{{ json_encode($project) }}'>
@@ -43,15 +47,18 @@
                 <!-- Select de Milestone -->
                 <div class="form-group col-md-6">
                     <label class="col-form-label">{{ __('Milestone') }}</label>
-                    
-                        @if($selectedMilestoneTitle)
-                        <input type="hidden" name="milestone_id" value="{{ $selectedMilestoneId }}" style="display: none;">
-                        <select class="form-control form-control-light select2" name="milestone_id" id="milestone_id" required disabled>
-                            <option value="{{$selectedMilestoneId}}">{{$selectedMilestoneTitle}}</option>
+
+                    @if ($selectedMilestoneTitle)
+                        <input type="hidden" name="milestone_id" value="{{ $selectedMilestoneId }}"
+                            style="display: none;">
+                        <select class="form-control form-control-light select2" name="milestone_id" id="milestone_id"
+                            required disabled>
+                            <option value="{{ $selectedMilestoneId }}">{{ $selectedMilestoneTitle }}</option>
                         @else
-                        <select class="form-control form-control-light select2" name="milestone_id" id="milestone_id" required>
-                            <option value="">{{ __('Select Milestone') }}</option>
-                        @endif
+                            <select class="form-control form-control-light select2" name="milestone_id"
+                                id="milestone_id" required>
+                                <option value="">{{ __('Select Milestone') }}</option>
+                    @endif
                     </select>
                 </div>
 
@@ -65,13 +72,13 @@
 
                 <!-- Fecha de inicio -->
                 <div class="form-group col-md-6">
-    <label for="start_date" class="col-form-label">{{ __('Start date') }}</label>
-    <input type="text" class="form-control form-control-light date"
-           id="start_date_display" name="start_date_display"
-           value="{{ \Carbon\Carbon::now()->format('d/m/Y') }}" disabled>
-    <!-- Campo oculto para enviar el valor -->
-    <input type="hidden" id="start_date" name="start_date" value="{{ \Carbon\Carbon::now()->format('d/m/Y') }}">
-</div>
+                    <label for="start_date" class="col-form-label">{{ __('Start date') }}</label>
+                    <input type="text" class="form-control form-control-light date" id="start_date_display"
+                        name="start_date_display" value="{{ \Carbon\Carbon::now()->format('d/m/Y') }}" disabled>
+                    <!-- Campo oculto para enviar el valor -->
+                    <input type="hidden" id="start_date" name="start_date"
+                        value="{{ \Carbon\Carbon::now()->format('d/m/Y') }}">
+                </div>
 
                 <!-- Fecha estimada -->
                 <div class="form-group col-md-6">
@@ -84,7 +91,8 @@
         <div class="modal-footer">
             @if ($selectedProjectId)
                 <!-- Si se viene de la vista 1 se muestra el botón Cancelar -->
-                <button type="button" id="cancelBtn" class="btn btn-light" data-bs-dismiss="modal">Descartar</button>
+                <button type="button" id="cancelBtn" class="btn btn-light"
+                    data-bs-dismiss="modal">{{ __('Discard') }}</button>
             @else
                 <button type="button" class="btn btn-light" data-bs-dismiss="modal">{{ __('Close') }}</button>
             @endif
@@ -167,7 +175,7 @@
                         text: milestone.title
                     });
                     // Si el milestone coincide con el preseleccionado, se marca como seleccionado
-                    @if($selectedMilestoneId)
+                    @if ($selectedMilestoneId)
                         if (milestone.id == '{{ $selectedMilestoneId }}') {
                             option.attr('selected', 'selected');
                         }
@@ -183,44 +191,52 @@
         });
 
         // Si ya hay proyecto preseleccionado, disparamos el evento change
-        @if($selectedProjectId)
+        @if ($selectedProjectId)
             $('#project_id').trigger('change');
         @endif
 
         // -----------------------------
         // Script para el botón "Descartar"
         // Este bloque solo se activa si existe un proyecto preseleccionado y un milestone (vista 1)
-        @if($selectedProjectId && $selectedMilestoneId)
+        @if ($selectedProjectId && $selectedMilestoneId)
             $('#cancelBtn').on('click', function() {
+                var openedFromStatusChangeTrigger = '{{ $fromMilestoneBoard }}';
+                // console.log(openedFromStatusChangeTrigger);
+                // console.log('Milestone ID:', '{{ $selectedMilestoneId }}');
+                // console.log('Project ID:', '{{ $selectedProjectId }}');
                 // Obtenemos el id del milestone (tarjeta) y el id del proyecto
                 var cardId = '{{ $selectedMilestoneId }}';
                 var project_id = '{{ $selectedProjectId }}';
-                
+
                 // Realizamos la petición AJAX para actualizar el estado del milestone.
                 // NOTA: Se modifica la URL para enviar el id del milestone en lugar del id del proyecto,
                 // ya que la ruta espera: {slug}/milestone-board/{id}/order-update
-                $.ajax({
-                    url: '{{ route('milestone.update.order', [$currentWorkspace->slug, $selectedMilestoneId]) }}',
-                    type: 'POST',
-                    data: {
-                        id: cardId,
-                        new_status: 1,   // Volver al estado 1
-                        old_status: 2,   // Se asume que estaba en estado 2 (en progreso)
-                        project_id: project_id,
-                        // Agregar otros parámetros que sean necesarios según la lógica del controlador
-                    },
-                    success: function(data) {
-                        console.log('El estado del milestone se ha revertido a 1');
-                        // Se recarga la página después de 1 segundo
-                        setTimeout(function() {
-                            location.reload();
-                        }, 1000);
-                    },
-                    error: function(xhr, status, error) {
-                        console.error('Error al revertir el estado del milestone:', error);
-                        // Aquí puedes agregar la lógica para mostrar un toast o mensaje de error
-                    }
-                });
+                if (openedFromStatusChangeTrigger) {
+                    $.ajax({
+                        url: '{{ route('milestone.update.order', [$currentWorkspace->slug, $selectedMilestoneId]) }}',
+                        type: 'POST',
+                        data: {
+                            id: cardId,
+                            new_status: 1, // Volver al estado 1
+                            old_status: 2, // Se asume que estaba en estado 2 (en progreso)
+                            project_id: project_id,
+                            // Agregar otros parámetros que sean necesarios según la lógica del controlador
+                        },
+                        success: function(data) {
+                            console.log('El estado del milestone se ha revertido a 1');
+                            // Se recarga la página después de 1 segundo
+                            setTimeout(function() {
+                                location.reload();
+                            }, 1000);
+                        },
+                        error: function(xhr, status, error) {
+                            console.error('Error al revertir el estado del milestone:',
+                                error);
+                            // Aquí puedes agregar la lógica para mostrar un toast o mensaje de error
+                        }
+                    });
+                }
+
             });
         @endif
 
@@ -233,7 +249,8 @@
         justify-content: center;
         align-items: flex-end;
     }
-    .estimated_date > p {
+
+    .estimated_date>p {
         font-size: 14px;
         text-align: center;
     }

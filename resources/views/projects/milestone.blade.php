@@ -78,8 +78,9 @@
                                 <div class="form-group">
                                     <label class="col-form-label">{{ __('MO') }}</label>
                                     <input type="text" class="form-control form-control-light"
-                                        placeholder="{{ $project->ref_mo }}"  disabled>
-                                    <input type="text" name="ref_mo" value="{{ $project->ref_mo }}"  style="display: none;">
+                                        placeholder="{{ $project->ref_mo }}" disabled>
+                                    <input type="text" name="ref_mo" value="{{ $project->ref_mo }}"
+                                        style="display: none;">
                                 </div>
                             @endif
                         </div>
@@ -356,6 +357,14 @@
                 $('#additionalForm').collapse('hide');
             }
         });
+    });
+
+    // Add event listener to capitalize the first letter of the milestone title
+    document.getElementById('milestone-title').addEventListener('input', function() {
+        let value = this.value;
+        if (value.length > 0) {
+            this.value = value.charAt(0).toUpperCase() + value.slice(1);
+        }
     });
 </script>
 {{-- // Script para el dropdown de "Asignado a" --}}
