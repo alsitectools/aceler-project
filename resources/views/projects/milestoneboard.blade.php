@@ -241,7 +241,7 @@
                                             <div class="card-body pt-1">
                                                 <div class="row">
                                                     @if ($milestone['tasks'])
-                                                        <div class="col-sm-12  p-3">
+                                                        <div class="col-sm-12 p-3">
                                                             @foreach ($milestone['tasks'] as $task)
                                                                 <div class="taskList tooltipCus p-target mb-2 col-sm-12 marginText"
                                                                     role="button" data-task-id="{{ $task['id'] }}"
@@ -252,28 +252,45 @@
                                                                     data-technician-name="{{ $task['technician']->id }}"
                                                                     data-url="{{ route('create.timesheet.from.orders', [$currentWorkspace->slug, $project_id]) }}"
                                                                     data-ajax-timesheet-popup="true"
-                                                                    data-title="{{ $task['technician']->name }}">
+                                                                    data-title="{{ $task['technician']->name . ' ' . \Carbon\Carbon::parse($task['estimated_date'])->format('d/m/Y') }}">
                                                                     @php
-                                                                        $isLate =
-                                                                            strtotime($task['estimated_date']) <
-                                                                            strtotime(date('Y-m-d'));
-                                                                        $dateClass = $isLate ? 'danger' : 'success';
-                                                                        $icon =
-                                                                            $dateClass == 'danger'
-                                                                                ? '<i class="ms-2 me-2 fa-solid fa-hourglass-end fa-xs text-' .
-                                                                                    $dateClass .
-                                                                                    '"></i>'
-                                                                                : '<i class="ms-2 me-2 fa-solid fa-hourglass-start fa-xs p-0 m-0 text-' .
-                                                                                    $dateClass .
-                                                                                    '"></i>';
+
+                                                                        // Get the current milestone status from the container it's in
+$milestoneStatus = (int) $status->id;
+$isAfterEstimatedDate =
+    strtotime($task['estimated_date']) <
+    strtotime(date('Y-m-d'));
+
+// Determine icon color based on milestone status and estimated date
+if ($milestoneStatus <= 2) {
+    // Status 1 or 2 (To Do or In Progress)
+    if ($isAfterEstimatedDate) {
+        $iconColor = '#db8d33'; // Yellow for overdue tasks
+    } else {
+        $iconColor = 'black'; // Black for on-time tasks
+    }
+} else {
+    // Status 3 or 4 (In Review or Done)
+    if ($isAfterEstimatedDate) {
+        $iconColor = 'red'; // Red for overdue tasks
+    } else {
+        $iconColor = '#53b446'; // Green for on-time tasks
+    }
+}
+
+$icon =
+    '<i class="ms-2 me-2 fa-solid fa-hourglass-' .
+    ($isAfterEstimatedDate ? 'end' : 'start') .
+    ' fa-xs" style="color: ' .
+    $iconColor .
+    '"></i>';
                                                                     @endphp
                                                                     {!! $icon !!}{{ __($task['name']) }}
                                                                 </div>
                                                                 @if ($project_id != -1)
                                                                     <div class="taskList tooltipCus col-sm-12 text-end"
                                                                         data-title="{{ $task['technician']->name }}">
-                                                                        <a href="#">
-                                                                        </a>
+                                                                        <a href="#"></a>
                                                                     </div>
                                                                 @endif
                                                             @endforeach
@@ -281,10 +298,7 @@
                                                             @if ($project_id == -1)
                                                                 <div class="col-sm-11 text-end"
                                                                     data-title="{{ $task['technician']->name }}">
-                                                                    <a href="#">
-                                                                        <!-- <img alt="image" class="user-groupTasks"
-                                                                                                                                                                @if ($task['technician']->avatar) src="{{ asset($task['technician']->avatar) }}" @else avatar="{{ $task['technician']->name }}" @endif> -->
-                                                                    </a>
+                                                                    <a href="#"></a>
                                                                 </div>
                                                             @endif
                                                         </div>
@@ -314,21 +328,45 @@
                                                                 </div>
                                                                 <div class="col-6 text-center tooltipCus"
                                                                     data-title="{{ __('End Date') }}">
-                                                                    @if ($milestone['daysleft'] < 1)
-                                                                        <i class="fa-solid fa-calendar-check fa-beat-fade m-1 pb-1 fa-2xl calendarAlert"
-                                                                            style="color: red;"></i>
-                                                                    @elseif($milestone['daysleft'] < 3)
-                                                                        <i class="fa-solid fa-calendar-check fa-2xl m-1 calendarAlert"
-                                                                            style="color: #db8d33;"></i>
-                                                                    @else
-                                                                        <i class="fa-solid fa-calendar-check fa-2xl m-1 calendarAlert"
-                                                                            style="color: #53b446;"></i>
-                                                                    @endif
+                                                                    @php
+                                                                        $currentDate = new DateTime();
+                                                                        $latestStatus = (int) $status->id; // Get current column status
+                                                                        $estimatedDate = new DateTime(
+                                                                            $milestone['end_date'],
+                                                                        );
+                                                                        $isOverdue = $currentDate > $estimatedDate;
+
+                                                                        // Determine icon color and animation based on status and date
+                                                                        $iconColor = 'black'; // Default
+                                                                        $iconAnimation = '';
+
+                                                                        if ($latestStatus <= 2) {
+                                                                            // To Do or In Progress
+                                                                            if ($isOverdue) {
+                                                                                $iconColor = '#db8d33'; // Yellow for overdue tasks in status 1-2
+                                                                            } else {
+                                                                                $iconColor = 'black'; // Black for on-time tasks in status 1-2
+                                                                            }
+                                                                        } else {
+                                                                            // In Review or Done
+                                                                            if ($isOverdue) {
+                                                                                $iconColor = 'red'; // Red for overdue tasks in status 3-4
+                                                                                $iconAnimation = 'fa-beat-fade';
+                                                                            } else {
+                                                                                $iconColor = '#53b446'; // Green for on-time tasks in status 3-4
+                                                                            }
+                                                                        }
+                                                                    @endphp
+
+                                                                    <i class="fa-solid fa-calendar-check fa-2xl m-1 calendarAlert {{ $iconAnimation }}"
+                                                                        style="color: {{ $iconColor }};"></i>
                                                                     <div class="text-center adjustTextCalendar">
                                                                         <b style="font-size: 12px">
-                                                                            {{ \App\Models\Utility::dateFormat($milestone['end_date']) }}</b>
+                                                                            {{ \App\Models\Utility::dateFormat($milestone['end_date']) }}
+                                                                        </b>
                                                                     </div>
                                                                 </div>
+
                                                             </div>
                                                         </div>
                                                     </div>
@@ -791,45 +829,54 @@
                     const tasks = document.querySelectorAll('.taskList');
 
                     tasks.forEach(task => {
-                        task.addEventListener('click', function() {
-                            // Obtén el milestone asociado a la tarea
-                            const milestone = this.closest('.card');
-                            const milestoneStatus = milestone.getAttribute('data-status');
+                        // Verifica si el técnico asignado es el usuario actual
+                        const technicianId = task.getAttribute('data-technician-name');
+                        const currentUserId = "{{ Auth::id() }}";
 
-                            // Verifica si el milestone está en status 4
-                            if (milestoneStatus === '4' || milestoneStatus === '3') {
-                                console.log(
-                                    'El milestone está en status 3 o 4, no se ejecutará la acción.');
-                                return; // Detiene la ejecución del código si el status es 4
-                            }
+                        if (technicianId === currentUserId) {
+                            task.addEventListener('click', function() {
+                                // El resto del código del evento click se mantiene igual
+                                const milestone = this.closest('.card');
+                                const milestoneStatus = milestone.getAttribute('data-status');
 
-                            // Obtiene los valores de los atributos data
-                            const taskData = {
-                                task_id: this.getAttribute('data-task-id'),
-                                milestone_id: this.getAttribute('data-milestone-id'),
-                                project_id: this.getAttribute('data-project-id'),
-                                user_id: this.getAttribute('data-technician-name'),
-                                date: new Date().toISOString().split('T')[0],
-                            };
-
-                            // Muestra los datos en la consola del navegador
-                            console.log(taskData);
-                            $.ajax({
-                                url: '{{ route('create.timesheet.from.orders', [$currentWorkspace->slug, $project_id]) }}',
-                                type: 'GET',
-                                data: taskData,
-                                success: function(data) {
-                                    console.log('AJAX success'); // Verificar contenido
-                                    $('#modal-container .modal-content').html(data);
-                                    var myModal = new bootstrap.Modal(document.getElementById(
-                                        'modal-container'));
-                                    myModal.show();
-                                },
-                                error: function(xhr, status, error) {
-                                    console.error('Error al actualizar el orden:', error);
+                                if (milestoneStatus === '4' || milestoneStatus === '3') {
+                                    console.log(
+                                        'El milestone está en status 3 o 4, no se ejecutará la acción.');
+                                    return;
                                 }
+
+                                const taskData = {
+                                    task_id: this.getAttribute('data-task-id'),
+                                    milestone_id: this.getAttribute('data-milestone-id'),
+                                    project_id: this.getAttribute('data-project-id'),
+                                    user_id: this.getAttribute('data-technician-name'),
+                                    date: new Date().toISOString().split('T')[0],
+                                };
+
+                                $.ajax({
+                                    url: '{{ route('create.timesheet.from.orders', [$currentWorkspace->slug, $project_id]) }}',
+                                    type: 'GET',
+                                    data: taskData,
+                                    success: function(data) {
+                                        $('#modal-container .modal-content').html(data);
+                                        var myModal = new bootstrap.Modal(document
+                                            .getElementById('modal-container'));
+                                        myModal.show();
+                                    },
+                                    error: function(xhr, status, error) {
+                                        console.error('Error al actualizar el orden:', error);
+                                    }
+                                });
                             });
-                        });
+                        } else {
+                            // Desactiva el evento click si el técnico asignado no es el usuario actual
+                            task.addEventListener('click', function(event) {
+                                event.stopPropagation();
+                                event.preventDefault();
+                            });
+                            // Añade el estilo de cursor not-allowed
+                            task.style.cursor = 'not-allowed';
+                        }
                     });
                 });
             </script>
