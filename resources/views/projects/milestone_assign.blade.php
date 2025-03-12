@@ -57,7 +57,7 @@
             </div>
             <!-- Apartado "Asignado a" -->
             <div class="row mt-3 ctr">
-                <div id="requestBy-req">
+                <div id="requestBy-req" style="width: 50%">
                     <label class="col-form-label">{{ __('Assigned to') }}</label>
                     <input type="text" class="form-control" id="search-requested-by"
                         placeholder="{{ __('Search') }}" name="search-requested-by" value="{{ $user->name ?? '' }}"
@@ -72,6 +72,13 @@
                         @endforeach
                         <input type="text" name="req_assing_to" id="req_assing_To" style="display: none;">
                     </div>
+                </div>
+                {{-- apartado fecha de entrega prevista --}}
+                <div style="width: 50%">
+                    <label class="col-form-label">Fecha de entrega prevista</label>
+                    <input onclick="this.showPicker()" type="date" class="form-control form-control-light date"
+                        id="planned_end_date" name="planned_end_date" value="{{ $milestone->planned_end_date }}"
+                        required>
                 </div>
             </div>
             <!-- Archivos adjuntos existentes -->
