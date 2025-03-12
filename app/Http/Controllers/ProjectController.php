@@ -957,8 +957,8 @@ class ProjectController extends Controller
         if ($id == -1) {
             // Mostrar todos los milestones del usuario logueado (ya sea creados o asignados)
             $objUser = Auth::user();
-            \Log::info($objUser);
-            \Log::info($currentWorkspace);
+            // \Log::info($objUser);
+            // \Log::info($currentWorkspace);
 
             $allmilestones = Milestone::where(function ($query) use ($objUser) {
                 $query->where('assign_to', $objUser->id)
@@ -1804,6 +1804,7 @@ class ProjectController extends Controller
         $milestone->contractorAdress = $request->contractorAdress ?? '';
         $milestone->jobsiteAdress = $request->jobsiteAdress ?? '';
         $milestone->milestone_assigned_to_user = $request->req_assing_to ?? '';
+        $milestone->planned_end_date = $request->planned_end_date ?? '';
         $milestone->end_date = $request->end_date;
         $milestone->summary = $request->description ?? '';
         $milestone->save();
@@ -1979,6 +1980,7 @@ class ProjectController extends Controller
         $milestone->summary = $request->summary;
         $milestone->milestone_assigned_to_user = $request->req_assing_to ?? '';
         $milestone->end_date = $request->end_date;
+        $milestone->planned_end_date = $request->planned_end_date;
         $milestone->save();
 
         $project = Project::where('id', '=', $milestone->project_id)->first();

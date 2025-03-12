@@ -272,7 +272,7 @@
                                                                     data-technician-name="{{ $task['technician']->id }}"
                                                                     data-url="{{ route('create.timesheet.from.orders', [$currentWorkspace->slug, $project_id]) }}"
                                                                     data-ajax-timesheet-popup="true"
-                                                                    data-title="{{ $task['technician']->name . ' ' . \Carbon\Carbon::parse($task['estimated_date'])->format('d/m/Y') }}">
+                                                                    data-title="{{ $task['technician']->name . '  (Fecha de entrega estimada: ' . \Carbon\Carbon::parse($task['estimated_date'])->format('d/m/Y') }})">
                                                                     @php
 
                                                                         // Get the current milestone status from the container it's in
