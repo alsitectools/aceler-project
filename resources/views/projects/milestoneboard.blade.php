@@ -52,6 +52,16 @@
         font-size: 12px !important;
     }
 
+    .hideUnasignedTasks {
+        margin-top: -6px;
+        width: 24px;
+    }
+
+    .hideUnasignedTasks:hover {
+        cursor: pointer;
+
+    }
+
     @media screen and(max-width:1200px) and(min-width:1000px) {
         .adjustImg {
             width: 65%;
@@ -66,6 +76,10 @@
             padding-top: 15%;
         }
     }
+
+    .notAsignedMilestone {
+        border: 3px solid #a62330 !important;
+    }
 </style>
 @section('links')
     @if (isset($project_id) && $project_id != -1)
@@ -74,8 +88,7 @@
         </li>
 
         <li class="breadcrumb-item"><a
-                href="{{ route('projects.show', [$currentWorkspace->slug, $project_id]) }}">{{ $project_name }}</a>
-        </li>
+                href="{{ route('projects.show', [$currentWorkspace->slug, $project_id]) }}">{{ $project_name }}</a></li>
     @else
         <li class="breadcrumb-item"><a href="{{ route('home') }}">{{ __('Home') }}</a></li>
         <li class="breadcrumb-item"><a
@@ -125,6 +138,12 @@
                                                 class="showCompletedProjects showCompletedProjectsUnabled" />
                                         @endif
                                     @endif
+                                    @if ($status->name === 'To Do')
+                                        <img id="hideUnassignedMilstoneIcon"
+                                            src="{{ asset('assets/img/address-card-regular.svg') }}"
+                                            alt="show completed projects" title="{{ __('Hide Unasigned Order Forms') }}"
+                                            class="hideUnasignedTasks" />
+                                    @endif
                                     <button class="btn-submit btn btn-md btn-primary btn-icon px-1 py-0 "
                                         style="height: 19.7px;">
                                         <span class="badge badge-secondary rounded-pill count">
@@ -140,7 +159,8 @@
                                 data-status="{{ $status->id }}" class="card-body kanban-box">
                                 @if (isset($milestones[$status->id]))
                                     @foreach ($milestones[$status->id] as $milestone)
-                                        <div class="card" id="{{ $milestone['id'] }}" data-status="{{ $status->id }}"
+                                        <div class="card {{ empty($milestone['assined_to_user']) ? 'notAsignedMilestone' : '' }}"
+                                            id="{{ $milestone['id'] }}" data-status="{{ $status->id }}"
                                             data-project-id="{{ $milestone['project_id'] }}">
                                             <div class="card-header border-0 pb-0 col-sm-12">
                                                 <div class="d-flex">
@@ -782,8 +802,11 @@ $icon =
 
                             projectMap.forEach((milestones, projectId) => {
                                 const allInStatus4 = milestones.every(m => parseInt(m.dataset.status) === 4);
-                                milestones.forEach(m => m.style.display = (allInStatus4 && !shouldShow) ? 'none' :
-                                    'block');
+                                milestones.forEach(m => {
+                                    m.style.display = (allInStatus4 && !shouldShow) ? 'none' : 'block';
+                                    m.style.border = (allInStatus4 && shouldShow) ? '3px solid #15b500' :
+                                        'none';
+                                });
                             });
                         }
 
@@ -885,6 +908,25 @@ $icon =
                 document.addEventListener('DOMContentLoaded', function() {
                     // Actualiza la visibilidad de las opciones de acción según el status
                     updateMilestoneActions();
+
+                    // Toggle visibility of not assigned milestones
+                    const hideUnassignedIcon = document.getElementById('hideUnassignedMilstoneIcon');
+                    let hideUnassigned = false;
+
+                    if (hideUnassignedIcon) {
+                        hideUnassignedIcon.addEventListener('click', function() {
+                            hideUnassigned = !hideUnassigned;
+                            const notAssignedMilestones = document.querySelectorAll('.notAsignedMilestone');
+                            notAssignedMilestones.forEach(milestone => {
+                                milestone.style.display = hideUnassigned ? 'none' : 'block';
+                            });
+
+                            // Change icon color and hover text
+                            this.style.filter = hideUnassigned ? 'grayscale(1)' : 'none';
+                            this.title = hideUnassigned ? "{{ __('Show Unassigned Order Forms') }}" :
+                                "{{ __('Hide Unasigned Order Forms') }}";
+                        });
+                    }
 
                     // Agrega un MutationObserver para detectar cambios en data-status y actualizar dinámicamente
                     function observeMilestoneStatusChanges() {

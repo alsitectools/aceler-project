@@ -194,13 +194,22 @@
         @if ($selectedProjectId)
             $('#project_id').trigger('change');
         @endif
+        var openedFromStatusChangeTrigger = '{{ $fromMilestoneBoard }}';
+        console.log(openedFromStatusChangeTrigger)
+        var closeBtnCollection = document.getElementsByClassName('btn-close').length;
+        console.log(closeBtnCollection)
+        if (openedFromStatusChangeTrigger) {
+            for (let index = 0; index < closeBtnCollection; index++) {
+                document.getElementsByClassName('btn-close')[index].style.display = 'none'
+            }
 
+        }
         // -----------------------------
         // Script para el botón "Descartar"
         // Este bloque solo se activa si existe un proyecto preseleccionado y un milestone (vista 1)
         @if ($selectedProjectId && $selectedMilestoneId)
             $('#cancelBtn').on('click', function() {
-                var openedFromStatusChangeTrigger = '{{ $fromMilestoneBoard }}';
+                // var openedFromStatusChangeTrigger = '{{ $fromMilestoneBoard }}';
                 // console.log(openedFromStatusChangeTrigger);
                 // console.log('Milestone ID:', '{{ $selectedMilestoneId }}');
                 // console.log('Project ID:', '{{ $selectedProjectId }}');

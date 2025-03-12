@@ -957,13 +957,22 @@ class ProjectController extends Controller
         if ($id == -1) {
             // Mostrar todos los milestones del usuario logueado (ya sea creados o asignados)
             $objUser = Auth::user();
+            \Log::info($objUser);
+            \Log::info($currentWorkspace);
 
             $allmilestones = Milestone::where(function ($query) use ($objUser) {
                 $query->where('assign_to', $objUser->id)
-                    ->orWhere('milestone_assigned_to_user', $objUser->id);
-            })->get();
+                    ->orWhere('milestone_assigned_to_user', $objUser->id)
+                    ->orWhere('milestone_assigned_to_user', ''); // También considerar si está vacío
+            })
+                ->whereHas('project', function ($query) use ($objUser) {
+                    $query->where('workspace', $objUser->currant_workspace); // Filtrar por el workspace del usuario
+                })
+                ->get();
 
             $milestones = $this->groupMilestonesByStatus($allmilestones, $objUser, $stages);
+            \Log::info('Milestones que se van a pasar a la vista');
+            \Log::info($milestones);
             $project_id = -1;
         } else {
             // Mostrar los milestones de un proyecto específico
@@ -984,6 +993,8 @@ class ProjectController extends Controller
             return view('projects.milestoneboard', compact('currentWorkspace', 'milestones', 'stages', 'statusClass', 'project_id', 'project_name'));
         }
     }
+
+
 
     /**
      * Obtiene los datos de un milestone, incluyendo sus tareas.
@@ -1031,6 +1042,7 @@ class ProjectController extends Controller
 
         return [
             'id'            => $milestone->id,
+            'assined_to_user' => $milestone->milestone_assigned_to_user,
             'title'         => $milestone->title,
             'start_date'    => $milestone->start_date,
             'end_date'      => $milestone->end_date,
