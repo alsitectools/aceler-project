@@ -1309,11 +1309,11 @@ span.currency-icon {
 }
 
 .easy-autocomplete {
-    width: 100% !important;
+    width: 100%;
 }
 
 .easy-autocomplete input {
-    width: 350px !important;
+    width: 100%;
 
 }
 
@@ -1348,19 +1348,16 @@ span.currency-icon {
 .status-filter button {
     padding: 5px 15px;
     font-size: 13px;
-    font-weight: 600;
     height: 45px !important;
 }
 .type-filter button {
     padding: 5px 15px;
     font-size: 13px;
-    font-weight: 600;
     height: 45px !important;
 }
 .type-filter button {
     padding: 5px 15px;
     font-size: 13px;
-    font-weight: 600;
     height: 45px !important;
 }
 
@@ -1368,12 +1365,10 @@ span.currency-icon {
     .status-filter button {
         padding: 10px 20px;
         font-size: 16px;
-        font-weight: 700;
     }
     .type-filter button {
         padding: 10px 20px;
         font-size: 16px;
-        font-weight: 700;
     }
 }
 

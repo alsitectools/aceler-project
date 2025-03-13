@@ -25,9 +25,6 @@
         border-radius: 10px;
     }
 
-    .secondFilter {
-        margin-bottom: 15px !important;
-    }
 
     .divStatus {
         width: 100%;
@@ -116,32 +113,18 @@
     }
 
     .noProjectText {
-
-
-
         color: #d5d5d5;
         -webkit-text-stroke: 0.5px #c7c7c7;
     }
 
     /* en no project icon section */
 
-    #searchInputProjects {
-        transform: none !important;
-        margin: 0px !important;
-    }
 
-    .inputWrapper {
-        background-color: #ffffff;
-        height: 90px;
-        display: flex;
-        flex-direction: column;
-        align-content: center;
+    .createBut {
+        display: flex !important;
         align-items: center;
         justify-content: center;
-        width: 95%;
-        margin-bottom: 20px;
-        box-shadow: 0 6px 30px rgba(182, 186, 203, 0.3);
-        border-radius: 10px;
+        width: 25%;
     }
 
     .custom {
@@ -152,21 +135,97 @@
         /* background-color: #f7f9f9 !important; */
     }
 
+    .formSearch {
+        width: 100%;
+    }
+
     @media screen and (max-width:1200px) and (min-width:1000px) {
         .responsiveButton {
             font-size: 12px !important;
         }
     }
-</style>
-@section('action-button')
-    <div class="d-flex justify-content-end me-2">
-        <div class="d-flex col-sm-7">
 
+    @media (min-width: 768px) {
+
+        .createBut {
+            width: 30% !important;
+        }
+
+    }
+</style>
+
+<style>
+    .active-filters,
+    .status-filter,
+    .type-filter {
+        display: flex;
+        padding: 2%;
+        background-color: #f6f6f6;
+        width: 100%;
+    }
+
+    .status-indicator {
+        width: 15px;
+        height: 15px;
+        border-radius: 50%;
+        display: inline-block;
+    }
+
+    .btn.active {
+        transition: background-color 0.3s ease, color 0.3s ease, transform 0.2s ease;
+        background-color: white !important;
+        color: #454545 !important;
+        transform: scale(1.05);
+    }
+
+    .disp-btn {
+        display: flex;
+        align-items: center;
+        width: 100%;
+        text-align: left !important;
+    }
+
+    .btn-active-filters {
+        width: 45%;
+        background-color: #eeeeee !important;
+        border: none;
+        border-radius: 4%;
+        padding: 2%;
+        margin: 0;
+        text-decoration: none;
+        padding-left: 5%;
+    }
+</style>
+
+@section('multiple-action-button')
+    <div class="d-flex justify-content-start row1">
+        <div id="searchInputProjects" data-popper-placement="bottom-start">
+            <form class="form-inline mr-auto mb-0 formSearch">
+                <div class="search-element">
+                    <input type="text" class="input" id="searchInput"
+                        placeholder="{{ __('Enter name or reference M.O') }}">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="input-icon" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd"
+                            d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z"
+                            clip-rule="evenodd" />
+                    </svg>
+                    <div class="search-backdrop"></div>
+                </div>
+            </form>
         </div>
+    </div>
+
+    <div class="d-flex justify-content-end row1">
         @auth('web')
+            <button type="button" class="btn btn-primary zoom createBut" data-ajax-popup="true"
+                data-title="{{ __('Create New Project') }}" data-url="{{ route('projects.create', $currentWorkspace->slug) }}">
+                <i class="fa-solid fa-diagram-project pe-2"></i>
+                <h6 class="m-1 text-white">{{ __('Create New Project') }}</h6>
+            </button>
         @endauth
     </div>
 @endsection
+
 @section('content')
     <section class="section">
         <div class="row">
@@ -175,62 +234,52 @@
                     <div class="grid filters-content">
                         @if ($projects->isEmpty())
                             <!-- seccion para cuando no hay proyectos -->
-
-
-                            <div class="col-md-2 project-type text-center m-2"
+                           <div class="col-md-2 project-type text-center m-2"
                                 style="display: flex; align-items: center; justify-content: center; width:100%">
 
                                 <svg version="1.1" id="gears" xmlns="http://www.w3.org/2000/svg"
                                     xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 250 250"
                                     style="enable-background:new 0 0 250 250;" xml:space="preserve">
                                     <g>
-                                        <path class="gear-outer large" d="M145.6,134.6l10.6,5.3c3.5,2.1,4.6,5.1,3.1,9c-1.9,5.4-6.2,12.3-13.1,20.6c-2.7,3.1-5.8,3.6-9.4,1.6l-9.4-5.3
-      c-5,4.4-10.6,7.7-16.8,10v10.6c0,1.7-0.6,3.2-1.9,4.7c-1.2,1.5-2.7,2.3-4.4,2.5c-7.9,1.5-15.8,1.5-23.7,0c-1.9-0.2-3.4-1-4.5-2.5
-      c-1.1-1.5-1.7-3-1.7-4.7v-10.6c-6.4-2.3-12.2-5.6-17.2-10l-9,5.3c-3.5,2.1-6.7,1.6-9.4-1.6c-6.7-8.1-11-15-13.1-20.6
-      c-1.5-3.9-0.4-7,3.1-9l10.3-5.3c-1.2-6.7-1.2-13.2,0-19.7l-10.3-5.3c-3.7-2.1-4.8-5.1-3.1-9C27.8,95,32.2,88.1,38.9,80
-      c2.5-3.1,5.6-3.6,9.4-1.6l9,5c5.2-4.4,10.9-7.6,17.2-9.7V63.2c0-1.9,0.6-3.5,1.7-4.8c1.1-1.4,2.7-2.1,4.5-2.3
-      c7.9-1.5,15.8-1.5,23.7,0c0.9,0.2,1.5,0.4,2.3,0.8c0.8,0.4,1.4,1.1,2,1.7c0.6,0.6,1.1,1.4,1.4,2.2c0.3,0.8,0.5,1.7,0.5,2.5v10.6
-      c6.2,2.3,11.9,5.5,16.8,9.7l9.4-5c3.5-2.3,6.7-1.8,9.4,1.6c6.7,7.9,11,14.8,13.1,20.6c1.5,4,0.4,7-3.1,9l-10.6,5.3
-      C146.8,121.4,146.8,127.9,145.6,134.6z" />
+                                        <path class="gear-outer large"
+                                            d="M145.6,134.6l10.6,5.3c3.5,2.1,4.6,5.1,3.1,9c-1.9,5.4-6.2,12.3-13.1,20.6c-2.7,3.1-5.8,3.6-9.4,1.6l-9.4-5.3 c-5,4.4-10.6,7.7-16.8,
+                                                    10v10.6c0,1.7-0.6,3.2-1.9,4.7c-1.2,1.5-2.7,2.3-4.4,2.5c-7.9,1.5-15.8,1.5-23.7,0c-1.9-0.2-3.4-1-4.5-2.5 c-1.1-1.5-1.7-3-1.7-4.7v-10.6c-6.4-2.3-12.2-5.6-17.2-10l-9,5.3c-3.5,2.1-6.7,1.6-9.4-1.6c-6.7-8.1-11-15-13.1-20.6
+                                                                  c-1.5-3.9-0.4-7,3.1-9l10.3-5.3c-1.2-6.7-1.2-13.2,0-19.7l-10.3-5.3c-3.7-2.1-4.8-5.1-3.1-9C27.8,95,32.2,88.1,38.9,80 c2.5-3.1,5.6-3.6,
+                                                                  9.4-1.6l9,5c5.2-4.4,10.9-7.6,17.2-9.7V63.2c0-1.9,0.6-3.5,1.7-4.8c1.1-1.4,2.7-2.1,4.5-2.3 c7.9-1.5,15.8-1.5,23.7,0c0.9,0.2,1.5,0.4,2.3,0.8c0.8,0.4,1.4,1.1,2,1.7c0.6,0.6,1.1,1.4,1.4,2.2c0.3,0.8,0.5,1.7,0.5,2.5v10.6
+                                                                  c6.2,2.3,11.9,5.5,16.8,9.7l9.4-5c3.5-2.3,6.7-1.8,9.4,1.6c6.7,7.9,11,14.8,13.1,20.6c1.5,4,0.4,7-3.1,9l-10.6,5.3 C146.8,121.4,146.8,127.9,145.6,134.6z" />
                                         <circle class="gear-inner" cx="92.5" cy="124.8" r="23.1" />
-                                        <path class="gear-outer small" d="M185.1,105l-2.5,4.4c-1,1.9-2.6,2.5-4.7,1.9c-3.7-1.5-7.1-3.4-10-5.9c-1.7-1.5-2-3.1-0.9-5l2.5-4.4
-      c-2.1-2.5-3.7-5.3-5-8.4h-5c-2.3,0-3.5-1.1-3.7-3.4c-0.8-3.7-0.8-7.6,0-11.5c0.2-2.1,1.5-3.1,3.7-3.1h5c1.2-3.1,2.9-5.9,5-8.4
-      l-2.5-4.7c-1-1.9-0.7-3.4,0.9-4.7c2.9-2.5,6.2-4.5,10-5.9c2.1-0.8,3.6-0.3,4.7,1.6l2.5,4.7c3.3-0.6,6.7-0.6,10,0l2.5-4.7
-      c1-1.9,2.6-2.4,4.7-1.6c3.7,1.2,7.1,3.2,10,5.9c1.7,1.2,2,2.8,0.9,4.7l-2.5,4.7c2.1,2.5,3.7,5.3,5,8.4h5c2.3,0,3.5,1,3.7,3.1
-      c0.8,4,0.8,7.8,0,11.5c-0.2,2.3-1.5,3.4-3.7,3.4h-5c-1.2,3.1-2.9,5.9-5,8.4l2.5,4.4c1,2.1,0.7,3.7-0.9,5c-2.9,2.5-6.2,4.5-10,5.9
-      c-2.1,0.6-3.6,0-4.7-1.9L195,105C191.7,105.6,188.4,105.6,185.1,105z" />
+                                        <path class="gear-outer small"
+                                            d="M185.1,105l-2.5,4.4c-1,1.9-2.6,2.5-4.7,1.9c-3.7-1.5-7.1-3.4-10-5.9c-1.7-1.5-2-3.1-0.9-5l2.5-4.4
+                                                c-2.1-2.5-3.7-5.3-5-8.4h-5c-2.3,0-3.5-1.1-3.7-3.4c-0.8-3.7-0.8-7.6,0-11.5c0.2-2.1,1.5-3.1,3.7-3.1h5c1.2-3.1,2.9-5.9,5-8.4
+                                                l-2.5-4.7c-1-1.9-0.7-3.4,0.9-4.7c2.9-2.5,6.2-4.5,10-5.9c2.1-0.8,3.6-0.3,4.7,1.6l2.5,4.7c3.3-0.6,6.7-0.6,10,0l2.5-4.7
+                                                          c1-1.9,2.6-2.4,4.7-1.6c3.7,1.2,7.1,3.2,10,5.9c1.7,1.2,2,2.8,0.9,4.7l-2.5,4.7c2.1,2.5,3.7,5.3,5,8.4h5c2.3,0,3.5,1,3.7,
+                                                          3.1 c0.8,4,0.8,7.8,0,11.5c-0.2,2.3-1.5,3.4-3.7,3.4h-5c-1.2,3.1-2.9,5.9-5,8.4l2.5,4.4c1,2.1,0.7,3.7-0.9,5c-2.9,2.5-6.2,4.5-10,5.9
+                                                           c-2.1,0.6-3.6,0-4.7-1.9L195,105C191.7,105.6,188.4,105.6,185.1,105z" />
                                         <circle class="gear-inner" cx="190" cy="78.4" r="11.5" />
-                                        <path class="gear-outer small" d="M185.1,198.2l-2.5,4.4c-1,1.9-2.6,2.5-4.7,1.9c-3.7-1.5-7.1-3.4-10-5.9c-1.7-1.5-2-3.1-0.9-5l2.5-4.4
-      c-2.1-2.5-3.7-5.3-5-8.4h-5c-2.3,0-3.5-1.1-3.7-3.4c-0.8-3.7-0.8-7.6,0-11.5c0.2-2.1,1.5-3.1,3.7-3.1h5c1.2-3.1,2.9-6,5-8.7
-      l-2.5-4.4c-1-1.9-0.7-3.5,0.9-5c2.9-2.5,6.2-4.4,10-5.6c2.1-0.8,3.6-0.3,4.7,1.6l2.5,4.7c3.3-0.6,6.7-0.6,10,0l2.5-4.7
-      c1-1.9,2.6-2.4,4.7-1.6c3.7,1.2,7.1,3.1,10,5.6c1.7,1.5,2,3.1,0.9,5l-2.5,4.4c2.1,2.7,3.7,5.6,5,8.7h5c2.3,0,3.5,1,3.7,3.1
-      c0.8,4,0.8,7.8,0,11.5c-0.2,2.3-1.5,3.4-3.7,3.4h-5c-1.2,3.1-2.9,5.9-5,8.4l2.5,4.4c1,1.9,0.7,3.5-0.9,5c-2.9,2.5-6.2,4.5-10,5.9
-      c-2.1,0.6-3.6,0-4.7-1.9l-2.5-4.4C191.7,198.8,188.4,198.8,185.1,198.2z" />
+                                        <path class="gear-outer small"
+                                            d="M185.1,198.2l-2.5,4.4c-1,1.9-2.6,2.5-4.7,1.9c-3.7-1.5-7.1-3.4-10-5.9c-1.7-1.5-2-3.1-0.9-5l2.5-4.4 c-2.1-2.5-3.7-5.3-5-8.4h-5c-2.3,0-3.5-1.1-3.7-3.4c-0.8-3.7-0.8-7.6,0-11.5c0.2-2.1,1.5-3.1,3.7-3.1h5c1.2-3.1,2.9-6,5-8.7
+                                                             l-2.5-4.4c-1-1.9-0.7-3.5,0.9-5c2.9-2.5,6.2-4.4,10-5.6c2.1-0.8,3.6-0.3,4.7,1.6l2.5,4.7c3.3-0.6,6.7-0.6,10,0l2.5-4.7
+                                                              c1-1.9,2.6-2.4,4.7-1.6c3.7,1.2,7.1,3.1,10,5.6c1.7,1.5,2,3.1,0.9,5l-2.5,4.4c2.1,2.7,3.7,5.6,5,8.7h5c2.3,0,3.5,1,3.7,3.1
+                                                                 c0.8,4,0.8,7.8,0,11.5c-0.2,2.3-1.5,3.4-3.7,3.4h-5c-1.2,3.1-2.9,5.9-5,8.4l2.5,4.4c1,1.9,0.7,3.5-0.9,5c-2.9,2.5-6.2,4.5-10,5.9
+                                                                    c-2.1,0.6-3.6,0-4.7-1.9l-2.5-4.4C191.7,198.8,188.4,198.8,185.1,198.2z" />
                                         <circle class="gear-inner" cx="190.1" cy="171.6" r="11.5" />
                                     </g>
                                 </svg>
                                 <h1 class="noProjectText">{{ __('You still have no projects') }}</h1>
 
-
                             </div>
                             <div class="col-md-9">
                                 <div class="card-header pt-3 pb-1 d-flex p-3">
 
-                                    <!-- <a style="width: 100%; text-align: center;"
-                                                         >
-                                                        <h4>¡Vaya, parece que aún no tienes ningún proyecto!</h4>
-                                                    </a> -->
                                     <div class="card-header-right">
                                         <div class="btn-group card-option">
                                         </div>
                                     </div>
 
                                 </div>
-
                             </div>
 
-
-                            <!-- fin seccion para cuando no hay proyectos -->
+                           <!-- fin seccion para cuando no hay proyectos -->
                         @else
                             @foreach ($projects as $project)
                                 <div onclick="if (!event.target.closest('#deleteFormContainer')) { redirectToCurrentProject('{{ route('projects.show', [$currentWorkspace->slug, $project->id]) }}'); }"
@@ -241,7 +290,7 @@
                                                 style="width: 45px; height: 45px;" alt="...">
                                             <small class="text-muted tooltipCus" data-title="{{ __('Project type') }}"
                                                 data-type="$project_type[$project->type - 1]->name">
-                                                <b>{{ $project_type[$project->type - 1]->name }}</b>
+                                                <b>{{ __($project_type[$project->type - 1]->name) }}</b>
                                             </small>
                                             <span class="text-muted tooltipCus" data-title="{{ __('Reference M.O') }}">
                                                 <b>{{ $project->ref_mo }}</b></span>
@@ -255,16 +304,16 @@
                                                     </a>
                                                     <div class="card-header-right">
                                                         <div class="btn-group card-option">
-                                                            <div class="mt-3 me-5">
+                                                            <div class="mt-2 me-5">
                                                                 @if ($project->status == 'Finished')
                                                                     <span data-title="{{ __('Status') }}"
-                                                                        class="badge rounded-pill bg-success tooltipCus">{{ __('Finished') }}</span>
+                                                                        class="badge rounded-pill bg-success p-2 tooltipCus">{{ __('Finished') }}</span>
                                                                 @elseif($project->status == 'Ongoing')
                                                                     <span data-title="{{ __('Status') }}"
-                                                                        class="badge rounded-pill bg-secondary tooltipCus">{{ __('Ongoing') }}</span>
+                                                                        class="badge rounded-pill bg-secondary p-2 tooltipCus">{{ __('Ongoing') }}</span>
                                                                 @else
                                                                     <span data-title="{{ __('Status') }}"
-                                                                        class="badge rounded-pill bg-warning tooltipCus">{{ __('OnHold') }}</span>
+                                                                        class="badge rounded-pill bg-warning p-2 tooltipCus">{{ __('OnHold') }}</span>
                                                                 @endif
                                                             </div>
                                                             @if ($project->is_active && $project->created_by == Auth::user()->id)
@@ -341,115 +390,130 @@
                         @endif
                     </div>
                 </div>
+
                 <div class="col-md-4 position-sticky text-muted">
-                    <div class="mt-0 pt-0">
-                        <div>
-                            @auth('web')
-                                <a href="#" class="btn-addnew tooltipCus card custom " data-ajax-popup="true"
-                                    data-title="{{ __('Create New Project') }}"
-                                    data-url="{{ route('projects.create', $currentWorkspace->slug) }}">
-                                    <div class="bg-primary iconaddproject zoom">
-                                        <h6 class="m-1 btnlabel">{{ __('Create New Project') }}</h6>
-                                        <i class="ti ti-plus"></i>
-                                    </div>
-
-
-                                </a>
-                            @endauth
-                        </div>
-                        <div class="inputWrapper">
-                            <div id="searchInputProjects" data-popper-placement="bottom-start">
-                                <form class="form-inline mr-auto mb-0">
-                                    <div class="search-element">
-                                        <div class="input-wrapper">
-                                            <input type="text" class="input" id="searchInput"
-                                                placeholder="{{ __('Enter name or reference M.O') }}">
-                                            <svg xmlns="http://www.w3.org/2000/svg" class="input-icon"
-                                                viewBox="0 0 20 20" fill="currentColor">
-                                                <path fill-rule="evenodd"
-                                                    d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z"
-                                                    clip-rule="evenodd" />
-                                            </svg>
-                                        </div>
-                                        <div class="search-backdrop"></div>
-                                    </div>
-                                </form>
+                    <div class="card " id="v-pills-filterSection">
+                        <div class="card-header buttonColocation">
+                            <div>
+                                <h5><i class="bi bi-filter"></i> {{ __('Filter projects') }}</h5>
+                                <p class="text-muted mt-3">
+                                    {{ __('Remember that the projects shown are those of your delegation/group.') }}
+                                </p>
                             </div>
+                            <button class="btn btn-sm btn-primary toggle-section buttonColapse"
+                                data-target="#filterSection-content">-</button>
                         </div>
+                        <div class="card-body collapse-section" id="filterSection-content">
+                            <div class="col-12 d-flex flex-column">
+                                <h5>
+                                    {{ __('Status') }}
+                                </h5>
+                                <div class="divStatus">
 
-                        <!-- inicio botones filtro  -->
-                        <div class="col-sm-5 filterSection">
-                            <div class="divStatus">
-                                <!-- Filtro de Status -->
-                                <div class="btn-group status-filter secondFilter">
-                                    <!-- <button type="button" data-filter="*" class="btn btn-light text-white btn_tab bg-primary active"
-                    data-status="All">{{ __('All') }}</button> -->
-                                    <button type="button"
-                                        class="btn btn-light bg-primary text-white btn_tab responsiveButton"
-                                        data-filter=".OnHold">{{ __('OnHold') }}</button>
-                                    <button type="button"
-                                        class="btn btn-light bg-primary text-white btn_tab responsiveButton"
-                                        data-filter=".Ongoing">{{ __('Ongoing') }}</button>
-                                    <button type="button"
-                                        class="btn btn-light bg-primary text-white btn_tab responsiveButton"
-                                        data-filter=".Finished">{{ __('Finished') }}</button>
-
+                                    <!-- Filtro de Status -->
+                                    <div class="btn-group status-filter">
+                                        <button type="button"
+                                            class="btn d-flex align-items-center active zoom  text-muted"
+                                            data-filter=".Ongoing">
+                                            <span class="status-indicator bg-secondary me-2"></span>
+                                            {{ __('Ongoing') }}
+                                        </button>
+                                        <button type="button" class="btn d-flex align-items-center zoom text-muted"
+                                            data-filter=".OnHold">
+                                            <span class="status-indicator bg-warning me-2"></span>
+                                            {{ __('OnHold') }}
+                                        </button>
+                                        <button type="button" class="btn d-flex align-items-center zoom text-muted"
+                                            data-filter=".Finished">
+                                            <span class="status-indicator bg-success me-2"></span>
+                                            {{ __('Finished') }}
+                                        </button>
+                                    </div>
                                 </div>
 
+                                <h5 class="mt-4">
+                                    {{ __('Project type') }}
+                                </h5>
                                 <!-- Filtro de Type -->
                                 <div class="btn-group type-filter">
-                                    @foreach ($project_type as $index => $type)
-                                        <button type="button" class="btn btn-light text-white btn_tab bg-primary"
-                                            data-filter=".type-{{ $type->id }}">
-                                            {{ __($type->name) }}
+                                    <div>
+                                        <button type="button" class="btn disp-btn zoom text-muted"
+                                            data-filter=".type-1">
+                                            <img src="{{ asset('assets/img/Jobsite.png') }}"
+                                                style="width: 25px; height: 25px;" alt="..." class="me-2">
+
+                                            {{ __('Jobsite') }}
                                         </button>
+                                        <button type="button" class="btn disp-btn zoom  text-muted"
+                                            data-filter=".type-2">
+                                            <img src="{{ asset('assets/img/Innovation.png') }}"
+                                                style="width: 25px; height: 25px;" alt="..." class="me-2">
+                                            {{ __('Innovation') }}
+                                        </button>
+                                    </div>
+                                    <div>
+                                        <button type="button" class="btn disp-btn zoom  text-muted"
+                                            data-filter=".type-3">
+                                            <img src="{{ asset('assets/img/Product development.png') }}"
+                                                style="width: 25px; height: 25px;" alt="..." class="me-1">
+                                            {{ __('Product Development') }}
+                                        </button>
+                                        <button type="button" class="btn disp-btn zoom  text-muted"
+                                            data-filter=".type-4">
+                                            <img src="{{ asset('assets/img/Office.png') }}"
+                                                style="width: 25px; height:25px;" alt="..." class="me-2">
+                                            {{ __('Office') }}
+                                        </button>
+                                    </div>
+                                </div>
+                                <hr class="mt-3" style="border: 1px solid #eeeeee; width: 100%">
+                                <div class="mt-4">
+                                    <h5>
+                                        {{ __('Filtros activos') }}
+                                    </h5>
+                                    <div id="activeFilters" class="mt-3 d-flex flex-wrap gap-3">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card " id="v-pills-myprojects">
+                        <div class="card-header buttonColocation">
+                            <div>
+                                <h5><i class="fa-solid fa-diagram-project me-1"></i> {{ __('My projects') }}</h5>
+                                <p class="text-muted mt-4">
+                                    {{ __('The projects on which you have performed a task or requested an assignment are displayed.') }}
+                                </p>
+                            </div>
+                            <button class="btn btn-sm btn-primary toggle-section buttonColapse"
+                                data-target="#myprojects-content">-</button>
+                        </div>
+                        <div class="card-body collapse-section" id="myprojects-content">
+                            <div class="col-12 d-flex flex-column">
+                                <h5>
+                                    {{ __('Projects in which I participate') }}...
+                                </h5>
+                                <div style="width: 95%;" class="mt-3">
+                                    @foreach (Auth::user()->projects() as $project)
+                                        @if (Auth::user()->currant_workspace == $project->workspace)
+                                            <div class="list-group mb-2">
+                                                <a a href="@auth('web'){{ route('projects.show', [$currentWorkspace->slug, $project->id]) }}@endauth"
+                                                    class="list-group-item list-group-item-action tooltipCus"
+                                                    aria-current="true" data-title="{{ __('Project') }}">
+                                                    <div class="d-flex w-100 justify-content-between">
+                                                        <h5 class="text-muted">{{ $project->name }} </h5>
+                                                        <small
+                                                            class="me-0 text-muted">{{ ucfirst($project->created_at->isoFormat('ddd DD MMM YYYY')) }}</small>
+                                                    </div>
+                                                    <small
+                                                        class="text-muted">{{ __($project_type[$project->type - 1]->name) }}</small>
+                                                    <small class="text-muted"><b>{{ $project->ref_mo }}</b></small>
+                                                </a>
+                                            </div>
+                                        @endif
                                     @endforeach
                                 </div>
                             </div>
-                        </div>
-
-                        <!-- Final botones filtro  -->
-                        <!-- <hr class="mt-3" style="border: 1px solid black; opacity: 0.100; width: 95%"> -->
-                        <!-- <div class="mt-4">
-                                <h5><i class="bi bi-filter"></i> {{ __('Filter by') }}</h5>
-                                <div class="type-filter">
-                                    @foreach ($project_type as $type)
-    <div class="d-flex">
-                                            <a href="#" class="types m-2 filter-link"
-                                                data-filter=".type-{{ $type->id }}"
-                                                style="background-color: transparent;">
-                                                <b class="text-muted ms-3">{{ __($type->name) }}</b>
-                                            </a>
-                                        </div>
-    @endforeach
-                                </div>
-                            </div> -->
-                    </div>
-
-                    <hr class="mt-3" style="border: 1px solid black; opacity: 0.100; width: 95%">
-                    <div class="mt-4">
-                        <h5>
-                            {{ __('My projects') }}
-                        </h5>
-                        <div style="width: 95%;" class="mt-3">
-                            @foreach (Auth::user()->projects() as $project)
-                                @if (Auth::user()->currant_workspace == $project->workspace)
-                                    <div class="list-group mb-2">
-                                        <a a href="@auth('web'){{ route('projects.show', [$currentWorkspace->slug, $project->id]) }}@endauth"
-                                            class="list-group-item list-group-item-action tooltipCus" aria-current="true"
-                                            data-title="{{ __('Project') }}">
-                                            <div class="d-flex w-100 justify-content-between">
-                                                <h5 class="text-muted">{{ $project->name }} </h5>
-                                                <small
-                                                    class="me-0 text-muted">{{ ucfirst($project->created_at->isoFormat('ddd DD MMM YYYY')) }}</small>
-                                            </div>
-                                            <small
-                                                class="text-muted">{{ $project_type[$project->type - 1]->name }}</small>
-                                            <small class="text-muted"><b>{{ $project->ref_mo }}</b></small>
-                                        </a>
-                                    </div>
-                                @endif
-                            @endforeach
                         </div>
                     </div>
                 </div>
@@ -481,10 +545,52 @@
         </div>
     </section>
 @endsection
+
 <script>
     function redirectToCurrentProject(url) {
         window.location.href = url;
     }
+    document.addEventListener("DOMContentLoaded", function() {
+        document.querySelectorAll(".buttonColapse").forEach(button => {
+            button.addEventListener("click", function() {
+                let target = document.querySelector(this.dataset.target);
+
+                if (target) {
+                    target.classList.toggle("d-none");
+                }
+
+                this.textContent = this.textContent === "-" ? "+" : "-";
+            });
+        });
+    });
+
+    document.addEventListener("DOMContentLoaded", function() {
+        const buttons = document.querySelectorAll(".btn-group button, .disp-btn");
+        const activeFiltersContainer = document.getElementById("activeFilters");
+
+        function updateActiveFilters() {
+
+            activeFiltersContainer.innerHTML = "";
+
+            buttons.forEach(button => {
+                if (button.classList.contains("active") || button.classList.contains("selected")) {
+                    const clone = button.cloneNode(true);
+                    clone.classList.remove("btn");
+                    clone.classList.add("btn-active-filters");
+                    activeFiltersContainer.appendChild(clone);
+                }
+            });
+        }
+
+        buttons.forEach(button => {
+            button.addEventListener("click", function() {
+                setTimeout(updateActiveFilters,
+                    100);
+            });
+        });
+
+        updateActiveFilters();
+    });
 </script>
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
 @if (isset($currentWorkspace) && $currentWorkspace)
