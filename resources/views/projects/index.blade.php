@@ -234,9 +234,7 @@
                     <div class="grid filters-content">
                         @if ($projects->isEmpty())
                             <!-- seccion para cuando no hay proyectos -->
-
-
-                            <div class="col-md-2 project-type text-center m-2"
+                           <div class="col-md-2 project-type text-center m-2"
                                 style="display: flex; align-items: center; justify-content: center; width:100%">
 
                                 <svg version="1.1" id="gears" xmlns="http://www.w3.org/2000/svg"
@@ -269,7 +267,6 @@
                                 </svg>
                                 <h1 class="noProjectText">{{ __('You still have no projects') }}</h1>
 
-
                             </div>
                             <div class="col-md-9">
                                 <div class="card-header pt-3 pb-1 d-flex p-3">
@@ -280,7 +277,6 @@
                                     </div>
 
                                 </div>
-
                             </div>
 
                            <!-- fin seccion para cuando no hay proyectos -->
@@ -443,14 +439,14 @@
                                     <div>
                                         <button type="button" class="btn disp-btn zoom text-muted"
                                             data-filter=".type-1">
-                                            <img src="{{ asset('assets/img/jobsite.png') }}"
+                                            <img src="{{ asset('assets/img/Jobsite.png') }}"
                                                 style="width: 25px; height: 25px;" alt="..." class="me-2">
 
                                             {{ __('Jobsite') }}
                                         </button>
                                         <button type="button" class="btn disp-btn zoom  text-muted"
                                             data-filter=".type-2">
-                                            <img src="{{ asset('assets/img/innovation.png') }}"
+                                            <img src="{{ asset('assets/img/Innovation.png') }}"
                                                 style="width: 25px; height: 25px;" alt="..." class="me-2">
                                             {{ __('Innovation') }}
                                         </button>
@@ -458,13 +454,13 @@
                                     <div>
                                         <button type="button" class="btn disp-btn zoom  text-muted"
                                             data-filter=".type-3">
-                                            <img src="{{ asset('assets/img/product development.png') }}"
+                                            <img src="{{ asset('assets/img/Product development.png') }}"
                                                 style="width: 25px; height: 25px;" alt="..." class="me-1">
                                             {{ __('Product Development') }}
                                         </button>
                                         <button type="button" class="btn disp-btn zoom  text-muted"
                                             data-filter=".type-4">
-                                            <img src="{{ asset('assets/img/office.png') }}"
+                                            <img src="{{ asset('assets/img/Office.png') }}"
                                                 style="width: 25px; height:25px;" alt="..." class="me-2">
                                             {{ __('Office') }}
                                         </button>
@@ -491,7 +487,6 @@
                             </div>
                             <button class="btn btn-sm btn-primary toggle-section buttonColapse"
                                 data-target="#myprojects-content">-</button>
-
                         </div>
                         <div class="card-body collapse-section" id="myprojects-content">
                             <div class="col-12 d-flex flex-column">
@@ -519,7 +514,6 @@
                                     @endforeach
                                 </div>
                             </div>
-
                         </div>
                     </div>
                 </div>
