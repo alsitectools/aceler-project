@@ -496,7 +496,7 @@
                                         @yield('links')
                                     </ul>
                                 </div>
-                                <div class="col header_breadcrumb me-3">
+                                <div class="col header_breadcrumb me-4">
                                     @if (trim($__env->yieldContent('action-button')))
                                         <div
                                             class="text-end  all-button-box justify-content-md-end justify-content-center ">
