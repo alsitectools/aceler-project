@@ -238,7 +238,9 @@ class Project extends Model
                 $taskEnd = $task->end_date ? Carbon::parse($task->end_date) : null;
 
                 if ($taskStart->lte($seventh_day) && (!$taskEnd || $taskEnd->gte($first_day))) {
-                    $taskData = self::processTaskTimesheets($task, $days, $currentWorkspace, $project->id, $userId);
+                    $userID = $task->assign_to;
+                    $taskData = self::processTaskTimesheets($task, $days, $currentWorkspace, $project->id, $userID);
+
                     $totalTaskTimes[] = $taskData['totaltime'];
 
                     $user = User::find($task->assign_to);
@@ -344,15 +346,17 @@ class Project extends Model
     private static function calculateDateTimes($days, $currentWorkspace, $project_id, $allProjects)
     {
         $totalDateTimes = [];
+        $timesheetsQuery = Timesheet::select('timesheets.*')
+            ->join('projects', 'projects.id', '=', 'timesheets.project_id')
+            ->join('tasks', 'tasks.id', '=', 'timesheets.task_id')
+            ->where('projects.workspace', $currentWorkspace->id);
 
         foreach ($days['datePeriod'] as $date) {
             $dateFormatted = $date->format('Y-m-d');
-            $timesheetsQuery = Timesheet::select('timesheets.*')
-                ->join('projects', 'projects.id', '=', 'timesheets.project_id')
-                ->join('tasks', 'tasks.id', '=', 'timesheets.task_id')
-                ->where('projects.workspace', $currentWorkspace->id);
 
-            if (!$allProjects) {
+            if ($allProjects) {
+                $timesheetsQuery->where('timesheets.created_by', Auth::user()->id);
+            } else {
                 $timesheetsQuery->where('projects.id', $project_id);
             }
 
@@ -362,6 +366,7 @@ class Project extends Model
 
         return $totalDateTimes;
     }
+
     public static function getProjectAssignedTimesheetHTML($currentWorkspace, $timesheets = [], $days = [], $project_id = null, $seeAsOwner = false)
     {
         $userId = Auth::id();
@@ -375,6 +380,7 @@ class Project extends Model
             $allProjects = true;
 
             $projects = Project::select(['id', 'name'])
+                ->where('workspace', $currentWorkspace->id)
                 ->whereHas('milestones.tasks')
                 ->with(['milestones' => function ($query) {
                     $query->select(['id', 'title', 'project_id'])

@@ -1779,6 +1779,7 @@ class ProjectController extends Controller
         // Validación de los campos requeridos
         $rules = [
             'title' => 'required',
+            'assing_to' => 'required',
             'end_date' => 'required',
             'files' => 'nullable|array',
             'files.*' => 'file|mimes:jpg,jpeg,png,xlsx,xls,csv,pdf,txt,dwg,dxf,zip,docx|max:5120',
@@ -1797,7 +1798,7 @@ class ProjectController extends Controller
         $milestone->project_id = $project->id;
         $milestone->title = $request->title;
         // $milestone->assign_to = '7'; //pongo 7 de momento porque es el id de la karla
-        $milestone->assign_to = Auth::user()->id;
+        $milestone->assign_to = $request->assing_to;
         $milestone->start_date = date('Y-m-d');
         $milestone->company = $request->company ?? '';
         $milestone->contractor = $request->contractor ?? '';
@@ -3291,7 +3292,6 @@ class ProjectController extends Controller
             $results = Project::getProjectAssignedTimesheetHTML($currentWorkspace, $timesheets, $days, $project_id);
             $returnHTML = $results['htmlContent'];         // HTML generado
             $totalrecords = $results['totalrecords']; // Total de registros
-
             if ($project_id != '-1') {
                 $projects = Project::select('projects.*')
                     ->join('user_projects', 'projects.id', '=', 'user_projects.project_id')

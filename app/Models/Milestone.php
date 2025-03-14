@@ -63,12 +63,10 @@ class Milestone extends Model
 
     public function salesManager()
     {
-
         $sales_manager = User::join('milestones', 'milestones.assign_to', '=', 'users.id')
             ->where('milestones.assign_to', $this->assign_to)
             ->select('users.*')
             ->first();
-
 
         return $sales_manager ? $sales_manager : "Unknow";
     }
