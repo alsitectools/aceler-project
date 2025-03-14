@@ -126,7 +126,8 @@
             <div id="hidden-file-inputs" style="display: flex;"></div>
         </div>
         <div class="modal-footer">
-            <button type="button" class="btn btn-light" data-bs-dismiss="modal">{{ __('Close') }}</button>
+            <button type="button" class="btn btn-light" id="closeBtn"
+                data-bs-dismiss="modal">{{ __('Close') }}</button>
             <input type="submit" value="{{ __('Save Changes') }}" class="btn btn-primary">
         </div>
     </form>
@@ -392,12 +393,66 @@
         }
     }
 
-    document.getElementById('asignMilestoneForm').addEventListener('submit', async function(event) {
-        event.preventDefault(); // Prevenir el envío inmediato
-        await displayNotification(); // Esperar a que se complete la notificación
-        this.submit(); // Enviar el formulario
+    document.getElementById('asignMilestoneForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        var formData = new FormData(this);
+        var fromStatusChange = this.hasAttribute('data-from-status-change');
+
+        try {
+            // Primero mostramos la notificación
+            await displayNotification();
+
+            // Luego enviamos el formulario usando AJAX
+            const response = await $.ajax({
+                url: this.action,
+                type: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,
+                headers: {
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                }
+            });
+
+            // Cerramos el modal actual
+            $('#commonModal').modal('hide');
+
+            // Solo si viene del cambio de estado, disparamos el evento
+            if (fromStatusChange) {
+                var event = new CustomEvent('milestoneAssigned', {
+                    detail: {
+                        success: true
+                    }
+                });
+                document.dispatchEvent(event);
+            } else {
+                // Solo recargamos si NO viene del cambio de estado
+                window.location.reload();
+            }
+        } catch (error) {
+            console.error('Error:', error);
+        }
+    });
+
+    // Modificamos el comportamiento del botón cerrar
+    document.getElementById('closeBtn').addEventListener('click', function() {
+        var fromStatusChange = document.getElementById('asignMilestoneForm').hasAttribute(
+            'data-from-status-change');
+
+        $('#commonModal').modal('hide');
+
+        // Si viene del cambio de estado, disparamos el evento
+        if (fromStatusChange) {
+            var event = new CustomEvent('milestoneAssigned', {
+                detail: {
+                    success: true
+                }
+            });
+            document.dispatchEvent(event);
+        }
     });
 </script>
+
 <script>
     const observer = new MutationObserver(() => {
         const form = document.getElementById(
@@ -408,6 +463,13 @@
             if (grandParent) {
                 grandParent.classList.add("modalMod");
                 greatGrandParent.classList.add("ctr");
+
+                // Hide all close buttons
+                const closeBtnCollection = document.getElementsByClassName('btn-close').length;
+                for (let index = 0; index < closeBtnCollection; index++) {
+                    document.getElementsByClassName('btn-close')[index].style.display = 'none';
+                }
+
                 observer.disconnect(); // Deja de observar una vez encontrado
             }
         }
