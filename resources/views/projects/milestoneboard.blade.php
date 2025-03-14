@@ -666,27 +666,34 @@ $icon =
 
                                     // Escuchar el evento solo si se disparó desde el form
                                     document.addEventListener('milestoneAssigned', function showTaskModal() {
-                                        document.removeEventListener('milestoneAssigned', showTaskModal);
+                                        setTimeout(() => {
 
-                                        var createTaskUrl =
-                                            '{{ route('tasks.create', $currentWorkspace->slug) }}' +
-                                            '?project_id=' + project_id +
-                                            '&milestoneTitle=' + encodeURIComponent(milestoneTitle) +
-                                            '&milestone_id=' + cardId +
-                                            '&fromMilestoneBoard=true';
-                                        var createTaskTitle = '{{ __('Create New Task') }}';
 
-                                        $("#" + modalId + " .modal-title").html(createTaskTitle);
-                                        $.ajax({
-                                            url: createTaskUrl,
-                                            dataType: 'html',
-                                            success: function(taskData) {
-                                                $('#' + modalId + ' .body').html(taskData);
-                                                $("#" + modalId).modal('show');
-                                                commonLoader();
-                                                loadConfirm();
-                                            }
-                                        });
+                                            document.removeEventListener('milestoneAssigned',
+                                                showTaskModal);
+
+                                            var createTaskUrl =
+                                                '{{ route('tasks.create', $currentWorkspace->slug) }}' +
+                                                '?project_id=' + project_id +
+                                                '&milestoneTitle=' + encodeURIComponent(
+                                                    milestoneTitle) +
+                                                '&milestone_id=' + cardId +
+                                                '&fromMilestoneBoard=true';
+                                            var createTaskTitle = '{{ __('Create New Task') }}';
+
+                                            $("#" + modalId + " .modal-title").html(createTaskTitle);
+                                            $.ajax({
+                                                url: createTaskUrl,
+                                                dataType: 'html',
+                                                success: function(taskData) {
+                                                    $('#' + modalId + ' .body').html(
+                                                        taskData);
+                                                    $("#" + modalId).modal('show');
+                                                    commonLoader();
+                                                    loadConfirm();
+                                                }
+                                            });
+                                        }, 10000);
                                     }, {
                                         once: true
                                     });
