@@ -644,27 +644,62 @@ $icon =
                         }
 
 
-                        // Si se permite el movimiento y es de status 1 a 2, se dispara la acción de "Add Task"
+                        // Si se permite el movimiento y es de status 1 a 2, se dispara primero el popup de asignación
                         if (oldStatus == 1 && newStatus >= 2) {
                             console.log('De por hacer a in progress');
 
-                            var url = '{{ route('tasks.create', $currentWorkspace->slug) }}' + '?project_id=' + project_id +
-                                '&milestoneTitle=' + milestoneTitle + '&milestone_id=' + cardId + '&fromMilestoneBoard=true';
-                            var title = '{{ __('Create New Task') }}';
+                            // Modificamos la construcción de la URL para asegurar la ruta correcta
+                            var assignUrl = '{{ route('projects.milestone.assign', [$currentWorkspace->slug, ':id']) }}'.replace(
+                                ':id', cardId);
+                            var assignTitle = '{{ __('Assign Milestone') }}';
                             var modalId = 'commonModal';
 
-                            $("#" + modalId + " .modal-title").html(title);
+                            $("#" + modalId + " .modal-title").html(assignTitle);
                             $.ajax({
-                                url: url,
+                                url: assignUrl,
                                 dataType: 'html',
-                                success: function(data) {
-                                    $('#' + modalId + ' .body').html(data);
+                                success: function(assignData) {
+                                    $('#' + modalId + ' .body').html(assignData);
+                                    // Marcamos el formulario para saber que viene del cambio de estado
+                                    $('#asignMilestoneForm').attr('data-from-status-change', 'true');
                                     $("#" + modalId).modal('show');
+
+                                    // Escuchar el evento solo si se disparó desde el form
+                                    document.addEventListener('milestoneAssigned', function showTaskModal() {
+                                        document.removeEventListener('milestoneAssigned', showTaskModal);
+
+                                        var createTaskUrl =
+                                            '{{ route('tasks.create', $currentWorkspace->slug) }}' +
+                                            '?project_id=' + project_id +
+                                            '&milestoneTitle=' + encodeURIComponent(milestoneTitle) +
+                                            '&milestone_id=' + cardId +
+                                            '&fromMilestoneBoard=true';
+                                        var createTaskTitle = '{{ __('Create New Task') }}';
+
+                                        $("#" + modalId + " .modal-title").html(createTaskTitle);
+                                        $.ajax({
+                                            url: createTaskUrl,
+                                            dataType: 'html',
+                                            success: function(taskData) {
+                                                $('#' + modalId + ' .body').html(taskData);
+                                                $("#" + modalId).modal('show');
+                                                commonLoader();
+                                                loadConfirm();
+                                            }
+                                        });
+                                    }, {
+                                        once: true
+                                    });
+
                                     commonLoader();
                                     loadConfirm();
+                                },
+                                error: function(xhr, status, error) {
+                                    console.error('Error al cargar el modal de asignación:', error);
                                 }
                             });
                         }
+
                         // Si se permite el movimiento y es de status 3 a 4, se genera una notificación
                         if (oldStatus == 3 && newStatus == 4) {
                             console.log('Generando notificacion de milestone completado');
