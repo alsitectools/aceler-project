@@ -693,7 +693,7 @@ $icon =
                                                     loadConfirm();
                                                 }
                                             });
-                                        }, 10000);
+                                        }, 2000);
                                     }, {
                                         once: true
                                     });
