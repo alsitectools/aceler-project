@@ -122,7 +122,7 @@
                         <div class="col-md-6" id="requestBy">
                             <label class="col-form-label">{{ __('Requested by') }}</label>
                             <input type="text" class="form-control" id="search"
-                                placeholder="{{ __('Search') }}" value="" autocomplete="off">
+                                placeholder="{{ __('Search') }}" value="" autocomplete="off" required>
 
                             <div id="user-select" aria-label="Default select example" class="dropdown-menu"
                                 style="width: 45% !important;">
@@ -132,7 +132,7 @@
                                         {{ $user->name }}
                                     </div>
                                 @endforeach
-                                <input type="text" name="assing_to" id="assing_To" style="display: none;">
+                                <input type="text" name="assing_to" id="assing_To" style="display: none;" >
                             </div>
                         </div>
                     </div>
