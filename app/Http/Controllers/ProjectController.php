@@ -963,6 +963,7 @@ class ProjectController extends Controller
             $allmilestones = Milestone::where(function ($query) use ($objUser) {
                 $query->where('assign_to', $objUser->id)
                     ->orWhere('milestone_assigned_to_user', $objUser->id)
+                    ->orWhere('created_by', $objUser->id)
                     ->orWhere('milestone_assigned_to_user', ''); // También considerar si está vacío
             })
                 ->whereHas('project', function ($query) use ($objUser) {
@@ -1010,7 +1011,7 @@ class ProjectController extends Controller
 
         if ($objUser) {
             // Si el usuario es el creador o está asignado al milestone, mostramos TODAS las tareas
-            if ($milestone->assign_to == $objUser->id || $milestone->milestone_assigned_to_user == $objUser->id) {
+            if ($milestone->assign_to == $objUser->id || $milestone->milestone_assigned_to_user == $objUser->id || $milestone->created_by == $objUser->id) {
                 $tasksOfmilestone = Task::where('milestone_id', $milestone->id)
                     ->where('project_id', $project->id)
                     ->get();
@@ -1043,6 +1044,7 @@ class ProjectController extends Controller
         return [
             'id'            => $milestone->id,
             'assined_to_user' => $milestone->milestone_assigned_to_user,
+            'created_by' => $milestone->created_by,
             'title'         => $milestone->title,
             'start_date'    => $milestone->start_date,
             'end_date'      => $milestone->end_date,
@@ -1806,6 +1808,7 @@ class ProjectController extends Controller
         $milestone->jobsiteAdress = $request->jobsiteAdress ?? '';
         $milestone->milestone_assigned_to_user = $request->req_assing_to ?? '';
         $milestone->planned_end_date = $request->planned_end_date ?? '';
+        $milestone->created_by = Auth::user()->id;
         $milestone->end_date = $request->end_date;
         $milestone->summary = $request->description ?? '';
         $milestone->save();
