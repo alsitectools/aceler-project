@@ -75,7 +75,7 @@
                 </div>
                 {{-- apartado fecha de entrega prevista --}}
                 <div style="width: 50%">
-                    <label class="col-form-label">Fecha de entrega prevista</label>
+                    <label class="col-form-label">{{ __('Expected delivery date') }}</label>
                     <input onclick="this.showPicker()" type="date" class="form-control form-control-light date"
                         id="planned_end_date" name="planned_end_date" value="{{ $milestone->planned_end_date }}"
                         required>
@@ -352,14 +352,17 @@
                 const response = await fetch(url);
                 const projectName = await response.text();
                 console.log("Nombre del proyecto:", projectName);
+                var plannedDate = document.getElementById('planned_end_date').value;
+                // Format the date from YYYY-MM-DD to DD-MM-YYYY
+                plannedDate = plannedDate.split('-').reverse().join('-');
                 milestoneParent = projectName;
             } catch (err) {
                 console.error("Error al obtener el nombre del proyecto:", err);
             }
         }
 
-        // Aquí ya se tiene el valor correcto en milestoneParent
-        let msg = milestoneTitle + ' en ' + milestoneParent;
+        // Aquí ya se tiene el valor correcto en milestoneParent y plannedDate formateado
+        let msg = milestoneTitle + ' en ' + milestoneParent + '. La fecha de entrega prevista es ' + plannedDate;
         let ntipe = (milestoneAssignedTo !== '') ? 4 : 2;
         if (!msg) return;
         try {

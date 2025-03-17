@@ -69,7 +69,7 @@
         align-items: center;
         justify-content: center;
         /* background-color: #a5222f; */
-        height: 77px;
+        height: 105px;
         border-radius: 10px;
         box-shadow: 0 6px 30px rgba(182, 186, 203, 0.3);
         font-size: 16px;
@@ -335,15 +335,67 @@
                                                                 @elseif($notification->type == '4')
                                                                     <div class="notificationSTL AP"
                                                                         data-notification-id="{{ $notification->id }}">
-                                                                        <span
-                                                                            class="textRepo">{{ __('You got assigned the milestone') }}
-                                                                            <b>
-                                                                                @if (app()->getLocale() === 'en')
-                                                                                    {{ preg_replace('/\ben\b/', 'in', $notification->data) }}
-                                                                                @else
-                                                                                    {{ $notification->data }}
-                                                                                @endif
-                                                                            </b></span>
+                                                                        @php
+                                                                            // Definimos los separadores para cada idioma
+                                                                            $separatorSpanish =
+                                                                                '. La fecha de entrega prevista es ';
+                                                                            $separatorEnglish =
+                                                                                '. The estimated delivery date is ';
+                                                                            $data = $notification->data;
+
+                                                                            if (app()->getLocale() === 'en') {
+                                                                                // Reemplazamos el separador en español por el de inglés
+                                                                                $data = str_replace(
+                                                                                    $separatorSpanish,
+                                                                                    $separatorEnglish,
+                                                                                    $data,
+                                                                                );
+                                                                                $parts = explode(
+                                                                                    $separatorEnglish,
+                                                                                    $data,
+                                                                                );
+                                                                                if (count($parts) === 2) {
+                                                                                    [
+                                                                                        $milestoneText,
+                                                                                        $plannedDate,
+                                                                                    ] = $parts;
+                                                                                } else {
+                                                                                    $milestoneText = $data;
+                                                                                    $plannedDate = '';
+                                                                                }
+                                                                                // Cambiamos " en " por " in " en la parte del hito
+                                                                                $milestoneText = str_replace(
+                                                                                    ' en ',
+                                                                                    ' in ',
+                                                                                    $milestoneText,
+                                                                                );
+                                                                                $dateText =
+                                                                                    'The estimated delivery date is ';
+                                                                            } else {
+                                                                                $parts = explode(
+                                                                                    $separatorSpanish,
+                                                                                    $data,
+                                                                                );
+                                                                                if (count($parts) === 2) {
+                                                                                    [
+                                                                                        $milestoneText,
+                                                                                        $plannedDate,
+                                                                                    ] = $parts;
+                                                                                } else {
+                                                                                    $milestoneText = $data;
+                                                                                    $plannedDate = '';
+                                                                                }
+                                                                                $dateText =
+                                                                                    'La fecha de entrega prevista es ';
+                                                                            }
+                                                                        @endphp
+
+                                                                        <span class="textRepo">
+                                                                            {{ __('You got assigned the milestone') }}
+                                                                            <b>{{ $milestoneText }}</b>.
+                                                                            {{ $dateText }}<b>{{ $plannedDate }}</b>
+                                                                        </span>
+
                                                                         <small
                                                                             class="text-muted smallDate">{{ ucfirst($notification->created_at->diffForHumans()) }}</small>
                                                                         <button type="button" class="btn-close repoIcon"

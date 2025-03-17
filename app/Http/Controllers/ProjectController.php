@@ -971,8 +971,8 @@ class ProjectController extends Controller
                 ->get();
 
             $milestones = $this->groupMilestonesByStatus($allmilestones, $objUser, $stages);
-            \Log::info('Milestones que se van a pasar a la vista');
-            \Log::info($milestones);
+            // \Log::info('Milestones que se van a pasar a la vista');
+            // \Log::info($milestones);
             $project_id = -1;
         } else {
             // Mostrar los milestones de un proyecto específico
@@ -1790,7 +1790,7 @@ class ProjectController extends Controller
             $messages = $validator->getMessageBag();
             return redirect()->back()->with('error', $messages->first());
         }
-        \Log::info($request->all());
+        // \Log::info($request->all());
 
         // Crear el milestone
         $milestone = new Milestone();
@@ -1964,7 +1964,7 @@ class ProjectController extends Controller
 
     public function milestoneUpdate($slug, $milestoneID, Request $request)
     {
-        \Log::info($request->all());
+        // \Log::info($request->all());
         $currentWorkspace = Utility::getWorkspaceBySlug($slug);
         $user1 = $currentWorkspace->id;
 
