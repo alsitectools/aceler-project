@@ -70,7 +70,8 @@
                                 {{ $user->name }}
                             </div>
                         @endforeach
-                        <input type="text" name="req_assing_to" id="req_assing_To" style="display: none;">
+                        <input type="text" name="req_assing_to" id="req_assing_To" style="display: none;"
+                            value="{{ $milestone->milestone_assigned_to_user }}">
                     </div>
                 </div>
                 {{-- apartado fecha de entrega prevista --}}
