@@ -20,6 +20,7 @@ use App\Models\Project;
 use App\Models\Milestone;
 use Illuminate\Support\Facades\App;
 
+
 class HomeController extends Controller
 {
     public function landingPage()
@@ -65,7 +66,8 @@ class HomeController extends Controller
                 'milestones.id',
                 'milestones.title',
                 'milestones.task_start_date',
-                'milestones.finalization_date'
+                'milestones.finalization_date',
+                'milestones.planned_end_date' // Añadir el campo planned_end_date
             )
             ->get();
 
@@ -78,7 +80,6 @@ class HomeController extends Controller
             $locale = App::getLocale();
             Carbon::setLocale($locale);
 
-
             $month = Carbon::parse($milestone->start_date)->translatedFormat('F'); // Nombre del mes traducido
             $quarter = 'Q' . ceil(date('n', strtotime($milestone->start_date)) / 3); // Trimestre
 
@@ -86,12 +87,14 @@ class HomeController extends Controller
             $estimated_date = Carbon::parse($milestone->end_date);
             $task_start_date = Carbon::parse($milestone->task_start_date);
             $finalization_date = $milestone->finalization_date ? Carbon::parse($milestone->finalization_date) : Carbon::now();
+            $planned_end_date = Carbon::parse($milestone->planned_end_date); // Fecha estimada por el usuario
 
             // Cálculos de tiempo
             $deliveryTime = $creation_date->diffInDays($finalization_date);
             $startUpTime = $creation_date->diffInDays($task_start_date);
             $delayTime = max(0, $estimated_date->diffInDays($finalization_date, false)); // Evita valores negativos
             $workingTime = $deliveryTime - $startUpTime - $delayTime;
+            $avgEstimatedByUser = $creation_date->diffInDays($planned_end_date); // Tiempo medio estimado por el usuario
 
             // Inicializar la estructura del año si no existe
             if (!isset($groupedMilestones[$year])) {
@@ -104,10 +107,12 @@ class HomeController extends Controller
                         'sumStartUp' => 0,
                         'sumWorking' => 0,
                         'sumDelay' => 0,
+                        'sumEstimatedByUser' => 0, // Suma de tiempos estimados por el usuario
                         'averageDelivery' => 0,
                         'averageStartUp' => 0,
                         'averageWorking' => 0,
                         'averageDelay' => 0,
+                        'avgEstimatedByUser' => 0, // Promedio de tiempos estimados por el usuario
                     ]
                 ];
             }
@@ -120,10 +125,12 @@ class HomeController extends Controller
                     'sumStartUp' => 0,
                     'sumWorking' => 0,
                     'sumDelay' => 0,
+                    'sumEstimatedByUser' => 0, // Suma de tiempos estimados por el usuario
                     'averageDelivery' => 0,
                     'averageStartUp' => 0,
                     'averageWorking' => 0,
                     'averageDelay' => 0,
+                    'avgEstimatedByUser' => 0, // Promedio de tiempos estimados por el usuario
                 ];
             }
 
@@ -133,6 +140,7 @@ class HomeController extends Controller
             $groupedMilestones[$year]['months'][$month]['sumStartUp'] += $startUpTime;
             $groupedMilestones[$year]['months'][$month]['sumWorking'] += $workingTime;
             $groupedMilestones[$year]['months'][$month]['sumDelay'] += $delayTime;
+            $groupedMilestones[$year]['months'][$month]['sumEstimatedByUser'] += $avgEstimatedByUser; // Acumular tiempo estimado por el usuario
 
             // ---- AGRUPACIÓN POR TRIMESTRES ----
             if (!isset($groupedMilestones[$year]['quarters'][$quarter])) {
@@ -142,10 +150,12 @@ class HomeController extends Controller
                     'sumStartUp' => 0,
                     'sumWorking' => 0,
                     'sumDelay' => 0,
+                    'sumEstimatedByUser' => 0, // Suma de tiempos estimados por el usuario
                     'averageDelivery' => 0,
                     'averageStartUp' => 0,
                     'averageWorking' => 0,
                     'averageDelay' => 0,
+                    'avgEstimatedByUser' => 0, // Promedio de tiempos estimados por el usuario
                 ];
             }
 
@@ -155,6 +165,7 @@ class HomeController extends Controller
             $groupedMilestones[$year]['quarters'][$quarter]['sumStartUp'] += $startUpTime;
             $groupedMilestones[$year]['quarters'][$quarter]['sumWorking'] += $workingTime;
             $groupedMilestones[$year]['quarters'][$quarter]['sumDelay'] += $delayTime;
+            $groupedMilestones[$year]['quarters'][$quarter]['sumEstimatedByUser'] += $avgEstimatedByUser; // Acumular tiempo estimado por el usuario
 
             // ---- AGRUPACIÓN POR AÑO (YEARLY) ----
             $groupedMilestones[$year]['yearly']['total']++;
@@ -162,6 +173,7 @@ class HomeController extends Controller
             $groupedMilestones[$year]['yearly']['sumStartUp'] += $startUpTime;
             $groupedMilestones[$year]['yearly']['sumWorking'] += $workingTime;
             $groupedMilestones[$year]['yearly']['sumDelay'] += $delayTime;
+            $groupedMilestones[$year]['yearly']['sumEstimatedByUser'] += $avgEstimatedByUser; // Acumular tiempo estimado por el usuario
         }
 
         // Calcular promedios
@@ -172,8 +184,9 @@ class HomeController extends Controller
                     $monthData['averageStartUp'] = round($monthData['sumStartUp'] / $monthData['total']);
                     $monthData['averageWorking'] = round($monthData['sumWorking'] / $monthData['total']);
                     $monthData['averageDelay'] = round($monthData['sumDelay'] / $monthData['total']);
+                    $monthData['avgEstimatedByUser'] = round($monthData['sumEstimatedByUser'] / $monthData['total']); // Calcular promedio de tiempo estimado por el usuario
                 }
-                unset($monthData['sumDelivery'], $monthData['sumStartUp'], $monthData['sumWorking'], $monthData['sumDelay'], $monthData['total']);
+                unset($monthData['sumDelivery'], $monthData['sumStartUp'], $monthData['sumWorking'], $monthData['sumDelay'], $monthData['sumEstimatedByUser'], $monthData['total']);
             }
 
             foreach ($yearData['quarters'] as $quarter => &$quarterData) {
@@ -182,8 +195,9 @@ class HomeController extends Controller
                     $quarterData['averageStartUp'] = round($quarterData['sumStartUp'] / $quarterData['total']);
                     $quarterData['averageWorking'] = round($quarterData['sumWorking'] / $quarterData['total']);
                     $quarterData['averageDelay'] = round($quarterData['sumDelay'] / $quarterData['total']);
+                    $quarterData['avgEstimatedByUser'] = round($quarterData['sumEstimatedByUser'] / $quarterData['total']); // Calcular promedio de tiempo estimado por el usuario
                 }
-                unset($quarterData['sumDelivery'], $quarterData['sumStartUp'], $quarterData['sumWorking'], $quarterData['sumDelay'], $quarterData['total']);
+                unset($quarterData['sumDelivery'], $quarterData['sumStartUp'], $quarterData['sumWorking'], $quarterData['sumDelay'], $quarterData['sumEstimatedByUser'], $quarterData['total']);
             }
 
             // Calcular promedios anuales
@@ -192,10 +206,11 @@ class HomeController extends Controller
                 $yearData['yearly']['averageStartUp'] = round($yearData['yearly']['sumStartUp'] / $yearData['yearly']['total']);
                 $yearData['yearly']['averageWorking'] = round($yearData['yearly']['sumWorking'] / $yearData['yearly']['total']);
                 $yearData['yearly']['averageDelay'] = round($yearData['yearly']['sumDelay'] / $yearData['yearly']['total']);
+                $yearData['yearly']['avgEstimatedByUser'] = round($yearData['yearly']['sumEstimatedByUser'] / $yearData['yearly']['total']); // Calcular promedio de tiempo estimado por el usuario
             }
-            unset($yearData['yearly']['sumDelivery'], $yearData['yearly']['sumStartUp'], $yearData['yearly']['sumWorking'], $yearData['yearly']['sumDelay'], $yearData['yearly']['total']);
+            unset($yearData['yearly']['sumDelivery'], $yearData['yearly']['sumStartUp'], $yearData['yearly']['sumWorking'], $yearData['yearly']['sumDelay'], $yearData['yearly']['sumEstimatedByUser'], $yearData['yearly']['total']);
         }
-        //\Log::debug("Milestones organizados por año: " . json_encode($groupedMilestones, JSON_PRETTY_PRINT));
+        \Log::debug("Milestones organizados por año: " . json_encode($groupedMilestones, JSON_PRETTY_PRINT));
 
         return $groupedMilestones;
     }
@@ -221,7 +236,20 @@ class HomeController extends Controller
             $totalWorkspaceMilestones = Milestone::join("projects", "projects.id", "=", "milestones.project_id")
                 ->where('projects.workspace', '=', $currentWorkspace->id)
                 ->count();
-
+            $notAssignedMilestones = Milestone::join('projects', 'projects.id', '=', 'milestones.project_id')
+                ->where('projects.workspace', $currentWorkspace->id)
+                ->where('milestones.milestone_assigned_to_user', '')
+                ->count();
+            $assignedMilestones = Milestone::join('projects', 'projects.id', '=', 'milestones.project_id')
+                ->where('projects.workspace', $currentWorkspace->id)
+                ->where('milestones.milestone_assigned_to_user', Auth::user()->id)
+                ->where('milestones.status', '<=', 3)
+                ->count();
+            $forReviewMilestones = Milestone::join('projects', 'projects.id', '=', 'milestones.project_id')
+                ->where('projects.workspace', $currentWorkspace->id)
+                ->where('milestones.milestone_assigned_to_user', Auth::user()->id)
+                ->where('milestones.status', 3)
+                ->count();
             /*$totalProject = UserProject::join("projects", "projects.id", "=", "user_projects.project_id")
                 ->where("user_id", "=", $userObj->id)
                 ->where('projects.workspace', '=', $currentWorkspace->id)->count();*/
@@ -397,7 +425,10 @@ class HomeController extends Controller
                 'projectProcess',
                 'averageTimes',
                 'averageTimesKeys',
-                'totalWorkspaceMilestones'
+                'totalWorkspaceMilestones',
+                'notAssignedMilestones',
+                'assignedMilestones',
+                'forReviewMilestones'
             ));
 
             // }
