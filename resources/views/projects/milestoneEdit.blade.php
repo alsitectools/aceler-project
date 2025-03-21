@@ -66,8 +66,8 @@
                                     style="width: 20px; height: 25px;">
                                 <div class="file-name ms-2">{{ $file->name }} <small
                                         class="text-muted">({{ $file->file_size }})</small></div>
-                                <a class="buttonFiles"
-                                    onclick="deleteFile({{ $milestone->project_id }}, '{{ $milestone->id }}', '{{ $file->name }}')">
+                                <a class="buttonFiles btn btn-sm"
+                                    onclick="deleteFile({{ $milestone->project_id }}, '{{ $milestone->id }}', '{{ $file->id }}')">
                                     <i class="fa-solid fa-trash-alt" style="color:white"></i>
                                 </a>
                             </div>
@@ -100,30 +100,6 @@
 
 <script>
     var filesArray = [];
-
-
-    function deleteFile(idProject, milestoneId, file) {
-        const deleteUrl = '<?php echo url('/milestone/delete_file'); ?>';
-
-        $.ajax({
-            url: deleteUrl,
-            method: 'POST',
-            data: {
-                "idProject": idProject,
-                "milestoneId": milestoneId,
-                "fileName": file,
-                _token: $('meta[name="csrf-token"]').attr('content')
-            },
-            success: function(response) {
-                console.log("file succefully deleted")
-                //location.reload();
-            },
-            error: function(xhr) {
-                alert("An error occurred while downloading the file.");
-                console.error(xhr.responseText);
-            }
-        });
-    }
 
     document.getElementById('dropzonewidgetMilestone').addEventListener('click', function() {
         document.getElementById('file-uploadMilestone').click();
@@ -188,17 +164,13 @@
             fileNameContainer.textContent = file.name;
             fileContainer.appendChild(fileNameContainer);
 
-            // const fileSize = document.createElement('small');
-            // fileSize.classList.add('text-muted', 'ms-2');
-            // fileSize.textContent = `(${formatFileSize(file.size)})`;
-            // fileNameContainer.appendChild(fileSize);
 
             const removeButton = document.createElement('a');
             removeButton.classList.add('buttonFiles');
             removeButton.innerHTML = '<i class="fa-solid fa-trash" style="color:white"></i>';
             removeButton.addEventListener('click', function() {
                 filesArray = filesArray.filter(f => `${f.name}-${f.size}-${f.lastModified}` !==
-                fileKey);
+                    fileKey);
                 document.getElementById(fileKey).remove();
                 updateFileList();
             });
@@ -222,6 +194,56 @@
             }
         });
     }
+
+    function deleteFile(idProject, milestoneId, fileId) {
+        event.preventDefault();
+        const deleteUrl = "{{ route('milestone.destroy.file') }}";
+        
+        const swalWithBootstrapButtons = Swal.mixin({
+            customClass: {
+                confirmButton: 'btn btn-success',
+                cancelButton: 'btn btn-danger'
+            },
+            buttonsStyling: false
+        });
+
+        swalWithBootstrapButtons.fire({
+            title: '{{ __('Are You Sure?') }}',
+            text: '{{ __('This action can not be undone. Do you want to continue?') }}',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: appLocale == 'es' ? 'Si' : 'Yes',
+            cancelButtonText: 'No',
+            reverseButtons: false,
+        }).then((result) => {
+            if (result.isConfirmed) {
+                
+                $.ajax({
+                    url: deleteUrl,
+                    method: 'POST',
+                    data: {
+                        "idProject": idProject,
+                        "milestoneId": milestoneId,
+                        "fileID": fileId,
+                        _method: 'DELETE',
+                        _token: $('meta[name="csrf-token"]').attr('content')
+                    },
+                    success: function(response) {
+
+                        const fileElement = document.querySelector(
+                            `.fileMilestoneEdit[data-file-id="${fileId}"]`);
+                        if (fileElement) {
+                            fileElement.remove();
+                        }
+                    },
+                    error: function(xhr) {
+                        console.error(xhr.responseText);
+                    }
+                });
+            }
+        });
+    }
+
 
     //  Funciones auxiliares para íconos, extensiones y tamaños de archivos
     function getIconPath(filename) {
