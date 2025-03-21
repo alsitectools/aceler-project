@@ -691,7 +691,7 @@ Route::post('/{slug}/projects/{id}/comment/{tid}/file/{cid?}', [ProjectControlle
 Route::delete('/{slug}/projects/{id}/comment/{tid}/file/{fid}', [ProjectController::class, 'commentDestroyFile'])->name('comment.destroy.file');
 
 
-Route::post('/milestone/delete_file', [ProjectController::class, 'milestoneDestroyFile'])->name('milestone.destroy.file');
+Route::delete('/milestone/delete_file', [ProjectController::class, 'milestoneDestroyFile'])->name('milestone.destroy.file');
 
 
 Route::post('/{slug}/projects/{id}/comment/{tid}/{cid?}', [ProjectController::class, 'commentStore'])->name('comment.store');
@@ -1011,5 +1011,5 @@ Route::get('/get-timesheetCalendar', [CalenderController::class, 'getTimesheetCo
 //Download project files
 Route::post('/projects/download-file', [ProjectController::class, 'downloadFile'])->name('project.downloadFile');
 //Delete project files
-Route::post('/projects/delete-file', [ProjectController::class, 'deleteFile'])->name('project.deleteFile');
+Route::delete('/projects/delete-file', [ProjectController::class, 'deleteFile'])->name('project.deleteFile');
 Route::get('/home/tutorial/{slug}', [HomeController::class, 'showTutorial'])->name('home.showTutorial');

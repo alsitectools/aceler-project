@@ -53,7 +53,7 @@
         display: grid;
         grid-template-columns: repeat(3, 1fr);
         gap: 10px;
-        max-height: 140px;
+        /* max-height: 140px; */
         overflow-y: auto;
         overflow-x: hidden;
     }
@@ -109,7 +109,7 @@
     }
 
     .fatherMilestoneDiv {
-        max-height: 140px;
+        /* max-height: 140px; */
         overflow-y: auto;
         overflow-x: hidden;
         display: flex;
@@ -123,8 +123,8 @@
     }
 
     .styleIconFiles {
-        width: 12%;
-        height: 65%;
+        width: 30px;
+        height: 25px;
         padding-left: 5px;
         padding-right: 5px;
     }
@@ -132,6 +132,11 @@
     .size40AndBold {
         font-weight: bold;
         font-size: 40px;
+    }
+
+    .titleFiles {
+        display: flex !important;
+        align-items: baseline;
     }
 
     @media (max-width: 1300px) {
@@ -234,7 +239,7 @@
         /* Limita a 3 elementos por fila */
         gap: 10px;
         /* Espaciado entre los archivos */
-        max-height: 140px;
+        /* max-height: 140px; */
         /* Limita la altura del contenedor */
         overflow-y: auto;
         /* Permite el desplazamiento vertical si hay demasiados archivos */
@@ -428,74 +433,7 @@
                             </div>
                         </div>
                     </div>
-                    <!---<div class="row">
-                                                                                    <div class="col-lg-3 col-sm-6">
-                                                                                        <div class="card">
-                                                                                            <div class="card-body">
-                                                                                                <div class="row">
-                                                                                                    <div class="theme-avtar bg-primary">
-                                                                                                        <i class="fas fas fa-calendar-day"></i>
-                                                                                                    </div>
-                                                                                                    <div class="col text-end">
-                                                                                                        <h6 class="text-muted mb-1">{{ __('Created date') }}</h6>
-                                                                                                        <span
-                                                                                                            class="h6 font-weight-bold mb-0 ">{{ App\Models\Utility::dateFormat($project->start_date) }}</span>
-                                                                                                    </div>
-                                                                                                </div>
-                                                                                            </div>
-                                                                                        </div>
-                                                                                    </div>
-                                                                                    <div class="col-lg-3 col-sm-6">
-                                                                                        <div class="card">
-                                                                                            <div class="card-body">
-                                                                                                <div class="row">
-                                                                                                    <div class="theme-avtar bg-danger">
-                                                                                                        <i class="fas fa-tasks text-white"></i>
-                                                                                                    </div>
-                                                                                                    <div class="col text-end">
-                                                                                                        <h6 class="text-muted mb-1">{{ __('Tasks') }}</h6>
-                                                                                                        <span class="h6 font-weight-bold mb-0 ">{{ $project->countTask() }}</span>
-                                                                                                    </div>
-                                                                                                </div>
-                                                                                            </div>
-                                                                                        </div>
-                                                                                    </div>
-                                                                                    <div class="col-lg-3 col-sm-6">
-                                                                                        <div class="card">
-                                                                                            <div class="card-body">
-                                                                                                <div class="row">
-                                                                                                    <div class="theme-avtar" style="background-color: #B197FC;">
-                                                                                                        <i class="fa-solid fa-file-lines fa-lg text-white"
-                                                                                                            style="color: #B197FC;"></i>
-                                                                                                    </div>
-                                                                                                    <div class="col text-end">
-                                                                                                        <h6 class="text-muted mb-1">{{ __('Milestones') }}</h6>
-                                                                                                        <span
-                                                                                                            class="h6 font-weight-bold mb-0 ">{{ $project->milestonescount() }}</span>
-                                                                                                    </div>
-                                                                                                </div>
-                                                                                            </div>
-                                                                                        </div>
-                                                                                    </div>
-                                                                                    <div class="col-lg-3 col-sm-6">
-                                                                                        <div class="card">
-                                                                                            <div class="card-body">
-                                                                                                <div class="row">
-                                                                                                    <div class="theme-avtar bg-success">
-                                                                                                        <i class="fa-solid fa-diagram-project bg-success text-white"></i>
-                                                                                                    </div>
-                                                                                                    <div class="col text-end">
-                                                                                                        <h6 class="text-muted mb-1">
-                                                                                                            {{ $project->type != 1 ? __('Project type') : __('MO') }}</h6>
-                                                                                                        <span
-                                                                                                            class="h6 font-weight-bold mb-0 ">{{ $project->ref_mo != '' ? $project->ref_mo : __($project->typeName()) }}
-                                                                                                        </span>
-                                                                                                    </div>
-                                                                                                </div>
-                                                                                            </div>
-                                                                                        </div>
-                                                                                    </div>
-                                                                                </div>-->
+            
                     <div class="col-lg-12 widthAdjustDiv">
                         @if ($currentWorkspace->permission == 'Member' || $currentWorkspace->permission == 'Owner')
                             <div class="card">
@@ -834,7 +772,7 @@
                 <div class="col-xxl-12">
                     <div class="row">
                         <div class="col-md-6">
-                            <div class="card min-end">
+                            <div class="card">
                                 <div class="card-header">
                                     <div class="d-flex justify-content-between align-items-center">
                                         <div>
@@ -853,52 +791,38 @@
                                         </div>
                                     </div>
                                     <div class="mt-3">
-                                        <h5>{{ __('Project files') }}</h5>
+                                        <div class="titleFiles">
+                                            <i class="fa-regular fa-folder-open d-inline me-2 fa-xl"></i>
+                                            <h5>{{ __('Project files') }}</h5>
+                                        </div>
+
                                         <!-- Contenedor único scrollable -->
-                                        <div class="uploaded-files-container top-10-scroll">
+                                        <div class="uploaded-files-container mb-4 ms-4">
                                             <!-- Sección de archivos del proyecto -->
                                             @if (!empty($projectFiles) && count($projectFiles) > 0)
-                                                @php
-                                                    $cleanedFiles = [];
-                                                    foreach ($projectFiles as $file) {
-                                                        $filename = basename($file);
-                                                        $parts = explode('_', $filename);
-                                                        $cleanFilename = isset($parts[2])
-                                                            ? implode('_', array_slice($parts, 2))
-                                                            : $filename;
-                                                        $cleanedFiles[] = [
-                                                            'original' => $file,
-                                                            'cleaned' => $cleanFilename,
-                                                        ];
-                                                    }
-                                                    usort($cleanedFiles, function ($a, $b) {
-                                                        return strcmp($a['cleaned'], $b['cleaned']);
-                                                    });
-                                                @endphp
-
-                                                @foreach ($cleanedFiles as $file)
-                                                    @php
-                                                        $extension = pathinfo($file['cleaned'], PATHINFO_EXTENSION);
-                                                        $iconPath = file_exists(
-                                                            public_path('assets/iconFilesTypes/' . $extension . '.png'),
-                                                        )
-                                                            ? asset('assets/iconFilesTypes/' . $extension . '.png')
-                                                            : asset('assets/iconFilesTypes/default.png');
-                                                    @endphp
+                                                @foreach ($projectFiles as $file)
                                                     <div class="uploaded-file">
-                                                        <img src="{{ asset($iconPath) }}"
-                                                            alt="{{ $extension }} icon" class="styleIconFiles">
-                                                        <p>{{ $file['cleaned'] }}</p>
+                                                        <img src="{{ asset('assets/iconFilesTypes/' . $file->extension . '.png') }}"
+                                                            alt="{{ $file->extension }} icon" class="styleIconFiles">
+                                                        <p>{{ $file->file_name }}</p>
                                                         <div class="uploaded-file-buttons">
-                                                            <a onclick="downloadFile({{ $project->id }}, '', '{{ basename($file['original']) }}')"
-                                                                class="buttonFiles">
+                                                            <a onclick="downloadFile({{ $project->id }}, '', '{{ $file->file_path }}')"
+                                                                class="buttonFiles btn btn-sm">
                                                                 <i class="ti ti-download" style="color:white"></i>
                                                             </a>
-                                                            <a onclick="deleteFile({{ $project->id }}, '', '{{ basename($file['original']) }}')"
-                                                                class="buttonFiles">
+                                                            <a class="bs-pass-para buttonFiles btn btn-sm"
+                                                                data-confirm="{{ __('Are You Sure?') }}"
+                                                                data-toggle="popover" title="{{ __('Delete File') }}"
+                                                                data-text="{{ __('This action can not be undone. Do you want to continue?') }}"
+                                                                data-confirm-yes="delete-file-{{ $file->id }}">
                                                                 <i class="fa-solid fa-trash" style="color:white"></i>
                                                             </a>
-
+                                                            <form id="delete-file-{{ $file->id }}"
+                                                                action="{{ route('project.deleteFile', ['idProject' => $project->id, 'milestoneTitle' => '', 'fileID' => $file->id]) }}"
+                                                                method="POST" style="display: none;">
+                                                                @csrf
+                                                                @method('DELETE')
+                                                            </form>
                                                         </div>
                                                     </div>
                                                 @endforeach
@@ -906,72 +830,53 @@
                                                 <p class="text-muted">{{ __('No project files uploaded yet.') }}</p>
                                             @endif
                                         </div>
-                                        <h6 style="padding-top: 1%;">{{ __('Milestone files') }}</h6>
-                                        <div class="fatherMilestoneDiv top-10-scroll">
+                                        <div class="mt-4 titleFiles">
+                                            <i class="fa-regular fa-folder-open d-inline me-2 fa-xl"></i>
+                                            <h6>{{ __('Milestone files') }}</h6>
+                                        </div>
+                                        <div>
                                             <!-- Sección de archivos de Milestones -->
                                             @if (!empty($milestoneFiles) && count($milestoneFiles) > 0)
                                                 @foreach ($milestoneFiles as $milestone)
-                                                    <div class="milestone-files" style="margin-bottom: 15px;">
-                                                        <h6>{{ $milestone['title'] }}</h6>
+                                                    <div class="milestone-files mb-4">
+                                                        <div class="ms-4 mt-2">
+                                                            <div class="titleFiles">
+                                                                <i class="fa-solid fa-file-lines me-2 text-dark"></i>
+                                                                <h6>{{ $milestone['title'] }}</h6>
+                                                            </div>
+                                                            <hr class="mt-0"
+                                                                style="border: 1px solid #eeeeee;">
+                                                        </div>
 
-                                                        <div class="milestoneGridDisplay">
+                                                        <div class="milestoneGridDisplay mb-4 ms-4">
                                                             @if (!empty($milestone['files']) && count($milestone['files']) > 0)
-                                                                @php
-                                                                    $cleanedMilestoneFiles = [];
-                                                                    foreach ($milestone['files'] as $file) {
-                                                                        $filename = basename($file);
-                                                                        $parts = explode('_', $filename);
-                                                                        $cleanFilename = isset($parts[2])
-                                                                            ? implode('_', array_slice($parts, 2)) // Limpia el nombre eliminando el prefijo
-                                                                            : $filename;
-                                                                        $cleanedMilestoneFiles[] = [
-                                                                            'original' => $file,
-                                                                            'cleaned' => $cleanFilename,
-                                                                        ];
-                                                                    }
-                                                                    // Ordena alfabéticamente por el nombre limpio
-                                                                    usort($cleanedMilestoneFiles, function ($a, $b) {
-                                                                        return strcmp($a['cleaned'], $b['cleaned']);
-                                                                    });
-                                                                @endphp
-                                                                @foreach ($cleanedMilestoneFiles as $file)
-                                                                    @php
-                                                                        $extension = pathinfo(
-                                                                            $file['cleaned'],
-                                                                            PATHINFO_EXTENSION,
-                                                                        );
-                                                                        $iconPath = file_exists(
-                                                                            public_path(
-                                                                                'assets/iconFilesTypes/' .
-                                                                                    $extension .
-                                                                                    '.png',
-                                                                            ),
-                                                                        )
-                                                                            ? asset(
-                                                                                'assets/iconFilesTypes/' .
-                                                                                    $extension .
-                                                                                    '.png',
-                                                                            )
-                                                                            : asset(
-                                                                                'assets/iconFilesTypes/default.png',
-                                                                            );
-                                                                    @endphp
+                                                                @foreach ($milestone['files'] as $file)
                                                                     <div class="uploaded-file">
-                                                                        <img src="{{ asset($iconPath) }}"
-                                                                            alt="{{ $extension }} icon"
+                                                                        <img src="{{ asset('assets/iconFilesTypes/' . $file->extension . '.png') }}"
+                                                                            alt="{{ $file->extension }} icon"
                                                                             class="styleIconFiles">
-                                                                        <p style="margin: 0;">{{ $file['cleaned'] }}</p>
+                                                                        <p style="margin: 0;">{{ $file->name }}</p>
                                                                         <div class="uploaded-file-buttons">
-                                                                            <a onclick="downloadFile({{ $project->id }}, '{{ $milestone['title'] }}', '{{ basename($file['original']) }}')"
-                                                                                class="buttonFiles">
+                                                                            <a onclick="downloadFile({{ $project->id }}, '{{ $milestone['title'] }}', '{{ $file->file }}')"
+                                                                                class="buttonFiles btn btn-sm">
                                                                                 <i class="ti ti-download"
                                                                                     style="color:white"></i>
                                                                             </a>
-                                                                            <a onclick="deleteFile({{ $project->id }}, '{{ $milestone['title'] }}', '{{ basename($file['original']) }}')"
-                                                                                class="buttonFiles">
+                                                                            <a class="bs-pass-para buttonFiles btn btn-sm"
+                                                                                data-confirm="{{ __('Are You Sure?') }}"
+                                                                                data-toggle="popover"
+                                                                                title="{{ __('Delete File') }}"
+                                                                                data-text="{{ __('This action can not be undone. Do you want to continue?') }}"
+                                                                                data-confirm-yes="delete-file-{{ $file->id }}">
                                                                                 <i class="fa-solid fa-trash"
                                                                                     style="color:white"></i>
                                                                             </a>
+                                                                            <form id="delete-file-{{ $file->id }}"
+                                                                                action="{{ route('project.deleteFile', ['idProject' => $project->id, 'milestoneTitle' => $milestone['title'], 'fileID' => $file->id]) }}"
+                                                                                method="POST" style="display: none;">
+                                                                                @csrf
+                                                                                @method('DELETE')
+                                                                            </form>
                                                                         </div>
                                                                     </div>
                                                                 @endforeach
@@ -989,27 +894,8 @@
                                 </div>
                             </div>
                         </div>
-                        <!---
-                                                                                    <div class="col-md-4">
-                                                                                        <div class="card min-end">
-                                                                                            <div class="card-header" style="padding: 25px 35px !important;">
-                                                                                                <div class="d-flex justify-content-between align-items-center">
-                                                                                                    <div class="row">
-                                                                                                        <h5 class="mb-0">{{ __('Progress') }}<span
-                                                                                                                class="text-end">({{ __('Last week tasks') }}) </span></h5>
-                                                                                                    </div>
-                                                                                                </div>
-                                                                                            </div>
-                                                                                            <div class="card-body">
-                                                                                                <div class="d-flex align-items-start">
-                                                                                                </div>
-                                                                                            </div>
-                                                                                            <div id="task-chart"></div>
-                                                                                        </div>
-                                                                                    </div>
-                                                                                    --->
                         <div class="col-md-6">
-                            <div class="card min-end">
+                            <div class="card">
                                 <div class="card-header">
                                     <div class="d-flex justify-content-between align-items-center">
                                         <div>
@@ -1018,7 +904,7 @@
                                     </div>
                                 </div>
                                 <div class="card-body p-3">
-                                    <div class="timeline timeline-one-side top-10-scroll" data-timeline-content="axis"
+                                    <div class="timeline timeline-one-side" data-timeline-content="axis"
                                         data-timeline-axis-style="dashed">
                                         @if ($currentWorkspace->permission == 'Owner' || $currentWorkspace->permission == 'Member')
                                             @foreach ($project->activities as $activity)
@@ -1092,7 +978,7 @@
     <script>
         function downloadFile(idProject, titleMilestone, file) {
 
-            const downloadUrl = '<?php echo url('projects/download-file'); ?>';
+            const downloadUrl = "{{ route('project.downloadFile') }}";
             $.ajax({
                 url: downloadUrl,
                 method: 'POST',
@@ -1120,35 +1006,6 @@
                 },
                 error: function(xhr) {
                     alert("An error occurred while downloading the file.");
-                    console.error(xhr.responseText);
-                }
-            });
-        }
-
-
-
-        function deleteFile(idProject, titleMilestone, file) {
-            // URL del backend
-            const deleteUrl = '<?php echo url('projects/delete-file'); ?>';
-
-            if (!confirm("{{ __('This action cannot be undone. Do you want to continue?') }}")) {
-                return;
-            }
-
-            $.ajax({
-                url: deleteUrl,
-                method: 'POST',
-                data: {
-                    "idProject": idProject,
-                    "milestoneTitle": titleMilestone,
-                    "fileName": file,
-                    _token: '{{ csrf_token() }}'
-                },
-                success: function(response) {
-                    location.reload();
-                },
-                error: function(xhr) {
-                    alert("Ocurrió un error al eliminar el archivo.");
                     console.error(xhr.responseText);
                 }
             });
@@ -1251,22 +1108,13 @@
     <script src="{{ asset('assets/custom/libs/nicescroll/jquery.nicescroll.min.js') }} "></script>
     <script>
         $(document).ready(function() {
-            if ($(".uploaded-files-container").length) {
-                $(".uploaded-files-container").css({
-                    "max-height": 110
-                }).niceScroll();
-            }
-            if ($(".fatherMilestoneDiv").length) {
-                $(".fatherMilestoneDiv").css({
-                    "max-height": 135
-                }).niceScroll();
-            }
+
+            $(".uploaded-files-container").niceScroll();
 
             if ($(".top-10-scroll").length) {
-                $(".top-10-scroll").css({
-                    "max-height": 515
-                }).niceScroll();
+                $(".top-10-scroll").niceScroll();
             }
+
         });
     </script>
     <script src="{{ asset('assets/custom/js/dropzone.min.js') }}"></script>
