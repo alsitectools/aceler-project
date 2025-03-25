@@ -594,31 +594,48 @@ class ProjectController extends Controller
     {
         $inputs = $request->input();
 
+        if (!isset($inputs['idProject'])) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Project ID is required.'
+            ], 400);
+        }
+
         // Obtener el proyecto usando el ID
-        $project = Project::findOrFail($inputs['idProject']);
+        $project = Project::find($inputs['idProject']);
+
+        if (!$project) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Project not found.'
+            ], 404);
+        }
+
         $projectName = strtr($project->name, [' ' => '_']);
-        $milestoneName = strtr($inputs['milestoneTitle'], [' ' => '_']);
-        // check if we're downloading a milestone file or a project file
+        $milestoneName = isset($inputs['milestoneTitle']) ? strtr($inputs['milestoneTitle'], [' ' => '_']) : null;
+
         $filePath = '';
 
-        if ($inputs['milestoneTitle'] !== null && isset($inputs['milestoneTitle'])) {
-            \Log::debug("fileName", ['milestone' => $inputs['fileName']]);
+        if ($milestoneName !== null) {
             $filePath = 'project_files/' . $projectName . '/' . $milestoneName . '/' . $inputs['fileName'];
         } else {
-            // Construir la ruta del archivo basado en la estructura de almacenamiento
             $filePath = 'project_files/' . $projectName . '/' . $inputs['fileName'];
         }
 
+        if (!Storage::disk('local')->exists($filePath)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'File not found.'
+            ], 404);
+        }
         $url = asset('storage/' . $filePath);
 
-        \Log::debug("Generated URL: " . $url);
-
-        // Retornar la URL en formato JSON
         return response()->json([
             'success' => true,
             'file_url' => $url
         ]);
     }
+
 
     public function deleteFile(Request $request)
     {
@@ -647,6 +664,7 @@ class ProjectController extends Controller
 
             $filePath = 'project_files/' . $projectName . '/' . $file->file_path;
         }
+
         Storage::disk('local')->delete($filePath);
 
         ActivityLog::create([
