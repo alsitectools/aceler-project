@@ -103,7 +103,24 @@
         box-shadow: 2px 2px 5px 0px rgb(0 0 0 / 30%);
     }
 
+    .mst {
+        width: 90% !important;
+        display: flex !important;
+        justify-content: space-between !important;
+    }
 
+    .mst>.statusNumContainer {
+        margin-right: 10px;
+    }
+
+    .mst>.statusText {
+        margin-left: 10px;
+    }
+
+    .milestoneTab {
+        margin-left: 5% !important;
+        width: 38% !important;
+    }
 
     .stickyComercialTec {
         width: 97%;
@@ -246,7 +263,7 @@
         color: black;
         font-size: 12px;
         width: 77%;
-        border-radius: 10px;
+        border-radius: 7px;
         text-align: center;
         display: flex;
         justify-content: space-evenly;
@@ -289,6 +306,10 @@
 
     .hiddenTuto {
         display: none;
+    }
+
+    .formControlModified {
+        height: 41px !important;
     }
 
     .modifiedDivTecAndCom {
@@ -534,27 +555,40 @@
                                 <img class="icons"
                                     src="{{ asset('assets/custom/libs/@fontawesome/fontawesome-free/svgs/solid/file-alt.svg') }}"
                                     alt="logo" />
+
                             </div>
                             <div class="tabTexts">
                                 {{ __('Milestones') }}
                             </div>
-                            <div>
-                                <div class="displayFlexAlignCenter">
-                                    <div class="tabTexts tabNumCounter" style="margin-bottom: 2%;">
-                                        <span>
-                                            {{ $totalWorkspaceMilestones ?? 0 }}
-                                        </span>
+                            {{-- <div class="tabTexts tabNumCounter">
+                                <span>
+                                    {{ $totalProject ?? 0 }}
+                                </span>
+
+                            </div> --}}
+                            <div class="statusContainer milestoneTab">
+                                <div class="status hold ctr mst">
+                                    {{-- Hojas de encargo asignados a ti  --}}
+                                    <span class="statusText">{{ __('Not assigned') }}</span>
+                                    <div class="statusNumContainer">
+                                        <span class="statusNum">{{ $notAssignedMilestones ?? 0 }}</span>
                                     </div>
-                                    <span class="milestonesTextSpan">{{ $currentWorkspace->name }}</span>
                                 </div>
-                                <div class="displayFlexAlignCenter">
-                                    <div class="tabTexts tabNumCounter">
-                                        <span>
-                                            {{ $totalMilestones ?? 0 }}
-                                        </span>
+                                <div class="status progressstat ctr mst">
+                                    {{-- hojas de encargo asignadas a ti pendientes de revision (status 3) --}}
+                                    <span class="statusText">{{ __('Pending review') }}</span>
+                                    <div class="statusNumContainer">
+                                        <span class="statusNum">{{ $forReviewMilestones ?? 0 }}</span>
                                     </div>
-                                    <span class="milestonesTextSpan">{{ __('Your milestones') }}</span>
                                 </div>
+                                <div class="status ended ctr mst">
+                                    {{-- Hojas de encargo sin asignar  --}}
+                                    <span class="statusText">{{ __('Assigned to you') }}</span>
+                                    <div class="statusNumContainer">
+                                        <span class="statusNum">{{ $assignedMilestones ?? 0 }}</span>
+                                    </div>
+                                </div>
+
                             </div>
                         </div>
                         <div class="tabs ctr">
@@ -575,15 +609,21 @@
                             </div>
                         </div>
                     </div>
+                    {{-- <span>Encargos totales del workspace {{ $totalWorkspaceMilestones ?? 0 }}</span>
+                    <span>Tus hojas de encargo/Hojas de encargo creadas por ti {{ $totalMilestones ?? 0 }}</span>
+                    <span>No asignados {{ $notAssignedMilestones }}</span>
+                    <span>Asignados a ti {{ $assignedMilestones }}</span>
+                    <span>En revision {{ $forReviewMilestones }}</span> --}}
                     <div class="col-md-12">
                         <div class="card min-h">
                             <div class="card-header">
-                                Statistics
+                                {{ __('Statistics') }}
                             </div>
                             <div class="card-body p-3">
                                 <div class="divStatisticsButtons">
                                     <div>
-                                        <input type="hidden" id="yearSelect" name="yearSelect"
+                                        <input class="yearInput" placeholder="No disponible" type="hidden"
+                                            id="yearSelect" name="yearSelect"
                                             value="{{ collect($averageTimesKeys)->sortDesc()->first() }}">
                                         <i class="fa-solid fa-chevron-down alignArrowSelect"></i>
                                     </div>
@@ -776,6 +816,7 @@
             let tiempo_inicio = [data.averageStartUp || 0];
             let tiempo_bueno = [data.averageWorking || 0];
             let retraso = [data.averageDelay || 0];
+            let estimado_usuario = [data.avgEstimatedByUser || 0]; // Nuevo punto lila
 
             // Mantener las barras apiladas
             window.chart.config.type = 'bar';
@@ -786,11 +827,11 @@
             window.chart.data.datasets[0].data = tiempo_inicio;
             window.chart.data.datasets[1].data = tiempo_bueno;
             window.chart.data.datasets[2].data = retraso;
+            window.chart.data.datasets[3].data = estimado_usuario; // Actualizar datos
 
             window.chart.options.plugins.title.text = `{{ __('Annual average') }} (${selectedYear})`;
             window.chart.update();
         }
-
 
         function updateChartData(data, labelType) {
             if (!window.chart) {
@@ -820,12 +861,14 @@
             let tiempo_inicio = [];
             let tiempo_bueno = [];
             let retraso = [];
+            let estimado_usuario = []; // Nuevo punto lila
 
             labels.forEach(periodo => {
                 let periodoData = data[periodo] || {};
                 tiempo_inicio.push(periodoData.averageStartUp || 0);
                 tiempo_bueno.push(periodoData.averageWorking || 0);
                 retraso.push(periodoData.averageDelay || 0);
+                estimado_usuario.push(periodoData.avgEstimatedByUser || 0); // Nuevo punto lila
             });
 
             window.chart.config.type = 'bar';
@@ -836,6 +879,7 @@
             window.chart.data.datasets[0].data = tiempo_inicio;
             window.chart.data.datasets[1].data = tiempo_bueno;
             window.chart.data.datasets[2].data = retraso;
+            window.chart.data.datasets[3].data = estimado_usuario; // Actualizar datos
 
             window.chart.options.plugins.title.text = `{{ __('Average per') }} ${labelType}`;
             window.chart.update();
@@ -865,6 +909,12 @@
                             data: [],
                             backgroundColor: 'rgba(224, 108, 113, 0.8)',
                             hidden: false
+                        },
+                        {
+                            label: "{{ __('Planned end date') }}",
+                            data: [],
+                            backgroundColor: 'rgba(186, 85, 211, 0.8)',
+                            hidden: false
                         }
                     ]
                 },
@@ -880,7 +930,7 @@
                                         chart);
 
                                     labels.push({
-                                        text: "{{ __('Show Values') }}",
+                                        text: "{{ __('Show values') }}",
                                         fillStyle: 'black',
                                         strokeStyle: 'black',
                                         hidden: !chart.options.plugins.datalabels.display,

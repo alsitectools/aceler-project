@@ -18,6 +18,7 @@ class CreateProjectFilesTable extends Migration
             $table->unsignedBigInteger('project_id');
             $table->string('file_name');
             $table->string('file_path');
+            $table->string('extension');
             $table->timestamps();
         });
     }

@@ -447,39 +447,37 @@ class ProjectController extends Controller
 
                 $daysleft = round((((strtotime($project->end_date) - strtotime(date('Y-m-d'))) / 24) / 60) / 60);
 
-                //  Obtener archivos del proyecto (sin milestones)
-                $projectFolder = 'project_files/' . strtr($project->name, [" " => "_"]);
-                $projectFiles = \Storage::disk('local')->files($projectFolder);
-                \Log::debug("Archivos del proyecto:", $projectFiles);
+                $storage = \Storage::disk('local');
+
+                // Obtener archivos del proyecto
+                $projectFolder = 'project_files' . '/' . strtr($project->name, [" " => "_"]);
+                // $projectFiles = $storage->files($projectFolder);
+                $projectFiles = ProjectFile::where('project_id', '=', $projectID)->get();
+
+                // \Log::info(["Archivos del proyecto:"=> $Files_project]);
 
                 //  Obtener los milestones del proyecto
-                $milestones = DB::table('milestones')
-                    ->where('project_id', '=', $projectID)
+                $milestones = Milestone::where('project_id', '=', $projectID)
+                    ->whereHas('files') // Filtra milestones que tienen archivos
+                    ->with(['files'])
                     ->select('id', 'title')
-                    ->get();
+                    ->get(); // Obtiene una colección de objetos Eloquent
+
 
                 //  Array para almacenar los archivos de cada milestone
                 $milestoneFiles = [];
 
                 foreach ($milestones as $milestone) {
-                    //  Obtener archivos del milestone desde storage/project_files/{proyecto}/{milestone}
-                    $milestoneFolder = 'project_files/' . strtr($project->name, [" " => "_"]) . '/' . strtr($milestone->title, [" " => "_"]);
-
-                    // Verificar si existe la carpeta antes de intentar leer archivos
-                    if (\Storage::disk('local')->exists($milestoneFolder)) {
-                        $files = \Storage::disk('local')->files($milestoneFolder);
-                    } else {
-                        $files = [];
-                    }
-
+                    $files = MilestoneFile::where('milestone_id', '=', $milestone->id)->get();
+                    // $files = $storage->exists($milestoneFolder) ? $storage->files($milestoneFolder) : [];
                     //  Guardar los archivos con su milestone
                     $milestoneFiles[] = [
                         'title' => $milestone->title,
                         'files' => $files,
+                        // 'objsFiles'
+
                     ];
                 }
-
-                \Log::debug("Archivos por milestone:", $milestoneFiles);
 
                 //Implementation of average time
 
@@ -596,31 +594,48 @@ class ProjectController extends Controller
     {
         $inputs = $request->input();
 
+        if (!isset($inputs['idProject'])) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Project ID is required.'
+            ], 400);
+        }
+
         // Obtener el proyecto usando el ID
-        $project = Project::findOrFail($inputs['idProject']);
+        $project = Project::find($inputs['idProject']);
+
+        if (!$project) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Project not found.'
+            ], 404);
+        }
+
         $projectName = strtr($project->name, [' ' => '_']);
-        $milestoneName = strtr($inputs['milestoneTitle'], [' ' => '_']);
-        // check if we're downloading a milestone file or a project file
+        $milestoneName = isset($inputs['milestoneTitle']) ? strtr($inputs['milestoneTitle'], [' ' => '_']) : null;
+
         $filePath = '';
 
-        if ($inputs['milestoneTitle'] !== null && isset($inputs['milestoneTitle'])) {
-
+        if ($milestoneName !== null) {
             $filePath = 'project_files/' . $projectName . '/' . $milestoneName . '/' . $inputs['fileName'];
         } else {
-            // Construir la ruta del archivo basado en la estructura de almacenamiento
             $filePath = 'project_files/' . $projectName . '/' . $inputs['fileName'];
         }
 
+        if (!Storage::disk('local')->exists($filePath)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'File not found.'
+            ], 404);
+        }
         $url = asset('storage/' . $filePath);
 
-        \Log::debug("Generated URL: " . $url);
-
-        // Retornar la URL en formato JSON
         return response()->json([
             'success' => true,
             'file_url' => $url
         ]);
     }
+
 
     public function deleteFile(Request $request)
     {
@@ -629,53 +644,38 @@ class ProjectController extends Controller
         // Obtener el proyecto usando el ID
         $project = Project::findOrFail($inputs['idProject']);
         $projectName = strtr($project->name, [' ' => '_']);
-
         $milestoneName = strtr($inputs['milestoneTitle'], [' ' => '_']);
+
         // check if it's a milestone file or a project file
         $filePath = '';
         $delete = false;
         $milestoneId = null;
 
-        \Log::debug($inputs['fileName']);
         if ($inputs['milestoneTitle'] !== null && isset($inputs['milestoneTitle'])) {
+            $file = MilestoneFile::where('id', $inputs['fileID'])->first();
+            $file->delete();
 
-            $filePath = 'project_files/' . $projectName . '/' . $milestoneName . '/' . $inputs['fileName'];
-            // crear query para borrar el fichero de la bdd tambien
-            $milestone = Milestone::where('title', $inputs['milestoneTitle'])->first();
-            $milestoneId = $milestone->id;
-            $delete = true;
+            $filePath = 'project_files/' . $projectName . '/' . $milestoneName . '/' . $file->file;
         } else {
-            // Construir la ruta del archivo basado en la estructura de almacenamiento
-            $filePath = 'project_files/' . $projectName . '/' . $inputs['fileName'];
+            $file = ProjectFile::where('project_id', $inputs['idProject'])
+                ->where('id', $inputs['fileID'])
+                ->first();
+            $file->delete();
+
+            $filePath = 'project_files/' . $projectName . '/' . $file->file_path;
         }
 
-        $fileNameParts = explode('_', $inputs['fileName']); // Dividir el nombre por '_'
-        $cleanFileName = isset($fileNameParts[2])
-            ? implode(' ', array_slice($fileNameParts, 2))  // Limpiar y unir las partes sin prefijo
-            : strtr($inputs['fileName'], ['_' => ' ']);     // Reemplazar '_' por espacio si no hay prefijo
-
-        if ($delete === true) {
-            DB::table('milestone_files')
-                ->where('milestone_id', $milestone->id)
-                ->where('name', $cleanFileName)
-                ->delete();
-        }
-        // Storage::delete($filePath);
         Storage::disk('local')->delete($filePath);
 
-        // Registrar la actividad
         ActivityLog::create([
             'user_id' => \Auth::user()->id,
-            'user_type' => get_class(\Auth::user()),
+            'user_type' => \Auth::user()->type,
             'project_id' => $inputs['idProject'],
             'log_type' => 'has delete a file',
-            'remark' => json_encode(['file_name' => $cleanFileName]), // Usar el nombre limpio aquí
+            'remark' => json_encode(['file_name' => $file->name ?? $file->file_name]),
         ]);
 
-        return response()->json([
-            'success' => true,
-            'message' => __('File deleted successfully.')
-        ]);
+        return redirect()->back()->with('success', __('File Deleted Successfully!'));
     }
 
     public function getProjectChart($arrParam)
@@ -895,25 +895,61 @@ class ProjectController extends Controller
             return redirect()->route('projects.index', $slug)->with('error', __("You can't delete this project!"));
         }
 
-        DB::transaction(function () use ($projectID, $project) {
-            UserProject::where('project_id', $projectID)->delete();
-            MasterObra::where('project_id', $projectID)->update(['project_id' => 0]);
-            ProjectFile::where('project_id', $projectID)->delete();
+        try {
+            DB::transaction(function () use ($projectID, $project) {
 
-            $milestones = Milestone::where('project_id', $projectID)->get();
-            foreach ($milestones as $milestone) {
-                $milestone->files()->delete(); // Elimina todos los MilestoneFile relacionados
-            }
+                $projectFolder = str_replace(' ', '_', $project->name);
 
-            Milestone::where('project_id', $projectID)->delete();
-            Task::where('project_id', $projectID)->delete();
-            Timesheet::where('project_id', $projectID)->delete();
+                //** Funciones que eliminan los ficheros del sistema teniendo en cuenta que no esta conectado al sharePoint */
 
-            $project->delete();
-        });
+                // Eliminar archivos de hitos (Milestones)
+                $milestones = Milestone::where('project_id', $projectID)->get();
+                foreach ($milestones as $milestone) {
+                    foreach ($milestone->files as $file) {
+                        $milestoneFolder = str_replace(' ', '_', $milestone->title);
+                        $dir = 'project_files/' . $projectFolder . '/' . $milestoneFolder;
+
+                        if (Storage::exists($dir)) {
+                            if (!Storage::deleteDirectory($dir)) {
+                                return redirect()->back()->with('error', __('Error deleting project files'));
+                            }
+                        }
+                    }
+                    $milestone->files()->delete();
+                }
+
+                $projectFiles = ProjectFile::where('project_id', $projectID)->get();
+                foreach ($projectFiles as $file) {
+                    $milestoneFolder = str_replace(' ', '_', $milestone->title);
+
+                    $dir = 'project_files/' . $projectFolder;
+                    if (Storage::exists($dir)) {
+                        if (!Storage::deleteDirectory($dir)) {
+                            return redirect()->back()->with('error', __('Error deleting project files'));
+                        }
+                    }
+                }
+
+                ProjectFile::where('project_id', $projectID)->delete();
+
+                // Eliminar relaciones y registros asociados
+                UserProject::where('project_id', $projectID)->delete();
+                MasterObra::where('project_id', $projectID)->update(['project_id' => 0]);
+                Milestone::where('project_id', $projectID)->delete();
+                Task::where('project_id', $projectID)->delete();
+                Timesheet::where('project_id', $projectID)->delete();
+
+                // Finalmente, eliminar el proyecto
+                $project->delete();
+            });
+
+            return redirect()->route('projects.index', $slug)->with('success', __('Project Deleted Successfully!'));
+        } catch (\Exception $e) {
+            return redirect()->route('projects.index', $slug)->with('error', __('Error deleting project: ') . $e->getMessage());
+        }
 
 
-        return redirect()->route('projects.index', $slug)->with('success', __('Project Deleted Successfully!'));
+        // return redirect()->route('projects.index', $slug)->with('success', __('Project Deleted Successfully!'));
     }
 
 
@@ -1739,11 +1775,6 @@ class ProjectController extends Controller
         }
     }
 
-    /**
-     * Ruta relativa de donde se guardan los ficheros de los Encargos storage/app/public/milestones_files en local y storage/milestones_files en el servidor
-     */
-
-
     public function milestoneStore($slug, $projectID, Request $request)
     {
         if (is_numeric($request->project_id)) {
@@ -1793,13 +1824,11 @@ class ProjectController extends Controller
             $messages = $validator->getMessageBag();
             return redirect()->back()->with('error', $messages->first());
         }
-        // \Log::info($request->all());
 
         // Crear el milestone
         $milestone = new Milestone();
         $milestone->project_id = $project->id;
         $milestone->title = $request->title;
-        // $milestone->assign_to = '7'; //pongo 7 de momento porque es el id de la karla
         $milestone->assign_to = $request->assing_to;
         $milestone->start_date = date('Y-m-d');
         $milestone->company = $request->company ?? '';
@@ -1816,33 +1845,37 @@ class ProjectController extends Controller
         if (isset($project)) {
             $project->updateProjectStatus();
         }
-        //  Guardar archivos en "storage/project_files/{proyecto}/{milestone}"
+
         if ($request->hasFile('files')) {
-            $projectFolder = preg_replace('/[^A-Za-z0-9_\-]/', '_', $project->name);
-            $milestoneFolder = preg_replace('/[^A-Za-z0-9_\-]/', '_', $milestone->title);
-            $baseDir = storage_path('project_files/' . $projectFolder . '/' . $milestoneFolder);
+            $projectFolder = str_replace(' ', '_', $project->name);
+            $milestoneFolder = str_replace(' ', '_', $milestone->title);
+
+            // Ruta donde se guardarán los archivos directamente en storage/
+            $dir = 'project_files/' . $projectFolder . '/' . $milestoneFolder;
+
+            // Asegurarse de que la carpeta exista dentro de storage/
+            if (!file_exists(storage_path($dir))) {
+                mkdir(storage_path($dir), 0755, true);
+            }
 
             foreach ($request->file('files') as $file) {
                 if ($file->isValid()) {
-                    if (!file_exists($file->getPathname())) {
-                        return redirect()->back()->with('error', 'El archivo temporal no existe o fue eliminado antes de procesarlo.');
-                    }
-
                     $fileName = $milestone->id . '_' . time() . '_' . $file->getClientOriginalName();
 
-                    if (!\File::exists($baseDir)) {
-                        \File::makeDirectory($baseDir, 0755, true, true);
-                    }
+                    $file->move(storage_path($dir), $fileName);
 
-                    $file->move($baseDir, $fileName);
+                    // Obtener el tamaño del archivo guardado
+                    $filePath = storage_path($dir . '/' . $fileName);
+                    $fileSize = file_exists($filePath) ? round(filesize($filePath) / 1024, 2) . ' KB' : '0 KB';
 
+                    // Guardar el registro en la base de datos
                     MilestoneFile::create([
                         'milestone_id' => $milestone->id,
-                        'file' => 'project_files/' . $projectFolder . '/' . $milestoneFolder . '/' . $fileName,
+                        'file' => $fileName,
                         'name' => $file->getClientOriginalName(),
-                        'extension' => '.' . $file->getClientOriginalExtension(),
-                        'file_size' => round(filesize($baseDir . '/' . $fileName) / 1024, 2) . ' KB',
-                        'created_by' => Auth::user()->id,
+                        'extension' => $file->getClientOriginalExtension(),
+                        'file_size' => $fileSize,
+                        'created_by' => Auth::id(),
                         'user_type' => Auth::user()->type,
                     ]);
                 } else {
@@ -1900,7 +1933,7 @@ class ProjectController extends Controller
     public function milestoneDestroyFile(Request $request)
     {
         $inputs = $request->input();
-
+        \Log::info(['request' => $request->all(), 'inputs' => $inputs]);
         // Obtener el proyecto usando el ID
         $project = Project::findOrFail($inputs['idProject']);
         $projectName = strtr($project->name, [' ' => '_']);
@@ -1913,10 +1946,10 @@ class ProjectController extends Controller
         $milestoneFolder = 'project_files/' . $projectName . '/' . $milestoneName;
 
         // Buscar el archivo en la base de datos
-        $fileEntry = DB::table('milestone_files')
-            ->where('milestone_id', $milestone->id)
-            ->where('name', $inputs['fileName'])
+        $fileEntry = MilestoneFile::where('milestone_id', $milestone->id)
+            ->where('id', $inputs['fileID'])
             ->first();
+        $fileName = $fileEntry->name;
 
         if (!$fileEntry) {
             return response()->json([
@@ -1925,41 +1958,26 @@ class ProjectController extends Controller
             ], 404);
         }
 
-        // Obtener la ruta del archivo desde la base de datos
-        $fileToDelete = $fileEntry->file;
-
-        if (!Storage::disk('local')->exists($fileToDelete)) {
-            return response()->json([
-                'success' => false,
-                'message' => __('File not found in storage.')
-            ], 404);
+        if (file_exists($fileEntry->file)) {
+            \File::delete($fileEntry->file);
         }
-
-        \Log::debug("Deleting file: " . $fileToDelete);
-
-        // Eliminar el archivo del almacenamiento
-        Storage::disk('local')->delete($fileToDelete);
-
-        // Eliminar la entrada del archivo en la base de datos
-        DB::table('milestone_files')
-            ->where('milestone_id', $milestone->id)
-            ->where('name', $inputs['fileName'])
-            ->delete();
+        $fileEntry->delete();
 
         // Registrar la actividad
         ActivityLog::create([
             'user_id' => \Auth::user()->id,
-            'user_type' => get_class(\Auth::user()),
+            'user_type' => \Auth::user()->type,
             'project_id' => $inputs['idProject'],
             'log_type' => 'has delete a file',
-            'remark' => json_encode(['file_name' => $inputs['fileName']]),
+            'remark' => json_encode(['file_name' => $fileName]),
         ]);
 
         return response()->json([
             'success' => true,
-            'message' => __('File deleted successfully.')
+            'message' => __('File Deleted Successfully.')
         ]);
     }
+
     public function getProjectNameByID($projectId)
     {
         $project = Project::find($projectId);
@@ -1994,37 +2012,34 @@ class ProjectController extends Controller
 
         // Guardar nuevos archivos en "storage/project_files/{proyecto}/{milestone}"
         if ($request->hasFile('new_files')) {
-            $projectFolder = preg_replace('/[^A-Za-z0-9_\-]/', '_', $project->name);
-            $milestoneFolder = preg_replace('/[^A-Za-z0-9_\-]/', '_', $milestone->title);
-            $baseDir = storage_path('project_files/' . $projectFolder . '/' . $milestoneFolder);
+            $projectFolder = str_replace(' ', '_', $project->name);
+            $milestoneFolder = str_replace(' ', '_', $milestone->title);
 
-            // Verificar que los archivos realmente están en el request
-            \Log::info('Archivos en new_files:', [$request->file('new_files')]);
+            // Ruta donde se guardarán los archivos directamente en storage/
+            $dir = 'project_files/' . $projectFolder . '/' . $milestoneFolder;
 
-            // Verificar y crear la carpeta si no existe
-            if (!\File::exists($baseDir)) {
-                \File::makeDirectory($baseDir, 0755, true, true);
+            // Asegurarse de que la carpeta exista dentro de storage/
+            if (!file_exists(storage_path($dir))) {
+                mkdir(storage_path($dir), 0755, true);
             }
 
             foreach ($request->file('new_files') as $file) {
                 if ($file->isValid()) {
-                    // Verificar que el archivo temporal existe antes de procesarlo
-                    if (!file_exists($file->getPathname())) {
-                        return redirect()->back()->with('error', 'El archivo temporal no existe o fue eliminado antes de procesarlo.');
-                    }
 
                     $fileName = $milestone->id . '_' . time() . '_' . $file->getClientOriginalName();
+                    $file->move(storage_path($dir), $fileName);
 
-                    // Mover el archivo directamente a "storage/project_files"
-                    $file->move($baseDir, $fileName);
+                    // Obtener el tamaño del archivo guardado
+                    $filePath = storage_path($dir . '/' . $fileName);
+                    $fileSize = file_exists($filePath) ? round(filesize($filePath) / 1024, 2) . ' KB' : '0 KB';
 
                     // Guardar registro del archivo en la base de datos
                     MilestoneFile::create([
                         'milestone_id' => $milestone->id,
-                        'file' => 'project_files/' . $projectFolder . '/' . $milestoneFolder . '/' . $fileName,
+                        'file' => $fileName,
                         'name' => $file->getClientOriginalName(),
-                        'extension' => '.' . $file->getClientOriginalExtension(),
-                        'file_size' => round(filesize($baseDir . '/' . $fileName) / 1024, 2) . ' KB',
+                        'extension' => $file->getClientOriginalExtension(),
+                        'file_size' => $fileSize,
                         'created_by' => Auth::user()->id,
                         'user_type' => Auth::user()->type,
                     ]);
@@ -2066,30 +2081,39 @@ class ProjectController extends Controller
 
     public function milestoneDestroy($slug, $milestoneID)
     {
-        $currentWorkspace = Utility::getWorkspaceBySlug($slug);
-        $milestone = Milestone::find($milestoneID);
+        try {
+            DB::transaction(function () use ($milestoneID) {
+                $milestone = Milestone::findOrFail($milestoneID);
+                $project = Project::findOrFail($milestone->project_id);
 
-        if (!$milestone) {
-            return redirect()->back()->with('error', __('Milestone not found!'));
+                $milestone->tasks()->delete();
+
+                $milestoneFolder = str_replace(' ', '_', $milestone->title);
+                $projectFolder = str_replace(' ', '_', $project->name);
+                $dir = "project_files/{$projectFolder}/{$milestoneFolder}";
+
+                if (Storage::exists($dir)) {
+                    if (!Storage::deleteDirectory($dir)) {
+                        return redirect()->back()->with('error', __('Error deleting milestone files.'));
+                    }
+                }
+
+                $milestone->delete();
+                $project->updateProjectStatus();
+
+                ActivityLog::create([
+                    'user_id' => Auth::user()->id,
+                    'user_type' => get_class(Auth::user()),
+                    'project_id' => $milestone->project_id,
+                    'log_type' => 'has deleted a milestone',
+                    'remark' => json_encode(['milestoneTitle' => $milestone->title]),
+                ]);
+            });
+
+            return redirect()->back()->with('success', __('Milestone and associated tasks deleted successfully!'));
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', __('Error deleting milestone: ') . $e->getMessage());
         }
-
-        $milestone->tasks()->delete();
-        $milestone->delete();
-
-        $project = Project::find($milestone->project_id);
-        if (isset($project)) {
-            $project->updateProjectStatus();
-        }
-        // Registrar en el log
-        ActivityLog::create([
-            'user_id' => Auth::user()->id,
-            'user_type' => get_class(Auth::user()),
-            'project_id' => $milestone->project_id,
-            'log_type' => 'has deleted a milestone',
-            'remark' => json_encode(['milestoneTitle' => $milestone->title]),
-        ]);
-
-        return redirect()->back()->with('success', __('Milestone and associated tasks deleted successfully!'));
     }
 
 
@@ -2177,7 +2201,6 @@ class ProjectController extends Controller
             \Storage::makeDirectory($dir, 0755, true); // Permisos 755 y recursivo
         }
 
-
         // Subir el archivo
         $path = Utility::upload_file($request, 'file', $file_path, $dir, []);
         if ($path['flag'] == 1) {
@@ -2191,6 +2214,7 @@ class ProjectController extends Controller
             'project_id' => $project->id,
             'file_name' => $file_name,
             'file_path' => $file_path,
+            'extension' => $request->file->getClientOriginalExtension(),
         ]);
 
         $return = [
