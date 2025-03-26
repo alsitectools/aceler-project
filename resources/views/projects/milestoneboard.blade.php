@@ -99,7 +99,7 @@
 
 @section('action-button')
     <div class="d-flex justify-content-end row1">
-        <div id="modal-container" class="modal fade" tabindex="-1" role="dialog">
+        <div id="modal-container" class="modal fade" tabindex="-1" role="dialog" data-bs-backdrop="static">
             <div class="modal-dialog" role="document">
                 <div class="modal-content" style="text-align: left; width: 800px;">
                     <!-- El contenido del modal se cargará aquí -->
@@ -662,7 +662,12 @@ $icon =
                                     $('#' + modalId + ' .body').html(assignData);
                                     // Marcamos el formulario para saber que viene del cambio de estado
                                     $('#asignMilestoneForm').attr('data-from-status-change', 'true');
+                                    $("#" + modalId).modal({
+                                        backdrop: 'static',
+                                        keyboard: false
+                                    });
                                     $("#" + modalId).modal('show');
+
 
                                     // Escuchar el evento solo si se disparó desde el form
                                     document.addEventListener('milestoneAssigned', function showTaskModal() {
@@ -688,6 +693,10 @@ $icon =
                                                 success: function(taskData) {
                                                     $('#' + modalId + ' .body').html(
                                                         taskData);
+                                                    $("#" + modalId).modal({
+                                                        backdrop: 'static',
+                                                        keyboard: false
+                                                    });
                                                     $("#" + modalId).modal('show');
                                                     commonLoader();
                                                     loadConfirm();

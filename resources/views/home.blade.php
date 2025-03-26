@@ -909,13 +909,14 @@
                             data: [],
                             backgroundColor: 'rgba(224, 108, 113, 0.8)',
                             hidden: false
-                        },
-                        {
-                            label: "{{ __('Planned end date') }}",
-                            data: [],
-                            backgroundColor: 'rgba(186, 85, 211, 0.8)',
-                            hidden: false
                         }
+                        // ,
+                        // {
+                        //     label: "{{ __('Planned end date') }}",
+                        //     data: [],
+                        //     backgroundColor: 'rgba(186, 85, 211, 0.8)',
+                        //     hidden: false
+                        // }
                     ]
                 },
                 options: {
