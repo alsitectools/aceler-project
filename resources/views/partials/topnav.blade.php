@@ -135,6 +135,15 @@
         border-right: 2px solid #ffff0038;
     }
 
+    .FR {
+        margin-bottom: 10px;
+        background-color: #ff8a0066;
+        border-left: 6px solid #ff8a0066;
+        border-top: 2px solid #ff8a0066;
+        border-bottom: 2px solid #ff8a0066;
+        border-right: 2px solid #ff8a0066;
+    }
+
     .notification-slide-out {
         transform: translateX(100%);
         opacity: 0;
@@ -258,10 +267,13 @@
                         @auth('web')
                             @php
                                 // Se obtiene las notificaciones del usuario filtrando por el workspace actual
-                                // y se agregan las notificaciones de tipo 4, que serán globales.
+                                // y se agregan las notificaciones de tipo 4 o 5, que serán globales.
                                 $notifications = \App\Models\Notification::where('user_id', Auth::user()->id)
                                     ->where(function ($query) use ($currentWorkspace) {
-                                        $query->where('workspace_id', $currentWorkspace->id)->orWhere('type', 4);
+                                        $query
+                                            ->where('workspace_id', $currentWorkspace->id)
+                                            ->orWhere('type', 4)
+                                            ->orWhere('type', 5);
                                     })
                                     ->orderBy('created_at', 'desc')
                                     ->get();
@@ -400,6 +412,23 @@
                                                                             class="text-muted smallDate">{{ ucfirst($notification->created_at->diffForHumans()) }}</small>
                                                                         <button type="button" class="btn-close repoIcon"
                                                                             aria-label="Close"></button>
+                                                                    @elseif($notification->type == '5')
+                                                                        <div class="notificationSTL FR"
+                                                                            data-notification-id="{{ $notification->id }}">
+                                                                            <span
+                                                                                class="textRepo">{{ __('You have an order form pending for review: ') }}
+                                                                                @if (app()->getLocale() === 'en')
+                                                                                    <b>
+                                                                                        {{ preg_replace('/\ben el proyecto \b/', 'in the project ', $notification->data) }}</b>
+                                                                                @else
+                                                                                    <b> {{ $notification->data }}</b>
+                                                                                @endif
+                                                                            </span>
+                                                                            <small
+                                                                                class="text-muted smallDate">{{ ucfirst($notification->created_at->diffForHumans()) }}</small>
+                                                                            <button type="button"
+                                                                                class="btn-close repoIcon"
+                                                                                aria-label="Close"></button>
                                                     @endif
 
                                                 </div>

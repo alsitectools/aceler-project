@@ -166,11 +166,21 @@
                                                 <div class="d-flex">
                                                     <div class="col-sm-9 text-center tooltipCus"
                                                         data-title="{{ __('Milestone') }}">
-                                                        <b id="mileTitle">{{ $milestone['title'] }}</b>
+                                                        <b class="mileTitle cursor-pointer"
+                                                            id="milestoneTitleForNotification"
+                                                            data-header="{{ $milestone['title'] }}"
+                                                            data-milestone-id="{{ $milestone['id'] }}"
+                                                            data-project-slug="{{ $currentWorkspace->slug }}">
+
+                                                            {{ $milestone['title'] }}
+                                                        </b>
                                                     </div>
                                                     <div class="col-sm-2 pt-1 text-center">
-                                                        <a href="#" class="tooltipCus"
+                                                        <a href="#" class="tooltipCus" id="milestoneReqName"
+                                                            data-technician-id={{ $milestone['assign_to'] }}
+                                                            data-project-name={{ $milestone['project_name'] }}
                                                             data-title="{{ $milestone['sales']->name ?? 'Nombre no disponible' }}">
+
                                                             <img alt="image" class="user-groupTasks"
                                                                 style="margin-top: -10;"
                                                                 @if ($milestone['sales']->avatar) src="{{ asset($milestone['sales']->avatar) }}"
@@ -591,7 +601,11 @@ $icon =
                         var oldStatus = a(source).data('status');
                         var newStatus = a(target).data('status');
                         var project_id = a(el).data('project-id');
-                        var milestoneTitle = a(el).find('#mileTitle').text(); // Título del milestone
+                        // var milestoneTitle = a(el).find('mileTitle').text(); // Título del milestone
+                        var milestoneTitle = a(el).find('.mileTitle').attr('data-header');
+                        console.log("el completo ");
+                        console.log(el)
+                        console.log("longitud " + a(el).find('#milestoneTitleForNotification').length);
 
                         // Definir las transiciones permitidas
                         const allowedTransitions = {
@@ -752,6 +766,48 @@ $icon =
                                 })
                                 .catch(error => console.error("Error al agregar notificación:", error));
                         }
+                        if (oldStatus == 2 && newStatus == 3) {
+                            var milestoneRequBy = a(el).find('#milestoneReqName').attr('data-technician-id');
+                            var projectName = a(el).find('#milestoneReqName').attr('data-project-name');
+
+                            console.log("lo ha solicitado:");
+                            console.log(milestoneRequBy)
+                            console.log('Generando notificacion de milestone completado');
+                            console.log('Titulo: ' +
+                                milestoneTitle)
+                            let msg = milestoneTitle + ' en el proyecto ' + projectName;
+                            let ntipe = 5;
+                            if (!msg) return;
+
+                            fetch("{{ route('notifications.add') }}", {
+                                    method: "POST",
+                                    headers: {
+                                        "Content-Type": "application/json",
+                                        "X-CSRF-TOKEN": "{{ csrf_token() }}"
+                                    },
+                                    body: JSON.stringify({
+                                        workspace_id: {{ $currentWorkspace->id }},
+                                        msg: msg,
+                                        ntipe: ntipe,
+                                        milestoneAssignedTo: milestoneRequBy
+                                    })
+                                })
+                                .then(response => response.json())
+                                .then(data => {
+                                    if (data.success) {
+                                        let notificationList = document.querySelector('.limited');
+                                        let newNotification = document.createElement('div');
+                                        newNotification.classList.add('notificationSTL');
+                                        newNotification.innerHTML = `
+                <span class="textRepo">${data.data.msg}</span>
+                <span class="textRepo">${data.data.type}</span>
+                <button type="button" class="btn-close repoIcon" aria-label="Close"></button>
+            `;
+                                        notificationList.prepend(newNotification);
+                                    }
+                                })
+                                .catch(error => console.error("Error al agregar notificación:", error));
+                        }
 
                         // Actualizamos los contadores de tareas en los contenedores de origen y destino
                         updateTaskCount(source);
@@ -797,6 +853,36 @@ $icon =
                     "use strict";
                     a.Dragula.init();
                 }(window.jQuery);
+            </script>
+            <script>
+                document.addEventListener('DOMContentLoaded', function() {
+                    // Delegación de eventos para manejar clicks dinámicos
+                    document.body.addEventListener('click', function(e) {
+                        const mileTitle = e.target.closest('.mileTitle');
+                        if (!mileTitle) return;
+
+                        const slug = mileTitle.dataset.projectSlug;
+                        const milestoneId = mileTitle.dataset.milestoneId;
+                        const viewLink = document.querySelector(`a[data-url*="/milestone/${milestoneId}/show"]`);
+
+                        if (viewLink) {
+                            // Simular click en el enlace "View" real
+                            viewLink.click();
+                        } else {
+                            // Fallback manual
+                            const url = `${window.location.origin}/projects/${slug}/milestone/${milestoneId}/show`;
+                            const modal = new bootstrap.Modal(document.getElementById('commonModal'));
+
+                            fetch(url)
+                                .then(response => response.text())
+                                .then(data => {
+                                    document.getElementById('commonModal').querySelector('.modal-body')
+                                        .innerHTML = data;
+                                    modal.show();
+                                });
+                        }
+                    });
+                });
             </script>
             @if ($project_id == -1)
                 <!-- Script encargado de mostrar/ocultar los proyectos completado -->

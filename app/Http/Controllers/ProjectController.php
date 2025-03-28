@@ -1104,6 +1104,7 @@ class ProjectController extends Controller
             'title'         => $milestone->title,
             'start_date'    => $milestone->start_date,
             'end_date'      => $milestone->end_date,
+            'assign_to'     => $milestone->assign_to,
             'daysleft'      => round((strtotime($milestone->end_date) - strtotime(date('Y-m-d'))) / 86400),
             'project_id'    => $project->id,
             'project_name'  => $project->name,

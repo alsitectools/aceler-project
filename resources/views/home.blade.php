@@ -861,14 +861,14 @@
             let tiempo_inicio = [];
             let tiempo_bueno = [];
             let retraso = [];
-            let estimado_usuario = []; // Nuevo punto lila
+            // let estimado_usuario = []; // Nuevo punto lila
 
             labels.forEach(periodo => {
                 let periodoData = data[periodo] || {};
                 tiempo_inicio.push(periodoData.averageStartUp || 0);
                 tiempo_bueno.push(periodoData.averageWorking || 0);
                 retraso.push(periodoData.averageDelay || 0);
-                estimado_usuario.push(periodoData.avgEstimatedByUser || 0); // Nuevo punto lila
+                // estimado_usuario.push(periodoData.avgEstimatedByUser || 0); // Nuevo punto lila
             });
 
             window.chart.config.type = 'bar';
@@ -879,7 +879,7 @@
             window.chart.data.datasets[0].data = tiempo_inicio;
             window.chart.data.datasets[1].data = tiempo_bueno;
             window.chart.data.datasets[2].data = retraso;
-            window.chart.data.datasets[3].data = estimado_usuario; // Actualizar datos
+            // window.chart.data.datasets[3].data = estimado_usuario; // Actualizar datos
 
             window.chart.options.plugins.title.text = `{{ __('Average per') }} ${labelType}`;
             window.chart.update();
@@ -909,8 +909,7 @@
                             data: [],
                             backgroundColor: 'rgba(224, 108, 113, 0.8)',
                             hidden: false
-                        }
-                        // ,
+                        },
                         // {
                         //     label: "{{ __('Planned end date') }}",
                         //     data: [],
