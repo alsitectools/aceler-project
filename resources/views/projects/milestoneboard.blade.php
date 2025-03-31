@@ -359,12 +359,24 @@ $icon =
                                                                 <div class="col-6 text-center tooltipCus"
                                                                     data-title="{{ __('End Date') }}">
                                                                     @php
-                                                                        $currentDate = new DateTime();
-                                                                        $latestStatus = (int) $status->id; // Get current column status
-                                                                        $estimatedDate = new DateTime(
-                                                                            $milestone['end_date'],
-                                                                        );
-                                                                        $isOverdue = $currentDate > $estimatedDate;
+                                                                        if ($milestone['finalization_date'] == null) {
+                                                                            $currentDate = new DateTime();
+                                                                            $latestStatus = (int) $status->id; // Get current column status
+                                                                            $estimatedDate = new DateTime(
+                                                                                $milestone['end_date'],
+                                                                            );
+                                                                            $isOverdue = $currentDate > $estimatedDate;
+                                                                        } else {
+                                                                            $latestStatus = (int) $status->id;
+                                                                            $estimatedDate = new DateTime(
+                                                                                $milestone['end_date'],
+                                                                            );
+                                                                            $finalizationDate = new DateTime(
+                                                                                $milestone['finalization_date'],
+                                                                            );
+                                                                            $isOverdue =
+                                                                                $finalizationDate > $estimatedDate;
+                                                                        }
 
                                                                         // Determine icon color and animation based on status and date
                                                                         $iconColor = 'black'; // Default
@@ -381,14 +393,13 @@ $icon =
                                                                             // In Review or Done
                                                                             if ($isOverdue) {
                                                                                 $iconColor = 'red'; // Red for overdue tasks in status 3-4
-                                                                                $iconAnimation = 'fa-beat-fade';
                                                                             } else {
                                                                                 $iconColor = '#53b446'; // Green for on-time tasks in status 3-4
                                                                             }
                                                                         }
                                                                     @endphp
 
-                                                                    <i class="fa-solid fa-calendar-check fa-2xl m-1 calendarAlert {{ $iconAnimation }}"
+                                                                    <i class="fa-solid fa-calendar-check fa-2xl m-1 calendarAlert "
                                                                         style="color: {{ $iconColor }};"></i>
                                                                     <div class="text-center adjustTextCalendar">
                                                                         <b style="font-size: 12px">
