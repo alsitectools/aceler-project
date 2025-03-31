@@ -57,7 +57,7 @@
             </div>
             <!-- Apartado "Asignado a" -->
             <div class="row mt-3 ctr">
-                <div id="requestBy-req" style="width: 50%">
+                <div id="requestBy-req" style="width: 37.5%">
                     <label class="col-form-label">{{ __('Assigned to') }}</label>
                     <input type="text" class="form-control" id="search-requested-by"
                         placeholder="{{ __('Search') }}" name="search-requested-by" value="{{ $user->name ?? '' }}"
@@ -73,13 +73,23 @@
                         <input type="text" name="req_assing_to" id="req_assing_To" style="display: none;"
                             value="{{ $milestone->milestone_assigned_to_user }}">
                     </div>
+
+
                 </div>
+                <!-- button to unassign the current user -->
+                <div style="width:25%" id="unassign-user-btn-container">
+                    <label class="col-form-label" style="font-size: 11px; opacity: 0;">Expected delivery date</label>
+                    <button type="button" class="btn btn-danger" style="background-color: #AA182C; display: none;"
+                        id="unassign-user-btn" onclick="unassignUser()">
+                        {{ __('Unassign') }}
+                    </button>
+                </div>
+
                 {{-- apartado fecha de entrega prevista --}}
-                <div style="width: 50%">
+                <div id="div-reqby-date" style="width: 37.5%">
                     <label class="col-form-label">{{ __('Expected delivery date') }}</label>
                     <input onclick="this.showPicker()" type="date" class="form-control form-control-light date"
-                        id="planned_end_date" name="planned_end_date" value="{{ $milestone->planned_end_date }}"
-                        required>
+                        id="planned_end_date" name="planned_end_date" value="{{ $milestone->planned_end_date }}">
                 </div>
             </div>
             <!-- Archivos adjuntos existentes -->
@@ -318,8 +328,10 @@
             searchInputReq.value = this.innerText;
             hiddenInputReq.value = selectedUserId;
             optionsListReq.style.display = 'none';
+
         });
     }
+
 
     // Cierra el menú si se hace clic fuera del contenedor
     document.addEventListener('click', function(event) {
@@ -327,6 +339,12 @@
             optionsListReq.style.display = 'none';
         }
     });
+
+    function unassignUser() {
+        document.getElementById('search-requested-by').value = '';
+        document.getElementById('req_assing_To').value = '';
+        document.getElementById('planned_end_date').value = '';
+    }
 </script>
 <script>
     async function displayNotification() {
@@ -423,6 +441,7 @@
 
             // Solo si viene del cambio de estado, disparamos el evento
             if (fromStatusChange) {
+                document.getElementById('unassign-user-btn').style.display = '';
                 var event = new CustomEvent('milestoneAssigned', {
                     detail: {
                         success: true
@@ -455,12 +474,22 @@
             document.dispatchEvent(event);
         }
     });
+
+    document.getElementById('asignMilestoneForm').addEventListener('submit', function() {
+        const searchInput = document.getElementById('search-requested-by');
+        const hiddenInput = document.getElementById('req_assing_To');
+
+        // If the search input is empty, set the hidden input to an empty string
+        if (searchInput.value.trim() === '') {
+            hiddenInput.value = '';
+        }
+    });
 </script>
 
 <script>
     const observer = new MutationObserver(() => {
         const form = document.getElementById(
-            "asignMilestoneForm"); // Asegúrate de usar un selector más preciso si hay más de un form
+            "asignMilestoneForm");
         if (form) {
             const grandParent = form.parentElement?.parentElement;
             const greatGrandParent = grandParent?.parentElement;
@@ -468,13 +497,28 @@
                 grandParent.classList.add("modalMod");
                 greatGrandParent.classList.add("ctr");
 
+                // Log the value of 'search-requested-by' when the popup opens
+                var emptyOrNot = document.getElementById('search-requested-by').value;
+                if (emptyOrNot === '') {
+                    document.getElementById('unassign-user-btn').style.display = 'none';
+                    document.getElementById('unassign-user-btn-container').style.display = 'none';
+                    document.getElementById('div-reqby-date').style.width = '50%'
+                    document.getElementById('requestBy-req').style.width = '50%';
+                } else {
+                    document.getElementById('unassign-user-btn').style.display = 'flex';
+                    // if (document.documentElement.lang === 'es') {
+                    //     document.getElementById('unassign-user-btn-container').style.marginBottom = '12px';
+                    // }
+
+                    document.getElementById('div-reqby-date').style.width = '37.5%'
+                    document.getElementById('requestBy-req').style.width = '37.5%';
+                }
+
                 // Hide all close buttons
                 const closeBtnCollection = document.getElementsByClassName('btn-close').length;
                 for (let index = 0; index < closeBtnCollection; index++) {
                     document.getElementsByClassName('btn-close')[index].style.display = 'none';
                 }
-
-                observer.disconnect(); // Deja de observar una vez encontrado
             }
         }
     });
