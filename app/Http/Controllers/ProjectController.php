@@ -991,22 +991,36 @@ class ProjectController extends Controller
         })->toArray();
 
         if ($id == -1) {
+
             // Mostrar todos los milestones del usuario logueado (ya sea creados o asignados)
             $objUser = Auth::user();
-            // \Log::info($objUser);
-            // \Log::info($currentWorkspace);
+            //Si el usuario tiene alguna tarea
+            $milestoneIds = Task::where('assign_to', $objUser->id)
+                ->pluck('milestone_id')
+                ->unique()
+                ->toArray();
+            \Log::debug(['MiletonesIds' => $milestoneIds]);
 
-            $allmilestones = Milestone::where(function ($query) use ($objUser) {
+            $allmilestones = Milestone::where(function ($query) use ($objUser, $milestoneIds) {
                 $query->where('assign_to', $objUser->id)
                     ->orWhere('milestone_assigned_to_user', $objUser->id)
                     ->orWhere('created_by', $objUser->id)
-                    ->orWhere('milestone_assigned_to_user', ''); // También considerar si está vacío
+                    ->orWhere('milestone_assigned_to_user', '')
+                    ->orWhereIn('id', $milestoneIds)
+
+                ;
             })
                 ->whereHas('project', function ($query) use ($objUser) {
-                    $query->where('workspace', $objUser->currant_workspace); // Filtrar por el workspace del usuario
+                    $query->where('workspace', $objUser->currant_workspace);
                 })
                 ->get();
 
+
+
+            \Log::debug(['allmilestones' => $allmilestones]);
+
+
+            // $allmilestones = $allmilestones->merge($allmilestones2);
             $milestones = $this->groupMilestonesByStatus($allmilestones, $objUser, $stages);
             // \Log::info('Milestones que se van a pasar a la vista');
             // \Log::info($milestones);
@@ -1023,7 +1037,6 @@ class ProjectController extends Controller
                 $project_name = $project->name;
             }
         }
-
         if ($project_id == -1) {
             return view('projects.milestoneboard', compact('currentWorkspace', 'milestones', 'stages', 'statusClass', 'project_id'));
         } else {
@@ -1046,8 +1059,15 @@ class ProjectController extends Controller
         $projectType = ProjectType::where('id', $project->type)->value('name');
 
         if ($objUser) {
+            $milestoneIds = Task::where('assign_to', $objUser->id)
+                ->pluck('milestone_id')
+                ->unique()
+                ->toArray();
             // Si el usuario es el creador o está asignado al milestone, mostramos TODAS las tareas
-            if ($milestone->assign_to == $objUser->id || $milestone->milestone_assigned_to_user == $objUser->id || $milestone->created_by == $objUser->id) {
+            if (
+                $milestone->assign_to == $objUser->id || $milestone->milestone_assigned_to_user == $objUser->id || $milestone->created_by == $objUser->id ||
+                in_array($milestone->id, $milestoneIds) || $milestone->milestone_assigned_to_user == ''
+            ) {
                 $tasksOfmilestone = Task::where('milestone_id', $milestone->id)
                     ->where('project_id', $project->id)
                     ->get();
@@ -1084,6 +1104,8 @@ class ProjectController extends Controller
             'title'         => $milestone->title,
             'start_date'    => $milestone->start_date,
             'end_date'      => $milestone->end_date,
+            'finalization_date' => $milestone->finalization_date,
+            'assign_to'     => $milestone->assign_to,
             'daysleft'      => round((strtotime($milestone->end_date) - strtotime(date('Y-m-d'))) / 86400),
             'project_id'    => $project->id,
             'project_name'  => $project->name,
@@ -1092,6 +1114,7 @@ class ProjectController extends Controller
             'tasks'         => $taskData,
             'sales'         => User::find($milestone->assign_to),
         ];
+        \Log::info($milestone);
     }
 
     /**

@@ -303,6 +303,36 @@
         align-items: center;
     }
 
+    .activityContainer {
+        max-height: 374px;
+        overflow-y: scroll;
+    }
+
+    /* Scrollbar en navegadores WebKit */
+    .activityContainer::-webkit-scrollbar {
+        width: 8px;
+        height: 10px;
+        /* Ancho del scrollbar */
+    }
+
+    /* Fondo del scrollbar */
+    .activityContainer::-webkit-scrollbar-track {
+        background: #ffffff;
+        /* Color del fondo */
+        border-radius: 4px;
+        /* Bordes redondeados */
+    }
+
+    /* Parte deslizable del scrollbar */
+    .activityContainer::-webkit-scrollbar-thumb {
+        background: #AA182C;
+        /* Color del scrollbar */
+        border-radius: 4px;
+        height: 10px;
+    }
+
+
+
     @media (max-width: 1300px) {
         .header_breadcrumb {
             width: 100% !important;
@@ -433,7 +463,7 @@
                             </div>
                         </div>
                     </div>
-            
+
                     <div class="col-lg-12 widthAdjustDiv">
                         @if ($currentWorkspace->permission == 'Member' || $currentWorkspace->permission == 'Owner')
                             <div class="card">
@@ -780,7 +810,7 @@
                                         </div>
                                     </div>
                                 </div>
-                                <div class="card-body p-3">
+                                <div class="card-body p-3" style="min-height: 374px;">
                                     <div class="author-box-name form-control-label mb-4"></div>
                                     <div class="col-md-12 dropzone browse-file" id="dropzonewidget">
                                         <div class="dz-message" data-dz-message>
@@ -844,8 +874,7 @@
                                                                 <i class="fa-solid fa-file-lines me-2 text-dark"></i>
                                                                 <h6>{{ $milestone['title'] }}</h6>
                                                             </div>
-                                                            <hr class="mt-0"
-                                                                style="border: 1px solid #eeeeee;">
+                                                            <hr class="mt-0" style="border: 1px solid #eeeeee;">
                                                         </div>
 
                                                         <div class="milestoneGridDisplay mb-4 ms-4">
@@ -903,7 +932,7 @@
                                         </div>
                                     </div>
                                 </div>
-                                <div class="card-body p-3">
+                                <div class="card-body p-3 activityContainer">
                                     <div class="timeline timeline-one-side" data-timeline-content="axis"
                                         data-timeline-axis-style="dashed">
                                         @if ($currentWorkspace->permission == 'Owner' || $currentWorkspace->permission == 'Member')
