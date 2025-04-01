@@ -62,6 +62,18 @@
 
     }
 
+    .toastNegation {
+        z-index: 30;
+        position: absolute;
+        right: 10px;
+        display: flex;
+        text-align: center;
+        align-content: center;
+        justify-content: center;
+        align-items: center;
+        flex-direction: column;
+    }
+
     @media screen and(max-width:1200px) and(min-width:1000px) {
         .adjustImg {
             width: 65%;
@@ -157,11 +169,13 @@
                             </div>
                             <div id="{{ 'milestone-list-' . str_replace(' ', '_', $status->id) }}"
                                 data-status="{{ $status->id }}" class="card-body kanban-box">
+
                                 @if (isset($milestones[$status->id]))
                                     @foreach ($milestones[$status->id] as $milestone)
                                         <div class="card {{ empty($milestone['assined_to_user']) ? 'notAsignedMilestone' : '' }}"
                                             id="{{ $milestone['id'] }}" data-status="{{ $status->id }}"
                                             data-project-id="{{ $milestone['project_id'] }}">
+
                                             <div class="card-header border-0 pb-0 col-sm-12">
                                                 <div class="d-flex">
                                                     <div class="col-sm-9 text-center tooltipCus"
@@ -177,6 +191,7 @@
                                                     </div>
                                                     <div class="col-sm-2 pt-1 text-center">
                                                         <a href="#" class="tooltipCus" id="milestoneReqName"
+                                                            data-milestone-id={{ $milestone['id'] }}
                                                             data-technician-id={{ $milestone['assign_to'] }}
                                                             data-project-name={{ $milestone['project_name'] }}
                                                             data-title="{{ $milestone['sales']->name ?? 'Nombre no disponible' }}">
@@ -742,6 +757,7 @@ $icon =
                         }
 
                         // Si se permite el movimiento y es de status 3 a 4, se genera una notificación
+
                         if (oldStatus == 3 && newStatus == 4) {
                             console.log('Generando notificacion de milestone completado');
                             let msg = milestoneTitle;
@@ -778,8 +794,104 @@ $icon =
                                 .catch(error => console.error("Error al agregar notificación:", error));
                         }
                         if (oldStatus == 2 && newStatus == 3) {
+                            /////////////INICIO status 2 a 3///////////////////////////
                             var milestoneRequBy = a(el).find('#milestoneReqName').attr('data-technician-id');
                             var projectName = a(el).find('#milestoneReqName').attr('data-project-name');
+                            var milestonetId = a(el).find('#milestoneReqName').attr('data-milestone-id');
+                            console.log("El id del milestone es")
+                            console.log(milestonetId);
+                            $.ajax({
+                                url: '{{ route('projects.milestone.checkTaskHours', [$currentWorkspace->slug, $milestone['id']]) }}',
+                                type: 'GET',
+                                data: {
+                                    id: milestonetId
+                                },
+                                success: function(data) {
+                                    if (data.all_exist) {
+                                        console.log('Todas las tareas tienen timesheets.');
+                                    } else {
+                                        console.log('No todas las tareas tienen timesheets.');
+
+                                        $.ajax({
+                                            url: '{{ route('milestone.update.order', [$currentWorkspace->slug, $milestone['project_id']]) }}',
+                                            type: 'POST',
+                                            data: {
+                                                id: milestonetId, // Se envía el milestone ID
+                                                sort: sort,
+                                                new_status: 2,
+                                                old_status: 300, // Estado temporal
+                                                project_id: project_id
+                                            },
+                                            success: function(response) {
+                                                console.log('Cambio aplicado correctamente');
+
+                                                // Actualizar el DOM: mover el elemento al contenedor correspondiente
+                                                const milestoneCard = document.querySelector(
+                                                    `.card[id='${milestonetId}']`);
+                                                if (milestoneCard) {
+                                                    // Actualizar el atributo data-status (si ya lo tienes definido en el HTML)
+                                                    milestoneCard.setAttribute('data-status', 2);
+
+                                                    // Mover el elemento al contenedor correspondiente (buscando por data-status)
+                                                    const newContainer = document.querySelector(
+                                                        `.kanban-box[data-status='2']`);
+                                                    if (newContainer) {
+                                                        newContainer.appendChild(milestoneCard);
+                                                    }
+
+                                                    // Actualizar contadores de tareas
+                                                    updateTaskCount(source);
+                                                    updateTaskCount(newContainer);
+                                                }
+
+                                                // Crear el toast dinámicamente
+                                                const toastHTML = `
+                        <div aria-live="polite" aria-atomic="true"
+                             class="toast align-items-center text-white bg-primary border-0 toastNegation"
+                             role="alert" id="successToast" data-bs-autohide="true" data-bs-delay="2000">
+                            <div class="d-flex">
+                                <div class="toast-body">
+                                    {{ __('Todas las tareas tienen que tener horas inputadas') }}
+                                </div>
+                            </div>
+                        </div>
+                    `;
+
+                                                // Buscar el elemento con data-title="Hoja de encargo" y añadir el toast encima
+                                                const targetElement = document.querySelector(
+                                                    '[data-title="Hoja de encargo"]');
+                                                if (targetElement) {
+                                                    // Inserta el toast justo antes del targetElement
+                                                    $(targetElement).before(toastHTML);
+
+                                                    // Inicializa y muestra el toast con Bootstrap
+                                                    const toastElement = document.getElementById(
+                                                        'successToast');
+                                                    const toast = new bootstrap.Toast(toastElement);
+                                                    toast.show();
+                                                } else {
+                                                    console.warn(
+                                                        'No se encontró el elemento con data-title="Hoja de encargo".'
+                                                    );
+                                                }
+                                            },
+                                            error: function(xhr, status, error) {
+                                                console.error('Error al actualizar el orden:', error);
+                                            }
+                                        });
+                                    }
+                                },
+                                error: function(xhr, status, error) {
+                                    console.error('Error al verificar las horas de tarea:', error);
+                                }
+                            });
+
+
+
+
+
+
+
 
                             console.log("lo ha solicitado:");
                             console.log(milestoneRequBy)
@@ -818,6 +930,7 @@ $icon =
                                     }
                                 })
                                 .catch(error => console.error("Error al agregar notificación:", error));
+                            /////////////FINAL status 2 a 3///////////////////////////
                         }
 
                         // Actualizamos los contadores de tareas en los contenedores de origen y destino

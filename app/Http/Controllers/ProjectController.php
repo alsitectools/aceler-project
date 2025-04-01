@@ -1233,6 +1233,8 @@ class ProjectController extends Controller
 
     public function milestoneOrderUpdate(Request $request, $slug, $projectID)
     {
+        \Log::info('info desde el order update');
+        \Log::info($request->all());
         $currentWorkspace = Utility::getWorkspaceBySlug($slug);
 
         if (isset($currentWorkspace)) {
@@ -1644,6 +1646,29 @@ class ProjectController extends Controller
         }
 
         return $TaskFile->toJson();
+    }
+    public function checkTaskHours(Request $request, $slug, $milestone_id)
+    {
+        \Log::info('QUE CALOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOR');
+        \Log::info($request->id);
+
+        // Obtener todos los IDs de las tareas asociadas al milestone_id
+        $taskIds = Task::where('milestone_id', $request->id)->pluck('id');
+
+        // Registrar los IDs en el log
+        \Log::info('Task IDs:', $taskIds->toArray());
+
+        // Verificar si cada task_id tiene al menos una entrada en timesheets
+        $tasksWithTimesheets = Timesheet::whereIn('task_id', $taskIds)
+            ->pluck('task_id')
+            ->unique(); // Obtener solo IDs únicos
+
+        // Comprobar si todas las tareas tienen al menos una entrada en timesheets
+        $allExist = $taskIds->diff($tasksWithTimesheets)->isEmpty();
+
+        \Log::info('Todas las tareas tienen al menos una entrada en timesheets: ' . ($allExist ? 'Sí' : 'No'));
+
+        return response()->json(['all_exist' => $allExist]);
     }
 
     public function commentDestroyFile(Request $request, $slug, $projectID, $taskID, $fileID)
