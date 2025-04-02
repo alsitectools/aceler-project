@@ -71,6 +71,15 @@ class Milestone extends Model
         return $sales_manager ? $sales_manager : "Unknow";
     }
 
+    public function getRequestedBy()
+    {
+        $requested_by = User::join('milestones', 'milestones.assign_to', '=', 'users.id')
+            ->where('milestones.assign_to', $this->assign_to)
+            ->first();
+
+        return $requested_by;
+    }
+
     public function milestone()
     {
         $milestone = Milestone::join('tasks', 'milestones.id', '=', 'tasks.milestone_id')

@@ -1233,6 +1233,8 @@ class ProjectController extends Controller
 
     public function milestoneOrderUpdate(Request $request, $slug, $projectID)
     {
+        \Log::info('info desde el order update');
+        \Log::info($request->all());
         $currentWorkspace = Utility::getWorkspaceBySlug($slug);
 
         if (isset($currentWorkspace)) {
@@ -1644,6 +1646,29 @@ class ProjectController extends Controller
         }
 
         return $TaskFile->toJson();
+    }
+    public function checkTaskHours(Request $request, $slug, $milestone_id)
+    {
+        \Log::info('QUE CALOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOR');
+        \Log::info($request->id);
+
+        // Obtener todos los IDs de las tareas asociadas al milestone_id
+        $taskIds = Task::where('milestone_id', $request->id)->pluck('id');
+
+        // Registrar los IDs en el log
+        \Log::info('Task IDs:', $taskIds->toArray());
+
+        // Verificar si cada task_id tiene al menos una entrada en timesheets
+        $tasksWithTimesheets = Timesheet::whereIn('task_id', $taskIds)
+            ->pluck('task_id')
+            ->unique(); // Obtener solo IDs únicos
+
+        // Comprobar si todas las tareas tienen al menos una entrada en timesheets
+        $allExist = $taskIds->diff($tasksWithTimesheets)->isEmpty();
+
+        \Log::info('Todas las tareas tienen al menos una entrada en timesheets: ' . ($allExist ? 'Sí' : 'No'));
+
+        return response()->json(['all_exist' => $allExist]);
     }
 
     public function commentDestroyFile(Request $request, $slug, $projectID, $taskID, $fileID)
@@ -2210,53 +2235,62 @@ class ProjectController extends Controller
 
     public function fileUpload($slug, $id, Request $request)
     {
-        $project = Project::find($id);
-        $request->validate(['file' => 'required']);
-
-        $file_name = $request->file->getClientOriginalName();
-        $file_path = $project->id . "_" . md5(time()) . "_" . $file_name;
-
-        $project_name = str_replace(' ', '_', $project->name);
-        $dir = 'project_files/' . $project_name;
-
-        //  Verificar si la carpeta existe, si no, crearla
-        if (!\Storage::exists($dir)) {
-            \Storage::makeDirectory($dir, 0755, true); // Permisos 755 y recursivo
-        }
-
-        // Subir el archivo
-        $path = Utility::upload_file($request, 'file', $file_path, $dir, []);
-        if ($path['flag'] == 1) {
-            $file = $path['url'];
-        } else {
-            return redirect()->back()->with('error', __($path['msg']));
-        }
-
-        // Guardar la información en la base de datos
-        $file = ProjectFile::create([
-            'project_id' => $project->id,
-            'file_name' => $file_name,
-            'file_path' => $file_path,
-            'extension' => $request->file->getClientOriginalExtension(),
+        $project = Project::findOrFail($id);
+        $request->validate([
+            'file' => 'required'
         ]);
 
-        $return = [
-            'is_success' => true,
-            'download' => route('projects.file.download', [$slug, $project->id, $file->id]),
-            'delete' => route('projects.file.delete', [$slug, $project->id, $file->id]),
-        ];
+        $file = $request->file('file');
+        $file_name = $file->getClientOriginalName();
+        $extension = $file->getClientOriginalExtension();
+
+        $newName = $project->id . "_" . md5(time()) . "_" . $file_name;
+
+        $projectFolder = str_replace(' ', '_', $project->name);
+
+        $dir = 'project_files/' . $projectFolder;
+
+        $destinationPath = storage_path($dir);
+
+
+        if (!file_exists($destinationPath)) {
+            if (!mkdir($destinationPath, 0755, true)) {
+                return response()->json(['error' => 'No se pudo crear la carpeta.'], 500);
+            }
+        }
+
+        try {
+            $file->move($destinationPath, $newName);
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Error al mover el archivo: ' . $e->getMessage()], 500);
+        }
+
+        $projectFile = ProjectFile::create([
+            'project_id' => $project->id,
+            'file_name'  => $file_name,
+            'file_path'  => $newName,
+            'extension'  => $extension,
+        ]);
 
         // Registrar en el log de actividad
         ActivityLog::create([
-            'user_id' => \Auth::user()->id,
-            'user_type' => get_class(\Auth::user()),
+            'user_id'    => \Auth::id(),
+            'user_type'  => get_class(\Auth::user()),
             'project_id' => $project->id,
-            'log_type' => 'Upload File',
-            'remark' => json_encode(['file_name' => $file_name]),
+            'log_type'   => 'Upload File',
+            'remark'     => json_encode(['file_name' => $file_name]),
         ]);
+
+        // Preparar la respuesta con las rutas para descargar y eliminar el archivo
+        $return = [
+            'is_success' => true,
+            'download'   => route('projects.file.download', [$slug, $project->id, $projectFile->id]),
+            'delete'     => route('projects.file.delete', [$slug, $project->id, $projectFile->id])
+        ];
 
         return response()->json($return);
     }
+
 
     public function milestonefileDownload(Request $request)
     {
@@ -2413,6 +2447,7 @@ class ProjectController extends Controller
 
     public function timesheetStore($slug, Request $request)
     {
+        \Log::info(['recibido en timesheetStore' => $request->all()]);
         $user = Auth::user();
         $currentWorkspace = Utility::getWorkspaceBySlug($slug);
 
@@ -2445,13 +2480,24 @@ class ProjectController extends Controller
             return redirect()->back()->with('error', 'Tarea no encontrada o no pertenece al proyecto actual.');
         }
 
-        $timesheet = new Timesheet();
-        $timesheet->project_id = $request->project_id;
-        $timesheet->task_id = $task->id;
-        $timesheet->date = $request->date;
-        $timesheet->time = sprintf('%02d:%02d:00', $request->time_hour, $request->time_minute);
-        $timesheet->created_by = $user->id;
-        $timesheet->save();
+        $timesheetEdit = Timesheet::where('project_id', $project->id)
+            ->where('task_id', $task->id)
+            ->whereDate('date', $request->date)
+            ->where('created_by', $user->id)
+            ->first();
+
+        if ($timesheetEdit) {
+            $timesheetEdit->time = sprintf('%02d:%02d:00', $request->time_hour, $request->time_minute);
+            $timesheetEdit->save();
+        } else {
+            $timesheet = new Timesheet();
+            $timesheet->project_id = $request->project_id;
+            $timesheet->task_id = $task->id;
+            $timesheet->date = $request->date;
+            $timesheet->time = sprintf('%02d:%02d:00', $request->time_hour, $request->time_minute);
+            $timesheet->created_by = $user->id;
+            $timesheet->save();
+        }
 
         $milestone = Milestone::find($task->milestone_id);
 
@@ -2468,6 +2514,89 @@ class ProjectController extends Controller
         return redirect()->back()->with('success', __('Timesheet actualizado correctamente.'));
     }
 
+    public function timesheetTotalTime(Request $request)
+    {
+        \Log::info(['recibido en total time' => $request->all()]);
+
+        $project_id    = $request->input('project_id');
+        $task_id       = $request->input('task_id');
+        $user_id       = $request->input('user_id');
+        $selected_date = $request->input('selected_date'); // Usamos "date" para ser consistente con la vista
+
+        // Validar que el proyecto y la tarea existan
+        $project = Project::find($project_id);
+        if (!$project) {
+            return response()->json(['error' => 'Project not found'], 404);
+        }
+        $task = Task::where('project_id', $project_id)
+            ->where('id', $task_id)
+            ->first();
+
+        if (!$task) {
+            return response()->json(['error' => 'Task not found'], 404);
+        }
+        \Log::info(['selected_date' => $selected_date]);
+
+        $tasktime = Timesheet::where('task_id', $task->id)
+            ->where('created_by', $user_id)
+            ->whereDate('date', $selected_date)
+            ->pluck('time') // Devuelve un array plano con solo los valores de 'time'
+            ->toArray();
+
+        \Log::info(['tasktime corregido' => $tasktime]);
+
+
+        // Por que no devuelve las horas?
+        \Log::info(['tasktime' => $tasktime]);
+
+        $totaltasktime = Utility::calculateTimesheetHours($tasktime);
+        \Log::info(['totaltasktime' => $totaltasktime]);
+        $totalhourstimes = explode(':', $totaltasktime);
+        $totaltaskhour = $totalhourstimes[0] ?? '00';
+        $totaltaskminute = $totalhourstimes[1] ?? '00';
+
+        // Obtener horario esperado según el día de la semana
+        $timeTable = UserTimetable::where('user_id', $user_id)->first();
+        $dayOfWeek = strtolower(date('l')); // Día en inglés (ej: "monday")
+
+        $expectedHour = 0;
+        if ($timeTable && isset($timeTable->$dayOfWeek)) {
+            $expectedTime = explode(':', $timeTable->$dayOfWeek);
+            $expectedHour = (int) $expectedTime[0]; // Solo horas
+        }
+
+        // Convertir horas trabajadas a decimal
+        $workedHoursFormatted = $totaltaskhour + ($totaltaskminute / 60);
+        $dayColor = '';
+        // Determinar el color según la comparación
+        if ($workedHoursFormatted == 0) {
+            $dayColor = '#e06c71'; // Rojo (sin horas)
+        } elseif ($workedHoursFormatted < $expectedHour) {
+            $dayColor = '#fcf75e'; // Amarillo (horas parciales)
+        } elseif ($workedHoursFormatted == $expectedHour) {
+            $dayColor = '#89e186'; // Verde (horas completas)
+        } elseif ($workedHoursFormatted > $expectedHour) {
+            $dayColor = '#b2e2f2'; // Azul (horas extras)
+        }
+
+        if (!$task) {
+            return response()->json(['error' => 'Task not found'], 404);
+        }
+        $user = Auth::user();
+        $timesheetEdit = Timesheet::where('project_id', $task->project_id)
+            ->where('task_id', $task->id)
+            ->whereDate('date', $selected_date)
+            ->where('created_by', $user->id)
+            ->first();
+
+        return response()->json([
+            'totaltaskhour' => $totaltaskhour,
+            'totaltaskminute' => $totaltaskminute,
+            'dayColor'        => $dayColor,
+            'is_edit' => $timesheetEdit ? true : false,
+            'timesheet' => $timesheetEdit ? $timesheetEdit : null,
+        ]);
+    }
 
     public function creatTimeshitFromOrderForms(Request $request, $slug, $project_id)
     {
@@ -2484,6 +2613,8 @@ class ProjectController extends Controller
 
         $project = Project::find($project_id);
 
+
+
         if (!$project) {
             return redirect()->back()->with('error', 'Project not found');
         }
@@ -2497,6 +2628,12 @@ class ProjectController extends Controller
         if (!$task) {
             return redirect()->back()->with('error', 'Task not found');
         }
+
+        $timesheetEdit = Timesheet::where('project_id', $task->project_id)
+            ->where('task_id', $task->id)
+            ->whereDate('date', $selected_date)
+            ->where('created_by', $user_id)
+            ->first();
 
         $taskType = TaskType::where('project_type', $project->type)
             ->where('id', $task->type_id)
@@ -2557,7 +2694,7 @@ class ProjectController extends Controller
             'totaltaskminute' => $totaltaskminute,
         ];
 
-        return view('projects.timesheet-create', compact('currentWorkspace', 'parseArray', 'fromTimesheet', 'dayColor'));
+        return view('projects.timesheet-create', compact('currentWorkspace', 'parseArray', 'fromTimesheet', 'dayColor', 'timeTable', 'timesheetEdit'));
     }
 
     public function timesheetUpdate($slug, $timesheetID, Request $request)
@@ -3499,7 +3636,7 @@ class ProjectController extends Controller
             'totaltaskminute' => $totaltaskminute,
         ];
 
-        return view('projects.timesheet-create', compact('currentWorkspace', 'parseArray', 'fromTimesheet', 'dayColor'));
+        return view('projects.timesheet-create', compact('currentWorkspace', 'parseArray', 'fromTimesheet', 'dayColor', 'timeTable'));
     }
 
 
@@ -3545,6 +3682,7 @@ class ProjectController extends Controller
         $currentWorkspace = Utility::getWorkspaceBySlug($slug);
         $project = Project::find($project_id);
         $task = Task::find($request->task_id);
+        $milestone = Milestone::find($task->milestone_id);
 
         $task_id = $request->has('task_id') ? $request->task_id : null;
         $user_id = $request->has('date') ? $request->user_id : null;
@@ -3586,7 +3724,9 @@ class ProjectController extends Controller
                 $taskType = TaskType::select('name')->where('id', $task)->first();
                 $task_name = $taskType->name;
 
-                $tasktime = Timesheet::where('created_by', $created_by)->whereDate('date', $selected_date)->pluck('time')->toArray();
+                $tasktime = Timesheet::where('id', $timesheet_id)
+                    ->where('created_by', $created_by)
+                    ->whereDate('date', $selected_date)->pluck('time')->toArray();
 
                 $totaltasktime = Utility::calculateTimesheetHours($tasktime);
 
@@ -3618,13 +3758,12 @@ class ProjectController extends Controller
                 } elseif ($workedHoursFormatted > $expectedHour) {
                     $dayColor = '#b2e2f2'; // Azul (horas extras)
                 }
-                $milestone = Milestone::find($request->milestone_id);
-
                 $parseArray = [
                     'project_id' => $project_id,
                     'project_name' => $project_name,
                     'milestone_name' => $milestone->title,
                     'milestone_id' => $milestone->id,
+                    'timesheet_id' => $timesheet_id,
                     'task_id' => $task_id,
                     'task_name' => $task_name,
                     'time_hour' => $time[0] < 10 ? $time[0] : $time[0],
@@ -3632,16 +3771,20 @@ class ProjectController extends Controller
                     'totaltaskhour' => $totaltaskhour,
                     'totaltaskminute' => $totaltaskminute,
                 ];
+                $user = Auth::user();
+                $timesheetEdit = Timesheet::find($timesheet_id);
 
-
-                return view('projects.timesheet-edit', compact('timesheet', 'currentWorkspace', 'parseArray', 'project_id', 'dayColor'));
+                return view('projects.timesheet-edit', compact('timesheet', 'currentWorkspace', 'parseArray', 'project_id', 'dayColor', 'timeTable', 'timesheetEdit'));
             }
         }
     }
 
     public function projectTimesheetUpdate(Request $request, $slug, $timesheet_id, $project_id)
     {
+        \Log::info(['projectTimesheetUpdate' => $request->all()]);
         $project = Project::find($request->project_id);
+
+        \Log::info(['projectTimesheetUpdate' => $project->id]);
         $currentWorkspace = Utility::getWorkspaceBySlug($slug);
 
         if ($project) {

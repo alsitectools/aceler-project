@@ -36,19 +36,6 @@
 </head>
 <div class="card-body table-border-style">
     <div class="table-responsive">
-        <!-- <div class="custom-thead d-grid">
-            <div class="header-cell">
-                <b>{{ isset($allProjects) && $allProjects == true ? __('Projects') : __('Tasks') }}</b>
-            </div>
-            @foreach ($days['datePeriod'] as $key => $perioddate)
-                <div class="header-cell">
-                    <b>{{ ucfirst($perioddate->isoFormat('ddd DD MMM')) }}</b>
-                </div>
-            @endforeach
-            <div class="header-cell">
-                <b>{{ __('Total') }}</b>
-            </div>
-        </div> -->
         <table class="table table-borderless mb-0">
             <tbody>
                 @if (isset($allProjects) && $allProjects == true)
@@ -88,7 +75,7 @@
                                                             @foreach ($milestone['taskArray'] as $taskKey => $taskTimesheet)
                                                                 <tr class="weekRow">
                                                                     @if (Auth::user()->type != 'admin')
-                                                                        <td class="wid-150 firstTdInWeek">
+                                                                        <td class="wid-150 firstTdInWeek text-start">
                                                                             <div role="button"
                                                                                 data-title="{{ __('Task') }}"
                                                                                 data-url="{{ route('show.task', [$currentWorkspace->slug, $taskTimesheet['task_id'], $days['first_day'], $days['seventh_day']]) }}"
