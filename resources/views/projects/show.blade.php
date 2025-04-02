@@ -202,6 +202,12 @@
 @endsection
 
 <style type="text/css">
+.reqByImgContainer {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    align-content: center;
+    }
     .fix_img {
         width: 40px !important;
         border-radius: 50%;
@@ -489,12 +495,11 @@
                                             <thead>
                                                 <tr>
                                                     <th>{{ __('Name') }}</th>
+                                                    <th>{{ __('Requested by') }}</th>
                                                     <th>{{ __('Status') }}</th>
                                                     <th>{{ __('Created date') }}</th>
                                                     <th>{{ __('Desired delivery date') }}</th>
-
                                                     <th>{{ __('Expected delivery date') }}</th>
-
                                                     <th>{{ __('Task started date') }}</th>
                                                     <th>{{ __('Completion date') }}</th>
                                                     <th>{{ __('Action') }}</th>
@@ -509,6 +514,10 @@
                                                                 data-url="{{ route('projects.milestone.show', [$currentWorkspace->slug, $milestone->id]) }}">
                                                                 <h5 class="m-0"> {{ $milestone->title }} </h5>
                                                             </a>
+                                                        </td>
+                                                        <td class="reqByImgContainer">
+                                                            <img class="fix_img" title="{{$milestone->getRequestedBy()->name}}"
+                                                            @if ($milestone->getRequestedBy()->avatar) src="{{ asset($milestone->getRequestedBy()->avatar) }}" @else avatar="{{ $milestone->getRequestedBy()->name}}" @endif>
                                                         </td>
                                                         <td>
                                                             @if ($milestone->status == 3)
