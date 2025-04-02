@@ -121,6 +121,8 @@ Route::get('/{slug}/projects/{id}/bug_report/{bid}/show', [ProjectController::cl
 Route::get('/{slug}/timesheet-table-view', [ProjectController::class, 'filterTimesheetTableView'])->name('filter.timesheet.table.view')->middleware(['XSS']);
 
 Route::get('/{slug}/timesheet/createOrderForms/{project_id}', [ProjectController::class, 'creatTimeshitFromOrderForms'])->name('create.timesheet.from.orders')->middleware(['auth', 'XSS']);
+// Route::post('/timesheet/get-total-time', [ProjectController::class, 'timesheetTotalTime'])->name('getTotalTime')->middleware(['auth', 'XSS']);
+Route::post('/timesheet/get-total-time', [ProjectController::class, 'timesheetTotalTime'])->name('getTotalTime')->middleware(['auth', 'XSS']);
 
 //================================= Invoice Payment Gateways for Copylink ====================================//
 

@@ -46,10 +46,10 @@
     justify-content: space-evenly;
     align-items: center;
     text-align: center;
-    margin-top: 20px;
+    /* margin-top: 20px; */
     padding-bottom: 10px;
-    margin-left: 2%;
-    width: 95%;
+    /* margin-left: 2%; */
+    /* width: 95%; */
     border-bottom: 1px solid #abaaaa;
 }
 
@@ -192,10 +192,6 @@
     background-color: transparent !important;
 }
 
-.firstTdInWeek {
-    font-size: 15px;
-}
-
 .marginForTotalText {
     margin-left: 35px;
 }
@@ -217,13 +213,9 @@
         width: 98% !important;
     }
 
-    .weekRow {
-        width: 94% !important;
-    }
-
     .firstTdInWeek {
+        text-align: left !important;
         font-size: 13px !important;
-        padding-left: 5px !important;
     }
 
     .inputsTask {
