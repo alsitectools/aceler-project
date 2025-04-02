@@ -6,7 +6,7 @@
     use App\Models\User;
 @endphp
 @section('page-title')
-    {{ __('Milestoneboard') }}
+    {{ __('Order Forms Board') }}
 @endsection
 
 <head>
@@ -106,7 +106,7 @@
         <li class="breadcrumb-item"><a
                 href="{{ route('projects.index', $currentWorkspace->slug) }}">{{ __('Projects') }}</a></li>
     @endif
-    <li class="breadcrumb-item">{{ __('Milestoneboard') }}</li>
+    <li class="breadcrumb-item">{{ __('Order Forms Board') }}</li>
 @endsection
 
 @section('action-button')

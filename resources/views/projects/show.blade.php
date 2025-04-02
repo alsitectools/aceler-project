@@ -492,6 +492,9 @@
                                                     <th>{{ __('Status') }}</th>
                                                     <th>{{ __('Created date') }}</th>
                                                     <th>{{ __('Desired delivery date') }}</th>
+
+                                                    <th>{{ __('Expected delivery date') }}</th>
+
                                                     <th>{{ __('Task started date') }}</th>
                                                     <th>{{ __('Completion date') }}</th>
                                                     <th>{{ __('Action') }}</th>
@@ -524,6 +527,8 @@
                                                         <td>{{ $milestone->start_date ? Carbon::parse($milestone->start_date)->format('d-m-Y') : '...' }}
                                                         </td>
                                                         <td>{{ $milestone->end_date ? Carbon::parse($milestone->end_date)->format('d-m-Y') : '...' }}
+                                                        </td>
+                                                        <td>{{ $milestone->planned_end_date ? Carbon::parse($milestone->planned_end_date)->format('d-m-Y') : '...' }}
                                                         </td>
                                                         <td>{{ $milestone->task_start_date ? Carbon::parse($milestone->task_start_date)->format('d-m-Y') : '...' }}
                                                         </td>
