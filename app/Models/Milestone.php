@@ -77,7 +77,7 @@ class Milestone extends Model
             ->where('milestones.assign_to', $this->assign_to)
             ->first();
 
-        return $requested_by;
+        return $requested_by ? $requested_by : null;
     }
 
     public function milestone()

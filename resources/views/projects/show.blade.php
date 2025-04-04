@@ -516,8 +516,10 @@
                                                             </a>
                                                         </td>
                                                         <td class="reqByImgContainer">
+                                                            @if($milestone->getRequestedBy() != null)
                                                             <img class="fix_img" title="{{$milestone->getRequestedBy()->name}}"
-                                                            @if ($milestone->getRequestedBy()->avatar) src="{{ asset($milestone->getRequestedBy()->avatar) }}" @else avatar="{{ $milestone->getRequestedBy()->name}}" @endif>
+                                                            @if ($milestone->getRequestedBy()->avatar) src="{{ asset($milestone->getRequestedBy()->avatar) }}" @else avatar="{{ $milestone->getRequestedBy()->name}}" @endif>                                                              
+                                                            @endif                                                      
                                                         </td>
                                                         <td>
                                                             @if ($milestone->status == 3)

@@ -65,8 +65,9 @@ class AzureController extends Controller
                     }
 
                     if ($extension) {
-                        $photoPath = 'users-avatar/' . $userProfile['userPrincipalName'] . '.' . $extension;
-                        $absolutePath = storage_path('users-avatar/' . $userProfile['userPrincipalName'] . '.' . $extension);
+
+                        $photoPath = 'assets/users-avatar/' . $userProfile['userPrincipalName'] . '.' . $extension;
+                        $absolutePath = public_path($photoPath); // Guardar en public/assets/users-avatar
 
                         if (!file_exists(dirname($absolutePath))) {
                             mkdir(dirname($absolutePath), 0755, true);
@@ -74,7 +75,9 @@ class AzureController extends Controller
 
                         file_put_contents($absolutePath, $photoContent);
 
-                        $userProfile['photo_path'] = 'storage/users-avatar/' . $userProfile['userPrincipalName'] . '.' . $extension;
+                        // Guardar la ruta en el perfil del usuario
+                        $userProfile['photo_path'] = asset($photoPath); // Generar URL accesible desde el navegador
+
                     }
                 } else {
                     $userProfile['photo_path'] = null;
