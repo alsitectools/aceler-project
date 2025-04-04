@@ -1649,7 +1649,7 @@ class ProjectController extends Controller
     }
     public function checkTaskHours(Request $request, $slug, $milestone_id)
     {
-        \Log::info('QUE CALOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOR');
+        \Log::info('Function checkTaskHours');
         \Log::info($request->id);
 
         // Obtener todos los IDs de las tareas asociadas al milestone_id
@@ -2045,7 +2045,7 @@ class ProjectController extends Controller
 
         $milestone = Milestone::find($milestoneID);
         if (!$milestone) {
-            return redirect()->back()->with('error', 'Milestone no encontrado.');
+            return redirect()->back()->with('error', 'Milestone not found');
         }
         $milestone->summary = $request->summary;
         $milestone->milestone_assigned_to_user = $request->req_assing_to ?? '';
@@ -2055,7 +2055,7 @@ class ProjectController extends Controller
 
         $project = Project::where('id', '=', $milestone->project_id)->first();
         if (!$project) {
-            return redirect()->back()->with('error', 'Proyecto no encontrado.');
+            return redirect()->back()->with('error', 'Project not found');
         }
 
         // Guardar nuevos archivos en "storage/project_files/{proyecto}/{milestone}"
@@ -2095,9 +2095,7 @@ class ProjectController extends Controller
                     return redirect()->back()->with('error', __('Uno o más archivos no son válidos.'));
                 }
             }
-        } else {
-            \Log::error('No se recibieron archivos en new_files.');
-        }
+        } 
 
         //  Notificación de actualización del Milestone
         $settings = Utility::getPaymentSetting($user1);
@@ -2123,7 +2121,7 @@ class ProjectController extends Controller
             Utility::send_slack_msg('Milestone Status Updated', $user1, $uArr);
         }
 
-        return redirect()->back()->with('success', __('Milestone actualizado con éxito!'));
+        return redirect()->back()->with('success', __('Milestone Updated Successfully!'));
     }
 
 
@@ -2511,7 +2509,7 @@ class ProjectController extends Controller
 
         $this->employeesInProject(Auth::user()->id, $project->id);
 
-        return redirect()->back()->with('success', __('Timesheet actualizado correctamente.'));
+        return redirect()->back()->with('success', __('Timesheet Updated Successfully!'));
     }
 
     public function timesheetTotalTime(Request $request)
