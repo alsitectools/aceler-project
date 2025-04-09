@@ -7,6 +7,99 @@
     max-width: 80%;
 }
 
+.custom-fieldset {
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    padding: 10px 15px;
+    display: flex;
+    position: relative;
+    margin: 5px;
+}
+
+.styleIconFiles {
+    width: 28px;
+    height: 21px;
+    padding-left: 5px;
+    padding-right: 5px;
+}
+
+.uploaded-file p {
+    margin: 0;
+    font-size: 14px;
+    flex-grow: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.statusBadge {
+    padding-right: 1.5rem !important;
+    padding-left: 1.5rem !important;
+    padding: 0.5rem;
+    color: white;
+    border-radius: 0.5rem;
+}
+
+.imgName {
+    width: 40px !important;
+    border-radius: 50%;
+}
+/* Contenedor en grid para los archivos */
+.custom-file-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 5px;
+    width: 100%;
+}
+
+/* Estilo uniforme para cada "tarjeta" de archivo */
+.custom-file {
+    display: flex;
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-around;
+        width: 220px;
+        background: #f4f5ff;
+        padding: 10px;
+        margin: 5px;
+        box-shadow: -3px 3px 0px 0px rgb(239, 239, 239);
+        border-radius: 6px;
+        text-align: center;
+}
+
+/* Ajusta el párrafo para evitar que el texto se desborde */
+.custom-file p {
+    margin: 0;
+    font-size: 14px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    width: 100%;
+}
+
+  
+.custom-legend {
+    font-size: 14px;
+    color: #666;
+    padding: 0 5px;
+    position: absolute;
+    top: -10px;
+    left: 15px;
+    background: white;
+    display: inline-block;
+    width: auto;
+    white-space: nowrap;
+}
+
+.custom-input {
+    border: none;
+    outline: none;
+    font-size: 18px;
+    width: 50%;
+    padding: 5px;
+    background: transparent;
+}
+
 #projects_list,
 #ref_mo_list,
 #clipo_list {
@@ -39,13 +132,14 @@
 
 #file-list {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
     gap: 5px;
-    max-height: 145px;
+    width: 100%;
     overflow-y: auto;
     overflow-x: hidden;
 }
-.actualMilestoneFiles{
+
+.actualMilestoneFiles {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
     gap: 5px;
@@ -53,6 +147,7 @@
     overflow-y: auto;
     overflow-x: hidden;
 }
+
 .style-list {
     display: flex;
     flex-direction: row;
@@ -150,6 +245,7 @@
     white-space: nowrap;
     width: 100%;
 }
+
 .file-nameMilestoneShow {
     overflow: hidden;
     text-overflow: ellipsis;
@@ -157,7 +253,7 @@
     max-width: 30%;
 }
 
-.divFilesMilestoneShow{
+.divFilesMilestoneShow {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
     gap: 10px;
@@ -180,6 +276,7 @@
     white-space: nowrap;
     width: 100%;
 }
+
 .fileMilestoneEdit {
     display: flex;
     align-items: center;
@@ -194,6 +291,7 @@
     white-space: nowrap;
     width: 95%;
 }
+
 .file-name {
     overflow: hidden;
     text-overflow: ellipsis;

@@ -39,6 +39,7 @@ use App\Models\UserProject;
 use App\Models\UserTimetable;
 use App\Models\UserWorkspace;
 use App\Models\Utility;
+use App\Models\Workspace;
 use Carbon\Carbon;
 use Carbon\CarbonPeriod;
 use Illuminate\Http\Request;
@@ -2095,7 +2096,7 @@ class ProjectController extends Controller
                     return redirect()->back()->with('error', __('Uno o más archivos no son válidos.'));
                 }
             }
-        } 
+        }
 
         //  Notificación de actualización del Milestone
         $settings = Utility::getPaymentSetting($user1);
@@ -2167,9 +2168,17 @@ class ProjectController extends Controller
     {
         $currentWorkspace = Utility::getWorkspaceBySlug($slug);
         $milestone = Milestone::find($milestoneID);
+        $project = Project::find($milestone->project_id);
+        $project_name = $project->name;
         $salesManager = User::find($milestone->assign_to);
 
-        return view('projects.milestoneShow', compact('currentWorkspace', 'milestone', 'salesManager'));
+        $delegation_name = Workspace::where('id', $project->workspace)->value('name');
+        $milestoneFiles = MilestoneFile::where('milestone_id', '=', $milestone->id)
+            ->select('id', 'name', 'file', 'extension')
+            ->get();
+
+
+        return view('projects.milestoneShow', compact('currentWorkspace', 'milestone', 'salesManager', 'project', 'milestoneFiles', 'delegation_name'));
     }
 
     public function subTaskStore(Request $request, $slug, $projectID, $taskID, $clientID = '')
@@ -2299,10 +2308,7 @@ class ProjectController extends Controller
             ->where('name', $inputs['fileName']) // Asegúrate de tener este campo en la BD
             ->value('file');
 
-        \Log::debug("File Path: " . $filePath);
         $url = asset('storage/' . $filePath);
-
-        \Log::debug("Generated URL: " . $url);
 
         // Retornar la URL en formato JSON
         return response()->json([

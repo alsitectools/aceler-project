@@ -53,7 +53,6 @@
         display: grid;
         grid-template-columns: repeat(3, 1fr);
         gap: 10px;
-        /* max-height: 140px; */
         overflow-y: auto;
         overflow-x: hidden;
     }
@@ -84,7 +83,9 @@
 
     .uploaded-file-buttons {
         display: flex;
-        gap: 5px;
+        gap: 3px;
+        align-items: center;
+        padding-right: 5px;
     }
 
     .buttonFiles {
@@ -116,6 +117,22 @@
         flex-direction: column;
     }
 
+    .custom-file-container {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+        gap: 10px;
+    }
+
+    .custom-file{
+        display: flex;
+        justify-content: space-between;
+        background: #f4f5ff;
+        padding: 0.5%;
+        margin: 5px;
+        -moz-box-shadow: 10px 10px 5px 0px rgba(237, 237, 237, 1);
+        box-shadow: -3px 3px 0px 0px rgb(239 239 239);
+        border-radius: 6px;
+    }
     .milestoneGridDisplay {
         display: grid;
         grid-template-columns: repeat(3, 1fr);
@@ -123,8 +140,8 @@
     }
 
     .styleIconFiles {
-        width: 30px;
-        height: 25px;
+        width: 28px;
+        height: 21px;
         padding-left: 5px;
         padding-right: 5px;
     }
@@ -277,10 +294,6 @@
         white-space: nowrap;
     }
 
-    .uploaded-file-buttons {
-        display: flex;
-        gap: 5px;
-    }
 
     .buttonFiles {
         background-color: #aa182c;
@@ -510,7 +523,7 @@
                                                     <tr>
                                                         <td><a href="#" class="d-block font-weight-500 mb-0"
                                                                 data-ajax-popup="true"
-                                                                data-title="{{ __('Milestone Details') }}"
+                                                                data-title="{{ __('Order form details') }}"
                                                                 data-url="{{ route('projects.milestone.show', [$currentWorkspace->slug, $milestone->id]) }}">
                                                                 <h5 class="m-0"> {{ $milestone->title }} </h5>
                                                             </a>
@@ -826,7 +839,7 @@
                                         </div>
                                     </div>
                                 </div>
-                                <div class="card-body p-3" style="min-height: 374px;">
+                                <div class="card-body p-3 col-md-12" style="min-height: 374px;">
                                     <div class="author-box-name form-control-label mb-4"></div>
                                     <div class="col-md-12 dropzone browse-file" id="dropzonewidget">
                                         <div class="dz-message" data-dz-message>
@@ -836,21 +849,20 @@
                                                 .dxf</small>
                                         </div>
                                     </div>
-                                    <div class="mt-3">
+                                    <div class="mt-3 col-md-12">
                                         <div class="titleFiles">
                                             <i class="fa-regular fa-folder-open d-inline me-2 fa-xl"></i>
                                             <h5>{{ __('Project files') }}</h5>
                                         </div>
-
-                                        <!-- Contenedor único scrollable -->
-                                        <div class="uploaded-files-container mb-4 ms-4">
-                                            <!-- Sección de archivos del proyecto -->
+                                       <div class="custom-file-container ms-4">
                                             @if (!empty($projectFiles) && count($projectFiles) > 0)
                                                 @foreach ($projectFiles as $file)
-                                                    <div class="uploaded-file">
+                                                    <div class="custom-file">
                                                         <img src="{{ asset('assets/iconFilesTypes/' . $file->extension . '.png') }}"
-                                                            alt="{{ $file->extension }} icon" class="styleIconFiles">
-                                                        <p>{{ $file->file_name }}</p>
+                                                            alt="{{ $file->extension }} icon" class="styleIconFiles mt-2">
+                                                            <p class="m-2" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                                                                {{ $file->file_name }}
+                                                              </p>                                                              
                                                         <div class="uploaded-file-buttons">
                                                             <a onclick="downloadFile({{ $project->id }}, '', '{{ $file->file_path }}')"
                                                                 class="buttonFiles btn btn-sm">
@@ -880,7 +892,7 @@
                                             <i class="fa-regular fa-folder-open d-inline me-2 fa-xl"></i>
                                             <h6>{{ __('Milestone files') }}</h6>
                                         </div>
-                                        <div>
+                                        <div class="col-md-12">
                                             <!-- Sección de archivos de Milestones -->
                                             @if (!empty($milestoneFiles) && count($milestoneFiles) > 0)
                                                 @foreach ($milestoneFiles as $milestone)
@@ -893,14 +905,16 @@
                                                             <hr class="mt-0" style="border: 1px solid #eeeeee;">
                                                         </div>
 
-                                                        <div class="milestoneGridDisplay mb-4 ms-4">
+                                                        <div class="custom-file-container ms-4">
                                                             @if (!empty($milestone['files']) && count($milestone['files']) > 0)
                                                                 @foreach ($milestone['files'] as $file)
-                                                                    <div class="uploaded-file">
+                                                                    <div class="custom-file">
                                                                         <img src="{{ asset('assets/iconFilesTypes/' . $file->extension . '.png') }}"
                                                                             alt="{{ $file->extension }} icon"
-                                                                            class="styleIconFiles">
-                                                                        <p style="margin: 0;">{{ $file->name }}</p>
+                                                                            class="styleIconFiles mt-2">
+                                                                            <p class="m-2" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                                                                                {{ $file->name }}
+                                                                        </p>
                                                                         <div class="uploaded-file-buttons">
                                                                             <a onclick="downloadFile({{ $project->id }}, '{{ $milestone['title'] }}', '{{ $file->file }}')"
                                                                                 class="buttonFiles btn btn-sm">

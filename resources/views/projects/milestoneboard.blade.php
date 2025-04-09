@@ -217,7 +217,7 @@
                                                             <div class="dropdown-menu dropdown-menu-end">
                                                                 <a href="#" class="dropdown-item"
                                                                     data-ajax-popup="true" title="{{ __('View') }}"
-                                                                    data-title="{{ __('Milestone Details') }}"
+                                                                    data-title="{{ __('Order form details') }}"
                                                                     data-url="{{ route('projects.milestone.show', [$currentWorkspace->slug, $milestone['id']]) }}">
                                                                     <i class="ti ti-eye pr-1"></i>
                                                                     {{ __('View') }}
