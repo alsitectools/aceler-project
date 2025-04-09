@@ -2,97 +2,130 @@
     <link rel="stylesheet" href="{{ asset('assets/css/milestone.css') }}">
     <!--<script src="{{ asset('assets/js/milestone_uploadfiles.js') }}" defer></script>-->
 </head>
+<style>
+    /* Contenedor en grid para los archivos */
+    .custom-file-container {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+        gap: 5px;
+        width: 100%;
+    }
+
+    /* Estilo uniforme para cada "tarjeta" de archivo */
+    .custom-file {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-around;
+        width: 220px;
+        background: #f4f5ff;
+        padding: 10px;
+        margin: 5px;
+        box-shadow: -3px 3px 0px 0px rgb(239, 239, 239);
+        border-radius: 6px;
+        text-align: center;
+    }
+
+    /* Ajusta el párrafo para evitar que el texto se desborde */
+    .custom-file p {
+        margin: 0;
+        font-size: 14px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        width: 100%;
+    }
+</style>
+
 @if ($milestone && $currentWorkspace)
-    <form method="post" action="{{ route('projects.milestone.update', [$currentWorkspace->slug, $milestone->id]) }}"
-        enctype="multipart/form-data">
-        @csrf
-        <div class="modal-body">
-            <!-- Información general del hito -->
-            <div class="row">
-                <div class="col-md-12">
-                    <div class="form-group">
-                        <label for="milestone-title" class="col-form-label">{{ __('Milestone Title') }}</label>
-                        <input type="text" class="form-control form-control-light" id="milestone-title"
-                            placeholder="{{ __('Enter Title') }}" value="{{ $milestone->title }}" name="title"
-                            required disabled>
-                    </div>
-                </div>
-                <div class="row">
-                    <div class="form-group col-md-6">
-                        <label for="start_date" class="col-form-label">{{ __('Created date') }}</label>
-                        <input type="date" class="form-control form-control-light date" id="start_date"
-                            name="start_date" value="{{ $milestone->start_date }}" disabled>
-                    </div>
-                    <div class="form-group col-md-6">
-                        <label for="end_date" class="col-form-label">{{ __('Desired delivery date') }}</label>
-                        <input onclick="this.showPicker()" type="date" class="form-control form-control-light date"
-                            id="end_date" name="end_date" value="{{ $milestone->end_date }}" required>
-                    </div>
-                </div>
-                <div class="form-group col-md-12">
-                    <label for="task-summary" class="col-form-label">{{ __('Description') }}</label>
-                    <textarea class="form-control form-control-light" id="task-summary" rows="3" name="summary">{{ $milestone->summary }}</textarea>
+<form method="post" action="{{ route('projects.milestone.update', [$currentWorkspace->slug, $milestone->id]) }}"
+    enctype="multipart/form-data">
+    @csrf
+    <div class="modal-body">
+        <!-- Información general del hito -->
+        <div class="row">
+            <div class="col-md-12">
+                <div class="form-group">
+                    <label for="milestone-title" class="col-form-label">{{ __('Milestone Title') }}</label>
+                    <input type="text" class="form-control form-control-light" id="milestone-title"
+                        placeholder="{{ __('Enter Title') }}" value="{{ $milestone->title }}" name="title" required
+                        disabled>
                 </div>
             </div>
-            <!-- Archivos adjuntos existentes -->
+            <div class="row">
+                <div class="form-group col-md-6">
+                    <label for="start_date" class="col-form-label">{{ __('Created date') }}</label>
+                    <input type="date" class="form-control form-control-light date" id="start_date" name="start_date"
+                        value="{{ $milestone->start_date }}" disabled>
+                </div>
+                <div class="form-group col-md-6">
+                    <label for="end_date" class="col-form-label">{{ __('Desired delivery date') }}</label>
+                    <input onclick="this.showPicker()" type="date" class="form-control form-control-light date"
+                        id="end_date" name="end_date" value="{{ $milestone->end_date }}" required>
+                </div>
+            </div>
             <div class="form-group col-md-12">
-                <label for="file-uploadMilestone"class="form-label">
-                    <strong>{{ __('Upload files') }}</strong>
-                </label>
-                <div>
-                    <div class="col-md-12 dropzone browse-file" id="dropzonewidgetMilestone">
-                        <div class="dz-message" data-dz-message>
-                            <input type="file" id="file-uploadMilestone" style="display:none" multiple />
-                            <span> {{ __('Drop files here to upload') }}</span>
-                            <p class="text-muted" style="font-size:15px; margin:5px;">200MB</p>
-                            <small class="text-muted">.png .gif .pdf .txt .doc .docx .zip .rar .dwg .dxf</small>
-                        </div>
-                    </div>
-                    <div id="file-list"></div>
-                    <p style="margin-top: 1%;">
-                        <b>{{ __('Actual milestone files') }}</b>
-                    </p>
-                    <div class="actualMilestoneFiles">
-                        @foreach ($milestone->files as $file)
-                            @php
-                                $extension = pathinfo($file->name, PATHINFO_EXTENSION);
-                                $iconPath = file_exists(public_path('assets/iconFilesTypes/' . $extension . '.png'))
-                                    ? 'assets/iconFilesTypes/' . $extension . '.png'
-                                    : 'assets/iconFilesTypes/default.png';
-                            @endphp
-                            <div class="fileMilestoneEdit exist d-flex align-items-center mt-2"
-                                data-file-id="{{ $file->id }}">
-                                <img src="{{ asset($iconPath) }}" alt="{{ $extension }} icon"
-                                    style="width: 20px; height: 25px;">
-                                <div class="file-name ms-2">{{ $file->name }} <small
-                                        class="text-muted">({{ $file->file_size }})</small></div>
-                                <a class="buttonFiles btn btn-sm"
-                                    onclick="deleteFile({{ $milestone->project_id }}, '{{ $milestone->id }}', '{{ $file->id }}')">
-                                    <i class="fa-solid fa-trash-alt" style="color:white"></i>
-                                </a>
-                            </div>
-                        @endforeach
+                <label for="task-summary" class="col-form-label">{{ __('Description') }}</label>
+                <textarea class="form-control form-control-light" id="task-summary" rows="3"
+                    name="summary">{{ $milestone->summary }}</textarea>
+            </div>
+        </div>
+        <!-- Archivos adjuntos existentes -->
+        <div class="form-group col-md-12">
+            <label for="file-uploadMilestone" class="form-label">
+                <strong>{{ __('Upload files') }}</strong>
+            </label>
+            <div>
+                <div class="col-md-12 dropzone browse-file" id="dropzonewidgetMilestone">
+                    <div class="dz-message" data-dz-message>
+                        <input type="file" id="file-uploadMilestone" style="display:none" multiple />
+                        <span>{{ __('Drop files here to upload') }}</span>
+                        <p class="text-muted" style="font-size:15px; margin:5px;">200MB</p>
+                        <small class="text-muted">.png .gif .pdf .txt .doc .docx .zip .rar .dwg .dxf</small>
                     </div>
                 </div>
-                <div id="hidden-file-inputs" style="display: none;"></div>
+                <div id="file-list"></div>
+                <p style="margin-top: 1%;"><b>{{ __('Actual milestone files') }}</b></p>
+                <!-- Aplicamos las clases para que se muestren 3 columnas -->
+                <div class="actualMilestoneFiles custom-file-container">
+                    @foreach ($milestone->files as $file)
+                    @php
+                    $extension = pathinfo($file->name, PATHINFO_EXTENSION);
+                    $iconPath = file_exists(public_path('assets/iconFilesTypes/' . $extension . '.png'))
+                    ? 'assets/iconFilesTypes/' . $extension . '.png'
+                    : 'assets/iconFilesTypes/default.png';
+                    @endphp
+                    <div class="fileMilestoneEdit exist d-flex align-items-center mt-2 custom-file"
+                        data-file-id="{{ $file->id }}">
+                        <img src="{{ asset($iconPath) }}" alt="{{ $extension }} icon"
+                            style="width: 20px; height: 25px;">
+                        <div class="file-name ms-2">{{ $file->name }} <small class="text-muted">({{ $file->file_size
+                                }})</small></div>
+                        <a class="buttonFiles btn btn-sm"
+                            onclick="deleteFile({{ $milestone->project_id }}, '{{ $milestone->id }}', '{{ $file->id }}')">
+                            <i class="fa-solid fa-trash-alt" style="color:white"></i>
+                        </a>
+                    </div>
+                    @endforeach
+                </div>
             </div>
             <div id="hidden-file-inputs" style="display: none;"></div>
         </div>
-        </div>
-        <div class="modal-footer">
-            <button type="button" class="btn btn-light" data-bs-dismiss="modal">{{ __('Close') }}</button>
-            <input type="submit" value="{{ __('Save Changes') }}" class="btn btn-primary">
-        </div>
-    </form>
+    </div>
+    <div class="modal-footer">
+        <button type="button" class="btn btn-light" data-bs-dismiss="modal">{{ __('Close') }}</button>
+        <input type="submit" value="{{ __('Save Changes') }}" class="btn btn-primary">
+    </div>
+</form>
 @else
-    <div class="container mt-5">
-        <div class="card">
-            <div class="card-body p-4">
-                <h1>404</h1>
-                <p>{{ __('Page Not Found') }}</p>
-            </div>
+<div class="container mt-5">
+    <div class="card">
+        <div class="card-body p-4">
+            <h1>404</h1>
+            <p>{{ __('Page Not Found') }}</p>
         </div>
     </div>
+</div>
 @endif
 <script>
     var assetBasePath = "{{ asset('assets/iconFilesTypes') }}/";
@@ -138,62 +171,58 @@
         updateFileList();
     });
 
-    //  Función para actualizar la lista visual y los inputs ocultos
     function updateFileList() {
-        const fileListElement = document.getElementById('file-list');
-        const hiddenInputsContainer = document.getElementById('hidden-file-inputs');
+    const fileListElement = document.getElementById('file-list');
+    const hiddenInputsContainer = document.getElementById('hidden-file-inputs');
 
-        fileListElement.innerHTML = '';
-        hiddenInputsContainer.innerHTML = '';
+    fileListElement.innerHTML = '';
+    hiddenInputsContainer.innerHTML = '';
 
-        filesArray.forEach(file => {
-            const fileKey = `${file.name}-${file.size}-${file.lastModified}`;
+    filesArray.forEach(file => {
+        const fileKey = `${file.name}-${file.size}-${file.lastModified}`;
 
-            const fileContainer = document.createElement('div');
-            fileContainer.classList.add('file', 'd-flex', 'align-items-center', 'mt-2');
+        const fileContainer = document.createElement('div');
+        fileContainer.classList.add('custom-file'); // ✅ Se aplica estilo nuevo
 
-            const icon = document.createElement('img');
-            icon.src = getIconPath(file.name);
-            icon.alt = `${getExtension(file.name)} icon`;
-            icon.style.width = '20px';
-            icon.style.height = '25px';
-            fileContainer.appendChild(icon);
+        const icon = document.createElement('img');
+        icon.src = getIconPath(file.name);
+        icon.alt = `${getExtension(file.name)} icon`;
+        icon.style.width = '20px';
+        icon.style.height = '25px';
+        fileContainer.appendChild(icon);
 
-            const fileNameContainer = document.createElement('div');
-            fileNameContainer.classList.add('file-name', 'ms-2');
-            fileNameContainer.textContent = file.name;
-            fileContainer.appendChild(fileNameContainer);
+        const fileNameContainer = document.createElement('div');
+        fileNameContainer.classList.add('file-name');
+        fileNameContainer.textContent = file.name;
+        fileContainer.appendChild(fileNameContainer);
 
-
-            const removeButton = document.createElement('a');
-            removeButton.classList.add('buttonFiles');
-            removeButton.innerHTML = '<i class="fa-solid fa-trash" style="color:white"></i>';
-            removeButton.addEventListener('click', function() {
-                filesArray = filesArray.filter(f => `${f.name}-${f.size}-${f.lastModified}` !==
-                    fileKey);
-                document.getElementById(fileKey).remove();
-                updateFileList();
-            });
-            fileContainer.appendChild(removeButton);
-
-            fileListElement.appendChild(fileContainer);
-
-            //  Crear un input oculto con ID único para cada archivo
-            if (!document.getElementById(fileKey)) {
-                const input = document.createElement('input');
-                input.type = 'file';
-                input.name = 'new_files[]';
-                input.id = fileKey;
-                input.style.display = 'none';
-
-                const dataTransfer = new DataTransfer();
-                dataTransfer.items.add(file);
-                input.files = dataTransfer.files;
-
-                hiddenInputsContainer.appendChild(input);
-            }
+        const removeButton = document.createElement('a');
+        removeButton.classList.add('buttonFiles');
+        removeButton.innerHTML = '<i class="fa-solid fa-trash" style="color:white"></i>';
+        removeButton.addEventListener('click', function () {
+            filesArray = filesArray.filter(f => `${f.name}-${f.size}-${f.lastModified}` !== fileKey);
+            document.getElementById(fileKey).remove();
+            updateFileList();
         });
-    }
+        fileContainer.appendChild(removeButton);
+
+        fileListElement.appendChild(fileContainer);
+
+        if (!document.getElementById(fileKey)) {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.name = 'new_files[]';
+            input.id = fileKey;
+            input.style.display = 'none';
+
+            const dataTransfer = new DataTransfer();
+            dataTransfer.items.add(file);
+            input.files = dataTransfer.files;
+
+            hiddenInputsContainer.appendChild(input);
+        }
+    });
+}
 
     function deleteFile(idProject, milestoneId, fileId) {
         event.preventDefault();
