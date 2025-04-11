@@ -99,10 +99,10 @@ $logo_tasks = \App\Models\Utility::get_file('tasks/');
                             @foreach ($milestoneFiles as $file)
                                 <div class="custom-file">
                                     <img src="{{ asset('assets/iconFilesTypes/' . $file->extension . '.png') }}"
-                                        alt="{{ $file->extension }} icon" class="styleIconFiles mt-2">
-                                    <p class="mt-2 file-name">{{ $file->name }}</p>
+                                        alt="{{ $file->extension }} icon" class="styleIconFiles">
+                                    <p class="file-name">{{ $file->name }}</p>
                                     <a onclick="downloadFile({{ $project->id }}, '{{ $milestone->title }}', '{{ $file->file }}')"
-                                        class="buttonFiles btn btn-sm mt-2">
+                                        class="buttonFiles btn btn-sm">
                                         <i class="ti ti-download" style="color:white"></i>
                                     </a>
                                 </div>
