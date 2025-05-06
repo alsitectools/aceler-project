@@ -92,6 +92,67 @@
     .notAsignedMilestone {
         border: 3px solid #a62330 !important;
     }
+
+    .legendIcon {
+        width: 20px;
+        margin-left: 8px;
+        cursor: pointer;
+        transition: transform 0.1s ease-in-out;
+    }
+
+    .legend {
+        background-color: #f9fbfa;
+        border: 2px solid transparent;
+        border-top-right-radius: 15px;
+        border-bottom-right-radius: 15px;
+        border-bottom-left-radius: 15px;
+        width: 350px;
+        height: 400px;
+        position: absolute;
+        top: 4.5%;
+        left: 21rem;
+        display: flex;
+        z-index: 3;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        filter: drop-shadow(1px 1px 5px #b1b1b1);
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        pointer-events: none;
+    }
+
+    .legend.visible {
+        pointer-events: auto;
+
+    }
+
+
+    .colorExample {
+        width: 20px;
+        height: 20px;
+        border-radius: 100%
+    }
+
+    .lEntry {
+        border-radius: 10px;
+        display: flex;
+        width: 92%;
+        height: 3rem;
+        margin-bottom: 10px;
+        align-items: center;
+        justify-content: space-around;
+        align-content: center;
+        font-size: 13px;
+        font-weight: 600;
+    }
+
+    .lTitle {
+        position: absolute;
+        top: 1rem;
+        font-size: 20px;
+        font-weight: 600;
+        color: black;
+    }
 </style>
 @section('links')
     @if (isset($project_id) && $project_id != -1)
@@ -107,6 +168,31 @@
                 href="{{ route('projects.index', $currentWorkspace->slug) }}">{{ __('Projects') }}</a></li>
     @endif
     <li class="breadcrumb-item">{{ __('Order Forms Board') }}</li>
+    <img class="legendIcon" src="{{ asset('assets/img/questionCircle.svg') }}" />
+    <div class="legend">
+        <span class="lTitle">Leyenda</span>
+        <hr style="backgroundColor: #e0e1e1; width: 100%; height: 2px;">
+        <div class="lEntry" style="border:2px solid #000000">
+            <span>Dentro de la fecha de entrega estimada</span>
+            <div class="colorExample" style="background-color: #000000; border:1.5px solid #000000"></div>
+        </div>
+        <div class="lEntry" style="border:2px solid #53b446">
+            <span>Dentro de la fecha de entrega estimada</span>
+            <div class="colorExample" style="background-color: #53b446; border:1.5px solid #53b446"></div>
+        </div>
+        <div class="lEntry" style="border:2px solid #db8d33">
+            <span>Fuera de la fecha de entrega estimada</span>
+            <div class="colorExample" style="background-color: #db8d33; border:1.5px solid #db8d33"></div>
+        </div>
+        <div class="lEntry" style="border:2px solid #ff0000">
+            <span>Fuera de la fecha de entrega estimada</span>
+            <div class="colorExample" style="background-color: #ff0000; border:1.5px solid #ff0000"></div>
+        </div>
+        <div class="lEntry" style="border:2px solid #a62330; gap:47px;">
+            <span>Encargo pendiente de asignar</span>
+            <div class="colorExample" style="background-color: #a62330; border:1.5px solid #a62330; "></div>
+        </div>
+    </div>
 @endsection
 
 @section('action-button')
@@ -190,17 +276,25 @@
                                                         </b>
                                                     </div>
                                                     <div class="col-sm-2 pt-1 text-center">
-                                                        <a href="#" class="tooltipCus" id="milestoneReqName"
+                                                        <a href="#" {{-- class="tooltipCus"  --}} id="milestoneReqName"
                                                             data-milestone-id={{ $milestone['id'] }}
                                                             data-technician-id={{ $milestone['assign_to'] }}
                                                             data-project-name={{ $milestone['project_name'] }}
-                                                            data-title="{{ $milestone['sales']->name ?? 'Nombre no disponible' }}">
+                                                            {{-- data-title="{{ $milestone['sales']->name ?? 'Nombre no disponible' }}" --}}>
 
-                                                            <img alt="image" class="user-groupTasks"
+                                                            <img alt="image" class="user-groupTasks tooltipCus"
+                                                                title="{{ __('Requested by') }} {{ $milestone['sales']->name ?? 'Nombre no disponible' }}"
                                                                 style="margin-top: -10;"
                                                                 @if ($milestone['sales']->avatar) src="{{ asset($milestone['sales']->avatar) }}"
             @else
                 avatar="{{ $milestone['sales']->avatar ?? $milestone['sales']->name }}" @endif>
+                                                            {{-- assigned to user avatar --}}
+                                                            @if (isset($milestone['asiggned_user_data']) && $milestone['asiggned_user_data']->avatar)
+                                                                <img alt="image" class="user-groupTasks tooltipCus"
+                                                                    style="margin-top: -10;"
+                                                                    src="{{ asset($milestone['asiggned_user_data']->avatar) }}"
+                                                                    title="{{ __('Assigned to') }} {{ $milestone['asiggned_user_data']->name }}">
+                                                            @endif
                                                         </a>
 
                                                     </div>
@@ -372,7 +466,7 @@ $icon =
                                                                     </div>
                                                                 </div>
                                                                 <div class="col-6 text-center tooltipCus"
-                                                                    data-title="{{ __('End Date') }}">
+                                                                    data-title="{{ __('Desired delivery date') }}">
                                                                     @php
                                                                         if ($milestone['finalization_date'] == null) {
                                                                             $currentDate = new DateTime();
@@ -1222,6 +1316,40 @@ $icon =
                     }
 
                     observeMilestoneStatusChanges();
+                });
+            </script>
+            <!-- Script encargado de mostrar/ocultar la leyenda de colores -->
+            <script>
+                document.addEventListener('DOMContentLoaded', function() {
+                    const legendIcon = document.querySelector('.legendIcon');
+                    const legend = document.querySelector('.legend');
+
+                    // Configuración inicial
+                    legend.style.opacity = '0';
+                    legend.style.transform = 'translateY(-10px)';
+                    legend.style.visibility = 'hidden';
+
+                    legendIcon.addEventListener('click', function() {
+                        const isVisible = legend.style.visibility === 'visible';
+
+                        if (isVisible) {
+                            legend.style.opacity = '0';
+                            legend.style.transform = 'translateY(-10px)';
+                            setTimeout(() => {
+                                legend.style.visibility = 'hidden';
+                            }, 300); // Coincide con la duración de la transición
+                        } else {
+                            legend.style.visibility = 'visible';
+                            legend.style.opacity = '1';
+                            legend.style.transform = 'translateY(0)';
+                        }
+
+                        // Agregar animación de click al ícono
+                        this.style.transform = 'scale(0.9)';
+                        setTimeout(() => {
+                            this.style.transform = 'scale(1)';
+                        }, 100);
+                    });
                 });
             </script>
         @endpush

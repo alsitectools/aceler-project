@@ -123,7 +123,7 @@
         gap: 10px;
     }
 
-    .custom-file{
+    .custom-file {
         display: flex;
         justify-content: space-between;
         background: #f4f5ff;
@@ -133,6 +133,7 @@
         box-shadow: -3px 3px 0px 0px rgb(239 239 239);
         border-radius: 6px;
     }
+
     .milestoneGridDisplay {
         display: grid;
         grid-template-columns: repeat(3, 1fr);
@@ -219,12 +220,17 @@
 @endsection
 
 <style type="text/css">
-.reqByImgContainer {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    align-content: center;
+    .reqByImgContainer {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        align-content: center;
     }
+
+    .assignedToImgContainer {
+        text-align: center
+    }
+
     .fix_img {
         width: 40px !important;
         border-radius: 50%;
@@ -390,6 +396,21 @@
         }
     }
 </style>
+<style>
+    .sortable-header {
+        cursor: pointer;
+        position: relative;
+    }
+
+    .sortable-header:hover {
+        background-color: #f8f9fa;
+    }
+
+    .sort-indicator {
+        margin-left: 5px;
+        font-size: 12px;
+    }
+</style>
 @section('content')
     <div class="row">
         <!-- [ sample-page ] start -->
@@ -506,15 +527,52 @@
                                     <div class="table-responsive">
                                         <table id="" class="table table-bordered">
                                             <thead>
-                                                <tr>
+                                                {{-- <tr>
                                                     <th>{{ __('Name') }}</th>
                                                     <th>{{ __('Requested by') }}</th>
-                                                    <th>{{ __('Status') }}</th>
-                                                    <th>{{ __('Created date') }}</th>
+                                                    <th>{{ __('Assigned to') }}</th>
+                                                    <th>{{ __('Status') }}</th> --}}
+
+
+                                                {{-- <th>{{ __('Created date') }}</th>
                                                     <th>{{ __('Desired delivery date') }}</th>
                                                     <th>{{ __('Expected delivery date') }}</th>
                                                     <th>{{ __('Task started date') }}</th>
-                                                    <th>{{ __('Completion date') }}</th>
+                                                    <th>{{ __('Completion date') }}</th> --}}
+
+
+                                                {{-- <th>{{ __('Created') }}</th>
+                                                    <th>{{ __('Desired delivery') }}</th>
+                                                    <th>{{ __('Expected delivery') }}</th>
+                                                    <th>{{ __('Task started') }}</th>
+                                                    <th>{{ __('Completion') }}</th>
+
+                                                    <th>{{ __('Action') }}</th>
+                                                </tr> --}}
+                                                <tr>
+                                                    <th class="sortable-header" data-sort="title" data-type="text">
+                                                        {{ __('Name') }}<span class="sort-indicator"></span></th>
+                                                    <th class="sortable-header" data-sort="requested_by"
+                                                        data-type="text">{{ __('Requested by') }}<span
+                                                            class="sort-indicator"></span></th>
+                                                    <th class="sortable-header" data-sort="assigned_to" data-type="text">
+                                                        {{ __('Assigned to') }}<span class="sort-indicator"></span></th>
+                                                    <th class="sortable-header" data-sort="status" data-type="status">
+                                                        {{ __('Status') }}<span class="sort-indicator"></span></th>
+                                                    <th class="sortable-header" data-sort="start_date" data-type="date">
+                                                        {{ __('Created') }}<span class="sort-indicator"></span></th>
+                                                    <th class="sortable-header" data-sort="end_date" data-type="date">
+                                                        {{ __('Desired delivery') }}<span class="sort-indicator"></span>
+                                                    </th>
+                                                    <th class="sortable-header" data-sort="planned_end_date"
+                                                        data-type="date">{{ __('Expected delivery') }}<span
+                                                            class="sort-indicator"></span></th>
+                                                    <th class="sortable-header" data-sort="task_start_date"
+                                                        data-type="date">{{ __('Task started') }}<span
+                                                            class="sort-indicator"></span></th>
+                                                    <th class="sortable-header" data-sort="finalization_date"
+                                                        data-type="date">{{ __('Completion') }}<span
+                                                            class="sort-indicator"></span></th>
                                                     <th>{{ __('Action') }}</th>
                                                 </tr>
                                             </thead>
@@ -529,15 +587,26 @@
                                                             </a>
                                                         </td>
                                                         <td class="reqByImgContainer">
-                                                            @if($milestone->getRequestedBy() != null)
-                                                            <img class="fix_img" title="{{$milestone->getRequestedBy()->name}}"
-                                                            @if ($milestone->getRequestedBy()->avatar) src="{{ asset($milestone->getRequestedBy()->avatar) }}" @else avatar="{{ $milestone->getRequestedBy()->name}}" @endif>                                                              
-                                                            @endif                                                      
+                                                            @if ($milestone->getRequestedBy() != null)
+                                                                <img class="fix_img"
+                                                                    title="{{ $milestone->getRequestedBy()->name }}"
+                                                                    @if ($milestone->getRequestedBy()->avatar) src="{{ asset($milestone->getRequestedBy()->avatar) }}" @else avatar="{{ $milestone->getRequestedBy()->name }}" @endif>
+                                                            @endif
                                                         </td>
+                                                        <td class="assignedToImgContainer">
+                                                            @if ($milestone->getAssignedToUser() != null)
+                                                                <img class="fix_img"
+                                                                    title="{{ $milestone->getAssignedToUser()->name }}"
+                                                                    @if ($milestone->getAssignedToUser()->avatar) src="{{ asset($milestone->getAssignedToUser()->avatar) }}" @else avatar="{{ $milestone->getAssignedToUser()->name }}" @endif>
+                                                            @else
+                                                                ...
+                                                            @endif
+                                                        </td>
+
                                                         <td>
                                                             @if ($milestone->status == 3)
                                                                 <label
-                                                                    class="badge bg-warning p-2 px-3 rounded">{{ __('ForReview') }}</label>
+                                                                    class="badge bg-warning p-2 px-3 rounded">{{ __('For Review') }}</label>
                                                             @elseif ($milestone->status == 4)
                                                                 <label
                                                                     class="badge bg-success p-2 px-3 rounded">{{ __('Finished') }}</label>
@@ -552,8 +621,14 @@
                                                         </td>
                                                         <td>{{ $milestone->end_date ? Carbon::parse($milestone->end_date)->format('d-m-Y') : '...' }}
                                                         </td>
-                                                        <td>{{ $milestone->planned_end_date ? Carbon::parse($milestone->planned_end_date)->format('d-m-Y') : '...' }}
+                                                        {{-- <td>{{ $milestone->planned_end_date ? Carbon::parse($milestone->planned_end_date)->format('d-m-Y') : '...' }}
+                                                        </td> --}}
+                                                        <td>
+                                                            {{ $milestone->planned_end_date && $milestone->planned_end_date !== '0000-00-00'
+                                                                ? \Carbon\Carbon::parse($milestone->planned_end_date)->format('d-m-Y')
+                                                                : '...' }}
                                                         </td>
+                                                        {{-- <td>{{ $milestone->planned_end_date }}</td> --}}
                                                         <td>{{ $milestone->task_start_date ? Carbon::parse($milestone->task_start_date)->format('d-m-Y') : '...' }}
                                                         </td>
                                                         <td>{{ $milestone->finalization_date ? Carbon::parse($milestone->finalization_date)->format('d-m-Y') : '...' }}
@@ -854,15 +929,17 @@
                                             <i class="fa-regular fa-folder-open d-inline me-2 fa-xl"></i>
                                             <h5>{{ __('Project files') }}</h5>
                                         </div>
-                                       <div class="custom-file-container ms-4">
+                                        <div class="custom-file-container ms-4">
                                             @if (!empty($projectFiles) && count($projectFiles) > 0)
                                                 @foreach ($projectFiles as $file)
                                                     <div class="custom-file">
                                                         <img src="{{ asset('assets/iconFilesTypes/' . $file->extension . '.png') }}"
-                                                            alt="{{ $file->extension }} icon" class="styleIconFiles mt-2">
-                                                            <p class="m-2" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-                                                                {{ $file->file_name }}
-                                                              </p>                                                              
+                                                            alt="{{ $file->extension }} icon"
+                                                            class="styleIconFiles mt-2">
+                                                        <p class="m-2"
+                                                            style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                                                            {{ $file->file_name }}
+                                                        </p>
                                                         <div class="uploaded-file-buttons">
                                                             <a onclick="downloadFile({{ $project->id }}, '', '{{ $file->file_path }}')"
                                                                 class="buttonFiles btn btn-sm">
@@ -912,8 +989,9 @@
                                                                         <img src="{{ asset('assets/iconFilesTypes/' . $file->extension . '.png') }}"
                                                                             alt="{{ $file->extension }} icon"
                                                                             class="styleIconFiles mt-2">
-                                                                            <p class="m-2" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-                                                                                {{ $file->name }}
+                                                                        <p class="m-2"
+                                                                            style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                                                                            {{ $file->name }}
                                                                         </p>
                                                                         <div class="uploaded-file-buttons">
                                                                             <a onclick="downloadFile({{ $project->id }}, '{{ $milestone['title'] }}', '{{ $file->file }}')"
@@ -1327,5 +1405,109 @@
                 delete: "{{ route('projects.file.delete', [$currentWorkspace->slug, $project->id, $file->id]) }}"
             });
         @endforeach
+    </script>
+    {{-- Sorting  table script --}}
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const sortableHeaders = document.querySelectorAll('.sortable-header');
+            let currentSort = {
+                key: null,
+                direction: 'asc' // 'asc' o 'desc'
+            };
+
+            sortableHeaders.forEach(header => {
+                header.addEventListener('click', function() {
+                    const sortKey = this.dataset.sort;
+                    const sortType = this.dataset.type;
+
+                    // Determinar dirección
+                    if (currentSort.key === sortKey) {
+                        currentSort.direction = currentSort.direction === 'asc' ? 'desc' : 'asc';
+                    } else {
+                        currentSort.key = sortKey;
+                        currentSort.direction = 'asc';
+                    }
+
+                    sortTable(sortKey, sortType, currentSort.direction);
+                    updateSortIndicators(this);
+                });
+            });
+
+            function sortTable(sortKey, sortType, direction) {
+                const tbody = document.querySelector('tbody');
+                const rows = Array.from(tbody.querySelectorAll('tr'));
+
+                rows.sort((a, b) => {
+                    const aValue = getCellValue(a, sortKey);
+                    const bValue = getCellValue(b, sortKey);
+
+                    return compareValues(aValue, bValue, sortType, direction);
+                });
+
+                // Limpiar y reinsertar filas ordenadas
+                tbody.innerHTML = '';
+                rows.forEach(row => tbody.appendChild(row));
+            }
+
+            function getCellValue(row, sortKey) {
+                const cells = row.querySelectorAll('td');
+                switch (sortKey) {
+                    case 'title':
+                        return row.querySelector('td:nth-child(1) h5').textContent.trim();
+
+                    case 'requested_by':
+                        return row.querySelector('td:nth-child(2) img')?.title?.trim() || '';
+
+                    case 'assigned_to':
+                        return row.querySelector('td:nth-child(3) img')?.title?.trim() || '';
+
+                    case 'status':
+                        return row.querySelector('td:nth-child(4) label').textContent.trim();
+
+                    case 'start_date':
+                    case 'end_date':
+                    case 'planned_end_date':
+                    case 'task_start_date':
+                    case 'finalization_date':
+                        const idx = Array.from(sortableHeaders).findIndex(h => h.dataset.sort === sortKey);
+                        const dateStr = cells[idx].textContent.trim();
+                        return parseDate(dateStr);
+
+                    default:
+                        return '';
+                }
+            }
+
+            function compareValues(a, b, type, direction) {
+                const modifier = direction === 'asc' ? 1 : -1;
+
+                if (type === 'text' || type === 'status') {
+                    // Sort alphabetically, case-insensitive (español)
+                    return a.localeCompare(b, 'es', {
+                        sensitivity: 'base'
+                    }) * modifier;
+                } else if (type === 'date') {
+                    return (a - b) * modifier;
+                }
+
+                return 0;
+            }
+
+            function parseDate(dateStr) {
+                if (dateStr === '...') return 0;
+                const [day, month, year] = dateStr.split('-');
+                return new Date(year, month - 1, day);
+            }
+
+            function updateSortIndicators(activeHeader) {
+                sortableHeaders.forEach(header => {
+                    header.querySelector('.sort-indicator').textContent = '';
+                    if (header === activeHeader) {
+                        header.querySelector('.sort-indicator').textContent =
+                            currentSort.direction === 'asc' ? ' ↑' : ' ↓';
+                    }
+                });
+            }
+        });
     </script>
 @endpush

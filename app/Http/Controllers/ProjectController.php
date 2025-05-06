@@ -1114,6 +1114,7 @@ class ProjectController extends Controller
             'project_ref'   => $project->ref_mo ? '- ' . $project->ref_mo : '',
             'tasks'         => $taskData,
             'sales'         => User::find($milestone->assign_to),
+            'asiggned_user_data'         => User::find($milestone->milestone_assigned_to_user),
         ];
         \Log::info($milestone);
     }
@@ -2171,6 +2172,7 @@ class ProjectController extends Controller
         $project = Project::find($milestone->project_id);
         $project_name = $project->name;
         $salesManager = User::find($milestone->assign_to);
+        $assignedToUser = User::find($milestone->milestone_assigned_to_user);
 
         $delegation_name = Workspace::where('id', $project->workspace)->value('name');
         $milestoneFiles = MilestoneFile::where('milestone_id', '=', $milestone->id)
@@ -2178,7 +2180,7 @@ class ProjectController extends Controller
             ->get();
 
 
-        return view('projects.milestoneShow', compact('currentWorkspace', 'milestone', 'salesManager', 'project', 'milestoneFiles', 'delegation_name'));
+        return view('projects.milestoneShow', compact('currentWorkspace', 'milestone', 'salesManager', 'assignedToUser', 'project', 'milestoneFiles', 'delegation_name'));
     }
 
     public function subTaskStore(Request $request, $slug, $projectID, $taskID, $clientID = '')

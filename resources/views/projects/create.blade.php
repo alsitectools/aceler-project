@@ -46,9 +46,8 @@
                 </select>
             </div>
             <div class="form-group col-md-6" id="ref_mo" style="display: none;">
-                <label for="search_mo" class="col-form-label">{{ __('Search project') }}</label>
-                <input type="text" class="form-control" name="ref_mo" id="searchMo"
-                    placeholder="{{ __('Reference') }}">
+                <label for="search_mo" class="col-form-label">M.O</label>
+                <input type="text" class="form-control" name="ref_mo" id="searchMo" placeholder="Masterobras">
                 <div class="list-group" id="ref_mo_list"></div>
             </div>
             <div class="form-group col-md-6" id="clipo" style="display: none;">

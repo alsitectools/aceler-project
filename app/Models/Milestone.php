@@ -79,6 +79,14 @@ class Milestone extends Model
 
         return $requested_by ? $requested_by : null;
     }
+    public function getAssignedToUser()
+    {
+        $assigned_to_user = User::join('milestones', 'milestones.milestone_assigned_to_user', '=', 'users.id')
+            ->where('milestones.milestone_assigned_to_user', $this->milestone_assigned_to_user)
+            ->first();
+
+        return $assigned_to_user ? $assigned_to_user : null;
+    }
 
     public function milestone()
     {
