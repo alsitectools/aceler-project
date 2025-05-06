@@ -1,5 +1,10 @@
-{{ Form::open(['url' => route('project.timesheet.store', ['slug' => $currentWorkspace->slug, 'project_id' =>
-$parseArray['project_id']]), 'id' => 'project_form']) }}
+{{ Form::open([
+    'url' => route('project.timesheet.store', [
+        'slug' => $currentWorkspace->slug,
+        'project_id' => $parseArray['project_id'],
+    ]),
+    'id' => 'project_form',
+]) }}
 <div class="modal-body">
     <input type="hidden" name="project_id" value="{{ $parseArray['project_id'] }}">
     <input type="hidden" name="task_id" value="{{ $parseArray['task_id'] }}">
@@ -24,8 +29,10 @@ $parseArray['project_id']]), 'id' => 'project_form']) }}
         <div class="form-group">
             <label class="col-form-label">{{ __('Date') }}</label>
             <input type="date" onclick="this.showPicker()" class="form-control form-control-light date"
-                value="{{ $parseArray['date'] }}" placeholder="{{ __('Date') }}" name="date" @disabled($fromTimesheet)>
+                value="{{ $parseArray['date'] }}" placeholder="{{ __('Date') }}" name="date"
+                max="{{ \Carbon\Carbon::now()->format('Y-m-d') }}" @disabled($fromTimesheet)>
         </div>
+
     </div>
     <div class="row">
         <div class="col-md-12">
@@ -34,18 +41,20 @@ $parseArray['project_id']]), 'id' => 'project_form']) }}
         <div class="col-md-6">
             <select class="form-control select2" name="time_hour" id="time_hour" required>
                 <option value="">{{ __('Hours') }}</option>
-                @for ($i = 0; $i <= 20; $i++) <option value="{{ str_pad($i, 2, '0', STR_PAD_LEFT) }}">{{ $i == 0 ? '0' .
-                    $i : $i }}</option>
-                    @endfor
+                @for ($i = 0; $i <= 20; $i++)
+                    <option value="{{ str_pad($i, 2, '0', STR_PAD_LEFT) }}">
+                        {{ $i == 0 ? '0' . $i : $i }}</option>
+                @endfor
             </select>
         </div>
 
         <div class="col-md-6">
             <select class="form-control select2" name="time_minute" id="time_minute" required>
                 <option value="">{{ __('Minutes') }}</option>
-                @for ($i = 0; $i < 60; $i +=5) <option value="{{ str_pad($i, 2, '0', STR_PAD_LEFT) }}">{{ $i == 0 ? '0'
-                    . $i : $i }}</option>
-                    @endfor
+                @for ($i = 0; $i < 60; $i += 5)
+                    <option value="{{ str_pad($i, 2, '0', STR_PAD_LEFT) }}">
+                        {{ $i == 0 ? '0' . $i : $i }}</option>
+                @endfor
             </select>
         </div>
     </div>
@@ -55,8 +64,8 @@ $parseArray['project_id']]), 'id' => 'project_form']) }}
         <i class="fas fa-clock"></i>
         <span>
             {{ __('Hours charged') }} :
-            {{ $parseArray['totaltaskhour'] . ' ' . __('Hours') . ' ' . $parseArray['totaltaskminute'] . ' ' .
-            __('Minutes') }}
+            {{ (int) $parseArray['totaltaskhour'] }} {{ __('Hours') }}
+            {{ str_pad($parseArray['totaltaskminute'], 2, '0', STR_PAD_LEFT) }} {{ __('Minutes') }}
         </span>
     </div>
 
@@ -68,80 +77,84 @@ $parseArray['project_id']]), 'id' => 'project_form']) }}
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
     $(document).ready(function() {
-    // Elementos
-    const timetable = @json($timeTable);  
-    const totalTimeDisplay = $('.display-total-time span');
-    const timeHourSelect = $('select[name="time_hour"]');
-    const timeMinuteSelect = $('select[name="time_minute"]');
-    const dateInput = $('input[name="date"]');
-   
-    // Función para actualizar el Total Time (solo con los nuevos valores seleccionados)
-    function updateTotalTime() {
-        const selectedHour = parseInt(timeHourSelect.val()) || 0;
-        const selectedMinute = parseInt(timeMinuteSelect.val()) || 0;
-        
+        // Elementos
         const timetable = @json($timeTable);
-        var dayOfWeek = new Date().toLocaleString('en-us', { weekday: 'long' }).toLowerCase();
-        
-        var expectedHour = 0;
-        if (timetable && timetable[dayOfWeek]) {
-            var expectedTime = timetable[dayOfWeek].split(':');
-            expectedHour = parseInt(expectedTime[0], 10);
-        }
-        
-        var workedHoursFormatted = selectedHour + timeHourSelect + (selectedMinute + timeMinuteSelect / 60);
-        
-        var dayColor = '';
-        if (workedHoursFormatted === 0) {
-            dayColor = '#e06c71'; // Rojo (sin horas)
-        } else if (workedHoursFormatted < expectedHour) {
-            dayColor = '#fcf75e'; // Amarillo (horas parciales)
-        } else if (workedHoursFormatted === expectedHour) {
-            dayColor = '#89e186'; // Verde (horas completas)
-        } else {
-            dayColor = '#b2e2f2'; // Azul (horas extras)
-        }
-        
-        $('.display-total-time').css('background-color', dayColor);
-        totalTimeDisplay.html(`
+        const totalTimeDisplay = $('.display-total-time span');
+        const timeHourSelect = $('select[name="time_hour"]');
+        const timeMinuteSelect = $('select[name="time_minute"]');
+        const dateInput = $('input[name="date"]');
+
+        // Función para actualizar el Total Time (solo con los nuevos valores seleccionados)
+        function updateTotalTime() {
+            const selectedHour = parseInt(timeHourSelect.val()) || 0;
+            const selectedMinute = parseInt(timeMinuteSelect.val()) || 0;
+
+            const timetable = @json($timeTable);
+            var dayOfWeek = new Date().toLocaleString('en-us', {
+                weekday: 'long'
+            }).toLowerCase();
+
+            var expectedHour = 0;
+            if (timetable && timetable[dayOfWeek]) {
+                var expectedTime = timetable[dayOfWeek].split(':');
+                expectedHour = parseInt(expectedTime[0], 10);
+            }
+
+            var workedHoursFormatted = selectedHour + timeHourSelect + (selectedMinute + timeMinuteSelect / 60);
+
+            var dayColor = '';
+            if (workedHoursFormatted === 0) {
+                dayColor = '#e06c71'; // Rojo (sin horas)
+            } else if (workedHoursFormatted < expectedHour) {
+                dayColor = '#fcf75e'; // Amarillo (horas parciales)
+            } else if (workedHoursFormatted === expectedHour) {
+                dayColor = '#89e186'; // Verde (horas completas)
+            } else {
+                dayColor = '#b2e2f2'; // Azul (horas extras)
+            }
+
+            $('.display-total-time').css('background-color', dayColor);
+            totalTimeDisplay.html(`
             <span>
-                {{ __('Hours charged') }}: ${selectedHour.toString().padStart(2, '0')} {{ __('Hours') }} 
+                {{ __('Hours charged') }}: ${selectedHour.toString().padStart(1, '0')} {{ __('Hours') }} 
                 ${selectedMinute.toString().padStart(2, '0')} {{ __('Minutes') }}
             </span>
         `);
-    }
+        }
 
-    timeHourSelect.on('change', updateTotalTime);
-    timeMinuteSelect.on('change', updateTotalTime);
+        timeHourSelect.on('change', updateTotalTime);
+        timeMinuteSelect.on('change', updateTotalTime);
 
-    // Si en algún momento se habilita el input de fecha, se puede actualizar vía AJAX
-    dateInput.on('change', function() {
-        const selectedDate = $(this).val();
-        console.log("Fecha seleccionada:", selectedDate);
+        // Si en algún momento se habilita el input de fecha, se puede actualizar vía AJAX
+        dateInput.on('change', function() {
+            const selectedDate = $(this).val();
+            console.log("Fecha seleccionada:", selectedDate);
 
-        $.ajax({
-            url: '{{ route('getTotalTime') }}',
-            method: 'POST',
-            dataType: 'json',
-            data: {
-                _token: '{{ csrf_token() }}',
-                project_id: "{{ $parseArray['project_id'] }}",
-                task_id: "{{ $parseArray['task_id'] }}",
-                selected_date: selectedDate,
-                user_id: "{{ Auth::id() }}"
-            },
+            $.ajax({
+                url: '{{ route('getTotalTime') }}',
+                method: 'POST',
+                dataType: 'json',
+                data: {
+                    _token: '{{ csrf_token() }}',
+                    project_id: "{{ $parseArray['project_id'] }}",
+                    task_id: "{{ $parseArray['task_id'] }}",
+                    selected_date: selectedDate,
+                    user_id: "{{ Auth::id() }}"
+                },
                 success: function(data) {
-                    
-                console.log("Success: Response received", data);
-                totalTimeDisplay.text(`Hours charged: ${data.totaltaskhour} Hours ${data.totaltaskminute.toString().padStart(2, '0')} Minutes`);
-                $('.display-total-time').css('background-color', data.dayColor);
-            },
+
+                    console.log("Success: Response received", data);
+                    totalTimeDisplay.text(
+                        `Hours charged: ${data.totaltaskhour} Hours ${data.totaltaskminute.toString().padStart(2, '0')} Minutes`
+                    );
+                    $('.display-total-time').css('background-color', data.dayColor);
+                },
                 error: function(xhr, status, error) {
-                console.error("AJAX Error:", error);
-                console.error("Detalles del error:", xhr.responseText);
-            }
+                    console.error("AJAX Error:", error);
+                    console.error("Detalles del error:", xhr.responseText);
+                }
+            });
         });
     });
-});
 </script>
 {{ Form::close() }}
