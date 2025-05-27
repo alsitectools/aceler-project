@@ -215,7 +215,7 @@
     <div class="col-lg-auto pb-3">
         <a href="{{ route('projects.timesheet.index', [$currentWorkspace->slug, $project->id]) }}"
             class="btn btn-primary btn-task-milestone" title="{{ __('Tasks') }}"><i
-                class="fas fa-tasks text-white me-3"></i>{{ __('Tasks') }}</a>
+                class="fas fa-tasks text-white me-3"></i>{{ __('Timesheet') }}</a>
     </div>
 @endsection
 

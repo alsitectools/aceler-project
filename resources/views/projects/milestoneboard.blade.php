@@ -101,13 +101,14 @@
     }
 
     .legend {
+        opacity: 0;
         background-color: #f9fbfa;
         border: 2px solid transparent;
         border-top-right-radius: 15px;
         border-bottom-right-radius: 15px;
         border-bottom-left-radius: 15px;
-        width: 350px;
-        height: 400px;
+        width: 394px;
+        height: 735px;
         position: absolute;
         top: 4.5%;
         left: 21rem;
@@ -130,7 +131,20 @@
     .colorExample {
         width: 20px;
         height: 20px;
-        border-radius: 100%
+        border-radius: 100%;
+        position: absolute;
+        right: 2rem;
+    }
+
+    i.lIcons {
+        margin-right: 0.9rem !important;
+        color: black;
+        margin-top: -6px !important;
+    }
+
+    .colorText {
+        position: absolute;
+        left: 2.5rem;
     }
 
     .lEntry {
@@ -144,6 +158,17 @@
         align-content: center;
         font-size: 13px;
         font-weight: 600;
+    }
+
+
+
+    .lDetail {
+        border: 2px solid gray;
+        gap: 47px;
+        text-align: center;
+        height: 7rem;
+        background-color: #80808030;
+        color: #6b6b6b;
     }
 
     .lTitle {
@@ -170,27 +195,41 @@
     <li class="breadcrumb-item">{{ __('Order Forms Board') }}</li>
     <img class="legendIcon" src="{{ asset('assets/img/questionCircle.svg') }}" />
     <div class="legend">
-        <span class="lTitle">Leyenda</span>
+        <span class="lTitle">{{ __('Color legend') }}</span>
         <hr style="backgroundColor: #e0e1e1; width: 100%; height: 2px;">
-        <div class="lEntry" style="border:2px solid #000000">
-            <span>Dentro de la fecha de entrega estimada</span>
-            <div class="colorExample" style="background-color: #000000; border:1.5px solid #000000"></div>
+        <div class="lEntry" style="border:2px solid #000000 ;height: 5rem !important; text-align: center; "
+            style="display: flex; ">
+            <span>{{ __('Comparison with the delivery date desired by the manager') }}</span>
+            <i class="fa-solid fa-calendar-check fa-2xl m-1 calendarAlert lIcons"></i>
         </div>
-        <div class="lEntry" style="border:2px solid #53b446">
-            <span>Dentro de la fecha de entrega estimada</span>
-            <div class="colorExample" style="background-color: #53b446; border:1.5px solid #53b446"></div>
+        <div class="lEntry" style="border:2px solid #000000 ;height: 5rem !important; text-align: center;">
+            <span>{{ __('Comparison with the estimated delivery date') }}</span>
+            <i class="ms-2 me-2 fa-solid fa-hourglass-start lIcons" style=" font-size:22px;"></i>
         </div>
-        <div class="lEntry" style="border:2px solid #db8d33">
-            <span>Fuera de la fecha de entrega estimada</span>
+        <hr style="backgroundColor: #e0e1e1; width: 100%; height: 2px;">
+        <div class="lEntry" style="border:2px solid #000000 ;  border-left: 12px solid black;">
+            <span class="colorText">{{ __('Undelivered, still on schedule') }}</span>
+            <div class="colorExample" style="background-color: #000000; border:1.5px solid #000000 ;"></div>
+        </div>
+        <div class="lEntry" style="border:2px solid #db8d33;  border-left: 12px solid #db8d33;">
+            <span class="colorText">{{ __('Undelivered,out of date') }}</span>
             <div class="colorExample" style="background-color: #db8d33; border:1.5px solid #db8d33"></div>
         </div>
-        <div class="lEntry" style="border:2px solid #ff0000">
-            <span>Fuera de la fecha de entrega estimada</span>
+        <div class="lEntry" style="border:2px solid #53b446;  border-left: 12px solid #53b446;">
+            <span class="colorText">{{ __('Delivered on schedule') }}</span>
+            <div class="colorExample" style="background-color: #53b446; border:1.5px solid #53b446"></div>
+        </div>
+
+        <div class="lEntry" style="border:2px solid #ff0000;  border-left: 12px solid #ff0000;">
+            <span class="colorText">{{ __('Delivered, out of date') }}</span>
             <div class="colorExample" style="background-color: #ff0000; border:1.5px solid #ff0000"></div>
         </div>
-        <div class="lEntry" style="border:2px solid #a62330; gap:47px;">
-            <span>Encargo pendiente de asignar</span>
+        <div class="lEntry" style="border:2px solid #a62330; gap:47px; border-left: 12px solid #a62330;">
+            <span class="colorText">{{ __('Order pending of assignment') }}</span>
             <div class="colorExample" style="background-color: #a62330; border:1.5px solid #a62330; "></div>
+        </div>
+        <div class="lEntry lDetail">
+            <span>{{ __('In this section you will find the job sheets you have requested, those assigned to you, those on which you have performed tasks and also those not yet assigned.') }}</span>
         </div>
     </div>
 @endsection

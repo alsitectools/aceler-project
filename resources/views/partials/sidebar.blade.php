@@ -432,7 +432,7 @@
                     <li class="dash-item {{ Request::route()->getName() == 'timesheet.index' ? ' active' : '' }}">
                         <a href="{{ route('timesheet.index', $currentWorkspace->slug) }}" class="dash-link ">
                             <span class="dash-micon"><i class="fas fa-tasks"></i></span><span
-                                class="dash-mtext">{{ __('Tasks') }}</span></a>
+                                class="dash-mtext">{{ __('My timesheet') }}</span></a>
                     </li>
                     <li class="dash-item {{ Request::route()->getName() == 'calender.index' ? ' active' : '' }}">
                         <a href="{{ route('calender.google.calendar', $currentWorkspace->slug) }}"
