@@ -46,11 +46,16 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
-use Illuminate\Support\Facades\Mail;
+// use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 use Jenssegers\Date\Date;
 use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Support\Facades\Auth;
+use SendGrid;
+use SendGrid\Mail\Mail;
+use Illuminate\Support\Facades\View;
+
+
 
 class ProjectController extends Controller
 {
@@ -2873,6 +2878,7 @@ class ProjectController extends Controller
 
     public function AddSingleNotification(Request $request)
     {
+        \Log::info('Info que llega a las notificaciones desde el request:');
         \Log::info(['Request:' => $request->all()]);
 
         $request->validate([
@@ -2890,6 +2896,12 @@ class ProjectController extends Controller
             $notification->save();
 
             $usersNotified = 1;
+            if ($request->ntipe == '4') {
+                $this->getEmails($notification->user_id, $request->ntipe, $request->msg);
+                $this->sendAditionalMailToReqBy($request->milestoneRequestedBy, $request->msg, $notification->user_id);
+            } else {
+                $this->getEmails($notification->user_id, $request->ntipe, $request->msg);
+            }
         } else {
             // Se obtiene la lista de user_id asociados al workspace desde la tabla user_workspaces
             $userIds = \DB::table('user_workspaces')
@@ -2905,6 +2917,8 @@ class ProjectController extends Controller
                 $notification->data         = $request->msg;
                 $notification->save();
             }
+            //DESCOMENTAR AL ACABAR
+            $this->getEmails($userIds, $request->ntipe, $request->msg);
             $usersNotified = count($userIds);
         }
 
@@ -2914,6 +2928,159 @@ class ProjectController extends Controller
         ]);
     }
 
+    public function getEmails($userID, $ntipe, $message)
+    {
+        \Log::info('Info que llega a getEmails:');
+        \Log::info($userID);
+
+        // Obtener lista de correos
+        if (is_array($userID) || $userID instanceof \Illuminate\Support\Collection) {
+            $userEmails = \DB::table('users')->whereIn('id', $userID)->pluck('email');
+        } else {
+            $userEmails = \DB::table('users')->where('id', $userID)->pluck('email');
+        }
+
+        \Log::info('Email(s) del usuario(s):');
+        \Log::info($userEmails);
+        \Log::info('Tipo de notificación:');
+        \Log::info($ntipe);
+
+        // Enviar el correo a cada email
+        foreach ($userEmails as $email) {
+            $this->sendNotificationEmail($email, $ntipe, $message);
+        }
+    }
+
+    public function sendNotificationEmail($toEmail, $notificationType, $message)
+
+    {
+        \Log::info('Enviando correo a: ' . $toEmail . ' con tipo de notificación: ' . $notificationType . ' y mensaje: ' . $message);
+
+
+        if ($notificationType == '2') {
+            preg_match('/^(.*?) en (.*)$/', $message, $matches);
+
+            if (count($matches) === 3) {
+                $encargo = $matches[1];
+                $proyecto = $matches[2];
+            } else {
+                // Si no se encuentra el patrón, asignar null
+                $encargo = $proyecto = null;
+            }
+
+            $htmlContent = View::make('emailTemplates.templateMilestone', [
+                'notificationType' => $notificationType,
+                'message' => $message,
+                'encargo' => $encargo,
+                'proyecto' => $proyecto,
+            ])->render();
+        } else if ($notificationType == '5') {
+
+            preg_match('/^(.*?) en el proyecto (.*)$/', $message, $matches);
+
+            if (count($matches) === 3) {
+                $encargo = $matches[1];
+                $proyecto = $matches[2];
+            } else {
+                // Si no se encuentra el patrón, asignar null
+                $encargo = $proyecto = null;
+            }
+
+            $htmlContent = View::make('emailTemplates.templatePendingReview', [
+                'notificationType' => $notificationType,
+                'message' => $message,
+                'encargo' => $encargo,
+                'proyecto' => $proyecto,
+            ])->render();
+        } else if ($notificationType == '4') {
+            // Extraer los datos desde el mensaje
+            preg_match('/^(.*?) en (.*?)\. La fecha de entrega prevista es (\d{2}-\d{2}-\d{4})$/', $message, $matches);
+
+            if (count($matches) === 4) {
+                $encargo = $matches[1];
+                $proyecto = $matches[2];
+                $fecha = $matches[3];
+            } else {
+                // Manejo de error si no se encuentra el patrón
+                $encargo = $proyecto = $fecha = null;
+            }
+
+            $htmlContent = View::make('emailTemplates.templateAssignedToUser', [
+                'notificationType' => $notificationType,
+                'message' => $message,
+                'encargo' => $encargo,
+                'proyecto' => $proyecto,
+                'fecha' => $fecha,
+            ])->render();
+        } else {
+            return;
+        }
+
+
+        $email = new \SendGrid\Mail\Mail();
+        $email->setFrom(config('services.sendgrid.from_email'), config('services.sendgrid.from_name'));
+        $email->setSubject('¡Tienes novedades en project Alsina!');
+        $email->addTo($toEmail);
+
+        // Contenido HTML
+        $email->addContent("text/html", $htmlContent);
+
+        // Opcional: también agrega versión texto plano (puedes generar una versión simple o extraer texto de la vista)
+        // $email->addContent("text/plain", "Tienes una nueva notificación: {$notificationType}\nMensaje: {$message}");
+
+        $sendgrid = new \SendGrid(config('services.sendgrid.api_key'));
+
+        try {
+            $response = $sendgrid->send($email);
+            \Log::info('SendGrid Response Status: ' . $response->statusCode());
+        } catch (\Exception $e) {
+            \Log::error('Error al enviar correo: ' . $e->getMessage());
+        }
+    }
+
+    public function sendAditionalMailToReqBy($requesterId, $message, $employeeId)
+    {
+
+        $requestedByMail = \DB::table('users')->where('id', $requesterId)->pluck('email')->first();
+        $employeeName = \DB::table('users')->where('id', $employeeId)->pluck('name')->first();
+        \Log::info('Se va a enviar un correo adicional a: ' . $requestedByMail . ' mencionando al empleado: ' . $employeeName . ' con el mensaje: ' . $message);
+
+        // Extraer los datos desde el mensaje
+        preg_match('/^(.*?) en (.*?)\. La fecha de entrega prevista es (\d{2}-\d{2}-\d{4})$/', $message, $matches);
+
+        if (count($matches) === 4) {
+            $encargo = $matches[1];
+            $proyecto = $matches[2];
+            $fecha = $matches[3];
+        } else {
+            // Manejo de error si no se encuentra el patrón
+            $encargo = $proyecto = $fecha = null;
+        }
+
+        $htmlContent = View::make('emailTemplates.templateAssignedToUserForRquester', [
+            'message' => $message,
+            'encargo' => $encargo,
+            'proyecto' => $proyecto,
+            'fecha' => $fecha,
+            'empleado' => $employeeName
+        ])->render();
+
+
+        $email = new \SendGrid\Mail\Mail();
+        $email->setFrom(config('services.sendgrid.from_email'), config('services.sendgrid.from_name'));
+        $email->setSubject('¡Tienes novedades en project Alsina!');
+        $email->addTo($requestedByMail);
+
+        // Contenido HTML
+        $email->addContent("text/html", $htmlContent);
+        $sendgrid = new \SendGrid(config('services.sendgrid.api_key'));
+        try {
+            $response = $sendgrid->send($email);
+            \Log::info('SendGrid Response Status: ' . $response->statusCode());
+        } catch (\Exception $e) {
+            \Log::error('Error al enviar correo: ' . $e->getMessage());
+        }
+    }
 
 
 
