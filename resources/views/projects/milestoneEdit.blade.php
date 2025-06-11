@@ -115,7 +115,8 @@
                                         class="text-muted">({{ $file->file_size }})</small></div>
                                 <a class="buttonFiles btn btn-sm"
                                     onclick="deleteFile({{ $milestone->project_id }}, '{{ $milestone->id }}', '{{ $file->id }}')">
-                                    <i class="fa-solid fa-trash-alt" style="color:white"></i>
+                                    <i class="fa-solid fa-trash-alt"
+                                        style="color:white; background-color:#aa182c; padding:7px; border-radius:6px;"></i>
                                 </a>
                             </div>
                         @endforeach
@@ -210,7 +211,8 @@
 
             const removeButton = document.createElement('a');
             removeButton.classList.add('buttonFiles');
-            removeButton.innerHTML = '<i class="fa-solid fa-trash" style="color:white"></i>';
+            removeButton.innerHTML =
+                '<i class="fa-solid fa-trash" style="color:white; background-color:#aa182c; padding:7px; border-radius:6px;></i>';
             removeButton.addEventListener('click', function() {
                 filesArray = filesArray.filter(f => `${f.name}-${f.size}-${f.lastModified}` !==
                     fileKey);
@@ -434,7 +436,8 @@
 
             const removeButton = document.createElement('a');
             removeButton.classList.add('buttonFiles');
-            removeButton.innerHTML = '<i class="fa-solid fa-trash" style="color:white"></i>';
+            removeButton.innerHTML =
+                '<i class="fa-solid fa-trash" style="color:white; background-color:#aa182c; padding:7px; border-radius:6px;"></i>';
             removeButton.addEventListener('click', function() {
                 filesArrayMilestone.splice(index, 1);
                 updateFileListMilestone();
