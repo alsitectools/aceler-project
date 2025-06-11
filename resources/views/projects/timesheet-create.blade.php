@@ -30,7 +30,8 @@
             <label class="col-form-label">{{ __('Date') }}</label>
             <input type="date" onclick="this.showPicker()" class="form-control form-control-light date"
                 value="{{ $parseArray['date'] }}" placeholder="{{ __('Date') }}" name="date"
-                max="{{ \Carbon\Carbon::now()->format('Y-m-d') }}" @disabled($fromTimesheet)>
+                max="{{ \Carbon\Carbon::now()->format('Y-m-d') }}" min="{{ $parseArray['taskCreationDate'] }}"
+                @disabled($fromTimesheet)>
         </div>
 
     </div>
@@ -71,6 +72,9 @@
 
 </div>
 <div class="modal-footer">
+    <button type="button" class="btn btn-dark" style="position: absolute; left:18px;" id="delete-task-btn">
+        {{ __('Delete task') }}
+    </button>
     <button type="button" class="btn btn-light" data-bs-dismiss="modal">{{ __('Close') }}</button>
     <input type="submit" value="{{ __('Save Changes') }}" class="btn btn-primary">
 </div>
@@ -157,4 +161,27 @@
         });
     });
 </script>
+<script>
+    $('#delete-task-btn').on('click', function() {
+        // if (!confirm('Are you sure you want to delete this task?')) return;
+
+        $.ajax({
+            url: '{{ route('client.tasks.destroy', ['slug' => $currentWorkspace->slug, 'id' => $parseArray['project_id'], 'tid' => $parseArray['task_id']]) }}',
+            method: 'POST',
+            data: {
+                _method: 'DELETE',
+                _token: '{{ csrf_token() }}',
+            },
+            success: function(response) {
+
+                location.reload();
+            },
+            error: function(xhr) {
+                alert('Error deleting task');
+                console.error(xhr.responseText);
+            }
+        });
+    });
+</script>
+
 {{ Form::close() }}

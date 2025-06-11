@@ -313,7 +313,7 @@ Route::prefix('client')->as('client.')->group(function () {
   Route::post('/{slug}/projects/{id}/task-board/order-update', [ProjectController::class, 'taskOrderUpdate'])->name('tasks.update.order')->middleware(['auth:client', 'XSS']);
   Route::get('/{slug}/projects/{id}/task-board/edit/{tid}', [ProjectController::class, 'taskEdit'])->name('tasks.edit')->middleware(['auth:client', 'XSS']);
   Route::post('/{slug}/projects/{id}/task-board/{tid}/update', [ProjectController::class, 'taskUpdate'])->name('tasks.update')->middleware(['auth:client', 'XSS']);
-  Route::delete('/{slug}/projects/{id}/task-board/{tid}', [ProjectController::class, 'taskDestroy'])->name('tasks.destroy')->middleware(['auth:client', 'XSS']);
+  Route::delete('/{slug}/projects/{id}/task-board/{tid}', [ProjectController::class, 'taskDestroy'])->name('tasks.destroy'); // eliminado el auth client para prubas
   Route::get('/{slug}/projects/{id}/task-board/{tid}/{cid?}', [ProjectController::class, 'taskShow'])->name('tasks.show')->middleware(['auth:client', 'XSS']);;
 
   /*=========== Milestone board =============*/
@@ -668,7 +668,7 @@ Route::post('/{slug}/projects/{id}/task-board/order-update', [ProjectController:
 Route::post('/{slug}/milestone-board/{id}/order-update', [ProjectController::class, 'milestoneOrderUpdate'])->name('milestone.update.order');
 Route::get('/{slug}/projects/{id}/task-board/edit/{tid}', [ProjectController::class, 'taskEdit'])->name('tasks.edit')->middleware(['auth', 'XSS']);
 Route::post('/{slug}/projects/{id}/task-board/{tid}/update', [ProjectController::class, 'taskUpdate'])->name('tasks.update')->middleware(['auth', 'XSS']);
-Route::delete('/{slug}/projects/{id}/task-board/{tid}', [ProjectController::class, 'taskDesstroy'])->name('tasks.destroy')->middleware(['auth', 'XSS']);
+// Route::delete('/{slug}/projects/{id}/task-board/{tid}', [ProjectController::class, 'taskDesstroy'])->name('tasks.destroy')->middleware(['auth', 'XSS']);
 Route::post('/{slug}/projects/{id}/task-board/{tid}/drag', [ProjectController::class, 'taskDrag'])->name('tasks.drag.event');
 
 // Gantt Chart

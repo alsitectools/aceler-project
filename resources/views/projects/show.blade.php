@@ -525,7 +525,7 @@
                                 </div>
                                 <div class="card-body">
                                     <div class="table-responsive">
-                                        <table id="" class="table table-bordered">
+                                        <table id="" class="table table-bordered" style="text-align: center;">
                                             <thead>
                                                 {{-- <tr>
                                                     <th>{{ __('Name') }}</th>
@@ -919,6 +919,9 @@
                                     <div class="col-md-12 dropzone browse-file" id="dropzonewidget">
                                         <div class="dz-message" data-dz-message>
                                             <span> {{ __('Drop files here to upload') }}</span>
+                                            <p>
+                                                {{ __('You can Also hold click + Control + V to paste the content of the clipboard') }}
+                                            </p>
                                             <p class="text-muted" style="font-size:15px; margin:5px;">200MB</p>
                                             <small class="text-muted">.png .gif .pdf .txt .doc .docx .zip .rar .dwg
                                                 .dxf</small>
@@ -1509,5 +1512,253 @@
                 });
             }
         });
+    </script>
+    <script>
+        /**
+         * Integración de subida de archivos por Ctrl+V, drag & drop y selección manual
+         * - El <div class="dropzone" tabindex="0"> permite foco y captura de “paste”
+         * - El <input type="file" id="fileInput" multiple style="display: none;"> permite selección manual
+         * - El CSS ya define borde punteado y efecto dragover
+         * - La función handleFiles(files) es central y única para todos los métodos
+         */
+
+        // --- Selección de elementos ---
+        const dropzone = document.querySelector('.dropzone');
+        let fileInput = document.getElementById('fileInput');
+        if (!fileInput) {
+            fileInput = document.createElement('input');
+            fileInput.type = 'file';
+            fileInput.id = 'fileInput';
+            fileInput.multiple = true;
+            fileInput.style.display = 'none';
+            dropzone.parentNode.insertBefore(fileInput, dropzone.nextSibling);
+        }
+
+        // --- Extensiones y tipos MIME permitidos ---
+        const allowed = [{
+                ext: 'png',
+                mime: 'image/png'
+            },
+            {
+                ext: 'gif',
+                mime: 'image/gif'
+            },
+            {
+                ext: 'pdf',
+                mime: 'application/pdf'
+            },
+            {
+                ext: 'txt',
+                mime: 'text/plain'
+            },
+            {
+                ext: 'doc',
+                mime: 'application/msword'
+            },
+            {
+                ext: 'docx',
+                mime: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+            },
+            {
+                ext: 'zip',
+                mime: 'application/zip'
+            },
+            {
+                ext: 'rar',
+                mime: 'application/vnd.rar'
+            },
+            {
+                ext: 'rar',
+                mime: 'application/x-rar-compressed'
+            },
+            {
+                ext: 'dwg',
+                mime: 'application/acad'
+            },
+            {
+                ext: 'dwg',
+                mime: 'application/autocad_dwg'
+            },
+            {
+                ext: 'dxf',
+                mime: 'application/dxf'
+            }
+        ];
+        const allowedExts = allowed.map(a => a.ext);
+        const allowedMimes = allowed.map(a => a.mime);
+
+        // --- Drag & Drop visual feedback ---
+        dropzone.addEventListener('dragover', function(e) {
+            e.preventDefault();
+            dropzone.classList.add('dragover');
+        });
+        dropzone.addEventListener('dragleave', function(e) {
+            dropzone.classList.remove('dragover');
+        });
+        dropzone.addEventListener('drop', function(e) {
+            e.preventDefault();
+            dropzone.classList.remove('dragover');
+            if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length) {
+                handleFiles(Array.from(e.dataTransfer.files));
+                // Al acabar de procesar, refocuseamos
+                dropzone.focus();
+            }
+        });
+
+        // --- Selección manual desde input file ---
+        dropzone.addEventListener('dblclick', function() {
+            fileInput.value = '';
+            fileInput.click();
+        });
+        fileInput.addEventListener('change', function() {
+            if (fileInput.files && fileInput.files.length) {
+                handleFiles(Array.from(fileInput.files));
+                dropzone.focus();
+            }
+        });
+
+        // --- Permitimos que la dropzone reciba foco y capture paste ---
+        dropzone.setAttribute('tabindex', '0'); // hace que se pueda enfocar
+
+        // Si el usuario hace clic en la dropzone (cualquier parte), la enfocamos
+        dropzone.addEventListener('click', () => {
+            dropzone.focus();
+        });
+
+        // --- Capturar paste a nivel de document, pero sólo procesar si foco está dentro de dropzone ---
+        document.addEventListener('paste', function(e) {
+            // Si el elemento actualmente enfocado NO es la dropzone ni ninguno de sus hijos, salimos
+            const focused = document.activeElement;
+            if (focused !== dropzone && !dropzone.contains(focused)) {
+                return;
+            }
+
+            e.preventDefault(); // Evitamos comportamiento nativo no deseado
+
+            if (!e.clipboardData || !e.clipboardData.items) {
+                return;
+            }
+
+            const items = Array.from(e.clipboardData.items);
+            const conversionPromises = items.map(item => {
+                if (item.kind !== 'file') {
+                    return Promise.resolve(null);
+                }
+                const file = item.getAsFile();
+                if (!file) {
+                    return Promise.resolve(null);
+                }
+                const ext = file.name.split('.').pop().toLowerCase();
+                const mime = file.type;
+
+                // Si es PNG o GIF → convertir a JPG
+                if (
+                    mime === 'image/png' || mime === 'image/gif' ||
+                    ext === 'png' || ext === 'gif'
+                ) {
+                    return new Promise(resolve => {
+                        convertImageToJPG(file, function(jpgFile) {
+                            resolve(jpgFile);
+                        });
+                    });
+                }
+
+                // Si es otro formato permitido, devolvemos el File tal cual
+                if (
+                    allowedExts.includes(ext) ||
+                    allowedMimes.includes(mime)
+                ) {
+                    return Promise.resolve(file);
+                }
+
+                // De lo contrario, no lo tomamos
+                return Promise.resolve(null);
+            });
+
+            Promise.all(conversionPromises).then(results => {
+                const archivosValidos = results.filter(f => f instanceof File);
+                if (archivosValidos.length > 0) {
+                    handleFiles(archivosValidos);
+                } else {
+                    alert('El portapapeles no contiene un archivo válido');
+                }
+                // Refocuseamos la dropzone para seguir recibiendo Ctrl+V indefinidamente
+                dropzone.focus();
+            });
+        });
+
+        // --- Función ÚNICA para procesar archivos subidos (pegados, arrastrados o seleccionados) ---
+        function handleFiles(files) {
+            files.forEach(file => {
+                const ext = file.name.split('.').pop().toLowerCase();
+                const mime = file.type;
+
+                // 1) Si el archivo ya es un JPEG (resultado de la conversión), lo subimos directamente
+                if (mime === 'image/jpeg') {
+                    myDropzone.addFile(file);
+                    return;
+                }
+
+                // 2) Si es PNG o GIF (arrastrado o seleccionado manualmente), convertimos a JPG
+                if (
+                    mime === 'image/png' || mime === 'image/gif' ||
+                    ext === 'png' || ext === 'gif'
+                ) {
+                    convertImageToJPG(file, function(jpgFile) {
+                        myDropzone.addFile(jpgFile);
+                    });
+                    return;
+                }
+
+                // 3) Si es cualquier otro formato permitido, lo subimos tal cual
+                if (
+                    allowedExts.includes(ext) ||
+                    allowedMimes.includes(mime)
+                ) {
+                    myDropzone.addFile(file);
+                    return;
+                }
+
+                // 4) Cualquier otro, ignorar completamente
+            });
+        }
+
+        // --- Conversión de imagen PNG/GIF a JPG usando canvas ---
+        function convertImageToJPG(blobOrFile, callback) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const img = new Image();
+                img.onload = function() {
+                    const canvas = document.createElement('canvas');
+                    canvas.width = img.width;
+                    canvas.height = img.height;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0);
+                    canvas.toBlob(function(jpgBlob) {
+                        // Conservamos el nombre y cambiamos extensión a .jpg
+                        const nuevoNombre = (blobOrFile.name || 'clipboard').replace(/\.(png|gif)$/i,
+                            '.jpg');
+                        const jpgFile = new File([jpgBlob], nuevoNombre, {
+                            type: 'image/jpeg',
+                            lastModified: Date.now(),
+                        });
+                        callback(jpgFile);
+                    }, 'image/jpeg', 0.92);
+                };
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(blobOrFile);
+        }
+
+        // --- Evento para asegurar que Dropzone vuelve a enfocar tras cada archivo añadido ---
+        // Suponiendo que ya inicializaste `myDropzone = new Dropzone(...)` en algún punto anterior:
+        // Así te aseguras de que, aunque Dropzone injecte previews u otros elementos que roben foco,
+        // la dropzone recupere inmediatamente el foco.
+        if (window.myDropzone) {
+            myDropzone.on('addedfile', function() {
+                // Tras cada archivo agregado, refocuseamos
+                dropzone.focus();
+            });
+        }
     </script>
 @endpush

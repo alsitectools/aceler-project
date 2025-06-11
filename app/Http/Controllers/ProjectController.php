@@ -1005,21 +1005,23 @@ class ProjectController extends Controller
                 ->pluck('milestone_id')
                 ->unique()
                 ->toArray();
-            \Log::debug(['MiletonesIds' => $milestoneIds]);
+            // \Log::debug(['MiletonesIds' => $milestoneIds]);
 
-            $allmilestones = Milestone::where(function ($query) use ($objUser, $milestoneIds) {
-                $query->where('assign_to', $objUser->id)
-                    ->orWhere('milestone_assigned_to_user', $objUser->id)
-                    ->orWhere('created_by', $objUser->id)
-                    ->orWhere('milestone_assigned_to_user', '')
-                    ->orWhereIn('id', $milestoneIds)
-
-                ;
+            $allmilestones = Milestone::whereHas('project', function ($q) use ($objUser) {
+                $q->where('workspace', $objUser->currant_workspace);
             })
-                ->whereHas('project', function ($query) use ($objUser) {
-                    $query->where('workspace', $objUser->currant_workspace);
+                ->where(function ($q) use ($objUser) {
+                    $q->where('assign_to', $objUser->id)
+                        ->orWhere('milestone_assigned_to_user', $objUser->id)
+                        ->orWhere('created_by', $objUser->id)
+                        ->orWhere('milestone_assigned_to_user', '')
+                        // aquí incluimos dinámicamente los que tienen tareas tuyas:
+                        ->orWhereHas('tasks', function ($q2) use ($objUser) {
+                            $q2->where('assign_to', $objUser->id);
+                        });
                 })
                 ->get();
+
 
 
 
@@ -1201,7 +1203,6 @@ class ProjectController extends Controller
 
     public function taskStore(Request $request, $slug)
     {
-
         $request->validate([
             'project_id' => 'required',
             'milestone_id' => 'required',
@@ -1213,30 +1214,45 @@ class ProjectController extends Controller
         $currentWorkspace = Utility::getWorkspaceBySlug($slug);
         $user = Auth::user();
 
+        \Log::info('info desde el store');
+        \Log::info($request->all());
+        \Log::info('Id del creador' . $user->id);
+
         $project = Project::where('id', $request->project_id)
             ->where('workspace', $currentWorkspace->id)
             ->first();
 
         if (!$project) {
             return redirect()->back()->with('error', 'Proyecto no encontrado o no pertenece al espacio de trabajo actual.');
-        } else {
-            $task = new Task();
-            $task->project_id = $request->project_id;
-            $task->milestone_id = $request->milestone_id;
-            $task->type_id = $request->type_id;
-            $task->start_date = date('Y-m-d');
-            $task->estimated_date = $request->estimated_date;
-            $task->assign_to = $user->id;
-            $task->save();
-
-            $milestone = Milestone::find($request->milestone_id);
-            $milestone->status = 2;
-            $milestone->update();
-
-
-            return redirect()->back()->with(['success' => __('Task Created Successfully!')]);
         }
+
+        // Verificar si ya existe una tarea con los mismos datos
+        $existingTask = Task::where('milestone_id', $request->milestone_id)
+            ->where('type_id', $request->type_id)
+            ->where('assign_to', $user->id)
+            ->first();
+
+        if ($existingTask) {
+            return redirect()->back()->with('error', 'Error, no se pueden duplicar tareas');
+        }
+
+        // Si no existe, se crea la tarea
+        $task = new Task();
+        $task->project_id = $request->project_id;
+        $task->milestone_id = $request->milestone_id;
+        $task->type_id = $request->type_id;
+        $task->start_date = date('Y-m-d');
+        $task->estimated_date = $request->estimated_date;
+        $task->assign_to = $user->id;
+        $task->save();
+
+        $milestone = Milestone::find($request->milestone_id);
+        $milestone->status = 2;
+        $milestone->update();
+
+        return redirect()->back()->with(['success' => __('Task Created Successfully!')]);
     }
+
 
     public function milestoneOrderUpdate(Request $request, $slug, $projectID)
     {
@@ -1870,12 +1886,16 @@ class ProjectController extends Controller
             'assing_to' => 'required',
             'end_date' => 'required',
             'files' => 'nullable|array',
-            'files.*' => 'file|mimes:jpg,jpeg,png,xlsx,xls,csv,pdf,txt,dwg,dxf,zip,docx|max:5120',
+            // 'files.*' => 'file|mimes:jpg,jpeg,png,gif,txt,doc,docx,pdf,zip,rar,dwg,dxf,xlsx,xls,csv|max:5120',
         ];
 
         $validator = \Validator::make($request->all(), $rules);
 
         if ($validator->fails()) {
+            \Log::error('Validation failed for milestone creation', [
+                'errors' => $validator->errors()->all(),
+                'request' => $request->all(),
+            ]);
             $messages = $validator->getMessageBag();
             return redirect()->back()->with('error', $messages->first());
         }
@@ -2668,6 +2688,7 @@ class ProjectController extends Controller
         $totalhourstimes = explode(':', $totaltasktime);
         $totaltaskhour = $totalhourstimes[0] ?? '00';
         $totaltaskminute = $totalhourstimes[1] ?? '00';
+        $taskCreationDate = $task->created_at->format('Y-m-d');
 
         // Obtener horario esperado según el día de la semana
         $timeTable = UserTimetable::where('user_id', $objUser->id)->first();
@@ -2703,6 +2724,7 @@ class ProjectController extends Controller
             'date' => $selected_date,
             'totaltaskhour' => $totaltaskhour,
             'totaltaskminute' => $totaltaskminute,
+            'taskCreationDate' => $taskCreationDate,
         ];
 
         return view('projects.timesheet-create', compact('currentWorkspace', 'parseArray', 'fromTimesheet', 'dayColor', 'timeTable', 'timesheetEdit'));

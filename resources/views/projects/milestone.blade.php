@@ -1,5 +1,39 @@
 <head>
     <link rel="stylesheet" href="{{ asset('assets/css/milestone.css') }}">
+    <style>
+        #user-select {
+            display: none;
+        }
+
+        /* Add styles for drag state */
+        .browse-file.dragover {
+            border: 2px dashed #ccc !important;
+        }
+
+        .browse-file.dragover .dz-message {
+            color: #999 !important;
+        }
+
+        .browse-file.dragover .dz-message span,
+        .browse-file.dragover .dz-message p {
+            color: #999 !important;
+        }
+
+        .deleteFileButton,
+        .deleteFileButton:hover,
+        .deleteFileButton:focus {
+            padding: 5px;
+            background-color: #a11233;
+            border-radius: 5px;
+            cursor: pointer;
+
+        }
+
+        .iftheordoesnotexist {
+            font-size: 13px;
+            margin-left: 22px
+        }
+    </style>
 </head>
 @php
     $user = Auth::user();
@@ -52,7 +86,12 @@
                             <div class="form-group">
                                 @if (isset($project_id) && $project_id == -1)
                                     <div id="project">
-                                        <label class="col-form-label">{{ __('Search project') }}</label>
+                                        <label class="col-form-label">{{ __('Search project') }}
+                                            <label class="text-muted iftheordoesnotexist">
+                                                <i class="bi bi-info-circle me-2"
+                                                    style="color: #FFD43B;"></i>{{ __('If the project does not exist, create a new project.') }}
+                                            </label>
+                                        </label>
                                         <input type="text" class="form-control" id="searchProject"
                                             placeholder="{{ __('Name or reference M.O') }}" autocomplete="off">
                                         <input id="projectId" name="project_id" style="display: none">
@@ -84,13 +123,7 @@
                                 </div>
                             @endif
                         </div>
-                        <div class="col-md-12">
-                            <p class="text-muted">
-                                <i class="bi bi-info-circle me-2"
-                                    style="color: #FFD43B;"></i>{{ __('If the project does not
-                                                                exist, create a new project.') }}
-                            </p>
-                        </div>
+
                         {{-- Inicio apartado asignado a --}}
                         {{-- <div class="col-md-6" id="requestBy-req">
                         <label class="col-form-label">Asignado a</label>
@@ -141,14 +174,14 @@
                         <input class="form-check-input" type="checkbox" role="switch" id="toggleFormSwitch">
                         <label class="form-check-label"
                             for="toggleFormSwitch">{{ __('Only in case it is necessary to to
-                                                    carry out a project with a visa.') }}</label>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    carry out a project with a visa.') }}</label>
                     </div>
                     <div id="additionalForm" class="collapse mt-3">
                         <div class="card card-body">
                             <div class="mb-3">
                                 <label for="input1"
                                     class="form-label">{{ __('Name of the company that will install the
-                                                                    system') }}:</label>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    system') }}:</label>
                                 <input type="text" class="form-control" name="company" id="company"
                                     placeholder="Ingrese valor">
                             </div>
@@ -171,8 +204,8 @@
                             </div>
                             <p class="mb-3">
                                 <b>{{ __('Note: In order to carry out the project it is necessary to send the quotation of
-                                                                the formwork and falsework system, and the complete assembly drawings and geometrical
-                                                                definition of the structure.') }}
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                the formwork and falsework system, and the complete assembly drawings and geometrical
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                definition of the structure.') }}
                                 </b>
                             </p>
                         </div>
@@ -215,6 +248,9 @@
                                             <input type="file" id="file-uploadMilestone" style="display:none"
                                                 multiple />
                                             <span> {{ __('Drop files here to upload') }}</span>
+                                            <p>
+                                                {{ __('You can Also hold click + Control + V to paste the content of the clipboard') }}
+                                            </p>
                                             <p class="text-muted" style="font-size:15px; margin:5px;">200MB</p>
                                             <small class="text-muted">.png .gif .pdf .txt .doc .docx .zip .rar .dwg
                                                 .dxf</small>
@@ -297,7 +333,7 @@
                         <div class="page-search">
                             <p class="text-muted mt-3">
                                 {{ __("It's looking like you may have taken a wrong turn. Don't worry... it happens to the
-                                                            best of us. Here's a little tip that might help you get back on track.") }}
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            best of us. Here's a little tip that might help you get back on track.") }}
                             </p>
                             <div class="mt-3">
                                 <a class="btn-return-home badge-blue" href="{{ route('home') }}">
@@ -506,58 +542,297 @@
     });
 </script>
 
+
+<!-- Funciones para manejar la carga y listado de archivos -->
 <!-- Funciones para manejar la carga y listado de archivos -->
 <script>
-    var assetBasePath = '{{ asset('assets/iconFilesTypes') }}/';
-    var filesArray = [];
+    const dropzoneMilestone = document.getElementById('dropzonewidgetMilestone');
+    let fileInputMilestone = document.getElementById('file-uploadMilestone');
+    const fileListMilestone = document.getElementById('file-list');
+    const hiddenInputsMilestone = document.getElementById('hidden-file-inputs');
+    var filesArrayMilestone = [];
 
-    document.getElementById('dropzonewidgetMilestone').addEventListener('click', function() {
-        document.getElementById('file-uploadMilestone').click();
+    // --- Extensiones y tipos MIME permitidos ---
+    const allowedMilestone = [{
+            ext: 'png',
+            mime: 'image/png'
+        },
+        {
+            ext: 'gif',
+            mime: 'image/gif'
+        },
+        {
+            ext: 'pdf',
+            mime: 'application/pdf'
+        },
+        {
+            ext: 'txt',
+            mime: 'text/plain'
+        },
+        {
+            ext: 'doc',
+            mime: 'application/msword'
+        },
+        {
+            ext: 'docx',
+            mime: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+        },
+        {
+            ext: 'zip',
+            mime: 'application/zip'
+        },
+        {
+            ext: 'rar',
+            mime: 'application/vnd.rar'
+        },
+        {
+            ext: 'rar',
+            mime: 'application/x-rar-compressed'
+        },
+        {
+            ext: 'dwg',
+            mime: 'application/acad'
+        },
+        {
+            ext: 'dwg',
+            mime: 'application/autocad_dwg'
+        },
+        {
+            ext: 'dxf',
+            mime: 'application/dxf'
+        }
+    ];
+    const allowedExtsMilestone = allowedMilestone.map(a => a.ext.toLowerCase());
+    const allowedMimesMilestone = allowedMilestone.map(a => a.mime);
+
+    // --- Drag & Drop visual feedback ---
+    dropzoneMilestone.addEventListener('dragenter', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        dropzoneMilestone.classList.add('dragover');
     });
 
-    document.getElementById('file-uploadMilestone').addEventListener('change', function(event) {
-        const newFiles = Array.from(event.target.files);
-        newFiles.forEach((file) => {
-            if (!filesArray.some((f) => f.name === file.name && f.size === file.size)) {
-                filesArray.push(file);
-            } else {
-                console.warn(`Archivo duplicado ignorado: ${file.name}`);
+    dropzoneMilestone.addEventListener('dragover', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        dropzoneMilestone.classList.add('dragover');
+    });
+
+    dropzoneMilestone.addEventListener('dragleave', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        if (e.target === dropzoneMilestone) {
+            dropzoneMilestone.classList.remove('dragover');
+        }
+    });
+
+    dropzoneMilestone.addEventListener('drop', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        dropzoneMilestone.classList.remove('dragover');
+
+        if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length) {
+            const droppedFiles = Array.from(e.dataTransfer.files);
+            handleFilesMilestone(droppedFiles);
+            uploadFilesMilestone(droppedFiles);
+            dropzoneMilestone.focus();
+        }
+    });
+
+    // Prevent default drag behavior on document
+    document.addEventListener('dragover', function(e) {
+        e.preventDefault();
+    });
+
+    document.addEventListener('drop', function(e) {
+        e.preventDefault();
+    });
+
+    // --- Selección manual desde input file ---
+    dropzoneMilestone.addEventListener('dblclick', function() {
+        fileInputMilestone.value = '';
+        fileInputMilestone.click();
+    });
+    fileInputMilestone.addEventListener('change', function() {
+        if (fileInputMilestone.files && fileInputMilestone.files.length) {
+            const selectedFiles = Array.from(fileInputMilestone.files);
+            // 1) Procesar y listar localmente
+            handleFilesMilestone(selectedFiles);
+            // 2) Subir automáticamente los archivos al servidor
+            uploadFilesMilestone(selectedFiles);
+            dropzoneMilestone.focus();
+        }
+    });
+
+    // --- Permitimos que la dropzone reciba foco y capture paste ---
+    dropzoneMilestone.setAttribute('tabindex', '0'); // hace que se pueda enfocar
+    dropzoneMilestone.addEventListener('click', () => {
+        dropzoneMilestone.focus();
+    });
+
+    // --- Capturar paste a nivel de document, pero sólo procesar si foco está dentro de dropzone ---
+    document.addEventListener('paste', function(e) {
+        const focused = document.activeElement;
+        if (focused !== dropzoneMilestone && !dropzoneMilestone.contains(focused)) {
+            return;
+        }
+        e.preventDefault();
+        if (!e.clipboardData || !e.clipboardData.items) {
+            return;
+        }
+        const items = Array.from(e.clipboardData.items);
+        const conversionPromises = items.map(item => {
+            if (item.kind !== 'file') {
+                return Promise.resolve(null);
             }
+            const file = item.getAsFile();
+            if (!file) {
+                return Promise.resolve(null);
+            }
+            const ext = file.name.split('.').pop().toLowerCase().trim();
+            const mime = file.type;
+
+            // Si es PNG o GIF → convertir a JPG
+            if (
+                mime === 'image/png' || mime === 'image/gif' ||
+                ext === 'png' || ext === 'gif'
+            ) {
+                return new Promise(resolve => {
+                    convertImageToJPGMilestone(file, function(jpgFile) {
+                        resolve(jpgFile);
+                    });
+                });
+            }
+
+            // Si su extensión O su MIME están permitidos, devolvemos el File
+            if (
+                allowedExtsMilestone.includes(ext) ||
+                allowedMimesMilestone.includes(mime)
+            ) {
+                return Promise.resolve(file);
+            }
+
+            // De lo contrario, no lo tomamos
+            return Promise.resolve(null);
         });
-        updateFileList();
+
+        Promise.all(conversionPromises).then(results => {
+            const archivosValidos = results.filter(f => f instanceof File);
+            if (archivosValidos.length > 0) {
+                handleFilesMilestone(archivosValidos);
+                uploadFilesMilestone(archivosValidos);
+            } else {
+                alert('El portapapeles no contiene un archivo permitido');
+            }
+            dropzoneMilestone.focus();
+        });
     });
 
-    function updateFileList() {
-        const fileListElement = document.getElementById('file-list');
-        const hiddenInputsContainer = document.getElementById('hidden-file-inputs');
-        fileListElement.innerHTML = '';
-        hiddenInputsContainer.innerHTML = '';
-        filesArray.forEach((file, index) => {
+    // --- Función ÚNICA para procesar archivos subidos (pegados, arrastrados o seleccionados) ---
+    function handleFilesMilestone(files) {
+        files.forEach(file => {
+            const ext = file.name.split('.').pop().toLowerCase().trim();
+            const mime = file.type;
+
+            // 1) Si el archivo ya es un JPEG (resultado de la conversión), lo añadimos directamente
+            if (mime === 'image/jpeg') {
+                addFileToMilestoneArray(file);
+                return;
+            }
+
+            // 2) Si es PNG o GIF (arrastrado, pegado o seleccionado manualmente), convertimos a JPG
+            if (
+                mime === 'image/png' || mime === 'image/gif' ||
+                ext === 'png' || ext === 'gif'
+            ) {
+                convertImageToJPGMilestone(file, function(jpgFile) {
+                    addFileToMilestoneArray(jpgFile);
+                });
+                return;
+            }
+
+            // 3) Si su extensión o su MIME están permitidos, lo añadimos tal cual
+            if (
+                allowedExtsMilestone.includes(ext) ||
+                allowedMimesMilestone.includes(mime)
+            ) {
+                addFileToMilestoneArray(file);
+                return;
+            }
+
+            // 4) Cualquier otro, se ignora (console.warn para depuración)
+            console.warn(`Archivo no permitido: ${file.name} (${mime || 'sin MIME detectado'})`);
+        });
+    }
+
+    function addFileToMilestoneArray(file) {
+        if (!filesArrayMilestone.some(f => f.name === file.name && f.size === file.size)) {
+            filesArrayMilestone.push(file);
+            updateFileListMilestone();
+        } else {
+            console.warn(`Archivo duplicado ignorado: ${file.name}`);
+        }
+    }
+
+    // --- Conversión de imagen PNG/GIF a JPG usando canvas ---
+    function convertImageToJPGMilestone(blobOrFile, callback) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const img = new Image();
+            img.onload = function() {
+                const canvas = document.createElement('canvas');
+                canvas.width = img.width;
+                canvas.height = img.height;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0);
+                canvas.toBlob(function(jpgBlob) {
+                    const nuevoNombre = (blobOrFile.name || 'clipboard').replace(/\.(png|gif)$/i,
+                        '.jpg');
+                    const jpgFile = new File([jpgBlob], nuevoNombre, {
+                        type: 'image/jpeg',
+                        lastModified: Date.now(),
+                    });
+                    callback(jpgFile);
+                }, 'image/jpeg', 0.92);
+            };
+            img.src = e.target.result;
+        };
+        reader.readAsDataURL(blobOrFile);
+    }
+
+    function updateFileListMilestone() {
+        const assetBasePath = '{{ asset('assets/iconFilesTypes') }}/';
+        fileListMilestone.innerHTML = '';
+        hiddenInputsMilestone.innerHTML = '';
+
+        filesArrayMilestone.forEach((file, index) => {
             const fileContainer = document.createElement('div');
             fileContainer.classList.add('file');
+
             const icon = document.createElement('img');
-            icon.src = getIconPath(file.name);
-            icon.alt = `${getExtension(file.name)} icon`;
+            icon.src = getIconPathMilestone(file.name, assetBasePath);
+            icon.alt = `${getExtensionMilestone(file.name)} icon`;
             icon.style.width = '20px';
             icon.style.height = '25px';
             fileContainer.appendChild(icon);
+
             const fileNameContainer = document.createElement('div');
             fileNameContainer.classList.add('file-name');
             fileNameContainer.textContent = file.name;
             fileNameContainer.style.maxWidth = "70%";
             fileContainer.appendChild(fileNameContainer);
-            const fileDetailsSmall = document.createElement('small');
-            fileDetailsSmall.classList.add('text-muted', 'ms-1');
+
             const removeButton = document.createElement('a');
             removeButton.classList.add('buttonFiles');
-            removeButton.innerHTML = '<i class="fa-solid fa-trash" style="color:white"></i>';
+            removeButton.innerHTML = '<i class="fa-solid fa-trash deleteFileButton" style="color:white"></i>';
             removeButton.addEventListener('click', function() {
-                filesArray.splice(index, 1);
-                updateFileList();
+                filesArrayMilestone.splice(index, 1);
+                updateFileListMilestone();
             });
-            fileNameContainer.appendChild(fileDetailsSmall);
+
             fileContainer.appendChild(removeButton);
-            fileListElement.appendChild(fileContainer);
+            fileListMilestone.appendChild(fileContainer);
+
             const input = document.createElement('input');
             input.type = 'file';
             input.name = 'files[]';
@@ -565,26 +840,86 @@
             const dataTransfer = new DataTransfer();
             dataTransfer.items.add(file);
             input.files = dataTransfer.files;
-            hiddenInputsContainer.appendChild(input);
+            hiddenInputsMilestone.appendChild(input);
         });
     }
 
-    function getIconPath(filename) {
-        const extension = getExtension(filename);
+    function getIconPathMilestone(filename, assetBasePath) {
+        const extension = getExtensionMilestone(filename);
         const iconPath = `${assetBasePath}${extension}.png`;
         const defaultIcon = `${assetBasePath}default.png`;
-        const supportedExtensions = ['pdf', 'doc', 'jpg', 'png', 'xlsx', 'txt', 'dwg', 'dxf', 'img', 'docx', 'zip'];
+        const supportedExtensions = [
+            'pdf', 'doc', 'jpg', 'png', 'xlsx', 'txt',
+            'dwg', 'dxf', 'img', 'docx', 'zip', 'rar', 'gif', 'jpeg'
+        ];
         return supportedExtensions.includes(extension) ? iconPath : defaultIcon;
     }
 
-    function getExtension(filename) {
-        return filename.split('.').pop().toLowerCase();
+    function getExtensionMilestone(filename) {
+        return filename.split('.').pop().toLowerCase().trim();
     }
 
-    function formatFileSize(bytes) {
-        if (bytes < 1024) return `${bytes} B`;
-        if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(2)} KB`;
-        return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
+    // --- NUEVA FUNCIÓN: subir archivos vía AJAX al servidor ---
+    function uploadFilesMilestone(files) {
+        if (!files.length) {
+            return;
+        }
+
+        // Obtenemos el token CSRF que pusimos en <meta name="csrf-token" ...>
+        const token = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+
+        // Creamos un FormData y añadimos cada archivo bajo "files[]"
+        const formData = new FormData();
+        files.forEach(file => {
+            formData.append('files[]', file);
+        });
+
+        // También pasamos otros campos que el servidor podría necesitar.
+        // Por ejemplo, si el formulario #milestone-form tiene campos adicionales, los incluimos:
+        const milestoneForm = document.getElementById('milestone-form');
+        if (milestoneForm) {
+            // Ej: título, asignado a, end_date, etc.
+            const extraInputs = milestoneForm.querySelectorAll('input, select, textarea');
+            extraInputs.forEach(input => {
+                if (!['files[]', '_token'].includes(input.name) && input.value) {
+                    formData.append(input.name, input.value);
+                }
+            });
+        }
+
+        // Hacemos el POST a la URL de acción del formulario
+        const actionUrl = (milestoneForm && milestoneForm.getAttribute('action')) ?
+            milestoneForm.getAttribute('action') :
+            window.location.href; // fallback
+
+        fetch(actionUrl, {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': token
+                },
+                body: formData
+            })
+            .then(response => {
+                if (!response.ok) {
+                    // Si algo falla en el servidor, podemos leer el JSON o texto de error
+                    return response.json().then(err => {
+                        console.error('Error en subida de archivos:', err);
+                        // alert('Error al subir archivos: ' + (err.message || response.statusText));
+                        throw new Error('Upload failed');
+                    });
+                }
+                return response.json();
+            })
+            .then(data => {
+                // Aquí puedes manejar la respuesta exitosa (p. ej. mostrar mensaje, refrescar lista en servidor, etc.)
+                console.log('Archivos subidos correctamente:', data);
+                // Si quieres, puedes vaciar el arreglo local o actualizarlo según la respuesta:
+                // filesArrayMilestone = [];
+                // updateFileListMilestone();
+            })
+            .catch(error => {
+                console.error('Fetch error:', error);
+            });
     }
 </script>
 

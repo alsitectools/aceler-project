@@ -11,6 +11,16 @@
         align-content: center;
         align-items: center;
     }
+
+    .buttonFiles {
+        background-color: #aa182c;
+    }
+
+    .buttonFiles:hover,
+    .buttonFiles:focus,
+    .buttonFiles:active {
+        background-color: #8b0f23 !important;
+    }
 </style>
 <div class="modal-body">
     @if ($currentWorkspace && $milestone)
@@ -46,13 +56,25 @@
 
                     </fieldset>
                 </div>
-
                 <div class="form-group col-md-4">
-                    <fieldset class="custom-fieldset ctr">
-                        <legend class="custom-legend">{{ __('Expected delivery date') }}:</legend>
-                        <h5 class="ps-2 pt-2"> {{ $milestone->planned_end_date }}:</h5>
+                    <fieldset style="padding: 2px 16px" class="custom-fieldset ctr">
+                        <legend class="custom-legend">{{ __('Assigned to') }}</legend>
+                        <h5 class="ps-2 pt-2">
+                            @if (isset($assignedToUser) && $assignedToUser->name)
+                                {{ $assignedToUser->name }}
+                                <img class="imgName" style="margin-left: 10px; width: 35px !important;"
+                                    @if ($assignedToUser->avatar) src="{{ asset($assignedToUser->avatar) }}"
+                    @else
+                    avatar="{{ $assignedToUser->name }}" @endif>
+                            @else
+                                None
+                            @endif
+                        </h5>
+
                     </fieldset>
                 </div>
+
+
             </div>
             <div class="row">
                 <div class="form-group col-md-8">
@@ -63,7 +85,7 @@
                 </div>
                 <div class="form-group col-md-4">
                     <fieldset class="custom-fieldset ctr">
-                        <legend class="custom-legend">{{ __('Branch') }}:</legend>
+                        <legend class="custom-legend">{{ __('Workspace') }}:</legend>
                         <h5 class="pt-2 ps-2"> {{ $delegation_name }}</h5>
                     </fieldset>
                 </div>
@@ -76,17 +98,11 @@
                         <h5 class="pt-2 ps-2"> {{ $milestone->summary }}</h5>
                     </fieldset>
                 </div>
-                {{-- test --}}
+                {{-- {test} --}}
                 <div class="form-group col-md-4">
                     <fieldset class="custom-fieldset ctr">
-                        <legend class="custom-legend">{{ __('Assigned to') }}</legend>
-                        <h5 class="ps-2 pt-2">
-                            @if (isset($assignedToUser) && $assignedToUser->name)
-                                {{ $assignedToUser->name }}
-                            @else
-                                None
-                            @endif
-                        </h5>
+                        <legend class="custom-legend">{{ __('Expected delivery date') }}:</legend>
+                        <h5 class="ps-2 pt-2"> {{ $milestone->planned_end_date }}:</h5>
                     </fieldset>
                 </div>
 
@@ -158,7 +174,7 @@
                             <div class="page-search">
                                 <p class="text-muted mt-3">
                                     {{ __("It's looking like you may have taken a wrong turn. Don't worry... it happens to
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            the best of us. Here's a little tip that might help you get back on track.") }}
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    the best of us. Here's a little tip that might help you get back on track.") }}
                                 </p>
                                 <div class="mt-3">
                                     <a class="btn-return-home badge-blue" href="{{ route('home') }}"><i
