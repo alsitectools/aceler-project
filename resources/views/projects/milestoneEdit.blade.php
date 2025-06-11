@@ -35,97 +35,110 @@
         white-space: nowrap;
         width: 100%;
     }
+
+    /* Estilos para el drag & drop */
+    .dropzone.dragover {
+        border-color: #ccc !important;
+        background-color: #f8f9fa !important;
+    }
+
+    .dropzone.dragover .dz-message {
+        opacity: 0.5;
+    }
 </style>
 
 @if ($milestone && $currentWorkspace)
-<form method="post" action="{{ route('projects.milestone.update', [$currentWorkspace->slug, $milestone->id]) }}"
-    enctype="multipart/form-data">
-    @csrf
-    <div class="modal-body">
-        <!-- Información general del hito -->
-        <div class="row">
-            <div class="col-md-12">
-                <div class="form-group">
-                    <label for="milestone-title" class="col-form-label">{{ __('Milestone Title') }}</label>
-                    <input type="text" class="form-control form-control-light" id="milestone-title"
-                        placeholder="{{ __('Enter Title') }}" value="{{ $milestone->title }}" name="title" required
-                        disabled>
-                </div>
-            </div>
+    <form method="post" action="{{ route('projects.milestone.update', [$currentWorkspace->slug, $milestone->id]) }}"
+        enctype="multipart/form-data">
+        @csrf
+        <div class="modal-body">
+            <!-- Información general del hito -->
             <div class="row">
-                <div class="form-group col-md-6">
-                    <label for="start_date" class="col-form-label">{{ __('Created date') }}</label>
-                    <input type="date" class="form-control form-control-light date" id="start_date" name="start_date"
-                        value="{{ $milestone->start_date }}" disabled>
+                <div class="col-md-12">
+                    <div class="form-group">
+                        <label for="milestone-title" class="col-form-label">{{ __('Milestone Title') }}</label>
+                        <input type="text" class="form-control form-control-light" id="milestone-title"
+                            placeholder="{{ __('Enter Title') }}" value="{{ $milestone->title }}" name="title"
+                            required disabled>
+                    </div>
                 </div>
-                <div class="form-group col-md-6">
-                    <label for="end_date" class="col-form-label">{{ __('Desired delivery date') }}</label>
-                    <input onclick="this.showPicker()" type="date" class="form-control form-control-light date"
-                        id="end_date" name="end_date" value="{{ $milestone->end_date }}" required>
+                <div class="row">
+                    <div class="form-group col-md-6">
+                        <label for="start_date" class="col-form-label">{{ __('Created date') }}</label>
+                        <input type="date" class="form-control form-control-light date" id="start_date"
+                            name="start_date" value="{{ $milestone->start_date }}" disabled>
+                    </div>
+                    <div class="form-group col-md-6">
+                        <label for="end_date" class="col-form-label">{{ __('Desired delivery date') }}</label>
+                        <input onclick="this.showPicker()" type="date" class="form-control form-control-light date"
+                            id="end_date" name="end_date" value="{{ $milestone->end_date }}" required>
+                    </div>
+                </div>
+                <div class="form-group col-md-12">
+                    <label for="task-summary" class="col-form-label">{{ __('Description') }}</label>
+                    <textarea class="form-control form-control-light" id="task-summary" rows="3" name="summary">{{ $milestone->summary }}</textarea>
                 </div>
             </div>
+            <!-- Archivos adjuntos existentes -->
             <div class="form-group col-md-12">
-                <label for="task-summary" class="col-form-label">{{ __('Description') }}</label>
-                <textarea class="form-control form-control-light" id="task-summary" rows="3"
-                    name="summary">{{ $milestone->summary }}</textarea>
-            </div>
-        </div>
-        <!-- Archivos adjuntos existentes -->
-        <div class="form-group col-md-12">
-            <label for="file-uploadMilestone" class="form-label">
-                <strong>{{ __('Upload files') }}</strong>
-            </label>
-            <div>
-                <div class="col-md-12 dropzone browse-file" id="dropzonewidgetMilestone">
-                    <div class="dz-message" data-dz-message>
-                        <input type="file" id="file-uploadMilestone" style="display:none" multiple />
-                        <span>{{ __('Drop files here to upload') }}</span>
-                        <p class="text-muted" style="font-size:15px; margin:5px;">200MB</p>
-                        <small class="text-muted">.png .gif .pdf .txt .doc .docx .zip .rar .dwg .dxf</small>
+                <label for="file-uploadMilestone" class="form-label">
+                    <strong>{{ __('Upload files') }}</strong>
+                </label>
+                <div>
+                    <div class="col-md-12 dropzone browse-file" id="dropzonewidgetMilestone">
+                        <div class="dz-message" data-dz-message>
+                            <input type="file" id="file-uploadMilestone" style="display:none" multiple />
+                            <span>{{ __('Drop files here to upload') }}</span>
+                            <p>
+                                {{ __('You can Also hold click + Control + V to paste the content of the clipboard') }}
+                            </p>
+                            <p class="text-muted" style="font-size:15px; margin:5px;">200MB</p>
+                            <small class="text-muted">.png .gif .pdf .txt .doc .docx .zip .rar .dwg .dxf</small>
+                        </div>
+                    </div>
+                    <div id="file-list"></div>
+                    <p style="margin-top: 1%;"><b>{{ __('Actual milestone files') }}</b></p>
+                    <!-- Aplicamos las clases para que se muestren 3 columnas -->
+                    <div class="actualMilestoneFiles custom-file-container">
+                        @foreach ($milestone->files as $file)
+                            @php
+                                $extension = pathinfo($file->name, PATHINFO_EXTENSION);
+                                $iconPath = file_exists(public_path('assets/iconFilesTypes/' . $extension . '.png'))
+                                    ? 'assets/iconFilesTypes/' . $extension . '.png'
+                                    : 'assets/iconFilesTypes/default.png';
+                            @endphp
+                            <div class="fileMilestoneEdit exist d-flex align-items-center mt-2 custom-file"
+                                data-file-id="{{ $file->id }}">
+                                <img src="{{ asset($iconPath) }}" alt="{{ $extension }} icon"
+                                    style="width: 20px; height: 25px;">
+                                <div class="file-name ms-2">{{ $file->name }} <small
+                                        class="text-muted">({{ $file->file_size }})</small></div>
+                                <a class="buttonFiles btn btn-sm"
+                                    onclick="deleteFile({{ $milestone->project_id }}, '{{ $milestone->id }}', '{{ $file->id }}')">
+                                    <i class="fa-solid fa-trash-alt"
+                                        style="color:white; background-color:#aa182c; padding:7px; border-radius:6px;"></i>
+                                </a>
+                            </div>
+                        @endforeach
                     </div>
                 </div>
-                <div id="file-list"></div>
-                <p style="margin-top: 1%;"><b>{{ __('Actual milestone files') }}</b></p>
-                <!-- Aplicamos las clases para que se muestren 3 columnas -->
-                <div class="actualMilestoneFiles custom-file-container">
-                    @foreach ($milestone->files as $file)
-                    @php
-                    $extension = pathinfo($file->name, PATHINFO_EXTENSION);
-                    $iconPath = file_exists(public_path('assets/iconFilesTypes/' . $extension . '.png'))
-                    ? 'assets/iconFilesTypes/' . $extension . '.png'
-                    : 'assets/iconFilesTypes/default.png';
-                    @endphp
-                    <div class="fileMilestoneEdit exist d-flex align-items-center mt-2 custom-file"
-                        data-file-id="{{ $file->id }}">
-                        <img src="{{ asset($iconPath) }}" alt="{{ $extension }} icon"
-                            style="width: 20px; height: 25px;">
-                        <div class="file-name ms-2">{{ $file->name }} <small class="text-muted">({{ $file->file_size
-                                }})</small></div>
-                        <a class="buttonFiles btn btn-sm"
-                            onclick="deleteFile({{ $milestone->project_id }}, '{{ $milestone->id }}', '{{ $file->id }}')">
-                            <i class="fa-solid fa-trash-alt" style="color:white"></i>
-                        </a>
-                    </div>
-                    @endforeach
-                </div>
+                <div id="hidden-file-inputs" style="display: none;"></div>
             </div>
-            <div id="hidden-file-inputs" style="display: none;"></div>
         </div>
-    </div>
-    <div class="modal-footer">
-        <button type="button" class="btn btn-light" data-bs-dismiss="modal">{{ __('Close') }}</button>
-        <input type="submit" value="{{ __('Save Changes') }}" class="btn btn-primary">
-    </div>
-</form>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-light" data-bs-dismiss="modal">{{ __('Close') }}</button>
+            <input type="submit" value="{{ __('Save Changes') }}" class="btn btn-primary">
+        </div>
+    </form>
 @else
-<div class="container mt-5">
-    <div class="card">
-        <div class="card-body p-4">
-            <h1>404</h1>
-            <p>{{ __('Page Not Found') }}</p>
+    <div class="container mt-5">
+        <div class="card">
+            <div class="card-body p-4">
+                <h1>404</h1>
+                <p>{{ __('Page Not Found') }}</p>
+            </div>
         </div>
     </div>
-</div>
 @endif
 <script>
     var assetBasePath = "{{ asset('assets/iconFilesTypes') }}/";
@@ -172,62 +185,64 @@
     });
 
     function updateFileList() {
-    const fileListElement = document.getElementById('file-list');
-    const hiddenInputsContainer = document.getElementById('hidden-file-inputs');
+        const fileListElement = document.getElementById('file-list');
+        const hiddenInputsContainer = document.getElementById('hidden-file-inputs');
 
-    fileListElement.innerHTML = '';
-    hiddenInputsContainer.innerHTML = '';
+        fileListElement.innerHTML = '';
+        hiddenInputsContainer.innerHTML = '';
 
-    filesArray.forEach(file => {
-        const fileKey = `${file.name}-${file.size}-${file.lastModified}`;
+        filesArray.forEach(file => {
+            const fileKey = `${file.name}-${file.size}-${file.lastModified}`;
 
-        const fileContainer = document.createElement('div');
-        fileContainer.classList.add('custom-file'); // ✅ Se aplica estilo nuevo
+            const fileContainer = document.createElement('div');
+            fileContainer.classList.add('custom-file'); // ✅ Se aplica estilo nuevo
 
-        const icon = document.createElement('img');
-        icon.src = getIconPath(file.name);
-        icon.alt = `${getExtension(file.name)} icon`;
-        icon.style.width = '20px';
-        icon.style.height = '25px';
-        fileContainer.appendChild(icon);
+            const icon = document.createElement('img');
+            icon.src = getIconPath(file.name);
+            icon.alt = `${getExtension(file.name)} icon`;
+            icon.style.width = '20px';
+            icon.style.height = '25px';
+            fileContainer.appendChild(icon);
 
-        const fileNameContainer = document.createElement('div');
-        fileNameContainer.classList.add('file-name');
-        fileNameContainer.textContent = file.name;
-        fileContainer.appendChild(fileNameContainer);
+            const fileNameContainer = document.createElement('div');
+            fileNameContainer.classList.add('file-name');
+            fileNameContainer.textContent = file.name;
+            fileContainer.appendChild(fileNameContainer);
 
-        const removeButton = document.createElement('a');
-        removeButton.classList.add('buttonFiles');
-        removeButton.innerHTML = '<i class="fa-solid fa-trash" style="color:white"></i>';
-        removeButton.addEventListener('click', function () {
-            filesArray = filesArray.filter(f => `${f.name}-${f.size}-${f.lastModified}` !== fileKey);
-            document.getElementById(fileKey).remove();
-            updateFileList();
+            const removeButton = document.createElement('a');
+            removeButton.classList.add('buttonFiles');
+            removeButton.innerHTML =
+                '<i class="fa-solid fa-trash" style="color:white; background-color:#aa182c; padding:7px; border-radius:6px;></i>';
+            removeButton.addEventListener('click', function() {
+                filesArray = filesArray.filter(f => `${f.name}-${f.size}-${f.lastModified}` !==
+                    fileKey);
+                document.getElementById(fileKey).remove();
+                updateFileList();
+            });
+            fileContainer.appendChild(removeButton);
+
+            fileListElement.appendChild(fileContainer);
+
+            if (!document.getElementById(fileKey)) {
+                const input = document.createElement('input');
+                input.type = 'file';
+                input.name = 'new_files[]';
+                input.id = fileKey;
+                input.style.display = 'none';
+
+                const dataTransfer = new DataTransfer();
+                dataTransfer.items.add(file);
+                input.files = dataTransfer.files;
+
+                hiddenInputsContainer.appendChild(input);
+            }
         });
-        fileContainer.appendChild(removeButton);
-
-        fileListElement.appendChild(fileContainer);
-
-        if (!document.getElementById(fileKey)) {
-            const input = document.createElement('input');
-            input.type = 'file';
-            input.name = 'new_files[]';
-            input.id = fileKey;
-            input.style.display = 'none';
-
-            const dataTransfer = new DataTransfer();
-            dataTransfer.items.add(file);
-            input.files = dataTransfer.files;
-
-            hiddenInputsContainer.appendChild(input);
-        }
-    });
-}
+    }
 
     function deleteFile(idProject, milestoneId, fileId) {
         event.preventDefault();
         const deleteUrl = "{{ route('milestone.destroy.file') }}";
-        
+
         const swalWithBootstrapButtons = Swal.mixin({
             customClass: {
                 confirmButton: 'btn btn-success',
@@ -246,7 +261,7 @@
             reverseButtons: false,
         }).then((result) => {
             if (result.isConfirmed) {
-                
+
                 $.ajax({
                     url: deleteUrl,
                     method: 'POST',
@@ -292,5 +307,167 @@
         if (bytes < 1024) return `${bytes} B`;
         if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(2)} KB`;
         return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
+    }
+</script>
+<script>
+    // --- Dropzone lógica igual que milestone.blade.php ---
+    const dropzoneMilestone = document.getElementById('dropzonewidgetMilestone');
+    let fileInputMilestone = document.getElementById('file-uploadMilestone');
+    const fileListMilestone = document.getElementById('file-list');
+    const hiddenInputsMilestone = document.getElementById('hidden-file-inputs');
+    var filesArrayMilestone = [];
+
+    // Drag & Drop visual feedback
+    dropzoneMilestone.addEventListener('dragenter', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        dropzoneMilestone.classList.add('dragover');
+    });
+
+    dropzoneMilestone.addEventListener('dragover', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        dropzoneMilestone.classList.add('dragover');
+    });
+
+    ['dragleave', 'dragend'].forEach(eventName => {
+        dropzoneMilestone.addEventListener(eventName, function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            dropzoneMilestone.classList.remove('dragover');
+        });
+    });
+
+    dropzoneMilestone.addEventListener('drop', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        dropzoneMilestone.classList.remove('dragover');
+
+        const dt = e.dataTransfer;
+        if (dt.files && dt.files.length) {
+            const files = Array.from(dt.files);
+            handleFilesMilestone(files);
+            dropzoneMilestone.focus();
+        }
+    });
+
+    // Asegurarse de que el dropzone mantenga el foco después de cualquier operación
+    function refocusDropzone() {
+        setTimeout(() => {
+            dropzoneMilestone.focus();
+        }, 10);
+    }
+
+    // Actualizar handleFilesMilestone para mantener el foco
+    function handleFilesMilestone(files) {
+        files.forEach(file => {
+            addFileToMilestoneArray(file);
+        });
+        refocusDropzone();
+    }
+
+    // Click para seleccionar archivos
+    dropzoneMilestone.setAttribute('tabindex', '0');
+    dropzoneMilestone.addEventListener('click', () => {
+        dropzoneMilestone.focus();
+        fileInputMilestone.click();
+    });
+
+    // Selección manual desde input file
+    fileInputMilestone.addEventListener('change', function() {
+        if (fileInputMilestone.files && fileInputMilestone.files.length) {
+            handleFilesMilestone(Array.from(fileInputMilestone.files));
+            dropzoneMilestone.focus();
+        }
+    });
+
+    // Ctrl+V para pegar archivos
+    document.addEventListener('paste', function(e) {
+        const focused = document.activeElement;
+        if (focused !== dropzoneMilestone && !dropzoneMilestone.contains(focused)) {
+            return;
+        }
+        e.preventDefault();
+        if (!e.clipboardData || !e.clipboardData.items) {
+            return;
+        }
+        const items = Array.from(e.clipboardData.items);
+        const files = items
+            .filter(item => item.kind === 'file')
+            .map(item => item.getAsFile())
+            .filter(file => file !== null);
+        if (files.length > 0) {
+            handleFilesMilestone(files);
+        }
+        dropzoneMilestone.focus();
+    });
+
+    function handleFilesMilestone(files) {
+        files.forEach(file => {
+            addFileToMilestoneArray(file);
+        });
+    }
+
+    function addFileToMilestoneArray(file) {
+        if (!filesArrayMilestone.some(f => f.name === file.name && f.size === file.size)) {
+            filesArrayMilestone.push(file);
+            updateFileListMilestone();
+        }
+    }
+
+    function updateFileListMilestone() {
+        fileListMilestone.innerHTML = '';
+        hiddenInputsMilestone.innerHTML = '';
+        filesArrayMilestone.forEach((file, index) => {
+            const fileContainer = document.createElement('div');
+            fileContainer.classList.add('custom-file');
+
+            const icon = document.createElement('img');
+            icon.src = getIconPath(file.name);
+            icon.alt = `${getExtension(file.name)} icon`;
+            icon.style.width = '20px';
+            icon.style.height = '25px';
+            fileContainer.appendChild(icon);
+
+            const fileNameContainer = document.createElement('div');
+            fileNameContainer.classList.add('file-name');
+            fileNameContainer.textContent = file.name;
+            fileContainer.appendChild(fileNameContainer);
+
+            const removeButton = document.createElement('a');
+            removeButton.classList.add('buttonFiles');
+            removeButton.innerHTML =
+                '<i class="fa-solid fa-trash" style="color:white; background-color:#aa182c; padding:7px; border-radius:6px;"></i>';
+            removeButton.addEventListener('click', function() {
+                filesArrayMilestone.splice(index, 1);
+                updateFileListMilestone();
+            });
+
+            fileContainer.appendChild(removeButton);
+            fileListMilestone.appendChild(fileContainer);
+
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.name = 'new_files[]';
+            input.style.display = 'none';
+            const dataTransfer = new DataTransfer();
+            dataTransfer.items.add(file);
+            input.files = dataTransfer.files;
+            hiddenInputsMilestone.appendChild(input);
+        });
+    }
+
+    function getIconPath(filename) {
+        const extension = getExtension(filename);
+        const supportedExtensions = ['pdf', 'doc', 'jpg', 'png', 'xlsx', 'txt', 'dwg', 'dxf', 'img', 'docx', 'zip',
+            'rar', 'gif', 'jpeg'
+        ];
+        return supportedExtensions.includes(extension) ?
+            `${assetBasePath}${extension}.png` :
+            `${assetBasePath}default.png`;
+    }
+
+    function getExtension(filename) {
+        return filename.split('.').pop().toLowerCase();
     }
 </script>

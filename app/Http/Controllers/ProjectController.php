@@ -46,11 +46,16 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
-use Illuminate\Support\Facades\Mail;
+// use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 use Jenssegers\Date\Date;
 use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Support\Facades\Auth;
+use SendGrid;
+use SendGrid\Mail\Mail;
+use Illuminate\Support\Facades\View;
+
+
 
 class ProjectController extends Controller
 {
@@ -1000,21 +1005,23 @@ class ProjectController extends Controller
                 ->pluck('milestone_id')
                 ->unique()
                 ->toArray();
-            \Log::debug(['MiletonesIds' => $milestoneIds]);
+            // \Log::debug(['MiletonesIds' => $milestoneIds]);
 
-            $allmilestones = Milestone::where(function ($query) use ($objUser, $milestoneIds) {
-                $query->where('assign_to', $objUser->id)
-                    ->orWhere('milestone_assigned_to_user', $objUser->id)
-                    ->orWhere('created_by', $objUser->id)
-                    ->orWhere('milestone_assigned_to_user', '')
-                    ->orWhereIn('id', $milestoneIds)
-
-                ;
+            $allmilestones = Milestone::whereHas('project', function ($q) use ($objUser) {
+                $q->where('workspace', $objUser->currant_workspace);
             })
-                ->whereHas('project', function ($query) use ($objUser) {
-                    $query->where('workspace', $objUser->currant_workspace);
+                ->where(function ($q) use ($objUser) {
+                    $q->where('assign_to', $objUser->id)
+                        ->orWhere('milestone_assigned_to_user', $objUser->id)
+                        ->orWhere('created_by', $objUser->id)
+                        ->orWhere('milestone_assigned_to_user', '')
+                        // aquí incluimos dinámicamente los que tienen tareas tuyas:
+                        ->orWhereHas('tasks', function ($q2) use ($objUser) {
+                            $q2->where('assign_to', $objUser->id);
+                        });
                 })
                 ->get();
+
 
 
 
@@ -1114,6 +1121,7 @@ class ProjectController extends Controller
             'project_ref'   => $project->ref_mo ? '- ' . $project->ref_mo : '',
             'tasks'         => $taskData,
             'sales'         => User::find($milestone->assign_to),
+            'asiggned_user_data'         => User::find($milestone->milestone_assigned_to_user),
         ];
         \Log::info($milestone);
     }
@@ -1195,7 +1203,6 @@ class ProjectController extends Controller
 
     public function taskStore(Request $request, $slug)
     {
-
         $request->validate([
             'project_id' => 'required',
             'milestone_id' => 'required',
@@ -1207,30 +1214,45 @@ class ProjectController extends Controller
         $currentWorkspace = Utility::getWorkspaceBySlug($slug);
         $user = Auth::user();
 
+        \Log::info('info desde el store');
+        \Log::info($request->all());
+        \Log::info('Id del creador' . $user->id);
+
         $project = Project::where('id', $request->project_id)
             ->where('workspace', $currentWorkspace->id)
             ->first();
 
         if (!$project) {
             return redirect()->back()->with('error', 'Proyecto no encontrado o no pertenece al espacio de trabajo actual.');
-        } else {
-            $task = new Task();
-            $task->project_id = $request->project_id;
-            $task->milestone_id = $request->milestone_id;
-            $task->type_id = $request->type_id;
-            $task->start_date = date('Y-m-d');
-            $task->estimated_date = $request->estimated_date;
-            $task->assign_to = $user->id;
-            $task->save();
-
-            $milestone = Milestone::find($request->milestone_id);
-            $milestone->status = 2;
-            $milestone->update();
-
-
-            return redirect()->back()->with(['success' => __('Task Created Successfully!')]);
         }
+
+        // Verificar si ya existe una tarea con los mismos datos
+        $existingTask = Task::where('milestone_id', $request->milestone_id)
+            ->where('type_id', $request->type_id)
+            ->where('assign_to', $user->id)
+            ->first();
+
+        if ($existingTask) {
+            return redirect()->back()->with('error', 'Error, no se pueden duplicar tareas');
+        }
+
+        // Si no existe, se crea la tarea
+        $task = new Task();
+        $task->project_id = $request->project_id;
+        $task->milestone_id = $request->milestone_id;
+        $task->type_id = $request->type_id;
+        $task->start_date = date('Y-m-d');
+        $task->estimated_date = $request->estimated_date;
+        $task->assign_to = $user->id;
+        $task->save();
+
+        $milestone = Milestone::find($request->milestone_id);
+        $milestone->status = 2;
+        $milestone->update();
+
+        return redirect()->back()->with(['success' => __('Task Created Successfully!')]);
     }
+
 
     public function milestoneOrderUpdate(Request $request, $slug, $projectID)
     {
@@ -1864,12 +1886,16 @@ class ProjectController extends Controller
             'assing_to' => 'required',
             'end_date' => 'required',
             'files' => 'nullable|array',
-            'files.*' => 'file|mimes:jpg,jpeg,png,xlsx,xls,csv,pdf,txt,dwg,dxf,zip,docx|max:5120',
+            // 'files.*' => 'file|mimes:jpg,jpeg,png,gif,txt,doc,docx,pdf,zip,rar,dwg,dxf,xlsx,xls,csv|max:5120',
         ];
 
         $validator = \Validator::make($request->all(), $rules);
 
         if ($validator->fails()) {
+            \Log::error('Validation failed for milestone creation', [
+                'errors' => $validator->errors()->all(),
+                'request' => $request->all(),
+            ]);
             $messages = $validator->getMessageBag();
             return redirect()->back()->with('error', $messages->first());
         }
@@ -2171,6 +2197,7 @@ class ProjectController extends Controller
         $project = Project::find($milestone->project_id);
         $project_name = $project->name;
         $salesManager = User::find($milestone->assign_to);
+        $assignedToUser = User::find($milestone->milestone_assigned_to_user);
 
         $delegation_name = Workspace::where('id', $project->workspace)->value('name');
         $milestoneFiles = MilestoneFile::where('milestone_id', '=', $milestone->id)
@@ -2178,7 +2205,7 @@ class ProjectController extends Controller
             ->get();
 
 
-        return view('projects.milestoneShow', compact('currentWorkspace', 'milestone', 'salesManager', 'project', 'milestoneFiles', 'delegation_name'));
+        return view('projects.milestoneShow', compact('currentWorkspace', 'milestone', 'salesManager', 'assignedToUser', 'project', 'milestoneFiles', 'delegation_name'));
     }
 
     public function subTaskStore(Request $request, $slug, $projectID, $taskID, $clientID = '')
@@ -2661,6 +2688,7 @@ class ProjectController extends Controller
         $totalhourstimes = explode(':', $totaltasktime);
         $totaltaskhour = $totalhourstimes[0] ?? '00';
         $totaltaskminute = $totalhourstimes[1] ?? '00';
+        $taskCreationDate = $task->created_at->format('Y-m-d');
 
         // Obtener horario esperado según el día de la semana
         $timeTable = UserTimetable::where('user_id', $objUser->id)->first();
@@ -2696,6 +2724,7 @@ class ProjectController extends Controller
             'date' => $selected_date,
             'totaltaskhour' => $totaltaskhour,
             'totaltaskminute' => $totaltaskminute,
+            'taskCreationDate' => $taskCreationDate,
         ];
 
         return view('projects.timesheet-create', compact('currentWorkspace', 'parseArray', 'fromTimesheet', 'dayColor', 'timeTable', 'timesheetEdit'));
@@ -2871,6 +2900,7 @@ class ProjectController extends Controller
 
     public function AddSingleNotification(Request $request)
     {
+        \Log::info('Info que llega a las notificaciones desde el request:');
         \Log::info(['Request:' => $request->all()]);
 
         $request->validate([
@@ -2888,6 +2918,12 @@ class ProjectController extends Controller
             $notification->save();
 
             $usersNotified = 1;
+            if ($request->ntipe == '4') {
+                $this->getEmails($notification->user_id, $request->ntipe, $request->msg);
+                $this->sendAditionalMailToReqBy($request->milestoneRequestedBy, $request->msg, $notification->user_id);
+            } else {
+                $this->getEmails($notification->user_id, $request->ntipe, $request->msg);
+            }
         } else {
             // Se obtiene la lista de user_id asociados al workspace desde la tabla user_workspaces
             $userIds = \DB::table('user_workspaces')
@@ -2903,6 +2939,8 @@ class ProjectController extends Controller
                 $notification->data         = $request->msg;
                 $notification->save();
             }
+            //DESCOMENTAR AL ACABAR
+            $this->getEmails($userIds, $request->ntipe, $request->msg);
             $usersNotified = count($userIds);
         }
 
@@ -2912,6 +2950,159 @@ class ProjectController extends Controller
         ]);
     }
 
+    public function getEmails($userID, $ntipe, $message)
+    {
+        \Log::info('Info que llega a getEmails:');
+        \Log::info($userID);
+
+        // Obtener lista de correos
+        if (is_array($userID) || $userID instanceof \Illuminate\Support\Collection) {
+            $userEmails = \DB::table('users')->whereIn('id', $userID)->pluck('email');
+        } else {
+            $userEmails = \DB::table('users')->where('id', $userID)->pluck('email');
+        }
+
+        \Log::info('Email(s) del usuario(s):');
+        \Log::info($userEmails);
+        \Log::info('Tipo de notificación:');
+        \Log::info($ntipe);
+
+        // Enviar el correo a cada email
+        foreach ($userEmails as $email) {
+            $this->sendNotificationEmail($email, $ntipe, $message);
+        }
+    }
+
+    public function sendNotificationEmail($toEmail, $notificationType, $message)
+
+    {
+        \Log::info('Enviando correo a: ' . $toEmail . ' con tipo de notificación: ' . $notificationType . ' y mensaje: ' . $message);
+
+
+        if ($notificationType == '2') {
+            preg_match('/^(.*?) en (.*)$/', $message, $matches);
+
+            if (count($matches) === 3) {
+                $encargo = $matches[1];
+                $proyecto = $matches[2];
+            } else {
+                // Si no se encuentra el patrón, asignar null
+                $encargo = $proyecto = null;
+            }
+
+            $htmlContent = View::make('emailTemplates.templateMilestone', [
+                'notificationType' => $notificationType,
+                'message' => $message,
+                'encargo' => $encargo,
+                'proyecto' => $proyecto,
+            ])->render();
+        } else if ($notificationType == '5') {
+
+            preg_match('/^(.*?) en el proyecto (.*)$/', $message, $matches);
+
+            if (count($matches) === 3) {
+                $encargo = $matches[1];
+                $proyecto = $matches[2];
+            } else {
+                // Si no se encuentra el patrón, asignar null
+                $encargo = $proyecto = null;
+            }
+
+            $htmlContent = View::make('emailTemplates.templatePendingReview', [
+                'notificationType' => $notificationType,
+                'message' => $message,
+                'encargo' => $encargo,
+                'proyecto' => $proyecto,
+            ])->render();
+        } else if ($notificationType == '4') {
+            // Extraer los datos desde el mensaje
+            preg_match('/^(.*?) en (.*?)\. La fecha de entrega prevista es (\d{2}-\d{2}-\d{4})$/', $message, $matches);
+
+            if (count($matches) === 4) {
+                $encargo = $matches[1];
+                $proyecto = $matches[2];
+                $fecha = $matches[3];
+            } else {
+                // Manejo de error si no se encuentra el patrón
+                $encargo = $proyecto = $fecha = null;
+            }
+
+            $htmlContent = View::make('emailTemplates.templateAssignedToUser', [
+                'notificationType' => $notificationType,
+                'message' => $message,
+                'encargo' => $encargo,
+                'proyecto' => $proyecto,
+                'fecha' => $fecha,
+            ])->render();
+        } else {
+            return;
+        }
+
+
+        $email = new \SendGrid\Mail\Mail();
+        $email->setFrom(config('services.sendgrid.from_email'), config('services.sendgrid.from_name'));
+        $email->setSubject('¡Tienes novedades en project Alsina!');
+        $email->addTo($toEmail);
+
+        // Contenido HTML
+        $email->addContent("text/html", $htmlContent);
+
+        // Opcional: también agrega versión texto plano (puedes generar una versión simple o extraer texto de la vista)
+        // $email->addContent("text/plain", "Tienes una nueva notificación: {$notificationType}\nMensaje: {$message}");
+
+        $sendgrid = new \SendGrid(config('services.sendgrid.api_key'));
+
+        try {
+            $response = $sendgrid->send($email);
+            \Log::info('SendGrid Response Status: ' . $response->statusCode());
+        } catch (\Exception $e) {
+            \Log::error('Error al enviar correo: ' . $e->getMessage());
+        }
+    }
+
+    public function sendAditionalMailToReqBy($requesterId, $message, $employeeId)
+    {
+
+        $requestedByMail = \DB::table('users')->where('id', $requesterId)->pluck('email')->first();
+        $employeeName = \DB::table('users')->where('id', $employeeId)->pluck('name')->first();
+        \Log::info('Se va a enviar un correo adicional a: ' . $requestedByMail . ' mencionando al empleado: ' . $employeeName . ' con el mensaje: ' . $message);
+
+        // Extraer los datos desde el mensaje
+        preg_match('/^(.*?) en (.*?)\. La fecha de entrega prevista es (\d{2}-\d{2}-\d{4})$/', $message, $matches);
+
+        if (count($matches) === 4) {
+            $encargo = $matches[1];
+            $proyecto = $matches[2];
+            $fecha = $matches[3];
+        } else {
+            // Manejo de error si no se encuentra el patrón
+            $encargo = $proyecto = $fecha = null;
+        }
+
+        $htmlContent = View::make('emailTemplates.templateAssignedToUserForRquester', [
+            'message' => $message,
+            'encargo' => $encargo,
+            'proyecto' => $proyecto,
+            'fecha' => $fecha,
+            'empleado' => $employeeName
+        ])->render();
+
+
+        $email = new \SendGrid\Mail\Mail();
+        $email->setFrom(config('services.sendgrid.from_email'), config('services.sendgrid.from_name'));
+        $email->setSubject('¡Tienes novedades en project Alsina!');
+        $email->addTo($requestedByMail);
+
+        // Contenido HTML
+        $email->addContent("text/html", $htmlContent);
+        $sendgrid = new \SendGrid(config('services.sendgrid.api_key'));
+        try {
+            $response = $sendgrid->send($email);
+            \Log::info('SendGrid Response Status: ' . $response->statusCode());
+        } catch (\Exception $e) {
+            \Log::error('Error al enviar correo: ' . $e->getMessage());
+        }
+    }
 
 
 

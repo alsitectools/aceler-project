@@ -3,7 +3,7 @@
         'name' => 'laravel/laravel',
         'pretty_version' => 'dev-main',
         'version' => 'dev-main',
-        'reference' => '28aa0e32e3d648105eedb6b2cdf5f4d49c3ac206',
+        'reference' => 'd50844c62b4517fe1e2b5b29ba058ff0827ebd1c',
         'type' => 'project',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
@@ -742,7 +742,7 @@
         'laravel/laravel' => array(
             'pretty_version' => 'dev-main',
             'version' => 'dev-main',
-            'reference' => '28aa0e32e3d648105eedb6b2cdf5f4d49c3ac206',
+            'reference' => 'd50844c62b4517fe1e2b5b29ba058ff0827ebd1c',
             'type' => 'project',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),
@@ -1447,8 +1447,8 @@
         'psr/log-implementation' => array(
             'dev_requirement' => false,
             'provided' => array(
-                0 => '3.0.0',
-                1 => '1.0|2.0|3.0',
+                0 => '1.0|2.0|3.0',
+                1 => '3.0.0',
             ),
         ),
         'psr/simple-cache' => array(
@@ -1679,6 +1679,30 @@
             'aliases' => array(),
             'dev_requirement' => true,
         ),
+        'sendgrid/php-http-client' => array(
+            'pretty_version' => '4.1.3',
+            'version' => '4.1.3.0',
+            'reference' => '3002e9c8d21dcf664936ced4e5802ba8581a52c2',
+            'type' => 'library',
+            'install_path' => __DIR__ . '/../sendgrid/php-http-client',
+            'aliases' => array(),
+            'dev_requirement' => false,
+        ),
+        'sendgrid/sendgrid' => array(
+            'pretty_version' => '8.1.11',
+            'version' => '8.1.11.0',
+            'reference' => '1ed29bffffaec0216dc1330bb437d3b305428a11',
+            'type' => 'library',
+            'install_path' => __DIR__ . '/../sendgrid/sendgrid',
+            'aliases' => array(),
+            'dev_requirement' => false,
+        ),
+        'sendgrid/sendgrid-php' => array(
+            'dev_requirement' => false,
+            'replaced' => array(
+                0 => '*',
+            ),
+        ),
         'socialiteproviders/manager' => array(
             'pretty_version' => 'v4.6.0',
             'version' => '4.6.0.0',
@@ -1757,6 +1781,15 @@
             'reference' => '79560c59d8efd3bfab4dcdc141f7f1477c2f95eb',
             'type' => 'library',
             'install_path' => __DIR__ . '/../srmklive/paypal',
+            'aliases' => array(),
+            'dev_requirement' => false,
+        ),
+        'starkbank/ecdsa' => array(
+            'pretty_version' => '2.1.0',
+            'version' => '2.1.0.0',
+            'reference' => '4a227c48b179544abb73b20f17440b4654e07041',
+            'type' => 'library',
+            'install_path' => __DIR__ . '/../starkbank/ecdsa',
             'aliases' => array(),
             'dev_requirement' => false,
         ),

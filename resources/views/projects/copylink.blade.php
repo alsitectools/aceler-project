@@ -16,9 +16,9 @@
         <select name="language" id="language" class=" btn-primary btn "
             onchange="this.options[this.selectedIndex].value && (window.location = this.options[this.selectedIndex].value);">
             @foreach (App\Models\Utility::languages() as $langCode => $language)
-                <option class="" 
-                @if ($lang == $langCode) selected @endif
-                    value="{{ route('projects.link', [$currentWorkspace->slug, \Illuminate\Support\Facades\Crypt::encrypt($project->id), $langCode]) }}">{{ Str::upper($language) }}
+                <option class="" @if ($lang == $langCode) selected @endif
+                    value="{{ route('projects.link', [$currentWorkspace->slug, \Illuminate\Support\Facades\Crypt::encrypt($project->id), $langCode]) }}">
+                    {{ Str::upper($language) }}
                 </option>
             @endforeach
         </select>
@@ -29,15 +29,14 @@
     .application .container-application {
         display: flow-root !important;
     }
-    #comments-data form ,  #sub-task-data form, 
-    #sub-task-data  > div > a, #file-data form,
-    .row_line_style
-    {
+
+    #comments-data form,
+    #sub-task-data form,
+    #sub-task-data>div>a,
+    #file-data form,
+    .row_line_style {
         display: none !important;
     }
-    
-    
-    
 </style>
 @php
     $logo = \App\Models\Utility::get_file('tasks/');
@@ -62,64 +61,65 @@
         <div class="col-xl-3">
             <div class="card sticky-top" style="top:30px">
                 <div class="list-group list-group-flush" id="useradd-sidenav">
-                    @if ( isset($result->basic_details) && $result->basic_details == 'on')
+                    @if (isset($result->basic_details) && $result->basic_details == 'on')
                         <a href="#tabs-1" class="list-group-item list-group-item-action border-0">{{ __('Basic details') }}
                             <div class="float-end"><i class="ti ti-chevron-right"></i></div>
                         </a>
                     @endif
-                    @if ( isset($result->progress) && $result->progress == 'on')
+                    @if (isset($result->progress) && $result->progress == 'on')
                         <a href="#tabs-11" class="list-group-item list-group-item-action border-0">{{ __('Progress') }}
                             <div class="float-end"><i class="ti ti-chevron-right"></i></div>
                         </a>
                     @endif
-                    @if (  isset($result->member) && $result->member == 'on')
+                    @if (isset($result->member) && $result->member == 'on')
                         <a href="#tabs-2" class="list-group-item list-group-item-action border-0 ">{{ __('Members') }} <div
                                 class="float-end"><i class="ti ti-chevron-right"></i></div></a>
                     @endif
-                    @if (  isset($result->progress) && $result->client == 'on')
+                    @if (isset($result->progress) && $result->client == 'on')
                         <a href="#tabs-3" class="list-group-item list-group-item-action border-0">{{ __('Clients') }} <div
                                 class="float-end"><i class="ti ti-chevron-right"></i></div></a>
                     @endif
-                    @if (  isset($result->milestone) && $result->milestone == 'on')
+                    @if (isset($result->milestone) && $result->milestone == 'on')
                         <a href="#tabs-4" class="list-group-item list-group-item-action border-0">{{ __('Milestones') }}
                             <div class="float-end"><i class="ti ti-chevron-right"></i></div>
                         </a>
                     @endif
-                    @if ( isset($result->attachment) && $result->attachment == 'on')
+                    @if (isset($result->attachment) && $result->attachment == 'on')
                         <a href="#tabs-5" class="list-group-item list-group-item-action border-0">{{ __('Files') }} <div
                                 class="float-end"><i class="ti ti-chevron-right"></i></div></a>
                     @endif
-                    @if ( isset($result->task) && $result->task == 'on')
+                    @if (isset($result->task) && $result->task == 'on')
                         <a href="#tabs-6" class="list-group-item list-group-item-action border-0">{{ __('Task') }} <div
                                 class="float-end"><i class="ti ti-chevron-right"></i></div></a>
                     @endif
-                    @if ( isset($result->bug_report) && $result->bug_report == 'on')
+                    @if (isset($result->bug_report) && $result->bug_report == 'on')
                         <a href="#tabs-7" class="list-group-item list-group-item-action border-0">{{ __('Bug Report') }}
                             <div class="float-end"><i class="ti ti-chevron-right"></i></div>
                         </a>
                     @endif
-                    @if ( isset($result->timesheet) && $result->timesheet == 'on')
-                        <a href="#tabs-8" class="list-group-item list-group-item-action border-0">{{ __('Timesheet') }} <div
-                                class="float-end"><i class="ti ti-chevron-right"></i></div></a>
+                    @if (isset($result->timesheet) && $result->timesheet == 'on')
+                        <a href="#tabs-8" class="list-group-item list-group-item-action border-0">{{ __('Timesheet') }}
+                            <div class="float-end"><i class="ti ti-chevron-right"></i></div>
+                        </a>
                     @endif
-                    @if ( isset($result->activity) && $result->activity == 'on')
+                    @if (isset($result->activity) && $result->activity == 'on')
                         <a href="#tabs-9" class="list-group-item list-group-item-action border-0">{{ __('Activity Log') }}
                             <div class="float-end"><i class="ti ti-chevron-right"></i></div>
                         </a>
                     @endif
-                    @if ( isset($result->tracker_details) && $result->tracker_details == 'on')
+                    @if (isset($result->tracker_details) && $result->tracker_details == 'on')
                         <a href="#tabs-10"
                             class="list-group-item list-group-item-action border-0">{{ __('Tracker details') }} <div
                                 class="float-end"><i class="ti ti-chevron-right"></i></div></a>
                     @endif
-                    
+
                 </div>
             </div>
         </div>
 
         <div class="col-xl-9">
 
-            @if ( isset($result->basic_details) && $result->basic_details == 'on')
+            @if (isset($result->basic_details) && $result->basic_details == 'on')
                 <div id="tabs-1" class="">
                     <div class="card bg-primary">
                         <div class="card-body">
@@ -207,7 +207,7 @@
                     </div>
                 </div>
             @endif
-            @if ( isset($result->progress) && $result->progress == 'on')
+            @if (isset($result->progress) && $result->progress == 'on')
                 <div id="tabs-11" class="">
                     <div class="row">
                         <div class="card">
@@ -230,7 +230,7 @@
                 </div>
             @endif
             <div class="row">
-                @if ( isset($result->member) && $result->member == 'on')
+                @if (isset($result->member) && $result->member == 'on')
                     <div id="tabs-2" class="col-md-6">
                         <div class="card ">
                             <div class="card-header">
@@ -261,15 +261,13 @@
                                                 <div class="col-sm-auto mb-3 mb-sm-0">
                                                     <div class="d-flex align-items-center px-2">
                                                         <a href="#" class=" text-start">
-                                                        <img class="fix_img"
-                                                        @if ($user->avatar) src="{{ asset($logo . $user->avatar) }}" @else avatar="{{ $user->name }}" @endif>
-                                                        <!-- <img class="theme-avtar"
-                                                                        @if (Auth::user()->avatar) 
-                                                                            src="{{ url('storage/app/public/' . Auth::user()->avatar) }}" 
+                                                            <img class="fix_img"
+                                                                @if ($user->avatar) src="{{ asset($logo . $user->avatar) }}" @else avatar="{{ $user->name }}" @endif>
+                                                            <!-- <img class="theme-avtar"
+                                                                                @if (Auth::user()->avatar) src="{{ url('storage/app/public/' . Auth::user()->avatar) }}" 
                                                                         @else 
-                                                                            avatar="{{ Auth::user()->name }}" 
-                                                                        @endif
-                                                                        alt="{{ Auth::user()->name }}"> -->
+                                                                            avatar="{{ Auth::user()->name }}" @endif
+                                                                                alt="{{ Auth::user()->name }}"> -->
                                                         </a>
                                                         <div class="px-2">
                                                             <h5 class="m-0">{{ $user->name }}</h5>
@@ -314,7 +312,7 @@
                         </div>
                     </div>
                 @endif
-                @if ( isset($result->client) && $result->client == 'on')
+                @if (isset($result->client) && $result->client == 'on')
                     <div id="tabs-3" class="col-md-6">
                         <div class="card" style="min-height:350;">
 
@@ -391,7 +389,7 @@
                     </div>
                 @endif
             </div>
-            @if ( isset($result->milestone) && $result->milestone == 'on')
+            @if (isset($result->milestone) && $result->milestone == 'on')
                 <div id="tabs-4" class="">
                     @if ((isset($permissions) && in_array('show milestone', $permissions)) || $currentWorkspace->permission == 'Owner')
                         <div class="card" style="overflow-x: none;">
@@ -412,7 +410,7 @@
                                     </div> --}}
                                 </div>
                             </div>
-                            <div class="card-body" >
+                            <div class="card-body">
                                 <div class="table-responsive">
                                     <table id="" class="table table-bordered px-2">
                                         <thead>
@@ -529,7 +527,7 @@
                     @endif
                 </div>
             @endif
-            @if ( isset($result->attachment) && $result->attachment == 'on')
+            @if (isset($result->attachment) && $result->attachment == 'on')
                 <div id="tabs-5" class="">
                     @if (
                         (isset($permissions) && in_array('show uploading', $permissions)) ||
@@ -548,10 +546,10 @@
                                 <div class="author-box-name form-control-label mb-4">
 
                                 </div>
-                                <div class="col-md-12 dropzone browse-file" id="dropzonewidget"> 
+                                <div class="col-md-12 dropzone browse-file" id="dropzonewidget">
                                     <div class="dz-message" data-dz-message>
                                         <span>
-                                                {{ __('No files available') }}
+                                            {{ __('No files available') }}
                                         </span>
 
                                     </div>
@@ -561,10 +559,11 @@
                     @endif
                 </div>
             @endif
-            @if ( isset($result->task) && $result->task == 'on')
+            @if (isset($result->task) && $result->task == 'on')
                 <div id="tabs-6" class="">
                     <div class="card" style="background-color:transparent !important">
-                        <div class="card-header" style="padding: 25px 35px !important; background-color:#ffffff !important">
+                        <div class="card-header"
+                            style="padding: 25px 35px !important; background-color:#ffffff !important">
                             <div class="d-flex justify-content-between align-items-center">
                                 <div class="row">
                                     <h5 class="mb-0">{{ __('Task') }}</h5>
@@ -572,7 +571,7 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="card-body" >
+                        <div class="card-body">
                             <section class="section py-3">
                                 @if ($project && $currentWorkspace)
                                     <div class="row">
@@ -593,8 +592,8 @@
                                                                 </div>
                                                                 <h4 class="mb-0">{{ $stage->name }}</h4>
                                                                 <!--   <div class="col text-right">
-                                                                            <span class="badge badge-secondary rounded-pill count">{{ $stage->tasks->count() }}</span>
-                                                                        </div> -->
+                                                                                    <span class="badge badge-secondary rounded-pill count">{{ $stage->tasks->count() }}</span>
+                                                                                </div> -->
                                                             </div>
                                                             <div id="{{ 'task-list-' . str_replace(' ', '_', $stage->id) }}"
                                                                 data-status="{{ $stage->id }}"
@@ -602,24 +601,28 @@
                                                                 @foreach ($stage->tasks as $task)
                                                                     <div class="card" id="{{ $task->id }}">
                                                                         <!--  <img class="img-fluid card-img-top" src=""
-                                                                    alt=""> -->
-                                                                        <div class="position-absolute top-0 start-0 pt-3 ps-3">
+                                                                            alt=""> -->
+                                                                        <div
+                                                                            class="position-absolute top-0 start-0 pt-3 ps-3">
                                                                             @if ($task->priority == 'Low')
-                                                                                <div class="badge bg-success p-2 px-3 rounded">
+                                                                                <div
+                                                                                    class="badge bg-success p-2 px-3 rounded">
                                                                                     {{ $task->priority }}</div>
                                                                             @elseif($task->priority == 'Medium')
-                                                                                <div class="badge bg-warning p-2 px-3 rounded">
+                                                                                <div
+                                                                                    class="badge bg-warning p-2 px-3 rounded">
                                                                                     {{ $task->priority }}</div>
                                                                             @elseif($task->priority == 'High')
-                                                                                <div class="badge bg-danger p-2 px-3 rounded">
+                                                                                <div
+                                                                                    class="badge bg-danger p-2 px-3 rounded">
                                                                                     {{ $task->priority }}</div>
                                                                             @endif
                                                                         </div>
                                                                         <div
                                                                             class="card-header border-0 pb-0 position-relative">
 
-                                                                            <div style="padding: 30px 2px;"> <a href="#"
-                                                                                    data-size="lg"
+                                                                            <div style="padding: 30px 2px;"> <a
+                                                                                    href="#" data-size="lg"
                                                                                     data-url="{{ route($client_keyword . 'tasks.show', [$currentWorkspace->slug, $task->project_id, $task->id]) }}"
                                                                                     data-ajax-popup="true"
                                                                                     data-title="{{ __('Task Detail') }}"
@@ -654,14 +657,16 @@
                                                                                                     data-size="lg"
                                                                                                     data-title="{{ __('Edit Task') }}"
                                                                                                     data-url="{{ route('tasks.edit', [$currentWorkspace->slug, $task->project_id, $task->id]) }}">
-                                                                                                    <i class="ti ti-edit"></i>
+                                                                                                    <i
+                                                                                                        class="ti ti-edit"></i>
                                                                                                     {{ __('Edit') }}</a>
                                                                                                 <a href="#"
                                                                                                     class="dropdown-item bs-pass-para"
                                                                                                     data-confirm="{{ __('Are You Sure?') }}"
                                                                                                     data-text="{{ __('This action can not be undone. Do you want to continue?') }}"
                                                                                                     data-confirm-yes="delete-form-{{ $task->id }}">
-                                                                                                    <i class="ti ti-trash"></i>
+                                                                                                    <i
+                                                                                                        class="ti ti-trash"></i>
                                                                                                     {{ __('Delete') }}
                                                                                                 </a>
                                                                                                 <form
@@ -765,7 +770,8 @@
                                                                         </div>
                                                                     </div>
                                                                 @endforeach
-                                                                <span class="empty-container" data-placeholder="Empty"></span>
+                                                                <span class="empty-container"
+                                                                    data-placeholder="Empty"></span>
                                                             </div>
                                                         </div>
                                                     </div>
@@ -790,7 +796,8 @@
                                                             </p>
                                                             <div class="mt-3">
                                                                 <a class="btn-return-home badge-blue"
-                                                                    href="{{ route('home') }}"><i class="fas fa-reply"></i>
+                                                                    href="{{ route('home') }}"><i
+                                                                        class="fas fa-reply"></i>
                                                                     {{ __('Return Home') }}</a>
                                                             </div>
                                                         </div>
@@ -806,10 +813,11 @@
 
                 </div>
             @endif
-            @if ( isset($result->bug_report) && $result->bug_report == 'on')
+            @if (isset($result->bug_report) && $result->bug_report == 'on')
                 <div id="tabs-7" class="">
                     <div class="card" style="background-color:transparent !important">
-                        <div class="card-header" style="padding: 25px 35px !important; background-color:#ffffff !important">
+                        <div class="card-header"
+                            style="padding: 25px 35px !important; background-color:#ffffff !important">
                             <div class="d-flex justify-content-between align-items-center">
                                 <div class="row">
                                     <h5 class="mb-0">{{ __('Bug Report') }}</h5>
@@ -823,7 +831,8 @@
                                     <div class="row">
                                         <div class="col-sm-12">
                                             <div style="height:70vh" class="row kanban-wrapper horizontal-scroll-cards"
-                                                data-toggle="dragula" data-containers='{{ json_encode($statusClass_bug) }}'>
+                                                data-toggle="dragula"
+                                                data-containers='{{ json_encode($statusClass_bug) }}'>
                                                 @foreach ($stages_bug as $stage)
                                                     <div class="col" id="backlog">
                                                         <div class="card card-list">
@@ -845,16 +854,20 @@
                                                                 @foreach ($stage->bugs as $bug)
                                                                     <div class="card" id="{{ $bug->id }}">
                                                                         <!--  <img class="img-fluid card-img-top" src=""
-                                                                        alt=""> -->
-                                                                        <div class="position-absolute top-0 start-0 pt-3 ps-3">
+                                                                                alt=""> -->
+                                                                        <div
+                                                                            class="position-absolute top-0 start-0 pt-3 ps-3">
                                                                             @if ($bug->priority == 'Low')
-                                                                                <div class="badge bg-success p-2 px-3 rounded">
+                                                                                <div
+                                                                                    class="badge bg-success p-2 px-3 rounded">
                                                                                     {{ $bug->priority }}</div>
                                                                             @elseif($bug->priority == 'Medium')
-                                                                                <div class="badge bg-warning p-2 px-3 rounded">
+                                                                                <div
+                                                                                    class="badge bg-warning p-2 px-3 rounded">
                                                                                     {{ $bug->priority }}</div>
                                                                             @elseif($bug->priority == 'High')
-                                                                                <div class="badge bg-danger p-2 px-3 rounded">
+                                                                                <div
+                                                                                    class="badge bg-danger p-2 px-3 rounded">
                                                                                     {{ $bug->priority }}
                                                                                 </div>
                                                                             @endif
@@ -862,8 +875,8 @@
                                                                         <div
                                                                             class="card-header border-0 pb-0 position-relative">
 
-                                                                            <div style="padding: 30px 2px;"> <a href="#"
-                                                                                    data-size="lg"
+                                                                            <div style="padding: 30px 2px;"> <a
+                                                                                    href="#" data-size="lg"
                                                                                     data-url="{{ route($client_keyword . 'projects.bug.report.show', [$currentWorkspace->slug, $bug->project_id, $bug->id]) }}"
                                                                                     data-ajax-popup="true"
                                                                                     data-title="{{ __('Bug Detail') }}"
@@ -973,7 +986,8 @@
                                                                                 <div class="user-group">
 
                                                                                     @if ($currentWorkspace->permission == 'Owner' || isset($permissions))
-                                                                                        <a href="#" class="img_group">
+                                                                                        <a href="#"
+                                                                                            class="img_group">
                                                                                             <img alt="image"
                                                                                                 data-toggle="tooltip"
                                                                                                 data-original-title="{{ $bug->user ? $bug->user->name : '' }}"
@@ -985,7 +999,8 @@
                                                                         </div>
                                                                     </div>
                                                                 @endforeach
-                                                                <span class="empty-container" data-placeholder="Empty"></span>
+                                                                <span class="empty-container"
+                                                                    data-placeholder="Empty"></span>
                                                             </div>
                                                         </div>
                                                     </div>
@@ -1013,7 +1028,8 @@
                                                             </p>
                                                             <div class="mt-3">
                                                                 <a class="btn-return-home badge-blue"
-                                                                    href="{{ route('home') }}"><i class="fas fa-reply"></i>
+                                                                    href="{{ route('home') }}"><i
+                                                                        class="fas fa-reply"></i>
                                                                     {{ __('Return Home') }}</a>
                                                             </div>
                                                         </div>
@@ -1029,7 +1045,7 @@
 
                 </div>
             @endif
-            @if ( isset($result->timesheet) && $result->timesheet == 'on')
+            @if (isset($result->timesheet) && $result->timesheet == 'on')
                 <div id="tabs-8" class="">
                     <div class="row">
                         <div class="col-md-12">
@@ -1083,7 +1099,7 @@
                     </div>
                 </div>
             @endif
-            @if ( isset($result->activity) && $result->activity == 'on')
+            @if (isset($result->activity) && $result->activity == 'on')
                 <div id="tabs-9" class="">
                     <div class="card">
                         <div class="card-header">
@@ -1153,57 +1169,56 @@
                     </div>
                 </div>
             @endif
-            @if ( isset($result->tracker_details) && $result->tracker_details == 'on')
+            @if (isset($result->tracker_details) && $result->tracker_details == 'on')
                 <div id="tabs-10" class="">
                     {{-- <div class="row"> --}}
-                        <div class="card">
-                            <div class="card-header">
-                                <div class="d-flex justify-content-between align-items-center">
-                                    <div>
-                                        <h5 class="mb-0">{{ __('Tracker details') }}</h5>
-                                    </div>
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h5 class="mb-0">{{ __('Tracker details') }}</h5>
                                 </div>
                             </div>
-                            <div class="card-body table-border-style ">
-                                <div class="table-responsive">
-                                    <table class=" table" id="selection-datatable">
-                                        <thead>
+                        </div>
+                        <div class="card-body table-border-style ">
+                            <div class="table-responsive">
+                                <table class=" table" id="selection-datatable">
+                                    <thead>
+                                        <tr>
+                                            <th> {{ __('Description') }}</th>
+                                            <th> {{ __('Project') }}</th>
+                                            <th> {{ __('Task') }}</th>
+                                            <th> {{ __('Workspace') }}</th>
+                                            <th> {{ __('Start Time') }}</th>
+                                            <th> {{ __('End Time') }}</th>
+                                            <th>{{ __('Total Time') }}</th>
+                                            <th>{{ __('Action') }}</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach ($treckers as $trecker)
+                                            @php
+                                                $total_name = App\Models\Utility::second_to_time($trecker->total_time);
+                                            @endphp
                                             <tr>
-                                                <th> {{ __('Description') }}</th>
-                                                <th> {{ __('Project') }}</th>
-                                                <th> {{ __('Task') }}</th>
-                                                <th> {{ __('Workspace') }}</th>
-                                                <th> {{ __('Start Time') }}</th>
-                                                <th> {{ __('End Time') }}</th>
-                                                <th>{{ __('Total Time') }}</th>
-                                                <th>{{ __('Action') }}</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            @foreach ($treckers as $trecker)
-                                                @php
-                                                    $total_name = App\Models\Utility::second_to_time($trecker->total_time);
-                                                @endphp
-                                                <tr>
-                                                    <td>{{ __($trecker->name) }}</td>
-                                                    <td>{{ __($trecker->project_name) }}</td>
-                                                    <td>{{ __($trecker->project_task) }}</td>
-                                                    <td>{{ __($trecker->project_workspace) }}</td>
-                                                    <td>{{ __(date('H:i:s', strtotime($trecker->start_time))) }}</td>
-                                                    <td>{{ __(date('H:i:s', strtotime($trecker->end_time))) }}</td>
-                                                    <td>{{ __($total_name) }}</td>
-                                                    <td>
-                                                        <img alt="Image placeholder"
-                                                            src="{{ asset('assets/images/gallery.png') }}"
-                                                            class="avatar view-images rounded-circle avatar-sm"
-                                                            data-toggle="tooltip"
-                                                            title="{{ __('View Screenshot images') }}"
-                                                            style="height: 25px;width:24px;margin-right:10px;cursor: pointer;"
-                                                            data-id="{{ $trecker->id }}"
-                                                            id="track-images-{{ $trecker->id }}">
+                                                <td>{{ __($trecker->name) }}</td>
+                                                <td>{{ __($trecker->project_name) }}</td>
+                                                <td>{{ __($trecker->project_task) }}</td>
+                                                <td>{{ __($trecker->project_workspace) }}</td>
+                                                <td>{{ __(date('H:i:s', strtotime($trecker->start_time))) }}</td>
+                                                <td>{{ __(date('H:i:s', strtotime($trecker->end_time))) }}</td>
+                                                <td>{{ __($total_name) }}</td>
+                                                <td>
+                                                    <img alt="Image placeholder"
+                                                        src="{{ asset('assets/images/gallery.png') }}"
+                                                        class="avatar view-images rounded-circle avatar-sm"
+                                                        data-toggle="tooltip" title="{{ __('View Screenshot images') }}"
+                                                        style="height: 25px;width:24px;margin-right:10px;cursor: pointer;"
+                                                        data-id="{{ $trecker->id }}"
+                                                        id="track-images-{{ $trecker->id }}">
 
 
-                                                        {{-- <a href="#"
+                                                    {{-- <a href="#"
                                                             class="action-btn btn-danger btn btn-sm d-inline-flex align-items-center bs-pass-para"
                                                             data-toggle="tooltip" title="{{ __('Delete') }}"
                                                             data-confirm="{{ __('Are You Sure?') }}"
@@ -1217,14 +1232,14 @@
                                                             'id' => 'delete-form-' . $trecker->id,
                                                         ]) !!}
                                                         {!! Form::close() !!} --}}
-                                                    </td>
-                                                </tr>
-                                            @endforeach
-                                        </tbody>
-                                    </table>
-                                </div>
+                                                </td>
+                                            </tr>
+                                        @endforeach
+                                    </tbody>
+                                </table>
                             </div>
                         </div>
+                    </div>
                     {{-- </div> --}}
                 </div>
             @endif
@@ -1248,31 +1263,31 @@
         <link rel="stylesheet" href="{{ asset('assets/custom/css/dropzone.min.css') }}">
     @endpush
     @push('scripts')
-    <script>
-        $(document).ready(function () {
-    
-          var sectionIds = $('a.list-group-item-action');
-    
-          $(document).scroll(function () {
-            sectionIds.each(function () {
-                var container = $(this).attr('href');
-                var containerOffset = $(container).offset().top - 200;
-                var containerHeight = $(container).outerHeight();
-                var containerBottom = containerOffset + containerHeight;
-                var scrollPosition = $(document).scrollTop();
-              if (scrollPosition < containerBottom && scrollPosition >= containerOffset) {
-                $(this).addClass('active');
-              } else {
-                $(this).removeClass('active');
-              }
-            });
-          });
-        });
-      </script>
-        <!--
-                            <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+        <script>
+            $(document).ready(function() {
 
-                             -->
+                var sectionIds = $('a.list-group-item-action');
+
+                $(document).scroll(function() {
+                    sectionIds.each(function() {
+                        var container = $(this).attr('href');
+                        var containerOffset = $(container).offset().top - 200;
+                        var containerHeight = $(container).outerHeight();
+                        var containerBottom = containerOffset + containerHeight;
+                        var scrollPosition = $(document).scrollTop();
+                        if (scrollPosition < containerBottom && scrollPosition >= containerOffset) {
+                            $(this).addClass('active');
+                        } else {
+                            $(this).removeClass('active');
+                        }
+                    });
+                });
+            });
+        </script>
+        <!--
+                                            <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+
+                                             -->
         <script src="{{ asset('assets/js/plugins/apexcharts.min.js') }}"></script>
         <script>
             (function() {
@@ -1484,11 +1499,11 @@
                 @php($storage_file = asset($logo_project_files . $file->file_path))
                 // Create the mock file:
                 @if (file_exists($storage_file))
-                
-                var mockFile = {
-                    name: "{{ $file->file_name }}",
-                    size: {{ filesize('storage/project_files/' . $file->file_path) }}
-                };
+
+                    var mockFile = {
+                        name: "{{ $file->file_name }}",
+                        size: {{ filesize('storage/project_files/' . $file->file_path) }}
+                    };
                 @endif
                 // Call the default addedfile event handler
                 myDropzone.emit("addedfile", mockFile);
@@ -1518,35 +1533,35 @@
                 };
 
                 $.ajax({
-                        url: '{{ route('filter.timesheet.table.view', '__slug') }}'.replace('__slug',
-                            '{{ $currentWorkspace->slug }}'),
-                        data: data,
-                        success: function(data) {
+                    url: '{{ route('filter.timesheet.table.view', '__slug') }}'.replace('__slug',
+                        '{{ $currentWorkspace->slug }}'),
+                    data: data,
+                    success: function(data) {
 
-                            $('.weekly-dates-div .weekly-dates').text(data.onewWeekDate);
-                            $('.weekly-dates-div #selected_dates').val(data.selectedDate);
+                        $('.weekly-dates-div .weekly-dates').text(data.onewWeekDate);
+                        $('.weekly-dates-div #selected_dates').val(data.selectedDate);
 
-                            $('#project_tasks').find('option').not(':first').remove();
+                        $('#project_tasks').find('option').not(':first').remove();
 
-                            $.each(data.tasks, function(i, item) {
-                                $('#project_tasks').append($("<option></option>")
-                                    .attr("value", i)
-                                    .text(item));
-                            });
+                        $.each(data.tasks, function(i, item) {
+                            $('#project_tasks').append($("<option></option>")
+                                .attr("value", i)
+                                .text(item));
+                        });
 
-                            if (data.totalrecords == 0) {
-                                mainEle.hide();
-                                notfound.css('display', 'block');
-                                notfound1.hide();
-                            } else {
-                                notfound.hide();
-                                mainEle.show();
-                            }
-
-                            mainEle.html(data.html);
+                        if (data.totalrecords == 0) {
+                            mainEle.hide();
+                            notfound.css('display', 'block');
+                            notfound1.hide();
+                        } else {
+                            notfound.hide();
+                            mainEle.show();
                         }
-                    });
-                }
+
+                        mainEle.html(data.html);
+                    }
+                });
+            }
 
             $(function() {
                 ajaxFilterTimesheetTableView();

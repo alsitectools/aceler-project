@@ -123,7 +123,7 @@
         gap: 10px;
     }
 
-    .custom-file{
+    .custom-file {
         display: flex;
         justify-content: space-between;
         background: #f4f5ff;
@@ -133,6 +133,7 @@
         box-shadow: -3px 3px 0px 0px rgb(239 239 239);
         border-radius: 6px;
     }
+
     .milestoneGridDisplay {
         display: grid;
         grid-template-columns: repeat(3, 1fr);
@@ -214,17 +215,22 @@
     <div class="col-lg-auto pb-3">
         <a href="{{ route('projects.timesheet.index', [$currentWorkspace->slug, $project->id]) }}"
             class="btn btn-primary btn-task-milestone" title="{{ __('Tasks') }}"><i
-                class="fas fa-tasks text-white me-3"></i>{{ __('Tasks') }}</a>
+                class="fas fa-tasks text-white me-3"></i>{{ __('Timesheet') }}</a>
     </div>
 @endsection
 
 <style type="text/css">
-.reqByImgContainer {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    align-content: center;
+    .reqByImgContainer {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        align-content: center;
     }
+
+    .assignedToImgContainer {
+        text-align: center
+    }
+
     .fix_img {
         width: 40px !important;
         border-radius: 50%;
@@ -390,6 +396,21 @@
         }
     }
 </style>
+<style>
+    .sortable-header {
+        cursor: pointer;
+        position: relative;
+    }
+
+    .sortable-header:hover {
+        background-color: #f8f9fa;
+    }
+
+    .sort-indicator {
+        margin-left: 5px;
+        font-size: 12px;
+    }
+</style>
 @section('content')
     <div class="row">
         <!-- [ sample-page ] start -->
@@ -504,17 +525,54 @@
                                 </div>
                                 <div class="card-body">
                                     <div class="table-responsive">
-                                        <table id="" class="table table-bordered">
+                                        <table id="" class="table table-bordered" style="text-align: center;">
                                             <thead>
-                                                <tr>
+                                                {{-- <tr>
                                                     <th>{{ __('Name') }}</th>
                                                     <th>{{ __('Requested by') }}</th>
-                                                    <th>{{ __('Status') }}</th>
-                                                    <th>{{ __('Created date') }}</th>
+                                                    <th>{{ __('Assigned to') }}</th>
+                                                    <th>{{ __('Status') }}</th> --}}
+
+
+                                                {{-- <th>{{ __('Created date') }}</th>
                                                     <th>{{ __('Desired delivery date') }}</th>
                                                     <th>{{ __('Expected delivery date') }}</th>
                                                     <th>{{ __('Task started date') }}</th>
-                                                    <th>{{ __('Completion date') }}</th>
+                                                    <th>{{ __('Completion date') }}</th> --}}
+
+
+                                                {{-- <th>{{ __('Created') }}</th>
+                                                    <th>{{ __('Desired delivery') }}</th>
+                                                    <th>{{ __('Expected delivery') }}</th>
+                                                    <th>{{ __('Task started') }}</th>
+                                                    <th>{{ __('Completion') }}</th>
+
+                                                    <th>{{ __('Action') }}</th>
+                                                </tr> --}}
+                                                <tr>
+                                                    <th class="sortable-header" data-sort="title" data-type="text">
+                                                        {{ __('Name') }}<span class="sort-indicator"></span></th>
+                                                    <th class="sortable-header" data-sort="requested_by"
+                                                        data-type="text">{{ __('Requested by') }}<span
+                                                            class="sort-indicator"></span></th>
+                                                    <th class="sortable-header" data-sort="assigned_to" data-type="text">
+                                                        {{ __('Assigned to') }}<span class="sort-indicator"></span></th>
+                                                    <th class="sortable-header" data-sort="status" data-type="status">
+                                                        {{ __('Status') }}<span class="sort-indicator"></span></th>
+                                                    <th class="sortable-header" data-sort="start_date" data-type="date">
+                                                        {{ __('Created') }}<span class="sort-indicator"></span></th>
+                                                    <th class="sortable-header" data-sort="end_date" data-type="date">
+                                                        {{ __('Desired delivery') }}<span class="sort-indicator"></span>
+                                                    </th>
+                                                    <th class="sortable-header" data-sort="planned_end_date"
+                                                        data-type="date">{{ __('Expected delivery') }}<span
+                                                            class="sort-indicator"></span></th>
+                                                    <th class="sortable-header" data-sort="task_start_date"
+                                                        data-type="date">{{ __('Task started') }}<span
+                                                            class="sort-indicator"></span></th>
+                                                    <th class="sortable-header" data-sort="finalization_date"
+                                                        data-type="date">{{ __('Completion') }}<span
+                                                            class="sort-indicator"></span></th>
                                                     <th>{{ __('Action') }}</th>
                                                 </tr>
                                             </thead>
@@ -529,15 +587,26 @@
                                                             </a>
                                                         </td>
                                                         <td class="reqByImgContainer">
-                                                            @if($milestone->getRequestedBy() != null)
-                                                            <img class="fix_img" title="{{$milestone->getRequestedBy()->name}}"
-                                                            @if ($milestone->getRequestedBy()->avatar) src="{{ asset($milestone->getRequestedBy()->avatar) }}" @else avatar="{{ $milestone->getRequestedBy()->name}}" @endif>                                                              
-                                                            @endif                                                      
+                                                            @if ($milestone->getRequestedBy() != null)
+                                                                <img class="fix_img"
+                                                                    title="{{ $milestone->getRequestedBy()->name }}"
+                                                                    @if ($milestone->getRequestedBy()->avatar) src="{{ asset($milestone->getRequestedBy()->avatar) }}" @else avatar="{{ $milestone->getRequestedBy()->name }}" @endif>
+                                                            @endif
                                                         </td>
+                                                        <td class="assignedToImgContainer">
+                                                            @if ($milestone->getAssignedToUser() != null)
+                                                                <img class="fix_img"
+                                                                    title="{{ $milestone->getAssignedToUser()->name }}"
+                                                                    @if ($milestone->getAssignedToUser()->avatar) src="{{ asset($milestone->getAssignedToUser()->avatar) }}" @else avatar="{{ $milestone->getAssignedToUser()->name }}" @endif>
+                                                            @else
+                                                                ...
+                                                            @endif
+                                                        </td>
+
                                                         <td>
                                                             @if ($milestone->status == 3)
                                                                 <label
-                                                                    class="badge bg-warning p-2 px-3 rounded">{{ __('ForReview') }}</label>
+                                                                    class="badge bg-warning p-2 px-3 rounded">{{ __('For Review') }}</label>
                                                             @elseif ($milestone->status == 4)
                                                                 <label
                                                                     class="badge bg-success p-2 px-3 rounded">{{ __('Finished') }}</label>
@@ -552,8 +621,14 @@
                                                         </td>
                                                         <td>{{ $milestone->end_date ? Carbon::parse($milestone->end_date)->format('d-m-Y') : '...' }}
                                                         </td>
-                                                        <td>{{ $milestone->planned_end_date ? Carbon::parse($milestone->planned_end_date)->format('d-m-Y') : '...' }}
+                                                        {{-- <td>{{ $milestone->planned_end_date ? Carbon::parse($milestone->planned_end_date)->format('d-m-Y') : '...' }}
+                                                        </td> --}}
+                                                        <td>
+                                                            {{ $milestone->planned_end_date && $milestone->planned_end_date !== '0000-00-00'
+                                                                ? \Carbon\Carbon::parse($milestone->planned_end_date)->format('d-m-Y')
+                                                                : '...' }}
                                                         </td>
+                                                        {{-- <td>{{ $milestone->planned_end_date }}</td> --}}
                                                         <td>{{ $milestone->task_start_date ? Carbon::parse($milestone->task_start_date)->format('d-m-Y') : '...' }}
                                                         </td>
                                                         <td>{{ $milestone->finalization_date ? Carbon::parse($milestone->finalization_date)->format('d-m-Y') : '...' }}
@@ -844,6 +919,9 @@
                                     <div class="col-md-12 dropzone browse-file" id="dropzonewidget">
                                         <div class="dz-message" data-dz-message>
                                             <span> {{ __('Drop files here to upload') }}</span>
+                                            <p>
+                                                {{ __('You can Also hold click + Control + V to paste the content of the clipboard') }}
+                                            </p>
                                             <p class="text-muted" style="font-size:15px; margin:5px;">200MB</p>
                                             <small class="text-muted">.png .gif .pdf .txt .doc .docx .zip .rar .dwg
                                                 .dxf</small>
@@ -854,15 +932,17 @@
                                             <i class="fa-regular fa-folder-open d-inline me-2 fa-xl"></i>
                                             <h5>{{ __('Project files') }}</h5>
                                         </div>
-                                       <div class="custom-file-container ms-4">
+                                        <div class="custom-file-container ms-4">
                                             @if (!empty($projectFiles) && count($projectFiles) > 0)
                                                 @foreach ($projectFiles as $file)
                                                     <div class="custom-file">
                                                         <img src="{{ asset('assets/iconFilesTypes/' . $file->extension . '.png') }}"
-                                                            alt="{{ $file->extension }} icon" class="styleIconFiles mt-2">
-                                                            <p class="m-2" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-                                                                {{ $file->file_name }}
-                                                              </p>                                                              
+                                                            alt="{{ $file->extension }} icon"
+                                                            class="styleIconFiles mt-2">
+                                                        <p class="m-2"
+                                                            style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                                                            {{ $file->file_name }}
+                                                        </p>
                                                         <div class="uploaded-file-buttons">
                                                             <a onclick="downloadFile({{ $project->id }}, '', '{{ $file->file_path }}')"
                                                                 class="buttonFiles btn btn-sm">
@@ -912,8 +992,9 @@
                                                                         <img src="{{ asset('assets/iconFilesTypes/' . $file->extension . '.png') }}"
                                                                             alt="{{ $file->extension }} icon"
                                                                             class="styleIconFiles mt-2">
-                                                                            <p class="m-2" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-                                                                                {{ $file->name }}
+                                                                        <p class="m-2"
+                                                                            style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                                                                            {{ $file->name }}
                                                                         </p>
                                                                         <div class="uploaded-file-buttons">
                                                                             <a onclick="downloadFile({{ $project->id }}, '{{ $milestone['title'] }}', '{{ $file->file }}')"
@@ -1327,5 +1408,357 @@
                 delete: "{{ route('projects.file.delete', [$currentWorkspace->slug, $project->id, $file->id]) }}"
             });
         @endforeach
+    </script>
+    {{-- Sorting  table script --}}
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const sortableHeaders = document.querySelectorAll('.sortable-header');
+            let currentSort = {
+                key: null,
+                direction: 'asc' // 'asc' o 'desc'
+            };
+
+            sortableHeaders.forEach(header => {
+                header.addEventListener('click', function() {
+                    const sortKey = this.dataset.sort;
+                    const sortType = this.dataset.type;
+
+                    // Determinar dirección
+                    if (currentSort.key === sortKey) {
+                        currentSort.direction = currentSort.direction === 'asc' ? 'desc' : 'asc';
+                    } else {
+                        currentSort.key = sortKey;
+                        currentSort.direction = 'asc';
+                    }
+
+                    sortTable(sortKey, sortType, currentSort.direction);
+                    updateSortIndicators(this);
+                });
+            });
+
+            function sortTable(sortKey, sortType, direction) {
+                const tbody = document.querySelector('tbody');
+                const rows = Array.from(tbody.querySelectorAll('tr'));
+
+                rows.sort((a, b) => {
+                    const aValue = getCellValue(a, sortKey);
+                    const bValue = getCellValue(b, sortKey);
+
+                    return compareValues(aValue, bValue, sortType, direction);
+                });
+
+                // Limpiar y reinsertar filas ordenadas
+                tbody.innerHTML = '';
+                rows.forEach(row => tbody.appendChild(row));
+            }
+
+            function getCellValue(row, sortKey) {
+                const cells = row.querySelectorAll('td');
+                switch (sortKey) {
+                    case 'title':
+                        return row.querySelector('td:nth-child(1) h5').textContent.trim();
+
+                    case 'requested_by':
+                        return row.querySelector('td:nth-child(2) img')?.title?.trim() || '';
+
+                    case 'assigned_to':
+                        return row.querySelector('td:nth-child(3) img')?.title?.trim() || '';
+
+                    case 'status':
+                        return row.querySelector('td:nth-child(4) label').textContent.trim();
+
+                    case 'start_date':
+                    case 'end_date':
+                    case 'planned_end_date':
+                    case 'task_start_date':
+                    case 'finalization_date':
+                        const idx = Array.from(sortableHeaders).findIndex(h => h.dataset.sort === sortKey);
+                        const dateStr = cells[idx].textContent.trim();
+                        return parseDate(dateStr);
+
+                    default:
+                        return '';
+                }
+            }
+
+            function compareValues(a, b, type, direction) {
+                const modifier = direction === 'asc' ? 1 : -1;
+
+                if (type === 'text' || type === 'status') {
+                    // Sort alphabetically, case-insensitive (español)
+                    return a.localeCompare(b, 'es', {
+                        sensitivity: 'base'
+                    }) * modifier;
+                } else if (type === 'date') {
+                    return (a - b) * modifier;
+                }
+
+                return 0;
+            }
+
+            function parseDate(dateStr) {
+                if (dateStr === '...') return 0;
+                const [day, month, year] = dateStr.split('-');
+                return new Date(year, month - 1, day);
+            }
+
+            function updateSortIndicators(activeHeader) {
+                sortableHeaders.forEach(header => {
+                    header.querySelector('.sort-indicator').textContent = '';
+                    if (header === activeHeader) {
+                        header.querySelector('.sort-indicator').textContent =
+                            currentSort.direction === 'asc' ? ' ↑' : ' ↓';
+                    }
+                });
+            }
+        });
+    </script>
+    <script>
+        /**
+         * Integración de subida de archivos por Ctrl+V, drag & drop y selección manual
+         * - El <div class="dropzone" tabindex="0"> permite foco y captura de “paste”
+         * - El <input type="file" id="fileInput" multiple style="display: none;"> permite selección manual
+         * - El CSS ya define borde punteado y efecto dragover
+         * - La función handleFiles(files) es central y única para todos los métodos
+         */
+
+        // --- Selección de elementos ---
+        const dropzone = document.querySelector('.dropzone');
+        let fileInput = document.getElementById('fileInput');
+        if (!fileInput) {
+            fileInput = document.createElement('input');
+            fileInput.type = 'file';
+            fileInput.id = 'fileInput';
+            fileInput.multiple = true;
+            fileInput.style.display = 'none';
+            dropzone.parentNode.insertBefore(fileInput, dropzone.nextSibling);
+        }
+
+        // --- Extensiones y tipos MIME permitidos ---
+        const allowed = [{
+                ext: 'png',
+                mime: 'image/png'
+            },
+            {
+                ext: 'gif',
+                mime: 'image/gif'
+            },
+            {
+                ext: 'pdf',
+                mime: 'application/pdf'
+            },
+            {
+                ext: 'txt',
+                mime: 'text/plain'
+            },
+            {
+                ext: 'doc',
+                mime: 'application/msword'
+            },
+            {
+                ext: 'docx',
+                mime: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+            },
+            {
+                ext: 'zip',
+                mime: 'application/zip'
+            },
+            {
+                ext: 'rar',
+                mime: 'application/vnd.rar'
+            },
+            {
+                ext: 'rar',
+                mime: 'application/x-rar-compressed'
+            },
+            {
+                ext: 'dwg',
+                mime: 'application/acad'
+            },
+            {
+                ext: 'dwg',
+                mime: 'application/autocad_dwg'
+            },
+            {
+                ext: 'dxf',
+                mime: 'application/dxf'
+            }
+        ];
+        const allowedExts = allowed.map(a => a.ext);
+        const allowedMimes = allowed.map(a => a.mime);
+
+        // --- Drag & Drop visual feedback ---
+        dropzone.addEventListener('dragover', function(e) {
+            e.preventDefault();
+            dropzone.classList.add('dragover');
+        });
+        dropzone.addEventListener('dragleave', function(e) {
+            dropzone.classList.remove('dragover');
+        });
+        dropzone.addEventListener('drop', function(e) {
+            e.preventDefault();
+            dropzone.classList.remove('dragover');
+            if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length) {
+                handleFiles(Array.from(e.dataTransfer.files));
+                // Al acabar de procesar, refocuseamos
+                dropzone.focus();
+            }
+        });
+
+        // --- Selección manual desde input file ---
+        dropzone.addEventListener('dblclick', function() {
+            fileInput.value = '';
+            fileInput.click();
+        });
+        fileInput.addEventListener('change', function() {
+            if (fileInput.files && fileInput.files.length) {
+                handleFiles(Array.from(fileInput.files));
+                dropzone.focus();
+            }
+        });
+
+        // --- Permitimos que la dropzone reciba foco y capture paste ---
+        dropzone.setAttribute('tabindex', '0'); // hace que se pueda enfocar
+
+        // Si el usuario hace clic en la dropzone (cualquier parte), la enfocamos
+        dropzone.addEventListener('click', () => {
+            dropzone.focus();
+        });
+
+        // --- Capturar paste a nivel de document, pero sólo procesar si foco está dentro de dropzone ---
+        document.addEventListener('paste', function(e) {
+            // Si el elemento actualmente enfocado NO es la dropzone ni ninguno de sus hijos, salimos
+            const focused = document.activeElement;
+            if (focused !== dropzone && !dropzone.contains(focused)) {
+                return;
+            }
+
+            e.preventDefault(); // Evitamos comportamiento nativo no deseado
+
+            if (!e.clipboardData || !e.clipboardData.items) {
+                return;
+            }
+
+            const items = Array.from(e.clipboardData.items);
+            const conversionPromises = items.map(item => {
+                if (item.kind !== 'file') {
+                    return Promise.resolve(null);
+                }
+                const file = item.getAsFile();
+                if (!file) {
+                    return Promise.resolve(null);
+                }
+                const ext = file.name.split('.').pop().toLowerCase();
+                const mime = file.type;
+
+                // Si es PNG o GIF → convertir a JPG
+                if (
+                    mime === 'image/png' || mime === 'image/gif' ||
+                    ext === 'png' || ext === 'gif'
+                ) {
+                    return new Promise(resolve => {
+                        convertImageToJPG(file, function(jpgFile) {
+                            resolve(jpgFile);
+                        });
+                    });
+                }
+
+                // Si es otro formato permitido, devolvemos el File tal cual
+                if (
+                    allowedExts.includes(ext) ||
+                    allowedMimes.includes(mime)
+                ) {
+                    return Promise.resolve(file);
+                }
+
+                // De lo contrario, no lo tomamos
+                return Promise.resolve(null);
+            });
+
+            Promise.all(conversionPromises).then(results => {
+                const archivosValidos = results.filter(f => f instanceof File);
+                if (archivosValidos.length > 0) {
+                    handleFiles(archivosValidos);
+                } else {
+                    alert('El portapapeles no contiene un archivo válido');
+                }
+                // Refocuseamos la dropzone para seguir recibiendo Ctrl+V indefinidamente
+                dropzone.focus();
+            });
+        });
+
+        // --- Función ÚNICA para procesar archivos subidos (pegados, arrastrados o seleccionados) ---
+        function handleFiles(files) {
+            files.forEach(file => {
+                const ext = file.name.split('.').pop().toLowerCase();
+                const mime = file.type;
+
+                // 1) Si el archivo ya es un JPEG (resultado de la conversión), lo subimos directamente
+                if (mime === 'image/jpeg') {
+                    myDropzone.addFile(file);
+                    return;
+                }
+
+                // 2) Si es PNG o GIF (arrastrado o seleccionado manualmente), convertimos a JPG
+                if (
+                    mime === 'image/png' || mime === 'image/gif' ||
+                    ext === 'png' || ext === 'gif'
+                ) {
+                    convertImageToJPG(file, function(jpgFile) {
+                        myDropzone.addFile(jpgFile);
+                    });
+                    return;
+                }
+
+                // 3) Si es cualquier otro formato permitido, lo subimos tal cual
+                if (
+                    allowedExts.includes(ext) ||
+                    allowedMimes.includes(mime)
+                ) {
+                    myDropzone.addFile(file);
+                    return;
+                }
+
+                // 4) Cualquier otro, ignorar completamente
+            });
+        }
+
+        // --- Conversión de imagen PNG/GIF a JPG usando canvas ---
+        function convertImageToJPG(blobOrFile, callback) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const img = new Image();
+                img.onload = function() {
+                    const canvas = document.createElement('canvas');
+                    canvas.width = img.width;
+                    canvas.height = img.height;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0);
+                    canvas.toBlob(function(jpgBlob) {
+                        // Conservamos el nombre y cambiamos extensión a .jpg
+                        const nuevoNombre = (blobOrFile.name || 'clipboard').replace(/\.(png|gif)$/i,
+                            '.jpg');
+                        const jpgFile = new File([jpgBlob], nuevoNombre, {
+                            type: 'image/jpeg',
+                            lastModified: Date.now(),
+                        });
+                        callback(jpgFile);
+                    }, 'image/jpeg', 0.92);
+                };
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(blobOrFile);
+        }
+
+        // --- Evento para asegurar que Dropzone vuelve a enfocar tras cada archivo añadido ---
+        // Suponiendo que ya inicializaste `myDropzone = new Dropzone(...)` en algún punto anterior:
+        // Así te aseguras de que, aunque Dropzone injecte previews u otros elementos que roben foco,
+        // la dropzone recupere inmediatamente el foco.
+        if (window.myDropzone) {
+            myDropzone.on('addedfile', function() {
+                // Tras cada archivo agregado, refocuseamos
+                dropzone.focus();
+            });
+        }
     </script>
 @endpush

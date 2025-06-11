@@ -51,7 +51,14 @@ return [
         'client_secret' => env('AZURE_CLIENT_SECRET'),
         'redirect' => env('AZURE_REDIRECT_URI'),
         'tenant' => env('AZURE_TENANT_ID', 'common'),
-        'scopes' => ['openid', 'profile', 'User.Read','User.Read.All'],
+        'scopes' => ['openid', 'profile', 'User.Read', 'User.Read.All'],
     ],
+
+    'sendgrid' => [
+        'api_key' => env('SENDGRID_API_KEY'),
+        'from_email' => env('SENDGRID_FROM_EMAIL'),
+        'from_name' => env('SENDGRID_FROM_NAME'),
+    ],
+
 
 ];

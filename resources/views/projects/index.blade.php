@@ -4,7 +4,7 @@
 @endsection
 @section('links')
     <li class="breadcrumb-item"><a href="{{ route('home') }}">{{ __('Home') }}</a></li>
-    <li class="breadcrumb-item"> {{ __('Projects') }}</li>
+    <li class="breadcrumb-item"> {{ __('Projects') }} {{ $currentWorkspace->name }}</li>
 @endsection
 @php
 
@@ -195,6 +195,13 @@
         text-decoration: none;
         padding-left: 5%;
     }
+
+    .legendIcon {
+        width: 20px;
+        margin-left: 8px;
+        cursor: pointer;
+        transition: transform 0.1s ease-in-out;
+    }
 </style>
 
 @section('multiple-action-button')
@@ -234,7 +241,7 @@
                     <div class="grid filters-content">
                         @if ($projects->isEmpty())
                             <!-- seccion para cuando no hay proyectos -->
-                           <div class="col-md-2 project-type text-center m-2"
+                            <div class="col-md-2 project-type text-center m-2"
                                 style="display: flex; align-items: center; justify-content: center; width:100%">
 
                                 <svg version="1.1" id="gears" xmlns="http://www.w3.org/2000/svg"
@@ -243,25 +250,25 @@
                                     <g>
                                         <path class="gear-outer large"
                                             d="M145.6,134.6l10.6,5.3c3.5,2.1,4.6,5.1,3.1,9c-1.9,5.4-6.2,12.3-13.1,20.6c-2.7,3.1-5.8,3.6-9.4,1.6l-9.4-5.3 c-5,4.4-10.6,7.7-16.8,
-                                                    10v10.6c0,1.7-0.6,3.2-1.9,4.7c-1.2,1.5-2.7,2.3-4.4,2.5c-7.9,1.5-15.8,1.5-23.7,0c-1.9-0.2-3.4-1-4.5-2.5 c-1.1-1.5-1.7-3-1.7-4.7v-10.6c-6.4-2.3-12.2-5.6-17.2-10l-9,5.3c-3.5,2.1-6.7,1.6-9.4-1.6c-6.7-8.1-11-15-13.1-20.6
-                                                                  c-1.5-3.9-0.4-7,3.1-9l10.3-5.3c-1.2-6.7-1.2-13.2,0-19.7l-10.3-5.3c-3.7-2.1-4.8-5.1-3.1-9C27.8,95,32.2,88.1,38.9,80 c2.5-3.1,5.6-3.6,
-                                                                  9.4-1.6l9,5c5.2-4.4,10.9-7.6,17.2-9.7V63.2c0-1.9,0.6-3.5,1.7-4.8c1.1-1.4,2.7-2.1,4.5-2.3 c7.9-1.5,15.8-1.5,23.7,0c0.9,0.2,1.5,0.4,2.3,0.8c0.8,0.4,1.4,1.1,2,1.7c0.6,0.6,1.1,1.4,1.4,2.2c0.3,0.8,0.5,1.7,0.5,2.5v10.6
-                                                                  c6.2,2.3,11.9,5.5,16.8,9.7l9.4-5c3.5-2.3,6.7-1.8,9.4,1.6c6.7,7.9,11,14.8,13.1,20.6c1.5,4,0.4,7-3.1,9l-10.6,5.3 C146.8,121.4,146.8,127.9,145.6,134.6z" />
+                                                                                                                                                            10v10.6c0,1.7-0.6,3.2-1.9,4.7c-1.2,1.5-2.7,2.3-4.4,2.5c-7.9,1.5-15.8,1.5-23.7,0c-1.9-0.2-3.4-1-4.5-2.5 c-1.1-1.5-1.7-3-1.7-4.7v-10.6c-6.4-2.3-12.2-5.6-17.2-10l-9,5.3c-3.5,2.1-6.7,1.6-9.4-1.6c-6.7-8.1-11-15-13.1-20.6
+                                                                                                                                                                          c-1.5-3.9-0.4-7,3.1-9l10.3-5.3c-1.2-6.7-1.2-13.2,0-19.7l-10.3-5.3c-3.7-2.1-4.8-5.1-3.1-9C27.8,95,32.2,88.1,38.9,80 c2.5-3.1,5.6-3.6,
+                                                                                                                                                                          9.4-1.6l9,5c5.2-4.4,10.9-7.6,17.2-9.7V63.2c0-1.9,0.6-3.5,1.7-4.8c1.1-1.4,2.7-2.1,4.5-2.3 c7.9-1.5,15.8-1.5,23.7,0c0.9,0.2,1.5,0.4,2.3,0.8c0.8,0.4,1.4,1.1,2,1.7c0.6,0.6,1.1,1.4,1.4,2.2c0.3,0.8,0.5,1.7,0.5,2.5v10.6
+                                                                                                                                                                          c6.2,2.3,11.9,5.5,16.8,9.7l9.4-5c3.5-2.3,6.7-1.8,9.4,1.6c6.7,7.9,11,14.8,13.1,20.6c1.5,4,0.4,7-3.1,9l-10.6,5.3 C146.8,121.4,146.8,127.9,145.6,134.6z" />
                                         <circle class="gear-inner" cx="92.5" cy="124.8" r="23.1" />
                                         <path class="gear-outer small"
                                             d="M185.1,105l-2.5,4.4c-1,1.9-2.6,2.5-4.7,1.9c-3.7-1.5-7.1-3.4-10-5.9c-1.7-1.5-2-3.1-0.9-5l2.5-4.4
-                                                c-2.1-2.5-3.7-5.3-5-8.4h-5c-2.3,0-3.5-1.1-3.7-3.4c-0.8-3.7-0.8-7.6,0-11.5c0.2-2.1,1.5-3.1,3.7-3.1h5c1.2-3.1,2.9-5.9,5-8.4
-                                                l-2.5-4.7c-1-1.9-0.7-3.4,0.9-4.7c2.9-2.5,6.2-4.5,10-5.9c2.1-0.8,3.6-0.3,4.7,1.6l2.5,4.7c3.3-0.6,6.7-0.6,10,0l2.5-4.7
-                                                          c1-1.9,2.6-2.4,4.7-1.6c3.7,1.2,7.1,3.2,10,5.9c1.7,1.2,2,2.8,0.9,4.7l-2.5,4.7c2.1,2.5,3.7,5.3,5,8.4h5c2.3,0,3.5,1,3.7,
-                                                          3.1 c0.8,4,0.8,7.8,0,11.5c-0.2,2.3-1.5,3.4-3.7,3.4h-5c-1.2,3.1-2.9,5.9-5,8.4l2.5,4.4c1,2.1,0.7,3.7-0.9,5c-2.9,2.5-6.2,4.5-10,5.9
-                                                           c-2.1,0.6-3.6,0-4.7-1.9L195,105C191.7,105.6,188.4,105.6,185.1,105z" />
+                                                                                                                                                        c-2.1-2.5-3.7-5.3-5-8.4h-5c-2.3,0-3.5-1.1-3.7-3.4c-0.8-3.7-0.8-7.6,0-11.5c0.2-2.1,1.5-3.1,3.7-3.1h5c1.2-3.1,2.9-5.9,5-8.4
+                                                                                                                                                        l-2.5-4.7c-1-1.9-0.7-3.4,0.9-4.7c2.9-2.5,6.2-4.5,10-5.9c2.1-0.8,3.6-0.3,4.7,1.6l2.5,4.7c3.3-0.6,6.7-0.6,10,0l2.5-4.7
+                                                                                                                                                                  c1-1.9,2.6-2.4,4.7-1.6c3.7,1.2,7.1,3.2,10,5.9c1.7,1.2,2,2.8,0.9,4.7l-2.5,4.7c2.1,2.5,3.7,5.3,5,8.4h5c2.3,0,3.5,1,3.7,
+                                                                                                                                                                  3.1 c0.8,4,0.8,7.8,0,11.5c-0.2,2.3-1.5,3.4-3.7,3.4h-5c-1.2,3.1-2.9,5.9-5,8.4l2.5,4.4c1,2.1,0.7,3.7-0.9,5c-2.9,2.5-6.2,4.5-10,5.9
+                                                                                                                                                                   c-2.1,0.6-3.6,0-4.7-1.9L195,105C191.7,105.6,188.4,105.6,185.1,105z" />
                                         <circle class="gear-inner" cx="190" cy="78.4" r="11.5" />
                                         <path class="gear-outer small"
                                             d="M185.1,198.2l-2.5,4.4c-1,1.9-2.6,2.5-4.7,1.9c-3.7-1.5-7.1-3.4-10-5.9c-1.7-1.5-2-3.1-0.9-5l2.5-4.4 c-2.1-2.5-3.7-5.3-5-8.4h-5c-2.3,0-3.5-1.1-3.7-3.4c-0.8-3.7-0.8-7.6,0-11.5c0.2-2.1,1.5-3.1,3.7-3.1h5c1.2-3.1,2.9-6,5-8.7
-                                                             l-2.5-4.4c-1-1.9-0.7-3.5,0.9-5c2.9-2.5,6.2-4.4,10-5.6c2.1-0.8,3.6-0.3,4.7,1.6l2.5,4.7c3.3-0.6,6.7-0.6,10,0l2.5-4.7
-                                                              c1-1.9,2.6-2.4,4.7-1.6c3.7,1.2,7.1,3.1,10,5.6c1.7,1.5,2,3.1,0.9,5l-2.5,4.4c2.1,2.7,3.7,5.6,5,8.7h5c2.3,0,3.5,1,3.7,3.1
-                                                                 c0.8,4,0.8,7.8,0,11.5c-0.2,2.3-1.5,3.4-3.7,3.4h-5c-1.2,3.1-2.9,5.9-5,8.4l2.5,4.4c1,1.9,0.7,3.5-0.9,5c-2.9,2.5-6.2,4.5-10,5.9
-                                                                    c-2.1,0.6-3.6,0-4.7-1.9l-2.5-4.4C191.7,198.8,188.4,198.8,185.1,198.2z" />
+                                                                                                                                                                     l-2.5-4.4c-1-1.9-0.7-3.5,0.9-5c2.9-2.5,6.2-4.4,10-5.6c2.1-0.8,3.6-0.3,4.7,1.6l2.5,4.7c3.3-0.6,6.7-0.6,10,0l2.5-4.7
+                                                                                                                                                                      c1-1.9,2.6-2.4,4.7-1.6c3.7,1.2,7.1,3.1,10,5.6c1.7,1.5,2,3.1,0.9,5l-2.5,4.4c2.1,2.7,3.7,5.6,5,8.7h5c2.3,0,3.5,1,3.7,3.1
+                                                                                                                                                                         c0.8,4,0.8,7.8,0,11.5c-0.2,2.3-1.5,3.4-3.7,3.4h-5c-1.2,3.1-2.9,5.9-5,8.4l2.5,4.4c1,1.9,0.7,3.5-0.9,5c-2.9,2.5-6.2,4.5-10,5.9
+                                                                                                                                                                            c-2.1,0.6-3.6,0-4.7-1.9l-2.5-4.4C191.7,198.8,188.4,198.8,185.1,198.2z" />
                                         <circle class="gear-inner" cx="190.1" cy="171.6" r="11.5" />
                                     </g>
                                 </svg>
@@ -279,7 +286,7 @@
                                 </div>
                             </div>
 
-                           <!-- fin seccion para cuando no hay proyectos -->
+                            <!-- fin seccion para cuando no hay proyectos -->
                         @else
                             @foreach ($projects as $project)
                                 <div onclick="if (!event.target.closest('#deleteFormContainer')) { redirectToCurrentProject('{{ route('projects.show', [$currentWorkspace->slug, $project->id]) }}'); }"
@@ -349,13 +356,15 @@
                                                 @endif
                                             </div>
                                             <div class="card-body p-3">
-                                                <div class="card-text text-muted d-flex">
-                                                    <div class="col-md-6 tooltipCus" data-title="{{ __('Location') }}">
-                                                        <i class="fa-solid fa-location-dot"></i>
-                                                        {{ $currentWorkspace->name }}
+                                                <div class="card-text text-muted d-flex" style="align-items: center;">
+                                                    <div class="col-md-3" {{-- data-title="{{ __('Location') }}" --}}>
+                                                        {{-- <i class="fa-solid fa-location-dot"></i> --}}
+
+                                                        {{-- para que aparezcan aquí, deben tener al menos algo imputado --}}
+                                                        <span>{{ __('Participants') }}</span>
                                                     </div>
 
-                                                    <div class="col-md-2 text-end">
+                                                    <div class="col-md-2">
                                                         @if ($users = $project->users)
                                                             @foreach ($users as $key => $user)
                                                                 @if ($key < 2)
@@ -412,8 +421,7 @@
 
                                     <!-- Filtro de Status -->
                                     <div class="btn-group status-filter">
-                                        <button type="button"
-                                            class="btn d-flex align-items-center active zoom  text-muted"
+                                        <button type="button" class="btn d-flex align-items-center zoom  text-muted"
                                             data-filter=".Ongoing">
                                             <span class="status-indicator bg-secondary me-2"></span>
                                             {{ __('Ongoing') }}
@@ -480,19 +488,20 @@
                     <div class="card " id="v-pills-myprojects">
                         <div class="card-header buttonColocation">
                             <div>
-                                <h5><i class="fa-solid fa-diagram-project me-1"></i> {{ __('My projects') }}</h5>
-                                <p class="text-muted mt-4">
-                                    {{ __('The projects on which you have performed a task or requested an assignment are displayed.') }}
-                                </p>
+                                <h5><i class="fa-solid fa-diagram-project me-1"></i> {{ __('My projects') }} <img
+                                        class="legendIcon" src="{{ asset('assets/img/questionCircle.svg') }}"
+                                        title=" {{ __('The projects on which you have performed a task or requested an assignment are displayed.') }}" />
+                                </h5>
+
+
+
                             </div>
                             <button class="btn btn-sm btn-primary toggle-section buttonColapse"
                                 data-target="#myprojects-content">-</button>
                         </div>
                         <div class="card-body collapse-section" id="myprojects-content">
                             <div class="col-12 d-flex flex-column">
-                                <h5>
-                                    {{ __('Projects in which I participate') }}...
-                                </h5>
+
                                 <div style="width: 95%;" class="mt-3">
                                     @foreach (Auth::user()->projects() as $project)
                                         @if (Auth::user()->currant_workspace == $project->workspace)

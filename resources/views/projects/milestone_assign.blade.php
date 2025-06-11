@@ -59,6 +59,7 @@
             <div class="row mt-3 ctr">
                 <div id="requestBy-req" style="width: 37.5%">
                     <label class="col-form-label">{{ __('Assigned to') }}</label>
+                    <input type="hidden" id="milestone-requested-by" value="{{ $milestone->assign_to }}">
                     <input type="text" class="form-control" id="search-requested-by"
                         placeholder="{{ __('Search') }}" name="search-requested-by" value="{{ $user->name ?? '' }}"
                         autocomplete="off">
@@ -73,6 +74,7 @@
                         <input type="text" name="req_assing_to" id="req_assing_To" style="display: none;"
                             value="{{ $milestone->milestone_assigned_to_user }}">
                     </div>
+                    {{-- @dump($milestone) --}}
 
 
                 </div>
@@ -351,6 +353,7 @@
         console.log('Generando notificacion de encargo creado');
         let milestoneTitle = document.getElementById('milestone-title').value;
         let milestoneParent;
+        let milestoneRequestedBy;
         let milestoneAssignedTo = document.getElementById('req_assing_To').value;
         if (milestoneAssignedTo === '') {
             milestoneAssignedTo = -2;
@@ -358,10 +361,14 @@
         try {
             milestoneParent = document.getElementById('searchProject').value;
             console.log("Milestone parent:", milestoneParent);
+            milestoneRequestedBy = document.getElementById('milestone-requested-by').value;
+            console.log("Milestone requested by:", milestoneRequestedBy);
         } catch (error) {
             // No redeclaramos la variable, solo la asignamos
             milestoneParent = document.getElementById('milestone-secret-input').value;
             console.log("Milestone parent pero en el catch:", milestoneParent);
+            milestoneRequestedBy = document.getElementById('milestone-requested-by').value;
+            console.log("Milestone requested by:", milestoneRequestedBy);
 
             // Genera la URL con un placeholder y reemplázalo con el id obtenido
             const projectNameUrl = "{{ route('projects.milestone.getNameByID', ['id' => 'ID_PLACEHOLDER']) }}";
@@ -395,7 +402,8 @@
                     workspace_id: {{ $currentWorkspace->id }},
                     msg: msg,
                     ntipe: ntipe,
-                    milestoneAssignedTo: milestoneAssignedTo
+                    milestoneAssignedTo: milestoneAssignedTo,
+                    milestoneRequestedBy: milestoneRequestedBy
                 })
             });
             const data = await response.json();

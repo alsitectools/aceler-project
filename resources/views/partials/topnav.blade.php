@@ -59,7 +59,7 @@
     }
 
     .noti-body {
-        height: 300px;
+        height: 600px;
         overflow: auto;
     }
 
