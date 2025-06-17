@@ -11,7 +11,7 @@
         align-items: center;
         flex-direction: column;
         width: 33%;
-        height: 570px;
+        height: 670px;
         background-position: center;
         background-repeat: no-repeat;
         background-size: cover;
@@ -20,7 +20,7 @@
     }
 
     .tutorialPartCardTitle {
-        width: 131px;
+        width: 95%;
         height: 40px;
         background-color: white;
         border-bottom-left-radius: 10px;
@@ -30,11 +30,12 @@
         justify-content: center;
         align-items: center;
         font-weight: bold;
+        font-size: large;
     }
 
     .tutorialPartCardTitle h2 {
         color: #980200;
-        font-size: x-large;
+        font-size: large;
         font-weight: 800;
     }
 
@@ -43,13 +44,17 @@
         height: 150px;
         width: 350px;
         position: relative;
-        top: 18%;
+        top: 28%;
         border: 1px solid black;
         display: flex;
         border-radius: 13px;
         justify-content: center;
         align-items: center;
         box-shadow: 0px 8px 2px rgb(0 0 0 / 22%);
+    }
+
+    .slideIsActive .tutorialPartCardTitle h2 {
+        font-size: x-large !important;
     }
 
     .tutorialPartCardContent span {
@@ -84,11 +89,10 @@
         box-shadow: 10px 10px 5px 0px rgba(0, 0, 0, 0.75);
         -webkit-box-shadow: 0px 0px 20px 2px rgb(0 0 0 / 50%);
         -moz-box-shadow: 10px 10px 5px 0px rgba(0, 0, 0, 0.75);
-        height: 595px;
+        height: 700px;
         margin-top: -15px;
         width: 80% !important;
     }
-
 </style>
 
 @section('content')
@@ -107,7 +111,7 @@
                 </div>
                 <div class="milestoneTutorials tutorialPartCard" id="milestoneTutorials" onclick="expandCard(this, event)">
                     <div class="tutorialPartCardTitle">
-                        <h2>{{ __('Milestones') }}</h2>
+                        <h2>{{ __('Order forms') }}</h2>
                     </div>
                     <div class="tutorialPartCardContent">
                         <span
@@ -146,7 +150,8 @@
                 card.classList.add('slideIsActive');
 
                 if (hiddenTuto) hiddenTuto.style.display = 'flex'; // Mostramos el contenido
-                if (defaultText) defaultText.style.display = 'none'; // Ocultamos el texto original
+                if (defaultText) defaultText.style.display = 'none';
+                // Ocultamos el texto original
 
             } else {
                 //Modifying card class (style) when is not clicked

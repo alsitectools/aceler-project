@@ -3760,6 +3760,7 @@ class ProjectController extends Controller
         $user_id = $request->input('user_id');
         $project = Project::find($project_id);
 
+
         if (!$project) {
             return redirect()->back()->with('error', 'Project not found');
         }
@@ -3818,7 +3819,7 @@ class ProjectController extends Controller
         } elseif ($workedHoursFormatted > $expectedHour) {
             $dayColor = '#b2e2f2'; // Azul (horas extras)
         }
-
+        $taskCreationDate = $task->created_at->format('Y-m-d');
         $parseArray = [
             'project_id' => $project->id,
             'project_name' => $project_name,
@@ -3829,6 +3830,7 @@ class ProjectController extends Controller
             'date' => $selected_date,
             'totaltaskhour' => $totaltaskhour,
             'totaltaskminute' => $totaltaskminute,
+            'taskCreationDate' => $taskCreationDate,
         ];
 
         return view('projects.timesheet-create', compact('currentWorkspace', 'parseArray', 'fromTimesheet', 'dayColor', 'timeTable'));

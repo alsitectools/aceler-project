@@ -12,7 +12,6 @@
     <input type="hidden" name="date" value="{{ $parseArray['date'] }}" @disabled(!$fromTimesheet)>
     <input type="hidden" id="totaltasktime"
         value="{{ $parseArray['totaltaskhour'] . ':' . $parseArray['totaltaskminute'] }}">
-
     <div class="row">
         <div class="form-group">
             <label class="col-form-label">{{ __('Project') }}</label>
