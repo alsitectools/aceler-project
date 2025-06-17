@@ -6,7 +6,7 @@
 </head>
 
 <body>
-    <h2 style="color:#AA182C">Hay novedades en Acceler Project</h2>
+    <h2 style="color:#AA182C">Hay novedades en Aceler Project</h2>
     <p>Se ha creado el encargo {{ ucfirst($encargo) }} en el proyecto {{ ucfirst($proyecto) }}, dentro de uno de tus
         espacios de trabajo.</p>
     <p>
@@ -17,7 +17,7 @@
     <p>Saludos Cordiales</p>
     <hr>
     </p>
-    <h2 style="color:#AA182C">You have news in Acceler Project</h2>
+    <h2 style="color:#AA182C">You have news in Aceler Project</h2>
     <p>The order {{ ucfirst($encargo) }} in the project {{ $proyecto }} has been created in one of your workspaces.
     </p>
     <p>
