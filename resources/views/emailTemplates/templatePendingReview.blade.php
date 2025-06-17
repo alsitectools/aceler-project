@@ -6,7 +6,7 @@
 </head>
 
 <body>
-    <h2 style="color:#AA182C">Tienes un encargo pendiente de revision en Acceler Project</h2>
+    <h2 style="color:#AA182C">Tienes un encargo pendiente de revision en Aceler Project</h2>
     <p>El encargo {{ ucfirst($encargo) }}, perteneciente al proyecto {{ ucfirst($proyecto) }} está pendiente de
         revision.
     </p>
@@ -18,7 +18,7 @@
     <p>Saludos Cordiales</p>
     <hr>
     </p>
-    <h2 style="color:#AA182C">You have a milestone pending review in Acceler Project</h2>
+    <h2 style="color:#AA182C">You have a milestone pending review in Aceler Project</h2>
     <p>The order {{ ucfirst($encargo) }}, that belongs to the project {{ ucfirst($proyecto) }} is pending for review.
     </p>
     <p>

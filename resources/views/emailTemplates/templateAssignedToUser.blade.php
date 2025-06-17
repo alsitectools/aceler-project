@@ -6,7 +6,7 @@
 </head>
 
 <body>
-    <h2 style="color:#AA182C">Hay novedades en Acceler Project</h2>
+    <h2 style="color:#AA182C">Hay novedades en Aceler Project</h2>
     <p>Se te ha asignado el encargo {{ ucfirst($encargo) }} perteneciente al proyecto {{ ucfirst($proyecto) }} , dentro
         de uno de tus espacios de trabajo. La fecha de entrega estimada es {{ ucfirst($fecha) }}.</p>
     <p>
@@ -17,7 +17,7 @@
     <p>Saludos Cordiales</p>
     <hr>
     </p>
-    <h2 style="color:#AA182C">You have news in Acceler Project</h2>
+    <h2 style="color:#AA182C">You have news in Aceler Project</h2>
     <p>You got assigned the order {{ ucfirst($encargo) }} that belongs to the project {{ ucfirst($proyecto) }}, in one
         of
         your workspaces. The estimated delivery date is {{ ucfirst($fecha) }}.</p>
