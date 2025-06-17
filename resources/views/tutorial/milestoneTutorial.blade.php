@@ -1,30 +1,60 @@
 <div class="nested-carousel-milestone-container-milestone">
     <div class="nested-carousel-milestone">
         <div class="nested-carousel-milestone-slide active">
-            <img src="{{ asset('assets/img/tutorial/milestone/first.png') }}" class="imgStyleSlide" />
-            <p class="pStyleSlide">Este tablón está dividido en <b>cuatro fases</b>, cada una representando una etapa
-                clave del flujo de trabajo:</br>
-                <b>Por Hacer:</b> Aquí se listan los encargos creados que aún no tienen tareas asignadas. Es el punto de
-                partida para organizar tus prioridades.</br>
-                <b>En curso:</b> En esta columna están los encargos en los que se está trabajando activamente.</br>
-                <b>Revisar</b> Los encargos completados que necesitan verificación o aprobación se encuentran aquí.</br>
-                <b>Hecho:</b> ¡La meta final! Aquí se muestran los encargos con todas sus tareas completadas. Cuando un
-                encargo esta en Hecho, se marca como finalizado.
+            <img src="{{ asset('assets/img/tutorial/milestone/1.png') }}" class="imgStyleSlide" />
+            <p class="pStyleSlide">
+                {{ __('This board is divided into four phases, each representing a key stage in the workflow:') }}
+            <p class="pStyleSlide">
+                {{ __("To Do: This is where you will find a list of tasks that have been created but don't have any assignments yet. It's the starting point for organizing your priorities.") }}
+            </p>
+            <p class="pStyleSlide">{{ __("In Progress: This column shows the tasks you're actively working on.") }}</p>
+            <p class="pStyleSlide">{{ __('Review: Completed tasks that need to be checked or approved are here.') }}</p>
+            <p class="pStyleSlide">{{ __('Done: This column contains all completed and reviewed tasks.') }}</p>
+            <p class="pStyleSlide">
+                {{ __('Please note that for an order form to be reviewed, all of its tasks (regardless of who created them) must have hours allocated to them.') }}
+            </p>
             </p>
         </div>
         <div class="nested-carousel-milestone-slide">
-            <img src="{{ asset('assets/img/tutorial/milestone/second.png') }}" class="imgStyleSlide" />
-            <p class="pStyleSlide"><b>Creación de Encargos</b></br>
-                Para crear un encargo, es importante que el proyecto correspondiente esté creado previamente.</br>
-                Si tienes acceso al <b>Master Obras (MO)</b>, el proyecto se creará automáticamente, siempre que
-                el<b>Master Obras</b> ya exista, sino se creara un campo vacío. </p>
+            <img src="{{ asset('assets/img/tutorial/milestone/8.png') }}" class="imgStyleSlide" />
+            <p class="pStyleSlide">
+                {{ __('When you click Create Task, this menu will open, allowing you to create a task. ') }}</p>
         </div>
         <div class="nested-carousel-milestone-slide">
-            <img src="{{ asset('assets/img/tutorial/milestone/third.png') }}" class="imgStyleSlide" />
-            <p class="pStyleSlide">Este tablón te muestra <b>encargos</b> que aun no tienen <b>tareas asignadas</b> y/o
-                encargos en los que estas haciendo una tarea.</br>
-                Aunque principalmente sea informativo también se puede, <b>ver, editar y borrar encargos</b> siempre que
-                no haya tareas existentes.</p>
+            <img src="{{ asset('assets/img/tutorial/milestone/2.png') }}" class="imgStyleSlide" />
+            <p class="pStyleSlide">
+                {{ __('If you want to view information about an order form, you can click on the name to display a menu showing all the information related to that assignment.') }}
+            </p>
+        </div>
+        <div class="nested-carousel-milestone-slide">
+            <img src="{{ asset('assets/img/tutorial/milestone/3.png') }}" class="imgStyleSlide" />
+            <p class="pStyleSlide">
+                {{ __('Clicking on the three dots will also display all the order options, which we will now go into in detail, except for delete, which, as its name suggests, deletes the order and all its tasks') }}
+            </p>
+        </div>
+        <div class="nested-carousel-milestone-slide">
+            <img src="{{ asset('assets/img/tutorial/milestone/4.png') }}" class="imgStyleSlide" />
+            <p class="pStyleSlide">
+                {{ __('When you select Assign Assignment, a window will appear where you can assign an assignment to anyone. You can also click the Unassign button if you want the assignment to be available to all participants again.') }}
+            </p>
+        </div>
+        <div class="nested-carousel-milestone-slide">
+            <img src="{{ asset('assets/img/tutorial/milestone/5.png') }}" class="imgStyleSlide" />
+            <p class="pStyleSlide">
+                {{ __('When you click Add Task, you can create a task according to the type of project selected.') }}
+            </p>
+        </div>
+        <div class="nested-carousel-milestone-slide">
+            <img src="{{ asset('assets/img/tutorial/milestone/6.png') }}" class="imgStyleSlide" />
+            <p class="pStyleSlide">
+                {{ __('Clicking Edit Assignment opens the edit menu, where you can upload or delete files, modify the desired delivery date, or edit the description.') }}
+            </p>
+        </div>
+        <div class="nested-carousel-milestone-slide">
+            <img src="{{ asset('assets/img/tutorial/milestone/7.png') }}" class="imgStyleSlide" />
+            <p class="pStyleSlide">
+                {{ __('After clicking on a task you have previously created, you can also allocate hours to it or, if you prefer, delete it. Keep in mind that deleting a task will also delete all the hours allocated to it.') }}
+            </p>
         </div>
     </div>
     <div class="nested-carousel-milestone-controls">
@@ -36,7 +66,7 @@
 <style>
     .imgStyleSlide {
         width: 65% !important;
-        margin-top: 2% !important;
+        margin-top: 10% !important;
         border-radius: 15px !important;
     }
 
@@ -44,14 +74,14 @@
         font-size: 14px !important;
         text-align: center !important;
         /* padding-left: 15% !important; */
-        padding-top: 5px !important;
+        /* padding: 5px !important; */
     }
 
     /* Horizontal carousel styles */
     .nested-carousel-milestone-container-milestone {
         position: relative;
         width: 100%;
-        height: 500px;
+        height: 700px;
         overflow: hidden;
         display: flex;
         /* Hide the carousel initially */

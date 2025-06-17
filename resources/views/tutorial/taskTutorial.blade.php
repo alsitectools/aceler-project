@@ -1,21 +1,18 @@
 <div class="nested-carousel-task-container-task">
     <div class="nested-carousel-task">
         <div class="nested-carousel-task-slide active">
-            <img src="{{ asset('assets/img/tutorial/task/first.png') }}" class="imgStyleSlide" />
-            <p class="pStyleSlide">This is a stunning view of the mountains at sunrise.</p>
+            <img src="{{ asset('assets/img/tutorial/task/1.png') }}" class="imgStyleSlide" />
+            <p class="pStyleSlide">
+                {{ __('In this section, you can allocate hours to the tasks you have created in different projects. Simply click on the day you want to allocate the hours to and select the number of hours you have spent on that task.') }}
+            </p>
         </div>
         <div class="nested-carousel-task-slide">
-            <img src="{{ asset('assets/img/tutorial/task/second.png') }}" class="imgStyleSlide" />
-            <p class="pStyleSlide">Explore the bustling streets of a modern city.</p>
+            <img src="{{ asset('assets/img/tutorial/task/2.png') }}" class="imgStyleSlide" />
+            <p class="pStyleSlide">
+                {{ __('The menu is exactly the same as the one on the order forms, so in addition to allocating hours, you can also delete the task along with all the hours allocated to it. If you make a mistake, you can click on that day again and modify the hours allocated.') }}
+            </p>
         </div>
-        <div class="nested-carousel-task-slide">
-            <img src="{{ asset('assets/img/tutorial/task/third.png') }}" class="imgStyleSlide" />
-            <p class="pStyleSlide">Relax on a tranquil beach with crystal-clear waters.</p>
-        </div>
-        <div class="nested-carousel-task-slide">
-            <img src="{{ asset('assets/img/tutorial/task/fourth.png') }}" class="imgStyleSlide" />
-            <p class="pStyleSlide">Relax on a tranquil beach with crystal-clear waters.</p>
-        </div>
+
     </div>
     <div class="nested-carousel-task-controls">
         <button class="nested-carousel-task-btn prev-btn">&lt;</button>
@@ -34,7 +31,7 @@
         font-size: 14px !important;
         text-align: center !important;
         /*padding-left: 15% !important; */
-        padding-top: 5px !important;
+        /* padding-top: 5px !important; */
     }
 
     /* Horizontal carousel styles */
