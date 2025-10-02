@@ -266,7 +266,7 @@
                     <div class="modal-footer">
                         <button type="button" class="btn btn-light"
                             data-bs-dismiss="modal">{{ __('Close') }}</button>
-                        <input type="submit" value="{{ __('Save Changes') }}" class="btn btn-primary">
+<input type="submit" id="submitMilestoneBtn" value="{{ __('Save Changes') }}" class="btn btn-primary">
                     </div>
                 </form>
             </div>
@@ -350,6 +350,32 @@
 <script src="{{ asset('assets/custom/libs/nicescroll/jquery.nicescroll.min.js') }} "></script>
 <!-- Scripts para el dropdown de usuarios -->
 <script>
+    let isSubmitting = false; // 🔒 bandera para prevenir múltiples envíos
+
+    document.getElementById('milestone-form').addEventListener('submit', async function(event) {
+        event.preventDefault();
+
+        if (isSubmitting) return; // ⛔ si ya se está enviando, no hacer nada
+        isSubmitting = true;
+
+        const submitBtn = document.getElementById('submitMilestoneBtn');
+        submitBtn.disabled = true;
+        submitBtn.value = 'Guardando...';
+
+        try {
+            await displayNotification(); // 👈 Notificación previa (si es necesaria)
+            this.submit(); // ✅ envío real solo una vez
+        } catch (error) {
+            console.error('Error al enviar el formulario:', error);
+            isSubmitting = false;
+            submitBtn.disabled = false;
+            submitBtn.value = '{{ __("Save Changes") }}';
+        }
+    });
+</script>
+
+<script>
+    
     // Definir valores por defecto del usuario logueado
     var defaultUserId = '{{ Auth::user()->id }}';
     var defaultUserName = '{{ Auth::user()->name }}';
@@ -979,9 +1005,5 @@
         }
     }
 
-    document.getElementById('milestone-form').addEventListener('submit', async function(event) {
-        event.preventDefault(); // Prevenir el envío inmediato
-        await displayNotification(); // Esperar a que se complete la notificación
-        this.submit(); // Enviar el formulario (normalmente o puedes usar AJAX)
-    });
+
 </script>

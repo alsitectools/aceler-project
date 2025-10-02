@@ -1847,142 +1847,147 @@ class ProjectController extends Controller
     }
 
     public function milestoneStore($slug, $projectID, Request $request)
-    {
-        if (is_numeric($request->project_id)) {
-            $project = Project::find($request->project_id);
-            if (!$project) {
-                return response()->json(['error' => 'Proyecto no encontrado'], 404);
-            }
-        } else {
-            $clipoId = ClientsMo::where('ref_mo', $request->ref_mo)->value('potential_customer_id') ?? '';
-
-            $newRequest = Request::create('/fake-url', 'POST', [
-                'name' => $request->project_id,
-                'ref_mo' => $request->ref_mo,
-                'isReload' => true,
-                'project_type' => 1,
-                'clipo' => $clipoId,
-                'created_by' => Auth::user()->id,
-                'start_date' => now()->format('Y-m-d'),
-            ]);
-
-            try {
-                $response = $this->store($slug, $newRequest);
-                $data = $response->getOriginalContent();
-
-                if (isset($data['project_id'])) {
-                    $project = $data['project_id'] ?? null;
-                }
-            } catch (\Exception $e) {
-                return response()->json(['error' => 'Error al crear el proyecto'], 500);
-            }
+{
+    if (is_numeric($request->project_id)) {
+        $project = Project::find($request->project_id);
+        if (!$project) {
+            return response()->json(['error' => 'Proyecto no encontrado'], 404);
         }
+    } else {
+        $clipoId = ClientsMo::where('ref_mo', $request->ref_mo)->value('potential_customer_id') ?? '';
 
-        $currentWorkspace = Utility::getWorkspaceBySlug($slug);
-
-        // Validación de los campos requeridos
-        $rules = [
-            'title' => 'required',
-            'assing_to' => 'required',
-            'end_date' => 'required',
-            'files' => 'nullable|array',
-            // 'files.*' => 'file|mimes:jpg,jpeg,png,gif,txt,doc,docx,pdf,zip,rar,dwg,dxf,xlsx,xls,csv|max:5120',
-        ];
-
-        $validator = \Validator::make($request->all(), $rules);
-
-        if ($validator->fails()) {
-            \Log::error('Validation failed for milestone creation', [
-                'errors' => $validator->errors()->all(),
-                'request' => $request->all(),
-            ]);
-            $messages = $validator->getMessageBag();
-            return redirect()->back()->with('error', $messages->first());
-        }
-
-        // Crear el milestone
-        $milestone = new Milestone();
-        $milestone->project_id = $project->id;
-        $milestone->title = $request->title;
-        $milestone->assign_to = $request->assing_to;
-        $milestone->start_date = date('Y-m-d');
-        $milestone->company = $request->company ?? '';
-        $milestone->contractor = $request->contractor ?? '';
-        $milestone->contractorAdress = $request->contractorAdress ?? '';
-        $milestone->jobsiteAdress = $request->jobsiteAdress ?? '';
-        $milestone->milestone_assigned_to_user = $request->req_assing_to ?? '';
-        $milestone->planned_end_date = $request->planned_end_date ?? '';
-        $milestone->created_by = Auth::user()->id;
-        $milestone->end_date = $request->end_date;
-        $milestone->summary = $request->description ?? '';
-        $milestone->save();
-
-        if (isset($project)) {
-            $project->updateProjectStatus();
-        }
-
-        if ($request->hasFile('files')) {
-            $projectFolder = str_replace(' ', '_', $project->name);
-            $milestoneFolder = str_replace(' ', '_', $milestone->title);
-
-            // Ruta donde se guardarán los archivos directamente en storage/
-            $dir = 'project_files/' . $projectFolder . '/' . $milestoneFolder;
-
-            // Asegurarse de que la carpeta exista dentro de storage/
-            if (!file_exists(storage_path($dir))) {
-                mkdir(storage_path($dir), 0755, true);
-            }
-
-            foreach ($request->file('files') as $file) {
-                if ($file->isValid()) {
-                    $fileName = $milestone->id . '_' . time() . '_' . $file->getClientOriginalName();
-
-                    $file->move(storage_path($dir), $fileName);
-
-                    // Obtener el tamaño del archivo guardado
-                    $filePath = storage_path($dir . '/' . $fileName);
-                    $fileSize = file_exists($filePath) ? round(filesize($filePath) / 1024, 2) . ' KB' : '0 KB';
-
-                    // Guardar el registro en la base de datos
-                    MilestoneFile::create([
-                        'milestone_id' => $milestone->id,
-                        'file' => $fileName,
-                        'name' => $file->getClientOriginalName(),
-                        'extension' => $file->getClientOriginalExtension(),
-                        'file_size' => $fileSize,
-                        'created_by' => Auth::id(),
-                        'user_type' => Auth::user()->type,
-                    ]);
-                } else {
-                    return redirect()->back()->with('error', __('Uno o más archivos no son válidos.'));
-                }
-            }
-        }
-
-        // Log de actividad
-        ActivityLog::create([
-            'user_id' => Auth::user()->id,
-            'user_type' => get_class(Auth::user()),
-            'project_id' => $project->id,
-            'log_type' => 'Create Milestone',
-            'remark' => json_encode(['title' => $milestone->title]),
+        $newRequest = Request::create('/fake-url', 'POST', [
+            'name' => $request->project_id,
+            'ref_mo' => $request->ref_mo,
+            'isReload' => true,
+            'project_type' => 1,
+            'clipo' => $clipoId,
+            'created_by' => Auth::user()->id,
+            'start_date' => now()->format('Y-m-d'),
         ]);
 
-        // Notificaciones
-        $setting = Utility::getAdminPaymentSettings();
-        $uArr = [
-            'project_name' => $project->name,
-            'user_name' => Auth::user()->name,
-            'milestone_title' => $milestone->title,
-            'app_url' => env('APP_URL'),
-            'app_name' => $setting['app_name'],
-        ];
-        if (isset($setting['milestone_notificaation']) && $setting['milestone_notificaation'] == 1) {
-            Utility::send_slack_msg('New Milestone', $currentWorkspace->id, $uArr);
+        try {
+            $response = $this->store($slug, $newRequest);
+            $data = $response->getOriginalContent();
+
+            if (isset($data['project_id'])) {
+                $project = $data['project_id'] ?? null;
+            }
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Error al crear el proyecto'], 500);
+        }
+    }
+
+    $currentWorkspace = Utility::getWorkspaceBySlug($slug);
+
+    // Validación de los campos requeridos
+    $rules = [
+        'title' => 'required',
+        'assing_to' => 'required',
+        'end_date' => 'required|date',
+        'files' => 'nullable|array',
+    ];
+
+    $validator = Validator::make($request->all(), $rules);
+
+    if ($validator->fails()) {
+        Log::error('Validation failed for milestone creation', [
+            'errors' => $validator->errors()->all(),
+            'request' => $request->all(),
+        ]);
+        $messages = $validator->getMessageBag();
+        return redirect()->back()->with('error', $messages->first());
+    }
+
+    // Validar end_date: si es anterior a hoy, usar hoy
+    $inputEndDate = Carbon::parse($request->end_date)->startOfDay();
+    $today = Carbon::today();
+
+    $finalEndDate = $inputEndDate->lessThan($today)
+        ? $today->toDateString()
+        : $inputEndDate->toDateString();
+
+    // Crear el milestone
+    $milestone = new Milestone();
+    $milestone->project_id = $project->id;
+    $milestone->title = $request->title;
+    $milestone->assign_to = $request->assing_to;
+    $milestone->start_date = date('Y-m-d');
+    $milestone->company = $request->company ?? '';
+    $milestone->contractor = $request->contractor ?? '';
+    $milestone->contractorAdress = $request->contractorAdress ?? '';
+    $milestone->jobsiteAdress = $request->jobsiteAdress ?? '';
+    $milestone->milestone_assigned_to_user = $request->req_assing_to ?? '';
+    $milestone->planned_end_date = $request->planned_end_date ?? '';
+    $milestone->created_by = Auth::user()->id;
+    $milestone->end_date = $finalEndDate; // ✅ Fecha corregida aquí
+    $milestone->summary = $request->description ?? '';
+    $milestone->save();
+
+    if (isset($project)) {
+        $project->updateProjectStatus();
+    }
+
+    // Subida de archivos
+    if ($request->hasFile('files')) {
+        $projectFolder = str_replace(' ', '_', $project->name);
+        $milestoneFolder = str_replace(' ', '_', $milestone->title);
+        $dir = 'project_files/' . $projectFolder . '/' . $milestoneFolder;
+
+        if (!file_exists(storage_path($dir))) {
+            mkdir(storage_path($dir), 0755, true);
         }
 
-        return redirect()->back()->with('success', __('Milestone created successfully!'));
+        foreach ($request->file('files') as $file) {
+            if ($file->isValid()) {
+                $fileName = $milestone->id . '_' . time() . '_' . $file->getClientOriginalName();
+                $file->move(storage_path($dir), $fileName);
+
+                $filePath = storage_path($dir . '/' . $fileName);
+                $fileSize = file_exists($filePath)
+                    ? round(filesize($filePath) / 1024, 2) . ' KB'
+                    : '0 KB';
+
+                MilestoneFile::create([
+                    'milestone_id' => $milestone->id,
+                    'file' => $fileName,
+                    'name' => $file->getClientOriginalName(),
+                    'extension' => $file->getClientOriginalExtension(),
+                    'file_size' => $fileSize,
+                    'created_by' => Auth::id(),
+                    'user_type' => Auth::user()->type,
+                ]);
+            } else {
+                return redirect()->back()->with('error', __('Uno o más archivos no son válidos.'));
+            }
+        }
     }
+
+    // Log de actividad
+    ActivityLog::create([
+        'user_id' => Auth::user()->id,
+        'user_type' => get_class(Auth::user()),
+        'project_id' => $project->id,
+        'log_type' => 'Create Milestone',
+        'remark' => json_encode(['title' => $milestone->title]),
+    ]);
+
+    // Notificación (Slack)
+    $setting = Utility::getAdminPaymentSettings();
+    $uArr = [
+        'project_name' => $project->name,
+        'user_name' => Auth::user()->name,
+        'milestone_title' => $milestone->title,
+        'app_url' => env('APP_URL'),
+        'app_name' => $setting['app_name'],
+    ];
+
+    if (isset($setting['milestone_notificaation']) && $setting['milestone_notificaation'] == 1) {
+        Utility::send_slack_msg('New Milestone', $currentWorkspace->id, $uArr);
+    }
+
+    return redirect()->back()->with('success', __('Milestone created successfully!'));
+}
 
     public function milestoneAssign($slug, $milestoneID, Request $request)
     {
@@ -2060,96 +2065,102 @@ class ProjectController extends Controller
     }
 
     public function milestoneUpdate($slug, $milestoneID, Request $request)
-    {
-        // \Log::info($request->all());
-        $currentWorkspace = Utility::getWorkspaceBySlug($slug);
-        $user1 = $currentWorkspace->id;
+{
+    $currentWorkspace = Utility::getWorkspaceBySlug($slug);
+    $user1 = $currentWorkspace->id;
 
-        $setting = Utility::getAdminPaymentSettings();
-        $request->validate([
-            'end_date' => 'required',
-        ]);
+    $setting = Utility::getAdminPaymentSettings();
 
-        $milestone = Milestone::find($milestoneID);
-        if (!$milestone) {
-            return redirect()->back()->with('error', 'Milestone not found');
-        }
-        $milestone->summary = $request->summary;
-        $milestone->milestone_assigned_to_user = $request->req_assing_to ?? '';
-        $milestone->end_date = $request->end_date;
-        $milestone->planned_end_date = $request->planned_end_date;
-        $milestone->save();
+    $request->validate([
+        'end_date' => 'required|date',
+    ]);
 
-        $project = Project::where('id', '=', $milestone->project_id)->first();
-        if (!$project) {
-            return redirect()->back()->with('error', 'Project not found');
-        }
-
-        // Guardar nuevos archivos en "storage/project_files/{proyecto}/{milestone}"
-        if ($request->hasFile('new_files')) {
-            $projectFolder = str_replace(' ', '_', $project->name);
-            $milestoneFolder = str_replace(' ', '_', $milestone->title);
-
-            // Ruta donde se guardarán los archivos directamente en storage/
-            $dir = 'project_files/' . $projectFolder . '/' . $milestoneFolder;
-
-            // Asegurarse de que la carpeta exista dentro de storage/
-            if (!file_exists(storage_path($dir))) {
-                mkdir(storage_path($dir), 0755, true);
-            }
-
-            foreach ($request->file('new_files') as $file) {
-                if ($file->isValid()) {
-
-                    $fileName = $milestone->id . '_' . time() . '_' . $file->getClientOriginalName();
-                    $file->move(storage_path($dir), $fileName);
-
-                    // Obtener el tamaño del archivo guardado
-                    $filePath = storage_path($dir . '/' . $fileName);
-                    $fileSize = file_exists($filePath) ? round(filesize($filePath) / 1024, 2) . ' KB' : '0 KB';
-
-                    // Guardar registro del archivo en la base de datos
-                    MilestoneFile::create([
-                        'milestone_id' => $milestone->id,
-                        'file' => $fileName,
-                        'name' => $file->getClientOriginalName(),
-                        'extension' => $file->getClientOriginalExtension(),
-                        'file_size' => $fileSize,
-                        'created_by' => Auth::user()->id,
-                        'user_type' => Auth::user()->type,
-                    ]);
-                } else {
-                    return redirect()->back()->with('error', __('Uno o más archivos no son válidos.'));
-                }
-            }
-        }
-
-        //  Notificación de actualización del Milestone
-        $settings = Utility::getPaymentSetting($user1);
-        $uArr = [
-            'project_name' => $project->name,
-            'user_name' => Auth::user()->name,
-            'milestone_title' => $milestone->title,
-            'milestone_status' => $milestone->status,
-            'app_url' => env('APP_URL'),
-            'app_name'  => $setting['app_name'],
-        ];
-
-        //Add log
-        ActivityLog::create([
-            'user_id' => \Auth::user()->id,
-            'user_type' => get_class(\Auth::user()),
-            'project_id' => $project->id,
-            'log_type' => 'has updated a milestone',
-            'remark' => json_encode(['milestoneTitle' => $milestone->title]),
-        ]);
-
-        if (isset($settings['milestonest_notificaation']) && $settings['milestonest_notificaation'] == 1) {
-            Utility::send_slack_msg('Milestone Status Updated', $user1, $uArr);
-        }
-
-        return redirect()->back()->with('success', __('Milestone Updated Successfully!'));
+    $milestone = Milestone::find($milestoneID);
+    if (!$milestone) {
+        return redirect()->back()->with('error', 'Milestone not found');
     }
+
+    // Validar end_date: si es anterior a hoy, usar hoy
+    $inputEndDate = Carbon::parse($request->end_date)->startOfDay();
+    $today = Carbon::today();
+
+    $finalEndDate = $inputEndDate->lessThan($today)
+        ? $today->toDateString()
+        : $inputEndDate->toDateString();
+
+    // Actualizar campos del milestone
+    $milestone->summary = $request->summary;
+    $milestone->milestone_assigned_to_user = $request->req_assing_to ?? '';
+    $milestone->end_date = $finalEndDate;
+    $milestone->planned_end_date = $request->planned_end_date;
+    $milestone->save();
+
+    $project = Project::where('id', $milestone->project_id)->first();
+    if (!$project) {
+        return redirect()->back()->with('error', 'Project not found');
+    }
+
+    // Guardar nuevos archivos
+    if ($request->hasFile('new_files')) {
+        $projectFolder = str_replace(' ', '_', $project->name);
+        $milestoneFolder = str_replace(' ', '_', $milestone->title);
+        $dir = 'project_files/' . $projectFolder . '/' . $milestoneFolder;
+
+        if (!file_exists(storage_path($dir))) {
+            mkdir(storage_path($dir), 0755, true);
+        }
+
+        foreach ($request->file('new_files') as $file) {
+            if ($file->isValid()) {
+                $fileName = $milestone->id . '_' . time() . '_' . $file->getClientOriginalName();
+                $file->move(storage_path($dir), $fileName);
+
+                $filePath = storage_path($dir . '/' . $fileName);
+                $fileSize = file_exists($filePath)
+                    ? round(filesize($filePath) / 1024, 2) . ' KB'
+                    : '0 KB';
+
+                MilestoneFile::create([
+                    'milestone_id' => $milestone->id,
+                    'file' => $fileName,
+                    'name' => $file->getClientOriginalName(),
+                    'extension' => $file->getClientOriginalExtension(),
+                    'file_size' => $fileSize,
+                    'created_by' => Auth::user()->id,
+                    'user_type' => Auth::user()->type,
+                ]);
+            } else {
+                return redirect()->back()->with('error', __('Uno o más archivos no son válidos.'));
+            }
+        }
+    }
+
+    // Log de actividad
+    ActivityLog::create([
+        'user_id' => Auth::user()->id,
+        'user_type' => get_class(Auth::user()),
+        'project_id' => $project->id,
+        'log_type' => 'has updated a milestone',
+        'remark' => json_encode(['milestoneTitle' => $milestone->title]),
+    ]);
+
+    // Notificación Slack
+    $settings = Utility::getPaymentSetting($user1);
+    $uArr = [
+        'project_name' => $project->name,
+        'user_name' => Auth::user()->name,
+        'milestone_title' => $milestone->title,
+        'milestone_status' => $milestone->status,
+        'app_url' => env('APP_URL'),
+        'app_name'  => $setting['app_name'],
+    ];
+
+    if (isset($settings['milestonest_notificaation']) && $settings['milestonest_notificaation'] == 1) {
+        Utility::send_slack_msg('Milestone Status Updated', $user1, $uArr);
+    }
+
+    return redirect()->back()->with('success', __('Milestone Updated Successfully!'));
+}
 
 
     public function milestoneDestroy($slug, $milestoneID)
@@ -2939,8 +2950,8 @@ class ProjectController extends Controller
                 $notification->data         = $request->msg;
                 $notification->save();
             }
-            //DESCOMENTAR AL ACABAR
-            $this->getEmails($userIds, $request->ntipe, $request->msg);
+            //comentando esto hara que no se reciban correos por cada milestone creada
+            // $this->getEmails($userIds, $request->ntipe, $request->msg);
             $usersNotified = count($userIds);
         }
 
@@ -3835,7 +3846,6 @@ class ProjectController extends Controller
 
         return view('projects.timesheet-create', compact('currentWorkspace', 'parseArray', 'fromTimesheet', 'dayColor', 'timeTable'));
     }
-
 
     public function projectTimesheetStore(Request $request, $slug, $project_id)
     {
