@@ -252,155 +252,161 @@ class CalenderController extends Controller
     }
 
     public function getTimesheetColor()
-    {
-        $userId = Auth::id();
+{
+    $userId = Auth::id();
 
-        // Obtener todas las tareas del usuario
-        $timesheets = DB::table('timesheets')
-            ->join('tasks', 'timesheets.task_id', '=', 'tasks.id')
-            ->join('users', 'tasks.assign_to', '=', 'users.id')
-            ->select('tasks.*', 'timesheets.*')
-            ->where('users.id', '=', $userId)
-            ->get();
+    // Obtener todas las imputaciones (timesheets) del usuario
+    $timesheets = DB::table('timesheets')
+        ->join('tasks', 'timesheets.task_id', '=', 'tasks.id')
+        ->join('users', 'tasks.assign_to', '=', 'users.id')
+        ->select('tasks.*', 'timesheets.*')
+        ->where('users.id', '=', $userId)
+        ->get();
 
-        // Obtener el horario del usuario
-        $timetable = UserTimetable::where('user_id', $userId)->first();
-        if (!$timetable) {
-            return response()->json(['error' => 'No timetable found'], 404);
+    // Obtener el horario del usuario
+    $timetable = UserTimetable::where('user_id', $userId)->first();
+    if (!$timetable) {
+        return response()->json(['error' => 'No timetable found'], 404);
+    }
+
+    // Horas esperadas por día
+    $expectedHours = [
+        'monday' => $timetable->monday,
+        'tuesday' => $timetable->tuesday,
+        'wednesday' => $timetable->wednesday,
+        'thursday' => $timetable->thursday,
+        'friday' => $timetable->friday,
+        'saturday' => $timetable->saturday,
+        'sunday' => $timetable->sunday,
+    ];
+
+    // 1️⃣ Agrupar imputaciones por fecha sumando las horas
+    $groupedByDate = [];
+    foreach ($timesheets as $timesheet) {
+        $date = $timesheet->date;
+        if (!isset($groupedByDate[$date])) {
+            $groupedByDate[$date] = 0; // total minutos
         }
+        list($h, $m, $s) = explode(':', $timesheet->time);
+        $groupedByDate[$date] += ($h * 60) + $m; // sumar minutos
+    }
 
-        $expectedHours = [
-            'monday' => $timetable->monday,
-            'tuesday' => $timetable->tuesday,
-            'wednesday' => $timetable->wednesday,
-            'thursday' => $timetable->thursday,
-            'friday' => $timetable->friday,
-            'saturday' => $timetable->saturday,
-            'sunday' => $timetable->sunday,
+    // 2️⃣ Generar calendarData con total horas por fecha
+    $calendarData = [];
+    foreach ($groupedByDate as $date => $totalMinutes) {
+        $hours = floor($totalMinutes / 60);
+        $minutes = $totalMinutes % 60;
+        $formatted = sprintf('%02d:%02d', $hours, $minutes);
+
+        $calendarData[] = [
+            'date' => $date,
+            'dayOfWeek' => $this->getDayOfWeek($date),
+            'hours' => $formatted,
         ];
+    }
 
-        $calendarData = [];
-        foreach ($timesheets as $timesheet) {
-            $dayOfWeek = $this->getDayOfWeek($timesheet->date);
-            $calendarData[] = [
-                'date' => $timesheet->date,
-                'dayOfWeek' => $dayOfWeek,
-                'hours' => $timesheet->time,
-            ];
-        }
+    $today = Carbon::now()->toDateString();
+    $currentYear = Carbon::now()->year;
 
-        $today = Carbon::now()->toDateString();
-        $currentYear = Carbon::now()->year;
+    // Generar todas las semanas del año
+    $startOfYear = Carbon::create($currentYear, 1, 1)->startOfWeek();
+    $endOfYear = Carbon::create($currentYear, 12, 31)->endOfWeek();
+    $period = CarbonPeriod::create($startOfYear, '1 week', $endOfYear);
 
-        // Generar todas las semanas del año
-        $startOfYear = Carbon::create($currentYear, 1, 1)->startOfWeek();
-        $endOfYear = Carbon::create($currentYear, 12, 31)->endOfWeek();
+    $colorData = [];
 
-        $period = CarbonPeriod::create($startOfYear, '1 week', $endOfYear);
+    foreach ($period as $weekStartDate) {
+        $weekStartDate = $weekStartDate->startOfWeek();
+        $weekDays = $this->getWeekDaysOfMonth($weekStartDate->toDateString());
 
-        $colorData = [];
+        foreach ($weekDays['datePeriod'] as $currentDate) {
+            $dayOfWeek = strtolower($this->getDayOfWeek($currentDate));
+            $expectedHour = $expectedHours[$dayOfWeek] ?? null;
 
-        foreach ($period as $weekStartDate) {
-            $weekStartDate = $weekStartDate->startOfWeek();
-            $weekDays = $this->getWeekDaysOfMonth($weekStartDate->toDateString());
+            // Excluir días futuros
+            if ($currentDate > $today) {
+                continue;
+            }
 
-            foreach ($weekDays['datePeriod'] as $currentDate) {
-                $dayOfWeek = strtolower($this->getDayOfWeek($currentDate));
-                $expectedHour = $expectedHours[$dayOfWeek] ?? null;
+            // Comprobar horas trabajadas para este día
+            $workedHours = '00:00';
+            $dayColor = '#e06c71'; // rojo por defecto
 
-                // Excluir días futuros
-                if ($currentDate > $today) {
-                    continue;
-                }
+            foreach ($calendarData as $dataDay) {
+                if ($dataDay['date'] === $currentDate) {
+                    $workedHours = $dataDay['hours'];
 
-                // Comprobar si hay horas trabajadas para este día
-                $workedHours = null;
-                $dayColor = '#e06c71'; // Color rojo por defecto para días sin imputaciones
-
-                foreach ($calendarData as $dataDay) {
-                    if ($dataDay['date'] === $currentDate) {
-                        $workedHours = $dataDay['hours'];
-
-                        $workedHoursFormatted = date('H:i', strtotime($workedHours));
-
-                        if ($workedHoursFormatted == '00:00') {
-                            $dayColor = '#e06c71'; // No se imputaron horas (rojo)
-                        } elseif ($workedHoursFormatted < $expectedHour) {
-                            $dayColor = '#fcf75e'; // Horas parciales (amarillo)
-                        } elseif ($workedHoursFormatted == $expectedHour) {
-                            $dayColor = '#89e186'; // Horas completas (verde)
-                        } elseif($workedHoursFormatted > $expectedHour) {
-                            $dayColor = '#b2e2f2'; // Horas extras (azul)
-                        }
-                        
-                        break;
+                    if ($workedHours == '00:00') {
+                        $dayColor = '#e06c71'; // rojo
+                    } elseif ($workedHours < $expectedHour) {
+                        $dayColor = '#fcf75e'; // amarillo
+                    } elseif ($workedHours == $expectedHour) {
+                        $dayColor = '#89e186'; // verde
+                    } elseif ($workedHours > $expectedHour) {
+                        $dayColor = '#b2e2f2'; // azul
                     }
-                }
 
-                // Si no hay horas imputadas y es un día pasado, asignar 00:00
-                if (!$workedHours && $currentDate < $today && $expectedHour !== null) {
-                    $workedHours = '00:00';
-                }
-
-                // Agregar al colorData
-                if ($expectedHour !== null) {
-                    $colorData[] = [
-                        'dayOfWeek' => ucfirst($dayOfWeek),
-                        'date' => $currentDate,
-                        'hours' => $workedHours ? date('H:i', strtotime($workedHours)) : '00:00',
-                        'color' => $dayColor,
-                    ];
+                    break;
                 }
             }
+
+            // Si no hay imputaciones pero es un día pasado y tiene horario esperado
+            if (!isset($groupedByDate[$currentDate]) && $currentDate < $today && $expectedHour !== null) {
+                $workedHours = '00:00';
+                $dayColor = '#e06c71'; // rojo
+            }
+
+            if ($expectedHour !== null) {
+                $colorData[] = [
+                    'dayOfWeek' => ucfirst($dayOfWeek),
+                    'date' => $currentDate,
+                    'hours' => $workedHours,
+                    'color' => $dayColor,
+                ];
+            }
         }
+    }
 
-        //get user holidays/intensive workday
-
-        $rangeDays = DB::table('user_timetable')
+    // Obtener festivos y jornadas intensivas
+    $rangeDays = DB::table('user_timetable')
         ->where('user_id', $userId)
         ->select('range_holidays', 'range_intensive_workday')
         ->first();
-    
-        // Inicializar variables de resultado
-        $specialColorData = [];
-        
-        // Procesar el campo `range_holidays` si no es null
-        if (isset($rangeDays) && !is_null($rangeDays->range_holidays)) {
-            $holidays = json_decode($rangeDays->range_holidays, true); // Decodificar JSON
-        
-            $holidayDays = [];
-            foreach ($holidays as $day) {
-                $holidayDays[] = $day; // Asumiendo que cada elemento en JSON es un día individual
-            }
-        
-            // Agregar holidays al diccionario con color
-            $specialColorData['holidayRange'] = $holidayDays;
-            $specialColorData['holidayColor'] = '#91DDCF'; // Color rosa para días festivos
-        }
-        
-        // Procesar el campo `range_intensive_workday` si no es null
-        if (isset($rangeDays) && !is_null($rangeDays->range_intensive_workday)) {
-            $intensiveWorkdays = json_decode($rangeDays->range_intensive_workday, true);
-        
-            $intensiveData = [];
-            foreach ($intensiveWorkdays as $hours => $days) {
-                foreach ($days as $day) {
-                    $intensiveData[$hours][] = $day; // Agrupando los días bajo las horas específicas
-                }
-            }
-        
-            // Agregar intensive workdays al diccionario con color
-            $specialColorData['intensiveWorkRange'] = $intensiveData;
-            $specialColorData['intensiveWorkColor'] = '#89A8B2'; // Color púrpura para trabajo intensivo
-        }
 
-        
-        return response()->json([
-            'calendarData' => $calendarData,
-            'expectedHours' => $expectedHours,
-            'colorData' => $colorData,
-            'specialColorData' => $specialColorData,
-        ]);
+    $specialColorData = [];
+
+    // Festivos
+    if (isset($rangeDays) && !is_null($rangeDays->range_holidays)) {
+        $holidays = json_decode($rangeDays->range_holidays, true);
+        $holidayDays = [];
+        foreach ($holidays as $day) {
+            $holidayDays[] = $day;
+        }
+        $specialColorData['holidayRange'] = $holidayDays;
+        $specialColorData['holidayColor'] = '#91DDCF'; // color festivo
     }
+
+    // Jornadas intensivas
+    if (isset($rangeDays) && !is_null($rangeDays->range_intensive_workday)) {
+        $intensiveWorkdays = json_decode($rangeDays->range_intensive_workday, true);
+
+        $intensiveData = [];
+        foreach ($intensiveWorkdays as $hours => $days) {
+            foreach ($days as $day) {
+                $intensiveData[$hours][] = $day;
+            }
+        }
+        $specialColorData['intensiveWorkRange'] = $intensiveData;
+        $specialColorData['intensiveWorkColor'] = '#89A8B2'; // color intensivo
+    }
+
+    return response()->json([
+        'calendarData' => $calendarData,
+        'expectedHours' => $expectedHours,
+        'colorData' => $colorData,
+        'specialColorData' => $specialColorData,
+    ]);
+}
+
 
 }
