@@ -379,6 +379,7 @@
         }
     }
 
+
     .filter-input {
         width: 97%;
         padding: 10px;
@@ -404,6 +405,51 @@
         position: absolute;
         left: 10%;
         top: 102px;
+    }
+
+    @media screen and (max-width:1441px) and (min-width:1000px) {
+
+        /* * {
+            border: 1px solid magenta;
+        } */
+        .tabIcon {
+            margin-left: 11px;
+        }
+
+        .tabTexts {
+            font-size: 17px;
+        }
+
+        .status {
+            width: 100% !important;
+        }
+
+        .milestoneTab {
+            width: 80% !important;
+            margin-right: 6px;
+        }
+
+        .statusText {
+            font-size: 9px;
+            font-weight: 600;
+
+        }
+
+        .statusContainer {
+            margin-left: 4%;
+        }
+
+        .milestoneIcon {
+            padding: 2px;
+        }
+    }
+
+    @media screen and (min-width: 1439px) and (max-width:1600px) {
+        .milestoneTab {
+            /* width: 45% !important; */
+            width: 114px !important;
+
+        }
     }
 </style>
 
@@ -791,10 +837,14 @@
             currentView = view;
 
             if (view === 'monthly') {
+                console.log("Datos mensuales:", data.months);
                 updateChartData(data.months, "{{ __('Month') }}");
             } else if (view === 'quarterly') {
+                console.log("Datos trimestrales:", data.quarters);
                 updateChartData(data.quarters, "{{ __('Quarter') }}");
+
             } else if (view === 'yearly') {
+                console.log("Datos anuales:", data.yearly);
                 updateYearlyChart(data.yearly);
             }
         }
@@ -809,7 +859,7 @@
                 console.log("No hay datos disponibles para la vista anual.");
                 return;
             }
-
+            console.log("Datos anuales recibidos en la funcion del chart:", data);
             let selectedYear = $("#yearSelect").val(); // Obtener el año seleccionado
 
             let labels = [selectedYear]; // Mostrar el año actual en el eje X
@@ -827,7 +877,7 @@
             window.chart.data.datasets[0].data = tiempo_inicio;
             window.chart.data.datasets[1].data = tiempo_bueno;
             window.chart.data.datasets[2].data = retraso;
-            window.chart.data.datasets[3].data = estimado_usuario; // Actualizar datos
+            // window.chart.data.datasets[3].data = estimado_usuario; // Actualizar datos
 
             window.chart.options.plugins.title.text = `{{ __('Annual average') }} (${selectedYear})`;
             window.chart.update();

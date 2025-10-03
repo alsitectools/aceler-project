@@ -43,6 +43,7 @@
         width: 100%;
     }
 
+
     .hover:hover {
         cursor: pointer;
     }
@@ -139,7 +140,35 @@
         width: 100%;
     }
 
-    @media screen and (max-width:1200px) and (min-width:1000px) {
+    @media screen and (max-width:1441px) and (min-width:1000px) {
+
+        /* * {
+            border: 1px dashed green !important;
+        } */
+        .participantsSection {
+            width: 30% !important;
+        }
+
+        .filterTypo {
+            font-size: 11px !important;
+        }
+
+        .projectsContainer {
+            width: 58.33333% !important;
+        }
+
+        .rightColumn {
+            width: 41.66667% !important;
+        }
+
+        .createBut {
+            height: 90%;
+        }
+
+        .innerButtonText {
+            font-size: 13px !important;
+        }
+
         .responsiveButton {
             font-size: 12px !important;
         }
@@ -208,7 +237,7 @@
     <div class="d-flex justify-content-start row1">
         <div id="searchInputProjects" data-popper-placement="bottom-start">
             <form class="form-inline mr-auto mb-0 formSearch">
-                <div class="search-element">
+                <div class="search-element" style="width: 77%; !important">
                     <input type="text" class="input" id="searchInput"
                         placeholder="{{ __('Enter name or reference M.O') }}">
                     <svg xmlns="http://www.w3.org/2000/svg" class="input-icon" viewBox="0 0 20 20" fill="currentColor">
@@ -227,7 +256,7 @@
             <button type="button" class="btn btn-primary zoom createBut" data-ajax-popup="true"
                 data-title="{{ __('Create New Project') }}" data-url="{{ route('projects.create', $currentWorkspace->slug) }}">
                 <i class="fa-solid fa-diagram-project pe-2"></i>
-                <h6 class="m-1 text-white">{{ __('Create New Project') }}</h6>
+                <h6 class="m-1 text-white innerButtonText">{{ __('Create New Project') }}</h6>
             </button>
         @endauth
     </div>
@@ -237,7 +266,7 @@
     <section class="section">
         <div class="row">
             @if ($projects && $currentWorkspace)
-                <div class="col-md-8">
+                <div class="col-md-8 projectsContainer">
                     <div class="grid filters-content">
                         @if ($projects->isEmpty())
                             <!-- seccion para cuando no hay proyectos -->
@@ -250,25 +279,25 @@
                                     <g>
                                         <path class="gear-outer large"
                                             d="M145.6,134.6l10.6,5.3c3.5,2.1,4.6,5.1,3.1,9c-1.9,5.4-6.2,12.3-13.1,20.6c-2.7,3.1-5.8,3.6-9.4,1.6l-9.4-5.3 c-5,4.4-10.6,7.7-16.8,
-                                                                                                                                                            10v10.6c0,1.7-0.6,3.2-1.9,4.7c-1.2,1.5-2.7,2.3-4.4,2.5c-7.9,1.5-15.8,1.5-23.7,0c-1.9-0.2-3.4-1-4.5-2.5 c-1.1-1.5-1.7-3-1.7-4.7v-10.6c-6.4-2.3-12.2-5.6-17.2-10l-9,5.3c-3.5,2.1-6.7,1.6-9.4-1.6c-6.7-8.1-11-15-13.1-20.6
-                                                                                                                                                                          c-1.5-3.9-0.4-7,3.1-9l10.3-5.3c-1.2-6.7-1.2-13.2,0-19.7l-10.3-5.3c-3.7-2.1-4.8-5.1-3.1-9C27.8,95,32.2,88.1,38.9,80 c2.5-3.1,5.6-3.6,
-                                                                                                                                                                          9.4-1.6l9,5c5.2-4.4,10.9-7.6,17.2-9.7V63.2c0-1.9,0.6-3.5,1.7-4.8c1.1-1.4,2.7-2.1,4.5-2.3 c7.9-1.5,15.8-1.5,23.7,0c0.9,0.2,1.5,0.4,2.3,0.8c0.8,0.4,1.4,1.1,2,1.7c0.6,0.6,1.1,1.4,1.4,2.2c0.3,0.8,0.5,1.7,0.5,2.5v10.6
-                                                                                                                                                                          c6.2,2.3,11.9,5.5,16.8,9.7l9.4-5c3.5-2.3,6.7-1.8,9.4,1.6c6.7,7.9,11,14.8,13.1,20.6c1.5,4,0.4,7-3.1,9l-10.6,5.3 C146.8,121.4,146.8,127.9,145.6,134.6z" />
+                                                                                                                                                                                                                                                                                                    10v10.6c0,1.7-0.6,3.2-1.9,4.7c-1.2,1.5-2.7,2.3-4.4,2.5c-7.9,1.5-15.8,1.5-23.7,0c-1.9-0.2-3.4-1-4.5-2.5 c-1.1-1.5-1.7-3-1.7-4.7v-10.6c-6.4-2.3-12.2-5.6-17.2-10l-9,5.3c-3.5,2.1-6.7,1.6-9.4-1.6c-6.7-8.1-11-15-13.1-20.6
+                                                                                                                                                                                                                                                                                                                  c-1.5-3.9-0.4-7,3.1-9l10.3-5.3c-1.2-6.7-1.2-13.2,0-19.7l-10.3-5.3c-3.7-2.1-4.8-5.1-3.1-9C27.8,95,32.2,88.1,38.9,80 c2.5-3.1,5.6-3.6,
+                                                                                                                                                                                                                                                                                                                  9.4-1.6l9,5c5.2-4.4,10.9-7.6,17.2-9.7V63.2c0-1.9,0.6-3.5,1.7-4.8c1.1-1.4,2.7-2.1,4.5-2.3 c7.9-1.5,15.8-1.5,23.7,0c0.9,0.2,1.5,0.4,2.3,0.8c0.8,0.4,1.4,1.1,2,1.7c0.6,0.6,1.1,1.4,1.4,2.2c0.3,0.8,0.5,1.7,0.5,2.5v10.6
+                                                                                                                                                                                                                                                                                                                  c6.2,2.3,11.9,5.5,16.8,9.7l9.4-5c3.5-2.3,6.7-1.8,9.4,1.6c6.7,7.9,11,14.8,13.1,20.6c1.5,4,0.4,7-3.1,9l-10.6,5.3 C146.8,121.4,146.8,127.9,145.6,134.6z" />
                                         <circle class="gear-inner" cx="92.5" cy="124.8" r="23.1" />
                                         <path class="gear-outer small"
                                             d="M185.1,105l-2.5,4.4c-1,1.9-2.6,2.5-4.7,1.9c-3.7-1.5-7.1-3.4-10-5.9c-1.7-1.5-2-3.1-0.9-5l2.5-4.4
-                                                                                                                                                        c-2.1-2.5-3.7-5.3-5-8.4h-5c-2.3,0-3.5-1.1-3.7-3.4c-0.8-3.7-0.8-7.6,0-11.5c0.2-2.1,1.5-3.1,3.7-3.1h5c1.2-3.1,2.9-5.9,5-8.4
-                                                                                                                                                        l-2.5-4.7c-1-1.9-0.7-3.4,0.9-4.7c2.9-2.5,6.2-4.5,10-5.9c2.1-0.8,3.6-0.3,4.7,1.6l2.5,4.7c3.3-0.6,6.7-0.6,10,0l2.5-4.7
-                                                                                                                                                                  c1-1.9,2.6-2.4,4.7-1.6c3.7,1.2,7.1,3.2,10,5.9c1.7,1.2,2,2.8,0.9,4.7l-2.5,4.7c2.1,2.5,3.7,5.3,5,8.4h5c2.3,0,3.5,1,3.7,
-                                                                                                                                                                  3.1 c0.8,4,0.8,7.8,0,11.5c-0.2,2.3-1.5,3.4-3.7,3.4h-5c-1.2,3.1-2.9,5.9-5,8.4l2.5,4.4c1,2.1,0.7,3.7-0.9,5c-2.9,2.5-6.2,4.5-10,5.9
-                                                                                                                                                                   c-2.1,0.6-3.6,0-4.7-1.9L195,105C191.7,105.6,188.4,105.6,185.1,105z" />
+                                                                                                                                                                                                                                                                                                c-2.1-2.5-3.7-5.3-5-8.4h-5c-2.3,0-3.5-1.1-3.7-3.4c-0.8-3.7-0.8-7.6,0-11.5c0.2-2.1,1.5-3.1,3.7-3.1h5c1.2-3.1,2.9-5.9,5-8.4
+                                                                                                                                                                                                                                                                                                l-2.5-4.7c-1-1.9-0.7-3.4,0.9-4.7c2.9-2.5,6.2-4.5,10-5.9c2.1-0.8,3.6-0.3,4.7,1.6l2.5,4.7c3.3-0.6,6.7-0.6,10,0l2.5-4.7
+                                                                                                                                                                                                                                                                                                          c1-1.9,2.6-2.4,4.7-1.6c3.7,1.2,7.1,3.2,10,5.9c1.7,1.2,2,2.8,0.9,4.7l-2.5,4.7c2.1,2.5,3.7,5.3,5,8.4h5c2.3,0,3.5,1,3.7,
+                                                                                                                                                                                                                                                                                                          3.1 c0.8,4,0.8,7.8,0,11.5c-0.2,2.3-1.5,3.4-3.7,3.4h-5c-1.2,3.1-2.9,5.9-5,8.4l2.5,4.4c1,2.1,0.7,3.7-0.9,5c-2.9,2.5-6.2,4.5-10,5.9
+                                                                                                                                                                                                                                                                                                           c-2.1,0.6-3.6,0-4.7-1.9L195,105C191.7,105.6,188.4,105.6,185.1,105z" />
                                         <circle class="gear-inner" cx="190" cy="78.4" r="11.5" />
                                         <path class="gear-outer small"
                                             d="M185.1,198.2l-2.5,4.4c-1,1.9-2.6,2.5-4.7,1.9c-3.7-1.5-7.1-3.4-10-5.9c-1.7-1.5-2-3.1-0.9-5l2.5-4.4 c-2.1-2.5-3.7-5.3-5-8.4h-5c-2.3,0-3.5-1.1-3.7-3.4c-0.8-3.7-0.8-7.6,0-11.5c0.2-2.1,1.5-3.1,3.7-3.1h5c1.2-3.1,2.9-6,5-8.7
-                                                                                                                                                                     l-2.5-4.4c-1-1.9-0.7-3.5,0.9-5c2.9-2.5,6.2-4.4,10-5.6c2.1-0.8,3.6-0.3,4.7,1.6l2.5,4.7c3.3-0.6,6.7-0.6,10,0l2.5-4.7
-                                                                                                                                                                      c1-1.9,2.6-2.4,4.7-1.6c3.7,1.2,7.1,3.1,10,5.6c1.7,1.5,2,3.1,0.9,5l-2.5,4.4c2.1,2.7,3.7,5.6,5,8.7h5c2.3,0,3.5,1,3.7,3.1
-                                                                                                                                                                         c0.8,4,0.8,7.8,0,11.5c-0.2,2.3-1.5,3.4-3.7,3.4h-5c-1.2,3.1-2.9,5.9-5,8.4l2.5,4.4c1,1.9,0.7,3.5-0.9,5c-2.9,2.5-6.2,4.5-10,5.9
-                                                                                                                                                                            c-2.1,0.6-3.6,0-4.7-1.9l-2.5-4.4C191.7,198.8,188.4,198.8,185.1,198.2z" />
+                                                                                                                                                                                                                                                                                                             l-2.5-4.4c-1-1.9-0.7-3.5,0.9-5c2.9-2.5,6.2-4.4,10-5.6c2.1-0.8,3.6-0.3,4.7,1.6l2.5,4.7c3.3-0.6,6.7-0.6,10,0l2.5-4.7
+                                                                                                                                                                                                                                                                                                              c1-1.9,2.6-2.4,4.7-1.6c3.7,1.2,7.1,3.1,10,5.6c1.7,1.5,2,3.1,0.9,5l-2.5,4.4c2.1,2.7,3.7,5.6,5,8.7h5c2.3,0,3.5,1,3.7,3.1
+                                                                                                                                                                                                                                                                                                                 c0.8,4,0.8,7.8,0,11.5c-0.2,2.3-1.5,3.4-3.7,3.4h-5c-1.2,3.1-2.9,5.9-5,8.4l2.5,4.4c1,1.9,0.7,3.5-0.9,5c-2.9,2.5-6.2,4.5-10,5.9
+                                                                                                                                                                                                                                                                                                                    c-2.1,0.6-3.6,0-4.7-1.9l-2.5-4.4C191.7,198.8,188.4,198.8,185.1,198.2z" />
                                         <circle class="gear-inner" cx="190.1" cy="171.6" r="11.5" />
                                     </g>
                                 </svg>
@@ -357,7 +386,7 @@
                                             </div>
                                             <div class="card-body p-3">
                                                 <div class="card-text text-muted d-flex" style="align-items: center;">
-                                                    <div class="col-md-3" {{-- data-title="{{ __('Location') }}" --}}>
+                                                    <div class="col-md-3 participantsSection" {{-- data-title="{{ __('Location') }}" --}}>
                                                         {{-- <i class="fa-solid fa-location-dot"></i> --}}
 
                                                         {{-- para que aparezcan aquí, deben tener al menos algo imputado --}}
@@ -400,7 +429,7 @@
                     </div>
                 </div>
 
-                <div class="col-md-4 position-sticky text-muted">
+                <div class="col-md-4 position-sticky text-muted rightColumn">
                     <div class="card " id="v-pills-filterSection">
                         <div class="card-header buttonColocation">
                             <div>
@@ -421,19 +450,22 @@
 
                                     <!-- Filtro de Status -->
                                     <div class="btn-group status-filter">
-                                        <button type="button" class="btn d-flex align-items-center zoom  text-muted"
+                                        <button type="button"
+                                            class="btn d-flex align-items-center zoom  text-muted filterTypo"
                                             data-filter=".Ongoing">
-                                            <span class="status-indicator bg-secondary me-2"></span>
+                                            <span class="status-indicator bg-secondary me-2 filterTypo"></span>
                                             {{ __('Ongoing') }}
                                         </button>
-                                        <button type="button" class="btn d-flex align-items-center zoom text-muted"
+                                        <button type="button"
+                                            class="btn d-flex align-items-center zoom text-muted filterTypo"
                                             data-filter=".OnHold">
-                                            <span class="status-indicator bg-warning me-2"></span>
+                                            <span class="status-indicator bg-warning me-2 filterTypo"></span>
                                             {{ __('OnHold') }}
                                         </button>
-                                        <button type="button" class="btn d-flex align-items-center zoom text-muted"
+                                        <button type="button"
+                                            class="btn d-flex align-items-center zoom text-muted filterTypo"
                                             data-filter=".Finished">
-                                            <span class="status-indicator bg-success me-2"></span>
+                                            <span class="status-indicator bg-success me-2 filterTypo"></span>
                                             {{ __('Finished') }}
                                         </button>
                                     </div>
@@ -445,14 +477,14 @@
                                 <!-- Filtro de Type -->
                                 <div class="btn-group type-filter">
                                     <div>
-                                        <button type="button" class="btn disp-btn zoom text-muted"
+                                        <button type="button" class="btn disp-btn zoom text-muted filterTypo"
                                             data-filter=".type-1">
                                             <img src="{{ asset('assets/img/Jobsite.png') }}"
                                                 style="width: 25px; height: 25px;" alt="..." class="me-2">
 
                                             {{ __('Jobsite') }}
                                         </button>
-                                        <button type="button" class="btn disp-btn zoom  text-muted"
+                                        <button type="button" class="btn disp-btn zoom  text-muted filterTypo"
                                             data-filter=".type-2">
                                             <img src="{{ asset('assets/img/Innovation.png') }}"
                                                 style="width: 25px; height: 25px;" alt="..." class="me-2">
@@ -460,13 +492,13 @@
                                         </button>
                                     </div>
                                     <div>
-                                        <button type="button" class="btn disp-btn zoom  text-muted"
+                                        <button type="button" class="btn disp-btn zoom  text-muted filterTypo"
                                             data-filter=".type-3">
                                             <img src="{{ asset('assets/img/Product development.png') }}"
                                                 style="width: 25px; height: 25px;" alt="..." class="me-1">
                                             {{ __('Product Development') }}
                                         </button>
-                                        <button type="button" class="btn disp-btn zoom  text-muted"
+                                        <button type="button" class="btn disp-btn zoom  text-muted filterTypo"
                                             data-filter=".type-4">
                                             <img src="{{ asset('assets/img/Office.png') }}"
                                                 style="width: 25px; height:25px;" alt="..." class="me-2">
@@ -632,7 +664,9 @@
                 if (autocompleteContainer) {
                     if (this.value.trim().length > 0) {
                         autocompleteContainer.style.display = 'block';
-                        divContainer.classList.add('dropdown-menu');
+                        autocompleteContainer.style.textAlign = 'left';
+                        autocompleteContainer.style.width = '77%';
+                        // divContainer.classList.add('dropdown-menu');
                     } else {
                         autocompleteContainer.style.display = 'none';
                         divContainer.classList.remove('dropdown-menu');
@@ -644,6 +678,7 @@
     <script>
         jQuery(document).ready(function($) {
             var options = {
+                adjustWidth: false,
                 url: function(phrase) {
                     return "{{ route('search.json', $currentWorkspace->slug) }}/" + encodeURIComponent(
                         phrase);
