@@ -658,6 +658,10 @@ Route::post('/projects/milestone/download-file', [ProjectController::class, 'mil
 
 Route::delete('/{slug}/projects/{id}/file/delete/{fid}', [ProjectController::class, 'fileDelete'])->name('projects.file.delete')->middleware(['auth', 'XSS']);
 
+//DOWNLOAD Project imputed hours to CSV
+Route::get('/timesheet/{project}/csv/download', [ProjectController::class, 'downloadCsv'])
+    ->name('timesheet.csv.imputedHours.download');
+
 // Task Board
 // Route::get('/{slug}/projects/client/task-board/{code}', [ProjectController::class, 'taskBoard'])->name('projects.client.task.board');
 Route::get('/{slug}/projects/{id}/task-board', [ProjectController::class, 'taskBoard'])->name('projects.task.board')->middleware(['auth', 'XSS']);

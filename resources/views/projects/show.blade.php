@@ -455,6 +455,10 @@
                                             <div class="badge bg-warning p-2 px-3 rounded">{{ __('OnHold') }}</div>
                                         @endif
                                     </div>
+
+                                    <div>
+                                       {{ __('Hours charged') }} {{$totalHours ? $totalHours : '00:00' }}h
+                                    </div>
                                 </div>
 
                                 @if (!$project->is_active)
@@ -743,164 +747,147 @@
                         </div>
                     </div>
                     <div class="row">
+                        {{-- Usuarios que han creado un encargo --}}
                         <div class="col-md-6">
-                            <div class="card min-h">
-                                <div class="card-header">
-                                    <div class="d-flex justify-content-between align-items-center">
-                                        <div>
-                                            {{-- team usuario/tecnicos --}}
-                                            <h5 class="mb-0">{{ __('Technicians') }}
-                                                ({{ count($project->technicians) }})
-                                            </h5>
-                                        </div>
+    <div class="card min-h">
+        <div class="card-header">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    {{-- Usuarios que han creado milestones --}}
+                    <h5 class="mb-0">{{ __('Users who created Order forms') }}
+                        ({{ count($milestoneCreators) }})
+                    </h5>
+                </div>
 
-                                        <div class="float-end">
-                                            <p class="text-muted d-sm-flex align-items-center mb-0">
-                                                @if (\Auth::user()->type == 'admin')
-                                                    <a href="#" class="btn btn-sm btn-primary "
-                                                        data-ajax-popup="true" data-title="{{ __('Invite') }}"
-                                                        data-toggle="popover" title="{{ __('Invite') }}"
-                                                        data-url="{{ route('projects.invite.popup', [$currentWorkspace->slug, $project->id]) }}"><i
-                                                            class="ti ti-brand-telegram"></i></a>
-                                                @endif
-                                            </p>
+                <div class="float-end">
+                    <p class="text-muted d-sm-flex align-items-center mb-0">
+                        @if (\Auth::user()->type == 'admin')
+                            <a href="#" class="btn btn-sm btn-primary "
+                                data-ajax-popup="true" data-title="{{ __('Invite') }}"
+                                data-toggle="popover" title="{{ __('Invite') }}"
+                                data-url="{{ route('projects.invite.popup', [$currentWorkspace->slug, $project->id]) }}">
+                                <i class="ti ti-brand-telegram"></i>
+                            </a>
+                        @endif
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div class="card-body pb-1">
+            <div class="px-3 top-10-scroll" style="max-height: 300px;">
+                @foreach ($milestoneCreators as $user)
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item px-0">
+                            <div class="row align-items-center justify-content-between">
+                                <div class="col-sm-auto mb-3 mb-sm-0">
+                                    <div class="d-flex align-items-center px-2">
+                                        <a href="#" class=" text-start">
+                                            <img class="fix_img"
+                                                @if ($user->avatar) src="{{ asset($user->avatar) }}" 
+                                                @else avatar="{{ $user->name }}" @endif>
+                                        </a>
+                                        <div class="px-2">
+                                            <h5 class="m-0">{{ $user->name }}</h5>
+                                            <small class="text-muted">
+                                                {{ $user->email }}
+                                                <span class="text-primary">
+                                                    - {{ $user->milestones_count }} {{ __('milestones') }}
+                                                </span>
+                                            </small>
                                         </div>
                                     </div>
                                 </div>
-                                <div class="card-body pb-1">
-                                    <div class="px-3 top-10-scroll" style="max-height: 300px;">
-                                        @foreach ($project->technicians as $user)
-                                            <ul class="list-group list-group-flush">
-                                                <li class="list-group-item px-0">
-                                                    <div class="row align-items-center justify-content-between">
-                                                        <div class="col-sm-auto mb-3 mb-sm-0">
-                                                            <div class="d-flex align-items-center px-2">
-                                                                <a href="#" class=" text-start">
-                                                                    <img class="fix_img"
-                                                                        @if ($user->avatar) src="{{ asset($user->avatar) }}" @else avatar="{{ $user->name }}" @endif>
-                                                                </a>
-                                                                <div class="px-2">
-                                                                    <h5 class="m-0">{{ $user->name }}</h5>
-                                                                    <small class="text-muted">{{ $user->email }}<span
-                                                                            class="text-primary "> -
-                                                                            {{ (int) count($project->user_done_tasks($user->id)) }}/{{ (int) count($project->user_tasks($user->id)) }}</span></small>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                        <div class="col-sm-auto text-sm-end d-flex align-items-center">
-                                                            @auth('web')
-                                                                {{-- modificado --}}
-                                                                @if (\Auth::user()->type == 'admin')
-                                                                    <a href="#"
-                                                                        class="action-btn btn-primary mx-1  btn btn-sm d-inline-flex align-items-center"
-                                                                        data-ajax-popup="true" data-size="lg"
-                                                                        data-toggle="popover" title="{{ __('Permission') }}"
-                                                                        data-title="{{ __('Edit Permission') }}"
-                                                                        data-url="{{ route('projects.user.permission', [$currentWorkspace->slug, $project->id, $user->id]) }}"><i
-                                                                            class="ti ti-lock"></i></a>
-                                                                    <a href="#"
-                                                                        class="action-btn btn-danger btn btn-sm d-inline-flex align-items-center bs-pass-para"
-                                                                        data-confirm="{{ __('Are You Sure?') }}"
-                                                                        data-toggle="popover" title="{{ __('Delete') }}"
-                                                                        data-text="{{ __('This action can not be undone. Do you want to continue?') }}"
-                                                                        data-confirm-yes="delete-user-{{ $user->id }}"><i
-                                                                            class="ti ti-trash ml-1"></i></a>
-                                                                    <form id="delete-user-{{ $user->id }}"
-                                                                        action="{{ route('projects.user.delete', [$currentWorkspace->slug, $project->id, $user->id]) }}"
-                                                                        method="POST" style="display: none;">
-                                                                        @csrf
-                                                                        @method('DELETE')
-                                                                    </form>
-                                                                @endif
-                                                            @endauth
-                                                        </div>
-                                                    </div>
-                                                </li>
-                                            </ul>
-                                        @endforeach
-                                    </div>
+
+                                <div class="col-sm-auto text-sm-end d-flex align-items-center">
+                                    @auth('web')
+                                        @if (\Auth::user()->type == 'admin')
+                                            <a href="#"
+                                                class="action-btn btn-primary mx-1  btn btn-sm d-inline-flex align-items-center"
+                                                data-ajax-popup="true" data-size="lg"
+                                                data-toggle="popover" title="{{ __('Permission') }}"
+                                                data-title="{{ __('Edit Permission') }}"
+                                                data-url="{{ route('projects.user.permission', [$currentWorkspace->slug, $project->id, $user->id]) }}">
+                                                <i class="ti ti-lock"></i>
+                                            </a>
+                                            <a href="#"
+                                                class="action-btn btn-danger btn btn-sm d-inline-flex align-items-center bs-pass-para"
+                                                data-confirm="{{ __('Are You Sure?') }}"
+                                                data-toggle="popover" title="{{ __('Delete') }}"
+                                                data-text="{{ __('This action can not be undone. Do you want to continue?') }}"
+                                                data-confirm-yes="delete-user-{{ $user->id }}">
+                                                <i class="ti ti-trash ml-1"></i>
+                                            </a>
+                                            <form id="delete-user-{{ $user->id }}"
+                                                action="{{ route('projects.user.delete', [$currentWorkspace->slug, $project->id, $user->id]) }}"
+                                                method="POST" style="display: none;">
+                                                @csrf
+                                                @method('DELETE')
+                                            </form>
+                                        @endif
+                                    @endauth
                                 </div>
                             </div>
-                        </div>
+                        </li>
+                    </ul>
+                @endforeach
+            </div>
+        </div>
+    </div>
+</div>
+
                         <div class="col-md-6 widthAdjustMediumDiv">
-                            <div class="card min-h">
-                                <div class="card-header">
-                                    <div class="d-flex justify-content-between align-items-center">
-                                        <div>
-                                            <h5 class="mb-0">{{ __('Sales manager') }}
-                                                ({{ count($project->salesManager) }})
-                                            </h5>
-                                        </div>
-                                        <div class="float-end">
-                                            <p class="text-muted d-none d-sm-flex align-items-center mb-0">
-                                                {{-- modificado --}}
-                                                @if (\Auth::user()->type == 'admin')
-                                                    <a href="#" class="btn btn-sm btn-primary"
-                                                        data-ajax-popup="true" data-title="{{ __('Share to Client') }}"
-                                                        data-toggle="popover" title="{{ __('Share to Client') }}"
-                                                        data-url="{{ route('projects.share.popup', [$currentWorkspace->slug, $project->id]) }}"><i
-                                                            class="ti ti-share"></i></a>
-                                                @endif
-                                            </p>
+    <div class="card min-h">
+        <div class="card-header">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h5 class="mb-0">{{ __('Users with imputed hours') }}
+                        ({{ count($usersWithHours) }})
+                    </h5>
+                </div>
+            </div>
+        </div>
+        <div class="card-body pb-1">
+            <div class="px-3 top-10-scroll" style="max-height: 300px;">
+                @foreach ($usersWithHours as $user)
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item px-0">
+                            <div class="row align-items-center justify-content-between">
+                                <div class="col-sm-auto mb-3 mb-sm-0">
+                                    <div class="d-flex align-items-center px-2">
+                                        <a href="#" class="text-start">
+                                            <img class="fix_img"
+                                                @if ($user->avatar) src="{{ asset($user->avatar) }}"
+                                                @else avatar="{{ $user->name }}" @endif>
+                                        </a>
+                                        <div class="px-2">
+                                            <h5 class="m-0">{{ $user->name }}</h5>
+                                            <small class="text-muted">
+                                                {{ $user->email }}
+                                                <span class="text-primary">
+                                                    - {{ \Carbon\Carbon::parse($user->total_time)->format('H:i') }}
+                                                </span>
+                                            </small>
                                         </div>
                                     </div>
                                 </div>
-                                <div class="card-body pb-1">
-                                    <div class=" px-3 top-10-scroll" style="max-height: 300px;">
-                                        @foreach ($project->salesManager as $client)
-                                            <ul class="list-group list-group-flush">
-                                                <li class="list-group-item px-0">
-                                                    <div class="row align-items-center justify-content-between">
-                                                        <div class="col-sm-auto mb-3 mb-sm-0">
-                                                            <div class="d-flex align-items-center px-2">
-                                                                <a href="#" class=" text-start">
-                                                                    <img class="fix_img"
-                                                                        @if ($client->avatar) src="{{ asset($logo . $client->avatar) }}" @else avatar="{{ $client->name }}" @endif>
-                                                                </a>
-                                                                <div class="px-2">
-                                                                    <h5 class="m-0">{{ $client->name }}</h5>
-                                                                    <small
-                                                                        class="text-muted">{{ $client->email }}</small>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                        <div class="col-sm-auto text-sm-end d-flex align-items-center">
-                                                            @auth('web')
-                                                                {{-- modificado --}}
-                                                                @if (\Auth::user()->type == 'admin')
-                                                                    <a href="#"
-                                                                        class="action-btn btn-primary mx-1  btn btn-sm d-inline-flex align-items-center"
-                                                                        data-toggle="popover" title="{{ __('Permission') }}"
-                                                                        data-ajax-popup="true" data-size="lg"
-                                                                        data-title="{{ __('Edit Permission') }}"
-                                                                        data-url="{{ route('projects.client.permission', [$currentWorkspace->slug, $project->id, $client->id]) }}"><i
-                                                                            class="ti ti-lock"></i></a>
-
-                                                                    <a href="#"
-                                                                        class="action-btn btn-danger mx-1  btn btn-sm d-inline-flex align-items-center bs-pass-para"
-                                                                        data-confirm="{{ __('Are You Sure?') }}"
-                                                                        data-toggle="popover" title="{{ __('Delete') }}"
-                                                                        data-text="{{ __('This action can not be undone. Do you want to continue?') }}"
-                                                                        data-confirm-yes="delete-client-{{ $client->id }}"><i
-                                                                            class="ti ti-trash"></i></a>
-
-                                                                    <form id="delete-client-{{ $client->id }}"
-                                                                        action="{{ route('projects.client.delete', [$currentWorkspace->slug, $project->id, $client->id]) }}"
-                                                                        method="POST" style="display: none;">
-                                                                        @csrf
-                                                                        @method('DELETE')
-                                                                    </form>
-                                                                @endif
-                                                            @endauth
-                                                        </div>
-                                                    </div>
-                                                </li>
-                                            </ul>
-                                        @endforeach
-                                    </div>
+                                {{-- Si quieres añadir acciones de admin como antes --}}
+                                <div class="col-sm-auto text-sm-end d-flex align-items-center">
+                                    @auth('web')
+                                        @if (\Auth::user()->type == 'admin')
+                                            {{-- Aquí podrías añadir botones de acciones si quieres --}}
+                                        @endif
+                                    @endauth
                                 </div>
                             </div>
-                        </div>
+                        </li>
+                    </ul>
+                @endforeach
+            </div>
+        </div>
+    </div>
+</div>
+
                     </div>
                 </div>
                 <div class="col-xxl-12">

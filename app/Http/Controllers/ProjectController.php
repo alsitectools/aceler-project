@@ -55,7 +55,7 @@ use SendGrid;
 use SendGrid\Mail\Mail;
 use Illuminate\Support\Facades\View;
 
-
+use Illuminate\Support\Facades\Response;
 
 class ProjectController extends Controller
 {
@@ -431,6 +431,7 @@ class ProjectController extends Controller
         return redirect()->back()->with('success', __('Permission Updated Successfully!'));
     }
 
+    // FUNCION QUE SE LLAMA AL ESTAR DENTRO DE UN PROYECTO
     public function show($slug, $projectID)
     {
         $objUser = Auth::user();
@@ -519,6 +520,7 @@ class ProjectController extends Controller
 
                     // Corrección: Tiempo de trabajo real
                     $workingTime = $deliveryTime - $startUpTime - $delayTime;
+                    if($workingTime < 0) $workingTime = 0;
                     $milestoneWorkingTime[] = $workingTime;
                 }
 
@@ -576,6 +578,35 @@ class ProjectController extends Controller
                 // $averageStartUpTime = round(array_sum($milestoneStartUpTime) / count($milestoneStartUpTime));
                 // $averageDelayTime = round(array_sum($milestoneDelayTime) / count($milestoneDelayTime));
 
+                //HORAS TOTALES IMPUTADAS AL PROYECTO
+                $totalHours = \DB::table('timesheets')
+                    ->where('project_id', $projectID)
+                    ->selectRaw("DATE_FORMAT(SEC_TO_TIME(SUM(TIME_TO_SEC(time))), '%H:%i') as total_time")
+                    ->value('total_time');
+
+                //USUARIOS QUE HAN CREADO UNA HOJA DE ENCARGO    
+                $milestoneCreators = \App\Models\User::select('users.*')
+                    ->join('milestones', 'milestones.created_by', '=', 'users.id')
+                    ->where('milestones.project_id', $projectID)
+                    ->selectRaw('users.*, COUNT(milestones.id) as milestones_count')
+                    ->groupBy('users.id')
+                    ->get();
+
+                //USUARIOS QUE HAN IMPUTADO HORAS EN EL PROYECTO
+                $usersWithHours = DB::table('timesheets')
+                    ->join('users', 'users.id', '=', 'timesheets.created_by')
+                    ->where('timesheets.project_id', $projectID)
+                    ->select(
+                        'users.id',
+                        'users.name',
+                        'users.email',
+                        'users.avatar',
+                        DB::raw("SEC_TO_TIME(SUM(TIME_TO_SEC(timesheets.time))) as total_time")
+                    )
+                    ->groupBy('users.id', 'users.name', 'users.email', 'users.avatar')
+                    ->get();
+
+
                 return view('projects.show', compact(
                     'currentWorkspace',
                     'project',
@@ -586,7 +617,10 @@ class ProjectController extends Controller
                     'averageDelivery',
                     'averageWorkingTime',
                     'averageStartUpTime',
-                    'averageDelayTime'
+                    'averageDelayTime',
+                    'totalHours',
+                    'milestoneCreators',
+                    'usersWithHours'
                 ));
             } else {
                 return redirect()->back()->with('error', __("Project Not Found."));
@@ -1025,7 +1059,7 @@ class ProjectController extends Controller
 
 
 
-            \Log::debug(['allmilestones' => $allmilestones]);
+            //\Log::debug(['allmilestones' => $allmilestones]);
 
 
             // $allmilestones = $allmilestones->merge($allmilestones2);
@@ -1123,7 +1157,7 @@ class ProjectController extends Controller
             'sales'         => User::find($milestone->assign_to),
             'asiggned_user_data'         => User::find($milestone->milestone_assigned_to_user),
         ];
-        \Log::info($milestone);
+        //\Log::info($milestone);
     }
 
     /**
@@ -1692,6 +1726,39 @@ class ProjectController extends Controller
         \Log::info('Todas las tareas tienen al menos una entrada en timesheets: ' . ($allExist ? 'Sí' : 'No'));
 
         return response()->json(['all_exist' => $allExist]);
+    }
+
+    public function downloadCsv($project_id)
+    {
+        // Cargamos los timesheets con sus relaciones
+        $timesheets = Timesheet::with(['task.milestone', 'task.project', 'getUser'])
+            ->where('project_id', $project_id)
+            ->get();
+
+        $fileName = "timesheet_project_{$project_id}.csv";
+        $handle = fopen('php://temp', 'r+');
+
+        // Cabecera del CSV
+        fputcsv($handle, ['Usuario', 'Dia', 'Encargo', 'Tarea', 'Horas']);
+
+        foreach ($timesheets as $t) {
+            fputcsv($handle, [
+                $t->getUser->name ?? 'Unknown',                         // Usuario
+                Carbon::parse($t->date)->format('Y-m-d'),               // Día
+                $t->task->milestone->title ?? 'Sin encargo',            // Encargo
+                $t->task->type->name ?? 'Sin tarea' ,                   // Tarea
+                Carbon::parse($t->time)->format('H:i'),                 // Horas imputadas
+            ]);
+        }
+
+        rewind($handle);
+        $csv = stream_get_contents($handle);
+        fclose($handle);
+
+        return Response::make($csv, 200, [
+            'Content-Type' => 'text/csv',
+            'Content-Disposition' => "attachment; filename={$fileName}",
+        ]);
     }
 
     public function commentDestroyFile(Request $request, $slug, $projectID, $taskID, $fileID)

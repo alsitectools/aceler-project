@@ -25,6 +25,12 @@ class Task extends Model
         return $this->hasMany(Timesheet::class);
     }
 
+    public function type()
+{
+    return $this->belongsTo(TaskType::class, 'type_id', 'id');
+}
+
+
     public function milestone()
     {
         return $this->belongsTo(Milestone::class, 'milestone_id', 'id');
