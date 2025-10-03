@@ -524,7 +524,7 @@
                                     </div>
                                 </div>
                                 <div class="card-body">
-                                    <div class="table-responsive">
+                                    <div class="table-responsive" style="max-height: 41vh;">
                                         <table id="" class="table table-bordered" style="text-align: center;">
                                             <thead>
                                                 {{-- <tr>

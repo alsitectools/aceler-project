@@ -21,6 +21,7 @@
 </style>
 @if ($milestone && $currentWorkspace)
     <form id="asignMilestoneForm" method="post"
+        onsubmit="document.querySelector('#saveAssignBtn').classList.add('disabled');"
         action="{{ route('projects.milestone.update', [$currentWorkspace->slug, $milestone->id]) }}"
         enctype="multipart/form-data">
         @csrf
@@ -141,7 +142,7 @@
         <div class="modal-footer">
             <button type="button" class="btn btn-light" id="closeBtn"
                 data-bs-dismiss="modal">{{ __('Close') }}</button>
-            <input type="submit" value="{{ __('Save Changes') }}" class="btn btn-primary">
+            <input type="submit" value="{{ __('Save Changes') }}" class="btn btn-primary" id="saveAssignBtn">
         </div>
     </form>
 @else
@@ -291,6 +292,18 @@
         if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(2)} KB`;
         return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
     }
+
+
+
+    // document.addEventListener("DOMContentLoaded", function() {
+    //     const saveBtn = document.getElementById("saveAssignBtn");
+    //     if (saveBtn) {
+    //         saveBtn.addEventListener("click", function() {
+    //             saveBtn.style.display = "none";
+    //             saveBtn.form.submit();
+    //         });
+    //     }
+    // });
 </script>
 
 <script>
