@@ -79,12 +79,14 @@
             font-weight: bold;
             color: white;
         }
+
         .calendar-header-day:hover {
             color: #ffffff;
             text-decoration: none;
             background-color: #b9515f;
             border-color: #b9515f;
         }
+
         .calendar-day {
             background: #fff;
             border: 1px solid #ddd;
@@ -105,11 +107,13 @@
             color: #ccc;
             pointer-events: none;
         }
-        .titleDivDisplay{
+
+        .titleDivDisplay {
             display: flex;
             flex-direction: column;
             align-items: center;
         }
+
         .month-dropdown {
             display: none;
             position: absolute;
@@ -139,8 +143,9 @@
         }
     </style>
 </head>
+
 <body>
-    <div id="customCalendarParent" class="calendar-container" >
+    <div id="customCalendarParent" class="calendar-container">
         <div class="calendar-header">
             <button id="prev-month">&lt;</button>
             <div class="titleDivDisplay">
@@ -154,7 +159,7 @@
     </div>
 
     <script>
-        document.addEventListener("DOMContentLoaded", function () {
+        document.addEventListener("DOMContentLoaded", function() {
             const calendarGrid = document.getElementById("calendar-grid");
             const monthYearDisplay = document.getElementById("month-year");
             const prevMonthButton = document.getElementById("prev-month");
@@ -183,7 +188,7 @@
                 const li = document.createElement("li");
                 li.textContent = month;
                 li.dataset.month = index;
-                li.addEventListener("click", function () {
+                li.addEventListener("click", function() {
                     currentMonth = parseInt(this.dataset.month);
                     generateCalendar(currentYear, currentMonth);
                     monthDropdown.style.display = "none";
@@ -208,7 +213,7 @@
                     headerDay.classList.add("calendar-header-day");
                     headerDay.textContent = day;
                     headerDay.dataset.dayIndex = index;
-                    headerDay.addEventListener("click", function () {
+                    headerDay.addEventListener("click", function() {
                         selectAllDaysOfWeek(index);
                     });
                     calendarGrid.appendChild(headerDay);
@@ -240,7 +245,7 @@
                         dayElement.classList.add("selected");
                     }
 
-                    dayElement.addEventListener("click", function () {
+                    dayElement.addEventListener("click", function() {
                         handleDayClick(this);
                     });
 
@@ -256,8 +261,11 @@
 
                 if (!startDate) {
                     startDate = selectedDate;
+                    endDate = null;
                     dayElement.classList.add("selected");
                     selectedDates = [startDate];
+                    range = [startDate]; // ✅ ESTO ES CLAVE
+                    localStorage.setItem('DateSelectedRange', JSON.stringify(range)); // ✅ GUARDAR UN SOLO DÍA
                 } else if (!endDate) {
                     endDate = selectedDate;
 
@@ -341,7 +349,7 @@
             }
 
 
-            prevMonthButton.addEventListener("click", function () {
+            prevMonthButton.addEventListener("click", function() {
                 if (currentMonth === 0) {
                     currentMonth = 11;
                     currentYear--;
@@ -351,7 +359,7 @@
                 generateCalendar(currentYear, currentMonth);
             });
 
-            nextMonthButton.addEventListener("click", function () {
+            nextMonthButton.addEventListener("click", function() {
                 if (currentMonth === 11) {
                     currentMonth = 0;
                     currentYear++;
@@ -366,19 +374,20 @@
             generateCalendar(currentYear, currentMonth);
 
             // Mostrar u ocultar el dropdown al hacer clic en el nombre del mes
-            monthYearDisplay.addEventListener("click", function () {
+            monthYearDisplay.addEventListener("click", function() {
                 monthDropdown.style.display = monthDropdown.style.display === "block" ? "none" : "block";
             });
 
             // Cerrar el dropdown si se hace clic fuera de él
-            document.addEventListener("click", function (e) {
+            document.addEventListener("click", function(e) {
                 if (!monthYearDisplay.contains(e.target) && !monthDropdown.contains(e.target)) {
                     monthDropdown.style.display = "none";
                 }
             });
-    });
-</script>
+        });
+    </script>
 
 
 </body>
+
 </html>
