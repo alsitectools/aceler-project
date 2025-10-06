@@ -398,7 +398,7 @@
     <div class="navbar-wrapper">
         <div class="m-header">
             <a href="{{ route('home') }}" class="mt-2">
-                <img class="ajustarImg" src="{{ asset('assets/img/logoRed1.png') }}" alt="logo" />
+                <img class="ajustarImg" src="{{ asset('assets/img/acerlerRemastered.png') }}" alt="logo" />
             </a>
         </div>
         <div class="navbar-content">

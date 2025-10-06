@@ -56,6 +56,10 @@
     }
 
     @media screen and (max-width:1600px) and (min-width:1000px) {
+        .taskName {
+            font-size: 13px;
+        }
+
         .footer-cell {
             width: 7rem !important;
         }
@@ -130,8 +134,10 @@
                                                                                 data-url="{{ route('show.task', [$currentWorkspace->slug, $taskTimesheet['task_id'], $days['first_day'], $days['seventh_day']]) }}"
                                                                                 data-ajax-popup="true"
                                                                                 data-title="Task Detail"
+                                                                                class="taskName"
                                                                                 data-task-name="{{ $taskTimesheet['task_name'] }}"
                                                                                 data-modal-id="commonModalModified">
+
                                                                                 {{ __($taskTimesheet['task_name']) }}
                                                                             </div>
                                                                         </td>

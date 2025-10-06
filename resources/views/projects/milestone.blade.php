@@ -1,6 +1,12 @@
 <head>
     <link rel="stylesheet" href="{{ asset('assets/css/milestone.css') }}">
     <style>
+        .dropdown-menu {
+            max-height: 110px !important;
+            overflow-y: auto !important;
+
+        }
+
         #user-select {
             display: none;
         }
@@ -174,14 +180,14 @@
                         <input class="form-check-input" type="checkbox" role="switch" id="toggleFormSwitch">
                         <label class="form-check-label"
                             for="toggleFormSwitch">{{ __('Only in case it is necessary to to
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    carry out a project with a visa.') }}</label>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            carry out a project with a visa.') }}</label>
                     </div>
                     <div id="additionalForm" class="collapse mt-3">
                         <div class="card card-body">
                             <div class="mb-3">
                                 <label for="input1"
                                     class="form-label">{{ __('Name of the company that will install the
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    system') }}:</label>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            system') }}:</label>
                                 <input type="text" class="form-control" name="company" id="company"
                                     placeholder="Ingrese valor">
                             </div>
@@ -204,8 +210,8 @@
                             </div>
                             <p class="mb-3">
                                 <b>{{ __('Note: In order to carry out the project it is necessary to send the quotation of
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                the formwork and falsework system, and the complete assembly drawings and geometrical
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                definition of the structure.') }}
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                the formwork and falsework system, and the complete assembly drawings and geometrical
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                definition of the structure.') }}
                                 </b>
                             </p>
                         </div>
@@ -266,7 +272,8 @@
                     <div class="modal-footer">
                         <button type="button" class="btn btn-light"
                             data-bs-dismiss="modal">{{ __('Close') }}</button>
-<input type="submit" id="submitMilestoneBtn" value="{{ __('Save Changes') }}" class="btn btn-primary">
+                        <input type="submit" id="submitMilestoneBtn" value="{{ __('Save Changes') }}"
+                            class="btn btn-primary">
                     </div>
                 </form>
             </div>
@@ -333,7 +340,7 @@
                         <div class="page-search">
                             <p class="text-muted mt-3">
                                 {{ __("It's looking like you may have taken a wrong turn. Don't worry... it happens to the
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            best of us. Here's a little tip that might help you get back on track.") }}
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            best of us. Here's a little tip that might help you get back on track.") }}
                             </p>
                             <div class="mt-3">
                                 <a class="btn-return-home badge-blue" href="{{ route('home') }}">
@@ -369,13 +376,12 @@
             console.error('Error al enviar el formulario:', error);
             isSubmitting = false;
             submitBtn.disabled = false;
-            submitBtn.value = '{{ __("Save Changes") }}';
+            submitBtn.value = '{{ __('Save Changes') }}';
         }
     });
 </script>
 
 <script>
-    
     // Definir valores por defecto del usuario logueado
     var defaultUserId = '{{ Auth::user()->id }}';
     var defaultUserName = '{{ Auth::user()->name }}';
@@ -1004,6 +1010,4 @@
             console.error("Error al agregar notificación:", error);
         }
     }
-
-
 </script>

@@ -18,6 +18,12 @@
     .modalMod {
         width: 50%;
     }
+
+    .dropdown-menu {
+        max-height: 100px !important;
+        overflow-y: auto !important;
+
+    }
 </style>
 @if ($milestone && $currentWorkspace)
     <form id="asignMilestoneForm" method="post"
