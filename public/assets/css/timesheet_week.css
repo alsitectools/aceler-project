@@ -296,11 +296,13 @@
 }
 
 .divTitleEncargo {
+    border-radius: 6px;
+    overflow: hidden;
+    text-overflow: ellipsis;
     width: 60%;
     margin-left: 20%;
     margin-top: 1% !important;
-    padding-top: 5px;
-    padding-bottom: 5px;
+    padding:5px;
     box-shadow: 1px 1px 2px 1px rgb(0 0 0 / 16%);
     -webkit-box-shadow: 1px 1px 2px 1px rgb(0 0 0 / 16%);
     -moz-box-shadow: 1px 1px 2px 1px rgb(0 0 0 / 16%);
