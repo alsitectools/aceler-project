@@ -74,6 +74,36 @@
         flex-direction: column;
     }
 
+    .fixedHeight {
+        max-height: 600px;
+        overflow: hidden;
+        overflow-y: auto;
+        scrollbar-color: #aa182c #ffff0000;
+        scrollbar-width: thin;
+    }
+
+    .fixedHeight::-webkit-scrollbar {
+        width: 8px;
+        height: 10px;
+        /* Ancho del scrollbar */
+    }
+
+    /* Fondo del scrollbar */
+    .fixedHeight::-webkit-scrollbar-track {
+        background: #ffffff;
+        /* Color del fondo */
+        border-radius: 4px;
+        /* Bordes redondeados */
+    }
+
+    /* Parte deslizable del scrollbar */
+    .fixedHeight::-webkit-scrollbar-thumb {
+        background: #AA182C;
+        /* Color del scrollbar */
+        border-radius: 4px;
+        height: 10px;
+    }
+
     @media screen and(max-width:1200px) and(min-width:1000px) {
         .adjustImg {
             width: 65%;
@@ -293,7 +323,7 @@
                                 </h4>
                             </div>
                             <div id="{{ 'milestone-list-' . str_replace(' ', '_', $status->id) }}"
-                                data-status="{{ $status->id }}" class="card-body kanban-box">
+                                data-status="{{ $status->id }}" class="card-body kanban-box fixedHeight">
 
                                 @if (isset($milestones[$status->id]))
                                     @foreach ($milestones[$status->id] as $milestone)
