@@ -450,7 +450,7 @@ class ProjectController extends Controller
                 ->join('user_projects', 'projects.id', '=', 'user_projects.project_id')
                 ->where('projects.workspace', '=', $currentWorkspace->id)
                 ->where('projects.id', '=', $projectID)
-                ->with(['activities.user', 'delegation'])
+                ->with('activities.user')
                 ->first();
 
             if ($project) {
@@ -478,6 +478,9 @@ class ProjectController extends Controller
                     ->select('id', 'title')
                     ->get(); // Obtiene una colección de objetos Eloquent
 
+
+                // NUEVO: Total de milestones creados en el proyecto
+                $totalMilestones = Milestone::where('project_id', '=', $projectID)->count();
 
                 //  Array para almacenar los archivos de cada milestone
                 $milestoneFiles = [];
@@ -628,7 +631,8 @@ class ProjectController extends Controller
                     'averageDelayTime',
                     'totalHours',
                     'milestoneCreators',
-                    'usersWithHours'
+                    'usersWithHours',
+                    'totalMilestones'
                 ));
             } else {
                 return redirect()->back()->with('error', __("Project Not Found."));
