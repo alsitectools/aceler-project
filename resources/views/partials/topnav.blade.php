@@ -2,7 +2,7 @@
     $unseenCounter = App\Models\ChMessage::where('to_id', Auth::user()->id)
         ->where('seen', 0)
         ->count();
-    $logo = \App\Models\Utility::get_file('avatars/');
+    $logo = 'storage/app/public/';
 @endphp
 @php
     $languages = \App\Models\Utility::languages();
@@ -45,13 +45,10 @@
     if ($SITE_RTL == '' || $SITE_RTL == null) {
         $SITE_RTL = env('SITE_RTL');
     }
-
     $currantLang = basename(App::getLocale());
-    // $currantLang = Auth::user()->lang;
     if ($currantLang == '') {
-        $currantLang = 'en';
+        $currantLang = 'es';
     }
-    // dump($currantLang);
 @endphp
 
 
@@ -62,12 +59,140 @@
     }
 
     .noti-body {
-        height: 300px;
+        height: 600px;
         overflow: auto;
     }
+
+    .notificationSTL {
+        display: flex;
+        align-content: center;
+        align-items: center;
+        justify-content: center;
+        /* background-color: #a5222f; */
+        height: 105px;
+        border-radius: 10px;
+        box-shadow: 0 6px 30px rgba(182, 186, 203, 0.3);
+        font-size: 16px;
+        transition: transform 0.5s ease-out, opacity 0.5s ease-out;
+    }
+
+    .repoIcon {
+        position: absolute;
+        right: 10%;
+        /* filter: invert(1); */
+    }
+
+    .noNotificationsContainer {
+        height: 100%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        flex-direction: column;
+    }
+
+    .textRepo {
+        color: black;
+        position: absolute;
+        left: 10%;
+        font-size: 15px;
+        max-width: 75%;
+        margin-bottom: 19px;
+    }
+
+    .MC {
+        margin-bottom: 10px;
+        background-color: #c7c7c74f;
+        border-left: 6px solid #595959;
+        border-top: 2px solid #c7c7c74f;
+        border-bottom: 2px solid #c7c7c74f;
+        border-right: 2px solid #c7c7c74f;
+    }
+
+    .PC {
+        margin-bottom: 10px;
+        background-color: #03c8ff36;
+        border-left: 6px solid #0794bb;
+        border-top: 2px solid #03c8ff36;
+        border-bottom: 2px solid #03c8ff36;
+        border-right: 2px solid #03c8ff36;
+    }
+
+    .MF {
+        margin-bottom: 10px;
+        background-color: #25c74336;
+        border-left: 6px solid #25C743;
+        border-top: 2px solid #25c74336;
+        border-bottom: 2px solid #25c74336;
+        border-right: 2px solid #25c74336;
+    }
+
+    .AP {
+        margin-bottom: 10px;
+        background-color: #ffff0038;
+        border-left: 6px solid #dfdf00;
+        border-top: 2px solid #ffff0038;
+        border-bottom: 2px solid #ffff0038;
+        border-right: 2px solid #ffff0038;
+    }
+
+    .FR {
+        margin-bottom: 10px;
+        background-color: #ff8a0066;
+        border-left: 6px solid #ff8a0066;
+        border-top: 2px solid #ff8a0066;
+        border-bottom: 2px solid #ff8a0066;
+        border-right: 2px solid #ff8a0066;
+    }
+
+    .notification-slide-out {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+
+    .btn-close:focus {
+        outline: none;
+        box-shadow: none;
+        animation: pulse 0.5s ease-in-out;
+    }
+
+    .animate-pulse {
+        animation: pulse 0.5s ease-in-out;
+    }
+
+    .smallDate {
+        position: relative;
+        top: 30%;
+        width: 100%;
+        left: 6%;
+        font-style: italic;
+    }
+
+    @keyframes pulse {
+        0% {
+            transform: scale(1);
+        }
+
+        50% {
+            transform: scale(1.3);
+        }
+
+        100% {
+            transform: scale(1);
+        }
+    }
+
+    @media (max-width: 1400px) {
+    .noti-body {
+        max-height: 300px !important;
+    }
+    .dash-header .drp-notification .noti-body  {
+        max-height: 0px;
+    }
+}
+
 </style>
 <header class="dash-header {{ isset($cust_theme_bg) && $cust_theme_bg == 'on' ? 'transprent-bg' : '' }}">
-    <div class="header-wrapper p-0  me-2">
+    <div class="header-wrapper p-0 me-1">
         <div class="dash-mob-drp">
             <ul class="list-unstyled">
                 <li class="dash-h-item mob-hamburger">
@@ -79,131 +204,39 @@
                         </div>
                     </a>
                 </li>
-                <li class="dropdown dash-h-item drp-company">
-                    <a class="dash-head-link dropdown-toggle arrow-none me-0" data-bs-toggle="dropdown" href="#"
+                <li class="dropdown dash-h-item drp-company ms-4">
+                    <a class="dash-head-link dropdown-toggle arrow-none" data-bs-toggle="dropdown" href="#"
                         role="button" aria-haspopup="false" aria-expanded="false">
                         <img class="theme-avtar"
-                            @if (\Auth::user()->avatar) src="{{ asset($logo . Auth::user()->avatar) }}" @else avatar="{{ Auth::user()->name }}" @endif
+                            @if (\Auth::user()->avatar) src="{{ asset(Auth::user()->avatar) }}" @else avatar="{{ Auth::user()->name }}" @endif
                             alt="{{ Auth::user()->name }}">
-                        <span class="hide-mob ms-2">{{ __('Hi') }},{{ Auth::user()->name }} !</span>
+
+                        <span class="hide-mob ms-2">{{ __('Hi') }}, {{ Auth::user()->name }} </span>
                         <i class="ti ti-chevron-down drp-arrow nocolor hide-mob"></i>
                     </a>
                     <div class="dropdown-menu dash-h-dropdown">
-                        @php $login_status = false; @endphp
-
-                        @foreach (Auth::user()->workspace as $workspace)
-                            {{-- @dump($workspace)  --}}
-                            @if ($workspace->is_active)
-                                @php
-                                    $user = Auth::user();
-                                    $userWorkspace = App\Models\UserWorkspace::where([
-                                        ['user_id', $user->id],
-                                        ['workspace_id', $workspace->id],
-                                    ])->first();
-                                @endphp
-                                @if (isset($userWorkspace))
-                                    @if ($userWorkspace->is_active == 1)
-                                        @php
-                                            $login_status = true;
-                                        @endphp
-                                        <a href="@if ($currentWorkspace->id == $workspace->id) #@else @auth('web'){{ route('change-workspace', $workspace->id) }}@elseauth{{ route('client.change-workspace', $workspace->id) }}@endauth @endif"
-                                            title="{{ $workspace->name }}" class="dropdown-item">
-                                            @if ($currentWorkspace->id == $workspace->id)
-                                                <i class="ti ti-checks text-success"></i>
-                                            @endif
-                                            <span>{{ $workspace->name }}</span>
-                                            @if (isset($workspace->pivot->permission))
-                                                @if ($workspace->pivot->permission == 'Owner')
-                                                    <span
-                                                        class="badge bg-primary">{{ __($workspace->pivot->permission) }}</span>
-                                                @else
-                                                    <span class="badge bg-dark">{{ __('Shared') }}</span>
-                                                @endif
-                                            @endif
-                                        </a>
+                        @foreach (Auth::user()->workspaces() as $workspace)
+                            @if (Auth::user()->id == $workspace->user_id)
+                                <a href="{{ route('change-workspace', $workspace->workspace_id) }}"
+                                    id="change-workspace" class="dropdown-item">
+                                    <span>{{ $workspace->name }}</span>
+                                    @if ($currentWorkspace->id == $workspace->workspace_id)
+                                        <i class="ti ti-checks text-success ms-3"></i>
                                     @endif
-                                @endif
+                                </a>
                             @else
                                 <a href="#" class="dropdown-item" title="{{ __('Locked') }}">
                                     <i class="ti ti-lock"></i>
                                     <span>{{ $workspace->name }}</span>
-                                    @if (isset($workspace->pivot->permission))
-                                        @if ($workspace->pivot->permission == 'Owner')
-                                            <span
-                                                class="badge badge-success-primary">{{ __($workspace->pivot->permission) }}</span>
-                                        @else
-                                            <span class="badge bg-dark">{{ __('Shared') }}</span>
-                                        @endif
-                                    @endif
                                 </a>
                             @endif
                         @endforeach
 
-                        {{-- For Client  --}}
-                        @if (Auth::user()->getGuard() == 'client')
-                            @php
-                                $client = Auth::user();
-                            @endphp
-                            @foreach ($client->workspace as $workspace)
-                                @if ($workspace->is_active == 1)
-                                    @php
-                                        $clientWorkspace = App\Models\ClientWorkspace::where([
-                                            ['client_id', $client->id],
-                                            ['workspace_id', $workspace->id],
-                                        ])->first();
-                                    @endphp
-                                    @if (isset($clientWorkspace))
-                                        @php
-                                            $login_status = true;
-                                        @endphp
-                                        @if ($clientWorkspace->is_active == 1)
-                                            <a href="@if ($currentWorkspace->id == $workspace->id) #@else @auth('web'){{ route('change-workspace', $workspace->id) }}@elseauth{{ route('client.change-workspace', $workspace->id) }}@endauth @endif"
-                                                title="{{ $workspace->name }}" class="dropdown-item">
-                                                @if ($currentWorkspace->id == $workspace->id)
-                                                    <i class="ti ti-checks text-success"></i>
-                                                @endif
-                                                <span>{{ $workspace->name }}</span>
-                                                @if (isset($workspace->pivot->permission))
-                                                    @if ($workspace->pivot->permission == 'Owner')
-                                                        <span
-                                                            class="badge bg-primary">{{ __($workspace->pivot->permission) }}</span>
-                                                    @else
-                                                        <span class="badge bg-dark">{{ __('Shared') }}</span>
-                                                    @endif
-                                                @endif
-                                            </a>
-                                        @endif
-                                    @endif
-                                @endif
-                            @endforeach
-
-                        @endif
-
-                        @if (isset($currentWorkspace) && $currentWorkspace)
-                            @auth('web')
-                                @if (Auth::user()->id == 'admin')
-                                    <a href="#" class="dropdown-item bs-pass-para"
-                                        data-confirm="{{ __('Are You Sure?') }}"
-                                        data-text="{{ __('messages.This_action_can_not_be_undone._Do_you_want_to_continue?') }}"
-                                        data-confirm-yes="remove-workspace-form">
-                                        <i class="ti ti-circle-x"></i>
-                                        <span>{{ __('Remove Me From This Workspace') }}</span>
-                                    </a>
-                                    <form id="remove-workspace-form"
-                                        action="{{ route('delete-workspace', ['id' => $currentWorkspace->id]) }}"
-                                        method="POST" style="display: none;">
-                                        @csrf
-                                        @method('DELETE')
-                                    </form>
-                                @endif
-                            @endauth
-                        @endif
                         <a href="@auth('web'){{ route('users.my.account') }}@elseauth{{ route('client.users.my.account') }}@endauth"
                             class="dropdown-item">
                             <i class="ti ti-user"></i>
                             <span>{{ __('My Profile') }}</span>
                         </a>
-
                         <a href="#" class="dropdown-item "
                             onclick="event.preventDefault();document.getElementById('logout-form1').submit();">
                             <i class="ti ti-power"></i>
@@ -216,205 +249,217 @@
                         </form>
                     </div>
                 </li>
-
-
             </ul>
         </div>
         <!-- Brand + Toggler (for mobile devices) -->
 
         <div class="ms-auto">
             <ul class="list-unstyled" style="padding-right: 15px;">
-                @if (Auth::user()->type == 'admin')
-                    @impersonating($guard = null)
-                        <li class="dropdown dash-h-item drp-company">
-                            <a class="btn btn-danger btn-sm me-3" href="{{ route('exit.admin') }}"><i
-                                    class="ti ti-ban"></i>
-                                {{ __('Exit Admin Login') }}
-                            </a>
-                        </li>
-                    @endImpersonating
-                @endif
-                @if (\Auth::user()->type == 'user')
-                    @if ($adminSetting['enable_chat'] == 'on')
-                        <li class="dash-h-item">
-                            <a class="dash-head-link me-0" href="{{ url('chats') }}">
-                                <i class="ti ti-message-circle"></i>
-                                <span
-                                    class="bg-danger dash-h-badge message-counter custom_messanger_counter">{{ $unseenCounter }}<span
-                                        class="sr-only"></span>
-                                </span></a>
-                        </li>
-                    @endif
-                @endif
 
-
-                @if (\Auth::user()->type == 'user')
-                    <li class="dropdown dash-h-item drp-notification">
-                        @if (isset($currentWorkspace) && $currentWorkspace)
-                            @auth('web')
-                                @php
-                                    $notifications = Auth::user()->notifications($currentWorkspace->id);
-                                @endphp
-                                <a class="dash-head-link dropdown-toggle arrow-none me-0" data-bs-toggle="dropdown"
-                                    href="#" role="button" aria-haspopup="false" aria-expanded="false">
-
-                                    <i class="ti ti-bell"></i>
-                                    <span
-                                        class="@if (count($notifications) > 0) bg-danger dash-h-badge dots @endif"><span
-                                            class="sr-only"></span></span>
-                                </a>
-                                <div class="dropdown-menu dash-h-dropdown dropdown-menu-end notification_menu_all">
-                                    <div class="noti-header">
-                                        <h5 class="m-0">{{ __('dictionary.Notification') }}</h5>
-                                        <a href="#"
-                                            data-url="{{ route('delete_all.notifications', $currentWorkspace->slug) }}"
-                                            class="dash-head-link clear_all_notifications">{{ __('dictionary.Clear_All') }}</a>
-                                    </div>
-                                    <div class="noti-body">
-                                        <div class="limited">
-                                            @foreach ($notifications as $notification)
-                                                @php
-                                                    $project = $notification->project;
-                                                    $task = $notification->task;
-                                                    $notifyingUser = $notification->user;
-
-                                                    // Define variables for the notification data
-                                                    $projectTitle = $project ? $project->title : '';
-                                                    $taskTitle = $task ? $task->title : '';
-                                                    $notifyingUserName = $notifyingUser->name;
-
-                                                    // Define other variables you need for HTML
-                                                    $link = ''; // Replace with the actual link
-                                                    $name = ''; // Replace with the notification icon or name
-                                                    $text = ''; // Replace with the notification text
-                                                    $date = $notification->created_at->diffForHumans();
-                                                    $data = json_decode($notification->data);
-                                                @endphp
-                                                @if ($notification->user && trim($notification->user->name) != '')
-                                                    @php
-                                                        $name = '';
-                                                        $nameParts = explode(' ', $notification->user->name);
-                                                    @endphp
-
-                                                    @foreach ($nameParts as $word)
-                                                        @php
-                                                            $name .= strtoupper($word[0]);
-                                                        @endphp
-                                                    @endforeach
-                                                @endif
-
-                                                @if ($notification->type == 'task_assign')
-                                                    @php
-                                                        if ($project) {
-                                                            $link = route('projects.task.board', [
-                                                                $notification->workspace_id,
-                                                                $notification->project_id,
-                                                            ]);
-                                                            $text =
-                                                                __('New task assign') .
-                                                                ' <b>' .
-                                                                $data->title .
-                                                                '</b> ' .
-                                                                __('in project') .
-                                                                ' <b>' .
-                                                                $project->name .
-                                                                '</b>';
-                                                            $icon = 'fa fa-clock-o';
-                                                        } else {
-                                                            return '';
-                                                        }
-                                                    @endphp
-                                                @elseif($notification->type == 'project_assign')
-                                                    @php
-                                                        $link = route('projects.show', [
-                                                            $notification->workspace_id,
-                                                            $notification->data->id,
-                                                        ]);
-                                                        $text =
-                                                            __('New project assign') . ' <b>' . $data->title . '</b>';
-                                                        $icon = 'fa fa-suitcase';
-                                                    @endphp
-                                                @elseif($notification->type == 'bug_assign')
-                                                    @php
-                                                        if ($project) {
-                                                            $link = route('projects.bug.report', [
-                                                                $notification->workspace_id,
-                                                                $notification->project_id,
-                                                            ]);
-                                                            $text =
-                                                                __('New bug assign') .
-                                                                ' <b>' .
-                                                                $data->title .
-                                                                '</b> ' .
-                                                                __('in project') .
-                                                                ' <b>' .
-                                                                $project->name .
-                                                                '</b>';
-                                                            $icon = 'fa fa-bug';
-                                                            //   if ($data->priority == 'Low') {
-                                                            //       $icon_color = 'bg-success';
-                                                            //   } elseif ($data->priority == 'High') {
-                                                            //       $icon_color = 'bg-danger';
-                                                            //   }
-                                                        }
-                                                    @endphp
-                                                @endif
-                                                <a href="{{ $link }}"
-                                                    class="list-group-item list-group-item-action">
-                                                    <div class="d-flex align-items-center" data-toggle="tooltip"
-                                                        data-placement="right" data-title="{{ $date }}">
-                                                        <div class="notification_icon_size">
-                                                            <span
-                                                                class="avatar bg-primary text-white rounded-circle px-2 py-1">{{ $name }}</span>
-                                                        </div>
-                                                        <div class="flex-fill ml-3">
-                                                            <div class="h6 text-sm mb-0">
-                                                                {{ $notification->user->name }}
-                                                                <small
-                                                                    class="float-end text-muted">{{ $date }}</small>
-                                                            </div>
-                                                            <p class="text-sm lh-140 mb-0">
-                                                                {!! $text !!}
-                                                            </p>
-                                                        </div>
-                                                    </div>
-                                                </a>
-                                            @endforeach
-                                        </div>
-
-                                        <div class="all_notification">
-
-                                        </div>
-
-                                        {{-- <div class="all_notification" style="display:none !important;">
-                                            @foreach ($all_notifications as $notification)
-                                                {!! $notification->toHtml() !!}
-                                            @endforeach
-                                        </div> --}}
-                                    </div>
-                                    {{-- <div class="noti-footer">
-                                        <div class="d-grid">
-                                            <a href="#"
-                                                class="btn dash-head-link justify-content-center text-primary mx-0 view_all_notification"
-                                                data-limit="3">View
-                                                all</a>
-                                            <a href="#"
-                                                class="btn dash-head-link justify-content-center text-primary mx-0 view_less"
-                                                style="display:none !important;">View less</a>
-
-                                        </div>
-                                    </div> --}}
-                                </div>
-                            @endauth
-                        @endif
+                @if ($adminSetting['enable_chat'] == 'on')
+                    <li class="dash-h-item">
+                        <a class="dash-head-link me-0" href="{{ url('chats') }}">
+                            <i class="ti ti-message-circle"></i>
+                            <span
+                                class="bg-danger dash-h-badge message-counter custom_messanger_counter">{{ $unseenCounter }}<span
+                                    class="sr-only"></span>
+                            </span></a>
                     </li>
                 @endif
+
+                <li class="dropdown dash-h-item drp-notification">
+                    {{-- <button id="addNotificationBtn" class="btn btn-primary">Añadir Notificación</button> --}}
+                    {{-- $notifications = \App\Models\Notification::where('workspace_id', $currentWorkspace->id)
+                    ->orderBy('created_at', 'desc')
+                    ->get(); --}}
+
+                    @if (isset($currentWorkspace) && $currentWorkspace)
+                        @auth('web')
+                            @php
+                                // Se obtiene las notificaciones del usuario filtrando por el workspace actual
+                                // y se agregan las notificaciones de tipo 4 o 5, que serán globales.
+                                $notifications = \App\Models\Notification::where('user_id', Auth::user()->id)
+                                    ->where(function ($query) use ($currentWorkspace) {
+                                        $query
+                                            ->where('workspace_id', $currentWorkspace->id)
+                                            ->orWhere('type', 4)
+                                            ->orWhere('type', 5);
+                                    })
+                                    ->orderBy('created_at', 'desc')
+                                    ->get();
+                            @endphp
+                            <a class="dash-head-link dropdown-toggle arrow-none me-0" data-bs-toggle="dropdown"
+                                href="#" role="button" aria-haspopup="false" aria-expanded="false">
+
+                                <i class="ti ti-bell"></i>
+                                <span id="notificationBadge"
+                                    class="@if (count($notifications) > 0) bg-danger dash-h-badge dots @endif"><span
+                                        class="sr-only"></span></span>
+                            </a>
+                            <div class="dropdown-menu dash-h-dropdown dropdown-menu-end notification_menu_all">
+                                <div class="noti-header">
+                                    <h5 class="m-0">{{ __('Notification') }}</h5>
+                                    <a href="#"
+                                        data-url="{{ route('delete_all.notifications', $currentWorkspace->slug) }}"
+                                        class="dash-head-link clear_all_notifications">{{ __('Clear all') }}</a>
+                                </div>
+                                <div class="noti-body">
+                                    <div class="limited">
+
+                                        @if ($notifications->isEmpty())
+                                            <div class="noNotificationsContainer"> <i
+                                                    class="fa-duotone fa-solid fa-bell-slash" aria-hidden="true"
+                                                    style="font-size: 48px; margin-bottom: 30px; color: #d1d1d1;"></i>
+                                                <p style="font-size: 15px; color: #d1d1d1;">
+                                                    {{ __("You're up to date! No notifications") }}</p>
+                                            </div>
+                                        @else
+                                            @foreach ($notifications as $notification)
+                                                <div style="margin-bottom: 10px;">
+
+                                                    @if ($notification->type == '1')
+                                                        <div class="notificationSTL PC"
+                                                            data-notification-id="{{ $notification->id }}">
+                                                            <span
+                                                                class="textRepo">{{ __('A new project has been created:') }}
+                                                                <b>{{ $notification->data }}</b>
+                                                            </span>
+                                                            <small
+                                                                class="text-muted smallDate">{{ ucfirst($notification->created_at->diffForHumans()) }}</small>
+                                                            <button type="button" class="btn-close repoIcon"
+                                                                aria-label="Close"></button>
+                                                        @elseif($notification->type == '2')
+                                                            <div class="notificationSTL MC"
+                                                                data-notification-id="{{ $notification->id }}">
+                                                                <span
+                                                                    class="textRepo">{{ __('A new milestone has been created:') }}
+                                                                    <b>
+                                                                        @if (app()->getLocale() === 'en')
+                                                                            {{ preg_replace('/\ben\b/', 'in', $notification->data) }}
+                                                                        @else
+                                                                            {{ $notification->data }}
+                                                                        @endif
+                                                                    </b></span>
+                                                                <small
+                                                                    class="text-muted smallDate">{{ ucfirst($notification->created_at->diffForHumans()) }}</small>
+                                                                <button type="button" class="btn-close repoIcon"
+                                                                    aria-label="Close"></button>
+                                                            @elseif($notification->type == '3')
+                                                                <div class="notificationSTL MF"
+                                                                    data-notification-id="{{ $notification->id }}">
+                                                                    <span
+                                                                        class="textRepo">{{ __('The following milestone has been finished:') }}
+                                                                        <b>{{ $notification->data }}</b></span>
+                                                                    <small
+                                                                        class="text-muted smallDate">{{ ucfirst($notification->created_at->diffForHumans()) }}</small>
+                                                                    <button type="button" class="btn-close repoIcon"
+                                                                        aria-label="Close"></button>
+                                                                @elseif($notification->type == '4')
+                                                                    <div class="notificationSTL AP"
+                                                                        data-notification-id="{{ $notification->id }}">
+                                                                        @php
+                                                                            // Definimos los separadores para cada idioma
+                                                                            $separatorSpanish =
+                                                                                '. La fecha de entrega prevista es ';
+                                                                            $separatorEnglish =
+                                                                                '. The estimated delivery date is ';
+                                                                            $data = $notification->data;
+
+                                                                            if (app()->getLocale() === 'en') {
+                                                                                // Reemplazamos el separador en español por el de inglés
+                                                                                $data = str_replace(
+                                                                                    $separatorSpanish,
+                                                                                    $separatorEnglish,
+                                                                                    $data,
+                                                                                );
+                                                                                $parts = explode(
+                                                                                    $separatorEnglish,
+                                                                                    $data,
+                                                                                );
+                                                                                if (count($parts) === 2) {
+                                                                                    [
+                                                                                        $milestoneText,
+                                                                                        $plannedDate,
+                                                                                    ] = $parts;
+                                                                                } else {
+                                                                                    $milestoneText = $data;
+                                                                                    $plannedDate = '';
+                                                                                }
+                                                                                // Cambiamos " en " por " in " en la parte del hito
+                                                                                $milestoneText = str_replace(
+                                                                                    ' en ',
+                                                                                    ' in ',
+                                                                                    $milestoneText,
+                                                                                );
+                                                                                $dateText =
+                                                                                    'The estimated delivery date is ';
+                                                                            } else {
+                                                                                $parts = explode(
+                                                                                    $separatorSpanish,
+                                                                                    $data,
+                                                                                );
+                                                                                if (count($parts) === 2) {
+                                                                                    [
+                                                                                        $milestoneText,
+                                                                                        $plannedDate,
+                                                                                    ] = $parts;
+                                                                                } else {
+                                                                                    $milestoneText = $data;
+                                                                                    $plannedDate = '';
+                                                                                }
+                                                                                $dateText =
+                                                                                    'La fecha de entrega prevista es ';
+                                                                            }
+                                                                        @endphp
+
+                                                                        <span class="textRepo">
+                                                                            {{ __('You got assigned the milestone') }}
+                                                                            <b>{{ $milestoneText }}</b>.
+                                                                            {{ $dateText }}<b>{{ $plannedDate }}</b>
+                                                                        </span>
+
+                                                                        <small
+                                                                            class="text-muted smallDate">{{ ucfirst($notification->created_at->diffForHumans()) }}</small>
+                                                                        <button type="button" class="btn-close repoIcon"
+                                                                            aria-label="Close"></button>
+                                                                    @elseif($notification->type == '5')
+                                                                        <div class="notificationSTL FR"
+                                                                            data-notification-id="{{ $notification->id }}">
+                                                                            <span
+                                                                                class="textRepo">{{ __('You have an order form pending for review: ') }}
+                                                                                @if (app()->getLocale() === 'en')
+                                                                                    <b>
+                                                                                        {{ preg_replace('/\ben el proyecto \b/', 'in the project ', $notification->data) }}</b>
+                                                                                @else
+                                                                                    <b> {{ $notification->data }}</b>
+                                                                                @endif
+                                                                            </span>
+                                                                            <small
+                                                                                class="text-muted smallDate">{{ ucfirst($notification->created_at->diffForHumans()) }}</small>
+                                                                            <button type="button"
+                                                                                class="btn-close repoIcon"
+                                                                                aria-label="Close"></button>
+                                                    @endif
+
+                                                </div>
+                                            @endforeach
+                                        @endif
+                                    </div>
+
+                                    <div class="all_notification">
+                                    </div>
+
+                                </div>
+                            </div>
+                        @endauth
+                    @endif
+                </li>
 
                 <li class="dropdown dash-h-item drp-language">
                     <a class="dash-head-link dropdown-toggle arrow-none me-0" data-bs-toggle="dropdown"
                         href="#" role="button" aria-haspopup="false" aria-expanded="false">
                         <i class="ti ti-world nocolor"></i>
-                        <span
+                        <span id="selectedlenguage"
                             class="drp-text hide-mob">{{ ucfirst(\App\Models\Utility::getlang_fullname($currantLang)) }}</span>
                         <i class="ti ti-chevron-down drp-arrow nocolor"></i>
                     </a>
@@ -457,8 +502,143 @@
         </div>
     </div>
 </header>
-@if (\Auth::user()->type != 'admin' && $login_status == false)
-    <script>
-        document.getElementById('logout-form1').submit();
-    </script>
-@endif
+<script>
+    document.getElementById('addNotificationBtn').addEventListener('click', function() {
+        let msg = prompt("Escribe tu notificación:");
+        let ntipe = 4
+        if (!msg) return;
+
+        fetch("{{ route('notifications.add') }}", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRF-TOKEN": "{{ csrf_token() }}"
+                },
+                body: JSON.stringify({
+                    workspace_id: {{ $currentWorkspace->id }},
+                    msg: msg,
+                    ntipe: ntipe,
+                    milestoneAssignedTo: -2
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    let notificationList = document.querySelector('.limited');
+                    let newNotification = document.createElement('div');
+                    newNotification.classList.add('notificationSTL');
+                    newNotification.innerHTML =
+                        `<span class="textRepo">${data.data.msg}</span>
+                     <span class="textRepo">${data.data.type}</span>
+                     <button type="button" class="btn-close repoIcon" aria-label="Close"></button>`;
+                    notificationList.prepend(newNotification);
+                    checkEmptyState()
+                }
+            })
+            .catch(error => console.error("Error al agregar notificación:", error));
+    });
+</script>
+<script>
+    // Asocia el evento click a cada botón de cierre dentro de las notificaciones
+    document.querySelectorAll('.notificationSTL .btn-close').forEach(function(button) {
+        button.addEventListener('click', function(event) {
+            event.stopPropagation(); // Evita que se cierre el pop-up
+
+            // Se busca el contenedor de la notificación (con data-notification-id)
+            var notificationElement = this.closest('.notificationSTL');
+            var notificationId = notificationElement.getAttribute('data-notification-id');
+
+            // Envía la petición para eliminar la notificación individual
+            fetch("{{ route('notifications.delete', [$currentWorkspace->slug, '__id']) }}".replace(
+                    '__id', notificationId), {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-CSRF-TOKEN": "{{ csrf_token() }}"
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.is_success) {
+                        // Añade la clase para la animación
+                        notificationElement.classList.add('notification-slide-out');
+                        // Una vez finalizada la transición, elimina el elemento del DOM
+                        notificationElement.addEventListener('transitionend', function() {
+                            notificationElement.remove();
+                            checkEmptyState();
+                        });
+                    } else {
+                        console.error("Error:", data.error);
+                    }
+                })
+                .catch(error => console.error("Error al eliminar notificación:", error));
+        });
+    });
+</script>
+<script>
+    // Manejador para "Clear all" (eliminar todas las notificaciones)
+    document.querySelector('.clear_all_notifications').addEventListener('click', function(event) {
+        event.preventDefault();
+        event.stopPropagation(); // Evita que el click cierre el dropdown
+
+        // Obtén la URL desde el atributo data-url del enlace
+        let clearUrl = this.getAttribute('data-url');
+
+        // Envía la petición para eliminar todas las notificaciones
+        fetch(clearUrl, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRF-TOKEN": "{{ csrf_token() }}"
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.is_success) {
+                    // Selecciona todas las notificaciones dentro del contenedor ".limited"
+                    let notifications = document.querySelectorAll('.limited .notificationSTL');
+                    notifications.forEach(function(notificationElement, index) {
+                        setTimeout(function() {
+                            // Añade la clase para la animación
+                            notificationElement.classList.add('notification-slide-out');
+                            // Una vez finalizada la transición, elimina el elemento
+                            notificationElement.addEventListener('transitionend',
+                                function() {
+                                    notificationElement.remove();
+                                    checkEmptyState();
+                                });
+                        }, index * 300); // 300ms de delay entre cada eliminación
+                    });
+                } else {
+                    console.error("Error:", data.error);
+                }
+            })
+            .catch(error => console.error("Error al eliminar todas las notificaciones:", error));
+    });
+</script>
+{{-- Comprobar dinámicamente si hay notificaciones --}}
+<script>
+    function checkEmptyState() {
+        const notificationContainer = document.querySelector('.limited');
+        const emptyStateHtml =
+            `<div class="noNotificationsContainer"> 
+            <i class="fa-duotone fa-solid fa-bell-slash" aria-hidden="true" style="font-size: 48px; margin-bottom: 30px; color: #d1d1d1;"></i>
+            <p style="font-size: 15px; color: #d1d1d1;">{{ __("You're up to date! No notifications") }}</</p>
+        </div>`;
+
+        const hasNotifications = notificationContainer.querySelector('.notificationSTL') !== null;
+
+        if (!hasNotifications) {
+            if (!notificationContainer.querySelector('.noNotificationsContainer')) {
+                notificationContainer.innerHTML = emptyStateHtml;
+                document.getElementById('notificationBadge').style.display = 'none';
+            }
+        } else {
+            document.getElementById('notificationBadge').style.display = '';
+            const emptyState = notificationContainer.querySelector('.noNotificationsContainer');
+            if (emptyState) {
+                emptyState.remove();
+            }
+        }
+    }
+</script>

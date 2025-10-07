@@ -45,7 +45,7 @@ App\models\Utility::setCaptchaConfig();
         @section('content')
             <div class="card-body">
                 <div class="">
-                    <h2 class="mb-3 f-w-600">{{ __('Forgot Password') }}</h2>
+                    <h4 class="mb-3 f-w-600">{{ __('Reset Password') }}</h4>
                 </div>
                 <form method="POST" action="{{ route('password.email') }}">
                     @csrf
@@ -77,7 +77,7 @@ App\models\Utility::setCaptchaConfig();
                             <button type="submit"
                                 class="btn btn-primary btn-block mt-2">{{ __('Reset Password') }}</button>
                         </div>
-                        <p class="mb-2 mt-2 text-center">Back to <a href="{{ route('login', $lang) }}"
+                        <p class="mb-2 mt-2 text-center">{{__('Back to')}}<a href="{{ route('login', $lang) }}"
                                 class="f-w-400 text-primary">{{ __('Login') }}</a></p>
 
                 </form>

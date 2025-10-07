@@ -1,3 +1,6 @@
+@php
+    $avatarPath = $user->avatar ? url('storage/app/public/' . $user->avatar) : null;
+@endphp
 <div class="modal-body">
     <div class="row">
         <div class="col-12 col-sm-12">

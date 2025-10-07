@@ -1,16 +1,16 @@
 'use strict';
 
-$(document).on("click", '.bs-message',function () {
+$(document).on("click", '.bs-message', function () {
     Swal.fire('Any fool can use a computer')
 });
-$(document).on("click", '.bs-tit-txt',function () {
+$(document).on("click", '.bs-tit-txt', function () {
     Swal.fire(
         'The Internet?',
         'That thing is still around?',
         'question'
     )
 });
-$(document).on("click", '.bs-error-icon',function () {
+$(document).on("click", '.bs-error-icon', function () {
     Swal.fire({
         icon: 'error',
         title: 'Oops...',
@@ -18,14 +18,14 @@ $(document).on("click", '.bs-error-icon',function () {
         footer: '<a href>Why do I have this issue?</a>'
     })
 });
-$(document).on("click", '.bs-long-content',function () {
+$(document).on("click", '.bs-long-content', function () {
     Swal.fire({
         imageUrl: 'https://placeholder.pics/svg/300x1500',
         imageHeight: 1500,
         imageAlt: 'A tall image'
     })
 });
-$(document).on("click", '.bs-cust-html',function () {
+$(document).on("click", '.bs-cust-html', function () {
     Swal.fire({
         title: '<strong>HTML <u>example</u></strong>',
         icon: 'info',
@@ -41,7 +41,7 @@ $(document).on("click", '.bs-cust-html',function () {
         cancelButtonAriaLabel: 'Thumbs down'
     })
 });
-$(document).on("click", '.bs-tre-button',function () {
+$(document).on("click", '.bs-tre-button', function () {
     Swal.fire({
         title: 'Do you want to save the changes?',
         showDenyButton: true,
@@ -56,7 +56,7 @@ $(document).on("click", '.bs-tre-button',function () {
         }
     })
 });
-$(document).on("click", '.bs-cust-position',function () {
+$(document).on("click", '.bs-cust-position', function () {
     Swal.fire({
         position: 'top-end',
         icon: 'success',
@@ -65,7 +65,7 @@ $(document).on("click", '.bs-cust-position',function () {
         timer: 1500
     })
 });
-$(document).on("click", '.bs-cust-anim',function () {
+$(document).on("click", '.bs-cust-anim', function () {
     Swal.fire({
         title: 'Custom animation with Animate.css',
         showClass: {
@@ -76,7 +76,10 @@ $(document).on("click", '.bs-cust-anim',function () {
         }
     })
 });
-$(document).on("click", '.bs-pass-para',function () {
+
+var appLocale = document.getElementsByTagName("html")[0].getAttribute("lang");
+$(document).on("click", '.bs-pass-para', function () {
+
     const swalWithBootstrapButtons = Swal.mixin({
         customClass: {
             confirmButton: 'btn btn-success',
@@ -84,26 +87,29 @@ $(document).on("click", '.bs-pass-para',function () {
         },
         buttonsStyling: false
     })
+ 
+
     swalWithBootstrapButtons.fire({
         title: $(this).data('confirm'),
         text: $(this).data('text'),
         icon: 'warning',
         showCancelButton: true,
-        confirmButtonText: 'Yes',
+        confirmButtonText: appLocale == 'es' ? 'Si' : 'Yes',
         cancelButtonText: 'No',
         reverseButtons: false,
     }).then((result) => {
         if (result.isConfirmed) {
-            
+
             document.getElementById($(this).data('confirm-yes')).submit();
-            
+
         } else if (
             result.dismiss === Swal.DismissReason.cancel
         ) {
         }
     })
 });
-$(document).on("click", '.bs-cust-img',function () {
+
+$(document).on("click", '.bs-cust-img', function () {
     Swal.fire({
         title: 'Sweet!',
         text: 'Modal with a custom image.',
@@ -113,7 +119,7 @@ $(document).on("click", '.bs-cust-img',function () {
         imageAlt: 'Custom image',
     })
 });
-$(document).on("click", '.bs-cust-full',function () {
+$(document).on("click", '.bs-cust-full', function () {
     Swal.fire({
         title: 'Custom width, padding, background.',
         width: 600,
@@ -127,7 +133,7 @@ $(document).on("click", '.bs-cust-full',function () {
               `
     })
 });
-$(document).on("click", '.bs-auto-close',function () {
+$(document).on("click", '.bs-auto-close', function () {
     let timerInterval
     Swal.fire({
         title: 'Auto close alert!',
@@ -155,7 +161,7 @@ $(document).on("click", '.bs-auto-close',function () {
         }
     })
 });
-$(document).on("click", '.bs-rtl-lang',function () {
+$(document).on("click", '.bs-rtl-lang', function () {
     Swal.fire({
         title: 'هل تريد الاستمرار؟',
         icon: 'question',
@@ -166,7 +172,7 @@ $(document).on("click", '.bs-rtl-lang',function () {
         showCloseButton: true
     })
 });
-$(document).on("click", '.bs-ajex-req',function () {
+$(document).on("click", '.bs-ajex-req', function () {
     Swal.fire({
         title: 'Submit your Github username',
         input: 'text',
@@ -194,13 +200,13 @@ $(document).on("click", '.bs-ajex-req',function () {
     }).then((result) => {
         if (result.isConfirmed) {
             Swal.fire({
-                title: result.value.login +`'s avatar`,
+                title: result.value.login + `'s avatar`,
                 imageUrl: result.value.avatar_url
             })
         }
     })
 });
-$(document).on("click", '.bs-mixin-exp',function () {
+$(document).on("click", '.bs-mixin-exp', function () {
     const Toast = Swal.mixin({
         toast: true,
         position: 'top-end',
@@ -217,37 +223,37 @@ $(document).on("click", '.bs-mixin-exp',function () {
         title: 'Signed in successfully'
     })
 });
-$(document).on("click", '.bs-success-ico',function () {
+$(document).on("click", '.bs-success-ico', function () {
     Swal.fire({
         icon: "success",
         title: 'Success modal',
     })
 });
-$(document).on("click", '.bs-error-ico',function () {
+$(document).on("click", '.bs-error-ico', function () {
     Swal.fire({
         icon: "error",
         title: 'Error modal',
     })
 });
-$(document).on("click", '.bs-warning-ico',function () {
+$(document).on("click", '.bs-warning-ico', function () {
     Swal.fire({
         icon: "warning",
         title: 'warning modal',
     })
 });
-$(document).on("click", '.bs-info-ico',function () {
+$(document).on("click", '.bs-info-ico', function () {
     Swal.fire({
         icon: "info",
         title: 'info modal',
     })
 });
-$(document).on("click", '.bs-question-ico',function () {
+$(document).on("click", '.bs-question-ico', function () {
     Swal.fire({
         icon: "question",
         title: 'question modal',
     })
 });
-$(document).on("click", '.bs-text-input',function () {
+$(document).on("click", '.bs-text-input', function () {
     (async () => {
         const ipAPI = '//api.ipify.org?format=json'
         const inputValue = fetch(ipAPI)
@@ -271,7 +277,7 @@ $(document).on("click", '.bs-text-input',function () {
         }
     })()
 });
-$(document).on("click", '.bs-email-input',function () {
+$(document).on("click", '.bs-email-input', function () {
     (async () => {
         const {
             value: email
@@ -286,7 +292,7 @@ $(document).on("click", '.bs-email-input',function () {
         }
     })()
 });
-$(document).on("click", '.bs-url-input',function () {
+$(document).on("click", '.bs-url-input', function () {
     (async () => {
         const {
             value: url
@@ -299,7 +305,7 @@ $(document).on("click", '.bs-url-input',function () {
         }
     })()
 });
-$(document).on("click", '.bs-password-input',function () {
+$(document).on("click", '.bs-password-input', function () {
     (async () => {
         const {
             value: password
@@ -314,11 +320,11 @@ $(document).on("click", '.bs-password-input',function () {
             }
         })
         if (password) {
-            Swal.fire(`Entered password: `+ password)
+            Swal.fire(`Entered password: ` + password)
         }
     })()
 });
-$(document).on("click", '.bs-textarea-input',function () {
+$(document).on("click", '.bs-textarea-input', function () {
     (async () => {
         const {
             value: text
@@ -335,7 +341,7 @@ $(document).on("click", '.bs-textarea-input',function () {
         }
     })()
 });
-$(document).on("click", '.bs-select-input',function () {
+$(document).on("click", '.bs-select-input', function () {
     (async () => {
         const {
             value: fruit
@@ -373,7 +379,7 @@ $(document).on("click", '.bs-select-input',function () {
         }
     })()
 });
-$(document).on("click", '.bs-radio-input',function () {
+$(document).on("click", '.bs-radio-input', function () {
     (async () => {
         const inputOptions = new Promise((resolve) => {
             setTimeout(() => {
@@ -403,7 +409,7 @@ $(document).on("click", '.bs-radio-input',function () {
         }
     })()
 });
-$(document).on("click", '.bs-checkbox-input',function () {
+$(document).on("click", '.bs-checkbox-input', function () {
     (async () => {
         const {
             value: accept
@@ -422,7 +428,7 @@ $(document).on("click", '.bs-checkbox-input',function () {
         }
     })()
 });
-$(document).on("click", '.bs-file-input',function () {
+$(document).on("click", '.bs-file-input', function () {
     (async () => {
         const {
             value: file
@@ -447,7 +453,7 @@ $(document).on("click", '.bs-file-input',function () {
         }
     })()
 });
-$(document).on("click", '.bs-range-input',function () {
+$(document).on("click", '.bs-range-input', function () {
     (async () => {
         Swal.fire({
             title: 'How old are you?',
@@ -462,7 +468,7 @@ $(document).on("click", '.bs-range-input',function () {
         })
     })()
 });
-$(document).on("click", '.bs-multiple-input',function () {
+$(document).on("click", '.bs-multiple-input', function () {
     (async () => {
         const {
             value: formValues

@@ -10,6 +10,7 @@ use Microsoft\Graph\Model;
 
 
 use App\Models\User;
+use Illuminate\Support\Facades\Auth;
 
 class AppAzure extends Azure
 {
@@ -19,8 +20,8 @@ class AppAzure extends Azure
         $graph->setAccessToken($access_token);
 
         $graph_user = $graph->createRequest("GET", "/me")
-            ->setReturnType(Model\User::class)
-            ->execute();
+                      ->setReturnType(Model\User::class)
+                      ->execute();
 
         $email = strtolower($graph_user->getUserPrincipalName());
 
@@ -28,7 +29,7 @@ class AppAzure extends Azure
             'name' => $graph_user->getGivenName() . ' ' . $graph_user->getSurname(),
         ]);
 
-        \Auth::login($user, true);
+        Auth::login($user, true);
 
         return parent::success($request, $access_token, $refresh_token, $profile);
     }

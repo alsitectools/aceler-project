@@ -3966,15 +3966,15 @@ textarea.is-invalid.dataTable-input {
 }
 
 .dropdown-item:hover, .dropdown-item:focus {
-    color: var(--bs-dropdown-link-hover-color);
+    color: white;
     text-decoration: none;
-    background-color: var(--bs-dropdown-link-hover-bg);
+    background-color: #AA182C;
 }
 
 .dropdown-item.active, .dropdown-item:active {
     color: var(--bs-dropdown-link-active-color);
     text-decoration: none;
-    background-color: var(--bs-dropdown-link-active-bg);
+    background-color: #989898a8;
 }
 
 .dropdown-item.disabled, .dropdown-item:disabled {
@@ -6041,6 +6041,25 @@ textarea.is-invalid.dataTable-input {
     display: flex;
     align-items: center;
     min-height: calc(100% - var(--bs-modal-margin) * 2);
+}
+
+.modal-content-modified{
+    width: 80%;
+    box-shadow: 10px 10px 5px 0px rgba(0, 0, 0, 0.75);
+    -webkit-box-shadow: 3px 2px 4px 2px rgb(0 0 0 / 25%);
+    -moz-box-shadow: 10px 10px 5px 0px rgba(0, 0, 0, 0.75);
+    border: none;
+    height: 62%;
+    margin-left: 20%;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    color: var(--bs-modal-color);
+    pointer-events: auto;
+    background-color: var(--bs-modal-bg);
+    background-clip: padding-box;
+    border-radius: var(--bs-modal-border-radius);
+    outline: 0;
 }
 
 .modal-content {
@@ -8512,7 +8531,12 @@ textarea.is-invalid.dataTable-input {
 .mb-2 {
     margin-bottom: 0.5rem !important;
 }
+@media screen and (max-width:1200px) and (min-width:1000px){
 
+    .mb-2{
+        margin-bottom: 25px !important;
+    }
+}
 .mb-3 {
     margin-bottom: 1rem !important;
 }
@@ -14146,7 +14170,20 @@ textarea.is-invalid.dataTable-input {
 .wid-100 {
     width: 100px;
 }
-
+@media screen and (max-width:1200px) and (min-width:1099px) {
+    .wid-100 {
+        font-size: 13px;
+    }
+    .modal-content-modified{
+        height: 86%;
+    }
+    .dash-header{
+        left: 180px;
+    }
+    .ms-auto{
+        margin-left: 545px !important;
+    }
+}
 .hei-100 {
     height: 100px;
 }
@@ -18092,7 +18129,7 @@ body.theme-10 .card .card-header h5:after, body.theme-10 .card .card-header .h5:
 
 .dash-sidebar .dash-micon {
     margin-right: 15px;
-    border-radius: 12px;
+    border-radius: 8px;
     height: 35px;
     width: 35px;
     display: inline-flex;
@@ -18916,7 +18953,16 @@ body:not(.minimenu) .dash-sidebar .dash-submenu .dash-submenu .dash-submenu > .d
     padding-right: 30px;
     padding-top: 30px;
 }
-
+@media screen and (max-width:1200px) and (min-width:1099px) {
+    .dash-container .dash-content {
+        padding-left: 0px !important;
+        padding-right: 0px !important;
+        padding-top: 0px !important;
+    }
+    .dash-container {
+        margin-left: 210px;
+    }
+}
 .dash-container .page-header + .row {
     padding-top: 25px;
 }
@@ -22100,7 +22146,17 @@ body .table thead th {
   .card:not(.table-card) .table tr th:last-child {
     padding-right: 25px;
 }
-
+@media screen and (max-width:1200px) and (min-width:1099px) {
+    .card:not(.table-card) .table tr td:last-child,
+    .card:not(.table-card) .table tr th:last-child {
+        padding-right: 0px;
+    }
+    .card:not(.table-card) .table tr td:first-child,
+    .card:not(.table-card) .table tr th:first-child {
+        padding-left: 20px;
+        font-size: 13px;
+    }
+}
 .card:not(.table-card) .table.without-header tr:first-child td {
     border-top: none;
 }
@@ -24290,11 +24346,11 @@ select.form-control[data-multiselectsplitter-firstselect-selector], select.custo
 }
 
 .horizontal-scroll-cards::-webkit-scrollbar-thumb {
-    background: #dcdaeb;
+    background: none;
 }
 
 .horizontal-scroll-cards::-webkit-scrollbar-thumb:hover {
-    background: #51459d;
+    background: none;
 }
 
 .btn-addnew-project {
@@ -25101,6 +25157,8 @@ body.theme-10 .team-lists img {
 
 .fc-button,
 .fc-today-button {
+    margin-bottom: 5px !important;
+
     background: #4a4b58;
     border: none;
     color: #343a40;

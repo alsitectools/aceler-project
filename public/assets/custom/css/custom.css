@@ -3,6 +3,11 @@
     font-size: 14px;
     font-weight: 600;
 }
+.type-filter button{
+    padding: 7px 15px;
+    font-size: 14px;
+    font-weight: 600;
+}
 
 .currency-icon {
     color: #fff;
@@ -888,11 +893,12 @@ span.invite-warning {
     color: #fff;
     /*  background:#584ed2 !important;*/
     border: none;
-    border-radius: 10px;
-    padding: 8px 15px;
-    max-width: 155px !important;
-    font-size: 12px;
+    border-radius: 7px;
+    padding: 10px 15px;
+    max-width: 200px !important;
+    font-size: 13px;
     font-weight: 500;
+    margin-top: 25px;
 }
 
 /* input[type="file"] {
@@ -907,6 +913,13 @@ span.invite-warning {
     margin: 0;
     cursor: pointer;
 } */
+.form-control:focus-visible {
+    outline: none !important;
+}
+
+.form-control:focus {
+    border-color: transparent !important;
+}
 
 .choose_file_custom {
     position: relative !important;
@@ -1234,7 +1247,7 @@ ul.nav.nav-tabs.bordar_styless .active {
 }
 
 .fix_img {
-    width: 40px !important;
+    width: 30px !important;
     border-radius: 50%;
 }
 
@@ -1291,44 +1304,77 @@ span.currency-icon {
     color: #fff !important;
 }
 
-
-
 .drp-search-custom {
     padding: 0 !important;
 }
 
-.drp-search-custom .easy-autocomplete {
-    margin: 0 !important;
-    width: 100% !important;
-    height: 100% !important;
+.easy-autocomplete {
+    width: 100%;
 }
 
-.drp-search-custom .easy-autocomplete input {
-    height: 100%;
+.easy-autocomplete input {
     width: 100%;
-    border: none;
-    padding: 20px 20px !important;
-    border-radius: 10px 10px 0 0 !important;
+
 }
 
 .easy-autocomplete-container {
-    border-top: 1px solid #d6d6d6;
-    /*padding-top: 12px;*/
+    position: absolute;
+    padding: 0;
+    width: 100%;
 }
 
 .easy-autocomplete-container ul {
-    display: block !important;
-    padding: 0px 20px !important;
+    width: 100% !important;
+    background-color: white !important;
+    border: 1px solid #cdcdcd;
+    border-radius: 10px;
+    padding: 0px 10px !important;
 }
 
 .easy-autocomplete-container ul li {
     width: 100% !important;
     display: inline-block !important;
     padding: 13px 0px 14px 20px !important;
+
 }
 
 .eac-category {
+    width: 100% !important;
+    padding-top: 15px;
+    padding-bottom: 15px;
     font-weight: bold !important;
+}
+
+.status-filter button {
+    padding: 5px 15px;
+    font-size: 13px;
+    height: 45px !important;
+}
+.type-filter button {
+    padding: 5px 15px;
+    font-size: 13px;
+    height: 45px !important;
+}
+.type-filter button {
+    padding: 5px 15px;
+    font-size: 13px;
+    height: 45px !important;
+}
+
+@media screen and (min-width: 2000px) {
+    .status-filter button {
+        padding: 10px 20px;
+        font-size: 16px;
+    }
+    .type-filter button {
+        padding: 10px 20px;
+        font-size: 16px;
+    }
+}
+
+.divStatus {
+    width: 100%;
+
 }
 
 .expires_tag {
@@ -1354,7 +1400,6 @@ span.currency-icon {
     padding-right: 1rem !important;
     padding-left: 1rem !important;
     margin-bottom: 1.5rem !important;
-
 }
 
 .dash-sidebar .main-logo {
@@ -1433,7 +1478,8 @@ a.b-brand {
 
 .table>thead>tr>th {
     border-top: 0;
-    padding: 10px 50px 10px 10px;
+    /* padding: 10px 50px 10px 10px; */
+    padding: 10px;
 }
 
 .dataTable-sorter::before,
@@ -1598,7 +1644,7 @@ a.b-brand {
     height: 25px !important;
 }
 
-.dash-header .drp-notification .noti-body {
+.dash-header .drp-notification {
     position: relative;
     max-height: calc(100vh - -100px) !important;
 }

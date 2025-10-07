@@ -1,31 +1,86 @@
-<form class="" method="post" action="{{ route('projects.store', $currentWorkspace->slug) }}">
+<!-- Estilos personalizados para esta vista -->
+<style>
+    #ref_mo_list,
+    #clipo_list {
+        max-height: 230px;
+        overflow-y: auto;
+        position: absolute;
+        width: 45%;
+        -webkit-box-shadow: 0px 5px 5px -2px #bcbcbc;
+        box-shadow: 0px 5px 5px -2px #bcbcbc;
+    }
+
+    .stylelist:hover {
+        background-color: #aa182c;
+        font-weight: bold;
+        color: rgb(255, 255, 255);
+    }
+
+    #ref_mo_list::-webkit-scrollbar,
+    #clipo_list::-webkit-scrollbar {
+        width: 0;
+        background: transparent;
+    }
+
+    .modal-dialog {
+        max-width: 60%;
+        /* Set modal width to 60% */
+    }
+
+    .delegationSelect {
+        max-height: 300px !important;
+    }
+</style>
+
+<!-- Formulario para crear un nuevo proyecto -->
+<form id="new-project-form" method="post" action="{{ route('projects.store', [$currentWorkspace->slug]) }}">
     @csrf
     <div class="modal-body">
         <div class="row">
-
-            <div class="form-group col-md-6">
+            <div class="form-group col-md-12">
                 <label class="col-form-label">{{ __('Project type') }}</label>
-                <select class="form-control form-control-light" name="project_type" id="project_type" required="">
+                <select class="form-control form-control-light" name="project_type" id="project_type" required>
                     <option selected disabled>{{ __('Choose one') }}</option>
                     @foreach ($project_type as $type)
                         <option style="background-color:white; color:black;" value="{{ $type->id }}"
-                            data-type="{{ $type->name }}">{{ $type->name }}</option>
+                            data-type="{{ $type->name }}">
+                            {{ __($type->name) }}
+                        </option>
+                    @endforeach
+                </select>
+            </div>
+            <div class="form-group col-md-6" id="ref_mo" style="display: none;">
+                <label for="search_mo" class="col-form-label">M.O</label>
+                <input type="text" class="form-control" name="ref_mo" id="searchMo" placeholder="Masterobras">
+                <div class="list-group" id="ref_mo_list"></div>
+            </div>
+            <div class="form-group col-md-6" id="clipo" style="display: none;">
+                <label for="searchClipo" class="col-form-label">{{ __('Clipo') }}</label>
+                <input class="form-control" type="text" name="clipo" id="searchClipo"
+                    placeholder="{{ __('Clipo') }}">
+                <div class="list-group" style="display: none;" id="clipo_list"></div>
+            </div>
+            <div class="form-group col-md-12">
+                <label for="projectname" class="col-form-label">{{ __('Name') }}</label>
+                <input class="form-control" type="text" id="projectname" name="name" required
+                    placeholder="{{ __('Project Name') }}">
+            </div>
+            <div class="form-group col-md-12" id="delegacion" style="display: none;">
+                <label for="delegacionSelect" class="col-form-label">Delegación</label>
+                <select placeholder="{{ __('Project delegation') }}" class="form-control delegationSelect"
+                    id="delegacionSelect" name="delegacion">
+                    <option selected disabled>{{ __('Project delegation') }}</option>
+                    @foreach ($project_delegation as $delegation)
+                        <option value="{{ (string) $delegation->id }}">{{ $delegation->delegation_name }}</option>
                     @endforeach
                 </select>
             </div>
 
-            <div class="form-group col-md-6">
-                <label for="ref_mo" class="col-form-label">{{ __('Master Obra') }}</label>
-                <input class="form-control" type="text" id="ref_mo" name="ref_mo"
-                    placeholder="{{ __('Reference M.O') }}">
-                <span class="text-danger"></span>
-            </div>
-            <div class="form-group col-md-12">
-                <label for="projectname" class="col-form-label">{{ __('Name') }}</label>
-
-                <input class="form-control" type="text" id="projectname" name="name" required=""
-                    placeholder="{{ __('Project Name') }}">
-            </div>
+            {{-- <div class="form-group col-md-12">
+                <label for="milestone-title" class="col-form-label">{{ __('Title') }}</label>
+                <input type="text" class="form-control form-control-light" id="milestone-title"
+                    placeholder="{{ __('Title') }}" name="title" required>
+            </div> --}}
         </div>
     </div>
     <div class="modal-footer">
@@ -33,57 +88,98 @@
         <input type="submit" value="{{ __('Add New project') }}" class="btn btn-primary">
     </div>
 </form>
+
+<!-- Pasando variables de Blade a JavaScript -->
 <script>
-    $(document).ready(function() {
-        $('#project_type').change(function() {
-            var selectedType = $(this).find('option:selected').data('type');
-            var refMoInput = $('#ref_mo');
-            var nameInput = $('#projectname');
+    const projects = @json($projects);
+    const currentWorkspaceSlug = '{{ $currentWorkspace->slug }}';
+    const searchMoUrl = "{{ route('search-mo-json', '__slug') }}".replace('__slug', currentWorkspaceSlug);
+    const searchClipoUrl = "{{ route('search-clipo-json', '__slug') }}".replace('__slug', currentWorkspaceSlug);
+</script>
+<!-- Incluimos el archivo JS de create_project si es necesario -->
+<script src="{{ asset('assets/js/create_project.js') }}"></script>
 
-            if (selectedType === 'Obra') {
+<!-- Función de notificación y manejo del submit -->
+<script>
+    // Función asíncrona para generar la notificación antes del submit
+    async function displayNotificationProject() {
+        console.log('Generando notificacion de milestone completado');
+        // Usamos el valor del campo projectname para el mensaje
+        let projectName = document.getElementById('projectname').value;
+        let msg = projectName;
+        let ntipe = 1;
+        if (!msg) return; // Si no hay mensaje, no se realiza nada
 
-                nameInput.val("");
-                refMoInput.val("");
-                refMoInput.prop('required', true);
-                refMoInput.prop('disabled', false);
-                $('#projectname').prop('readonly', true);
-
-            } else {
-                nameInput.val("");
-                refMoInput.val("");
-                refMoInput.prop('required', false);
-                refMoInput.prop('disabled', true);
-                $('#projectname').prop('readonly', false);
-            }
-        });
-
-        $('#ref_mo').change(function() {
-            var refMo = $(this).val();
-            var masterObras = @json($masterObras);
-            var projects = @json($projects);
-
-            var existingMasterObra = masterObras.find(function(masterObra) {
-                return masterObra.ref_mo === refMo;
+        try {
+            const response = await fetch("{{ route('notifications.add') }}", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRF-TOKEN": "{{ csrf_token() }}"
+                },
+                body: JSON.stringify({
+                    workspace_id: {{ $currentWorkspace->id }},
+                    msg: msg,
+                    ntipe: ntipe,
+                    milestoneAssignedTo: -2
+                })
             });
-            var existingProject = projects.find(function(project) {
-                return project.ref_mo === refMo;
-            });
-
-            if (!existingProject) {
-                if (existingMasterObra) {
-                    $('.text-danger').text("");
-                    $('#projectname').prop('readonly', true);
-                    $('#projectType').val();
-                    $('#projectname').val(existingMasterObra.name);
-                    $('#name').val(existingMasterObra.name);
-                    $('#ref_mo').val(refMo);
+            const data = await response.json();
+            if (data.success) {
+                let notificationList = document.querySelector('.limited');
+                // Si el contenedor de notificaciones no existe, se puede crear o ignorar
+                if (notificationList) {
+                    let newNotification = document.createElement('div');
+                    newNotification.classList.add('notificationSTL');
+                    newNotification.innerHTML = `
+                        <span class="textRepo">${data.data.msg}</span>
+                        <span class="textRepo">${data.data.type}</span>
+                        <button type="button" class="btn-close repoIcon" aria-label="Close"></button>
+                    `;
+                    notificationList.prepend(newNotification);
                 }
-            } else {
-                $('.text-danger').text('El número de referencia ya existe.');
-                setTimeout(function() {
-                    $('.text-danger').text("");
-                }, 5000);
             }
-        });
+        } catch (error) {
+            console.error("Error al agregar notificación:", error);
+        }
+    }
+
+    // Interceptamos el submit del formulario para ejecutar la notificación primero
+    document.getElementById('new-project-form').addEventListener('submit', async function(event) {
+        event.preventDefault(); // Prevenir el envío inmediato
+        await displayNotificationProject(); // Esperar a que se complete la notificación
+        this.submit(); // Luego se envía el formulario (puedes optar por usar AJAX si lo prefieres)
+    });
+
+    // Add event listener to capitalize the first letter of the project name
+    document.getElementById('projectname').addEventListener('input', function() {
+        let value = this.value;
+        if (value.length > 0) {
+            this.value = value.charAt(0).toUpperCase() + value.slice(1);
+        }
+    });
+
+    // // Add event listener to capitalize the first letter of the milestone title
+    // document.getElementById('milestone-title').addEventListener('input', function() {
+    //     let value = this.value;
+    //     if (value.length > 0) {
+    //         this.value = value.charAt(0).toUpperCase() + value.slice(1);
+    //     }
+    // });
+</script>
+<script>
+    const projectTypeSelect = document.getElementById('project_type');
+    const delegacionField = document.getElementById('delegacion');
+
+    projectTypeSelect.addEventListener('change', function() {
+        const selectedOption = this.options[this.selectedIndex];
+        const selectedText = selectedOption.getAttribute('data-type');
+
+        if (selectedText && selectedText.toLowerCase() !== 'jobsite') {
+            delegacionField.style.display = 'block';
+        } else {
+            delegacionField.style.display = 'none';
+            document.getElementById('delegacionSelect').value = ''; // reset selección
+        }
     });
 </script>

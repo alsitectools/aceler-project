@@ -43,24 +43,6 @@ class AuthenticatedSessionController extends Controller
         // return view('auth.login');
     }
 
-    public function redirectToAzure()
-    {
-        return Socialite::driver('azure')->redirect();
-    }
-
-    public function handleAzureCallback()
-    {
-        $user = Socialite::driver('azure')->stateless()->user();
-
-        // Lógica para encontrar o crear el usuario en la base de datos
-        // $authUser = $this->findOrCreateUser($user);
-
-        Auth::login($authUser, true);
-
-        return redirect()->intended('/home');
-    }
-
-
     public function store(LoginRequest $request)
     {
         $checkUser = User::where('email', '=', $request->email)->where('type', '!=', 'admin')->first();

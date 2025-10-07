@@ -62,3 +62,94 @@ If you discover a security vulnerability within Laravel, please send an e-mail t
 ## License
 
 The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+## -------------------------------------------------------------------------------------------------------------------------------------------------------------
+## -------------------------------------------------------------------------------------------------------------------------------------------------------------
+## SUBIDAS A SERVIDOR
+ ## Fichero .env
+ Se sube directamente a servidor por lo que si se hace un clon del proyecto este fichero no existe.
+ 
+  
+ ## Produccion: git pull origin staging
+ Si da dice que hay ficheros sin subir, hacer git reset --hard y vuelves hacer gut pull orignin stagin
+ ## Staging: git pull
+
+## IMPORTANTE!
+Cuando se hace un clon del proyecto, no se crean algunas carpetas ya que estan en el gitignore
+hay algunas que no dan error pero sino existe la de sessions da error 500** storage/framework/sessions
+
+## TABLAS QUE HAN DE TENER VALORES SIEMPRE
+   ## Siempre han de tener valores, sino da error 500
+        -Workspaces (Delegaciones/grupos)
+        -Languages (Minimo ES)
+        -Stages (Estados de Milestoneboard)
+        -TaskType
+        -ProjectType
+   ## Tambien hay que asegurarse que cuando se cree un usuario debe existir en la tabla
+        -UserWorkspaces
+
+## LARAVEL POR CONVENCION TIENE RUTAS QUE VAN A STORAGE PERO
+Actualmente en project las funciones estan creadas para ir a una ruta especifica que se deberia configurar asi: 
+  ## Para eliminar el enlace existente, usa el siguiente comando:
+ 	rm -rf public/storage
+  ## staging
+    /home/stagingacelerproject/public_html/storage /home/stagingacelerproject/public_html/public/storage
+  ## produccion 
+     ln -s /home/acelerproject/public_html/storage /home/acelerproject/public_html/public/storage
+
+Esto creará un enlace simbólico desde public/storage a la carpeta storage en la raíz de tu proyecto.
+Para asegurarte de que el enlace simbólico se ha creado correctamente, usa el siguiente comando:
+
+	 ls -l public/storage  
+
+## Problemas con rutas
+Mirar fichero config/filesystems.php yaa que este fichero esta configurado para ir a la ruta la carpeta raiz /home/acelerproject/public_html/storage o staging
+
+## VISTAS Y FUNCIONES 
+Si hay alguna ruta que no aparezca aqui, busca en web.php 
+
+   ## Vista Index proyectos
+    Vista: resources/views/projects/index.blade.php
+    Funcion desde ProjectController: public function index($slug){}
+
+   ## creacion de Proyectos
+    Vista: resources/views/projects/create.blade.php
+    Funcion que crea proyecto desde ProjectController:  public function store($slug, Request $request){}
+    La vista gestiona las lamadas a bbdd con el script public/assets/js/create_project.js
+
+   ## vista proyecto
+    Vista: resources/views/projects/show.blade.php
+    Función desde ProjectController: public function show($slug, $projectID){}
+
+   ## Creación de encargos desde proyecto o desde milestoneboard
+    Vista: resources/views/projects/milestone.blade.php
+    Funcion que crea el encargo desde  desde ProjectController:
+    public function milestoneStore($slug, $projectID, Request $request){}
+    La vista gestiona las lamadas a bbdd con el script public/assets/js/create_project.js
+
+   ## Creacion de tareas
+    Funcion en ProjectControler que devuelve esta vista: public function taskCreate($slug){}
+    Vista: resources/views/projects/taskCreate.blade.php
+    Funcion en ProjectController que crea la tarea: public function taskStore(Request $request, $slug)
+
+   ## Vista de timesheet (Hoja de Horas) desde proyecto o desde sidebar
+    Vista: resources/views/projects/timesheet.blade.php
+    Funcion que muestra Hoja de horas (Tareas desde sidebar):    
+    public function timesheet($slug){}
+
+    Esta vista simplemente gestiona si existen o no timesheet(horas imputadas en Tareas), si existen hace una llamada ajax a la public function filterTimesheetTableView(Request $request, $slug) en ProjectController que a su vez gestiona el html en la funcion del modelo project public static function getProjectAssignedTimesheetHTML(){}.
+   ## Vista de filterTimesheetTableView: resources/views/projects/timesheet-week.blade.php
+
+## FORMULARIOS DE TIMESHEET CREATE Y EDIT
+Los formularios de creacion de horas y editar abren desde timeshete.blade.php, se muestran segun el url que se asigna en la funcion del modelo de Project.php:
+private static function processTaskTimesheets(){}
+   
+   ## Formulario de Añadir horas timesheet-create
+    Funcion que devuelve la vista  timesheet-create: public function projectTimesheetCreate(){}
+    Vista: resources/views/projects/timesheet-create.blade.php
+    Funcion en ProjectControler que crea las horas public function timesheetStore($slug, Request $request){}
+
+   ## Formulario de Editar horas timesheet-edit
+   Funcion que devuelve la vista de timesheet-edit: public function projectTimesheetEdit(Request $request, $slug, $timesheet_id, $project_id){}
+   Vista: resources/views/projects/timesheet-edit.blade.php
+   Funcion en ProjectControler que actualiza el timesheet-edit: public function projectTimesheetUpdate(){}
+

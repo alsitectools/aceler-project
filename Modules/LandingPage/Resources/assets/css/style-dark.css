@@ -3966,9 +3966,9 @@ textarea.is-invalid.dataTable-input {
 }
 
 .dropdown-item:hover, .dropdown-item:focus {
-    color: var(--bs-dropdown-link-hover-color);
+    color: white;
     text-decoration: none;
-    background-color: var(--bs-dropdown-link-hover-bg);
+    background-color: #AA182C;
 }
 
 .dropdown-item.active, .dropdown-item:active {
@@ -8512,7 +8512,12 @@ textarea.is-invalid.dataTable-input {
 .mb-2 {
     margin-bottom: 0.5rem !important;
 }
+@media screen and (max-width:1200px) and (min-width:1000px){
 
+    .mb-2{
+        margin-bottom: 25px !important;
+    }
+}
 .mb-3 {
     margin-bottom: 1rem !important;
 }
@@ -14146,7 +14151,11 @@ textarea.is-invalid.dataTable-input {
 .wid-100 {
     width: 100px;
 }
-
+@media screen and (max-width:1200px) and (min-width:1099px) {
+    .wid-100 {
+        font-size: 13px;
+    }
+}
 .hei-100 {
     height: 100px;
 }
@@ -18916,7 +18925,16 @@ body:not(.minimenu) .dash-sidebar .dash-submenu .dash-submenu .dash-submenu > .d
     padding-right: 30px;
     padding-top: 30px;
 }
-
+@media screen and (max-width:1200px) and (min-width:1099px) {
+    .dash-container .dash-content {
+        padding-left: 0px !important;
+        padding-right: 0px !important;
+        padding-top: 0px !important;
+    }
+    .dash-container {
+        margin-left: 210px;
+    }
+}
 .dash-container .page-header + .row {
     padding-top: 25px;
 }
@@ -22100,7 +22118,17 @@ body .table thead th {
   .card:not(.table-card) .table tr th:last-child {
     padding-right: 25px;
 }
-
+@media screen and (max-width:1200px) and (min-width:1099px) {
+    .card:not(.table-card) .table tr td:last-child,
+    .card:not(.table-card) .table tr th:last-child {
+        padding-right: 0px;
+    }
+    .card:not(.table-card) .table tr td:first-child,
+    .card:not(.table-card) .table tr th:first-child {
+        padding-left: 20px;
+        font-size: 13px;
+    }
+}
 .card:not(.table-card) .table.without-header tr:first-child td {
     border-top: none;
 }
@@ -24290,11 +24318,11 @@ select.form-control[data-multiselectsplitter-firstselect-selector], select.custo
 }
 
 .horizontal-scroll-cards::-webkit-scrollbar-thumb {
-    background: #dcdaeb;
+    background: none;
 }
 
 .horizontal-scroll-cards::-webkit-scrollbar-thumb:hover {
-    background: #51459d;
+    background: none;
 }
 
 .btn-addnew-project {
@@ -25101,6 +25129,8 @@ body.theme-10 .team-lists img {
 
 .fc-button,
 .fc-today-button {
+    margin-bottom: 5px !important;
+
     background: #4a4b58;
     border: none;
     color: #343a40;

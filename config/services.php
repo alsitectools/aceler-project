@@ -45,13 +45,19 @@ return [
         'secret' => '',
         'url' => 'https://sandbox.cashfree.com/pg/orders',
     ],
-    
+
     'azure' => [
         'client_id' => env('AZURE_CLIENT_ID'),
+        'client_secret' => env('AZURE_CLIENT_SECRET'),
         'redirect' => env('AZURE_REDIRECT_URI'),
-        'authority' => env('AZURE_AUTHORITY'),
-        'post_logout_redirect_uri' => env('AZURE_POST_LOGOUT_REDIRECT_URI'),
-        'navigate_to_login_request_url' => env('AZURE_NAVIGATE_TO_LOGIN_REQUEST_URL', true),
+        'tenant' => env('AZURE_TENANT_ID', 'common'),
+        'scopes' => ['openid', 'profile', 'User.Read', 'User.Read.All'],
+    ],
+
+    'sendgrid' => [
+        'api_key' => env('SENDGRID_API_KEY'),
+        'from_email' => env('SENDGRID_FROM_EMAIL'),
+        'from_name' => env('SENDGRID_FROM_NAME'),
     ],
 
 
