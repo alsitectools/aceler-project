@@ -14,6 +14,7 @@
         Puedes acceder rapidamente a tu tablón de cargos haciendo click <a
             href="https://acelerproject.alsina.com/dmc/milestone-board/-1">aquí</a>.
     </p>
+    <p>Recuerda que tienes que estar dentro de la red Alsina para poder visualizarlo</p>
     <p>Saludos Cordiales</p>
     <hr>
     </p>
@@ -24,6 +25,7 @@
         You can access your order form board clicking <a
             href="https://acelerproject.alsina.com/dmc/milestone-board/-1">here</a>.
     </p>
+    <p> Remember that you must be within the Alsina network to view it.</p>
     <p>Regards</p>
 </body>
 
