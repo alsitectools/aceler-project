@@ -23,7 +23,9 @@ class Milestone extends Model
         'end_date', //estimated_date
         'task_start_date',
         'finalization_date',
-        'summary'
+        'summary',
+        'reminder_mail_is_send',
+        'milestone_assigned_to_user'
     ];
 
     public function daysLeft()

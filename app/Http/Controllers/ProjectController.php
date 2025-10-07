@@ -13,6 +13,7 @@ use App\Models\BugStage;
 use App\Models\Client;
 use App\Models\ClientProject;
 use App\Models\ClientsMo;
+use App\Models\Delegation;
 use App\Models\Notification;
 use App\Models\Comment;
 use App\Models\Mail\SendInvication;
@@ -55,7 +56,7 @@ use SendGrid;
 use SendGrid\Mail\Mail;
 use Illuminate\Support\Facades\View;
 
-
+use Illuminate\Support\Facades\Response;
 
 class ProjectController extends Controller
 {
@@ -70,8 +71,11 @@ class ProjectController extends Controller
         $objUser = Auth::user();
         $currentWorkspace = Utility::getWorkspaceBySlug($slug);
 
-        $projects = Project::select('projects.*')
-            ->where('projects.workspace', '=', $currentWorkspace->id)->get();
+        // Cargamos los proyectos con la relación 'delegation' para evitar N+1 queries
+        $projects = Project::with('delegation')
+            ->where('projects.workspace', $currentWorkspace->id)
+            ->get();
+
         $project_type = ProjectType::select('id', 'name')->get();
 
         return view('projects.index', compact('currentWorkspace', 'projects', 'project_type'));
@@ -136,7 +140,11 @@ class ProjectController extends Controller
             'ref_mo' => 'nullable|string',
             'name' => 'required|string',
             'clipo' => 'nullable|string',
+            // 'delegacion' => $request->project_type != 'jobsite' ? 'required|exists:delegations,id' : 'nullable'
+
         ]);
+        \Log::info(["Info de la request:" => $request->all()]);
+
 
         // Configuración de pago del administrador
         $setting = Utility::getAdminPaymentSettings();
@@ -156,7 +164,7 @@ class ProjectController extends Controller
         $post['start_date'] = $post['end_date'] = date('Y-m-d');
         $post['workspace'] = $currentWorkspace->id;
         $post['created_by'] = $objUser->id;
-
+        $post['ref_delegation'] = $request->delegacion ?? null;
         // Creación del proyecto
         $objProject = Project::create($post);
 
@@ -431,6 +439,7 @@ class ProjectController extends Controller
         return redirect()->back()->with('success', __('Permission Updated Successfully!'));
     }
 
+    // FUNCION QUE SE LLAMA AL ESTAR DENTRO DE UN PROYECTO
     public function show($slug, $projectID)
     {
         $objUser = Auth::user();
@@ -469,6 +478,9 @@ class ProjectController extends Controller
                     ->select('id', 'title')
                     ->get(); // Obtiene una colección de objetos Eloquent
 
+
+                // NUEVO: Total de milestones creados en el proyecto
+                $totalMilestones = Milestone::where('project_id', '=', $projectID)->count();
 
                 //  Array para almacenar los archivos de cada milestone
                 $milestoneFiles = [];
@@ -519,6 +531,7 @@ class ProjectController extends Controller
 
                     // Corrección: Tiempo de trabajo real
                     $workingTime = $deliveryTime - $startUpTime - $delayTime;
+                    if($workingTime < 0) $workingTime = 0;
                     $milestoneWorkingTime[] = $workingTime;
                 }
 
@@ -576,6 +589,35 @@ class ProjectController extends Controller
                 // $averageStartUpTime = round(array_sum($milestoneStartUpTime) / count($milestoneStartUpTime));
                 // $averageDelayTime = round(array_sum($milestoneDelayTime) / count($milestoneDelayTime));
 
+                //HORAS TOTALES IMPUTADAS AL PROYECTO
+                $totalHours = \DB::table('timesheets')
+                    ->where('project_id', $projectID)
+                    ->selectRaw("DATE_FORMAT(SEC_TO_TIME(SUM(TIME_TO_SEC(time))), '%H:%i') as total_time")
+                    ->value('total_time');
+
+                //USUARIOS QUE HAN CREADO UNA HOJA DE ENCARGO    
+                $milestoneCreators = \App\Models\User::select('users.*')
+                    ->join('milestones', 'milestones.created_by', '=', 'users.id')
+                    ->where('milestones.project_id', $projectID)
+                    ->selectRaw('users.*, COUNT(milestones.id) as milestones_count')
+                    ->groupBy('users.id')
+                    ->get();
+
+                //USUARIOS QUE HAN IMPUTADO HORAS EN EL PROYECTO
+                $usersWithHours = DB::table('timesheets')
+                    ->join('users', 'users.id', '=', 'timesheets.created_by')
+                    ->where('timesheets.project_id', $projectID)
+                    ->select(
+                        'users.id',
+                        'users.name',
+                        'users.email',
+                        'users.avatar',
+                        DB::raw("SEC_TO_TIME(SUM(TIME_TO_SEC(timesheets.time))) as total_time")
+                    )
+                    ->groupBy('users.id', 'users.name', 'users.email', 'users.avatar')
+                    ->get();
+
+
                 return view('projects.show', compact(
                     'currentWorkspace',
                     'project',
@@ -586,7 +628,11 @@ class ProjectController extends Controller
                     'averageDelivery',
                     'averageWorkingTime',
                     'averageStartUpTime',
-                    'averageDelayTime'
+                    'averageDelayTime',
+                    'totalHours',
+                    'milestoneCreators',
+                    'usersWithHours',
+                    'totalMilestones'
                 ));
             } else {
                 return redirect()->back()->with('error', __("Project Not Found."));
@@ -743,9 +789,11 @@ class ProjectController extends Controller
     {
         $currentWorkspace = Utility::getWorkspaceBySlug($slug);
         $project_type = ProjectType::select('id', 'name')->get();
+        $project_delegation = Delegation::all();
         $projects = Project::select('projects.*')->where('projects.workspace', '=', $currentWorkspace->id)->get();
+        \Log::debug(["Delegaciones:" => $project_delegation]);
 
-        return view('projects.create', compact('currentWorkspace', 'project_type', 'projects'));
+        return view('projects.create', compact('currentWorkspace', 'project_type', 'projects', 'project_delegation'));
     }
 
 
@@ -1025,7 +1073,7 @@ class ProjectController extends Controller
 
 
 
-            \Log::debug(['allmilestones' => $allmilestones]);
+            //\Log::debug(['allmilestones' => $allmilestones]);
 
 
             // $allmilestones = $allmilestones->merge($allmilestones2);
@@ -1123,7 +1171,7 @@ class ProjectController extends Controller
             'sales'         => User::find($milestone->assign_to),
             'asiggned_user_data'         => User::find($milestone->milestone_assigned_to_user),
         ];
-        \Log::info($milestone);
+        //\Log::info($milestone);
     }
 
     /**
@@ -1694,6 +1742,39 @@ class ProjectController extends Controller
         return response()->json(['all_exist' => $allExist]);
     }
 
+    public function downloadCsv($project_id)
+    {
+        // Cargamos los timesheets con sus relaciones
+        $timesheets = Timesheet::with(['task.milestone', 'task.project', 'getUser'])
+            ->where('project_id', $project_id)
+            ->get();
+
+        $fileName = "timesheet_project_{$project_id}.csv";
+        $handle = fopen('php://temp', 'r+');
+
+        // Cabecera del CSV
+        fputcsv($handle, ['Usuario', 'Dia', 'Encargo', 'Tarea', 'Horas']);
+
+        foreach ($timesheets as $t) {
+            fputcsv($handle, [
+                $t->getUser->name ?? 'Unknown',                         // Usuario
+                Carbon::parse($t->date)->format('Y-m-d'),               // Día
+                $t->task->milestone->title ?? 'Sin encargo',            // Encargo
+                $t->task->type->name ?? 'Sin tarea' ,                   // Tarea
+                Carbon::parse($t->time)->format('H:i'),                 // Horas imputadas
+            ]);
+        }
+
+        rewind($handle);
+        $csv = stream_get_contents($handle);
+        fclose($handle);
+
+        return Response::make($csv, 200, [
+            'Content-Type' => 'text/csv',
+            'Content-Disposition' => "attachment; filename={$fileName}",
+        ]);
+    }
+
     public function commentDestroyFile(Request $request, $slug, $projectID, $taskID, $fileID)
     {
         $commentFile = TaskFile::find($fileID);
@@ -1884,21 +1965,28 @@ class ProjectController extends Controller
         $rules = [
             'title' => 'required',
             'assing_to' => 'required',
-            'end_date' => 'required',
+            'end_date' => 'required|date',
             'files' => 'nullable|array',
-            // 'files.*' => 'file|mimes:jpg,jpeg,png,gif,txt,doc,docx,pdf,zip,rar,dwg,dxf,xlsx,xls,csv|max:5120',
         ];
 
-        $validator = \Validator::make($request->all(), $rules);
+        $validator = Validator::make($request->all(), $rules);
 
         if ($validator->fails()) {
-            \Log::error('Validation failed for milestone creation', [
+            Log::error('Validation failed for milestone creation', [
                 'errors' => $validator->errors()->all(),
                 'request' => $request->all(),
             ]);
             $messages = $validator->getMessageBag();
             return redirect()->back()->with('error', $messages->first());
         }
+
+        // Validar end_date: si es anterior a hoy, usar hoy
+        $inputEndDate = Carbon::parse($request->end_date)->startOfDay();
+        $today = Carbon::today();
+
+        $finalEndDate = $inputEndDate->lessThan($today)
+            ? $today->toDateString()
+            : $inputEndDate->toDateString();
 
         // Crear el milestone
         $milestone = new Milestone();
@@ -1913,7 +2001,7 @@ class ProjectController extends Controller
         $milestone->milestone_assigned_to_user = $request->req_assing_to ?? '';
         $milestone->planned_end_date = $request->planned_end_date ?? '';
         $milestone->created_by = Auth::user()->id;
-        $milestone->end_date = $request->end_date;
+        $milestone->end_date = $finalEndDate; // ✅ Fecha corregida aquí
         $milestone->summary = $request->description ?? '';
         $milestone->save();
 
@@ -1921,14 +2009,12 @@ class ProjectController extends Controller
             $project->updateProjectStatus();
         }
 
+        // Subida de archivos
         if ($request->hasFile('files')) {
             $projectFolder = str_replace(' ', '_', $project->name);
             $milestoneFolder = str_replace(' ', '_', $milestone->title);
-
-            // Ruta donde se guardarán los archivos directamente en storage/
             $dir = 'project_files/' . $projectFolder . '/' . $milestoneFolder;
 
-            // Asegurarse de que la carpeta exista dentro de storage/
             if (!file_exists(storage_path($dir))) {
                 mkdir(storage_path($dir), 0755, true);
             }
@@ -1936,14 +2022,13 @@ class ProjectController extends Controller
             foreach ($request->file('files') as $file) {
                 if ($file->isValid()) {
                     $fileName = $milestone->id . '_' . time() . '_' . $file->getClientOriginalName();
-
                     $file->move(storage_path($dir), $fileName);
 
-                    // Obtener el tamaño del archivo guardado
                     $filePath = storage_path($dir . '/' . $fileName);
-                    $fileSize = file_exists($filePath) ? round(filesize($filePath) / 1024, 2) . ' KB' : '0 KB';
+                    $fileSize = file_exists($filePath)
+                        ? round(filesize($filePath) / 1024, 2) . ' KB'
+                        : '0 KB';
 
-                    // Guardar el registro en la base de datos
                     MilestoneFile::create([
                         'milestone_id' => $milestone->id,
                         'file' => $fileName,
@@ -1968,7 +2053,7 @@ class ProjectController extends Controller
             'remark' => json_encode(['title' => $milestone->title]),
         ]);
 
-        // Notificaciones
+        // Notificación (Slack)
         $setting = Utility::getAdminPaymentSettings();
         $uArr = [
             'project_name' => $project->name,
@@ -1977,6 +2062,7 @@ class ProjectController extends Controller
             'app_url' => env('APP_URL'),
             'app_name' => $setting['app_name'],
         ];
+
         if (isset($setting['milestone_notificaation']) && $setting['milestone_notificaation'] == 1) {
             Utility::send_slack_msg('New Milestone', $currentWorkspace->id, $uArr);
         }
@@ -2061,54 +2147,60 @@ class ProjectController extends Controller
 
     public function milestoneUpdate($slug, $milestoneID, Request $request)
     {
-        // \Log::info($request->all());
         $currentWorkspace = Utility::getWorkspaceBySlug($slug);
         $user1 = $currentWorkspace->id;
 
         $setting = Utility::getAdminPaymentSettings();
+
         $request->validate([
-            'end_date' => 'required',
+            'end_date' => 'required|date',
         ]);
 
         $milestone = Milestone::find($milestoneID);
         if (!$milestone) {
             return redirect()->back()->with('error', 'Milestone not found');
         }
+
+        // Validar end_date: si es anterior a hoy, usar hoy
+        $inputEndDate = Carbon::parse($request->end_date)->startOfDay();
+        $today = Carbon::today();
+
+        $finalEndDate = $inputEndDate->lessThan($today)
+            ? $today->toDateString()
+            : $inputEndDate->toDateString();
+
+        // Actualizar campos del milestone
         $milestone->summary = $request->summary;
         $milestone->milestone_assigned_to_user = $request->req_assing_to ?? '';
-        $milestone->end_date = $request->end_date;
+        $milestone->end_date = $finalEndDate;
         $milestone->planned_end_date = $request->planned_end_date;
         $milestone->save();
 
-        $project = Project::where('id', '=', $milestone->project_id)->first();
+        $project = Project::where('id', $milestone->project_id)->first();
         if (!$project) {
             return redirect()->back()->with('error', 'Project not found');
         }
 
-        // Guardar nuevos archivos en "storage/project_files/{proyecto}/{milestone}"
+        // Guardar nuevos archivos
         if ($request->hasFile('new_files')) {
             $projectFolder = str_replace(' ', '_', $project->name);
             $milestoneFolder = str_replace(' ', '_', $milestone->title);
-
-            // Ruta donde se guardarán los archivos directamente en storage/
             $dir = 'project_files/' . $projectFolder . '/' . $milestoneFolder;
 
-            // Asegurarse de que la carpeta exista dentro de storage/
             if (!file_exists(storage_path($dir))) {
                 mkdir(storage_path($dir), 0755, true);
             }
 
             foreach ($request->file('new_files') as $file) {
                 if ($file->isValid()) {
-
                     $fileName = $milestone->id . '_' . time() . '_' . $file->getClientOriginalName();
                     $file->move(storage_path($dir), $fileName);
 
-                    // Obtener el tamaño del archivo guardado
                     $filePath = storage_path($dir . '/' . $fileName);
-                    $fileSize = file_exists($filePath) ? round(filesize($filePath) / 1024, 2) . ' KB' : '0 KB';
+                    $fileSize = file_exists($filePath)
+                        ? round(filesize($filePath) / 1024, 2) . ' KB'
+                        : '0 KB';
 
-                    // Guardar registro del archivo en la base de datos
                     MilestoneFile::create([
                         'milestone_id' => $milestone->id,
                         'file' => $fileName,
@@ -2124,7 +2216,16 @@ class ProjectController extends Controller
             }
         }
 
-        //  Notificación de actualización del Milestone
+        // Log de actividad
+        ActivityLog::create([
+            'user_id' => Auth::user()->id,
+            'user_type' => get_class(Auth::user()),
+            'project_id' => $project->id,
+            'log_type' => 'has updated a milestone',
+            'remark' => json_encode(['milestoneTitle' => $milestone->title]),
+        ]);
+
+        // Notificación Slack
         $settings = Utility::getPaymentSetting($user1);
         $uArr = [
             'project_name' => $project->name,
@@ -2134,15 +2235,6 @@ class ProjectController extends Controller
             'app_url' => env('APP_URL'),
             'app_name'  => $setting['app_name'],
         ];
-
-        //Add log
-        ActivityLog::create([
-            'user_id' => \Auth::user()->id,
-            'user_type' => get_class(\Auth::user()),
-            'project_id' => $project->id,
-            'log_type' => 'has updated a milestone',
-            'remark' => json_encode(['milestoneTitle' => $milestone->title]),
-        ]);
 
         if (isset($settings['milestonest_notificaation']) && $settings['milestonest_notificaation'] == 1) {
             Utility::send_slack_msg('Milestone Status Updated', $user1, $uArr);
@@ -2939,8 +3031,8 @@ class ProjectController extends Controller
                 $notification->data         = $request->msg;
                 $notification->save();
             }
-            //DESCOMENTAR AL ACABAR
-            $this->getEmails($userIds, $request->ntipe, $request->msg);
+            //comentando esto hara que no se reciban correos por cada milestone creada
+            // $this->getEmails($userIds, $request->ntipe, $request->msg);
             $usersNotified = count($userIds);
         }
 
@@ -3835,7 +3927,6 @@ class ProjectController extends Controller
 
         return view('projects.timesheet-create', compact('currentWorkspace', 'parseArray', 'fromTimesheet', 'dayColor', 'timeTable'));
     }
-
 
     public function projectTimesheetStore(Request $request, $slug, $project_id)
     {

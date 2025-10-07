@@ -1,16 +1,22 @@
 @extends('layouts.admin')
 
 <style type="text/css">
+    /* .fc-h-event .fc-event-title {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 115% !important;
+    } */
+
     .modal-body {
         background: #ffffff !important;
         padding: 25px !important;
     }
 
-    .liStyleTask{
+    .liStyleTask {
         background-color: white;
         color: black;
         box-shadow: 0px 0px 15px 0px rgb(0 0 0 / 15%);
-        -webkit-box-shadow:0px 0px 15px 0px rgb(0 0 0 / 15%);
+        -webkit-box-shadow: 0px 0px 15px 0px rgb(0 0 0 / 15%);
         -moz-box-shadow: 0px 0px 15px 0px rgb(0 0 0 / 15%);
         padding: 15px;
         padding-left: 5%;
@@ -20,12 +26,21 @@
         flex-direction: row;
         align-items: flex-start;
     }
-    .iStyleTask{
+
+    .milestoneTitle {
+        max-width: 95%;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .iStyleTask {
         color: white;
         font-size: 30px;
         padding-right: 4%;
     }
-    .pTotalHours{
+
+    .pTotalHours {
         background-color: white;
         color: black;
         padding-top: 2%;
@@ -33,26 +48,32 @@
         border-radius: 10px;
         width: 40%;
     }
-    .divIconTask{
+
+    .divIconTask {
         background-color: #aa182C;
         padding: 3%;
         border-radius: 10px;
     }
-    .divAlignP{
+
+    .divAlignP {
         display: flex;
         flex-direction: column;
         align-items: flex-start;
+        width: 89%;
     }
-    .titleTask{
+
+    .titleTask {
         padding-left: 20px;
         font-weight: bold;
     }
-    .subtitleTask{
+
+    .subtitleTask {
         font-size: 14px;
         color: #0000008a;
         margin-top: -14px;
         padding-left: 20px;
     }
+
     @media (max-width: 576px) {
         .header_breadcrumb {
             width: 100% !important;
@@ -63,22 +84,28 @@
         .adjustWidthCalendar {
             width: 32% !important;
         }
-        .responsiveDivCalendarTask{
+
+        .responsiveDivCalendarTask {
             width: 99% !important;
         }
-        .liStyleTask{
+
+        .liStyleTask {
             padding: 10px;
         }
-        .titleTask{
+
+        .titleTask {
             font-size: 15px;
         }
-        .subtitleTask{
+
+        .subtitleTask {
             font-size: 13px;
         }
-        .testCol{
+
+        .testCol {
             width: 99% !important;
         }
-        .divIconTask{
+
+        .divIconTask {
             height: 20px;
             width: 20px;
             display: flex;
@@ -86,7 +113,8 @@
             justify-content: center;
             align-items: center;
         }
-        .iStyleTask{
+
+        .iStyleTask {
             font-size: 30px;
         }
     }
@@ -138,7 +166,7 @@
                     <div id="calendar" class="calendar"></div>
                 </div>
             </div>
-        </div>       
+        </div>
         <div class="col-lg-4 responsiveDivCalendarTask">
             <div class="card">
                 <div class="card-header">
@@ -146,11 +174,13 @@
                 </div>
                 <div class="card-body">
                     <ul class="list-unstyled" id="task-list">
-                        @if(isset($tasks) && count($tasks) > 0)
+                        @if (isset($tasks) && count($tasks) > 0)
                             @foreach ($tasks as $task)
                                 @php
-                                    $milestoneTitle = isset($milestones[$task->milestone_id]) ? $milestones[$task->milestone_id]->title : $task->title;
-                                    $taskTitle =  __($task->type_name) ?? 'No Type';
+                                    $milestoneTitle = isset($milestones[$task->milestone_id])
+                                        ? $milestones[$task->milestone_id]->title
+                                        : $task->title;
+                                    $taskTitle = __($task->type_name) ?? 'No Type';
                                     $taskTime = $taskHours[$task->id] ?? '00:00';
                                 @endphp
                                 <li class="liStyleTask">
@@ -158,7 +188,8 @@
                                         <i class="fa-solid fa-list-check iStyleTask"></i>
                                     </div>
                                     <div class="divAlignP">
-                                        <p class="titleTask">{{ $milestoneTitle }} - {{ $taskTitle }}</p>
+                                        <p class="titleTask milestoneTitle">{{ $milestoneTitle }} </p>
+                                        <p class="titleTask">{{ $taskTitle }}</p>
                                         <p class="subtitleTask"> ({{ $taskTime }})</p>
                                     </div>
                                 </li>
@@ -167,7 +198,8 @@
                             <p>{{ __('No tasks available') }}</p>
                         @endif
                     </ul>
-                    <p class="pTotalHours"><strong>{{ __('Total Hours:') }} </strong><span id="total-hours">{{ $formattedTotalHours }}</span></p>
+                    <p class="pTotalHours"><strong>{{ __('Total Hours:') }} </strong><span
+                            id="total-hours">{{ $formattedTotalHours }}</span></p>
                 </div>
             </div>
         </div>
@@ -190,11 +222,11 @@
 
             adjustLayout();
 
-            $(window).resize(function () {
+            $(window).resize(function() {
                 adjustLayout();
             });
         });
-   
+
         //adjusting to laptop view
         function adjustLayout() {
             if ($(window).width() <= 1200) {
@@ -213,7 +245,7 @@
         }
 
         function getCalendarInfo() {
-            const operationUrl = '<?php echo url("get-timesheetCalendar"); ?>';
+            const operationUrl = '<?php echo url('get-timesheetCalendar'); ?>';
 
             $.ajax({
                 type: 'GET',
@@ -221,14 +253,15 @@
                 headers: {
                     'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                 },
-                success: function (data) {
+                success: function(data) {
                     console.log("success", data);
 
                     const opacity = 0.4;
                     let allEvents = [];
 
                     if (data && data.colorData && Array.isArray(data.colorData) && data.expectedHours) {
-                        const nonWorkingDays = Object.keys(data.expectedHours).filter(day => data.expectedHours[day] === null);
+                        const nonWorkingDays = Object.keys(data.expectedHours).filter(day => data.expectedHours[
+                            day] === null);
 
                         const currentYear = new Date().getUTCFullYear();
                         const nonWorkingEvents = [];
@@ -236,8 +269,12 @@
                         const startOfYear = new Date(Date.UTC(currentYear, 0, 1));
                         const endOfYear = new Date(Date.UTC(currentYear, 11, 31));
 
-                        for (let date = new Date(startOfYear); date <= endOfYear; date.setUTCDate(date.getUTCDate() + 1)) {
-                            const dayOfWeek = date.toLocaleDateString('en-US', { weekday: 'long', timeZone: 'UTC' }).toLowerCase();
+                        for (let date = new Date(startOfYear); date <= endOfYear; date.setUTCDate(date
+                                .getUTCDate() + 1)) {
+                            const dayOfWeek = date.toLocaleDateString('en-US', {
+                                weekday: 'long',
+                                timeZone: 'UTC'
+                            }).toLowerCase();
                             if (nonWorkingDays.includes(dayOfWeek)) {
                                 nonWorkingEvents.push({
                                     title: 'Non-working day',
@@ -252,9 +289,11 @@
 
                         let events = data.colorData
                             .filter(item => {
-                                if (data.specialColorData?.holidayRange && Array.isArray(data.specialColorData.holidayRange) && data.specialColorData.holidayRange.includes(item.date)) {
-                                        return item.hours !== '00:00';
-                                    }
+                                if (data.specialColorData?.holidayRange && Array.isArray(data
+                                        .specialColorData.holidayRange) && data.specialColorData
+                                    .holidayRange.includes(item.date)) {
+                                    return item.hours !== '00:00';
+                                }
                                 return true;
                             })
                             .map(item => ({
@@ -271,7 +310,8 @@
                                 events.push({
                                     title: 'Holiday',
                                     start: day,
-                                    backgroundColor: hexToRgba(data.specialColorData.holidayColor, opacity),
+                                    backgroundColor: hexToRgba(data.specialColorData
+                                        .holidayColor, opacity),
                                     borderColor: data.specialColorData.holidayColor,
                                     textColor: 'black',
                                     allDay: true,
@@ -282,12 +322,14 @@
                         }
 
                         if (data.specialColorData && data.specialColorData.intensiveWorkRange) {
-                            for (const [hours, days] of Object.entries(data.specialColorData.intensiveWorkRange)) {
+                            for (const [hours, days] of Object.entries(data.specialColorData
+                                    .intensiveWorkRange)) {
                                 days.forEach(day => {
                                     events.push({
                                         title: `${hours} hours`,
                                         start: day,
-                                        backgroundColor: hexToRgba(data.specialColorData.intensiveWorkColor, opacity),
+                                        backgroundColor: hexToRgba(data.specialColorData
+                                            .intensiveWorkColor, opacity),
                                         borderColor: data.specialColorData.intensiveWorkColor,
                                         textColor: 'black',
                                         allDay: true,
@@ -306,7 +348,7 @@
                     // Renderizar el calendario incluso si no hay eventos
                     renderCalendar(allEvents);
                 },
-                error: function (xhr, status, error) {
+                error: function(xhr, status, error) {
                     console.error("Error:", error);
                     renderCalendar([]); // Renderizar el calendario vacío en caso de error
                 }
@@ -332,7 +374,8 @@
                 events: events,
 
                 eventDidMount: function(info) {
-                    if (info.event.extendedProps.type === 'holiday' || info.event.extendedProps.type === 'intensive_work') {
+                    if (info.event.extendedProps.type === 'holiday' || info.event.extendedProps.type ===
+                        'intensive_work') {
                         const deleteBtn = document.createElement('span');
                         deleteBtn.innerHTML = '❌';
                         deleteBtn.style.cursor = 'pointer';
@@ -351,168 +394,170 @@
             });
 
             calendar.render();
+            window.dispatchEvent(new Event('resize'));
             //reactivar scroll
             document.body.style.overflow = 'auto';
             //esconder el loader
             document.getElementById('loader-overlay').style.display = 'none';
         }
-        
+
         function showDeleteModal(event) {
-                console.log(event.id)
-                let confirmation = confirm(`Do you want to delete this ${event.extendedProps.type.replace('_', ' ')}?`);
-                if (confirmation) {
-                    deleteEvent(event.id);
+            console.log(event.id)
+            let confirmation = confirm(`Do you want to delete this ${event.extendedProps.type.replace('_', ' ')}?`);
+            if (confirmation) {
+                deleteEvent(event.id);
+            }
+        }
+
+        // Función AJAX para eliminar el evento del servidor
+        function deleteEvent(eventId) {
+            const deleteUrl = '<?php echo url('user/specialDelete-timetable'); ?>';
+            $.ajax({
+                url: deleteUrl,
+                method: 'POST',
+                data: {
+                    "eventId": eventId,
+                    _token: $('meta[name="csrf-token"]').attr('content')
+                },
+                success: function(response) {
+                    alert("Event deleted successfully!");
+                    location.reload(); // Refrescar la página para actualizar el calendario
+                },
+                error: function(xhr) {
+                    alert("An error occurred while deleting the event.");
+                    console.error(xhr.responseText);
                 }
+            });
+        }
+        // Función para verificar si una fecha está en días festivos o de trabajo intensivo
+        function isDateRestricted(date) {
+            let formattedDate = date.toISOString().split('T')[0];
+
+            // Comprobar si la fecha está en los días festivos
+            if (data.specialColorData.holidayRange.includes(formattedDate)) {
+                return {
+                    restricted: true,
+                    message: 'This is a holiday. No work can be logged.'
+                };
             }
 
-            // Función AJAX para eliminar el evento del servidor
-            function deleteEvent(eventId) {
-                const deleteUrl = '<?php echo url("user/specialDelete-timetable"); ?>';
-                $.ajax({
-                    url: deleteUrl,
-                    method: 'POST',
-                    data: {
-                        "eventId": eventId,
-                        _token: $('meta[name="csrf-token"]').attr('content')
-                    },
-                    success: function(response) {
-                        alert("Event deleted successfully!");
-                        location.reload();  // Refrescar la página para actualizar el calendario
-                    },
-                    error: function(xhr) {
-                        alert("An error occurred while deleting the event.");
-                        console.error(xhr.responseText);
-                    }
-                });
-            }
-            // Función para verificar si una fecha está en días festivos o de trabajo intensivo
-            function isDateRestricted(date) {
-                let formattedDate = date.toISOString().split('T')[0];
-
-                // Comprobar si la fecha está en los días festivos
-                if (data.specialColorData.holidayRange.includes(formattedDate)) {
+            // Comprobar si la fecha tiene jornada intensiva
+            for (const [hours, days] of Object.entries(data.specialColorData.intensiveWorkRange)) {
+                if (days.includes(formattedDate)) {
                     return {
                         restricted: true,
-                        message: 'This is a holiday. No work can be logged.'
+                        message: `Intensive work day (${hours} hours). Adjust your schedule accordingly.`
                     };
                 }
-
-                // Comprobar si la fecha tiene jornada intensiva
-                for (const [hours, days] of Object.entries(data.specialColorData.intensiveWorkRange)) {
-                    if (days.includes(formattedDate)) {
-                        return {
-                            restricted: true,
-                            message: `Intensive work day (${hours} hours). Adjust your schedule accordingly.`
-                        };
-                    }
-                }
-
-                return { restricted: false };
             }
+
+            return {
+                restricted: false
+            };
+        }
 
         function get_data() {
-    var project_id = $('#project_id').val();
-    $.ajax({
-        url: $("#path_admin").val() + "/calendarr",
-        method: "GET",
-        data: {
-            'project_id': project_id
-        },
-        success: function(response) {
-            /*
-            var filteredEvents = response.events.filter(event => event.start !== null);
-
-            var milestoneColors = {};
-            var predefinedColors = [
-                '#A5BFF0', '#8797D9', '#B0A8F5', '#C3B1E1', '#B39DD6',
-                '#9FA8DA', '#7986CB', '#8E99F3', '#6D8ACF', '#A59FD8'
-            ];
-
-            function getMilestoneColor(id) {
-                if (!milestoneColors[id]) {
-                    var colorIndex = Object.keys(milestoneColors).length % predefinedColors.length;
-                    milestoneColors[id] = predefinedColors[colorIndex];
-                }
-                return milestoneColors[id];
-            }
-
-            // Asignar colores a los eventos
-            filteredEvents = filteredEvents.map(event => {
-                event.backgroundColor = getMilestoneColor(event.milestone_id);
-                event.borderColor = event.backgroundColor;
-                event.textColor = 'white';
-                return event;
-            });
-
-            // Actualizar el calendario
-            var calendarEl = document.getElementById('calendar');
-            var locale = '{{ app()->getLocale() }}';
-
-            var calendar = new FullCalendar.Calendar(calendarEl, {
-                locale: locale,
-                initialView: 'dayGridMonth', // Mostrar solo vista mensual
-                firstDay: 1, // Iniciar el calendario en lunes
-                headerToolbar: {
-                    left: 'prev,next today',
-                    center: 'title',
-                    right: '' // Ocultar otras vistas
+            var project_id = $('#project_id').val();
+            $.ajax({
+                url: $("#path_admin").val() + "/calendarr",
+                method: "GET",
+                data: {
+                    'project_id': project_id
                 },
-                buttonText: {
-                    today: "{{ trans('messages.today') }}",
-                },
-                events: filteredEvents,
-                eventClick: function(info) {
-                    info.jsEvent.preventDefault();
+                success: function(response) {
+                    /*
+                                var filteredEvents = response.events.filter(event => event.start !== null);
 
-                    // Obtén la URL actual
-                    const currentUrl = window.location.href;
+                                var milestoneColors = {};
+                                var predefinedColors = [
+                                    '#A5BFF0', '#8797D9', '#B0A8F5', '#C3B1E1', '#B39DD6',
+                                    '#9FA8DA', '#7986CB', '#8E99F3', '#6D8ACF', '#A59FD8'
+                                ];
 
-                    // Divide la URL por "/"
-                    let splitUrl = currentUrl.split("/");
+                                function getMilestoneColor(id) {
+                                    if (!milestoneColors[id]) {
+                                        var colorIndex = Object.keys(milestoneColors).length % predefinedColors.length;
+                                        milestoneColors[id] = predefinedColors[colorIndex];
+                                    }
+                                    return milestoneColors[id];
+                                }
 
-                    // Reemplaza la última parte del arreglo con "timesheet"
-                    splitUrl[splitUrl.length - 1] = "timesheet";
+                                // Asignar colores a los eventos
+                                filteredEvents = filteredEvents.map(event => {
+                                    event.backgroundColor = getMilestoneColor(event.milestone_id);
+                                    event.borderColor = event.backgroundColor;
+                                    event.textColor = 'white';
+                                    return event;
+                                });
 
-                    // Une la URL de nuevo
-                    let newUrl = splitUrl.join("/");
+                                // Actualizar el calendario
+                                var calendarEl = document.getElementById('calendar');
+                                var locale = '{{ app()->getLocale() }}';
 
-                    // Redirige al usuario a la nueva URL
-                    window.location.href = newUrl;
-                }
+                                var calendar = new FullCalendar.Calendar(calendarEl, {
+                                    locale: locale,
+                                    initialView: 'dayGridMonth', // Mostrar solo vista mensual
+                                    firstDay: 1, // Iniciar el calendario en lunes
+                                    headerToolbar: {
+                                        left: 'prev,next today',
+                                        center: 'title',
+                                        right: '' // Ocultar otras vistas
+                                    },
+                                    buttonText: {
+                                        today: "{{ trans('messages.today') }}",
+                                    },
+                                    events: filteredEvents,
+                                    eventClick: function(info) {
+                                        info.jsEvent.preventDefault();
 
-            });
-            calendar.render();
-*/
-            // Actualizar la lista de tareas
-            var taskList = $('#task-list');
-            taskList.empty(); // Limpiar la lista actual
+                                        // Obtén la URL actual
+                                        const currentUrl = window.location.href;
 
-            if (response.tasks.length > 0) {
-                response.tasks.forEach(function(task) {
-                    var taskHtml = `<li class="liStyleTask">
+                                        // Divide la URL por "/"
+                                        let splitUrl = currentUrl.split("/");
+
+                                        // Reemplaza la última parte del arreglo con "timesheet"
+                                        splitUrl[splitUrl.length - 1] = "timesheet";
+
+                                        // Une la URL de nuevo
+                                        let newUrl = splitUrl.join("/");
+
+                                        // Redirige al usuario a la nueva URL
+                                        window.location.href = newUrl;
+                                    }
+
+                                });
+                                calendar.render();
+                    */
+                    // Actualizar la lista de tareas
+                    var taskList = $('#task-list');
+                    taskList.empty(); // Limpiar la lista actual
+
+                    if (response.tasks.length > 0) {
+                        response.tasks.forEach(function(task) {
+                            var taskHtml = `<li class="liStyleTask">
                                        <div class="divIconTask">
                                         <i class="fa-solid fa-list-check iStyleTask"></i>
                                         </div>
                                         <div class="divAlignP">
-                                            <p class="titleTask"> ${task.milestoneTitle} - ${task.taskTitle}</p>
+                                            <p class="titleTask milestoneTitle"> ${task.milestoneTitle}</p>
+                                            <p class="titleTask"> ${task.taskTitle}</p>
                                             <p class="subtitleTask">(${task.taskTime})</p>
                                        </div>
                                     </li>`;
-                    taskList.append(taskHtml);
-                });
-            } else {
-                taskList.append('<p>{{ __('No tasks available') }}</p>');
-            }
+                            taskList.append(taskHtml);
+                        });
+                    } else {
+                        taskList.append('<p>{{ __('No tasks available') }}</p>');
+                    }
 
-            // Actualizar las horas totales
-            $('#total-hours').text(response.formattedTotalHours);
-        },
-        error: function(xhr) {
-            console.error(xhr.responseText);
+                    // Actualizar las horas totales
+                    $('#total-hours').text(response.formattedTotalHours);
+                },
+                error: function(xhr) {
+                    console.error(xhr.responseText);
+                }
+            });
         }
-    });
-}
-
-
     </script>
 @endpush

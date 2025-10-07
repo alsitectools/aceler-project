@@ -1644,7 +1644,7 @@ a.b-brand {
     height: 25px !important;
 }
 
-.dash-header .drp-notification .noti-body {
+.dash-header .drp-notification {
     position: relative;
     max-height: calc(100vh - -100px) !important;
 }

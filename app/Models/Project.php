@@ -21,6 +21,7 @@ class Project extends Model
         'workspace',
         'created_by',
         'is_active',
+        'ref_delegation'
     ];
 
 
@@ -126,6 +127,10 @@ class Project extends Model
     public function user_tasks($user_id)
     {
         return Task::where('project_id', $this->id)->whereRaw('FIND_IN_SET(?, assign_to)', [$user_id])->get();
+    }
+    public function delegation()
+    {
+        return $this->belongsTo(Delegation::class, 'ref_delegation', 'id');
     }
 
 

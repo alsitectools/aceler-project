@@ -26,6 +26,10 @@
         max-width: 60%;
         /* Set modal width to 60% */
     }
+
+    .delegationSelect {
+        max-height: 300px !important;
+    }
 </style>
 
 <!-- Formulario para crear un nuevo proyecto -->
@@ -61,6 +65,17 @@
                 <input class="form-control" type="text" id="projectname" name="name" required
                     placeholder="{{ __('Project Name') }}">
             </div>
+            <div class="form-group col-md-12" id="delegacion" style="display: none;">
+                <label for="delegacionSelect" class="col-form-label">Delegación</label>
+                <select placeholder="{{ __('Project delegation') }}" class="form-control delegationSelect"
+                    id="delegacionSelect" name="delegacion">
+                    <option selected disabled>{{ __('Project delegation') }}</option>
+                    @foreach ($project_delegation as $delegation)
+                        <option value="{{ (string) $delegation->id }}">{{ $delegation->delegation_name }}</option>
+                    @endforeach
+                </select>
+            </div>
+
             {{-- <div class="form-group col-md-12">
                 <label for="milestone-title" class="col-form-label">{{ __('Title') }}</label>
                 <input type="text" class="form-control form-control-light" id="milestone-title"
@@ -151,4 +166,20 @@
     //         this.value = value.charAt(0).toUpperCase() + value.slice(1);
     //     }
     // });
+</script>
+<script>
+    const projectTypeSelect = document.getElementById('project_type');
+    const delegacionField = document.getElementById('delegacion');
+
+    projectTypeSelect.addEventListener('change', function() {
+        const selectedOption = this.options[this.selectedIndex];
+        const selectedText = selectedOption.getAttribute('data-type');
+
+        if (selectedText && selectedText.toLowerCase() !== 'jobsite') {
+            delegacionField.style.display = 'block';
+        } else {
+            delegacionField.style.display = 'none';
+            document.getElementById('delegacionSelect').value = ''; // reset selección
+        }
+    });
 </script>

@@ -210,7 +210,7 @@ class HomeController extends Controller
             }
             unset($yearData['yearly']['sumDelivery'], $yearData['yearly']['sumStartUp'], $yearData['yearly']['sumWorking'], $yearData['yearly']['sumDelay'], $yearData['yearly']['sumEstimatedByUser'], $yearData['yearly']['total']);
         }
-        \Log::debug("Milestones organizados por año: " . json_encode($groupedMilestones, JSON_PRETTY_PRINT));
+       // \Log::debug("Milestones organizados por año: " . json_encode($groupedMilestones, JSON_PRETTY_PRINT));
 
         return $groupedMilestones;
     }

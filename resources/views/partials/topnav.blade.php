@@ -180,6 +180,16 @@
             transform: scale(1);
         }
     }
+
+    @media (max-width: 1400px) {
+    .noti-body {
+        max-height: 300px !important;
+    }
+    .dash-header .drp-notification .noti-body  {
+        max-height: 0px;
+    }
+}
+
 </style>
 <header class="dash-header {{ isset($cust_theme_bg) && $cust_theme_bg == 'on' ? 'transprent-bg' : '' }}">
     <div class="header-wrapper p-0 me-1">

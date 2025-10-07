@@ -64,7 +64,7 @@
                 </div>
             @endif
             <div class="imgDiv">
-                <img width="100%" src="{{ asset('assets/img/logoRed1.png') }}" alt="Logo Alsina Project">
+                <img width="100%" src="{{ asset('assets/img/acerlerRemastered.png') }}" alt="Logo Alsina Project">
             </div>
             <div class="loginText">
                 <h2 class="loginTitle">{{ __('Login') }}</h2>

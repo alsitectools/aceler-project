@@ -3,47 +3,63 @@
     $logo_tasks = \App\Models\Utility::get_file('tasks/');
 @endphp
 <style>
-  .firstDivIconTexts{
+    .firstDivIconTexts {
         padding-top: 8%;
         display: flex;
         padding-left: 11%;
     }
-    .divIconTexts{
+
+    .divIconTexts {
         display: flex;
         padding-left: 11%;
         padding-top: 5%;
     }
-    .divIconModified{
+
+    .divIconModified {
         display: flex;
         padding-top: 5%;
         padding-left: 12%;
     }
-    .customIconsStlye{
+
+    .customIconsStlye {
         color: #aa182c;
         font-size: 25px;
     }
-    .textStyle{
+
+    .textStyle {
         font-size: 16px;
         padding-left: 15%;
+        width: 90%;
+        text-overflow: ellipsis;
+        overflow: hidden;
     }
-    .firstTextStyle{
+
+    .textStyle:hover {
+        cursor: help;
+    }
+
+    .firstTextStyle {
         font-size: 16px;
         padding-left: 15%;
         font-weight: bold;
     }
-    .textStyleModified{
+
+    .textStyleModified {
         font-size: 16px;
         padding-left: 14%;
     }
-    .userImg{
+
+    .userImg {
         width: 8%;
         margin-left: 14%;
         margin-top: -2px !important;
     }
-    .textUserName{
+
+    .textUserName {
         padding-left: 2%;
     }
-    .resumeDivBackground{
+
+    .resumeDivBackground {
         display: flex;
         width: 90%;
         height: 36%;
@@ -55,43 +71,51 @@
         -moz-box-shadow: 0 0 5px 1px rgb(0 0 0 / 31%);
         flex-direction: column;
     }
-    .divInsideRightResume{
+
+    .divInsideRightResume {
         margin-top: 7%;
         padding-left: 3%;
         display: flex;
     }
-    .divInsideLeftResume{
+
+    .divInsideLeftResume {
         margin-top: 7%;
         display: flex;
         padding-left: 5%;
     }
-    .iconsResume{
+
+    .iconsResume {
         color: #AA182C;
         font-size: 35px;
         padding-left: 5px;
         padding-right: 39px;
     }
-    .iconResumeClock{
+
+    .iconResumeClock {
         color: #AA182C;
         font-size: 35px;
         padding-right: 33px;
         padding-left: 14px;
     }
-    .textResume{
+
+    .textResume {
         padding-left: 5px;
     }
-    .subtitleResume{
+
+    .subtitleResume {
         margin-top: -16px;
         font-size: 12px;
         color: grey;
         margin-left: -49px !important;
     }
-    .divResumeAjustText{
+
+    .divResumeAjustText {
         display: flex;
         flex-direction: column;
         align-items: center;
     }
-    .subtitleResumeRight{
+
+    .subtitleResumeRight {
         padding-left: 8px;
         margin-top: -16px;
         font-size: 12px;
@@ -118,7 +142,7 @@
 
                 <div class="divIconModified">
                     <i class="fa-solid fa-file-lines customIconsStlye"></i>
-                    <p class="textStyle">
+                    <p class="textStyle" title="{{ $taskDetail['milestone'] }}">
                         {{ $taskDetail['milestone'] }}
                     </p>
                 </div>
@@ -143,7 +167,7 @@
             <div class="divInsideLeftResume">
                 <i class="fa-regular fa-calendar iconsResume"></i>
                 <div class="divResumeAjustText">
-                    <p class="textResume"> {{ ucfirst($taskDetail['start_of_week']) }} - 
+                    <p class="textResume"> {{ ucfirst($taskDetail['start_of_week']) }} -
                         {{ ucfirst($taskDetail['end_of_week']) }}</p>
                     <p class="subtitleResume">Periodo de la semana</p>
                 </div>
