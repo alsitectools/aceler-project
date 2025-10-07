@@ -420,19 +420,13 @@
                     <div class="card bg-primary widthAdjustDiv">
                         <div class="card-body pb-2">
                             <div>
-                                <h3 class="text-white projectTitleH3"> {{ $project->name }}
-                                    {{-- ({{ $project->delegation?->delegation_name }}) --}}
-                                </h3>
+                                <h3 class="text-white projectTitleH3"> {{ $project->name }}</h3>
                             </div>
                             <div>
                                 <div class="projectDivSubtitle">
                                     <div data-toggle="tooltip" data-placement="top" title="{{ __('Company') }}">
                                         <i class="fa-regular fa-building fa-xl me-2"></i>
-                                        @if ($project->delegation?->delegation_name)
-                                            {{ \Illuminate\Support\Str::title($project->delegation->delegation_name) }}
-                                        @else
-                                            {{ $currentWorkspace->country }} / {{ $currentWorkspace->name }}
-                                        @endif
+                                        {{ $currentWorkspace->country }} / {{ $currentWorkspace->name }}
                                     </div>
                                     <div>
                                         <i class="fas fa-users fa-xl me-2"></i>
@@ -560,7 +554,6 @@
                                                     <th>{{ __('Action') }}</th>
                                                 </tr> --}}
                                                 <tr>
-
                                                     <th class="sortable-header" data-sort="title" data-type="text">
                                                         {{ __('Name') }}<span class="sort-indicator"></span></th>
                                                     <th class="sortable-header" data-sort="requested_by"
@@ -799,7 +792,7 @@
                                             <small class="text-muted">
                                                 {{ $user->email }}
                                                 <span class="text-primary">
-                                                    - {{ $user->milestones_count }} {{ __('milestones') }}
+                                                    - {{ $user->milestones_count }} {{ __('Order forms') }}
                                                 </span>
                                             </small>
                                         </div>
@@ -872,7 +865,7 @@
                                             <small class="text-muted">
                                                 {{ $user->email }}
                                                 <span class="text-primary">
-                                                    - {{ \Carbon\Carbon::parse($user->total_time)->format('H:i') }}
+                                                    - {{ $user->total_time ? substr($user->total_time, 0, 5) : '00:00' }}h
                                                 </span>
                                             </small>
                                         </div>
