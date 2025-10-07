@@ -479,9 +479,6 @@ class ProjectController extends Controller
                     ->get(); // Obtiene una colección de objetos Eloquent
 
 
-                // NUEVO: Total de milestones creados en el proyecto
-                $totalMilestones = Milestone::where('project_id', '=', $projectID)->count();
-
                 //  Array para almacenar los archivos de cada milestone
                 $milestoneFiles = [];
 
@@ -631,8 +628,7 @@ class ProjectController extends Controller
                     'averageDelayTime',
                     'totalHours',
                     'milestoneCreators',
-                    'usersWithHours',
-                    'totalMilestones'
+                    'usersWithHours'
                 ));
             } else {
                 return redirect()->back()->with('error', __("Project Not Found."));
