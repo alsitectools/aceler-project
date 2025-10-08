@@ -284,7 +284,7 @@ class Project extends Model
 
     private static function processTaskTimesheets($task, $days, $currentWorkspace, $projectId, $userId)
     {
-        $taskTimesheets = $task->timesheets ?? [];
+        $taskTimesheets = Timesheet::where('task_id', $task->id)->get();
         $times = [];
         $dateArray = [
             'week' => [],
