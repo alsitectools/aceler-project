@@ -134,9 +134,7 @@
         opacity: 0;
         background-color: #f9fbfa;
         border: 2px solid transparent;
-        border-top-right-radius: 15px;
-        border-bottom-right-radius: 15px;
-        border-bottom-left-radius: 15px;
+        border-radius: 15px;
         width: 394px;
         height: 735px;
         position: absolute;
