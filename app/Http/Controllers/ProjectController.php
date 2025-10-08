@@ -531,7 +531,7 @@ class ProjectController extends Controller
 
                     // Corrección: Tiempo de trabajo real
                     $workingTime = $deliveryTime - $startUpTime - $delayTime;
-                    if($workingTime < 0) $workingTime = 0;
+                    if ($workingTime < 0) $workingTime = 0;
                     $milestoneWorkingTime[] = $workingTime;
                 }
 
@@ -590,10 +590,12 @@ class ProjectController extends Controller
                 // $averageDelayTime = round(array_sum($milestoneDelayTime) / count($milestoneDelayTime));
 
                 //HORAS TOTALES IMPUTADAS AL PROYECTO
-                $totalHours = \DB::table('timesheets')
-                    ->where('project_id', $projectID)
-                    ->selectRaw("DATE_FORMAT(SEC_TO_TIME(SUM(TIME_TO_SEC(time))), '%H:%i') as total_time")
-                    ->value('total_time');
+                $totalHours = round(
+                    \DB::table('timesheets')
+                        ->where('project_id', $projectID)
+                        ->sum(\DB::raw('TIME_TO_SEC(time)')) / 3600,
+                    2
+                );
 
                 //USUARIOS QUE HAN CREADO UNA HOJA DE ENCARGO    
                 $milestoneCreators = \App\Models\User::select('users.*')
@@ -1760,7 +1762,7 @@ class ProjectController extends Controller
                 $t->getUser->name ?? 'Unknown',                         // Usuario
                 Carbon::parse($t->date)->format('Y-m-d'),               // Día
                 $t->task->milestone->title ?? 'Sin encargo',            // Encargo
-                $t->task->type->name ?? 'Sin tarea' ,                   // Tarea
+                $t->task->type->name ?? 'Sin tarea',                   // Tarea
                 Carbon::parse($t->time)->format('H:i'),                 // Horas imputadas
             ]);
         }
