@@ -451,49 +451,24 @@
                                                         <div class="col-sm-12 p-3">
                                                             @foreach ($milestone['tasks'] as $task)
                                                                 <div class="taskList tooltipCus p-target mb-2 col-sm-12 marginText"
-                                                                    role="button" data-task-id="{{ $task['id'] }}"
-                                                                    data-task-name="{{ $task['name'] }}"
-                                                                    data-milestone-id="{{ $milestone['id'] }}"
-                                                                    data-project-id="{{ $milestone['project_id'] }}"
-                                                                    data-project-name="{{ $milestone['project_name'] }}"
-                                                                    data-technician-name="{{ $task['technician']->id }}"
-                                                                    data-url="{{ route('create.timesheet.from.orders', [$currentWorkspace->slug, $project_id]) }}"
-                                                                    data-ajax-timesheet-popup="true"
-                                                                    data-title="{{ $task['technician']->name . '  (Fecha de entrega estimada: ' . \Carbon\Carbon::parse($task['estimated_date'])->format('d/m/Y') }})">
-                                                                    @php
+    role="button"
+    data-task-id="{{ $task['id'] }}"
+    data-task-name="{{ $task['name'] }}"
+    data-milestone-id="{{ $milestone['id'] }}"
+    data-project-id="{{ $milestone['project_id'] }}"
+    data-project-name="{{ $milestone['project_name'] }}"
+    data-technician-name="{{ $task['technician']->id }}"
+    data-url="{{ route('create.timesheet.from.orders', [$currentWorkspace->slug, $project_id]) }}"
+    data-ajax-timesheet-popup="true"
+    data-title="{{ $task['technician']->name }}">
+    
+    {{-- Icono del reloj (siempre negro) --}}
+    <i class="ms-2 me-2 fa-solid fa-hourglass-start fa-xs" style="color: black;"></i>
 
-                                                                        // Get the current milestone status from the container it's in
-$milestoneStatus = (int) $status->id;
-$isAfterEstimatedDate =
-    strtotime($task['estimated_date']) <
-    strtotime(date('Y-m-d'));
+    {{-- Nombre de la tarea --}}
+    {{ __($task['name']) }}
+</div>
 
-// Determine icon color based on milestone status and estimated date
-if ($milestoneStatus <= 2) {
-    // Status 1 or 2 (To Do or In Progress)
-    if ($isAfterEstimatedDate) {
-        $iconColor = '#db8d33'; // Yellow for overdue tasks
-    } else {
-        $iconColor = 'black'; // Black for on-time tasks
-    }
-} else {
-    // Status 3 or 4 (In Review or Done)
-    if ($isAfterEstimatedDate) {
-        $iconColor = 'red'; // Red for overdue tasks
-    } else {
-        $iconColor = '#53b446'; // Green for on-time tasks
-    }
-}
-
-$icon =
-    '<i class="ms-2 me-2 fa-solid fa-hourglass-' .
-    ($isAfterEstimatedDate ? 'end' : 'start') .
-    ' fa-xs" style="color: ' .
-    $iconColor .
-    '"></i>';
-                                                                    @endphp
-                                                                    {!! $icon !!}{{ __($task['name']) }}
-                                                                </div>
                                                                 @if ($project_id != -1)
                                                                     <div class="taskList tooltipCus col-sm-12 text-end"
                                                                         data-title="{{ $task['technician']->name }}">
