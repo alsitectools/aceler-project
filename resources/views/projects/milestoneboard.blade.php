@@ -80,6 +80,7 @@
         overflow-y: auto;
         scrollbar-color: #aa182c #ffff0000;
         scrollbar-width: thin;
+        /* position: relative; */
     }
 
     .fixedHeight::-webkit-scrollbar {

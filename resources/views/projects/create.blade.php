@@ -70,8 +70,9 @@
                 <select placeholder="{{ __('Project delegation') }}" class="form-control delegationSelect"
                     id="delegacionSelect" name="delegacion">
                     <option selected disabled>{{ __('Project delegation') }}</option>
-                    @foreach ($project_delegation as $delegation)
-                        <option value="{{ (string) $delegation->id }}">{{ $delegation->delegation_name }}</option>
+                    @foreach ($project_delegation->sortBy('delegation_name') as $delegation)
+                        <option value="{{ (string) $delegation->id }}">{{ $delegation->delegation_name }} -
+                            {{ (string) $delegation->id }}</option>
                     @endforeach
                 </select>
             </div>
