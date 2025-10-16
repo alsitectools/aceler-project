@@ -902,7 +902,7 @@
                                 </div>
                             </div>
                         </div>
-
+                        {{-- Usuarios que han imputado horas --}}
                         <div class="col-md-6 widthAdjustMediumDiv">
                             <div class="card min-h">
                                 <div class="card-header">

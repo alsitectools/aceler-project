@@ -451,23 +451,23 @@
                                                         <div class="col-sm-12 p-3">
                                                             @foreach ($milestone['tasks'] as $task)
                                                                 <div class="taskList tooltipCus p-target mb-2 col-sm-12 marginText"
-    role="button"
-    data-task-id="{{ $task['id'] }}"
-    data-task-name="{{ $task['name'] }}"
-    data-milestone-id="{{ $milestone['id'] }}"
-    data-project-id="{{ $milestone['project_id'] }}"
-    data-project-name="{{ $milestone['project_name'] }}"
-    data-technician-name="{{ $task['technician']->id }}"
-    data-url="{{ route('create.timesheet.from.orders', [$currentWorkspace->slug, $project_id]) }}"
-    data-ajax-timesheet-popup="true"
-    data-title="{{ $task['technician']->name }}">
-    
-    {{-- Icono del reloj (siempre negro) --}}
-    <i class="ms-2 me-2 fa-solid fa-hourglass-start fa-xs" style="color: black;"></i>
+                                                                    role="button" data-task-id="{{ $task['id'] }}"
+                                                                    data-task-name="{{ $task['name'] }}"
+                                                                    data-milestone-id="{{ $milestone['id'] }}"
+                                                                    data-project-id="{{ $milestone['project_id'] }}"
+                                                                    data-project-name="{{ $milestone['project_name'] }}"
+                                                                    data-technician-name="{{ $task['technician']->id }}"
+                                                                    data-url="{{ route('create.timesheet.from.orders', [$currentWorkspace->slug, $project_id]) }}"
+                                                                    data-ajax-timesheet-popup="true"
+                                                                    data-title="{{ $task['technician']->name }}">
 
-    {{-- Nombre de la tarea --}}
-    {{ __($task['name']) }}
-</div>
+                                                                    {{-- Icono del reloj (siempre negro) --}}
+                                                                    <i class="ms-2 me-2 fa-solid fa-hourglass-start fa-xs"
+                                                                        style="color: black;"></i>
+
+                                                                    {{-- Nombre de la tarea --}}
+                                                                    {{ __($task['name']) }}
+                                                                </div>
 
                                                                 @if ($project_id != -1)
                                                                     <div class="taskList tooltipCus col-sm-12 text-end"
@@ -930,6 +930,21 @@
                                 })
                                 .catch(error => console.error("Error al agregar notificación:", error));
                         }
+                        if (oldStatus == 3 && newStatus == 2) {
+                            console.log("El milestone vuelve de estado 3 a 2 — eliminando puntuaciones...");
+                            $.ajax({
+                                url: '{{ route('projects.milestone.deletePuntuaciones', [$currentWorkspace->slug, ':id']) }}'.replace(':id', cardId),
+                                type: 'POST',
+                                headers: {
+                                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                                },
+                                success: function (response) {
+                                },
+                                error: function (xhr, status, error) {
+                                    console.error('Error al eliminar puntuaciones:', error);
+                                }
+                            });
+                        }
                         if (oldStatus == 2 && newStatus == 3) {
                             /////////////INICIO status 2 a 3///////////////////////////
                             var milestoneRequBy = a(el).find('#milestoneReqName').attr('data-technician-id');
@@ -937,6 +952,58 @@
                             var milestonetId = a(el).find('#milestoneReqName').attr('data-milestone-id');
                             console.log("El id del milestone es")
                             console.log(milestonetId);
+
+
+                            ///// CHECK IF THE MILESTONE HAS A DRAWING TASK /////
+                            // ✅ Verificar si el milestone tiene tareas con type_id = 1 antes de mostrar el popup
+$.ajax({
+    url: '{{ route('projects.milestone.hasDrawingTask', [$currentWorkspace->slug, 0]) }}'.replace('/0', '/' + milestonetId),
+    type: 'GET',
+    success: function(response) {
+        const hasDrawingTask = response.has_drawing_task;
+
+        if (!hasDrawingTask) {
+            console.log("⏩ El milestone no tiene tareas type_id = 1 — no se muestra popup de revisión.");
+            return;
+        }
+
+        console.log("✅ El milestone tiene tareas type_id = 1 — mostrando popup de revisión.");
+
+        // === Mostrar popup de revisión ===
+        var popupUrl = '{{ route('projects.milestone.review', [$currentWorkspace->slug, ':id']) }}'
+            .replace(':id', milestonetId);
+
+        $("#" + modalId + " .modal-title").html("{{ __('Revisión del hito') }}");
+
+        $.ajax({
+            url: popupUrl,
+            data: {
+                milestone_id: milestonetId,
+                project_id: projectId,
+            },
+            success: function(response) {
+                $("#" + modalId + " .body").html(response);
+                $("#" + modalId).modal({
+                    backdrop: 'static',
+                    keyboard: false
+                });
+                $("#" + modalId).modal('show');
+                // 🧩 Guardamos datos para revertir si el popup se cancela
+                $("#" + modalId).data('milestone-id', milestonetId);
+                $("#" + modalId).data('previous-status', 2); // Volverá a "In Progress" si se cierra
+                $("#" + modalId).data('previous-container', source);
+
+            },
+            error: function(xhr) {
+                console.error("❌ Error al cargar el popup de revisión:", xhr.responseText);
+            }
+        });
+    },
+    error: function(xhr, status, error) {
+        console.error('⚠️ Error al comprobar tareas del milestone:', error);
+    }
+});
+                            ///// END CHECK IF THE MILESTONE HAS A DRAWING TASK /////
                             $.ajax({
                                 url: '{{ route('projects.milestone.checkTaskHours', [$currentWorkspace->slug, $milestone['id']]) }}',
                                 type: 'GET',
@@ -1067,7 +1134,40 @@
                                     }
                                 })
                                 .catch(error => console.error("Error al agregar notificación:", error));
+
                             /////////////FINAL status 2 a 3///////////////////////////
+
+                            // === Mostrar popup personalizado cuando milestone pasa a estado 3 ===
+                            var milestoneId = a(el).find('#milestoneReqName').attr('data-milestone-id');
+                            var milestoneTitle = a(el).find('.mileTitle').attr('data-header');
+                            var projectId = a(el).data('project-id');
+                            var modalId = 'commonModal';
+
+                            // Construimos la URL de la vista que quieres mostrar (tú la defines en tu controlador)
+                            // var popupUrl = '{{ route('projects.milestone.review', [$currentWorkspace->slug, ':id']) }}'.replace(
+                            //     ':id', milestoneId);
+
+                            // // Abrimos el modal
+                            // $("#" + modalId + " .modal-title").html("Revisión del hito");
+                            // $.ajax({
+                            //     url: popupUrl,
+                            //     data: {
+                            //         milestone_id: milestoneId,
+                            //         project_id: projectId,
+                            //     },
+                            //     success: function(response) {
+                            //         $("#" + modalId + " .body").html(response);
+                            //         $("#" + modalId).modal({
+                            //             backdrop: 'static',
+                            //             keyboard: false
+                            //         });
+                            //         $("#" + modalId).modal('show');
+                            //     },
+                            //     error: function(xhr) {
+                            //         console.error("Error al cargar el popup de revisión:", xhr.responseText);
+                            //     }
+                            // });
+
                         }
 
                         // Actualizamos los contadores de tareas en los contenedores de origen y destino
@@ -1115,6 +1215,59 @@
                     a.Dragula.init();
                 }(window.jQuery);
             </script>
+
+            <script>
+document.addEventListener('DOMContentLoaded', function() {
+    const modalEl = document.getElementById('commonModal');
+
+    // Se ejecuta cuando el modal se cierra (por cancelar o por la X)
+    modalEl.addEventListener('hidden.bs.modal', function() {
+        const milestoneId = $(this).data('milestone-id');
+        const previousStatus = $(this).data('previous-status');
+        const previousContainer = $(this).data('previous-container');
+
+        // Limpiamos los datos guardados
+        $(this).removeData('milestone-id');
+        $(this).removeData('previous-status');
+        $(this).removeData('previous-container');
+
+        // Si no hay datos guardados, no hacemos nada
+        if (!milestoneId || !previousStatus) return;
+
+        console.log(`🔄 Revirtiendo milestone ${milestoneId} al estado ${previousStatus}`);
+
+        // Buscamos la tarjeta del milestone y la movemos al contenedor anterior
+        const $milestoneCard = $(`.card[id='${milestoneId}']`);
+        const $oldContainer = $(`.kanban-box[data-status='${previousStatus}']`);
+
+        if ($milestoneCard.length && $oldContainer.length) {
+            $oldContainer.append($milestoneCard);
+            $milestoneCard.attr('data-status', previousStatus);
+        }
+
+        // ✅ Actualizamos en el servidor el cambio de vuelta
+        $.ajax({
+            url: '{{ route('milestone.update.order', [$currentWorkspace->slug, $project_id]) }}',
+            type: 'POST',
+            data: {
+                id: milestoneId,
+                sort: [], // no importa el orden en este caso
+                new_status: previousStatus,
+                old_status: 3,
+                project_id: $milestoneCard.data('project-id')
+            },
+            success: function() {
+                console.log(`✅ Milestone ${milestoneId} revertido correctamente`);
+            },
+            error: function(err) {
+                console.error('❌ Error al revertir milestone:', err);
+            }
+        });
+    });
+});
+</script>
+
+
             <script>
                 document.addEventListener('DOMContentLoaded', function() {
                     // Delegación de eventos para manejar clicks dinámicos

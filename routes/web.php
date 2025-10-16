@@ -1020,3 +1020,18 @@ Route::post('/projects/download-file', [ProjectController::class, 'downloadFile'
 //Delete project files
 Route::delete('/projects/delete-file', [ProjectController::class, 'deleteFile'])->name('project.deleteFile');
 Route::get('/home/tutorial/{slug}', [HomeController::class, 'showTutorial'])->name('home.showTutorial');
+
+
+//REVIEW MILESTONE 
+Route::get('/{slug}/milestone/{id}/review', [ProjectController::class, 'milestoneReview'])
+    ->name('projects.milestone.review');
+
+Route::get('/{slug}/milestone/{id}/has-drawing-task', [ProjectController::class, 'checkHasDrawingTask'])
+    ->name('projects.milestone.hasDrawingTask');
+
+Route::post('/{slug}/milestone/{id}/review', [ProjectController::class, 'milestoneReviewSubmit'])
+    ->name('projects.milestone.review.submit');
+   
+//DELETE MILESTONE PUNTUATION
+Route::post('/{slug}/milestone/{id}/delete-puntuaciones', [ProjectController::class, 'deletePuntuaciones'])
+    ->name('projects.milestone.deletePuntuaciones');
