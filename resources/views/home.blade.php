@@ -90,6 +90,7 @@
         margin-left: 20px;
         font-size: 22px;
         font-weight: 800;
+        text-wrap: nowrap;
     }
 
     .tabNumCounter {
@@ -418,6 +419,7 @@
 
         .tabTexts {
             font-size: 17px;
+
         }
 
         .status {
@@ -447,8 +449,12 @@
     @media screen and (min-width: 1439px) and (max-width:1600px) {
         .milestoneTab {
             /* width: 45% !important; */
-            width: 114px !important;
+            /* width: 114px !important; */
 
+        }
+
+        .milestoneIcon {
+            margin-left: 7px;
         }
     }
 </style>
@@ -1011,6 +1017,19 @@
                         datalabels: {
                             anchor: 'center',
                             align: 'center',
+                            // formatter: function(value, context) {
+                            //     // Obtener todos los valores apilados en esta posición
+                            //     const stackedValues = context.chart.data.datasets.map(ds => ds.data[
+                            //         context.dataIndex] || 0);
+
+                            //     const maxValue = Math.max(...stackedValues);
+                            //     const minValue = Math.min(...stackedValues);
+
+                            //     // Si la diferencia entre el más grande y el más pequeño es < 200, no mostrar la etiqueta
+                            //     if ((maxValue - minValue) < 50) return '';
+
+                            //     return value; // En caso contrario, mostrar el valor
+                            // },
                             display: true,
                             color: 'black',
                             font: {

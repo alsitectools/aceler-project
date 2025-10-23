@@ -71,7 +71,7 @@
                 </div>
 
                 <!-- Fecha de inicio -->
-                <div class="form-group col-md-6">
+                <div class="form-group col-md-6" style="width: 100% !important;">
                     <label for="start_date" class="col-form-label">{{ __('Start date') }}</label>
                     <input type="text" class="form-control form-control-light date" id="start_date_display"
                         name="start_date_display" value="{{ \Carbon\Carbon::now()->format('d/m/Y') }}" disabled>
@@ -81,11 +81,9 @@
                 </div>
 
                 <!-- Fecha estimada -->
-                <div class="form-group col-md-6">
-                    <label for="estimated_date" class="col-form-label">{{ __('Estimated delivery date') }}</label>
-                    <input onclick="this.showPicker()" type="date" class="form-control form-control-light date"
-                        id="estimated_date" placeholder="{{ __('Date') }}" name="estimated_date" required>
-                </div>
+                <!-- Campo oculto con fecha estimada (por defecto hoy) -->
+<input type="hidden" id="estimated_date" name="estimated_date" value="{{ \Carbon\Carbon::now()->format('Y-m-d') }}">
+
             </div>
         </div>
         <div class="modal-footer">

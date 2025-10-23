@@ -189,15 +189,37 @@ class Project extends Model
 
                 $taskArray = [];
                 foreach ($milestone->userTasks($user_id)->get() as $task) {
+
+                    
                     $taskStart = Carbon::parse($task->start_date);
                     $taskEnd = $task->end_date ? Carbon::parse($task->end_date) : null;
 
-                    if ($taskStart->lte($seventh_day) && (!$taskEnd || $taskEnd->gte($first_day))) {
-                        $taskData = self::processTaskTimesheets($task, $days, $currentWorkspace, $project->id, $userId);
-                        $taskArray[] = $taskData;
-                        $totalTaskTimes[] = $taskData['totaltime'];
-                        $hasTasks = true;
-                    }
+                    \Log::debug('Evaluando tarea', [
+        'task_id' => $task->id,
+        'task_name' => $task->type ? $task->type->name : '',
+        'task_start' => $taskStart->toDateString(),
+        'task_end' => $taskEnd ? $taskEnd->toDateString() : null,
+        'first_day' => $first_day->toDateString(),
+        'seventh_day' => $seventh_day->toDateString(),
+    ]);
+                    // Permitir mostrar tareas hasta 5 años atrás
+$milestoneStatus = $milestone->status;
+
+if (
+    $taskStart->gte(Carbon::now()->subYears(5)) &&
+    (
+        !$taskEnd || 
+        $taskEnd->gte($first_day) || 
+        $milestoneStatus == 3
+    )
+) {
+    $taskData = self::processTaskTimesheets($task, $days, $currentWorkspace, $project->id, $userId);
+    $taskArray[] = $taskData;
+    $totalTaskTimes[] = $taskData['totaltime'];
+    $hasTasks = true;
+}
+
+
                 }
                 if (!empty($taskArray)) {
                     $milestoneArray[] = [
@@ -242,24 +264,35 @@ class Project extends Model
                 $taskStart = Carbon::parse($task->start_date);
                 $taskEnd = $task->end_date ? Carbon::parse($task->end_date) : null;
 
-                if ($taskStart->lte($seventh_day) && (!$taskEnd || $taskEnd->gte($first_day))) {
-                    $userID = $task->assign_to;
-                    $taskData = self::processTaskTimesheets($task, $days, $currentWorkspace, $project->id, $userID);
+                $milestoneStatus = $milestone->status;
 
-                    $totalTaskTimes[] = $taskData['totaltime'];
+if (
+    $taskStart->gte(Carbon::now()->subYears(5)) &&
+    (
+        !$taskEnd || 
+        $taskEnd->gte($first_day) || 
+        $milestoneStatus == 3
+    )
+) {
+    $userID = $task->assign_to;
+    $taskData = self::processTaskTimesheets($task, $days, $currentWorkspace, $project->id, $userID);
 
-                    $user = User::find($task->assign_to);
-                    if ($user) {
-                        if (!isset($userArray[$user->id])) {
-                            $userArray[$user->id] = [
-                                'user_id' => $user->id,
-                                'user_name' => $user->name ?? 'unknown name',
-                                'taskArray' => []
-                            ];
-                        }
-                        $userArray[$user->id]['taskArray'][] = $taskData;
-                    }
-                }
+    $totalTaskTimes[] = $taskData['totaltime'];
+
+    $user = User::find($task->assign_to);
+    if ($user) {
+        if (!isset($userArray[$user->id])) {
+            $userArray[$user->id] = [
+                'user_id' => $user->id,
+                'user_name' => $user->name ?? 'unknown name',
+                'taskArray' => []
+            ];
+        }
+        $userArray[$user->id]['taskArray'][] = $taskData;
+    }
+}
+
+
             }
 
             if (!empty($userArray)) {
@@ -284,7 +317,7 @@ class Project extends Model
 
     private static function processTaskTimesheets($task, $days, $currentWorkspace, $projectId, $userId)
     {
-        $taskTimesheets = $task->timesheets ?? [];
+        $taskTimesheets = Timesheet::where('task_id', $task->id)->get();
         $times = [];
         $dateArray = [
             'week' => [],
