@@ -973,7 +973,7 @@ $.ajax({
         var popupUrl = '{{ route('projects.milestone.review', [$currentWorkspace->slug, ':id']) }}'
             .replace(':id', milestonetId);
 
-        $("#" + modalId + " .modal-title").html("{{ __('Revisión del hito') }}");
+        $("#" + modalId + " .modal-title").html("{{ __('Revisión de hoja de encargo') }}");
 
         $.ajax({
             url: popupUrl,

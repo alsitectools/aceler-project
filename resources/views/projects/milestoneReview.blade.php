@@ -16,30 +16,23 @@
         align-items: center;
         width: 100%;
     }
+
     .system-list-grid {
         display: grid;
         grid-template-columns: repeat(3, 1fr);
-        /* 3 columnas */
         gap: 8px 16px;
-        /* espacio entre columnas y filas */
         max-height: 250px;
-        /* ajusta la altura máxima */
         overflow-y: auto;
-        /* scroll vertical si se excede */
         border: 1px solid #e0e0e0;
-        /* opcional: borde visual */
         padding: 10px;
         border-radius: 6px;
         background-color: #fafafa;
-        /* opcional: fondo suave */
     }
 
-    /* Ajuste visual para los checkboxes */
     .system-list-grid .form-check {
         margin-bottom: 4px;
     }
 
-    /* Scrollbar más discreta (solo en navegadores compatibles) */
     .system-list-grid::-webkit-scrollbar {
         width: 6px;
     }
@@ -50,7 +43,6 @@
     }
 </style>
 
-</style>
 <form method="POST" action="{{ route('projects.milestone.review.submit', [$currentWorkspace->slug, $milestone->id]) }}"
     enctype="multipart/form-data">
     @csrf
@@ -59,7 +51,7 @@
         {{-- 1️⃣ Subida obligatoria de archivo PDF --}}
         <div class="form-group mb-4">
             <label class="col-form-label fw-bold">
-                {{ __('Adjuntar documento de revisión (PDF obligatorio)') }}
+                {{ __('Adjuntar replanteo (200 MB)') }}
             </label>
             <input type="file" id="review_file" name="review_file" class="form-control" accept=".pdf" required>
             <small class="form-text text-muted">
@@ -101,7 +93,6 @@
                 </div>
             </div>
 
-
             <div class="groupByCenterFlex">
                 {{-- Formato documentación original --}}
                 <div class="form-group mb-4 width95 marginRIght6">
@@ -130,10 +121,10 @@
         </div>
     </div>
 
-    <div class="modal-footer" id="review-footer" style="display:none;">
+    {{-- ✅ Footer siempre visible --}}
+    <div class="modal-footer" id="review-footer">
         <button type="button" class="btn btn-light" data-bs-dismiss="modal">{{ __('Cancelar') }}</button>
-        <button type="submit" id="save-review-btn" class="btn btn-primary"
-            disabled>{{ __('Guardar revisión') }}</button>
+        <button type="submit" id="save-review-btn" class="btn btn-primary" disabled>{{ __('Guardar revisión') }}</button>
     </div>
 </form>
 
@@ -141,12 +132,11 @@
     $(document).off('change', '#review_file').on('change', '#review_file', function() {
         const file = this.files[0];
         const detailsSection = $('#review-details');
-        const footer = $('#review-footer');
         const saveBtn = $('#save-review-btn');
 
         if (!file) {
             detailsSection.hide();
-            footer.hide();
+            saveBtn.prop('disabled', true);
             return;
         }
 
@@ -156,12 +146,11 @@
         if (fileType === 'application/pdf' || fileName.endsWith('.pdf')) {
             // ✅ Mostrar el resto del popup
             detailsSection.slideDown(250);
-            footer.fadeIn(250);
         } else {
             alert("Por favor, sube un archivo en formato PDF.");
             $(this).val('');
             detailsSection.hide();
-            footer.hide();
+            saveBtn.prop('disabled', true);
         }
     });
 

@@ -8,6 +8,6 @@ use Illuminate\Database\Eloquent\Model;
 class TaskType extends Model
 {
     protected $fillable = [
-        'name', 'project_type'
+        'name', 'project_type','puntuacion'
     ];
 }
