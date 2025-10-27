@@ -66,15 +66,19 @@
                     placeholder="{{ __('Project Name') }}">
             </div>
             <div class="form-group col-md-12" id="delegacion" style="display: none;">
-                <label for="delegacionSelect" class="col-form-label">Delegación</label>
-                <select placeholder="{{ __('Project delegation') }}" class="form-control delegationSelect"
-                    id="delegacionSelect" name="delegacion">
-                    <option selected disabled>{{ __('Project delegation') }}</option>
+                <label for="delegacionInput" class="col-form-label">Delegación</label>
+                <input required type="text" class="form-control" id="delegacionInput"
+                    placeholder="{{ __('Project delegation') }}" autocomplete="off">
+                <input type="hidden" name="delegacion" id="delegacionHidden">
+                <div class="list-group" id="delegacionList"
+                    style="max-height: 220px; overflow-y: auto; display: none; position: absolute; width: 96%; z-index: 1000;">
                     @foreach ($project_delegation->sortBy('delegation_name') as $delegation)
-                        <option value="{{ (string) $delegation->id }}">{{ $delegation->delegation_name }} -
-                            {{ (string) $delegation->id }}</option>
+                        <a href="#" class="list-group-item list-group-item-action stylelist"
+                            data-id="{{ $delegation->id }}" data-name="{{ $delegation->delegation_name }}">
+                            {{ $delegation->delegation_name }} - {{ $delegation->id }}
+                        </a>
                     @endforeach
-                </select>
+                </div>
             </div>
 
             {{-- <div class="form-group col-md-12">
@@ -171,6 +175,9 @@
 <script>
     const projectTypeSelect = document.getElementById('project_type');
     const delegacionField = document.getElementById('delegacion');
+    const delegacionInput = document.getElementById('delegacionInput');
+    const delegacionList = document.getElementById('delegacionList');
+    const delegacionHidden = document.getElementById('delegacionHidden');
 
     projectTypeSelect.addEventListener('change', function() {
         const selectedOption = this.options[this.selectedIndex];
@@ -180,7 +187,48 @@
             delegacionField.style.display = 'block';
         } else {
             delegacionField.style.display = 'none';
-            document.getElementById('delegacionSelect').value = ''; // reset selección
+            delegacionInput.value = '';
+            delegacionHidden.value = '';
         }
+    });
+
+    // Filtrado de delegaciones
+    delegacionInput.addEventListener('input', function() {
+        const searchText = this.value.toLowerCase();
+        const items = delegacionList.getElementsByTagName('a');
+
+        delegacionList.style.display = 'block';
+
+        Array.from(items).forEach(item => {
+            const text = item.textContent.toLowerCase();
+            item.style.display = text.includes(searchText) ? 'block' : 'none';
+        });
+    });
+
+    // Selección de delegación
+    delegacionList.addEventListener('click', function(e) {
+        if (e.target.tagName === 'A') {
+            e.preventDefault();
+            delegacionInput.value = e.target.getAttribute('data-name');
+            delegacionHidden.value = e.target.getAttribute('data-id');
+            delegacionList.style.display = 'none';
+        }
+    });
+
+    // Ocultar lista cuando se hace clic fuera
+    document.addEventListener('click', function(e) {
+        if (!delegacionInput.contains(e.target) && !delegacionList.contains(e.target)) {
+            delegacionList.style.display = 'none';
+        }
+    });
+
+    // Mostrar lista al hacer focus en el input
+    delegacionInput.addEventListener('focus', function() {
+        delegacionList.style.display = 'block';
+        // Mostrar todos los elementos de la lista
+        const items = delegacionList.getElementsByTagName('a');
+        Array.from(items).forEach(item => {
+            item.style.display = 'block';
+        });
     });
 </script>
