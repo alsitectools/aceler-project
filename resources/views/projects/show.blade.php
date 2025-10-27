@@ -1562,7 +1562,7 @@
                     header.querySelector('.sort-indicator').textContent = '';
                     if (header === activeHeader) {
                         header.querySelector('.sort-indicator').textContent =
-                            currentSort.direction === 'asc' ? ' ↑' : ' ↓';
+                            currentSort.direction === 'asc' ? '⮝' : '⮟';
                     }
                 });
             }
