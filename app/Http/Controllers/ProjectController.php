@@ -1268,140 +1268,156 @@ class ProjectController extends Controller
     }
 
     private function uploadMilestoneReviewFile(Request $request, $slug, $milestoneId)
-{
-    try {
-        // ✅ Validar que hay un PDF válido
-        $request->validate([
-            'review_file' => 'required|mimes:pdf|max:512000', 
-        ]);
+    {
+        try {
+            // ✅ Validar que hay un PDF válido
+            $request->validate([
+                'review_file' => 'required|mimes:pdf|max:512000',
+            ]);
 
-        // ✅ Cargar milestone y proyecto
-        $milestone = \App\Models\Milestone::with('project')->findOrFail($milestoneId);
-        $project = $milestone->project;
+            // ✅ Cargar milestone y proyecto
+            $milestone = \App\Models\Milestone::with('project')->findOrFail($milestoneId);
+            $project = $milestone->project;
 
-        $file = $request->file('review_file');
-        $originalName = $file->getClientOriginalName();
-        $extension = $file->getClientOriginalExtension();
-        $fileSize = round($file->getSize() / 1024, 2) . ' KB';
-        $uniqueName = $milestone->id . '_' . time() . '_' . $originalName;
+            $file = $request->file('review_file');
+            $originalName = $file->getClientOriginalName();
+            //Necesario para evitar problemas con espacios en blanco en nombres de archivo (no deja descargarlos)
+            $originalName = str_replace(' ', '_', $originalName);
+            $extension = $file->getClientOriginalExtension();
+            $fileSize = round($file->getSize() / 1024, 2) . ' KB';
+            $uniqueName = $milestone->id . '_' . time() . '_rf' . '_' . $originalName;
 
-       
-        $projectFolder = str_replace(' ', '_', $project->name);
-        $milestoneFolder = str_replace(' ', '_', $milestone->title);
-        $dir = storage_path('project_files/' . $projectFolder . '/' .  $milestoneFolder);
-        \Log::info("📁 Directorio destino: {$dir}");
-        // 🧩 Crear carpeta si no existe
-        if (!is_dir($dir)) {
-            if (!mkdir($dir, 0777, true) && !is_dir($dir)) {
-                throw new \RuntimeException("No se pudo crear la carpeta: {$dir}");
+
+            $projectFolder = str_replace(' ', '_', $project->name);
+            $milestoneFolder = str_replace(' ', '_', $milestone->title);
+            \Log::info("📂 Carpeta proyecto: {$projectFolder}");
+            \Log::info("📂 Carpeta MILESTONE: {$milestoneFolder}");
+            $dir = storage_path('project_files/' . $projectFolder . '/' .  $milestoneFolder);
+            \Log::info("📁 Directorio destino: {$dir}");
+            // 🧩 Crear carpeta si no existe
+            if (!is_dir($dir)) {
+                if (!mkdir($dir, 0777, true) && !is_dir($dir)) {
+                    throw new \RuntimeException("No se pudo crear la carpeta: {$dir}");
+                }
             }
+
+            // ✅ Mover el archivo físicamente
+            $file->move($dir, $uniqueName);
+
+            // ✅ Guardar registro en base de datos
+            $milestoneFile = \App\Models\MilestoneFile::create([
+                'milestone_id' => $milestone->id,
+                'file'         => "project_files/{$projectFolder}/{$milestoneFolder}/{$uniqueName}",
+                'name'         => $originalName,
+                'extension'    => $extension,
+                'file_size'    => $fileSize,
+                'created_by'   => \Auth::id(),
+                'user_type'    => get_class(\Auth::user()),
+            ]);
+
+            // \App\Models\ActivityLog::create([
+            //     'user_id'    => \Auth::id(),
+            //     'user_type'  => get_class(\Auth::user()),
+            //     'project_id' => $project->id,
+            //     'log_type'   => 'has uploaded a review file',
+            //     'remark'     => json_encode(['milestoneTitle' => $originalName]),
+            // ]);
+
+            // 📜 Registrar en logs (opcional)
+            \Log::info("✅ Archivo de revisión subido correctamente a {$dir}\\{$uniqueName}");
+
+            return $milestoneFile;
+        } catch (\Throwable $e) {
+            \Log::error('❌ Error en uploadMilestoneReviewFile', ['error' => $e->getMessage()]);
+            return response()->json(['error' => 'Error al subir el archivo: ' . $e->getMessage()], 500);
         }
-
-        // ✅ Mover el archivo físicamente
-        $file->move($dir, $uniqueName);
-
-        // ✅ Guardar registro en base de datos
-        $milestoneFile = \App\Models\MilestoneFile::create([
-            'milestone_id' => $milestone->id,
-            'file'         => "project_files/{$projectFolder}/{$milestoneFolder}/{$uniqueName}",
-            'name'         => $originalName,
-            'extension'    => $extension,
-            'file_size'    => $fileSize,
-            'created_by'   => \Auth::id(),
-            'user_type'    => get_class(\Auth::user()),
-        ]);
-
-        // 📜 Registrar en logs (opcional)
-        \App\Models\ActivityLog::create([
-            'user_id'    => \Auth::id(),
-            'user_type'  => get_class(\Auth::user()),
-            'project_id' => $project->id,
-            'log_type'   => 'Upload Review PDF',
-            'remark'     => json_encode(['file_name' => $originalName]),
-        ]);
-
-        \Log::info("✅ Archivo de revisión subido correctamente a {$dir}\\{$uniqueName}");
-
-        return $milestoneFile;
-    } catch (\Throwable $e) {
-        \Log::error('❌ Error en uploadMilestoneReviewFile', ['error' => $e->getMessage()]);
-        return response()->json(['error' => 'Error al subir el archivo: ' . $e->getMessage()], 500);
     }
-}
 
     public function milestoneReviewSubmit(Request $request, $slug, $id)
-{
-    try {
-        // Obtener los datos del request manualmente
-        $milestoneId     = $request->input('milestone_id', $id); // por si no viene en el form
-        $numPlans        = (int) $request->input('num_plans', 0);
-        $systems         = $request->input('systems', []);
-        $documentFormat  = $request->input('document_format');
-        $detailLevel     = $request->input('detail_level');
+    {
+        try {
+            // Obtener los datos del request manualmente
+            $milestoneId     = $request->input('milestone_id', $id); // por si no viene en el form
+            $numPlans        = (int) $request->input('num_plans', 0);
+            $systems         = $request->input('systems', []);
+            $documentFormat  = $request->input('document_format');
+            $detailLevel     = $request->input('detail_level');
 
-        \Log::info('Datos recibidos del formulario', compact(
-            'milestoneId', 'numPlans', 'systems', 'documentFormat', 'detailLevel'
-        ));
+            \Log::info('Datos recibidos del formulario', compact(
+                'milestoneId',
+                'numPlans',
+                'systems',
+                'documentFormat',
+                'detailLevel'
+            ));
 
-        if (!$milestoneId || !is_numeric($milestoneId)) {
-            return response()->json(['success' => false, 'message' => 'Falta el ID del milestone.']);
-        }
+            if (!$milestoneId || !is_numeric($milestoneId)) {
+                return response()->json(['success' => false, 'message' => 'Falta el ID del milestone.']);
+            }
 
-        $milestone = Milestone::with('tasks')->find($milestoneId);
+            $milestone = Milestone::with('tasks')->find($milestoneId);
 
-        if (!$milestone) {
-            return response()->json(['success' => false, 'message' => 'Milestone no encontrado.']);
-        }
+            if (!$milestone) {
+                return response()->json(['success' => false, 'message' => 'Milestone no encontrado.']);
+            }
 
-        if (empty($systems)) {
-            return response()->json(['success' => false, 'message' => 'Debes seleccionar al menos un sistema.']);
-        }
+            if (empty($systems)) {
+                return response()->json(['success' => false, 'message' => 'Debes seleccionar al menos un sistema.']);
+            }
 
-        $this->uploadMilestoneReviewFile($request, $slug, $milestoneId);
+            $this->uploadMilestoneReviewFile($request, $slug, $milestoneId);
 
-        // Calcular los puntos
-        $systemPoints = Puntuacion::whereIn('nombre', $systems)->sum('valor');
-        $formatPoints = Puntuacion::where('nombre', $documentFormat)->value('valor') ?? 0;
-        $detailPoints = Puntuacion::where('nombre', $detailLevel)->value('valor') ?? 0;
+            // Calcular los puntos
+            $systemPoints = Puntuacion::whereIn('nombre', $systems)->sum('valor');
+            $formatPoints = Puntuacion::where('nombre', $documentFormat)->value('valor') ?? 0;
+            $detailPoints = Puntuacion::where('nombre', $detailLevel)->value('valor') ?? 0;
 
-        $totalPoints = ($systemPoints + $formatPoints + $detailPoints) * max($numPlans, 1);
+            $totalPoints = ($systemPoints + $formatPoints + $detailPoints) * max($numPlans, 1);
 
-        // \Log::info("Puntos calculados", [
-        //     'systemPoints' => $systemPoints,
-        //     'formatPoints' => $formatPoints,
-        //     'detailPoints' => $detailPoints,
-        //     'numPlans' => $numPlans,
-        //     'totalPoints' => $totalPoints,
-        // ]);
-
-        // Guardar la puntuación en cada tarea del milestone
-        if ($milestone->tasks->isEmpty()) {
-            \Log::warning("Milestone {$milestone->id} no tiene tareas.");
-            return response()->json(['success' => false, 'message' => 'El milestone no tiene tareas asociadas.']);
-        }
-
-        foreach ($milestone->tasks as $task) {
-            $p = PuntuacionTarea::updateOrCreate(
-                ['id_tarea' => $task->id],
-                ['cantidad_puntaje' => $totalPoints]
-            );
-            // \Log::info("Puntuación guardada", [
-            //     'task_id' => $task->id,
-            //     'cantidad_puntaje' => $totalPoints
+            // \Log::info("Puntos calculados", [
+            //     'systemPoints' => $systemPoints,
+            //     'formatPoints' => $formatPoints,
+            //     'detailPoints' => $detailPoints,
+            //     'numPlans' => $numPlans,
+            //     'totalPoints' => $totalPoints,
             // ]);
+
+            // Guardar la puntuación en cada tarea del milestone
+            if ($milestone->tasks->isEmpty()) {
+                \Log::warning("Milestone {$milestone->id} no tiene tareas.");
+                return response()->json(['success' => false, 'message' => 'El milestone no tiene tareas asociadas.']);
+            }
+
+            foreach ($milestone->tasks as $task) {
+                $p = PuntuacionTarea::updateOrCreate(
+                    ['id_tarea' => $task->id],
+                    ['cantidad_puntaje' => $totalPoints]
+                );
+                // \Log::info("Puntuación guardada", [
+                //     'task_id' => $task->id,
+                //     'cantidad_puntaje' => $totalPoints
+                // ]);
+            }
+            ActivityLog::create([
+                'user_id'   => \Auth::user()->id,
+                'user_type' => get_class(\Auth::user()),
+                'project_id' => $milestone->project_id,
+                'log_type'  => 'has uploaded a review file',
+                'remark'    => json_encode([
+                    'milestoneTitle' => $milestone->title ?? 'Unnamed milestone',
+                ]),
+            ]);
+
+            return redirect()
+                ->back()
+                ->with('success', 'Revisión guardada correctamente. El milestone ha pasado al estado de revisión.');
+        } catch (\Throwable $e) {
+            \Log::error("Error en milestoneReviewSubmit", ['error' => $e->getMessage()]);
+            return redirect()
+                ->back()
+                ->with('error', 'Ocurrió un error al guardar la revisión: ' . $e->getMessage());
         }
-
-          return redirect()
-            ->back()
-            ->with('success', 'Revisión guardada correctamente. El milestone ha pasado al estado de revisión.');
-
-    } catch (\Throwable $e) {
-        \Log::error("Error en milestoneReviewSubmit", ['error' => $e->getMessage()]);
-         return redirect()
-            ->back()
-            ->with('error', 'Ocurrió un error al guardar la revisión: ' . $e->getMessage());
     }
-}
 
     public function deletePuntuaciones($slug, $milestoneId)
     {
@@ -1414,18 +1430,24 @@ class ProjectController extends Controller
             // Eliminar todas las puntuaciones asociadas
             PuntuacionTarea::whereIn('id_tarea', $taskIds)->delete();
 
-            \Log::info(" Se eliminaron las puntuaciones del milestone ID {$milestoneId}");
+            // Eliminar registros en milestone_files con file que empiece con "project_files/"
+            MilestoneFile::where('milestone_id', $milestoneId)
+                ->where('file', 'like', 'project_files/%')
+                ->delete();
 
-             return redirect()
-            ->back()
-            ->with('success', 'Puntuaciones eliminadas correctamente.');
+            \Log::info("Se eliminaron las puntuaciones y archivos del milestone ID {$milestoneId}");
+
+            return redirect()
+                ->back()
+                ->with('success', 'Puntuaciones y archivos eliminados correctamente.');
         } catch (\Throwable $e) {
-            \Log::error(" Error al eliminar puntuaciones: " . $e->getMessage());
-             return redirect()
-            ->back()
-            ->with('error', 'Ocurrió un error al eliminar la puntación' . $e->getMessage());
+            \Log::error("Error al eliminar puntuaciones o archivos: " . $e->getMessage());
+            return redirect()
+                ->back()
+                ->with('error', 'Ocurrió un error al eliminar la puntuación o archivos: ' . $e->getMessage());
         }
     }
+
 
 
     public function taskCreate($slug)
@@ -2623,6 +2645,7 @@ class ProjectController extends Controller
             ->value('file');
 
         $url = asset('storage/' . $filePath);
+        \Log::info('Milestone file download URL: ' . $url);
 
         // Retornar la URL en formato JSON
         return response()->json([

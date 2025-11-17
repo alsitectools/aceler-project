@@ -67,7 +67,7 @@
             </div>
             <div class="form-group col-md-12" id="delegacion" style="display: none;">
                 <label for="delegacionInput" class="col-form-label">Delegación</label>
-                <input required type="text" class="form-control" id="delegacionInput"
+                <input type="text" class="form-control" id="delegacionInput"
                     placeholder="{{ __('Project delegation') }}" autocomplete="off">
                 <input type="hidden" name="delegacion" id="delegacionHidden">
                 <div class="list-group" id="delegacionList"
