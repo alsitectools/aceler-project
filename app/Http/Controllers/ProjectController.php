@@ -2298,7 +2298,77 @@ class ProjectController extends Controller
         return view('projects.milestone_assign', compact('currentWorkspace', 'milestone', 'users', 'project_type'));
     }
 
+    public function milestoneWorkload($slug, $projectID)
+    {
+        $currentWorkspace = Utility::getWorkspaceBySlug($slug);
+        $users = User::all();
 
+        // Determinar los project_ids a buscar según el projectID
+        if ($projectID == -1) {
+            // Paso 1: Obtener el ID del workspace
+            $workspaceId = $currentWorkspace->id;
+
+            // Paso 2: Obtener todos los proyectos del workspace
+            $projects = Project::where('workspace', $workspaceId)
+                ->select('id', 'name')
+                ->get();
+
+            $projectIds = $projects->pluck('id')->toArray();
+        } else {
+            // Si projectID es específico, solo buscar en ese proyecto
+            $projectIds = [$projectID];
+        }
+
+        // Paso 3: Obtener milestones sin asignar de esos proyectos
+        $milestonesSinAssignar = Milestone::whereIn('project_id', $projectIds)
+            ->where(function ($query) {
+                $query->whereNull('milestone_assigned_to_user')
+                    ->orWhere('milestone_assigned_to_user', '');
+            })
+            ->with('project:id,name')
+            ->get();
+
+        // Paso 4: Obtener milestones asignados con status 1 o 2
+        $milestonesAsignados = Milestone::whereIn('project_id', $projectIds)
+            ->whereIn('status', [1, 2])
+            ->whereNotNull('milestone_assigned_to_user')
+            ->where('milestone_assigned_to_user', '!=', '')
+            ->with('project:id,name')
+            ->get();
+
+        // Paso 5: Agrupar milestones por usuario y contar por status
+        $milestonesAgrupados = [];
+        foreach ($milestonesAsignados as $milestone) {
+            $userId = $milestone->milestone_assigned_to_user;
+            $status = $milestone->status;
+
+            if (!isset($milestonesAgrupados[$userId])) {
+                $user = User::find($userId);
+                $milestonesAgrupados[$userId] = [
+                    'user' => $user,
+                    'status_1' => [],
+                    'status_2' => [],
+                    'count_1' => 0,
+                    'count_2' => 0,
+                ];
+            }
+
+            if ($status == 1) {
+                $milestonesAgrupados[$userId]['status_1'][] = $milestone;
+                $milestonesAgrupados[$userId]['count_1']++;
+            } elseif ($status == 2) {
+                $milestonesAgrupados[$userId]['status_2'][] = $milestone;
+                $milestonesAgrupados[$userId]['count_2']++;
+            }
+        }
+
+        \Log::info(['users' => $users]);
+        \Log::info(['workspace' => $currentWorkspace]);
+        \Log::info(['projectIds' => $projectIds]);
+        \Log::info(['milestonesSinAssignar' => $milestonesSinAssignar]);
+        \Log::info(['milestonesAgrupados' => $milestonesAgrupados]);
+        return view('projects.milestone_workload', compact('currentWorkspace', 'users', 'milestonesSinAssignar', 'milestonesAgrupados'));
+    }
 
     public function milestoneEdit($slug, $milestoneID)
     {

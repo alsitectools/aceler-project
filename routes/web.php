@@ -644,6 +644,7 @@ Route::post('/{slug}/projects/milestone/{id}/store', [ProjectController::class, 
 Route::get('/{slug}/projects/milestone/{id}/show', [ProjectController::class, 'milestoneShow'])->name('projects.milestone.show')->middleware(['auth', 'XSS']);
 Route::get('/{slug}/projects/milestone/{id}/edit', [ProjectController::class, 'milestoneEdit'])->name('projects.milestone.edit')->middleware(['auth', 'XSS']);
 Route::get('/{slug}/projects/milestone-board/{id}/asign', [ProjectController::class, 'milestoneAssign'])->name('projects.milestone.assign')->middleware(['auth', 'XSS']);
+Route::get('/{slug}/projects/milestone-board/{id}/workload', [ProjectController::class, 'milestoneWorkload'])->name('projects.milestone.workload')->middleware(['auth', 'XSS']);
 Route::get('/{slug}/projects/milestone-board/{id}/checkTaskHours', [ProjectController::class, 'checkTaskHours'])->name('projects.milestone.checkTaskHours');
 Route::get('/projects/milestone-board/{id}/getProjectName', [ProjectController::class, 'getProjectNameByID'])
   ->name('projects.milestone.getNameByID')
@@ -660,7 +661,7 @@ Route::delete('/{slug}/projects/{id}/file/delete/{fid}', [ProjectController::cla
 
 //DOWNLOAD Project imputed hours to CSV
 Route::get('/timesheet/{project}/csv/download', [ProjectController::class, 'downloadCsv'])
-    ->name('timesheet.csv.imputedHours.download');
+  ->name('timesheet.csv.imputedHours.download');
 
 // Task Board
 // Route::get('/{slug}/projects/client/task-board/{code}', [ProjectController::class, 'taskBoard'])->name('projects.client.task.board');
@@ -1024,14 +1025,14 @@ Route::get('/home/tutorial/{slug}', [HomeController::class, 'showTutorial'])->na
 
 //REVIEW MILESTONE 
 Route::get('/{slug}/milestone/{id}/review', [ProjectController::class, 'milestoneReview'])
-    ->name('projects.milestone.review');
+  ->name('projects.milestone.review');
 
 Route::get('/{slug}/milestone/{id}/has-drawing-task', [ProjectController::class, 'checkHasDrawingTask'])
-    ->name('projects.milestone.hasDrawingTask');
+  ->name('projects.milestone.hasDrawingTask');
 
 Route::post('/{slug}/milestone/{id}/review', [ProjectController::class, 'milestoneReviewSubmit'])
-    ->name('projects.milestone.review.submit');
-   
+  ->name('projects.milestone.review.submit');
+
 //DELETE MILESTONE PUNTUATION
 Route::post('/{slug}/milestone/{id}/delete-puntuaciones', [ProjectController::class, 'deletePuntuaciones'])
-    ->name('projects.milestone.deletePuntuaciones');
+  ->name('projects.milestone.deletePuntuaciones');

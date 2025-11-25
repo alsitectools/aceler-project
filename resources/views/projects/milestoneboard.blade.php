@@ -273,6 +273,15 @@
             </div>
         </div>
         @if (isset($currentWorkspace) && $currentWorkspace)
+            <div class="col-sm-auto" style="margin-right: 20px;">
+                <button style="width: 100%" type="button" class="btn btn-primary addMilestone" data-ajax-popup="true"
+                    data-title="{{ __('Check Workloads') }}"
+                    data-url="{{ route('projects.milestone.workload', [$currentWorkspace->slug, $project_id]) }}"
+                    data-toggle="popover" title="{{ __('Create') }}"><i class="fa-solid fa-briefcase me-3"
+                        style="color: #ffffff;"></i>
+                    {{ __('Check Workloads') }}
+                </button>
+            </div>
             <div class="col-sm-auto">
                 <button style="width: 100%" type="button" class="btn btn-primary addMilestone" data-ajax-popup="true"
                     data-title="{{ __('Milestone order') }}"
