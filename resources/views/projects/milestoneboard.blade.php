@@ -13,6 +13,20 @@
     <link rel="stylesheet" href="{{ asset('assets/css/milestoneboard.css') }}">
 </head>
 <style>
+    .showAllMilestonesIcon {
+        width: 24px;
+        transition: filter 0.2s;
+    }
+
+    .showAllMilestonesIcon.enabled {
+        filter: grayscale(0);
+    }
+
+    .showAllMilestonesIcon.disabled {
+        filter: grayscale(1);
+    }
+
+
     .showCompletedProjectGroup {
         display: flex;
         gap: 17px;
@@ -318,6 +332,11 @@
                                             src="{{ asset('assets/img/address-card-regular.svg') }}"
                                             alt="show completed projects" title="{{ __('Hide Unasigned Order Forms') }}"
                                             class="hideUnasignedTasks" />
+                                        <img id="toggleAllMilestonesIcon"
+                                            src="{{ asset('assets/img/users-solid-full.svg') }}"
+                                            title="{{ __('Show All Workspace Milestones') }}"
+                                            class="showAllMilestonesIcon"
+                                            style="width:24px; cursor:pointer; margin-left:10px;margin-bottom: 5px;" />
                                     @endif
                                     <button class="btn-submit btn btn-md btn-primary btn-icon px-1 py-0 "
                                         style="height: 19.7px;">
@@ -332,252 +351,52 @@
                             </div>
                             <div id="{{ 'milestone-list-' . str_replace(' ', '_', $status->id) }}"
                                 data-status="{{ $status->id }}" class="card-body kanban-box fixedHeight">
+                                @php
+                                    // Evitar duplicados
+                                    $renderedMilestonesIds = $renderedMilestonesIds ?? [];
+                                @endphp
 
+                                {{-- ========================= --}}
+                                {{--   MILESTONES DEL USUARIO   --}}
+                                {{-- ========================= --}}
                                 @if (isset($milestones[$status->id]))
                                     @foreach ($milestones[$status->id] as $milestone)
-                                        <div class="card {{ empty($milestone['assined_to_user']) ? 'notAsignedMilestone' : '' }}"
-                                            id="{{ $milestone['id'] }}" data-status="{{ $status->id }}"
-                                            data-project-id="{{ $milestone['project_id'] }}">
+                                        {{-- Registrar ID para evitar duplicados --}}
+                                        @php $renderedMilestonesIds[] = $milestone['id']; @endphp
 
-                                            <div class="card-header border-0 pb-0 col-sm-12">
-                                                <div class="d-flex">
-                                                    <div class="col-sm-9 text-center tooltipCus"
-                                                        data-title="{{ __('Milestone') }}">
-                                                        <b class="mileTitle cursor-pointer"
-                                                            id="milestoneTitleForNotification"
-                                                            data-header="{{ $milestone['title'] }}"
-                                                            data-milestone-id="{{ $milestone['id'] }}"
-                                                            data-project-slug="{{ $currentWorkspace->slug }}">
-
-                                                            {{ $milestone['title'] }}
-                                                        </b>
-                                                    </div>
-                                                    <div class="col-sm-2 pt-1 text-center">
-                                                        <a href="#" {{-- class="tooltipCus"  --}} id="milestoneReqName"
-                                                            data-milestone-id={{ $milestone['id'] }}
-                                                            data-technician-id={{ $milestone['assign_to'] }}
-                                                            data-project-name={{ $milestone['project_name'] }}
-                                                            {{-- data-title="{{ $milestone['sales']->name ?? 'Nombre no disponible' }}" --}}>
-
-                                                            <img alt="image" class="user-groupTasks tooltipCus"
-                                                                title="{{ __('Requested by') }} {{ $milestone['sales']->name ?? 'Nombre no disponible' }}"
-                                                                style="margin-top: -10;"
-                                                                @if ($milestone['sales']->avatar) src="{{ asset($milestone['sales']->avatar) }}"
-            @else
-                avatar="{{ $milestone['sales']->avatar ?? $milestone['sales']->name }}" @endif>
-                                                            {{-- assigned to user avatar --}}
-                                                            @if (isset($milestone['asiggned_user_data']) && $milestone['asiggned_user_data']->avatar)
-                                                                <img alt="image" class="user-groupTasks tooltipCus"
-                                                                    style="margin-top: -10;"
-                                                                    src="{{ asset($milestone['asiggned_user_data']->avatar) }}"
-                                                                    title="{{ __('Assigned to') }} {{ $milestone['asiggned_user_data']->name }}">
-                                                            @endif
-                                                        </a>
-
-                                                    </div>
-                                                </div>
-                                                <hr class="border border-2 opacity-50">
-                                                <div class="card-header-right col-sm-1 text-end">
-                                                    <div class="btn-group card-option">
-                                                        @if ($currentWorkspace->permission == 'Owner' || $currentWorkspace->permission == 'Member')
-                                                            <button type="button" class="btn dropdown-toggle"
-                                                                data-bs-toggle="dropdown" aria-haspopup="true"
-                                                                aria-expanded="false">
-                                                                <i class="feather icon-more-vertical"></i>
-                                                            </button>
-                                                            <div class="dropdown-menu dropdown-menu-end">
-                                                                <a href="#" class="dropdown-item"
-                                                                    data-ajax-popup="true" title="{{ __('View') }}"
-                                                                    data-title="{{ __('Order form details') }}"
-                                                                    data-url="{{ route('projects.milestone.show', [$currentWorkspace->slug, $milestone['id']]) }}">
-                                                                    <i class="ti ti-eye pr-1"></i>
-                                                                    {{ __('View') }}
-                                                                </a>
-                                                                <a href="#" class="dropdown-item milestone-action"
-                                                                    data-ajax-popup="true" title="assign_to_someone"
-                                                                    data-title="{{ __('Assign Milestone') }}"
-                                                                    data-url="{{ route('projects.milestone.assign', [$currentWorkspace->slug, $milestone['id']]) }}">
-                                                                    <i class="fa-solid fa-user-plus"></i>
-                                                                    {{ __('Assign Milestone') }}
-                                                                </a>
-                                                                <a href="#" class="dropdown-item milestone-action"
-                                                                    data-ajax-popup="true" title="{{ __('Add Task') }}"
-                                                                    data-title="{{ __('Add Task') }}"
-                                                                    data-url="{{ route('tasks.create', [$currentWorkspace->slug, 'project_id' => $milestone['project_id'], 'milestoneTitle' => $milestone['title'], 'milestone_id' => $milestone['id']]) }}">
-                                                                    <i class="fas fa-tasks pr-1"></i> {{ __('Add Task') }}
-                                                                </a>
-                                                                @if (
-                                                                    $currentWorkspace->permission == 'Owner' ||
-                                                                        ($currentWorkspace->permission == 'Member' && Auth::user()->type == 'user'))
-                                                                    <a href="#"
-                                                                        class="dropdown-item milestone-action"
-                                                                        data-ajax-popup="true" data-size="lg"
-                                                                        data-toggle="popover" title="{{ __('Edit') }}"
-                                                                        data-title="{{ __('Edit Milestone') }}"
-                                                                        data-url="{{ route('projects.milestone.edit', [$currentWorkspace->slug, $milestone['id']]) }}">
-                                                                        <i class="ti ti-edit pr-1"></i>{{ __('Edit') }}
-                                                                    </a>
-                                                                    @if (empty($milestone['tasks']))
-                                                                        <a href="#"
-                                                                            class="dropdown-item bs-pass-para"
-                                                                            data-confirm="{{ __('Are You Sure?') }}"
-                                                                            data-text="{{ __('This action can not be undone. Do you want to continue?') }}"
-                                                                            data-confirm-yes="delete-form-{{ $milestone['id'] }}">
-                                                                            <i class="ti ti-trash"></i>
-                                                                            {{ __('Delete') }}
-                                                                        </a>
-                                                                        <form id="delete-form-{{ $milestone['id'] }}"
-                                                                            action="{{ route('projects.milestone.destroy', [$currentWorkspace->slug, $milestone['id']]) }}"
-                                                                            method="POST" style="display: none;">
-                                                                            @csrf
-                                                                            @method('DELETE')
-                                                                        </form>
-                                                                    @else
-                                                                        <a href="#"
-                                                                            class="dropdown-item milestone-action bs-pass-para"
-                                                                            data-confirm="{{ __('Are You Sure?') }}"
-                                                                            data-text="{{ __('This action can not be undone. Do you want to continue?') }}"
-                                                                            data-confirm-yes="delete-form-{{ $milestone['id'] }}">
-                                                                            <i class="ti ti-trash"></i>
-                                                                            {{ __('Delete') }}
-                                                                        </a>
-                                                                        <form id="delete-form-{{ $milestone['id'] }}"
-                                                                            action="{{ route('projects.milestone.destroy', [$currentWorkspace->slug, $milestone['id']]) }}"
-                                                                            method="POST" style="display: none;">
-                                                                            @csrf
-                                                                            @method('DELETE')
-                                                                        </form>
-                                                                    @endif
-                                                                @endif
-                                                            </div>
-                                                        @endif
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div class="card-body pt-1">
-                                                <div class="row">
-                                                    @if ($milestone['tasks'])
-                                                        <div class="col-sm-12 p-3">
-                                                            @foreach ($milestone['tasks'] as $task)
-                                                                <div class="taskList tooltipCus p-target mb-2 col-sm-12 marginText"
-                                                                    role="button" data-task-id="{{ $task['id'] }}"
-                                                                    data-task-name="{{ $task['name'] }}"
-                                                                    data-milestone-id="{{ $milestone['id'] }}"
-                                                                    data-project-id="{{ $milestone['project_id'] }}"
-                                                                    data-project-name="{{ $milestone['project_name'] }}"
-                                                                    data-technician-name="{{ $task['technician']->id }}"
-                                                                    data-url="{{ route('create.timesheet.from.orders', [$currentWorkspace->slug, $project_id]) }}"
-                                                                    data-ajax-timesheet-popup="true"
-                                                                    data-title="{{ $task['technician']->name }}">
-
-                                                                    {{-- Icono del reloj (siempre negro) --}}
-                                                                    <i class="ms-2 me-2 fa-solid fa-hourglass-start fa-xs"
-                                                                        style="color: black;"></i>
-
-                                                                    {{-- Nombre de la tarea --}}
-                                                                    {{ __($task['name']) }}
-                                                                </div>
-
-                                                                {{-- @if ($project_id != -1)
-                                                                    <div class="taskList tooltipCus col-sm-12 text-end"
-                                                                        data-title="{{ $task['technician']->name }}">
-                                                                        <a href="#"></a>
-                                                                    </div>
-                                                                @endif --}}
-                                                            @endforeach
-
-                                                            @if ($project_id == -1)
-                                                                <div class="col-sm-11 text-end"
-                                                                    data-title="{{ $task['technician']->name }}">
-                                                                    <a href="#"></a>
-                                                                </div>
-                                                            @endif
-                                                        </div>
-                                                    @else
-                                                        <div class="text-muted text-center m-2" style="width: 80%">
-                                                            {{ __('No tasks in progress') }}...
-                                                        </div>
-                                                    @endif
-                                                </div>
-                                                <div class="card mb-0">
-                                                    <div class="card-body p-2">
-                                                        <div class="row">
-                                                            <div class="foot-milestone">
-                                                                <div class="col-6 text-center">
-                                                                    <div class="text-center tooltipCus"
-                                                                        data-title="{{ __('Project') }}">
-                                                                        <div>
-                                                                            <img class="img-fluid p-1 adjustImg"
-                                                                                src="{{ asset('assets/img/' . $milestone['project_type'] . '.png') }}"
-                                                                                alt="Project type">
-                                                                        </div>
-                                                                        <b
-                                                                            style="font-size: 12px">{{ $milestone['project_name'] }}</b>
-                                                                        <span class="text-muted"
-                                                                            data-title="{{ __('Ref. M.O') }}"><b>{{ $milestone['project_ref'] }}</b></span>
-                                                                    </div>
-                                                                </div>
-                                                                <div class="col-6 text-center tooltipCus"
-                                                                    data-title="{{ __('Desired delivery date') }}">
-                                                                    @php
-                                                                        if ($milestone['finalization_date'] == null) {
-                                                                            $currentDate = new DateTime();
-                                                                            $latestStatus = (int) $status->id; // Get current column status
-                                                                            $estimatedDate = new DateTime(
-                                                                                $milestone['end_date'],
-                                                                            );
-                                                                            $isOverdue = $currentDate > $estimatedDate;
-                                                                        } else {
-                                                                            $latestStatus = (int) $status->id;
-                                                                            $estimatedDate = new DateTime(
-                                                                                $milestone['end_date'],
-                                                                            );
-                                                                            $finalizationDate = new DateTime(
-                                                                                $milestone['finalization_date'],
-                                                                            );
-                                                                            $isOverdue =
-                                                                                $finalizationDate > $estimatedDate;
-                                                                        }
-
-                                                                        // Determine icon color and animation based on status and date
-                                                                        $iconColor = 'black'; // Default
-                                                                        $iconAnimation = '';
-
-                                                                        if ($latestStatus <= 2) {
-                                                                            // To Do or In Progress
-                                                                            if ($isOverdue) {
-                                                                                $iconColor = '#db8d33'; // Yellow for overdue tasks in status 1-2
-                                                                            } else {
-                                                                                $iconColor = 'black'; // Black for on-time tasks in status 1-2
-                                                                            }
-                                                                        } else {
-                                                                            // In Review or Done
-                                                                            if ($isOverdue) {
-                                                                                $iconColor = 'red'; // Red for overdue tasks in status 3-4
-                                                                            } else {
-                                                                                $iconColor = '#53b446'; // Green for on-time tasks in status 3-4
-                                                                            }
-                                                                        }
-                                                                    @endphp
-
-                                                                    <i class="fa-solid fa-calendar-check fa-2xl m-1 calendarAlert "
-                                                                        style="color: {{ $iconColor }};"></i>
-                                                                    <div class="text-center adjustTextCalendar">
-                                                                        <b style="font-size: 12px">
-                                                                            {{ \App\Models\Utility::dateFormat($milestone['end_date']) }}
-                                                                        </b>
-                                                                    </div>
-                                                                </div>
-
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <span class="empty-container" data-placeholder="Empty"></span>
+                                        @include('projects.partials.milestone_card', [
+                                            'milestone' => $milestone,
+                                            'status' => $status,
+                                            'currentWorkspace' => $currentWorkspace,
+                                            'project_id' => $project_id,
+                                            'extraClass' => '',
+                                            'inlineStyle' => '',
+                                            'ownerShip' => 'yes',
+                                        ])
                                     @endforeach
                                 @endif
+
+
+                                {{-- ============================================ --}}
+                                {{--   MILESTONES DEL RESTO DEL WORKSPACE          --}}
+                                {{-- ============================================ --}}
+                                @if (isset($milestonesUsers[$status->id]))
+                                    @foreach ($milestonesUsers[$status->id] as $milestone)
+                                        {{-- Saltar si ya se pintó arriba --}}
+                                        @continue(in_array($milestone['id'], $renderedMilestonesIds))
+
+                                        @include('projects.partials.milestone_card', [
+                                            'milestone' => $milestone,
+                                            'status' => $status,
+                                            'currentWorkspace' => $currentWorkspace,
+                                            'project_id' => $project_id,
+                                            'extraClass' => 'other-user-milestone',
+                                            'inlineStyle' => 'display:none;',
+                                            'ownerShip' => 'no',
+                                        ])
+                                    @endforeach
+                                @endif
+
                             </div>
                         </div>
                     </div>
@@ -1193,7 +1012,25 @@
                             //     }
                             // });
 
+                        } // ⭐ Cuando un milestone pasa de status 4 → 3 borrar finalization_date
+                        if (oldStatus == 4 && newStatus == 3) {
+
+                            $.ajax({
+                                url: "{{ route('projects.milestone.clearFinalizationDate', [$currentWorkspace->slug, ':id']) }}"
+                                    .replace(':id', cardId),
+                                type: "POST",
+                                headers: {
+                                    "X-CSRF-TOKEN": "{{ csrf_token() }}"
+                                },
+                                success: function(response) {
+                                    console.log("Finalization date cleared!");
+                                },
+                                error: function(xhr) {
+                                    console.error("Error clearing finalization date");
+                                }
+                            });
                         }
+
 
                         // Actualizamos los contadores de tareas en los contenedores de origen y destino
                         updateTaskCount(source);
@@ -1482,61 +1319,76 @@
             <!-- Script encargado de mostrar/ocultar las opciones cuando el estado del proyecto esta en 4 (en Hecho) -->
             <script>
                 document.addEventListener('DOMContentLoaded', function() {
-                    // Actualiza la visibilidad de las opciones de acción según el status
-                    updateMilestoneActions();
-
-                    // Toggle visibility of not assigned milestones
                     const hideUnassignedIcon = document.getElementById('hideUnassignedMilstoneIcon');
-                    let hideUnassigned = false;
+                    const toggleAllIcon = document.getElementById('toggleAllMilestonesIcon');
 
+                    // Estado de los filtros
+                    let hideUnassigned = false; // true => ocultar no asignadas
+                    let showAll = false; // true => ver todas, false => ver solo las mías
+                    const currentUserId = "{{ Auth::id() }}";
+
+                    if (toggleAllIcon) {
+                        toggleAllIcon.classList.add('disabled');
+                    }
+
+                    function applyMilestoneFilters() {
+                        const allMilestones = document.querySelectorAll('.card[data-project-id]');
+
+                        allMilestones.forEach(card => {
+                            const assignedUser = card.getAttribute('data-assign-to'); // puede ser null, "", o id
+                            const isUnassigned = card.classList.contains('notAsignedMilestone');
+
+                            let visible = true;
+
+                            // 1) Filtro de "solo mis milestones" (si showAll = false)
+                            if (!showAll) {
+                                // Si está asignada a otro usuario, la ocultamos
+                                if (assignedUser && assignedUser != currentUserId) {
+                                    visible = false;
+                                }
+                            }
+
+                            // 2) Filtro de "ocultar no asignadas"
+                            if (hideUnassigned && isUnassigned) {
+                                visible = false;
+                            }
+
+                            // Aplicar visibilidad
+                            card.style.display = visible ? '' : 'none';
+                        });
+                    }
+
+                    // Click en "ocultar hojas no asignadas"
                     if (hideUnassignedIcon) {
                         hideUnassignedIcon.addEventListener('click', function() {
                             hideUnassigned = !hideUnassigned;
-                            const notAssignedMilestones = document.querySelectorAll('.notAsignedMilestone');
-                            notAssignedMilestones.forEach(milestone => {
-                                milestone.style.display = hideUnassigned ? 'none' : 'block';
-                            });
 
-                            // Change icon color and hover text
                             this.style.filter = hideUnassigned ? 'grayscale(1)' : 'none';
-                            this.title = hideUnassigned ? "{{ __('Show Unassigned Order Forms') }}" :
+                            this.title = hideUnassigned ?
+                                "{{ __('Show Unassigned Order Forms') }}" :
                                 "{{ __('Hide Unasigned Order Forms') }}";
+
+                            applyMilestoneFilters();
                         });
                     }
 
-                    // Agrega un MutationObserver para detectar cambios en data-status y actualizar dinámicamente
-                    function observeMilestoneStatusChanges() {
-                        const milestoneCards = document.querySelectorAll('.card[data-project-id]');
-                        milestoneCards.forEach(card => {
-                            const observer = new MutationObserver(mutations => {
-                                mutations.forEach(mutation => {
-                                    if (mutation.type === 'attributes' && mutation.attributeName ===
-                                        'data-status') {
-                                        updateMilestoneActions();
-                                    }
-                                });
-                            });
-                            observer.observe(card, {
-                                attributes: true,
-                                attributeFilter: ['data-status']
-                            });
+                    // Click en "todas las milestones del workspace"
+                    if (toggleAllIcon) {
+                        toggleAllIcon.addEventListener('click', function() {
+                            showAll = !showAll;
+
+                            this.classList.toggle('disabled', !showAll);
+                            this.classList.toggle('enabled', showAll);
+                            this.title = showAll ?
+                                "{{ __('Hide other users milestones') }}" :
+                                "{{ __('Show all workspace milestones') }}";
+
+                            applyMilestoneFilters();
                         });
                     }
 
-                    function updateMilestoneActions() {
-                        const milestoneCards = document.querySelectorAll('.card[data-project-id]');
-                        milestoneCards.forEach(card => {
-                            const status = parseInt(card.dataset.status);
-                            const actionItems = card.querySelectorAll('.milestone-action');
-                            if (status === 4 || status === 3) {
-                                actionItems.forEach(item => item.style.display = 'none');
-                            } else {
-                                actionItems.forEach(item => item.style.display = '');
-                            }
-                        });
-                    }
-
-                    observeMilestoneStatusChanges();
+                    // Si quieres, puedes aplicar filtros iniciales al cargar:
+                    // applyMilestoneFilters();
                 });
             </script>
             <!-- Script encargado de mostrar/ocultar la leyenda de colores -->

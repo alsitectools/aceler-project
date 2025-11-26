@@ -644,6 +644,15 @@ Route::post('/{slug}/projects/milestone/{id}/store', [ProjectController::class, 
 Route::get('/{slug}/projects/milestone/{id}/show', [ProjectController::class, 'milestoneShow'])->name('projects.milestone.show')->middleware(['auth', 'XSS']);
 Route::get('/{slug}/projects/milestone/{id}/edit', [ProjectController::class, 'milestoneEdit'])->name('projects.milestone.edit')->middleware(['auth', 'XSS']);
 Route::get('/{slug}/projects/milestone-board/{id}/asign', [ProjectController::class, 'milestoneAssign'])->name('projects.milestone.assign')->middleware(['auth', 'XSS']);
+//Logic for wait and resume a milestone
+Route::post('/{slug}/projects/milestone-board/{id}/wait', [ProjectController::class, 'waitMilestone'])->name('projects.milestone.wait')->middleware(['auth', 'XSS']);
+Route::post('/{slug}/projects/milestone-board/{id}/resume', [ProjectController::class, 'resumeMilestone'])->name('projects.milestone.resume')->middleware(['auth', 'XSS']);
+
+Route::post('/{slug}/milestone/{id}/clear-finalization-date', 
+    [ProjectController::class, 'clearFinalizationDate'])
+    ->name('projects.milestone.clearFinalizationDate');
+
+
 Route::get('/{slug}/projects/milestone-board/{id}/workload', [ProjectController::class, 'milestoneWorkload'])->name('projects.milestone.workload')->middleware(['auth', 'XSS']);
 Route::get('/{slug}/projects/milestone-board/{id}/checkTaskHours', [ProjectController::class, 'checkTaskHours'])->name('projects.milestone.checkTaskHours');
 Route::get('/projects/milestone-board/{id}/getProjectName', [ProjectController::class, 'getProjectNameByID'])

@@ -1089,9 +1089,15 @@ class ProjectController extends Controller
 
             //\Log::debug(['allmilestones' => $allmilestones]);
 
+            $workspaceProjectsIds = Project::where('workspace', $currentWorkspace->id)
+                ->pluck('id')
+                ->toArray();
+
+            $allUsersMilestones = Milestone::whereIn('project_id', $workspaceProjectsIds)->get();
 
             // $allmilestones = $allmilestones->merge($allmilestones2);
             $milestones = $this->groupMilestonesByStatus($allmilestones, $objUser, $stages);
+            $milestonesUsers = $this->groupMilestonesByStatus($allUsersMilestones, null, $stages);
             // \Log::info('Milestones que se van a pasar a la vista');
             // \Log::info($milestones);
             $project_id = -1;
@@ -1108,7 +1114,7 @@ class ProjectController extends Controller
             }
         }
         if ($project_id == -1) {
-            return view('projects.milestoneboard', compact('currentWorkspace', 'milestones', 'stages', 'statusClass', 'project_id'));
+            return view('projects.milestoneboard', compact('currentWorkspace', 'milestones', 'stages', 'statusClass', 'project_id', 'milestonesUsers'));
         } else {
             return view('projects.milestoneboard', compact('currentWorkspace', 'milestones', 'stages', 'statusClass', 'project_id', 'project_name'));
         }
@@ -1184,6 +1190,7 @@ class ProjectController extends Controller
             'tasks'         => $taskData,
             'sales'         => User::find($milestone->assign_to),
             'asiggned_user_data'         => User::find($milestone->milestone_assigned_to_user),
+            'is_waiting' => $milestone->is_waiting,
         ];
         //\Log::info($milestone);
     }
@@ -1240,6 +1247,33 @@ class ProjectController extends Controller
             return redirect()->back()->with('error', __('Workspace Not Found.'));
         }
     }
+
+    public function waitMilestone($slug, $milestoneID, Request $request)
+    {
+        Milestone::where('id', $milestoneID)->update([
+            'is_waiting' => true
+        ]);
+
+         return redirect()->back();
+    }
+
+    public function resumeMilestone($slug, $milestoneID, Request $request)
+    {
+        Milestone::where('id', $milestoneID)->update([
+            'is_waiting' => false
+        ]);
+         return redirect()->back();
+    }
+
+    public function clearFinalizationDate($slug, $milestoneID)
+    {
+        Milestone::where('id', $milestoneID)->update([
+            'finalization_date' => null
+        ]);
+
+        return response()->json(['success' => true]);
+    }
+
 
     public function getMilestones($projectId)
     {
