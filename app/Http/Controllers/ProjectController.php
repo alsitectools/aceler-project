@@ -1176,6 +1176,7 @@ class ProjectController extends Controller
         return [
             'id'            => $milestone->id,
             'assined_to_user' => $milestone->milestone_assigned_to_user,
+            'priority'      => $milestone->priority,
             'created_by' => $milestone->created_by,
             'title'         => $milestone->title,
             'start_date'    => $milestone->start_date,
@@ -1254,7 +1255,7 @@ class ProjectController extends Controller
             'is_waiting' => true
         ]);
 
-         return redirect()->back();
+        return redirect()->back();
     }
 
     public function resumeMilestone($slug, $milestoneID, Request $request)
@@ -1262,7 +1263,7 @@ class ProjectController extends Controller
         Milestone::where('id', $milestoneID)->update([
             'is_waiting' => false
         ]);
-         return redirect()->back();
+        return redirect()->back();
     }
 
     public function clearFinalizationDate($slug, $milestoneID)
@@ -2254,6 +2255,7 @@ class ProjectController extends Controller
         $milestone->created_by = Auth::user()->id;
         $milestone->end_date = $finalEndDate; // ✅ Fecha corregida aquí
         $milestone->summary = $request->description ?? '';
+        $milestone->priority = $request->priority === '' ? null : $request->priority;
         $milestone->save();
 
         if (isset($project)) {
@@ -2492,9 +2494,13 @@ class ProjectController extends Controller
 
         // Actualizar campos del milestone
         $milestone->summary = $request->summary;
-        $milestone->milestone_assigned_to_user = $request->req_assing_to ?? '';
+        // Solo actualizar milestone_assigned_to_user si viene con valor, de lo contrario mantener el actual
+        if ($request->has('req_assing_to') && $request->req_assing_to !== '') {
+            $milestone->milestone_assigned_to_user = $request->req_assing_to;
+        }
         $milestone->end_date = $finalEndDate;
         $milestone->planned_end_date = $request->planned_end_date;
+        $milestone->priority = $request->priority === '' ? null : $request->priority;
         $milestone->save();
 
         $project = Project::where('id', $milestone->project_id)->first();
@@ -4036,7 +4042,8 @@ class ProjectController extends Controller
                     'tasks.id as task_id',
                     'milestones.title as milestone_name',
                     'projects.id as project_id',
-                    'projects.name as project_name'
+                    'projects.name as project_name',
+                    'projects.ref_delegation as ref_delegation'
                 )
                     ->join('timesheets', 'timesheets.task_id', '=', 'tasks.id')
                     ->join('milestones', 'tasks.milestone_id', '=', 'milestones.id')
@@ -4051,7 +4058,8 @@ class ProjectController extends Controller
                     'tasks.id as task_id',
                     'milestones.title as milestone_name',
                     'projects.id as project_id',
-                    'projects.name as project_name'
+                    'projects.name as project_name',
+                    'projects.ref_delegation as ref_delegation'
                 )
                     ->join('timesheets', 'timesheets.task_id', '=', 'tasks.id')
                     ->join('milestones', 'tasks.milestone_id', '=', 'milestones.id')

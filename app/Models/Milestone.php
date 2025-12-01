@@ -26,6 +26,7 @@ class Milestone extends Model
         'summary',
         'reminder_mail_is_send',
         'milestone_assigned_to_user',
+        'priority',
         'is_waiting'
     ];
 

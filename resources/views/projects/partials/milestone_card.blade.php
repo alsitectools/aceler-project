@@ -69,7 +69,7 @@
                         {{-- ALWAYS AVAILABLE: VIEW --}}
                         <a href="#" class="dropdown-item" data-ajax-popup="true"
                             data-title="{{ __('Order form details') }}"
-                            data-url="{{ route('projects.milestone.show', [$currentWorkspace->slug, $project_id, $milestone['id']]) }}">
+                            data-url="{{ route('projects.milestone.show', [$currentWorkspace->slug, $milestone['id']]) }}">
                             <i class="ti ti-eye"></i> {{ __('View') }}
                         </a>
 
@@ -201,7 +201,8 @@
                     <div class="foot-milestone">
                         {{-- Proyecto --}}
                         <div class="col-6 text-center">
-                            <div class="tooltipCus" data-title="{{ __('Project') }}">
+                            <div class="tooltipCus" style="display: flex; flex-direction:column; align-items:center;"
+                                data-title="{{ __('Project') }}">
                                 <img class="img-fluid p-1 adjustImg"
                                     src="{{ asset('assets/img/' . $milestone['project_type'] . '.png') }}">
                                 <b style="font-size:12px;">{{ $milestone['project_name'] }}</b>
@@ -249,6 +250,52 @@
         </div>
 
     </div>
+    @if ($milestone['priority'] && $milestone['priority'] !== '')
+        @php
+            $priorityLower = strtolower($milestone['priority']);
+            if ($priorityLower === 'baja' || $priorityLower === 'low') {
+                $borderLeft = '#0080008a';
+                $borderRight = 'green';
+                $borderTop = 'green';
+                $bgColor = '#008000fa';
+                $priorityLabel = __('low');
+            } elseif ($priorityLower === 'media' || $priorityLower === 'medium') {
+                $borderLeft = '#ff8c008a';
+                $borderRight = '#ff8c00';
+                $borderTop = '#ff8c00';
+                $bgColor = '#ff8c00fa';
+                $priorityLabel = __('medium');
+            } elseif ($priorityLower === 'alta' || $priorityLower === 'high') {
+                $borderLeft = '#aa182c';
+                $borderRight = '#aa182c';
+                $borderTop = '#aa182c';
+                $bgColor = '#aa182c';
+                $priorityLabel = __('high');
+            } else {
+                $borderLeft = '#0080008a';
+                $borderRight = 'green';
+                $borderTop = 'green';
+                $bgColor = '#008000fa';
+                $priorityLabel = $milestone['priority'];
+            }
+        @endphp
+        <div style="display: flex; justify-content: center;">
+            <span
+                style="
+                                                        border-left: 2px solid {{ $borderLeft }};
+                                                        border-right: 2px solid {{ $borderRight }};
+                                                        border-top: 2px solid {{ $borderTop }};
+                                                        border-top-left-radius: 10px;
+                                                        border-top-right-radius: 10px;
+                                                        padding: 5px 10px 5px 10px;
+                                                        background-color: {{ $bgColor }};
+                                                        color: white;
+                                                        font-weight: 600;
+                                                    ">{{ __('Priority') }}:
+                {{ $priorityLabel }}</span>
+        </div>
+    @endif
+    {{-- @dump($milestone) --}}
 </div>
 
 <span class="empty-container" data-placeholder="Empty"></span>

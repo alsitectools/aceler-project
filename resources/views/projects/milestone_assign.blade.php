@@ -44,6 +44,8 @@
                         <input type="text" class="form-control form-control-light" id="milestone-secret-input"
                             placeholder="{{ __('Enter Title') }}" value="{{ $milestone->project_id }}" name="title"
                             required disabled style="display: none;" disabled>
+                        <!-- Input hidden para mantener la prioridad actual -->
+                        <input type="hidden" name="priority" value="{{ $milestone->priority }}">
                     </div>
                 </div>
                 <div class="row">
