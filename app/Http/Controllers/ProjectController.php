@@ -1368,30 +1368,42 @@ class ProjectController extends Controller
         }
     }
 
+    private function calculatePoints($estimated_time, $imputed_time, $extra_points)
+    {
+
+        \Log::debug("Cálculo de puntos: estimated_time={$estimated_time}, imputed_time={$imputed_time}, extra_points={$extra_points}");
+        $real_time = $estimated_time;
+
+        if($imputed_time < floor($estimated_time/2)){
+            $real_time = $estimated_time /2;
+        }
+        \Log::debug("real_time ajustado={$real_time}");
+        $pointsHour = 0.35 * $estimated_time / $real_time + 0.5;
+        \Log::debug("pointsHour={$pointsHour}");
+
+        $totalPoints = $pointsHour + $imputed_time + $extra_points;
+
+        $points = [
+            'totalPoints' => $totalPoints,
+            'pointsHour'   => $pointsHour,
+        ];
+        return $points;
+    }
+
     public function milestoneReviewSubmit(Request $request, $slug, $id)
     {
         try {
-            // Obtener los datos del request manualmente
-            $milestoneId     = $request->input('milestone_id', $id); // por si no viene en el form
+            $milestoneId     = $request->input('milestone_id', $id);
             $numPlans        = (int) $request->input('num_plans', 0);
             $systems         = $request->input('systems', []);
             $documentFormat  = $request->input('document_format');
             $detailLevel     = $request->input('detail_level');
-
-            \Log::info('Datos recibidos del formulario', compact(
-                'milestoneId',
-                'numPlans',
-                'systems',
-                'documentFormat',
-                'detailLevel'
-            ));
 
             if (!$milestoneId || !is_numeric($milestoneId)) {
                 return response()->json(['success' => false, 'message' => 'Falta el ID del milestone.']);
             }
 
             $milestone = Milestone::with('tasks')->find($milestoneId);
-
             if (!$milestone) {
                 return response()->json(['success' => false, 'message' => 'Milestone no encontrado.']);
             }
@@ -1402,37 +1414,65 @@ class ProjectController extends Controller
 
             $this->uploadMilestoneReviewFile($request, $slug, $milestoneId);
 
-            // Calcular los puntos
+            // ---------------------------------------
+            // Calcular tiempo estimado
+            // ---------------------------------------
             $systemPoints = Puntuacion::whereIn('nombre', $systems)->sum('valor');
+            if($systemPoints > 2) $systemPoints = 2;
+
             $formatPoints = Puntuacion::where('nombre', $documentFormat)->value('valor') ?? 0;
             $detailPoints = Puntuacion::where('nombre', $detailLevel)->value('valor') ?? 0;
 
-            $totalPoints = ($systemPoints + $formatPoints + $detailPoints) * max($numPlans, 1);
+            $estimated_time = ($numPlans * $systemPoints * $detailPoints) + $formatPoints;
 
-            // \Log::info("Puntos calculados", [
-            //     'systemPoints' => $systemPoints,
-            //     'formatPoints' => $formatPoints,
-            //     'detailPoints' => $detailPoints,
-            //     'numPlans' => $numPlans,
-            //     'totalPoints' => $totalPoints,
-            // ]);
+            // ---------------------------------------
+            // Obtener horas imputadas desde Tarea Drawing
+            // ---------------------------------------
+            $drawingTask = $milestone->tasks()
+                ->whereHas('type', function ($q) {
+                    $q->where('name', 'Drawing'); //  ->where('id', 1)
+                })
+                ->first();
 
-            // Guardar la puntuación en cada tarea del milestone
-            if ($milestone->tasks->isEmpty()) {
-                \Log::warning("Milestone {$milestone->id} no tiene tareas.");
-                return response()->json(['success' => false, 'message' => 'El milestone no tiene tareas asociadas.']);
+            if (!$drawingTask) {
+                \Log::warning("No se encontró tarea tipo Drawing en el milestone {$milestone->id}");
+                $real_imputed_time = 0;
+            } else {
+                $real_imputed_time = $drawingTask->timesheets()
+                    ->selectRaw('SUM(TIME_TO_SEC(time)) as total_seconds')
+                    ->value('total_seconds');
+
+                $real_imputed_time = ($real_imputed_time ?? 0) / 3600;// horas reales
+
             }
 
+            //Calcular puntos extras por tareas
+            $extraTaskPoints = TaskType::where('project_type', 1)
+            ->whereIn('id', $milestone->tasks()->pluck('type_id'))
+            ->sum('puntuacion');
+
+            // ---------------------------------------
+            // Calcular puntos
+            // ---------------------------------------
+            $allPoints = $this->calculatePoints($estimated_time, $real_imputed_time, $extraTaskPoints);
+
+            if ($allPoints['totalPoints'] === null) {
+                $allPoints['totalPoints'] = 0;
+            }
+
+            // Guardar puntuación en tareas del milestone
             foreach ($milestone->tasks as $task) {
-                $p = PuntuacionTarea::updateOrCreate(
+                PuntuacionTarea::updateOrCreate(
                     ['id_tarea' => $task->id],
-                    ['cantidad_puntaje' => $totalPoints]
+                    [
+                        'cantidad_puntaje' => $allPoints['totalPoints'],
+                        'user_id'          => $task->assign_to,
+                        'puntos_hora'      => $allPoints['pointsHour'],
+                    ]
                 );
-                // \Log::info("Puntuación guardada", [
-                //     'task_id' => $task->id,
-                //     'cantidad_puntaje' => $totalPoints
-                // ]);
+
             }
+
             ActivityLog::create([
                 'user_id'   => \Auth::user()->id,
                 'user_type' => get_class(\Auth::user()),
@@ -1445,14 +1485,16 @@ class ProjectController extends Controller
 
             return redirect()
                 ->back()
-                ->with('success', 'Revisión guardada correctamente. El milestone ha pasado al estado de revisión.');
+                ->with('success', 'Revisión guardada correctamente.');
+
         } catch (\Throwable $e) {
             \Log::error("Error en milestoneReviewSubmit", ['error' => $e->getMessage()]);
             return redirect()
                 ->back()
-                ->with('error', 'Ocurrió un error al guardar la revisión: ' . $e->getMessage());
+                ->with('error', 'Ocurrió un error: ' . $e->getMessage());
         }
     }
+
 
     public function deletePuntuaciones($slug, $milestoneId)
     {

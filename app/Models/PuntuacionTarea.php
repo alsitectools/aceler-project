@@ -14,6 +14,6 @@ class PuntuacionTarea extends Model
     public $timestamps = false;
 
     protected $fillable = [
-        'id_tarea', 'cantidad_puntaje'
+        'id_tarea', 'cantidad_puntaje', 'user_id','puntos_hora'
     ];
 }
