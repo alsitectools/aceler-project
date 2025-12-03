@@ -25,7 +25,9 @@ class Milestone extends Model
         'finalization_date',
         'summary',
         'reminder_mail_is_send',
-        'milestone_assigned_to_user'
+        'milestone_assigned_to_user',
+        'priority',
+        'is_waiting'
     ];
 
     public function daysLeft()

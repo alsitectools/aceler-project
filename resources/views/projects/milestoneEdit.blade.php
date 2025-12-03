@@ -74,6 +74,24 @@
                             id="end_date" name="end_date" value="{{ $milestone->end_date }}" required>
                     </div>
                 </div>
+                <div class="row">
+                    <div class="form-group col-md-6">
+                        <label for="priority" class="col-form-label">{{ __('Priority') }}</label>
+                        <select class="form-control form-control-light" id="priority" name="priority">
+                            <option value="">{{ __('Not defined') }}</option>
+                            <option value="alta" {{ $milestone->priority === 'alta' ? 'selected' : '' }}>
+                                {{ __('High Priority') }}</option>
+                            <option value="media" {{ $milestone->priority === 'media' ? 'selected' : '' }}>
+                                {{ __('Medium Priority') }}</option>
+                            <option value="baja" {{ $milestone->priority === 'baja' ? 'selected' : '' }}>
+                                {{ __('Low Priority') }}</option>
+                        </select>
+                    </div>
+                </div>
+                <!-- Inputs hidden para mantener los usuarios asignados -->
+                <input type="hidden" name="assign_to" value="{{ $milestone->assign_to }}">
+                <input type="hidden" name="milestone_assigned_to_user"
+                    value="{{ $milestone->milestone_assigned_to_user }}">
                 <div class="form-group col-md-12">
                     <label for="task-summary" class="col-form-label">{{ __('Description') }}</label>
                     <textarea class="form-control form-control-light" id="task-summary" rows="3" name="summary">{{ $milestone->summary }}</textarea>

@@ -169,6 +169,7 @@ class AzureController extends Controller
                 }
             }
 
+            if (!empty($data['workday'])) {
             $workday = json_decode($data['workday'], true);
 
             UserTimetable::updateOrCreate(
@@ -187,7 +188,7 @@ class AzureController extends Controller
                     'updated_at' => now(),
                 ]
             );
-
+        }
             DB::commit();
             Auth::login($user, true);
             return redirect()->intended('/');

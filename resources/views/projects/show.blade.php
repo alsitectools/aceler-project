@@ -999,6 +999,10 @@
                                                             {{ $file->file_name }}
                                                         </p>
                                                         <div class="uploaded-file-buttons">
+                                                            {{-- @php
+                                                                dump($project);
+                                                                dump($file);
+                                                            @endphp --}}
                                                             <a onclick="downloadFile({{ $project->id }}, '', '{{ $file->file_path }}')"
                                                                 class="buttonFiles btn btn-sm">
                                                                 <i class="ti ti-download" style="color:white"></i>
@@ -1043,7 +1047,11 @@
                                                         <div class="custom-file-container ms-4">
                                                             @if (!empty($milestone['files']) && count($milestone['files']) > 0)
                                                                 @foreach ($milestone['files'] as $file)
-                                                                    <div class="custom-file">
+                                                                    <div class="custom-file position-relative"
+                                                                        @if (str_contains(basename($file->file), '_rf')) style="border: 2px solid #aa182c; border-radius: 5px;"
+         data-bs-toggle="tooltip"
+         data-bs-placement="bottom"
+         title="Archivo de replanteo" @endif>
                                                                         <img src="{{ asset('assets/iconFilesTypes/' . $file->extension . '.png') }}"
                                                                             alt="{{ $file->extension }} icon"
                                                                             class="styleIconFiles mt-2">
@@ -1052,26 +1060,29 @@
                                                                             {{ $file->name }}
                                                                         </p>
                                                                         <div class="uploaded-file-buttons">
-                                                                            <a onclick="downloadFile({{ $project->id }}, '{{ $milestone['title'] }}', '{{ $file->file }}')"
+                                                                            <a onclick="downloadFile({{ $project->id }}, '', '{{ $milestone['title'] }}/{{ basename($file->file) }}')"
                                                                                 class="buttonFiles btn btn-sm">
                                                                                 <i class="ti ti-download"
                                                                                     style="color:white"></i>
                                                                             </a>
-                                                                            <a class="bs-pass-para buttonFiles btn btn-sm"
-                                                                                data-confirm="{{ __('Are You Sure?') }}"
-                                                                                data-toggle="popover"
-                                                                                title="{{ __('Delete File') }}"
-                                                                                data-text="{{ __('This action can not be undone. Do you want to continue?') }}"
-                                                                                data-confirm-yes="delete-file-{{ $file->id }}">
-                                                                                <i class="fa-solid fa-trash"
-                                                                                    style="color:white"></i>
-                                                                            </a>
-                                                                            <form id="delete-file-{{ $file->id }}"
-                                                                                action="{{ route('project.deleteFile', ['idProject' => $project->id, 'milestoneTitle' => $milestone['title'], 'fileID' => $file->id]) }}"
-                                                                                method="POST" style="display: none;">
-                                                                                @csrf
-                                                                                @method('DELETE')
-                                                                            </form>
+                                                                            @if (!str_contains(basename($file->file), '_rf'))
+                                                                                <a class="bs-pass-para buttonFiles btn btn-sm"
+                                                                                    data-confirm="{{ __('Are You Sure?') }}"
+                                                                                    data-toggle="popover"
+                                                                                    title="{{ __('Delete File') }}"
+                                                                                    data-text="{{ __('This action can not be undone. Do you want to continue?') }}"
+                                                                                    data-confirm-yes="delete-file-{{ $file->id }}">
+                                                                                    <i class="fa-solid fa-trash"
+                                                                                        style="color:white"></i>
+                                                                                </a>
+                                                                                <form
+                                                                                    id="delete-file-{{ $file->id }}"
+                                                                                    action="{{ route('project.deleteFile', ['idProject' => $project->id, 'milestoneTitle' => $milestone['title'], 'fileID' => $file->id]) }}"
+                                                                                    method="POST" style="display: none;">
+                                                                                    @csrf
+                                                                                    @method('DELETE')
+                                                                                </form>
+                                                                            @endif
                                                                         </div>
                                                                     </div>
                                                                 @endforeach
@@ -1103,10 +1114,16 @@
                                         data-timeline-axis-style="dashed">
                                         @if ($currentWorkspace->permission == 'Owner' || $currentWorkspace->permission == 'Member')
                                             @foreach ($project->activities as $activity)
-                                                <div class="timeline-block px-2 pt-3">
+                                                {{-- @dump($activity) --}}
+                                                <div class="timeline-block px-2 pt-3"
+                                                    style="display: flex; align-items: center;">
                                                     @if ($activity->log_type == 'Upload File')
                                                         <span
                                                             class="timeline-step timeline-step-sm border border-success text-white">
+                                                            <i class="fas fa-file"></i></span>
+                                                    @elseif($activity->log_type == 'has uploaded a review file')
+                                                        <span
+                                                            class="timeline-step timeline-step-sm border border-warning text-white">
                                                             <i class="fas fa-file"></i></span>
                                                     @elseif($activity->log_type == 'Create Milestone')
                                                         <span
@@ -1144,7 +1161,8 @@
                                                         <p> {!! $activity->getRemark() !!} : </p>
                                                         <br>
                                                         <div class="notification_time_main">
-                                                            <p>{{ $activity->created_at->diffForHumans() }}</p>
+                                                            <p style="text-align:center; text-wrap:nowrap;">
+                                                                {{ $activity->created_at->diffForHumans() }}</p>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -1172,6 +1190,7 @@
     <script src="{{ asset('assets/js/plugins/apexcharts.min.js') }}"></script>
     <script>
         function downloadFile(idProject, titleMilestone, file) {
+            file = file.replace(/\s+/g, '_')
 
             const downloadUrl = "{{ route('project.downloadFile') }}";
             $.ajax({
@@ -1562,7 +1581,7 @@
                     header.querySelector('.sort-indicator').textContent = '';
                     if (header === activeHeader) {
                         header.querySelector('.sort-indicator').textContent =
-                            currentSort.direction === 'asc' ? ' ↑' : ' ↓';
+                            currentSort.direction === 'asc' ? '⮝' : '⮟';
                     }
                 });
             }
@@ -1815,5 +1834,13 @@
                 dropzone.focus();
             });
         }
+    </script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+            tooltipTriggerList.map(function(tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl)
+            })
+        })
     </script>
 @endpush

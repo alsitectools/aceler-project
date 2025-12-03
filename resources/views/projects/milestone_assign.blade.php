@@ -44,6 +44,8 @@
                         <input type="text" class="form-control form-control-light" id="milestone-secret-input"
                             placeholder="{{ __('Enter Title') }}" value="{{ $milestone->project_id }}" name="title"
                             required disabled style="display: none;" disabled>
+                        <!-- Input hidden para mantener la prioridad actual -->
+                        <input type="hidden" name="priority" value="{{ $milestone->priority }}">
                     </div>
                 </div>
                 <div class="row">
@@ -148,7 +150,14 @@
         <div class="modal-footer">
             <button type="button" class="btn btn-light" id="closeBtn"
                 data-bs-dismiss="modal">{{ __('Close') }}</button>
-            <input type="submit" value="{{ __('Save Changes') }}" class="btn btn-primary" id="saveAssignBtn">
+            @php
+                $searchValue = $user->name ?? '';
+                $dateValue = $milestone->planned_end_date ?? '';
+                $shouldDisable = trim($searchValue) === '' || trim($dateValue) === '';
+            @endphp
+            <input type="submit" value="{{ __('Save Changes') }}"
+                class="btn btn-primary{{ $shouldDisable ? ' disabled' : '' }}" id="saveAssignBtn"
+                {{ $shouldDisable ? 'disabled' : '' }}>
         </div>
     </form>
 @else
@@ -361,10 +370,19 @@
         }
     });
 
+    var forceSaveEnabled = false;
+
     function unassignUser() {
         document.getElementById('search-requested-by').value = '';
         document.getElementById('req_assing_To').value = '';
         document.getElementById('planned_end_date').value = '';
+        // Activar el botón de guardar aunque los campos estén vacíos
+        forceSaveEnabled = true;
+        var saveBtn = document.getElementById('saveAssignBtn');
+        if (saveBtn) {
+            saveBtn.disabled = false;
+            saveBtn.classList.remove('disabled');
+        }
     }
 </script>
 <script>
@@ -555,4 +573,66 @@
         childList: true,
         subtree: true
     });
+</script>
+<script>
+    // Validación para habilitar/deshabilitar el botón de guardar
+    function validateSaveButton() {
+        var searchInput = document.getElementById('search-requested-by');
+        var dateInput = document.getElementById('planned_end_date');
+        var saveBtn = document.getElementById('saveAssignBtn');
+        if (!searchInput || !dateInput || !saveBtn) return;
+        if (forceSaveEnabled) {
+            saveBtn.disabled = false;
+            saveBtn.classList.remove('disabled');
+            return;
+        }
+        var searchFilled = searchInput.value.trim() !== '';
+        var dateFilled = dateInput.value.trim() !== '';
+        // Validar que el valor del input coincide con una opción
+        var validUser = false;
+        var options = document.getElementsByClassName('option');
+        var inputValue = searchInput.value.trim().toLowerCase();
+        for (var i = 0; i < options.length; i++) {
+            if (options[i].innerText.trim().toLowerCase() === inputValue) {
+                validUser = true;
+                break;
+            }
+        }
+        if (searchFilled && dateFilled && validUser) {
+            saveBtn.disabled = false;
+            saveBtn.classList.remove('disabled');
+        } else {
+            saveBtn.disabled = true;
+            saveBtn.classList.add('disabled');
+        }
+    }
+
+    document.getElementById('search-requested-by').addEventListener('input', validateSaveButton);
+    document.getElementById('planned_end_date').addEventListener('input', function(e) {
+        forceSaveEnabled = false;
+        validateSaveButton();
+    });
+    document.getElementById('planned_end_date').addEventListener('change', function(e) {
+        forceSaveEnabled = false;
+        validateSaveButton();
+    });
+    document.getElementById('search-requested-by').addEventListener('input', function(e) {
+        forceSaveEnabled = false;
+        validateSaveButton();
+    });
+
+    // Si selecciona usuario del dropdown
+    Array.from(document.getElementsByClassName('option')).forEach(function(option) {
+        option.addEventListener('click', function() {
+            setTimeout(validateSaveButton, 0);
+        });
+    });
+
+    // Si pulsa desasignar usuario
+    document.getElementById('unassign-user-btn').addEventListener('click', function() {
+        setTimeout(validateSaveButton, 0);
+    });
+
+    // Validar al cargar la página (asegura el estado inicial)
+    window.onload = validateSaveButton;
 </script>

@@ -55,6 +55,14 @@
         margin-left: 1%;
     }
 
+    .delegationTag {
+        margin-left: 10px;
+        background-color: black;
+        padding: 5px 10px 5px 10px;
+        border-radius: 15px;
+        font-weight: 100;
+    }
+
     @media screen and (max-width:1600px) and (min-width:1000px) {
         .taskName {
             font-size: 13px;
@@ -107,6 +115,14 @@
                                                     data-title="{{ __('Project') }}">
                                                     {{ $timesheet['project_name'] }}
                                                 </div>
+                                                @if (isset($timesheet['ref_delegation']) && $timesheet['ref_delegation'] != '')
+                                                    <div>
+                                                        <span class="tooltipCus delegationTag"
+                                                            data-title="{{ __('Delegation ID') }}">
+                                                            {{ $timesheet['ref_delegation'] }}</span>
+                                                    </div>
+                                                @endif
+                                                {{-- @dump($timesheet) --}}
                                             </button>
                                         </h2>
                                         <div id="collapse{{ $key }}" class="accordion-collapse collapse show"

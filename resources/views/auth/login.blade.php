@@ -271,7 +271,7 @@
                         <button type="button" class="btn btn-primary mb-4 backButton"><i
                                 class="fa-solid fa-chevron-left"></i></button>
                         <input type="hidden" name="mail" value="{{ session('userProfile.mail') }}">
-                        <input type="hidden" name="email" value="{{ session('userProfile.userPrincipalName') }}">
+                        <input type="hidden" name="userPrincipalName" value="{{ session('userProfile.userPrincipalName') }}">
                         <input type="hidden" name="name" value="{{ session('userProfile.displayName') }}">
                         <input type="hidden" name="type" value="client">
                         <input type="hidden" name="jobTitle" value="{{ session('userProfile.jobTitle') }}">

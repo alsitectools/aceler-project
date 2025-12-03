@@ -104,6 +104,13 @@ Para asegurarte de que el enlace simbólico se ha creado correctamente, usa el s
 ## Problemas con rutas
 Mirar fichero config/filesystems.php yaa que este fichero esta configurado para ir a la ruta la carpeta raiz /home/acelerproject/public_html/storage o staging
 
+Solucion step by step en servidor:
+1. cd /home/stagingacelerproject/public_html/public
+2. rm storage
+3. ln -s /home/stagingacelerproject/public_html/storage storage
+4. ls -l (mostrará por pantalla algo como storage -> /home/stagingacelerproject/public_html/storage)
+
+
 ## VISTAS Y FUNCIONES 
 Si hay alguna ruta que no aparezca aqui, busca en web.php 
 
