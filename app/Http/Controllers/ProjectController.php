@@ -2562,7 +2562,10 @@ class ProjectController extends Controller
 
             foreach ($request->file('new_files') as $file) {
                 if ($file->isValid()) {
-                    $fileName = $milestone->id . '_' . time() . '_' . $file->getClientOriginalName();
+                    $originalFileName = $file->getClientOriginalName();
+                    // ✅ Reemplazar espacios con guiones bajos
+                    $originalFileName = str_replace(' ', '_', $originalFileName);
+                    $fileName = $milestone->id . '_' . time() . '_' . $originalFileName;
                     $file->move(storage_path($dir), $fileName);
 
                     $filePath = storage_path($dir . '/' . $fileName);
@@ -2573,7 +2576,7 @@ class ProjectController extends Controller
                     MilestoneFile::create([
                         'milestone_id' => $milestone->id,
                         'file' => $fileName,
-                        'name' => $file->getClientOriginalName(),
+                        'name' => $originalFileName,
                         'extension' => $file->getClientOriginalExtension(),
                         'file_size' => $fileSize,
                         'created_by' => Auth::user()->id,
@@ -2737,6 +2740,8 @@ class ProjectController extends Controller
 
         $file = $request->file('file');
         $file_name = $file->getClientOriginalName();
+        // ✅ Reemplazar espacios con guiones bajos
+        $file_name = str_replace(' ', '_', $file_name);
         $extension = $file->getClientOriginalExtension();
 
         $newName = $project->id . "_" . md5(time()) . "_" . $file_name;
