@@ -62,7 +62,7 @@
         <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 0px;">
             <label class="col-form-label" style="margin: 0;">{{ __('Assigned Milestones') }}</label>
             <i class="fa-solid fa-filter" id="filter-toggle-btn"
-                style="font-size: 14px; color: #999; cursor: pointer; transition: color 0.3s; border: 2px solid #999; padding:2px; border-radius:5px;"></i>
+                style="font-size: 14px; color: #999; cursor: pointer; transition: color 0.3s; padding:2px; border-radius:5px;"></i>
         </div>
 
         <!-- Input de filtro (oculto por defecto) -->
@@ -227,11 +227,11 @@
         if (isVisible) {
             // Si estaba visible, lo ocultamos - icono gris
             filterToggleBtn.style.color = '#999';
-            filterToggleBtn.style.borderColor = '#999';
+
         } else {
             // Si estaba oculto, lo mostramos - icono verde
             filterToggleBtn.style.color = '#28a745';
-            filterToggleBtn.style.borderColor = '#28a745';
+
             assignedFilterInput.focus();
         }
 
