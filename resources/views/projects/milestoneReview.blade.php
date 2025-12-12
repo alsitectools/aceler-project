@@ -55,7 +55,7 @@
         {{-- 1️⃣ Subida obligatoria de archivo PDF --}}
         <div class="form-group mb-4">
             <label class="col-form-label fw-bold">
-                {{ __('Attach drawing (200MB)') }}
+                {{ __('Attach drawing (50MB)') }}
             </label>
             <input type="file" id="review_file" name="review_file" class="form-control" accept=".pdf" required>
             <small class="form-text text-muted">

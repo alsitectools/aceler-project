@@ -113,7 +113,7 @@
                         <div class="dz-message" data-dz-message>
                             <input type="file" id="file-uploadMilestone" style="display:none" multiple />
                             <span> {{ __('Drop files here to upload') }}</span>
-                            <p class="text-muted" style="font-size:15px; margin:5px;">200MB</p>
+                            <p class="text-muted" style="font-size:15px; margin:5px;">50MB</p>
                             <small class="text-muted">.png .gif .pdf .txt .doc .docx .zip .rar .dwg .dxf</small>
                         </div>
                     </div>
@@ -392,7 +392,7 @@
         console.log('Generando notificacion de encargo creado');
         let milestoneTitle = document.getElementById('milestone-title').value;
         let milestoneParent;
-        let milestoneRequestedBy;   
+        let milestoneRequestedBy;
         let milestoneAssignedTo = document.getElementById('req_assing_To').value;
         if (milestoneAssignedTo === '') {
             milestoneAssignedTo = -2;
@@ -443,7 +443,7 @@
                     ntipe: ntipe,
                     milestoneAssignedTo: milestoneAssignedTo,
                     milestoneRequestedBy: milestoneRequestedBy,
-                    milestone_id: milestoneId, 
+                    milestone_id: milestoneId,
                 })
             });
             const data = await response.json();

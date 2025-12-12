@@ -180,14 +180,14 @@
                         <input class="form-check-input" type="checkbox" role="switch" id="toggleFormSwitch">
                         <label class="form-check-label"
                             for="toggleFormSwitch">{{ __('Only in case it is necessary to to
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        carry out a project with a visa.') }}</label>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                carry out a project with a visa.') }}</label>
                     </div>
                     <div id="additionalForm" class="collapse mt-3">
                         <div class="card card-body">
                             <div class="mb-3">
                                 <label for="input1"
                                     class="form-label">{{ __('Name of the company that will install the
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                system') }}:</label>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        system') }}:</label>
                                 <input type="text" class="form-control" name="company" id="company"
                                     placeholder="Ingrese valor">
                             </div>
@@ -210,8 +210,8 @@
                             </div>
                             <p class="mb-3">
                                 <b>{{ __('Note: In order to carry out the project it is necessary to send the quotation of
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                the formwork and falsework system, and the complete assembly drawings and geometrical
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                definition of the structure.') }}
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                the formwork and falsework system, and the complete assembly drawings and geometrical
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                definition of the structure.') }}
                                 </b>
                             </p>
                         </div>
@@ -270,7 +270,7 @@
                                             <p>
                                                 {{ __('You can Also hold click + Control + V to paste the content of the clipboard') }}
                                             </p>
-                                            <p class="text-muted" style="font-size:15px; margin:5px;">200MB</p>
+                                            <p class="text-muted" style="font-size:15px; margin:5px;">50MB</p>
                                             <small class="text-muted">.png .gif .pdf .txt .doc .docx .zip .rar .dwg
                                                 .dxf</small>
 
@@ -353,7 +353,7 @@
                         <div class="page-search">
                             <p class="text-muted mt-3">
                                 {{ __("It's looking like you may have taken a wrong turn. Don't worry... it happens to the
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            best of us. Here's a little tip that might help you get back on track.") }}
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            best of us. Here's a little tip that might help you get back on track.") }}
                             </p>
                             <div class="mt-3">
                                 <a class="btn-return-home badge-blue" href="{{ route('home') }}">
@@ -373,50 +373,50 @@
     let isSubmitting = false; // 🔒 bandera para prevenir múltiples envíos
 
     document.getElementById('milestone-form').addEventListener('submit', async function(event) {
-    event.preventDefault();
+        event.preventDefault();
 
-    if (isSubmitting) return;
-    isSubmitting = true;
+        if (isSubmitting) return;
+        isSubmitting = true;
 
-    const submitBtn = document.getElementById('submitMilestoneBtn');
-    submitBtn.disabled = true;
-    submitBtn.value = 'Guardando...';
+        const submitBtn = document.getElementById('submitMilestoneBtn');
+        submitBtn.disabled = true;
+        submitBtn.value = 'Guardando...';
 
-    const formData = new FormData(this);
+        const formData = new FormData(this);
 
-    try {
-        // 1️⃣ Crear milestone en Laravel y obtener ID
-        const response = await fetch(this.action, {
-            method: 'POST',
-            headers: {
-                'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                'Accept': 'application/json'
-            },
-            body: formData
-        });
+        try {
+            // 1️⃣ Crear milestone en Laravel y obtener ID
+            const response = await fetch(this.action, {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'Accept': 'application/json'
+                },
+                body: formData
+            });
 
-        const data = await response.json();
+            const data = await response.json();
 
-        if (!data.success || !data.milestone_id) {
-            throw new Error('El servidor no devolvió un ID válido');
+            if (!data.success || !data.milestone_id) {
+                throw new Error('El servidor no devolvió un ID válido');
+            }
+
+            const milestoneId = data.milestone_id;
+            console.log("Milestone creado con ID:", milestoneId);
+
+            // 2️⃣ Enviar notificación con el ID del milestone
+            await displayNotification(milestoneId);
+
+            // 3️⃣ Recargar
+            window.location.reload();
+
+        } catch (error) {
+            console.error('Error en el envío:', error);
+            isSubmitting = false;
+            submitBtn.disabled = false;
+            submitBtn.value = '{{ __('Save Changes') }}';
         }
-
-        const milestoneId = data.milestone_id;
-        console.log("Milestone creado con ID:", milestoneId);
-
-        // 2️⃣ Enviar notificación con el ID del milestone
-        await displayNotification(milestoneId);
-
-        // 3️⃣ Recargar
-        window.location.reload();
-
-    } catch (error) {
-        console.error('Error en el envío:', error);
-        isSubmitting = false;
-        submitBtn.disabled = false;
-        submitBtn.value = '{{ __('Save Changes') }}';
-    }
-});
+    });
 </script>
 
 <script>
@@ -800,13 +800,29 @@
 
     // --- Función ÚNICA para procesar archivos subidos (pegados, arrastrados o seleccionados) ---
     function handleFilesMilestone(files) {
+        const MAX_FILE_SIZE = 52428800; // 50MB en bytes
+
         files.forEach(file => {
+            // Validar tamaño del archivo
+            if (file.size > MAX_FILE_SIZE) {
+                alert('File too big: ' + file.name + ' exceeds 50MB limit');
+                return;
+            }
+
             const ext = file.name.split('.').pop().toLowerCase().trim();
             const mime = file.type;
 
+            // Reemplazar espacios con guiones bajos en el nombre (de lo contrario las descargas no funcionaran correctamente)
+            const processedFile = new File(
+                [file],
+                file.name.replace(/\s+/g, '_'), {
+                    type: file.type
+                }
+            );
+
             // 1) Si el archivo ya es un JPEG (resultado de la conversión), lo añadimos directamente
             if (mime === 'image/jpeg') {
-                addFileToMilestoneArray(file);
+                addFileToMilestoneArray(processedFile);
                 return;
             }
 
@@ -815,7 +831,7 @@
                 mime === 'image/png' || mime === 'image/gif' ||
                 ext === 'png' || ext === 'gif'
             ) {
-                convertImageToJPGMilestone(file, function(jpgFile) {
+                convertImageToJPGMilestone(processedFile, function(jpgFile) {
                     addFileToMilestoneArray(jpgFile);
                 });
                 return;
@@ -826,12 +842,12 @@
                 allowedExtsMilestone.includes(ext) ||
                 allowedMimesMilestone.includes(mime)
             ) {
-                addFileToMilestoneArray(file);
+                addFileToMilestoneArray(processedFile);
                 return;
             }
 
             // 4) Cualquier otro, se ignora (console.warn para depuración)
-            console.warn(`Archivo no permitido: ${file.name} (${mime || 'sin MIME detectado'})`);
+            console.warn(`Archivo no permitido: ${processedFile.name} (${mime || 'sin MIME detectado'})`);
         });
     }
 
@@ -996,42 +1012,41 @@
 <!-- NUEVO: Función para notificación antes del submit del formulario de milestone -->
 <script>
     async function displayNotification(milestoneId) {
-    console.log("Enviando notificación con milestone ID:", milestoneId);
+        console.log("Enviando notificación con milestone ID:", milestoneId);
 
-    let milestoneTitle = document.getElementById('milestone-title').value;
-    let milestoneParent;
+        let milestoneTitle = document.getElementById('milestone-title').value;
+        let milestoneParent;
 
-    try {
-        milestoneParent = document.getElementById('searchProject').value;
-    } catch {
-        milestoneParent = document.getElementById('projectIdDisabled').value;
+        try {
+            milestoneParent = document.getElementById('searchProject').value;
+        } catch {
+            milestoneParent = document.getElementById('projectIdDisabled').value;
+        }
+
+        let msg = milestoneTitle + ' en ' + milestoneParent;
+        let ntipe = 2;
+
+        try {
+            const response = await fetch("{{ route('notifications.add') }}", {
+                method: "POST",
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': "{{ csrf_token() }}"
+                },
+                body: JSON.stringify({
+                    workspace_id: {{ $currentWorkspace->id }},
+                    msg: msg,
+                    ntipe: ntipe,
+                    milestoneAssignedTo: -2,
+                    milestone_id: milestoneId // ✅ AQUÍ SE ENVÍA A LARAVEL
+                })
+            });
+
+            const data = await response.json();
+            console.log("Respuesta de notificación:", data);
+
+        } catch (error) {
+            console.error("Error al enviar la notificación:", error);
+        }
     }
-
-    let msg = milestoneTitle + ' en ' + milestoneParent;
-    let ntipe = 2;
-
-    try {
-        const response = await fetch("{{ route('notifications.add') }}", {
-            method: "POST",
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': "{{ csrf_token() }}"
-            },
-            body: JSON.stringify({
-                workspace_id: {{ $currentWorkspace->id }},
-                msg: msg,
-                ntipe: ntipe,
-                milestoneAssignedTo: -2,
-                milestone_id: milestoneId  // ✅ AQUÍ SE ENVÍA A LARAVEL
-            })
-        });
-
-        const data = await response.json();
-        console.log("Respuesta de notificación:", data);
-
-    } catch (error) {
-        console.error("Error al enviar la notificación:", error);
-    }
-}
-
 </script>

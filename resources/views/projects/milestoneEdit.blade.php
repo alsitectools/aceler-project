@@ -110,7 +110,7 @@
                             <p>
                                 {{ __('You can Also hold click + Control + V to paste the content of the clipboard') }}
                             </p>
-                            <p class="text-muted" style="font-size:15px; margin:5px;">200MB</p>
+                            <p class="text-muted" style="font-size:15px; margin:5px;">50MB</p>
                             <small class="text-muted">.png .gif .pdf .txt .doc .docx .zip .rar .dwg .dxf</small>
                         </div>
                     </div>
@@ -173,8 +173,14 @@
         const newFiles = Array.from(event.target.files);
         const existingFileNames = Array.from(document.querySelectorAll('.file-name'))
             .map(fileNameElement => fileNameElement.textContent.trim().split(" (")[0]);
+        const MAX_FILE_SIZE = 52428800; // 50MB en bytes
 
         newFiles.forEach(file => {
+            // Validar tamaño del archivo
+            if (file.size > MAX_FILE_SIZE) {
+                alert('File too big: ' + file.name + ' exceeds 50MB limit');
+                return;
+            }
             let fileName = file.name;
             let fileBaseName = fileName.substring(0, fileName.lastIndexOf(".")) || fileName;
             let fileExtension = fileName.substring(fileName.lastIndexOf(".")) || "";
@@ -421,7 +427,15 @@
     });
 
     function handleFilesMilestone(files) {
+        const MAX_FILE_SIZE = 52428800; // 50MB en bytes
+
         files.forEach(file => {
+            // Validar tamaño del archivo
+            if (file.size > MAX_FILE_SIZE) {
+                alert('File too big: ' + file.name + ' exceeds 50MB limit');
+                return;
+            }
+
             addFileToMilestoneArray(file);
         });
     }

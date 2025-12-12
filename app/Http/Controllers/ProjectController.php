@@ -1374,8 +1374,8 @@ class ProjectController extends Controller
         \Log::debug("Cálculo de puntos: estimated_time={$estimated_time}, imputed_time={$imputed_time}, extra_points={$extra_points}");
         $real_time = $estimated_time;
 
-        if($imputed_time < floor($estimated_time/2)){
-            $real_time = $estimated_time /2;
+        if ($imputed_time < floor($estimated_time / 2)) {
+            $real_time = $estimated_time / 2;
         }
         \Log::debug("real_time ajustado={$real_time}");
         $pointsHour = 0.35 * $estimated_time / $real_time + 0.5;
@@ -1424,7 +1424,7 @@ class ProjectController extends Controller
                     return $carry * $item;
                 }, 1);
 
-            if($systemPoints > 2) $systemPoints = 2;
+            if ($systemPoints > 2) $systemPoints = 2;
 
             $formatPoints = Puntuacion::where('nombre', $documentFormat)->value('valor') ?? 0;
             $detailPoints = Puntuacion::where('nombre', $detailLevel)->value('valor') ?? 0;
@@ -1448,14 +1448,14 @@ class ProjectController extends Controller
                     ->selectRaw('SUM(TIME_TO_SEC(time)) as total_seconds')
                     ->value('total_seconds');
 
-                $real_imputed_time = ($real_imputed_time ?? 0) / 3600;// horas reales
+                $real_imputed_time = ($real_imputed_time ?? 0) / 3600; // horas reales
 
             }
 
             //Calcular puntos extras por tareas
             $extraTaskPoints = TaskType::where('project_type', 1)
-            ->whereIn('id', $milestone->tasks()->pluck('type_id'))
-            ->sum('puntuacion');
+                ->whereIn('id', $milestone->tasks()->pluck('type_id'))
+                ->sum('puntuacion');
 
             // ---------------------------------------
             // Calcular puntos
@@ -1476,7 +1476,6 @@ class ProjectController extends Controller
                         'puntos_hora'      => $allPoints['pointsHour'],
                     ]
                 );
-
             }
 
             ActivityLog::create([
@@ -1492,7 +1491,6 @@ class ProjectController extends Controller
             return redirect()
                 ->back()
                 ->with('success', 'Revisión guardada correctamente.');
-
         } catch (\Throwable $e) {
             \Log::error("Error en milestoneReviewSubmit", ['error' => $e->getMessage()]);
             return redirect()
@@ -1975,18 +1973,22 @@ class ProjectController extends Controller
 
     public function commentStoreFile(Request $request, $slug, $projectID, $taskID, $clientID = '')
     {
-        $currentWorkspace = Utility::getWorkspaceBySlug($slug);
-        $request->validate(['file' => 'required']);
-        $dir = 'tasks/';
-        $fileName = $taskID . time() . "_" . $request->file->getClientOriginalName();
-        // $request->file->storeAs('tasks', $fileName);
+        try {
+            $currentWorkspace = Utility::getWorkspaceBySlug($slug);
+            $request->validate(['file' => 'required|mimes:zip,rar,jpeg,jpg,png,gif,svg,pdf,txt,doc,docx,application/octet-stream,audio/mpeg,mpga,mp3,wav|max:51200']);
+            $dir = 'tasks/';
+            $fileName = $taskID . time() . "_" . $request->file->getClientOriginalName();
+            // $request->file->storeAs('tasks', $fileName);
 
-        $path = Utility::upload_file($request, 'file', $fileName, $dir, []);
-        if ($path['flag'] == 1) {
-            // Utility::upload_file($request,'file',$fileName,$dir,[]);
-            $file = $path['url'];
-        } else {
-            return redirect()->back()->with('error', __($path['msg']));
+            $path = Utility::upload_file($request, 'file', $fileName, $dir, []);
+            if ($path['flag'] == 1) {
+                // Utility::upload_file($request,'file',$fileName,$dir,[]);
+                $file = $path['url'];
+            } else {
+                return response()->json(['error' => __($path['msg'])], 422);
+            }
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json(['error' => 'File too big'], 422);
         }
 
         $post['task_id'] = $taskID;
@@ -2526,14 +2528,23 @@ class ProjectController extends Controller
 
     public function milestoneUpdate($slug, $milestoneID, Request $request)
     {
-        $currentWorkspace = Utility::getWorkspaceBySlug($slug);
-        $user1 = $currentWorkspace->id;
+        try {
+            $currentWorkspace = Utility::getWorkspaceBySlug($slug);
+            $user1 = $currentWorkspace->id;
 
-        $setting = Utility::getAdminPaymentSettings();
+            $setting = Utility::getAdminPaymentSettings();
 
-        $request->validate([
-            'end_date' => 'required|date',
-        ]);
+            $request->validate([
+                'end_date' => 'required|date',
+                'new_files.*' => 'nullable|mimes:png,gif,pdf,txt,doc,docx,zip,rar,dwg,dxf,jpeg,jpg|max:51200',
+            ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            if (request()->expectsJson() || request()->wantsJson()) {
+                return response()->json(['error' => 'File too big'], 422);
+            }
+            throw $e;
+        }
+
 
         $milestone = Milestone::find($milestoneID);
         if (!$milestone) {
@@ -2747,10 +2758,14 @@ class ProjectController extends Controller
 
     public function fileUpload($slug, $id, Request $request)
     {
-        $project = Project::findOrFail($id);
-        $request->validate([
-            'file' => 'required'
-        ]);
+        try {
+            $project = Project::findOrFail($id);
+            $request->validate([
+                'file' => 'required|max:51200', // Máximo 50MB
+            ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json(['error' => 'File too big'], 422);
+        }
 
         $file = $request->file('file');
         $file_name = $file->getClientOriginalName();
@@ -3381,14 +3396,14 @@ class ProjectController extends Controller
 
     public function AddSingleNotification(Request $request)
     {
-         \Log::info('ANTES DEL VALIDATE', $request->all());
+        \Log::info('ANTES DEL VALIDATE', $request->all());
 
         $request->validate([
             'workspace_id' => 'required|integer',
             'msg'          => 'required|string',
         ]);
 
-        \Log::info('DESPUÉS DEL VALIDATE'); 
+        \Log::info('DESPUÉS DEL VALIDATE');
         $milestoneId = $request->milestone_id ?? null;
         if ($request->milestoneAssignedTo != -2) {
             // Crear notificación para el usuario indicado en milestoneAssignedTo
@@ -3402,9 +3417,9 @@ class ProjectController extends Controller
             $usersNotified = 1;
             if ($request->ntipe == '4') {
                 $this->getEmails($notification->user_id, $request->ntipe, $request->msg, $milestoneId, $notification->workspace_id);
-                $this->sendAditionalMailToReqBy($request->milestoneRequestedBy, $request->msg, $notification->user_id,$milestoneId, $notification->workspace_id);
+                $this->sendAditionalMailToReqBy($request->milestoneRequestedBy, $request->msg, $notification->user_id, $milestoneId, $notification->workspace_id);
             } else {
-                $this->getEmails($notification->user_id, $request->ntipe, $request->msg,$milestoneId,$notification->workspace_id);
+                $this->getEmails($notification->user_id, $request->ntipe, $request->msg, $milestoneId, $notification->workspace_id);
             }
         } else {
             // Se obtiene la lista de user_id asociados al workspace desde la tabla user_workspaces
@@ -3432,7 +3447,7 @@ class ProjectController extends Controller
         ]);
     }
 
-    public function getEmails($userID, $ntipe, $message, $milestoneId,$workspaceId)
+    public function getEmails($userID, $ntipe, $message, $milestoneId, $workspaceId)
     {
         \Log::info('Info que llega a getEmails:');
         \Log::info($userID);
@@ -3480,7 +3495,7 @@ class ProjectController extends Controller
     }
 
 
-    public function sendNotificationEmail($toEmail, $notificationType, $message, $priority, $status , $slug, $workspace)
+    public function sendNotificationEmail($toEmail, $notificationType, $message, $priority, $status, $slug, $workspace)
 
     {
         \Log::info('Enviando correo a: ' . $toEmail . ' con tipo de notificación: ' . $notificationType . ' y mensaje: ' . $message);
@@ -3519,7 +3534,7 @@ class ProjectController extends Controller
                 // Si no se encuentra el patrón, asignar null
                 $encargo = $proyecto = null;
             }
-                        
+
             \Log::info('Datos extraídos para el correo del pending review:' . $notificationType . ' - Encargo: ' . $encargo . ', Proyecto: ' . $proyecto .  ', Prioridad: ' . $priority . ', Estado: ' . $status . ', Slug: ' . $slug . ', Workspace: ' . $workspace);
 
             $htmlContent = View::make('emailTemplates.templatePendingReview', [
@@ -3527,22 +3542,22 @@ class ProjectController extends Controller
                 'message' => $message,
                 'encargo' => $encargo,
                 'proyecto' => $proyecto,
-                'priority' => $priority, 
+                'priority' => $priority,
                 'status' => $status,
                 'slug' => $slug,
                 'workspace' => $workspace,
             ])->render();
         } else if ($notificationType == '4') {
             // Extraer los datos desde el mensaje
-preg_match(
-    '/^(.*?) en ([^<]+)[\s\S]*?La fecha de entrega prevista es\s+(\d{2}-\d{2}-\d{4})/s',
-    $message,
-    $matches
-);
+            preg_match(
+                '/^(.*?) en ([^<]+)[\s\S]*?La fecha de entrega prevista es\s+(\d{2}-\d{2}-\d{4})/s',
+                $message,
+                $matches
+            );
             if (count($matches) === 4) {
-                    $encargo  = trim($matches[1]); // ✅ encargo
-                    $proyecto = trim($matches[2]);
-                    $fecha    = trim($matches[3]);
+                $encargo  = trim($matches[1]); // ✅ encargo
+                $proyecto = trim($matches[2]);
+                $fecha    = trim($matches[3]);
             } else {
                 // Manejo de error si no se encuentra el patrón
                 $encargo = $proyecto = $fecha = null;
@@ -3825,7 +3840,7 @@ preg_match(
     public function bugStoreFile(Request $request, $slug, $project_id, $bug_id, $clientID = '')
     {
         $currentWorkspace = Utility::getWorkspaceBySlug($slug);
-        $request->validate(['file' => 'required|mimes:zip,rar,jpeg,jpg,png,gif,svg,pdf,txt,doc,docx,application/octet-stream,audio/mpeg,mpga,mp3,wav|max:204800']);
+        $request->validate(['file' => 'required|mimes:zip,rar,jpeg,jpg,png,gif,svg,pdf,txt,doc,docx,application/octet-stream,audio/mpeg,mpga,mp3,wav|max:51200']);
         $fileName = $bug_id . time() . "_" . $request->file->getClientOriginalName();
         $request->file->storeAs('tasks', $fileName);
         $post['bug_id']    = $bug_id;
