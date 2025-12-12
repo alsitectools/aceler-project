@@ -1417,7 +1417,13 @@ class ProjectController extends Controller
             // ---------------------------------------
             // Calcular tiempo estimado
             // ---------------------------------------
-            $systemPoints = Puntuacion::whereIn('nombre', $systems)->sum('valor');
+            $systemPoints = Puntuacion::whereIn('nombre', $systems)
+                ->get()
+                ->pluck('valor')
+                ->reduce(function ($carry, $item) {
+                    return $carry * $item;
+                }, 1);
+
             if($systemPoints > 2) $systemPoints = 2;
 
             $formatPoints = Puntuacion::where('nombre', $documentFormat)->value('valor') ?? 0;
@@ -2360,6 +2366,14 @@ class ProjectController extends Controller
 
         if (isset($setting['milestone_notificaation']) && $setting['milestone_notificaation'] == 1) {
             Utility::send_slack_msg('New Milestone', $currentWorkspace->id, $uArr);
+        }
+
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'milestone_id' => $milestone->id,
+                'project_id' => $project->id,
+            ]);
         }
 
         return redirect()->back()->with('success', __('Milestone created successfully!'));
@@ -3362,14 +3376,15 @@ class ProjectController extends Controller
 
     public function AddSingleNotification(Request $request)
     {
-        \Log::info('Info que llega a las notificaciones desde el request:');
-        \Log::info(['Request:' => $request->all()]);
+         \Log::info('ANTES DEL VALIDATE', $request->all());
 
         $request->validate([
             'workspace_id' => 'required|integer',
-            'msg'          => 'required|string|max:255',
+            'msg'          => 'required|string',
         ]);
 
+        \Log::info('DESPUÉS DEL VALIDATE'); 
+        $milestoneId = $request->milestone_id ?? null;
         if ($request->milestoneAssignedTo != -2) {
             // Crear notificación para el usuario indicado en milestoneAssignedTo
             $notification = new Notification();
@@ -3381,10 +3396,10 @@ class ProjectController extends Controller
 
             $usersNotified = 1;
             if ($request->ntipe == '4') {
-                $this->getEmails($notification->user_id, $request->ntipe, $request->msg);
-                $this->sendAditionalMailToReqBy($request->milestoneRequestedBy, $request->msg, $notification->user_id);
+                $this->getEmails($notification->user_id, $request->ntipe, $request->msg, $milestoneId, $notification->workspace_id);
+                $this->sendAditionalMailToReqBy($request->milestoneRequestedBy, $request->msg, $notification->user_id,$milestoneId, $notification->workspace_id);
             } else {
-                $this->getEmails($notification->user_id, $request->ntipe, $request->msg);
+                $this->getEmails($notification->user_id, $request->ntipe, $request->msg,$milestoneId,$notification->workspace_id);
             }
         } else {
             // Se obtiene la lista de user_id asociados al workspace desde la tabla user_workspaces
@@ -3412,7 +3427,7 @@ class ProjectController extends Controller
         ]);
     }
 
-    public function getEmails($userID, $ntipe, $message)
+    public function getEmails($userID, $ntipe, $message, $milestoneId,$workspaceId)
     {
         \Log::info('Info que llega a getEmails:');
         \Log::info($userID);
@@ -3424,6 +3439,22 @@ class ProjectController extends Controller
             $userEmails = \DB::table('users')->where('id', $userID)->pluck('email');
         }
 
+        // Obtener el milestone
+        $milestone = Milestone::find($milestoneId);
+
+        if (!$milestone) {
+            \Log::error("Milestone con ID {$milestoneId} no encontrado");
+            return;
+        }
+
+        // Obtener slug del workspace
+        $workspace = Workspace::find($workspaceId);
+
+        if (!$workspace) {
+            \Log::error("Milestone con ID {$workspaceId} no encontrado");
+            return;
+        }
+
         \Log::info('Email(s) del usuario(s):');
         \Log::info($userEmails);
         \Log::info('Tipo de notificación:');
@@ -3431,11 +3462,20 @@ class ProjectController extends Controller
 
         // Enviar el correo a cada email
         foreach ($userEmails as $email) {
-            $this->sendNotificationEmail($email, $ntipe, $message);
+            $this->sendNotificationEmail(
+                $email,
+                $ntipe,
+                $message,
+                $milestone->priority,
+                $milestone->status,
+                $workspace->slug,
+                $workspace->name,
+            );
         }
     }
 
-    public function sendNotificationEmail($toEmail, $notificationType, $message)
+
+    public function sendNotificationEmail($toEmail, $notificationType, $message, $priority, $status , $slug, $workspace)
 
     {
         \Log::info('Enviando correo a: ' . $toEmail . ' con tipo de notificación: ' . $notificationType . ' y mensaje: ' . $message);
@@ -3451,12 +3491,17 @@ class ProjectController extends Controller
                 // Si no se encuentra el patrón, asignar null
                 $encargo = $proyecto = null;
             }
+            \Log::info('Datos extraídos para el correo de creación de milestone:' . $notificationType . ' - Encargo: ' . $encargo . ', Proyecto: ' . $proyecto .  ', Prioridad: ' . $priority . ', Estado: ' . $status . ', Slug: ' . $slug . ', Workspace: ' . $workspace);
 
             $htmlContent = View::make('emailTemplates.templateMilestone', [
                 'notificationType' => $notificationType,
                 'message' => $message,
                 'encargo' => $encargo,
                 'proyecto' => $proyecto,
+                'priority' => $priority,
+                'status' => $status,
+                'slug' => $slug,
+                'workspace' => $workspace,
             ])->render();
         } else if ($notificationType == '5') {
 
@@ -3469,32 +3514,46 @@ class ProjectController extends Controller
                 // Si no se encuentra el patrón, asignar null
                 $encargo = $proyecto = null;
             }
+                        
+            \Log::info('Datos extraídos para el correo del pending review:' . $notificationType . ' - Encargo: ' . $encargo . ', Proyecto: ' . $proyecto .  ', Prioridad: ' . $priority . ', Estado: ' . $status . ', Slug: ' . $slug . ', Workspace: ' . $workspace);
 
             $htmlContent = View::make('emailTemplates.templatePendingReview', [
                 'notificationType' => $notificationType,
                 'message' => $message,
                 'encargo' => $encargo,
                 'proyecto' => $proyecto,
+                'priority' => $priority, 
+                'status' => $status,
+                'slug' => $slug,
+                'workspace' => $workspace,
             ])->render();
         } else if ($notificationType == '4') {
             // Extraer los datos desde el mensaje
-            preg_match('/^(.*?) en (.*?)\. La fecha de entrega prevista es (\d{2}-\d{2}-\d{4})$/', $message, $matches);
-
+preg_match(
+    '/^(.*?) en ([^<]+)[\s\S]*?La fecha de entrega prevista es\s+(\d{2}-\d{2}-\d{4})/s',
+    $message,
+    $matches
+);
             if (count($matches) === 4) {
-                $encargo = $matches[1];
-                $proyecto = $matches[2];
-                $fecha = $matches[3];
+                    $encargo  = trim($matches[1]); // ✅ encargo
+                    $proyecto = trim($matches[2]);
+                    $fecha    = trim($matches[3]);
             } else {
                 // Manejo de error si no se encuentra el patrón
                 $encargo = $proyecto = $fecha = null;
             }
 
+            \Log::info('Datos extraídos para el correo:' . $notificationType . ' - Encargo: ' . $encargo . ', Proyecto: ' . $proyecto . ', Fecha: ' . $fecha . ', Prioridad: ' . $priority . ', Estado: ' . $status . ', Slug: ' . $slug . ', Workspace: ' . $workspace);
             $htmlContent = View::make('emailTemplates.templateAssignedToUser', [
                 'notificationType' => $notificationType,
                 'message' => $message,
                 'encargo' => $encargo,
                 'proyecto' => $proyecto,
                 'fecha' => $fecha,
+                'priority' => $priority,
+                'status' => $status,
+                'slug' => $slug,
+                'workspace' => $workspace,
             ])->render();
         } else {
             return;
@@ -3522,7 +3581,7 @@ class ProjectController extends Controller
         }
     }
 
-    public function sendAditionalMailToReqBy($requesterId, $message, $employeeId)
+    public function sendAditionalMailToReqBy($requesterId, $message, $employeeId, $milestoneId, $workspaceId)
     {
 
         $requestedByMail = \DB::table('users')->where('id', $requesterId)->pluck('email')->first();
@@ -3541,12 +3600,31 @@ class ProjectController extends Controller
             $encargo = $proyecto = $fecha = null;
         }
 
+        // Obtener el milestone
+        $milestone = Milestone::find($milestoneId);
+
+        if (!$milestone) {
+            \Log::error("Milestone con ID {$milestoneId} no encontrado");
+            return;
+        }
+
+        // Obtener slug del workspace
+        $workspace = Workspace::find($workspaceId);
+
+        if (!$workspace) {
+            \Log::error("Milestone con ID {$workspaceId} no encontrado");
+            return;
+        }
         $htmlContent = View::make('emailTemplates.templateAssignedToUserForRquester', [
             'message' => $message,
             'encargo' => $encargo,
             'proyecto' => $proyecto,
             'fecha' => $fecha,
-            'empleado' => $employeeName
+            'empleado' => $employeeName,
+            'priority' => $milestone->priority,
+            'status' => $milestone->status,
+            'slug' => $workspace->slug,
+            'workspace' => $workspace->name
         ])->render();
 
 

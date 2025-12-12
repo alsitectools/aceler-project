@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
+use App\Models\Timesheet;
 
 class Project extends Model
 {
@@ -408,6 +409,49 @@ class Project extends Model
         return $totalDateTimes;
     }
 
+    public static function calculateGlobalDateTimes($days, $userId)
+{
+    $totalsByDate = [];
+
+    // ✅ CONVERTIR Carbon -> Y-m-d
+    foreach ($days['datePeriod'] as $date) {
+        $dateKey = Carbon::parse($date)->toDateString();
+        $totalsByDate[$dateKey] = 0;
+    }
+
+    $timesheets = Timesheet::where('created_by', $userId)
+        ->whereBetween('date', [
+            Carbon::parse($days['first_day'])->toDateString(),
+            Carbon::parse($days['seventh_day'])->toDateString()
+        ])
+        ->get();
+
+    foreach ($timesheets as $timesheet) {
+
+        $dateKey = Carbon::parse($timesheet->date)->toDateString();
+
+        if (!array_key_exists($dateKey, $totalsByDate)) {
+            continue;
+        }
+
+        [$h, $m, $s] = explode(':', $timesheet->time);
+        $totalsByDate[$dateKey] += ($h * 60) + $m;
+    }
+
+    // ✅ Mantener el orden de los días
+    $result = [];
+    foreach ($totalsByDate as $minutes) {
+        $result[] = sprintf(
+            '%02d:%02d',
+            floor($minutes / 60),
+            $minutes % 60
+        );
+    }
+
+    return $result;
+}
+
+
     public static function getProjectAssignedTimesheetHTML($currentWorkspace, $timesheets = [], $days = [], $project_id = null, $seeAsOwner = false)
     {
         $userId = Auth::id();
@@ -444,8 +488,11 @@ class Project extends Model
         }
 
         $calculatedTotalTaskTime = Utility::calculateTimesheetHours($totalTaskTimes);
-        $totalDateTimes = self::calculateDateTimes($days, $currentWorkspace, $project_id, $allProjects);
-
+        //$totalDateTimes = self::calculateDateTimes($days, $currentWorkspace, $project_id, $allProjects);
+        $totalDateTimes = self::calculateGlobalDateTimes(
+    $days,
+    Auth::id()
+);
         //get all timetable info of the user
         $userTimetable = UserTimetable::where('user_id', $userId)->first();
 

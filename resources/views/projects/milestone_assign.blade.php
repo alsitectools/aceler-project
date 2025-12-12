@@ -386,11 +386,13 @@
     }
 </script>
 <script>
+    const milestoneId = {{ $milestone->id }};
+
     async function displayNotification() {
         console.log('Generando notificacion de encargo creado');
         let milestoneTitle = document.getElementById('milestone-title').value;
         let milestoneParent;
-        let milestoneRequestedBy;
+        let milestoneRequestedBy;   
         let milestoneAssignedTo = document.getElementById('req_assing_To').value;
         if (milestoneAssignedTo === '') {
             milestoneAssignedTo = -2;
@@ -440,7 +442,8 @@
                     msg: msg,
                     ntipe: ntipe,
                     milestoneAssignedTo: milestoneAssignedTo,
-                    milestoneRequestedBy: milestoneRequestedBy
+                    milestoneRequestedBy: milestoneRequestedBy,
+                    milestone_id: milestoneId, 
                 })
             });
             const data = await response.json();

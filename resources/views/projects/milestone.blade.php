@@ -373,25 +373,50 @@
     let isSubmitting = false; // 🔒 bandera para prevenir múltiples envíos
 
     document.getElementById('milestone-form').addEventListener('submit', async function(event) {
-        event.preventDefault();
+    event.preventDefault();
 
-        if (isSubmitting) return; // ⛔ si ya se está enviando, no hacer nada
-        isSubmitting = true;
+    if (isSubmitting) return;
+    isSubmitting = true;
 
-        const submitBtn = document.getElementById('submitMilestoneBtn');
-        submitBtn.disabled = true;
-        submitBtn.value = 'Guardando...';
+    const submitBtn = document.getElementById('submitMilestoneBtn');
+    submitBtn.disabled = true;
+    submitBtn.value = 'Guardando...';
 
-        try {
-            await displayNotification(); // 👈 Notificación previa (si es necesaria)
-            this.submit(); // ✅ envío real solo una vez
-        } catch (error) {
-            console.error('Error al enviar el formulario:', error);
-            isSubmitting = false;
-            submitBtn.disabled = false;
-            submitBtn.value = '{{ __('Save Changes') }}';
+    const formData = new FormData(this);
+
+    try {
+        // 1️⃣ Crear milestone en Laravel y obtener ID
+        const response = await fetch(this.action, {
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                'Accept': 'application/json'
+            },
+            body: formData
+        });
+
+        const data = await response.json();
+
+        if (!data.success || !data.milestone_id) {
+            throw new Error('El servidor no devolvió un ID válido');
         }
-    });
+
+        const milestoneId = data.milestone_id;
+        console.log("Milestone creado con ID:", milestoneId);
+
+        // 2️⃣ Enviar notificación con el ID del milestone
+        await displayNotification(milestoneId);
+
+        // 3️⃣ Recargar
+        window.location.reload();
+
+    } catch (error) {
+        console.error('Error en el envío:', error);
+        isSubmitting = false;
+        submitBtn.disabled = false;
+        submitBtn.value = '{{ __('Save Changes') }}';
+    }
+});
 </script>
 
 <script>
@@ -970,57 +995,43 @@
 
 <!-- NUEVO: Función para notificación antes del submit del formulario de milestone -->
 <script>
-    async function displayNotification() {
-        console.log('Generando notificacion de encargo creado');
-        let milestoneTitle = document.getElementById('milestone-title').value;
-        let milestoneParent;
-        milestoneAssignedTo = -2;
-        // let milestoneAssignedTo = document.getElementById('req_assing_To').value
-        // if (milestoneAssignedTo == '') {
-        //     milestoneAssignedTo = -2;
-        // }
-        try {
-            milestoneParent = document.getElementById('searchProject').value;
-            console.log("Milestone parent:", milestoneParent);
-        } catch (error) {
-            milestoneParent = document.getElementById('projectIdDisabled').value;
-            console.log("Milestone parent pero en el catch:", milestoneParent);
-        }
+    async function displayNotification(milestoneId) {
+    console.log("Enviando notificación con milestone ID:", milestoneId);
 
+    let milestoneTitle = document.getElementById('milestone-title').value;
+    let milestoneParent;
 
-
-        let msg = milestoneTitle + ' en ' + milestoneParent;
-        let ntipe = 2;
-
-        if (!msg) return;
-        try {
-            const response = await fetch("{{ route('notifications.add') }}", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    "X-CSRF-TOKEN": "{{ csrf_token() }}"
-                },
-                body: JSON.stringify({
-                    workspace_id: {{ $currentWorkspace->id }},
-                    msg: msg,
-                    ntipe: ntipe,
-                    milestoneAssignedTo: milestoneAssignedTo
-                })
-            });
-            const data = await response.json();
-            if (data.success) {
-                let notificationList = document.querySelector('.limited');
-                let newNotification = document.createElement('div');
-                newNotification.classList.add('notificationSTL');
-                newNotification.innerHTML = `
-                    <span class="textRepo">${data.data.msg}</span>
-                    <span class="textRepo">${data.data.type}</span>
-                    <button type="button" class="btn-close repoIcon" aria-label="Close"></button>
-                `;
-                notificationList.prepend(newNotification);
-            }
-        } catch (error) {
-            console.error("Error al agregar notificación:", error);
-        }
+    try {
+        milestoneParent = document.getElementById('searchProject').value;
+    } catch {
+        milestoneParent = document.getElementById('projectIdDisabled').value;
     }
+
+    let msg = milestoneTitle + ' en ' + milestoneParent;
+    let ntipe = 2;
+
+    try {
+        const response = await fetch("{{ route('notifications.add') }}", {
+            method: "POST",
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': "{{ csrf_token() }}"
+            },
+            body: JSON.stringify({
+                workspace_id: {{ $currentWorkspace->id }},
+                msg: msg,
+                ntipe: ntipe,
+                milestoneAssignedTo: -2,
+                milestone_id: milestoneId  // ✅ AQUÍ SE ENVÍA A LARAVEL
+            })
+        });
+
+        const data = await response.json();
+        console.log("Respuesta de notificación:", data);
+
+    } catch (error) {
+        console.error("Error al enviar la notificación:", error);
+    }
+}
+
 </script>

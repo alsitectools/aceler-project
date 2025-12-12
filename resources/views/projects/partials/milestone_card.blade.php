@@ -12,7 +12,8 @@
         {{ !empty($milestone['is_waiting']) && $milestone['is_waiting'] == 1 ? 'waitingMilestone' : '' }}
         {{ $extraClass ?? '' }}"
     id="{{ $milestone['id'] }}" data-status="{{ $status->id }}" data-project-id="{{ $milestone['project_id'] }}"
-    data-assign-to="{{ $milestone['assign_to'] }}" data-is-waiting="{{ $milestone['is_waiting'] }}"
+    data-assign-to="{{ $milestone['asiggned_user_data']->id ?? '' }}"
+ data-is-waiting="{{ $milestone['is_waiting'] }}"
     style="{{ $inlineStyle ?? '' }}">
 
 

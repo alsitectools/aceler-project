@@ -1,13 +1,33 @@
-<p>Hola {{ $user->name }},</p>
+<p style="font-family: Arial, Helvetica, sans-serif; font-size:15px;">
+    👋 Hola <strong>{{ $user->name }}</strong>,
+</p>
 
-<p>La hoja de encargo <strong>{{ $milestone->title }}</strong> del proyecto 
-<strong>{{ $milestone->project->name }}</strong> no ha sido asignada.</p>
+<p style="font-family: Arial, Helvetica, sans-serif; font-size:15px;">
+    ⚠️ La hoja de encargo
+    <strong style="color:#AA182C;">{{ $milestone->title }}</strong>
+    del proyecto
+    <strong>{{ $milestone->project->name }}</strong>
+    no ha sido asignada.
+</p>
 
-<p>Por favor revisa el aCeler Project</p>
+<p style="font-family: Arial, Helvetica, sans-serif; font-size:15px;">
+    🔍 Por favor, revisa <strong>aCeler Project</strong>.
+</p>
 
-<hr style="border-top: 1px dashed black;  color: transparent;  padding: 1em;  margin-top: 3em;">
+<hr style="margin:30px 0; border:none; border-top:1px dashed #999;">
 
-<p>Hello {{ $user->name }},</p>
-<p>The milestone <strong>{{ $milestone->title }}</strong> of the project
-<strong>{{ $milestone->project->name }}</strong> has not been assigned.</p>
-<p>Please check aCeler Project</p>
+<p style="font-family: Arial, Helvetica, sans-serif; font-size:15px;">
+    👋 Hello <strong>{{ $user->name }}</strong>,
+</p>
+
+<p style="font-family: Arial, Helvetica, sans-serif; font-size:15px;">
+    ⚠️ The milestone
+    <strong style="color:#AA182C;">{{ $milestone->title }}</strong>
+    of the project
+    <strong>{{ $milestone->project->name }}</strong>
+    has not been assigned.
+</p>
+
+<p style="font-family: Arial, Helvetica, sans-serif; font-size:15px;">
+    🔍 Please check <strong>aCeler Project</strong>.
+</p>
