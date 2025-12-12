@@ -33,7 +33,7 @@
     </p>
 
     <p style="font-size:15px;">
-        📌 <strong>Estado:</strong> {{ ucfirst($status) }}
+        📌 <strong>Estado:</strong> Pendiente de revisión.
     </p>
 
     <p style="margin-top:20px;">
@@ -73,7 +73,7 @@
     </p>
 
     <p style="font-size:15px;">
-        📌 <strong>Status:</strong> {{ ucfirst($status) }}
+        📌 <strong>Status:</strong> Pending review.
     </p>
 
     <p style="margin-top:20px;">

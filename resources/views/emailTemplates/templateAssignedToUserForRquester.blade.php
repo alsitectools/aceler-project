@@ -37,8 +37,16 @@
     </p>
 
     <p style="font-size:15px;">
-        📌 <strong>Estado:</strong> {{ ucfirst($status) }}
+        📌 <strong>Estado:</strong>
+        @if ($status == 1)
+            Por hacer.
+        @elseif ($status == 2)
+            En curso.
+        @else
+            {{ ucfirst($status) }}
+        @endif
     </p>
+
 
     <p style="font-size:15px;">
         📅 <strong>Entrega estimada:</strong> {{ ucfirst($fecha) }}
@@ -85,7 +93,14 @@
     </p>
 
     <p style="font-size:15px;">
-        📌 <strong>Status:</strong> {{ ucfirst($status) }}
+        📌 <strong>Status:</strong>
+        @if ($status == 1)
+            To do.
+        @elseif ($status == 2)
+            In progress.
+        @else
+            {{ ucfirst($status) }}
+        @endif
     </p>
 
     <p style="font-size:15px;">
