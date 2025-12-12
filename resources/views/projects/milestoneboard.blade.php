@@ -949,7 +949,7 @@
                             let msg = milestoneTitle + ' en el proyecto ' + projectName;
                             let ntipe = 5;
                             if (!msg) return;
-
+                                //AQUI FALTA MILESTONEID
                             fetch("{{ route('notifications.add') }}", {
                                     method: "POST",
                                     headers: {
@@ -960,7 +960,8 @@
                                         workspace_id: {{ $currentWorkspace->id }},
                                         msg: msg,
                                         ntipe: ntipe,
-                                        milestoneAssignedTo: milestoneRequBy
+                                        milestoneAssignedTo: milestoneRequBy,
+                                        milestone_id: milestonetId,
                                     })
                                 })
                                 .then(response => response.json())
@@ -1332,31 +1333,31 @@
                     }
 
                     function applyMilestoneFilters() {
-                        const allMilestones = document.querySelectorAll('.card[data-project-id]');
+    const allMilestones = document.querySelectorAll('.card[data-project-id]');
 
-                        allMilestones.forEach(card => {
-                            const assignedUser = card.getAttribute('data-assign-to'); // puede ser null, "", o id
-                            const isUnassigned = card.classList.contains('notAsignedMilestone');
+    allMilestones.forEach(card => {
+        const assignedUser = card.getAttribute('data-assign-to'); 
+        const isUnassigned = card.classList.contains('notAsignedMilestone');
 
-                            let visible = true;
+        let visible = true;
 
-                            // 1) Filtro de "solo mis milestones" (si showAll = false)
-                            if (!showAll) {
-                                // Si está asignada a otro usuario, la ocultamos
-                                if (assignedUser && assignedUser != currentUserId) {
-                                    visible = false;
-                                }
-                            }
+        // 1) Filtro "solo mis milestones" (si showAll = false)
+        if (!showAll) {
+            // Ocultar si está asignada a otro usuario
+            if (assignedUser && assignedUser != currentUserId) {
+                visible = false;
+            }
+        }
 
-                            // 2) Filtro de "ocultar no asignadas"
-                            if (hideUnassigned && isUnassigned) {
-                                visible = false;
-                            }
+        // 2) Filtro "ocultar no asignadas"
+        if (hideUnassigned && isUnassigned) {
+            visible = false;
+        }
 
-                            // Aplicar visibilidad
-                            card.style.display = visible ? '' : 'none';
-                        });
-                    }
+        card.style.display = visible ? '' : 'none';
+    });
+}
+
 
                     // Click en "ocultar hojas no asignadas"
                     if (hideUnassignedIcon) {
