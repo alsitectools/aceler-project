@@ -14,7 +14,10 @@
     id="{{ $milestone['id'] }}" data-status="{{ $status->id }}" data-project-id="{{ $milestone['project_id'] }}"
     data-assign-to="{{ $milestone['asiggned_user_data']->id ?? '' }}"
  data-is-waiting="{{ $milestone['is_waiting'] }}"
-    style="{{ $inlineStyle ?? '' }}">
+    style="{{ $inlineStyle ?? '' }}"
+     data-created-by="{{ $milestone['created_by'] ?? '' }}"
+     data-requested-by="{{ $milestone['assign_to'] ?? '' }}"
+     data-has-my-tasks="{{ $milestone['has_my_tasks'] ?? 0 }}">
 
 
     {{-- ========================= --}}

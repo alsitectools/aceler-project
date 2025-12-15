@@ -1336,20 +1336,30 @@
     const allMilestones = document.querySelectorAll('.card[data-project-id]');
 
     allMilestones.forEach(card => {
-        const assignedUser = card.getAttribute('data-assign-to'); 
-        const isUnassigned = card.classList.contains('notAsignedMilestone');
+        const assignedUser   = card.dataset.assignTo;
+        const createdBy      = card.dataset.createdBy;
+        const requestedBy    = card.dataset.requestedBy;
+        const hasMyTasks     = card.dataset.hasMyTasks === '1';
+        const isUnassigned   = card.classList.contains('notAsignedMilestone');
 
         let visible = true;
 
-        // 1) Filtro "solo mis milestones" (si showAll = false)
+        // 🟢 FILTRO: solo mis milestones
         if (!showAll) {
-            // Ocultar si está asignada a otro usuario
-            if (assignedUser && assignedUser != currentUserId) {
+
+            const isMine =
+                assignedUser == currentUserId ||
+                createdBy == currentUserId ||
+                requestedBy == currentUserId ||
+                hasMyTasks ||
+                (isUnassigned && createdBy == currentUserId);
+
+            if (!isMine) {
                 visible = false;
             }
         }
 
-        // 2) Filtro "ocultar no asignadas"
+        // 🔴 FILTRO: ocultar no asignadas
         if (hideUnassigned && isUnassigned) {
             visible = false;
         }
@@ -1357,6 +1367,7 @@
         card.style.display = visible ? '' : 'none';
     });
 }
+
 
 
                     // Click en "ocultar hojas no asignadas"

@@ -1049,76 +1049,106 @@ class ProjectController extends Controller
     }
 
     public function milestoneBoard($slug, $id)
-    {
-        $currentWorkspace = Utility::getWorkspaceBySlug($slug);
-        $stages = Stage::orderBy('order')->get();
+{
+    $currentWorkspace = Utility::getWorkspaceBySlug($slug);
+    $stages = Stage::orderBy('order')->get();
 
-        $statusClass = $stages->map(function ($stage) {
-            return 'milestone-list-' . str_replace(' ', '_', $stage->id);
-        })->toArray();
+    $statusClass = $stages->map(function ($stage) {
+        return 'milestone-list-' . str_replace(' ', '_', $stage->id);
+    })->toArray();
 
-        if ($id == -1) {
+    // ===============================
+    // 📌 VISTA GLOBAL (-1)
+    // ===============================
+    if ($id == -1) {
 
-            // Mostrar todos los milestones del usuario logueado (ya sea creados o asignados)
-            $objUser = Auth::user();
-            //Si el usuario tiene alguna tarea
-            $milestoneIds = Task::where('assign_to', $objUser->id)
-                ->pluck('milestone_id')
-                ->unique()
-                ->toArray();
-            // \Log::debug(['MiletonesIds' => $milestoneIds]);
+        $objUser = Auth::user();
 
-            $allmilestones = Milestone::whereHas('project', function ($q) use ($objUser) {
+        // 🔹 Milestones visibles para el usuario
+        $allmilestones = Milestone::whereHas('project', function ($q) use ($objUser) {
                 $q->where('workspace', $objUser->currant_workspace);
             })
-                ->where(function ($q) use ($objUser) {
-                    $q->where('assign_to', $objUser->id)
-                        ->orWhere('milestone_assigned_to_user', $objUser->id)
-                        ->orWhere('created_by', $objUser->id)
-                        ->orWhere('milestone_assigned_to_user', '')
-                        // aquí incluimos dinámicamente los que tienen tareas tuyas:
-                        ->orWhereHas('tasks', function ($q2) use ($objUser) {
-                            $q2->where('assign_to', $objUser->id);
-                        });
-                })
-                ->orderBy('created_at', 'desc') //  Ordenar del más nuevo al más antiguo
-                ->get();
+            ->where(function ($q) use ($objUser) {
+                $q->where('assign_to', $objUser->id)
+                  ->orWhere('milestone_assigned_to_user', $objUser->id)
+                  ->orWhere('created_by', $objUser->id)
+                  ->orWhere('milestone_assigned_to_user', '')
+                  ->orWhereHas('tasks', function ($q2) use ($objUser) {
+                      $q2->where('assign_to', $objUser->id);
+                  });
+            })
+            ->with([
+                // 🔑 Cargamos tareas para evitar N+1
+                'tasks:id,milestone_id,assign_to',
+                'project:id,workspace'
+            ])
+            ->orderBy('created_at', 'desc')
+            ->get();
 
+        // 🔹 TODOS los milestones del workspace (para "ver todos")
+        $workspaceProjectsIds = Project::where('workspace', $currentWorkspace->id)
+            ->pluck('id')
+            ->toArray();
 
+        $allUsersMilestones = Milestone::whereIn('project_id', $workspaceProjectsIds)
+            ->with([
+                'tasks:id,milestone_id,assign_to',
+                'project:id,workspace'
+            ])
+            ->get();
 
+        // 🔹 Agrupación por estado
+        $milestones = $this->groupMilestonesByStatus($allmilestones, $objUser, $stages);
+        $milestonesUsers = $this->groupMilestonesByStatus($allUsersMilestones, null, $stages);
 
-            //\Log::debug(['allmilestones' => $allmilestones]);
+        $project_id = -1;
 
-            $workspaceProjectsIds = Project::where('workspace', $currentWorkspace->id)
-                ->pluck('id')
-                ->toArray();
-
-            $allUsersMilestones = Milestone::whereIn('project_id', $workspaceProjectsIds)->get();
-
-            // $allmilestones = $allmilestones->merge($allmilestones2);
-            $milestones = $this->groupMilestonesByStatus($allmilestones, $objUser, $stages);
-            $milestonesUsers = $this->groupMilestonesByStatus($allUsersMilestones, null, $stages);
-            // \Log::info('Milestones que se van a pasar a la vista');
-            // \Log::info($milestones);
-            $project_id = -1;
-        } else {
-            // Mostrar los milestones de un proyecto específico
-            $project = Project::find($id);
-
-            if ($project) {
-                $allmilestones = Milestone::where('project_id', $project->id)->get();
-                // En este caso no se filtra por usuario, se muestran todos los milestones del proyecto
-                $milestones = $this->groupMilestonesByStatus($allmilestones, null, $stages);
-                $project_id = $project->id;
-                $project_name = $project->name;
-            }
-        }
-        if ($project_id == -1) {
-            return view('projects.milestoneboard', compact('currentWorkspace', 'milestones', 'stages', 'statusClass', 'project_id', 'milestonesUsers'));
-        } else {
-            return view('projects.milestoneboard', compact('currentWorkspace', 'milestones', 'stages', 'statusClass', 'project_id', 'project_name'));
-        }
+        return view(
+            'projects.milestoneboard',
+            compact(
+                'currentWorkspace',
+                'milestones',
+                'milestonesUsers',
+                'stages',
+                'statusClass',
+                'project_id'
+            )
+        );
     }
+
+    // ===============================
+    // 📌 VISTA POR PROYECTO
+    // ===============================
+    $project = Project::find($id);
+
+    if (!$project) {
+        abort(404);
+    }
+
+    $allmilestones = Milestone::where('project_id', $project->id)
+        ->with([
+            'tasks:id,milestone_id,assign_to'
+        ])
+        ->get();
+
+    $milestones = $this->groupMilestonesByStatus($allmilestones, null, $stages);
+
+    $project_id = $project->id;
+    $project_name = $project->name;
+
+    return view(
+        'projects.milestoneboard',
+        compact(
+            'currentWorkspace',
+            'milestones',
+            'stages',
+            'statusClass',
+            'project_id',
+            'project_name'
+        )
+    );
+}
+
 
 
 
@@ -1374,8 +1404,8 @@ class ProjectController extends Controller
         \Log::debug("Cálculo de puntos: estimated_time={$estimated_time}, imputed_time={$imputed_time}, extra_points={$extra_points}");
         $real_time = $estimated_time;
 
-        if ($imputed_time < floor($estimated_time / 2)) {
-            $real_time = $estimated_time / 2;
+        if($imputed_time < floor($estimated_time/2)){
+            $real_time = $estimated_time /2;
         }
         \Log::debug("real_time ajustado={$real_time}");
         $pointsHour = 0.35 * $estimated_time / $real_time + 0.5;
@@ -1424,7 +1454,7 @@ class ProjectController extends Controller
                     return $carry * $item;
                 }, 1);
 
-            if ($systemPoints > 2) $systemPoints = 2;
+            if($systemPoints > 2) $systemPoints = 2;
 
             $formatPoints = Puntuacion::where('nombre', $documentFormat)->value('valor') ?? 0;
             $detailPoints = Puntuacion::where('nombre', $detailLevel)->value('valor') ?? 0;
@@ -1448,14 +1478,14 @@ class ProjectController extends Controller
                     ->selectRaw('SUM(TIME_TO_SEC(time)) as total_seconds')
                     ->value('total_seconds');
 
-                $real_imputed_time = ($real_imputed_time ?? 0) / 3600; // horas reales
+                $real_imputed_time = ($real_imputed_time ?? 0) / 3600;// horas reales
 
             }
 
             //Calcular puntos extras por tareas
             $extraTaskPoints = TaskType::where('project_type', 1)
-                ->whereIn('id', $milestone->tasks()->pluck('type_id'))
-                ->sum('puntuacion');
+            ->whereIn('id', $milestone->tasks()->pluck('type_id'))
+            ->sum('puntuacion');
 
             // ---------------------------------------
             // Calcular puntos
@@ -1476,6 +1506,7 @@ class ProjectController extends Controller
                         'puntos_hora'      => $allPoints['pointsHour'],
                     ]
                 );
+
             }
 
             ActivityLog::create([
@@ -1491,6 +1522,7 @@ class ProjectController extends Controller
             return redirect()
                 ->back()
                 ->with('success', 'Revisión guardada correctamente.');
+
         } catch (\Throwable $e) {
             \Log::error("Error en milestoneReviewSubmit", ['error' => $e->getMessage()]);
             return redirect()
@@ -1973,22 +2005,18 @@ class ProjectController extends Controller
 
     public function commentStoreFile(Request $request, $slug, $projectID, $taskID, $clientID = '')
     {
-        try {
-            $currentWorkspace = Utility::getWorkspaceBySlug($slug);
-            $request->validate(['file' => 'required|mimes:zip,rar,jpeg,jpg,png,gif,svg,pdf,txt,doc,docx,application/octet-stream,audio/mpeg,mpga,mp3,wav|max:51200']);
-            $dir = 'tasks/';
-            $fileName = $taskID . time() . "_" . $request->file->getClientOriginalName();
-            // $request->file->storeAs('tasks', $fileName);
+        $currentWorkspace = Utility::getWorkspaceBySlug($slug);
+        $request->validate(['file' => 'required']);
+        $dir = 'tasks/';
+        $fileName = $taskID . time() . "_" . $request->file->getClientOriginalName();
+        // $request->file->storeAs('tasks', $fileName);
 
-            $path = Utility::upload_file($request, 'file', $fileName, $dir, []);
-            if ($path['flag'] == 1) {
-                // Utility::upload_file($request,'file',$fileName,$dir,[]);
-                $file = $path['url'];
-            } else {
-                return response()->json(['error' => __($path['msg'])], 422);
-            }
-        } catch (\Illuminate\Validation\ValidationException $e) {
-            return response()->json(['error' => 'File too big'], 422);
+        $path = Utility::upload_file($request, 'file', $fileName, $dir, []);
+        if ($path['flag'] == 1) {
+            // Utility::upload_file($request,'file',$fileName,$dir,[]);
+            $file = $path['url'];
+        } else {
+            return redirect()->back()->with('error', __($path['msg']));
         }
 
         $post['task_id'] = $taskID;
@@ -2528,23 +2556,14 @@ class ProjectController extends Controller
 
     public function milestoneUpdate($slug, $milestoneID, Request $request)
     {
-        try {
-            $currentWorkspace = Utility::getWorkspaceBySlug($slug);
-            $user1 = $currentWorkspace->id;
+        $currentWorkspace = Utility::getWorkspaceBySlug($slug);
+        $user1 = $currentWorkspace->id;
 
-            $setting = Utility::getAdminPaymentSettings();
+        $setting = Utility::getAdminPaymentSettings();
 
-            $request->validate([
-                'end_date' => 'required|date',
-                'new_files.*' => 'nullable|mimes:png,gif,pdf,txt,doc,docx,zip,rar,dwg,dxf,jpeg,jpg|max:51200',
-            ]);
-        } catch (\Illuminate\Validation\ValidationException $e) {
-            if (request()->expectsJson() || request()->wantsJson()) {
-                return response()->json(['error' => 'File too big'], 422);
-            }
-            throw $e;
-        }
-
+        $request->validate([
+            'end_date' => 'required|date',
+        ]);
 
         $milestone = Milestone::find($milestoneID);
         if (!$milestone) {
@@ -2758,14 +2777,10 @@ class ProjectController extends Controller
 
     public function fileUpload($slug, $id, Request $request)
     {
-        try {
-            $project = Project::findOrFail($id);
-            $request->validate([
-                'file' => 'required|max:51200', // Máximo 50MB
-            ]);
-        } catch (\Illuminate\Validation\ValidationException $e) {
-            return response()->json(['error' => 'File too big'], 422);
-        }
+        $project = Project::findOrFail($id);
+        $request->validate([
+            'file' => 'required'
+        ]);
 
         $file = $request->file('file');
         $file_name = $file->getClientOriginalName();
@@ -3396,14 +3411,14 @@ class ProjectController extends Controller
 
     public function AddSingleNotification(Request $request)
     {
-        \Log::info('ANTES DEL VALIDATE', $request->all());
+         \Log::info('ANTES DEL VALIDATE', $request->all());
 
         $request->validate([
             'workspace_id' => 'required|integer',
             'msg'          => 'required|string',
         ]);
 
-        \Log::info('DESPUÉS DEL VALIDATE');
+        \Log::info('DESPUÉS DEL VALIDATE'); 
         $milestoneId = $request->milestone_id ?? null;
         if ($request->milestoneAssignedTo != -2) {
             // Crear notificación para el usuario indicado en milestoneAssignedTo
@@ -3417,9 +3432,9 @@ class ProjectController extends Controller
             $usersNotified = 1;
             if ($request->ntipe == '4') {
                 $this->getEmails($notification->user_id, $request->ntipe, $request->msg, $milestoneId, $notification->workspace_id);
-                $this->sendAditionalMailToReqBy($request->milestoneRequestedBy, $request->msg, $notification->user_id, $milestoneId, $notification->workspace_id);
+                $this->sendAditionalMailToReqBy($request->milestoneRequestedBy, $request->msg, $notification->user_id,$milestoneId, $notification->workspace_id);
             } else {
-                $this->getEmails($notification->user_id, $request->ntipe, $request->msg, $milestoneId, $notification->workspace_id);
+                $this->getEmails($notification->user_id, $request->ntipe, $request->msg,$milestoneId,$notification->workspace_id);
             }
         } else {
             // Se obtiene la lista de user_id asociados al workspace desde la tabla user_workspaces
@@ -3447,7 +3462,7 @@ class ProjectController extends Controller
         ]);
     }
 
-    public function getEmails($userID, $ntipe, $message, $milestoneId, $workspaceId)
+    public function getEmails($userID, $ntipe, $message, $milestoneId,$workspaceId)
     {
         \Log::info('Info que llega a getEmails:');
         \Log::info($userID);
@@ -3495,7 +3510,7 @@ class ProjectController extends Controller
     }
 
 
-    public function sendNotificationEmail($toEmail, $notificationType, $message, $priority, $status, $slug, $workspace)
+    public function sendNotificationEmail($toEmail, $notificationType, $message, $priority, $status , $slug, $workspace)
 
     {
         \Log::info('Enviando correo a: ' . $toEmail . ' con tipo de notificación: ' . $notificationType . ' y mensaje: ' . $message);
@@ -3534,7 +3549,7 @@ class ProjectController extends Controller
                 // Si no se encuentra el patrón, asignar null
                 $encargo = $proyecto = null;
             }
-
+                        
             \Log::info('Datos extraídos para el correo del pending review:' . $notificationType . ' - Encargo: ' . $encargo . ', Proyecto: ' . $proyecto .  ', Prioridad: ' . $priority . ', Estado: ' . $status . ', Slug: ' . $slug . ', Workspace: ' . $workspace);
 
             $htmlContent = View::make('emailTemplates.templatePendingReview', [
@@ -3542,22 +3557,22 @@ class ProjectController extends Controller
                 'message' => $message,
                 'encargo' => $encargo,
                 'proyecto' => $proyecto,
-                'priority' => $priority,
+                'priority' => $priority, 
                 'status' => $status,
                 'slug' => $slug,
                 'workspace' => $workspace,
             ])->render();
         } else if ($notificationType == '4') {
             // Extraer los datos desde el mensaje
-            preg_match(
-                '/^(.*?) en ([^<]+)[\s\S]*?La fecha de entrega prevista es\s+(\d{2}-\d{2}-\d{4})/s',
-                $message,
-                $matches
-            );
+preg_match(
+    '/^(.*?) en ([^<]+)[\s\S]*?La fecha de entrega prevista es\s+(\d{2}-\d{2}-\d{4})/s',
+    $message,
+    $matches
+);
             if (count($matches) === 4) {
-                $encargo  = trim($matches[1]); // ✅ encargo
-                $proyecto = trim($matches[2]);
-                $fecha    = trim($matches[3]);
+                    $encargo  = trim($matches[1]); // ✅ encargo
+                    $proyecto = trim($matches[2]);
+                    $fecha    = trim($matches[3]);
             } else {
                 // Manejo de error si no se encuentra el patrón
                 $encargo = $proyecto = $fecha = null;
@@ -3840,7 +3855,7 @@ class ProjectController extends Controller
     public function bugStoreFile(Request $request, $slug, $project_id, $bug_id, $clientID = '')
     {
         $currentWorkspace = Utility::getWorkspaceBySlug($slug);
-        $request->validate(['file' => 'required|mimes:zip,rar,jpeg,jpg,png,gif,svg,pdf,txt,doc,docx,application/octet-stream,audio/mpeg,mpga,mp3,wav|max:51200']);
+        $request->validate(['file' => 'required|mimes:zip,rar,jpeg,jpg,png,gif,svg,pdf,txt,doc,docx,application/octet-stream,audio/mpeg,mpga,mp3,wav|max:204800']);
         $fileName = $bug_id . time() . "_" . $request->file->getClientOriginalName();
         $request->file->storeAs('tasks', $fileName);
         $post['bug_id']    = $bug_id;
