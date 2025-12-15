@@ -164,6 +164,7 @@
 
 <script>
     var filesArray = [];
+    var rejectedFilesMilestone = [];
 
     document.getElementById('dropzonewidgetMilestone').addEventListener('click', function() {
         document.getElementById('file-uploadMilestone').click();
@@ -174,11 +175,18 @@
         const existingFileNames = Array.from(document.querySelectorAll('.file-name'))
             .map(fileNameElement => fileNameElement.textContent.trim().split(" (")[0]);
         const MAX_FILE_SIZE = 52428800; // 50MB en bytes
+        const rejectedInThisBatch = [];
 
         newFiles.forEach(file => {
             // Validar tamaño del archivo
             if (file.size > MAX_FILE_SIZE) {
-                alert('File too big: ' + file.name + ' exceeds 50MB limit');
+                rejectedInThisBatch.push(file.name);
+                // Agregar a array de archivos rechazados
+                if (!rejectedFilesMilestone) rejectedFilesMilestone = [];
+                rejectedFilesMilestone.push({
+                    name: file.name,
+                    reason: 'File too big'
+                });
                 return;
             }
             let fileName = file.name;
@@ -205,6 +213,13 @@
             }
         });
 
+        // Mostrar alerta si hay archivos rechazados
+        if (rejectedInThisBatch.length > 0) {
+            const rejectedList = rejectedInThisBatch.join('\n- ');
+            alert('Los siguientes archivos fueron rechazados por exceder el límite de 50MB:\n- ' +
+                rejectedList);
+        }
+
         updateFileList();
     });
 
@@ -215,6 +230,7 @@
         fileListElement.innerHTML = '';
         hiddenInputsContainer.innerHTML = '';
 
+        // Mostrar archivos válidos
         filesArray.forEach(file => {
             const fileKey = `${file.name}-${file.size}-${file.lastModified}`;
 
@@ -260,6 +276,41 @@
 
                 hiddenInputsContainer.appendChild(input);
             }
+        });
+
+        // Mostrar archivos rechazados (tachados)
+        rejectedFilesMilestone.forEach((rejectedFile, index) => {
+            const fileContainer = document.createElement('div');
+            fileContainer.classList.add('custom-file');
+            fileContainer.style.opacity = '0.5';
+            fileContainer.style.textDecoration = 'line-through';
+            fileContainer.title = 'File too big: Exceeds 50MB limit';
+            fileContainer.style.cursor = 'not-allowed';
+
+            const icon = document.createElement('img');
+            icon.src = getIconPath(rejectedFile.name);
+            icon.alt = `${getExtension(rejectedFile.name)} icon`;
+            icon.style.width = '20px';
+            icon.style.height = '25px';
+            icon.style.opacity = '0.5';
+            fileContainer.appendChild(icon);
+
+            const fileNameContainer = document.createElement('div');
+            fileNameContainer.classList.add('file-name');
+            fileNameContainer.textContent = rejectedFile.name;
+            fileContainer.appendChild(fileNameContainer);
+
+            const removeButton = document.createElement('a');
+            removeButton.classList.add('buttonFiles');
+            removeButton.innerHTML =
+                '<i class="fa-solid fa-trash" style="color:white; background-color:#aa182c; padding:7px; border-radius:6px;></i>';
+            removeButton.addEventListener('click', function() {
+                rejectedFilesMilestone.splice(index, 1);
+                updateFileList();
+            });
+            fileContainer.appendChild(removeButton);
+
+            fileListElement.appendChild(fileContainer);
         });
     }
 
@@ -428,16 +479,27 @@
 
     function handleFilesMilestone(files) {
         const MAX_FILE_SIZE = 52428800; // 50MB en bytes
+        const rejectedInThisBatch = [];
 
         files.forEach(file => {
             // Validar tamaño del archivo
             if (file.size > MAX_FILE_SIZE) {
-                alert('File too big: ' + file.name + ' exceeds 50MB limit');
+                rejectedInThisBatch.push(file.name);
+                rejectedFilesMilestone.push({
+                    name: file.name,
+                    reason: 'File too big'
+                });
                 return;
             }
 
             addFileToMilestoneArray(file);
         });
+
+        // Mostrar alerta si hay archivos rechazados
+        if (rejectedInThisBatch.length > 0) {
+            const rejectedList = rejectedInThisBatch.join('\n- ');
+            alert('Los siguientes archivos fueron rechazados por exceder el límite de 50MB:\n- ' + rejectedList);
+        }
     }
 
     function addFileToMilestoneArray(file) {
@@ -450,6 +512,8 @@
     function updateFileListMilestone() {
         fileListMilestone.innerHTML = '';
         hiddenInputsMilestone.innerHTML = '';
+
+        // Mostrar archivos válidos
         filesArrayMilestone.forEach((file, index) => {
             const fileContainer = document.createElement('div');
             fileContainer.classList.add('custom-file');
@@ -487,6 +551,40 @@
             input.files = dataTransfer.files;
             hiddenInputsMilestone.appendChild(input);
         });
+
+        // Mostrar archivos rechazados (tachados)
+        rejectedFilesMilestone.forEach((rejectedFile, index) => {
+            const fileContainer = document.createElement('div');
+            fileContainer.classList.add('custom-file');
+            fileContainer.style.opacity = '0.5';
+            fileContainer.style.textDecoration = 'line-through';
+            fileContainer.title = 'File too big: Exceeds 50MB limit';
+            fileContainer.style.cursor = 'not-allowed';
+
+            const icon = document.createElement('img');
+            icon.src = getIconPath(rejectedFile.name);
+            icon.alt = `${getExtension(rejectedFile.name)} icon`;
+            icon.style.width = '20px';
+            icon.style.height = '25px';
+            icon.style.opacity = '0.5';
+            fileContainer.appendChild(icon);
+
+            const fileNameContainer = document.createElement('div');
+            fileNameContainer.classList.add('file-name');
+            fileNameContainer.textContent = rejectedFile.name;
+            fileContainer.appendChild(fileNameContainer);
+
+            const removeButton = document.createElement('a');
+            removeButton.classList.add('buttonFiles');
+            removeButton.innerHTML =
+                '<i class="fa-solid fa-trash" style="color:white; background-color:#aa182c; padding:7px; border-radius:6px;"></i>';
+            removeButton.addEventListener('click', function() {
+                rejectedFilesMilestone.splice(index, 1);
+                updateFileListMilestone();
+            });
+            fileContainer.appendChild(removeButton);
+            fileListMilestone.appendChild(fileContainer);
+        });
     }
 
     function getIconPath(filename) {
@@ -501,5 +599,112 @@
 
     function getExtension(filename) {
         return filename.split('.').pop().toLowerCase();
+    }
+
+    // Manejar submit del formulario para capturar respuesta JSON
+    document.addEventListener('DOMContentLoaded', function() {
+        const form = document.querySelector('form[method="post"]');
+        if (form) {
+            // Usar propiedad del formulario para evitar conflictos globales
+            form._isSubmitting = false;
+
+            form.addEventListener('submit', function(e) {
+                if (form._isSubmitting) {
+                    e.preventDefault();
+                    return false;
+                }
+
+                // SIEMPRE prevenir submit tradicional y usar AJAX
+                e.preventDefault();
+                form._isSubmitting = true;
+
+                const hasFiles = filesArrayMilestone && filesArrayMilestone.length > 0;
+                const formData = new FormData(this);
+
+                fetch(this.action, {
+                        method: 'POST',
+                        body: formData,
+                        headers: {
+                            'Accept': 'application/json'
+                        }
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        // Limpiar arrays de archivos
+                        filesArrayMilestone = [];
+                        rejectedFilesMilestone = [];
+
+                        if (data.success) {
+                            // Mostrar toast con resumen de carga
+                            let message = '';
+                            if (data.uploaded_count > 0 && data.failed_count > 0) {
+                                message = data.uploaded_count + ' archivos subidos, ' + data
+                                    .failed_count + ' rechazados';
+                            } else if (data.uploaded_count > 0) {
+                                message = data.uploaded_count + ' archivos subidos exitosamente';
+                            } else if (data.failed_count > 0) {
+                                message = 'Todos los archivos fueron rechazados';
+                            } else {
+                                message = 'Cambios guardados correctamente';
+                            }
+
+                            // Mostrar toast
+                            showToast(message, 'success');
+
+                            // Cerrar modal después de 1.5 segundos
+                            setTimeout(() => {
+                                const modal = bootstrap.Modal.getInstance(document
+                                    .querySelector('.modal'));
+                                if (modal) {
+                                    modal.hide();
+                                }
+                                // Redirigir para refrescar la página
+                                window.location.reload();
+                            }, 1500);
+                        } else {
+                            showToast('Error al guardar cambios', 'danger');
+                            form._isSubmitting = false;
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        showToast('Error al enviar formulario', 'danger');
+                        form._isSubmitting = false;
+                    });
+            });
+        }
+    });
+
+    // Función para mostrar toast (usa la misma del sitio)
+    function showToast(message, type = 'info') {
+        const toastHTML = `
+            <div class="toast align-items-center text-white bg-${type === 'success' ? 'success' : type === 'danger' ? 'danger' : 'info'}" role="alert" aria-live="assertive" aria-atomic="true">
+                <div class="d-flex">
+                    <div class="toast-body">
+                        ${message}
+                    </div>
+                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                </div>
+            </div>
+        `;
+
+        const toastContainer = document.getElementById('toastContainer') || createToastContainer();
+        const toastElement = document.createElement('div');
+        toastElement.innerHTML = toastHTML;
+        toastContainer.appendChild(toastElement.firstElementChild);
+
+        const toast = new bootstrap.Toast(toastContainer.querySelector('.toast:last-child'));
+        toast.show();
+    }
+
+    function createToastContainer() {
+        const container = document.createElement('div');
+        container.id = 'toastContainer';
+        container.style.position = 'fixed';
+        container.style.top = '20px';
+        container.style.right = '20px';
+        container.style.zIndex = '9999';
+        document.body.appendChild(container);
+        return container;
     }
 </script>

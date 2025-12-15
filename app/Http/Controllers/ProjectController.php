@@ -2307,6 +2307,15 @@ class ProjectController extends Controller
                 'request' => $request->all(),
             ]);
             $messages = $validator->getMessageBag();
+
+            // Si es AJAX, devolver JSON
+            if ($request->expectsJson() || $request->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'error' => $messages->first()
+                ], 422);
+            }
+
             return redirect()->back()->with('error', $messages->first());
         }
 
@@ -2370,7 +2379,17 @@ class ProjectController extends Controller
                         'user_type' => Auth::user()->type,
                     ]);
                 } else {
-                    return redirect()->back()->with('error', __('Uno o más archivos no son válidos.'));
+                    $errorMsg = 'Uno o más archivos no son válidos.';
+
+                    // Si es AJAX, devolver JSON
+                    if ($request->expectsJson() || $request->ajax()) {
+                        return response()->json([
+                            'success' => false,
+                            'error' => __($errorMsg)
+                        ], 422);
+                    }
+
+                    return redirect()->back()->with('error', __($errorMsg));
                 }
             }
         }
@@ -2398,7 +2417,8 @@ class ProjectController extends Controller
             Utility::send_slack_msg('New Milestone', $currentWorkspace->id, $uArr);
         }
 
-        if ($request->ajax() || $request->wantsJson()) {
+        // Siempre devolver JSON si es una solicitud AJAX o si viene del modal
+        if ($request->ajax() || $request->wantsJson() || $request->expectsJson()) {
             return response()->json([
                 'success' => true,
                 'milestone_id' => $milestone->id,
@@ -2595,40 +2615,59 @@ class ProjectController extends Controller
         }
 
         // Guardar nuevos archivos
+        $uploadedFiles = [];
+        $failedFiles = [];
+
         if ($request->hasFile('new_files')) {
             $projectFolder = str_replace(' ', '_', $project->name);
             $milestoneFolder = str_replace(' ', '_', $milestone->title);
             $dir = 'project_files/' . $projectFolder . '/' . $milestoneFolder;
+            $MAX_FILE_SIZE = 52428800; // 50MB en bytes
 
             if (!file_exists(storage_path($dir))) {
                 mkdir(storage_path($dir), 0755, true);
             }
 
             foreach ($request->file('new_files') as $file) {
-                if ($file->isValid()) {
-                    $originalFileName = $file->getClientOriginalName();
-                    // ✅ Reemplazar espacios con guiones bajos
-                    $originalFileName = str_replace(' ', '_', $originalFileName);
-                    $fileName = $milestone->id . '_' . time() . '_' . $originalFileName;
-                    $file->move(storage_path($dir), $fileName);
-
-                    $filePath = storage_path($dir . '/' . $fileName);
-                    $fileSize = file_exists($filePath)
-                        ? round(filesize($filePath) / 1024, 2) . ' KB'
-                        : '0 KB';
-
-                    MilestoneFile::create([
-                        'milestone_id' => $milestone->id,
-                        'file' => $fileName,
-                        'name' => $originalFileName,
-                        'extension' => $file->getClientOriginalExtension(),
-                        'file_size' => $fileSize,
-                        'created_by' => Auth::user()->id,
-                        'user_type' => Auth::user()->type,
-                    ]);
-                } else {
-                    return redirect()->back()->with('error', __('Uno o más archivos no son válidos.'));
+                if (!$file->isValid()) {
+                    $failedFiles[] = [
+                        'name' => $file->getClientOriginalName(),
+                        'reason' => 'Invalid file'
+                    ];
+                    continue;
                 }
+
+                // Validar tamaño por archivo (50MB)
+                if ($file->getSize() > $MAX_FILE_SIZE) {
+                    $failedFiles[] = [
+                        'name' => $file->getClientOriginalName(),
+                        'reason' => 'File too big'
+                    ];
+                    continue;
+                }
+
+                $originalFileName = $file->getClientOriginalName();
+                // ✅ Reemplazar espacios con guiones bajos
+                $originalFileName = str_replace(' ', '_', $originalFileName);
+                $fileName = $milestone->id . '_' . time() . '_' . $originalFileName;
+                $file->move(storage_path($dir), $fileName);
+
+                $filePath = storage_path($dir . '/' . $fileName);
+                $fileSize = file_exists($filePath)
+                    ? round(filesize($filePath) / 1024, 2) . ' KB'
+                    : '0 KB';
+
+                MilestoneFile::create([
+                    'milestone_id' => $milestone->id,
+                    'file' => $fileName,
+                    'name' => $originalFileName,
+                    'extension' => $file->getClientOriginalExtension(),
+                    'file_size' => $fileSize,
+                    'created_by' => Auth::user()->id,
+                    'user_type' => Auth::user()->type,
+                ]);
+
+                $uploadedFiles[] = $originalFileName;
             }
         }
 
@@ -2654,6 +2693,25 @@ class ProjectController extends Controller
 
         if (isset($settings['milestonest_notificaation']) && $settings['milestonest_notificaation'] == 1) {
             Utility::send_slack_msg('Milestone Status Updated', $user1, $uArr);
+        }
+
+        // Siempre devolver JSON si es una solicitud AJAX
+        if ($request->expectsJson() || $request->ajax()) {
+            $uploadedCount = count($uploadedFiles);
+            $failedCount = count($failedFiles);
+
+            return response()->json([
+                'success' => true,
+                'uploaded_count' => $uploadedCount,
+                'failed_count' => $failedCount,
+                'uploaded_files' => $uploadedFiles,
+                'failed_files' => $failedFiles,
+                'message' => $uploadedCount > 0 && $failedCount > 0
+                    ? __($uploadedCount . ' files uploaded, ' . $failedCount . ' rejected')
+                    : ($uploadedCount > 0
+                        ? __('All files uploaded successfully')
+                        : ($failedCount > 0 ? __('All files were rejected') : __('Milestone updated')))
+            ], 200);
         }
 
         return redirect()->back()->with('success', __('Milestone Updated Successfully!'));
