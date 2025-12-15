@@ -180,14 +180,14 @@
                         <input class="form-check-input" type="checkbox" role="switch" id="toggleFormSwitch">
                         <label class="form-check-label"
                             for="toggleFormSwitch">{{ __('Only in case it is necessary to to
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                carry out a project with a visa.') }}</label>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    carry out a project with a visa.') }}</label>
                     </div>
                     <div id="additionalForm" class="collapse mt-3">
                         <div class="card card-body">
                             <div class="mb-3">
                                 <label for="input1"
                                     class="form-label">{{ __('Name of the company that will install the
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        system') }}:</label>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    system') }}:</label>
                                 <input type="text" class="form-control" name="company" id="company"
                                     placeholder="Ingrese valor">
                             </div>
@@ -210,8 +210,8 @@
                             </div>
                             <p class="mb-3">
                                 <b>{{ __('Note: In order to carry out the project it is necessary to send the quotation of
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                the formwork and falsework system, and the complete assembly drawings and geometrical
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                definition of the structure.') }}
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                the formwork and falsework system, and the complete assembly drawings and geometrical
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                definition of the structure.') }}
                                 </b>
                             </p>
                         </div>
@@ -353,7 +353,7 @@
                         <div class="page-search">
                             <p class="text-muted mt-3">
                                 {{ __("It's looking like you may have taken a wrong turn. Don't worry... it happens to the
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            best of us. Here's a little tip that might help you get back on track.") }}
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            best of us. Here's a little tip that might help you get back on track.") }}
                             </p>
                             <div class="mt-3">
                                 <a class="btn-return-home badge-blue" href="{{ route('home') }}">
@@ -369,56 +369,6 @@
 @endif
 <script src="{{ asset('assets/custom/libs/nicescroll/jquery.nicescroll.min.js') }} "></script>
 <!-- Scripts para el dropdown de usuarios -->
-<script>
-    let isSubmitting = false; // 🔒 bandera para prevenir múltiples envíos
-
-    document.getElementById('milestone-form').addEventListener('submit', async function(event) {
-        event.preventDefault();
-
-        if (isSubmitting) return;
-        isSubmitting = true;
-
-        const submitBtn = document.getElementById('submitMilestoneBtn');
-        submitBtn.disabled = true;
-        submitBtn.value = 'Guardando...';
-
-        const formData = new FormData(this);
-
-        try {
-            // 1️⃣ Crear milestone en Laravel y obtener ID
-            const response = await fetch(this.action, {
-                method: 'POST',
-                headers: {
-                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                    'Accept': 'application/json'
-                },
-                body: formData
-            });
-
-            const data = await response.json();
-
-            if (!data.success || !data.milestone_id) {
-                throw new Error('El servidor no devolvió un ID válido');
-            }
-
-            const milestoneId = data.milestone_id;
-            console.log("Milestone creado con ID:", milestoneId);
-
-            // 2️⃣ Enviar notificación con el ID del milestone
-            await displayNotification(milestoneId);
-
-            // 3️⃣ Recargar
-            window.location.reload();
-
-        } catch (error) {
-            console.error('Error en el envío:', error);
-            isSubmitting = false;
-            submitBtn.disabled = false;
-            submitBtn.value = '{{ __('Save Changes') }}';
-        }
-    });
-</script>
-
 <script>
     // Definir valores por defecto del usuario logueado
     var defaultUserId = '{{ Auth::user()->id }}';
@@ -614,13 +564,13 @@
 
 
 <!-- Funciones para manejar la carga y listado de archivos -->
-<!-- Funciones para manejar la carga y listado de archivos -->
 <script>
     const dropzoneMilestone = document.getElementById('dropzonewidgetMilestone');
     let fileInputMilestone = document.getElementById('file-uploadMilestone');
     const fileListMilestone = document.getElementById('file-list');
     const hiddenInputsMilestone = document.getElementById('hidden-file-inputs');
     var filesArrayMilestone = [];
+    var rejectedFilesMilestone = [];
 
     // --- Extensiones y tipos MIME permitidos ---
     const allowedMilestone = [{
@@ -801,11 +751,16 @@
     // --- Función ÚNICA para procesar archivos subidos (pegados, arrastrados o seleccionados) ---
     function handleFilesMilestone(files) {
         const MAX_FILE_SIZE = 52428800; // 50MB en bytes
+        const rejectedInThisBatch = [];
 
         files.forEach(file => {
             // Validar tamaño del archivo
             if (file.size > MAX_FILE_SIZE) {
-                alert('File too big: ' + file.name + ' exceeds 50MB limit');
+                rejectedInThisBatch.push(file.name);
+                rejectedFilesMilestone.push({
+                    name: file.name,
+                    reason: 'File too big'
+                });
                 return;
             }
 
@@ -849,6 +804,14 @@
             // 4) Cualquier otro, se ignora (console.warn para depuración)
             console.warn(`Archivo no permitido: ${processedFile.name} (${mime || 'sin MIME detectado'})`);
         });
+
+        // Mostrar alerta si hay archivos rechazados
+        if (rejectedInThisBatch.length > 0) {
+            const rejectedList = rejectedInThisBatch.join('\n- ');
+            alert('Los siguientes archivos fueron rechazados por exceder el límite de 50MB:\n- ' + rejectedList);
+        }
+
+        updateFileListMilestone();
     }
 
     function addFileToMilestoneArray(file) {
@@ -891,6 +854,7 @@
         fileListMilestone.innerHTML = '';
         hiddenInputsMilestone.innerHTML = '';
 
+        // Mostrar archivos válidos
         filesArrayMilestone.forEach((file, index) => {
             const fileContainer = document.createElement('div');
             fileContainer.classList.add('file');
@@ -927,6 +891,41 @@
             dataTransfer.items.add(file);
             input.files = dataTransfer.files;
             hiddenInputsMilestone.appendChild(input);
+        });
+
+        // Mostrar archivos rechazados (tachados)
+        rejectedFilesMilestone.forEach((rejectedFile, index) => {
+            const fileContainer = document.createElement('div');
+            fileContainer.classList.add('file');
+            fileContainer.style.opacity = '0.5';
+            fileContainer.style.textDecoration = 'line-through';
+            fileContainer.title = 'File too big: Exceeds 50MB limit';
+            fileContainer.style.cursor = 'not-allowed';
+
+            const icon = document.createElement('img');
+            icon.src = getIconPathMilestone(rejectedFile.name, assetBasePath);
+            icon.alt = `${getExtensionMilestone(rejectedFile.name)} icon`;
+            icon.style.width = '20px';
+            icon.style.height = '25px';
+            icon.style.opacity = '0.5';
+            fileContainer.appendChild(icon);
+
+            const fileNameContainer = document.createElement('div');
+            fileNameContainer.classList.add('file-name');
+            fileNameContainer.textContent = rejectedFile.name;
+            fileNameContainer.style.maxWidth = "70%";
+            fileContainer.appendChild(fileNameContainer);
+
+            const removeButton = document.createElement('a');
+            removeButton.classList.add('buttonFiles');
+            removeButton.innerHTML = '<i class="fa-solid fa-trash deleteFileButton" style="color:white"></i>';
+            removeButton.addEventListener('click', function() {
+                rejectedFilesMilestone.splice(index, 1);
+                updateFileListMilestone();
+            });
+
+            fileContainer.appendChild(removeButton);
+            fileListMilestone.appendChild(fileContainer);
         });
     }
 
@@ -1006,6 +1005,113 @@
             .catch(error => {
                 console.error('Fetch error:', error);
             });
+    }
+
+    // Manejar submit del formulario para capturar respuesta JSON
+    document.addEventListener('DOMContentLoaded', function() {
+        const milestoneForm = document.getElementById('milestone-form');
+        if (milestoneForm) {
+            // Usar propiedad del formulario para evitar conflictos globales
+            milestoneForm._isSubmitting = false;
+
+            milestoneForm.addEventListener('submit', function(e) {
+                if (milestoneForm._isSubmitting) {
+                    e.preventDefault();
+                    return false;
+                }
+
+                // SIEMPRE prevenir submit tradicional y usar AJAX
+                e.preventDefault();
+                milestoneForm._isSubmitting = true;
+
+                const hasFiles = filesArrayMilestone && filesArrayMilestone.length > 0;
+                const formData = new FormData(this);
+
+                fetch(this.action, {
+                        method: 'POST',
+                        body: formData,
+                        headers: {
+                            'Accept': 'application/json'
+                        }
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        // Limpiar arrays de archivos
+                        filesArrayMilestone = [];
+                        rejectedFilesMilestone = [];
+
+                        if (data.success) {
+                            // Mostrar toast con resumen de carga
+                            let message = '';
+                            if (data.uploaded_count > 0 && data.failed_count > 0) {
+                                message = data.uploaded_count + ' archivos subidos, ' + data
+                                    .failed_count + ' rechazados';
+                            } else if (data.uploaded_count > 0) {
+                                message = data.uploaded_count + ' archivos subidos exitosamente';
+                            } else if (data.failed_count > 0) {
+                                message = 'Todos los archivos fueron rechazados';
+                            } else {
+                                message = 'Encargo actualizado correctamente';
+                            }
+
+                            // Mostrar toast
+                            showToast(message, 'success');
+
+                            // Cerrar modal después de 1.5 segundos
+                            setTimeout(() => {
+                                const modal = bootstrap.Modal.getInstance(document
+                                    .querySelector('.modal'));
+                                if (modal) {
+                                    modal.hide();
+                                }
+                                // Redirigir para refrescar la página
+                                window.location.reload();
+                            }, 1500);
+                        } else {
+                            showToast(data.error || 'Error al guardar cambios', 'danger');
+                            milestoneForm._isSubmitting = false;
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        showToast('Error al enviar formulario', 'danger');
+                        milestoneForm._isSubmitting = false;
+                    });
+            });
+        }
+    });
+
+    // Función para mostrar toast
+    function showToast(message, type = 'info') {
+        const toastHTML = `
+            <div class="toast align-items-center text-white bg-${type === 'success' ? 'success' : type === 'danger' ? 'danger' : 'info'}" role="alert" aria-live="assertive" aria-atomic="true">
+                <div class="d-flex">
+                    <div class="toast-body">
+                        ${message}
+                    </div>
+                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                </div>
+            </div>
+        `;
+
+        const toastContainer = document.getElementById('toastContainer') || createToastContainer();
+        const toastElement = document.createElement('div');
+        toastElement.innerHTML = toastHTML;
+        toastContainer.appendChild(toastElement.firstElementChild);
+
+        const toast = new bootstrap.Toast(toastContainer.querySelector('.toast:last-child'));
+        toast.show();
+    }
+
+    function createToastContainer() {
+        const container = document.createElement('div');
+        container.id = 'toastContainer';
+        container.style.position = 'fixed';
+        container.style.top = '20px';
+        container.style.right = '20px';
+        container.style.zIndex = '9999';
+        document.body.appendChild(container);
+        return container;
     }
 </script>
 

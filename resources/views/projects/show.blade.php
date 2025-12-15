@@ -1093,6 +1093,9 @@
                                                         </div>
                                                     </div>
                                                 @endforeach
+                                            @else
+                                                <p class="text-muted" style="margin-left: 20px;">
+                                                    {{ __('No milestone files uploaded yet.') }}</p>
                                             @endif
                                         </div>
 
