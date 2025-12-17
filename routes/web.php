@@ -610,6 +610,8 @@ Route::get('/projects/{slug}/search-mo/{search?}', [ProjectController::class, 'g
 Route::get('/projects/{slug}/search-clipo/{search?}', [ProjectController::class, 'getClientJson'])->name('search-clipo-json')->middleware(['auth', 'XSS']);
 Route::get('/projects/{slug}/search-project/{search?}', [ProjectController::class, 'getProjectsJson'])->name('search-project-json')->middleware(['auth', 'XSS']);
 Route::get('/projects/{slug}/search-sales/{search?}', [ProjectController::class, 'getSalesJson'])->name('search-sales-json')->middleware(['auth', 'XSS']);
+//My projects
+Route::get('/projects/myProjects', [ProjectController::class, 'getAllParticipatingProjects'])->name('my_projects')->middleware(['auth', 'XSS']);
 
 // Route::get('/search-mo/{search?}', [ProjectController::class, 'getMoJson'])->name('search-mo-json');
 Route::get('/{slug}/projects', [ProjectController::class, 'index'])->name('projects.index')->middleware(['auth', 'XSS']);

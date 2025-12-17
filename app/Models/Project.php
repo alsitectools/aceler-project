@@ -163,6 +163,17 @@ class Project extends Model
         return round(($totalDone * 100) / $total);
     }
 
+    // App\Models\Project.php
+
+public function scopeWhereUserIsParticipant($query, $userId)
+{
+    return $query->whereHas('users', function ($q) use ($userId) {
+        $q->where('users.id', $userId)
+          ->where('user_projects.is_active', 1);
+    });
+}
+
+
     public function files()
     {
         return $this->hasMany('App\Models\ProjectFile', 'project_id', 'id');

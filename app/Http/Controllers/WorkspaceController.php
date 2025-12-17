@@ -81,7 +81,13 @@ class WorkspaceController extends Controller
             );
         }
 
-        return redirect()->route('home')->with('success', __('Workspace add Successfully!'));
+        // ✅ Si el usuario no tenía workspace asignado, asignar este
+        if (!$objUser->currant_workspace) {
+            $objUser->currant_workspace = $objWorkspace->id;
+            $objUser->save();
+        }
+
+        return redirect()->back()->with('success', __('Workspace added successfully!'));
     }
     public function changeWorkspace($id)
     {

@@ -448,6 +448,51 @@ class ProjectController extends Controller
         $objUser = Auth::user();
         $currentWorkspace = Utility::getWorkspaceBySlug($slug);
 
+        // 🔍 LOGS DE DEBUGGING
+        \Log::info("=== SHOW PROJECT ===");
+        \Log::info("Slug recibido en ruta: " . $slug);
+        \Log::info("Project ID: " . $projectID);
+        \Log::info("currentWorkspace ID: " . ($currentWorkspace ? $currentWorkspace->id : 'NULL'));
+        \Log::info("currentWorkspace slug: " . ($currentWorkspace ? $currentWorkspace->slug : 'NULL'));
+        \Log::info("user current workspace (antes): " . $objUser->currant_workspace);
+        
+        // � Validar que el proyecto pertenece a ese workspace y que el usuario es participante
+        $project = Project::select('projects.*')
+            ->join('user_projects', 'projects.id', '=', 'user_projects.project_id')
+            ->where('projects.workspace', $currentWorkspace->id)
+            ->where('projects.id', $projectID)
+            ->where('user_projects.user_id', $objUser->id)
+            ->with('activities.user')
+            ->first();
+
+        if (!$project) {
+            \Log::error("Proyecto no encontrado para workspace_id: {$currentWorkspace->id}, project_id: {$projectID}");
+            return redirect()->back()->with('error', __("Project Not Found."));
+        }
+
+        // ✅ VERIFICAR SI EL USUARIO ESTÁ REGISTRADO EN ESTE WORKSPACE
+        $userWorkspace = UserWorkspace::where('user_id', $objUser->id)
+            ->where('workspace_id', $currentWorkspace->id)
+            ->first();
+
+        if (!$userWorkspace) {
+            // 🔥 SI NO ESTÁ REGISTRADO, AÑADIRLO COMO MIEMBRO
+            UserWorkspace::create([
+                'user_id' => $objUser->id,
+                'workspace_id' => $currentWorkspace->id,
+                'permission' => 'Member',
+                'is_active' => 1,
+            ]);
+            \Log::info("Usuario {$objUser->id} añadido al workspace {$currentWorkspace->id}");
+        }
+
+        // 🔥 ACTUALIZAR EL WORKSPACE ACTIVO DEL USUARIO AL WORKSPACE DEL PROYECTO
+        if ($currentWorkspace && $objUser->currant_workspace !== $currentWorkspace->id) {
+            $objUser->currant_workspace = $currentWorkspace->id;
+            $objUser->save();
+            \Log::info("Workspace del usuario actualizado a: " . $currentWorkspace->id);
+        }
+
         if ($objUser && $currentWorkspace) {
             $project = Project::select('projects.*')
                 ->join('user_projects', 'projects.id', '=', 'user_projects.project_id')
@@ -1047,6 +1092,54 @@ class ProjectController extends Controller
             ]);
         }
     }
+
+    public function getAllParticipatingProjects()
+{
+    $user = Auth::user();
+
+    /*
+     |------------------------------------------------------------
+     | Proyectos donde el usuario participa (TODOS los workspaces)
+     |------------------------------------------------------------
+     */
+    $projects = Project::whereUserIsParticipant($user->id)
+        ->with([
+            'typeRel:id,name',
+            // 👇 cargar el workspace completo sin restricción de columnas
+            'workspaceData',
+            'milestones'
+        ])
+        ->orderByDesc('id')
+        ->get();
+
+    // 🔍 Asegurar que cada proyecto tiene su workspace cargado correctamente
+    $projects = $projects->map(function ($project) {
+        if (!$project->workspaceData) {
+            // Si por alguna razón el workspace no se cargó, intentar cargarlo manualmente
+            $project->workspaceData = Workspace::find($project->workspace);
+        }
+        return $project;
+    });
+
+    /*
+     |------------------------------------------------------------
+     | Tipos de proyecto
+     |------------------------------------------------------------
+     */
+    $project_type = ProjectType::select('id', 'name')->get();
+
+    /*
+     |------------------------------------------------------------
+     | Workspace actual (solo para el layout / sidebar)
+     |------------------------------------------------------------
+     */
+    $currentWorkspace = Workspace::find($user->currant_workspace);
+
+    return view(
+        'projects.my_projects',
+        compact('currentWorkspace', 'projects', 'project_type')
+    );
+}
 
     public function milestoneBoard($slug, $id)
 {
