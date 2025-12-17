@@ -13,6 +13,10 @@
         📢 Novedades en Aceler Project
     </h1>
 
+    <p style="font-size:16px; font-weight:bold;">
+        Se te ha asignado un encargo.
+    </p>
+
     <p style="font-size:15px;">
         📝 <strong>Encargo:</strong> {{ ucfirst($encargo) }}
     </p>
@@ -51,6 +55,10 @@
     <h1 style="color:#AA182C; font-size:22px;">
         📢 Updates in Aceler Project
     </h1>
+
+    <p style="font-size:16px; font-weight:bold;">
+        You have been assigned an order.
+    </p>
 
     <p style="font-size:15px;">
         📝 <strong>Order:</strong> {{ ucfirst($encargo) }}

@@ -13,6 +13,10 @@
         📢 Novedades en Aceler Project
     </h1>
 
+    <p style="font-size:16px; font-weight:bold;">
+        Se ha asignado uno de tus encargos.
+    </p>
+
     <p style="font-size:15px;">
         📝 <strong>Encargo:</strong> {{ ucfirst($encargo) }}
     </p>
@@ -24,10 +28,11 @@
     <p style="font-size:15px;">
         🔼 <strong>Prioridad:</strong>
         <span style="padding:4px 8px; background:#f2f2f2; border-radius:4px;">
-            @if($priority == null || $priority == '')
+            @if ($priority == null || $priority == '')
                 Sin prioridad.
             @else
                 {{ ucfirst($priority) }}
+            @endif
         </span>
     </p>
 
@@ -58,7 +63,7 @@
     <p style="margin-top:20px;">
         🔗 <strong>Acceso al tablero:</strong>
         <a href="https://acelerproject.alsina.com/{{ $slug }}/milestone-board/-1"
-           style="color:#AA182C; text-decoration:none;">
+            style="color:#AA182C; text-decoration:none;">
             haz clic aquí
         </a>
         <br>
@@ -72,6 +77,10 @@
         📢 Updates in Aceler Project
     </h1>
 
+    <p style="font-size:16px; font-weight:bold;">
+        One of your orders has been assigned.
+    </p>
+
     <p style="font-size:15px;">
         📝 <strong>Order:</strong> {{ ucfirst($encargo) }}
     </p>
@@ -83,10 +92,11 @@
     <p style="font-size:15px;">
         🔼 <strong>Priority:</strong>
         <span style="padding:4px 8px; background:#f2f2f2; border-radius:4px;">
-            @if($priority == null || $priority == '')
+            @if ($priority == null || $priority == '')
                 No priority.
             @else
                 {{ ucfirst($priority) }}
+            @endif
         </span>
     </p>
 
@@ -116,7 +126,7 @@
     <p style="margin-top:20px;">
         🔗 <strong>Board access:</strong>
         <a href="https://acelerproject.alsina.com/{{ $slug }}/milestone-board/-1"
-           style="color:#AA182C; text-decoration:none;">
+            style="color:#AA182C; text-decoration:none;">
             click here
         </a>
         <br>
@@ -129,4 +139,5 @@
     </p>
 
 </body>
+
 </html>
