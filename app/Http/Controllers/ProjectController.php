@@ -1142,105 +1142,105 @@ class ProjectController extends Controller
 }
 
     public function milestoneBoard($slug, $id)
-{
-    $currentWorkspace = Utility::getWorkspaceBySlug($slug);
-    $stages = Stage::orderBy('order')->get();
+    {
+        $currentWorkspace = Utility::getWorkspaceBySlug($slug);
+        $stages = Stage::orderBy('order')->get();
 
-    $statusClass = $stages->map(function ($stage) {
-        return 'milestone-list-' . str_replace(' ', '_', $stage->id);
-    })->toArray();
+        $statusClass = $stages->map(function ($stage) {
+            return 'milestone-list-' . str_replace(' ', '_', $stage->id);
+        })->toArray();
 
-    // ===============================
-    // 📌 VISTA GLOBAL (-1)
-    // ===============================
-    if ($id == -1) {
+        // ===============================
+        // 📌 VISTA GLOBAL (-1)
+        // ===============================
+        if ($id == -1) {
 
-        $objUser = Auth::user();
+            $objUser = Auth::user();
 
-        // 🔹 Milestones visibles para el usuario
-        $allmilestones = Milestone::whereHas('project', function ($q) use ($objUser) {
+            // 🔹 Milestones visibles para el usuario
+            $allmilestones = Milestone::whereHas('project', function ($q) use ($objUser) {
                 $q->where('workspace', $objUser->currant_workspace);
             })
-            ->where(function ($q) use ($objUser) {
-                $q->where('assign_to', $objUser->id)
-                  ->orWhere('milestone_assigned_to_user', $objUser->id)
-                  ->orWhere('created_by', $objUser->id)
-                  ->orWhere('milestone_assigned_to_user', '')
-                  ->orWhereHas('tasks', function ($q2) use ($objUser) {
-                      $q2->where('assign_to', $objUser->id);
-                  });
-            })
+                ->where(function ($q) use ($objUser) {
+                    $q->where('assign_to', $objUser->id)
+                        ->orWhere('milestone_assigned_to_user', $objUser->id)
+                        ->orWhere('created_by', $objUser->id)
+                        ->orWhere('milestone_assigned_to_user', '')
+                        ->orWhereHas('tasks', function ($q2) use ($objUser) {
+                            $q2->where('assign_to', $objUser->id);
+                        });
+                })
+                ->with([
+                    // 🔑 Cargamos tareas para evitar N+1
+                    'tasks:id,milestone_id,assign_to',
+                    'project:id,workspace'
+                ])
+                ->orderBy('created_at', 'desc')
+                ->get();
+
+            // 🔹 TODOS los milestones del workspace (para "ver todos")
+            $workspaceProjectsIds = Project::where('workspace', $currentWorkspace->id)
+                ->pluck('id')
+                ->toArray();
+
+            $allUsersMilestones = Milestone::whereIn('project_id', $workspaceProjectsIds)
+                ->with([
+                    'tasks:id,milestone_id,assign_to',
+                    'project:id,workspace'
+                ])
+                ->get();
+
+            // 🔹 Agrupación por estado
+            $milestones = $this->groupMilestonesByStatus($allmilestones, $objUser, $stages);
+            $milestonesUsers = $this->groupMilestonesByStatus($allUsersMilestones, null, $stages);
+
+            $project_id = -1;
+
+            return view(
+                'projects.milestoneboard',
+                compact(
+                    'currentWorkspace',
+                    'milestones',
+                    'milestonesUsers',
+                    'stages',
+                    'statusClass',
+                    'project_id'
+                )
+            );
+        }
+
+        // ===============================
+        // 📌 VISTA POR PROYECTO
+        // ===============================
+        $project = Project::find($id);
+
+        if (!$project) {
+            abort(404);
+        }
+
+        $allmilestones = Milestone::where('project_id', $project->id)
             ->with([
-                // 🔑 Cargamos tareas para evitar N+1
-                'tasks:id,milestone_id,assign_to',
-                'project:id,workspace'
+                'tasks:id,milestone_id,assign_to'
             ])
-            ->orderBy('created_at', 'desc')
             ->get();
 
-        // 🔹 TODOS los milestones del workspace (para "ver todos")
-        $workspaceProjectsIds = Project::where('workspace', $currentWorkspace->id)
-            ->pluck('id')
-            ->toArray();
+        $milestones = $this->groupMilestonesByStatus($allmilestones, null, $stages);
 
-        $allUsersMilestones = Milestone::whereIn('project_id', $workspaceProjectsIds)
-            ->with([
-                'tasks:id,milestone_id,assign_to',
-                'project:id,workspace'
-            ])
-            ->get();
-
-        // 🔹 Agrupación por estado
-        $milestones = $this->groupMilestonesByStatus($allmilestones, $objUser, $stages);
-        $milestonesUsers = $this->groupMilestonesByStatus($allUsersMilestones, null, $stages);
-
-        $project_id = -1;
+        $project_id = $project->id;
+        $project_name = $project->name;
 
         return view(
             'projects.milestoneboard',
             compact(
                 'currentWorkspace',
                 'milestones',
-                'milestonesUsers',
                 'stages',
                 'statusClass',
-                'project_id'
+                'project_id',
+                'project_name'
             )
         );
     }
-
-    // ===============================
-    // 📌 VISTA POR PROYECTO
-    // ===============================
-    $project = Project::find($id);
-
-    if (!$project) {
-        abort(404);
-    }
-
-    $allmilestones = Milestone::where('project_id', $project->id)
-        ->with([
-            'tasks:id,milestone_id,assign_to'
-        ])
-        ->get();
-
-    $milestones = $this->groupMilestonesByStatus($allmilestones, null, $stages);
-
-    $project_id = $project->id;
-    $project_name = $project->name;
-
-    return view(
-        'projects.milestoneboard',
-        compact(
-            'currentWorkspace',
-            'milestones',
-            'stages',
-            'statusClass',
-            'project_id',
-            'project_name'
-        )
-    );
-}
 
 
 
@@ -1497,8 +1497,8 @@ class ProjectController extends Controller
         \Log::debug("Cálculo de puntos: estimated_time={$estimated_time}, imputed_time={$imputed_time}, extra_points={$extra_points}");
         $real_time = $estimated_time;
 
-        if($imputed_time < floor($estimated_time/2)){
-            $real_time = $estimated_time /2;
+        if ($imputed_time < floor($estimated_time / 2)) {
+            $real_time = $estimated_time / 2;
         }
         \Log::debug("real_time ajustado={$real_time}");
         $pointsHour = 0.35 * $estimated_time / $real_time + 0.5;
@@ -1547,7 +1547,7 @@ class ProjectController extends Controller
                     return $carry * $item;
                 }, 1);
 
-            if($systemPoints > 2) $systemPoints = 2;
+            if ($systemPoints > 2) $systemPoints = 2;
 
             $formatPoints = Puntuacion::where('nombre', $documentFormat)->value('valor') ?? 0;
             $detailPoints = Puntuacion::where('nombre', $detailLevel)->value('valor') ?? 0;
@@ -1571,14 +1571,14 @@ class ProjectController extends Controller
                     ->selectRaw('SUM(TIME_TO_SEC(time)) as total_seconds')
                     ->value('total_seconds');
 
-                $real_imputed_time = ($real_imputed_time ?? 0) / 3600;// horas reales
+                $real_imputed_time = ($real_imputed_time ?? 0) / 3600; // horas reales
 
             }
 
             //Calcular puntos extras por tareas
             $extraTaskPoints = TaskType::where('project_type', 1)
-            ->whereIn('id', $milestone->tasks()->pluck('type_id'))
-            ->sum('puntuacion');
+                ->whereIn('id', $milestone->tasks()->pluck('type_id'))
+                ->sum('puntuacion');
 
             // ---------------------------------------
             // Calcular puntos
@@ -1599,7 +1599,6 @@ class ProjectController extends Controller
                         'puntos_hora'      => $allPoints['pointsHour'],
                     ]
                 );
-
             }
 
             ActivityLog::create([
@@ -1615,7 +1614,6 @@ class ProjectController extends Controller
             return redirect()
                 ->back()
                 ->with('success', 'Revisión guardada correctamente.');
-
         } catch (\Throwable $e) {
             \Log::error("Error en milestoneReviewSubmit", ['error' => $e->getMessage()]);
             return redirect()
@@ -3562,30 +3560,44 @@ class ProjectController extends Controller
 
     public function AddSingleNotification(Request $request)
     {
-         \Log::info('ANTES DEL VALIDATE', $request->all());
+        \Log::info('ANTES DEL VALIDATE', $request->all());
 
         $request->validate([
             'workspace_id' => 'required|integer',
             'msg'          => 'required|string',
         ]);
 
-        \Log::info('DESPUÉS DEL VALIDATE'); 
+        \Log::info('DESPUÉS DEL VALIDATE');
         $milestoneId = $request->milestone_id ?? null;
+
         if ($request->milestoneAssignedTo != -2) {
             // Crear notificación para el usuario indicado en milestoneAssignedTo
             $notification = new Notification();
             $notification->workspace_id = $request->workspace_id;
             $notification->user_id      = $request->milestoneAssignedTo;
-            $notification->type         = $request->ntipe; // Asegúrate de que 'ntipe' se esté enviando correctamente
+            $notification->type         = $request->ntipe;
             $notification->data         = $request->msg;
             $notification->save();
 
             $usersNotified = 1;
+
             if ($request->ntipe == '4') {
-                $this->getEmails($notification->user_id, $request->ntipe, $request->msg, $milestoneId, $notification->workspace_id);
-                $this->sendAditionalMailToReqBy($request->milestoneRequestedBy, $request->msg, $notification->user_id,$milestoneId, $notification->workspace_id);
-            } else {
-                $this->getEmails($notification->user_id, $request->ntipe, $request->msg,$milestoneId,$notification->workspace_id);
+                // Para asignaciones: comparar emails del asignado y solicitante
+                // Si son diferentes, enviar ambos; si son iguales, no enviar ninguno
+                $this->handleAssignmentNotification(
+                    $request->milestoneRequestedBy,
+                    $request->milestoneAssignedTo,
+                    $request->msg,
+                    $milestoneId,
+                    $request->workspace_id
+                );
+            } else if ($request->ntipe == '5') {
+                // Para pending review: enviar al creador solo si es diferente del asignado
+                $this->handlePendingReviewNotification(
+                    $request->msg,
+                    $milestoneId,
+                    $request->workspace_id
+                );
             }
         } else {
             // Se obtiene la lista de user_id asociados al workspace desde la tabla user_workspaces
@@ -3602,8 +3614,6 @@ class ProjectController extends Controller
                 $notification->data         = $request->msg;
                 $notification->save();
             }
-            //comentando esto hara que no se reciban correos por cada milestone creada
-            // $this->getEmails($userIds, $request->ntipe, $request->msg);
             $usersNotified = count($userIds);
         }
 
@@ -3613,19 +3623,47 @@ class ProjectController extends Controller
         ]);
     }
 
-    public function getEmails($userID, $ntipe, $message, $milestoneId,$workspaceId)
+    private function handleAssignmentNotification($requesterId, $assignedUserId, $message, $milestoneId, $workspaceId)
     {
-        \Log::info('Info que llega a getEmails:');
-        \Log::info($userID);
+        // Obtener emails
+        $requesterEmail = \DB::table('users')->where('id', $requesterId)->value('email');
+        $assignedEmail = \DB::table('users')->where('id', $assignedUserId)->value('email');
 
-        // Obtener lista de correos
-        if (is_array($userID) || $userID instanceof \Illuminate\Support\Collection) {
-            $userEmails = \DB::table('users')->whereIn('id', $userID)->pluck('email');
-        } else {
-            $userEmails = \DB::table('users')->where('id', $userID)->pluck('email');
+        \Log::info("Comparando emails - Requester: {$requesterEmail}, Assigned: {$assignedEmail}");
+
+        // Si los emails son iguales, no enviar nada
+        if ($requesterEmail === $assignedEmail) {
+            \Log::info("Los emails son iguales. No se envía ningún correo.");
+            return;
         }
 
-        // Obtener el milestone
+        // Obtener milestone para datos
+        $milestone = Milestone::find($milestoneId);
+        $workspace = Workspace::find($workspaceId);
+
+        if (!$milestone || !$workspace) {
+            \Log::error("Milestone o Workspace no encontrado");
+            return;
+        }
+
+        // Enviar email al usuario asignado (templateAssignedToUser)
+        $this->sendNotificationEmail(
+            $assignedEmail,
+            4,
+            $message,
+            $milestone->priority,
+            $milestone->status,
+            $workspace->slug,
+            $workspace->name
+        );
+
+        // Enviar email adicional al solicitante (templateAssignedToUserForRquester)
+        $this->sendAditionalMailToReqBy($requesterId, $message, $assignedUserId, $milestoneId, $workspaceId);
+    }
+
+    private function handlePendingReviewNotification($message, $milestoneId, $workspaceId)
+    {
+        // Obtener milestone
         $milestone = Milestone::find($milestoneId);
 
         if (!$milestone) {
@@ -3633,35 +3671,45 @@ class ProjectController extends Controller
             return;
         }
 
-        // Obtener slug del workspace
-        $workspace = Workspace::find($workspaceId);
+        \Log::info("Comparando valores BD - assign_to: {$milestone->assign_to}, milestone_assigned_to_user: {$milestone->milestone_assigned_to_user}");
 
-        if (!$workspace) {
-            \Log::error("Milestone con ID {$workspaceId} no encontrado");
+        // Si assign_to y milestone_assigned_to_user son iguales, no enviar
+        if ($milestone->assign_to == $milestone->milestone_assigned_to_user) {
+            \Log::info("assign_to y milestone_assigned_to_user son iguales. No se envía correo.");
             return;
         }
 
-        \Log::info('Email(s) del usuario(s):');
-        \Log::info($userEmails);
-        \Log::info('Tipo de notificación:');
-        \Log::info($ntipe);
+        // Obtener email del creador (assign_to)
+        $creatorEmail = \DB::table('users')->where('id', $milestone->assign_to)->value('email');
 
-        // Enviar el correo a cada email
-        foreach ($userEmails as $email) {
-            $this->sendNotificationEmail(
-                $email,
-                $ntipe,
-                $message,
-                $milestone->priority,
-                $milestone->status,
-                $workspace->slug,
-                $workspace->name,
-            );
+        if (!$creatorEmail) {
+            \Log::error("No se encontró email para el usuario assign_to: {$milestone->assign_to}");
+            return;
         }
+
+        // Obtener workspace
+        $workspace = Workspace::find($workspaceId);
+
+        if (!$workspace) {
+            \Log::error("Workspace con ID {$workspaceId} no encontrado");
+            return;
+        }
+
+        \Log::info("Enviando email de pending review a: {$creatorEmail}");
+
+        // Enviar email al creador
+        $this->sendNotificationEmail(
+            $creatorEmail,
+            5,
+            $message,
+            $milestone->priority,
+            $milestone->status,
+            $workspace->slug,
+            $workspace->name
+        );
     }
 
-
-    public function sendNotificationEmail($toEmail, $notificationType, $message, $priority, $status , $slug, $workspace)
+    public function sendNotificationEmail($toEmail, $notificationType, $message, $priority, $status, $slug, $workspace)
 
     {
         \Log::info('Enviando correo a: ' . $toEmail . ' con tipo de notificación: ' . $notificationType . ' y mensaje: ' . $message);
@@ -3700,7 +3748,7 @@ class ProjectController extends Controller
                 // Si no se encuentra el patrón, asignar null
                 $encargo = $proyecto = null;
             }
-                        
+
             \Log::info('Datos extraídos para el correo del pending review:' . $notificationType . ' - Encargo: ' . $encargo . ', Proyecto: ' . $proyecto .  ', Prioridad: ' . $priority . ', Estado: ' . $status . ', Slug: ' . $slug . ', Workspace: ' . $workspace);
 
             $htmlContent = View::make('emailTemplates.templatePendingReview', [
@@ -3708,22 +3756,22 @@ class ProjectController extends Controller
                 'message' => $message,
                 'encargo' => $encargo,
                 'proyecto' => $proyecto,
-                'priority' => $priority, 
+                'priority' => $priority,
                 'status' => $status,
                 'slug' => $slug,
                 'workspace' => $workspace,
             ])->render();
         } else if ($notificationType == '4') {
             // Extraer los datos desde el mensaje
-preg_match(
-    '/^(.*?) en ([^<]+)[\s\S]*?La fecha de entrega prevista es\s+(\d{2}-\d{2}-\d{4})/s',
-    $message,
-    $matches
-);
+            preg_match(
+                '/^(.*?) en ([^<]+)[\s\S]*?La fecha de entrega prevista es\s+(\d{2}-\d{2}-\d{4})/s',
+                $message,
+                $matches
+            );
             if (count($matches) === 4) {
-                    $encargo  = trim($matches[1]); // ✅ encargo
-                    $proyecto = trim($matches[2]);
-                    $fecha    = trim($matches[3]);
+                $encargo  = trim($matches[1]); // ✅ encargo
+                $proyecto = trim($matches[2]);
+                $fecha    = trim($matches[3]);
             } else {
                 // Manejo de error si no se encuentra el patrón
                 $encargo = $proyecto = $fecha = null;
@@ -3769,10 +3817,18 @@ preg_match(
 
     public function sendAditionalMailToReqBy($requesterId, $message, $employeeId, $milestoneId, $workspaceId)
     {
+        // Obtener emails
+        $requesterEmail = \DB::table('users')->where('id', $requesterId)->value('email');
+        $employeeEmail = \DB::table('users')->where('id', $employeeId)->value('email');
+        $employeeName = \DB::table('users')->where('id', $employeeId)->value('name');
 
-        $requestedByMail = \DB::table('users')->where('id', $requesterId)->pluck('email')->first();
-        $employeeName = \DB::table('users')->where('id', $employeeId)->pluck('name')->first();
-        \Log::info('Se va a enviar un correo adicional a: ' . $requestedByMail . ' mencionando al empleado: ' . $employeeName . ' con el mensaje: ' . $message);
+        \Log::info("Enviando correo adicional al solicitante. Requester: {$requesterEmail}, Employee: {$employeeEmail}");
+
+        // Si los emails son iguales, no enviar
+        if ($requesterEmail === $employeeEmail) {
+            \Log::info("Los emails del solicitante y del asignado son iguales. No se envía correo adicional.");
+            return;
+        }
 
         // Extraer los datos desde el mensaje
         preg_match('/^(.*?) en (.*?)\. La fecha de entrega prevista es (\d{2}-\d{2}-\d{4})$/', $message, $matches);
@@ -3794,13 +3850,14 @@ preg_match(
             return;
         }
 
-        // Obtener slug del workspace
+        // Obtener workspace
         $workspace = Workspace::find($workspaceId);
 
         if (!$workspace) {
-            \Log::error("Milestone con ID {$workspaceId} no encontrado");
+            \Log::error("Workspace con ID {$workspaceId} no encontrado");
             return;
         }
+
         $htmlContent = View::make('emailTemplates.templateAssignedToUserForRquester', [
             'message' => $message,
             'encargo' => $encargo,
@@ -3813,20 +3870,20 @@ preg_match(
             'workspace' => $workspace->name
         ])->render();
 
-
         $email = new \SendGrid\Mail\Mail();
         $email->setFrom(config('services.sendgrid.from_email'), config('services.sendgrid.from_name'));
         $email->setSubject('¡Tienes novedades en project Alsina!');
-        $email->addTo($requestedByMail);
+        $email->addTo($requesterEmail);
 
         // Contenido HTML
         $email->addContent("text/html", $htmlContent);
         $sendgrid = new \SendGrid(config('services.sendgrid.api_key'));
+
         try {
             $response = $sendgrid->send($email);
-            \Log::info('SendGrid Response Status: ' . $response->statusCode());
+            \Log::info('SendGrid Response Status para correo adicional: ' . $response->statusCode());
         } catch (\Exception $e) {
-            \Log::error('Error al enviar correo: ' . $e->getMessage());
+            \Log::error('Error al enviar correo adicional: ' . $e->getMessage());
         }
     }
 
