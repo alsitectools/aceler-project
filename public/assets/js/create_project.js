@@ -181,7 +181,10 @@ $(document).ready(function () {
 
         if (dataList && dataList.length) {
             const listItems = dataList.map(item => {
-                let displayText = item.ref_mo ? `${item.ref_mo} - ${item.name}` : item.name;
+                console.log(item);
+               let displayText = item.potential_customer_id
+                ? `${item.potential_customer_id} - ${item.name}`
+                : (item.name);
                 return $('<a href="#" class="list-group-item list-group-item-action stylelist">')
                     .text(displayText.trim())
                     .data('item', item)

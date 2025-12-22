@@ -2270,7 +2270,7 @@ class ProjectController extends Controller
     public function getClientJson($slug, $search = null)
     {
 
-        $query = PotentialClient::query()->select(['potential_customer_id', 'name']);
+        $query = PotentialClient::query()->select(['potential_customer_id', 'name', 'customer_id']);
         if ($search) {
             $query->where(function ($query) use ($search) {
                 $query->where('potential_customer_id', 'LIKE', "%" . $search . "%")
