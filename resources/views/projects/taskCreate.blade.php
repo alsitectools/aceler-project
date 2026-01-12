@@ -5,12 +5,26 @@
     $selectedMilestoneTitle = request()->get('milestoneTitle');
     $selectedMilestoneId = request()->get('milestone_id');
     $fromMilestoneBoard = request()->get('fromMilestoneBoard');
+    
+    // Detectar si viene de my-milestone-board
+    $isMyMilestoneBoard = strpos(request()->url(), 'my-milestone-board') !== false;
+    $formAction = $isMyMilestoneBoard 
+        ? route('my_milestone.tasks.store', $currentWorkspace->slug)
+        : route('tasks.store', $currentWorkspace->slug);
 @endphp
 
 @if ($projects && $currentWorkspace)
-    <form method="post" action="@auth('web'){{ route('tasks.store', $currentWorkspace->slug) }}@endauth">
+    <form method="post" action="@auth('web'){{ $formAction }}@endauth">
         @csrf
         <div class="modal-body">
+            <!-- DEBUG INFO -->
+            <script>
+                console.log('=== TaskCreate Vista DEBUG ===');
+                console.log('Raw selectedProjectId:', '{{ request()->get('project_id') }}');
+                console.log('Raw selectedMilestoneTitle:', '{{ request()->get('milestoneTitle') }}');
+                console.log('Raw selectedMilestoneId:', '{{ request()->get('milestone_id') }}');
+                console.log('=== FIN DEBUG ===');
+            </script>
             <div class="row">
                 <!-- Select de Proyectos -->
                 <div class="form-group col-md-12">
@@ -22,7 +36,7 @@
                             required disabled>
                             <option value="">{{ __('Select Project') }}</option>
                             @foreach ($projects as $project)
-                                @if ($selectedProjectId == $project->id)
+                                @if ((int)$selectedProjectId == (int)$project->id)
                                     <option value="{{ $project->id }}" data-project='{{ json_encode($project) }}'
                                         selected>
                                         {{ $project->name }}
@@ -53,13 +67,14 @@
                             style="display: none;">
                         <select class="form-control form-control-light select2" name="milestone_id" id="milestone_id"
                             required disabled>
-                            <option value="{{ $selectedMilestoneId }}">{{ $selectedMilestoneTitle }}</option>
-                        @else
-                            <select class="form-control form-control-light select2" name="milestone_id"
-                                id="milestone_id" required>
-                                <option value="">{{ __('Select Milestone') }}</option>
+                            <option value="{{ $selectedMilestoneId }}" selected>{{ $selectedMilestoneTitle }}</option>
+                        </select>
+                    @else
+                        <select class="form-control form-control-light select2" name="milestone_id"
+                            id="milestone_id" required>
+                            <option value="">{{ __('Select Milestone') }}</option>
+                        </select>
                     @endif
-                    </select>
                 </div>
 
                 <!-- Select de Task Type -->

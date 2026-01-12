@@ -1242,6 +1242,56 @@ class ProjectController extends Controller
     );
 }
 
+    /**
+     * Vista de "Mis Encargos" - Muestra todos los milestones del usuario actual
+     * de TODOS sus workspaces (sin filtrar por workspace específico)
+     */
+    public function myMilestoneBoard()
+    {
+        $objUser = Auth::user();
+        
+        // Obtener el workspace actual del usuario
+        $currentWorkspace = Utility::getWorkspaceBySlug($objUser->currentWorkspace->slug) ?? $objUser->currentWorkspace;
+
+        $stages = Stage::orderBy('order')->get();
+
+        $statusClass = $stages->map(function ($stage) {
+            return 'milestone-list-' . str_replace(' ', '_', $stage->id);
+        })->toArray();
+
+        // 🔹 Milestones del usuario actual de TODOS los workspaces
+        $allmilestones = Milestone::where(function ($q) use ($objUser) {
+                $q->where('assign_to', $objUser->id)
+                  ->orWhere('milestone_assigned_to_user', $objUser->id)
+                  ->orWhere('created_by', $objUser->id)
+                  ->orWhereHas('tasks', function ($q2) use ($objUser) {
+                      $q2->where('assign_to', $objUser->id);
+                  });
+            })
+            ->with([
+                'tasks:id,milestone_id,assign_to',
+                'project:id,workspace'
+            ])
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        // 🔹 Agrupación por estado
+        $milestones = $this->groupMilestonesByStatus($allmilestones, $objUser, $stages);
+
+        $project_id = -1;
+
+        return view(
+            'projects.my_milestone_board',
+            compact(
+                'currentWorkspace',
+                'milestones',
+                'stages',
+                'statusClass',
+                'project_id'
+            )
+        );
+    }
+
 
 
 
@@ -1311,6 +1361,8 @@ class ProjectController extends Controller
             'project_name'  => $project->name,
             'project_type'  => $projectType,
             'project_ref'   => $project->ref_mo ? '- ' . $project->ref_mo : '',
+            'workspace_name' => optional(Workspace::find($project->workspace))->name ?? 'N/A',
+            'workspace_id'  => $project->workspace,
             'tasks'         => $taskData,
             'sales'         => User::find($milestone->assign_to),
             'asiggned_user_data'         => User::find($milestone->milestone_assigned_to_user),

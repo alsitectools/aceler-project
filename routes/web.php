@@ -483,6 +483,12 @@ Route::prefix('client')->as('client.')->group(function () {
   Route::get('/{slug}/zoom-meeting', [ZoomMeetingController::class, 'index'])->name('zoom-meeting.index')->middleware(['auth:client']);
 });
 
+// Ruta para "Mis Encargos" - Fuera del grupo client
+Route::get('/my-milestone-board', [ProjectController::class, 'myMilestoneBoard'])->name('projects.my_milestone_board')->middleware(['auth', 'XSS']);
+Route::get('/{slug}/my-milestone-board/task-create', [ProjectController::class, 'taskCreate'])->name('my_milestone.tasks.create')->middleware(['auth', 'XSS']);
+Route::post('/{slug}/my-milestone-board/task-store', [ProjectController::class, 'taskStore'])->name('my_milestone.tasks.store')->middleware(['auth', 'XSS']);
+Route::get('/{slug}/my-milestone-board/timesheet/createOrderForms/{project_id}', [ProjectController::class, 'creatTimeshitFromOrderForms'])->name('my_milestone.create.timesheet.from.orders')->middleware(['auth', 'XSS']);
+Route::post('/{slug}/my-milestone-board/timesheet/store/{project_id}', [ProjectController::class, 'timesheetStore'])->name('my_milestone.timesheet.store')->middleware(['auth', 'XSS']);
 
 
 // Route::any('/plan/error/{flag}', [PaymentWallPaymentController::class, 'paymenterror'])->name('callback.error')->middleware(['auth','XSS']);

@@ -213,6 +213,12 @@
                                 <span class="text-muted">
                                     <b>{{ $milestone['project_ref'] }}</b>
                                 </span>
+                                {{-- Workspace --}}
+                                @if (strpos(request()->url(), 'my-milestone-board') !== false)
+                                    <small class="text-muted d-block mt-1" style="font-size:10px;">
+                                        <i class="fa-solid fa-layer-group"></i> {{ $milestone['workspace_name'] }}
+                                    </small>
+                                @endif
                             </div>
                         </div>
 

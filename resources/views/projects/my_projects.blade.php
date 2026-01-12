@@ -549,7 +549,7 @@
                                     @foreach ($workspaces as $workspace)
                                         <button type="button" class="btn disp-btn zoom text-muted filterTypo"
                                             data-filter=".workspace-{{ $workspace->slug }}" style="    background-color: #f6f6f6;">
-                                            <i class="fas fa-sitemap me-2" style="width: 18px; height: 18px;"></i>
+                                            <i class="fa-solid fa-layer-group"style="width: 18px; height: 18px;"></i>
                                             {{ $workspace->name }}
                                         </button>
                                     @endforeach
