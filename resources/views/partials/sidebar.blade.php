@@ -474,6 +474,12 @@
                             <span class="dash-micon"><i class="fa-solid fa-diagram-project"></i></span><span
                                 class="dash-mtext">{{ __('Projects') }}</span></a>
                     </li>
+                    <li class="dash-item" data-group-content="workspace">
+                        <a href="{{ route('projects.milestone.board', [$currentWorkspace->slug, -1]) }}"
+                            class="dash-link ">
+                            <span class="dash-micon"><i class="fa-solid fa-file-lines"></i></span><span
+                                class="dash-mtext">{{ __('Encargos') }}</span></a>
+                    </li>
 
                     <!-- Grupo: Mis -->
                     <li class="dash-item dash-label" data-group="mis">
@@ -487,10 +493,10 @@
                                 class="dash-mtext">{{ __('Projects') }}</span></a>
                     </li>
                     <li class="dash-item" data-group-content="mis">
-                        <a href="{{ route('projects.milestone.board', [$currentWorkspace->slug, -1]) }}"
+                        <a href="{{ route('projects.my_milestone_board') }}"
                             class="dash-link ">
-                            <span class="dash-micon"><i class="fa-solid fa-file-lines"></i></span><span
-                                class="dash-mtext">{{ __('Milestone Board') }}</span></a>
+                            <span class="dash-micon"><i class="fa-solid fa-clipboard-list"></i></span><span
+                                class="dash-mtext">{{ __('Encargos') }}</span></a>
                     </li>
                     <li class="dash-item {{ Request::route()->getName() == 'timesheet.index' ? 'active' : '' }}" data-group-content="mis">
                         <a href="{{ route('timesheet.index', $currentWorkspace->slug) }}" class="dash-link ">
@@ -505,7 +511,7 @@
                     </li>
 
                     <!-- Grupo: Otros -->
-                    <li class="dash-item dash-label" data-group="otros">
+                    {{-- <li class="dash-item dash-label" data-group="otros">
                         <small><i class="fa-solid fa-ellipsis" style="margin-right: 8px;"></i>{{ __('Otros') }}</small>
                         <i class="fa-solid fa-chevron-down toggle-icon"></i>
                     </li>
@@ -514,7 +520,7 @@
                                 class="dash-micon"><i class="fas fa-book"></i>
                             </span>
                             <span class="dash-mtext">Tutorial</span></a>
-                    </li>
+                    </li> --}}
                     {{-- @if ($emptyTimetable == 1 && $userType != 'client')
                             <div id="container-alert">
                                 <div id="error-boxAlert">

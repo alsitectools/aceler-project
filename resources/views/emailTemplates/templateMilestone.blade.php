@@ -9,6 +9,12 @@
 <body style="font-family: Arial, Helvetica, sans-serif; color:#333; line-height:1.6;">
 
     <!-- ===== ESPAÑOL ===== -->
+    <div style="background-color:#f8f8f8; padding:15px; border-left:4px solid #AA182C; margin-bottom:20px; border-radius:4px;">
+        <p style="margin:0; font-size:14px; color:#666;">
+            <strong>ℹ️ Notificación:</strong> Se ha creado un nuevo hito o fase en tu proyecto
+        </p>
+    </div>
+
     <h1 style="color:#AA182C; font-size:22px;">
         📢 Novedades en Aceler Project
     </h1>
@@ -49,6 +55,12 @@
     <hr style="margin:30px 0; border:none; border-top:1px solid #ddd;">
 
     <!-- ===== ENGLISH ===== -->
+    <div style="background-color:#f8f8f8; padding:15px; border-left:4px solid #AA182C; margin-bottom:20px; border-radius:4px;">
+        <p style="margin:0; font-size:14px; color:#666;">
+            <strong>ℹ️ Notification:</strong> A new milestone or phase has been created in your project
+        </p>
+    </div>
+
     <h1 style="color:#AA182C; font-size:22px;">
         📢 Updates in Aceler Project
     </h1>
