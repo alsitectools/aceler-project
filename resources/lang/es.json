@@ -1290,9 +1290,10 @@
     "Building": "Edificación",
     "Save review": "Guardar revisión",
     "Detail level": "Nivel de detalle",
-    "Resume" : "Resumen",
-    "Milestone Board" : "Tablón de encargos",
+    "Resume": "Resumen",
+    "Milestone Board": "Tablón de encargos",
     "My": "Mi",
-    "No milestone files uploaded yet.": "No hay archivos subidos en hojas de encargo"
-
+    "No milestone files uploaded yet.": "No hay archivos subidos en hojas de encargo",
+    "Current Workspace": "Espacio de trabajo actual",
+    "All Workspaces": "Todos los espacios de trabajo"
 }

@@ -90,9 +90,9 @@ class CalenderController extends Controller
     {
         $objUser = Auth::user();
         $currentWorkspace = Utility::getWorkspaceBySlug($slug);
-    
+
         $projects = [];
-    
+
         if ($objUser->getGuard() == 'client') {
             $tasks = Task::select('tasks.*', 'task_types.name as type_name')
                 ->join('projects', 'projects.id', '=', 'tasks.project_id')
@@ -101,7 +101,7 @@ class CalenderController extends Controller
                 ->where('client_projects.client_id', '=', $objUser->id)
                 ->where('client_projects.permission', 'LIKE', '%show task%')
                 ->where('projects.workspace', '=', $currentWorkspace->id);
-    
+
             $projects = Project::select('projects.*')
                 ->join('client_projects', 'projects.id', '=', 'client_projects.project_id')
                 ->where('client_projects.client_id', '=', $objUser->id)
@@ -112,7 +112,7 @@ class CalenderController extends Controller
                 ->join('projects', 'projects.id', '=', 'tasks.project_id')
                 ->leftJoin('task_types', 'tasks.type_id', '=', 'task_types.id')
                 ->where('projects.workspace', '=', $currentWorkspace->id);
-    
+
             $projects = Project::select('projects.*')
                 ->join('user_projects', 'projects.id', '=', 'user_projects.project_id')
                 ->where('user_projects.user_id', '=', $objUser->id)
@@ -124,53 +124,53 @@ class CalenderController extends Controller
                 ->leftJoin('task_types', 'tasks.type_id', '=', 'task_types.id')
                 ->where('projects.workspace', '=', $currentWorkspace->id)
                 ->whereRaw("find_in_set('" . $objUser->id . "',tasks.assign_to)");
-    
+
             $projects = Project::select('projects.*')
                 ->join('user_projects', 'projects.id', '=', 'user_projects.project_id')
                 ->where('user_projects.user_id', '=', $objUser->id)
                 ->where('projects.workspace', '=', $currentWorkspace->id)
                 ->get();
         }
-    
+
         if ($request->has('project_id') && $request->project_id != '') {
             $tasks->where('tasks.project_id', '=', $request->project_id);
         }
-    
+
         $tasks = $tasks->get();
-    
+
         $taskHours = [];
         $totalMinutes = 0;
-    
+
         foreach ($tasks as $task) {
             $timesheets = Timesheet::where('task_id', $task->id)->get();
             $taskMinutes = 0;
-    
+
             foreach ($timesheets as $timesheet) {
                 list($hours, $minutes, $seconds) = explode(':', $timesheet->time);
                 $taskMinutes += ($hours * 60) + $minutes;
             }
-    
+
             $totalMinutes += $taskMinutes;
-    
+
             $hours = floor($taskMinutes / 60);
             $minutes = $taskMinutes % 60;
             $taskHours[$task->id] = sprintf('%02d:%02d', $hours, $minutes);
         }
-    
+
         $hours = floor($totalMinutes / 60);
         $minutes = $totalMinutes % 60;
         $formattedTotalHours = sprintf('%02d:%02d', $hours, $minutes);
-    
+
         $milestoneIds = $tasks->pluck('milestone_id')->filter()->unique();
         $milestones = Milestone::whereIn('id', $milestoneIds)->get()->keyBy('id');
-    
+
         $arrayJson = [];
-    
+
         foreach ($tasks as $task) {
             $milestoneTitle = isset($milestones[$task->milestone_id]) ? $milestones[$task->milestone_id]->title : $task->title;
             $taskTitle = $task->type_name ?? 'No Type';
             $formattedTitle = "$milestoneTitle - $taskTitle";
-    
+
             $arrayJson[] = [
                 "title" => $formattedTitle,
                 "start" => $task->start_date,
@@ -181,7 +181,7 @@ class CalenderController extends Controller
                 "milestone_id" => $task->milestone_id,
             ];
         }
-    
+
         if ($request->ajax()) {
             return response()->json([
                 'events' => $arrayJson,
@@ -198,27 +198,27 @@ class CalenderController extends Controller
                 'formattedTotalHours' => $formattedTotalHours
             ]);
         }
-    
+
         return view('calendar.index', compact('currentWorkspace', 'arrayJson', 'projects', 'project_id', 'tasks', 'taskHours', 'formattedTotalHours', 'milestones'));
     }
-    
+
 
     public function getCalendarData()
     {
         $userId = Auth::id();
         $timetable = UserTimetable::where('user_id', $userId)->first();
         $timesheets = Timesheet::where('user_id', $userId)->get();
-    
+
         if (!$timetable) {
             return response()->json(['error' => 'No timetable found'], 404);
         }
-    
+
         $calendarData = $this->processCalendarData($timetable, $timesheets);
-    
+
         return response()->json($calendarData);
     }
 
-        // Function to get the day of the week
+    // Function to get the day of the week
     private function getDayOfWeek($date)
     {
         $dateTime = new DateTime($date);
@@ -251,162 +251,236 @@ class CalenderController extends Controller
         return $dateCollection;
     }
 
-    public function getTimesheetColor()
-{
-    $userId = Auth::id();
+    public function getTimesheetColor(Request $request)
+    {
+        $userId = Auth::id();
 
-    // Obtener todas las imputaciones (timesheets) del usuario
-    $timesheets = DB::table('timesheets')
-        ->join('tasks', 'timesheets.task_id', '=', 'tasks.id')
-        ->join('users', 'tasks.assign_to', '=', 'users.id')
-        ->select('tasks.*', 'timesheets.*')
-        ->where('users.id', '=', $userId)
-        ->get();
+        // Obtener todas las imputaciones (timesheets) del usuario
+        $query = DB::table('timesheets')
+            ->join('tasks', 'timesheets.task_id', '=', 'tasks.id')
+            ->join('users', 'tasks.assign_to', '=', 'users.id')
+            ->join('projects', 'tasks.project_id', '=', 'projects.id')
+            ->select('tasks.*', 'timesheets.*')
+            ->where('users.id', '=', $userId);
 
-    // Obtener el horario del usuario
-    $timetable = UserTimetable::where('user_id', $userId)->first();
-    if (!$timetable) {
-        return response()->json(['error' => 'No timetable found'], 404);
-    }
-
-    // Horas esperadas por día
-    $expectedHours = [
-        'monday' => $timetable->monday,
-        'tuesday' => $timetable->tuesday,
-        'wednesday' => $timetable->wednesday,
-        'thursday' => $timetable->thursday,
-        'friday' => $timetable->friday,
-        'saturday' => $timetable->saturday,
-        'sunday' => $timetable->sunday,
-    ];
-
-    // 1️⃣ Agrupar imputaciones por fecha sumando las horas
-    $groupedByDate = [];
-    foreach ($timesheets as $timesheet) {
-        $date = $timesheet->date;
-        if (!isset($groupedByDate[$date])) {
-            $groupedByDate[$date] = 0; // total minutos
+        if ($request->has('workspace_id') && $request->get('all') != 'true') {
+            $query->where('projects.workspace', '=', $request->workspace_id);
         }
-        list($h, $m, $s) = explode(':', $timesheet->time);
-        $groupedByDate[$date] += ($h * 60) + $m; // sumar minutos
-    }
 
-    // 2️⃣ Generar calendarData con total horas por fecha
-    $calendarData = [];
-    foreach ($groupedByDate as $date => $totalMinutes) {
-        $hours = floor($totalMinutes / 60);
-        $minutes = $totalMinutes % 60;
-        $formatted = sprintf('%02d:%02d', $hours, $minutes);
+        $timesheets = $query->get();
 
-        $calendarData[] = [
-            'date' => $date,
-            'dayOfWeek' => $this->getDayOfWeek($date),
-            'hours' => $formatted,
+        // Obtener el horario del usuario
+        $timetable = UserTimetable::where('user_id', $userId)->first();
+        if (!$timetable) {
+            return response()->json(['error' => 'No timetable found'], 404);
+        }
+
+        // Horas esperadas por día
+        $expectedHours = [
+            'monday' => $timetable->monday,
+            'tuesday' => $timetable->tuesday,
+            'wednesday' => $timetable->wednesday,
+            'thursday' => $timetable->thursday,
+            'friday' => $timetable->friday,
+            'saturday' => $timetable->saturday,
+            'sunday' => $timetable->sunday,
         ];
-    }
 
-    $today = Carbon::now()->toDateString();
-    $currentYear = Carbon::now()->year;
-
-    // Generar todas las semanas del año
-    $startOfYear = Carbon::create($currentYear, 1, 1)->startOfWeek();
-    $endOfYear = Carbon::create($currentYear, 12, 31)->endOfWeek();
-    $period = CarbonPeriod::create($startOfYear, '1 week', $endOfYear);
-
-    $colorData = [];
-
-    foreach ($period as $weekStartDate) {
-        $weekStartDate = $weekStartDate->startOfWeek();
-        $weekDays = $this->getWeekDaysOfMonth($weekStartDate->toDateString());
-
-        foreach ($weekDays['datePeriod'] as $currentDate) {
-            $dayOfWeek = strtolower($this->getDayOfWeek($currentDate));
-            $expectedHour = $expectedHours[$dayOfWeek] ?? null;
-
-            // Excluir días futuros
-            if ($currentDate > $today) {
-                continue;
+        // 1️⃣ Agrupar imputaciones por fecha sumando las horas
+        $groupedByDate = [];
+        foreach ($timesheets as $timesheet) {
+            $date = $timesheet->date;
+            if (!isset($groupedByDate[$date])) {
+                $groupedByDate[$date] = 0; // total minutos
             }
+            list($h, $m, $s) = explode(':', $timesheet->time);
+            $groupedByDate[$date] += ($h * 60) + $m; // sumar minutos
+        }
 
-            // Comprobar horas trabajadas para este día
-            $workedHours = '00:00';
-            $dayColor = '#e06c71'; // rojo por defecto
+        // 2️⃣ Generar calendarData con total horas por fecha
+        $calendarData = [];
+        foreach ($groupedByDate as $date => $totalMinutes) {
+            $hours = floor($totalMinutes / 60);
+            $minutes = $totalMinutes % 60;
+            $formatted = sprintf('%02d:%02d', $hours, $minutes);
 
-            foreach ($calendarData as $dataDay) {
-                if ($dataDay['date'] === $currentDate) {
-                    $workedHours = $dataDay['hours'];
+            $calendarData[] = [
+                'date' => $date,
+                'dayOfWeek' => $this->getDayOfWeek($date),
+                'hours' => $formatted,
+            ];
+        }
 
-                    if ($workedHours == '00:00') {
-                        $dayColor = '#e06c71'; // rojo
-                    } elseif ($workedHours < $expectedHour) {
-                        $dayColor = '#fcf75e'; // amarillo
-                    } elseif ($workedHours == $expectedHour) {
-                        $dayColor = '#89e186'; // verde
-                    } elseif ($workedHours > $expectedHour) {
-                        $dayColor = '#b2e2f2'; // azul
+        $today = Carbon::now()->toDateString();
+        $currentYear = Carbon::now()->year;
+
+        // Generar todas las semanas del año
+        $startOfYear = Carbon::create($currentYear, 1, 1)->startOfWeek();
+        $endOfYear = Carbon::create($currentYear, 12, 31)->endOfWeek();
+        $period = CarbonPeriod::create($startOfYear, '1 week', $endOfYear);
+
+        $colorData = [];
+
+        foreach ($period as $weekStartDate) {
+            $weekStartDate = $weekStartDate->startOfWeek();
+            $weekDays = $this->getWeekDaysOfMonth($weekStartDate->toDateString());
+
+            foreach ($weekDays['datePeriod'] as $currentDate) {
+                $dayOfWeek = strtolower($this->getDayOfWeek($currentDate));
+                $expectedHour = $expectedHours[$dayOfWeek] ?? null;
+
+                // Excluir días futuros
+                if ($currentDate > $today) {
+                    continue;
+                }
+
+                // Comprobar horas trabajadas para este día
+                $workedHours = '00:00';
+                $dayColor = '#e06c71'; // rojo por defecto
+
+                foreach ($calendarData as $dataDay) {
+                    if ($dataDay['date'] === $currentDate) {
+                        $workedHours = $dataDay['hours'];
+
+                        if ($workedHours == '00:00') {
+                            $dayColor = '#e06c71'; // rojo
+                        } elseif ($workedHours < $expectedHour) {
+                            $dayColor = '#fcf75e'; // amarillo
+                        } elseif ($workedHours == $expectedHour) {
+                            $dayColor = '#89e186'; // verde
+                        } elseif ($workedHours > $expectedHour) {
+                            $dayColor = '#b2e2f2'; // azul
+                        }
+
+                        break;
                     }
+                }
 
-                    break;
+                // Si no hay imputaciones pero es un día pasado y tiene horario esperado
+                if (!isset($groupedByDate[$currentDate]) && $currentDate < $today && $expectedHour !== null) {
+                    $workedHours = '00:00';
+                    $dayColor = '#e06c71'; // rojo
+                }
+
+                if ($expectedHour !== null) {
+                    $colorData[] = [
+                        'dayOfWeek' => ucfirst($dayOfWeek),
+                        'date' => $currentDate,
+                        'hours' => $workedHours,
+                        'color' => $dayColor,
+                    ];
                 }
             }
+        }
 
-            // Si no hay imputaciones pero es un día pasado y tiene horario esperado
-            if (!isset($groupedByDate[$currentDate]) && $currentDate < $today && $expectedHour !== null) {
-                $workedHours = '00:00';
-                $dayColor = '#e06c71'; // rojo
+        // Obtener festivos y jornadas intensivas
+        $rangeDays = DB::table('user_timetable')
+            ->where('user_id', $userId)
+            ->select('range_holidays', 'range_intensive_workday')
+            ->first();
+
+        $specialColorData = [];
+
+        // Festivos
+        if (isset($rangeDays) && !is_null($rangeDays->range_holidays)) {
+            $holidays = json_decode($rangeDays->range_holidays, true);
+            $holidayDays = [];
+            foreach ($holidays as $day) {
+                $holidayDays[] = $day;
             }
+            $specialColorData['holidayRange'] = $holidayDays;
+            $specialColorData['holidayColor'] = '#91DDCF'; // color festivo
+        }
 
-            if ($expectedHour !== null) {
-                $colorData[] = [
-                    'dayOfWeek' => ucfirst($dayOfWeek),
-                    'date' => $currentDate,
-                    'hours' => $workedHours,
-                    'color' => $dayColor,
+        // Jornadas intensivas
+        if (isset($rangeDays) && !is_null($rangeDays->range_intensive_workday)) {
+            $intensiveWorkdays = json_decode($rangeDays->range_intensive_workday, true);
+
+            $intensiveData = [];
+            foreach ($intensiveWorkdays as $hours => $days) {
+                foreach ($days as $day) {
+                    $intensiveData[$hours][] = $day;
+                }
+            }
+            $specialColorData['intensiveWorkRange'] = $intensiveData;
+            $specialColorData['intensiveWorkColor'] = '#89A8B2'; // color intensivo
+        }
+
+        return response()->json([
+            'calendarData' => $calendarData,
+            'expectedHours' => $expectedHours,
+            'colorData' => $colorData,
+            'specialColorData' => $specialColorData,
+        ]);
+    }
+
+    public function getTasksByDate(Request $request)
+    {
+        $userId = Auth::id();
+        $date = $request->query('date');
+
+        if (!$date) {
+            return response()->json(['error' => 'No date provided'], 400);
+        }
+
+        // Obtener todos los timesheets del usuario para esa fecha
+        $query = DB::table('timesheets')
+            ->join('tasks', 'timesheets.task_id', '=', 'tasks.id')
+            ->join('projects', 'timesheets.project_id', '=', 'projects.id')
+            ->join('workspaces', 'projects.workspace', '=', 'workspaces.id')
+            ->leftJoin('milestones', 'tasks.milestone_id', '=', 'milestones.id')
+            ->leftJoin('task_types', 'tasks.type_id', '=', 'task_types.id')
+            ->where('timesheets.date', '=', $date)
+            ->whereRaw("find_in_set('" . $userId . "',tasks.assign_to)")
+            ->select('projects.name as project_name', 'milestones.title as milestone_title', 'task_types.name as task_title', 'timesheets.time', 'tasks.id as task_id', 'workspaces.name as workspace_name');
+
+        if ($request->has('workspace_id') && $request->get('all') != 'true') {
+            $query->where('projects.workspace', '=', $request->workspace_id);
+        }
+
+        $timesheets = $query->get();
+
+        // Agrupar por proyecto y milestone para mostrar desglose
+        $tasks = [];
+        $totalMinutes = 0;
+
+        foreach ($timesheets as $timesheet) {
+            $milestoneTitle = $timesheet->milestone_title ?? $timesheet->task_title;
+            // Clave única considerando el workspace para diferenciar proyectos con mismo nombre en diferentes workspaces
+            $key = $timesheet->project_name . '_' . $milestoneTitle . '_' . $timesheet->task_title . '_' . $timesheet->workspace_name;
+
+            if (!isset($tasks[$key])) {
+                $tasks[$key] = [
+                    'projectName' => $timesheet->project_name,
+                    'workspaceName' => $timesheet->workspace_name,
+                    'milestoneTitle' => $milestoneTitle,
+                    'taskTitle' => $timesheet->task_title,
+                    'totalTime' => 0,
+                    'totalMinutes' => 0
                 ];
             }
+
+            list($h, $m, $s) = explode(':', $timesheet->time);
+            $minutes = ($h * 60) + $m;
+            $tasks[$key]['totalMinutes'] += $minutes;
+            $totalMinutes += $minutes;
         }
-    }
 
-    // Obtener festivos y jornadas intensivas
-    $rangeDays = DB::table('user_timetable')
-        ->where('user_id', $userId)
-        ->select('range_holidays', 'range_intensive_workday')
-        ->first();
-
-    $specialColorData = [];
-
-    // Festivos
-    if (isset($rangeDays) && !is_null($rangeDays->range_holidays)) {
-        $holidays = json_decode($rangeDays->range_holidays, true);
-        $holidayDays = [];
-        foreach ($holidays as $day) {
-            $holidayDays[] = $day;
+        // Formatear horas
+        foreach ($tasks as &$task) {
+            $hours = floor($task['totalMinutes'] / 60);
+            $minutes = $task['totalMinutes'] % 60;
+            $task['totalTime'] = sprintf('%02d:%02d', $hours, $minutes);
         }
-        $specialColorData['holidayRange'] = $holidayDays;
-        $specialColorData['holidayColor'] = '#91DDCF'; // color festivo
+
+        $totalHours = floor($totalMinutes / 60);
+        $totalMins = $totalMinutes % 60;
+        $formattedTotalHours = sprintf('%02d:%02d', $totalHours, $totalMins);
+
+        return response()->json([
+            'tasks' => array_values($tasks),
+            'formattedTotalHours' => $formattedTotalHours,
+            'date' => $date
+        ]);
     }
-
-    // Jornadas intensivas
-    if (isset($rangeDays) && !is_null($rangeDays->range_intensive_workday)) {
-        $intensiveWorkdays = json_decode($rangeDays->range_intensive_workday, true);
-
-        $intensiveData = [];
-        foreach ($intensiveWorkdays as $hours => $days) {
-            foreach ($days as $day) {
-                $intensiveData[$hours][] = $day;
-            }
-        }
-        $specialColorData['intensiveWorkRange'] = $intensiveData;
-        $specialColorData['intensiveWorkColor'] = '#89A8B2'; // color intensivo
-    }
-
-    return response()->json([
-        'calendarData' => $calendarData,
-        'expectedHours' => $expectedHours,
-        'colorData' => $colorData,
-        'specialColorData' => $specialColorData,
-    ]);
-}
-
-
 }

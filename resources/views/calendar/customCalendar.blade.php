@@ -181,7 +181,18 @@
 
             let selectedDates = [];
 
-            let range = [];
+            // Cargar fechas guardadas si existen
+            try {
+                const stored = localStorage.getItem('DateSelectedRange');
+                if (stored) {
+                    selectedDates = JSON.parse(stored);
+                    if (!Array.isArray(selectedDates)) selectedDates = [];
+                }
+            } catch (e) {
+                console.error("Error loading dates", e);
+                selectedDates = [];
+            }
+
 
             // Crear el desplegable de meses
             monthNames.forEach((month, index) => {
@@ -254,98 +265,48 @@
             }
 
             function handleDayClick(dayElement) {
-                console.log("dayElement", dayElement);
                 const selectedDate = dayElement.dataset.date;
 
-                console.log("selectedDate", selectedDate);
-
-                if (!startDate) {
-                    startDate = selectedDate;
-                    endDate = null;
-                    dayElement.classList.add("selected");
-                    selectedDates = [startDate];
-                    range = [startDate]; // ✅ ESTO ES CLAVE
-                    localStorage.setItem('DateSelectedRange', JSON.stringify(range)); // ✅ GUARDAR UN SOLO DÍA
-                } else if (!endDate) {
-                    endDate = selectedDate;
-
-                    // Asegurar el orden correcto de fechas
-                    if (new Date(startDate) > new Date(endDate)) {
-                        [startDate, endDate] = [endDate, startDate];
-                    }
-
-                    console.log("startDate", startDate);
-                    range = getDateRange(new Date(startDate), new Date(endDate));
-                    console.log("range", range);
-                    highlightRange(range);
-
-                    //save range to a localstorage
-                    localStorage.setItem('DateSelectedRange', JSON.stringify(range));
+                if (selectedDates.includes(selectedDate)) {
+                    // Si ya está seleccionado, lo quitamos
+                    selectedDates = selectedDates.filter(date => date !== selectedDate);
+                    dayElement.classList.remove("selected");
                 } else {
-                    clearSelection();
-                    startDate = selectedDate;
-                    endDate = null;
+                    // Si no está, lo agregamos
+                    selectedDates.push(selectedDate);
                     dayElement.classList.add("selected");
-                    selectedDates = [startDate];
                 }
+
+                // Guardamos en localStorage
+                localStorage.setItem('DateSelectedRange', JSON.stringify(selectedDates));
             }
 
             function selectAllDaysOfWeek(dayIndex) {
-                let newSelectedDates = [];
-
                 document.querySelectorAll(".calendar-day").forEach(day => {
+                    if (day.classList.contains('disabled')) return;
+
                     if (parseInt(day.dataset.dayIndex) === dayIndex) {
-                        if (!day.classList.contains("selected")) {
+                        const date = day.dataset.date;
+                        if (!selectedDates.includes(date)) {
                             day.classList.add("selected");
-                            selectedDates.push(day.dataset.date);
-                            newSelectedDates.push(day.dataset.date);
+                            selectedDates.push(date);
                         } else {
                             day.classList.remove("selected");
-                            selectedDates = selectedDates.filter(date => date !== day.dataset.date);
+                            selectedDates = selectedDates.filter(d => d !== date);
                         }
                     }
                 });
 
-                // Add the new selected dates to the range array and remove duplicates
-                range = [...new Set([...range, ...newSelectedDates])];
-
-                // Save updated range to local storage
-                localStorage.setItem('DateSelectedRange', JSON.stringify(range));
-
-                console.log("Updated range:", range);
-            }
-
-
-            function getDateRange(start, end) {
-                let range = [];
-                let currentDate = new Date(start);
-
-                while (currentDate <= end) {
-                    range.push(currentDate.toISOString().split("T")[0]);
-                    currentDate.setDate(currentDate.getDate() + 1);
-                }
-                return range;
-            }
-
-            function highlightRange(range) {
-                selectedDates = range;
-                document.querySelectorAll(".calendar-day").forEach(day => {
-                    if (selectedDates.includes(day.dataset.date)) {
-                        day.classList.add("selected");
-                    }
-                });
+                // Guardar en localStorage
+                localStorage.setItem('DateSelectedRange', JSON.stringify(selectedDates));
             }
 
             function clearSelection() {
                 selectedDates = [];
-                range = [];
-                startDate = null;
-                endDate = null;
                 document.querySelectorAll(".calendar-day").forEach(day => {
                     day.classList.remove("selected");
                 });
                 localStorage.removeItem('DateSelectedRange');
-                console.log("Selections cleared.");
             }
 
 

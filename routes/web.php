@@ -650,9 +650,11 @@ Route::get('/{slug}/projects/milestone-board/{id}/asign', [ProjectController::cl
 Route::post('/{slug}/projects/milestone-board/{id}/wait', [ProjectController::class, 'waitMilestone'])->name('projects.milestone.wait')->middleware(['auth', 'XSS']);
 Route::post('/{slug}/projects/milestone-board/{id}/resume', [ProjectController::class, 'resumeMilestone'])->name('projects.milestone.resume')->middleware(['auth', 'XSS']);
 
-Route::post('/{slug}/milestone/{id}/clear-finalization-date', 
-    [ProjectController::class, 'clearFinalizationDate'])
-    ->name('projects.milestone.clearFinalizationDate');
+Route::post(
+  '/{slug}/milestone/{id}/clear-finalization-date',
+  [ProjectController::class, 'clearFinalizationDate']
+)
+  ->name('projects.milestone.clearFinalizationDate');
 
 
 Route::get('/{slug}/projects/milestone-board/{id}/workload', [ProjectController::class, 'milestoneWorkload'])->name('projects.milestone.workload')->middleware(['auth', 'XSS']);
@@ -1026,6 +1028,7 @@ Route::get('/user/get-timetable', [UserController::class, 'getTimetable'])->name
 
 //Get timesheet of the calendar 
 Route::get('/get-timesheetCalendar', [CalenderController::class, 'getTimesheetColor'])->name('calender.getTimesheetColor');
+Route::get('/get-tasks-by-date', [CalenderController::class, 'getTasksByDate'])->name('calender.getTasksByDate');
 
 //Download project files
 Route::post('/projects/download-file', [ProjectController::class, 'downloadFile'])->name('project.downloadFile');
