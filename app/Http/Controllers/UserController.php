@@ -591,6 +591,9 @@ class UserController extends Controller
         // Handling holidays and intensive workdays separately
         if (isset($rangeAndInput['rangeDate'])) {
             $newDates = json_decode($rangeAndInput['rangeDate'], true);
+            if (!is_array($newDates)) {
+                $newDates = [];
+            }
 
             if (isset($rangeAndInput['intensiveWorkday']) && !empty($rangeAndInput['intensiveWorkday'])) {
                 // Handle intensive workday storage
@@ -606,30 +609,20 @@ class UserController extends Controller
                 }
 
                 // Add or update the intensive workday dates with the provided time
-                foreach ($newDates as $date) {
-                    $existingIntensiveWorkdays[$newIntensiveHours][] = $date;
-                }
+                // Overwrite the dates for the specific hour to allow removal
+                $existingIntensiveWorkdays[$newIntensiveHours] = $newDates;
 
                 // Ensure unique dates under each hour key
                 foreach ($existingIntensiveWorkdays as $hour => $dates) {
-                    $existingIntensiveWorkdays[$hour] = array_unique($dates);
+                    $existingIntensiveWorkdays[$hour] = array_values(array_unique($dates));
                 }
 
                 $updateData['range_intensive_workday'] = json_encode($existingIntensiveWorkdays);
             } else {
                 // Handle holiday storage when no intensive workday is provided
-                $existingHolidays = $existingData && $existingData->range_holidays
-                    ? json_decode($existingData->range_holidays, true)
-                    : [];
 
-                if (!is_array($existingHolidays)) {
-                    $existingHolidays = [];
-                }
-
-                // Merge new holidays and ensure uniqueness
-                $mergedHolidays = array_unique(array_merge($existingHolidays, $newDates));
-
-                $updateData['range_holidays'] = json_encode($mergedHolidays);
+                // Overwrite holidays with new dates to allow removal
+                $updateData['range_holidays'] = json_encode(array_values(array_unique($newDates)));
             }
         }
 

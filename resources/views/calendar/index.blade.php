@@ -40,13 +40,26 @@
         padding-right: 4%;
     }
 
+    /* Centrar título del calendario */
+    .fc-header-toolbar {
+        position: relative;
+    }
+
+    .fc-toolbar-chunk:nth-child(2) {
+        position: absolute;
+        left: 50%;
+        transform: translateX(-50%);
+    }
+
     .pTotalHours {
         background-color: white;
         color: black;
         padding-top: 2%;
-        padding-left: 1%;
-        border-radius: 10px;
-        width: 40%;
+        /* padding-left: 1%; */
+        /* border-radius: 10px; */
+        width: 100%;
+        text-align: center;
+        border-top: 3px dashed #aa182C;
     }
 
     .divIconTask {
@@ -72,6 +85,116 @@
         color: #0000008a;
         margin-top: -14px;
         padding-left: 20px;
+    }
+
+    /* Estilos para acordeón de proyectos */
+    .project-accordion {
+        list-style: none;
+        padding: 0;
+    }
+
+    .project-item {
+        margin-bottom: 12px;
+    }
+
+    .project-header {
+        background: linear-gradient(135deg, #AA182C 0%, #642e35 100%);
+        color: white;
+        padding: 12px 15px;
+        border-radius: 8px;
+        cursor: pointer;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    }
+
+    .project-header:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+    }
+
+    .project-header .icon {
+        transition: transform 0.3s ease;
+        font-size: 18px;
+    }
+
+    .project-header.collapsed .icon {
+        transform: rotate(0deg);
+    }
+
+    .project-header.expanded .icon {
+        transform: rotate(180deg);
+    }
+
+    .project-content {
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height 0.35s ease, opacity 0.35s ease, padding 0.35s ease;
+        opacity: 0;
+        padding: 0;
+    }
+
+    .project-content.expanded {
+        max-height: 1000px;
+        opacity: 1;
+        padding: 10px 0;
+    }
+
+    .task-item {
+        background-color: #f8f9fa;
+        border-left: 4px solid #AA182C;
+        padding: 10px 12px;
+        margin: 8px 0;
+        border-radius: 4px;
+        transition: all 0.3s ease;
+        animation: slideIn 0.3s ease forwards;
+    }
+
+    .task-item:hover {
+        background-color: #e9ecef;
+        border-left-color: #642e35;
+        transform: translateX(4px);
+    }
+
+    @keyframes slideIn {
+        from {
+            opacity: 0;
+            transform: translateX(-10px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateX(0);
+        }
+    }
+
+    .task-item-label {
+        font-size: 11px;
+        color: #999;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 2px;
+    }
+
+    .task-item-text {
+        font-weight: 500;
+        color: #333;
+        margin: 2px 0px 8px 0px;
+        font-size: 13px;
+        max-width: 100%;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .task-item-time {
+        font-size: 12px;
+        color: #AA182C;
+        font-weight: 600;
+        margin-top: 4px;
     }
 
     @media (max-width: 576px) {
@@ -140,8 +263,8 @@
 @endsection
 
 @section('multiple-action-button')
-    <!-- Filtro para seleccionar el proyecto -->
-    <div class="col-xl-4 col-lg-4 col-md-4 col-sm-6 col-8 pt-lg-3 pt-xl-2">
+    <!-- Filtro para seleccionar el proyecto (comentado para mostrar todos los proyectos) -->
+    {{-- <div class="col-xl-4 col-lg-4 col-md-4 col-sm-6 col-8 pt-lg-3 pt-xl-2">
         <div class="form-group col-auto">
             <select class="form-select select2" id="project_id" onchange="get_data()">
                 <option value="">{{ __('All Projects') }}</option>
@@ -152,15 +275,20 @@
                 @endforeach
             </select>
         </div>
-    </div>
+    </div> --}}
 @endsection
 
 @section('content')
     <div class="row">
         <div class="col-lg-8 testCol">
             <div class="card">
-                <div class="card-header">
+                <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
                     <h5>{{ __('Calendar') }}</h5>
+                    <select id="workspace-select" class="form-select"
+                        style="width: auto; display: inline-block; font-size: 0.9rem; padding: 0.25rem 2.5rem 0.25rem 0.75rem; cursor: pointer; font-weight: 500;">
+                        <option value="current" selected>{{ __('Current Workspace') }}</option>
+                        <option value="all">{{ __('All Workspaces') }}</option>
+                    </select>
                 </div>
                 <div class="card-body">
                     <div id="calendar" class="calendar"></div>
@@ -170,36 +298,15 @@
         <div class="col-lg-4 responsiveDivCalendarTask">
             <div class="card">
                 <div class="card-header">
-                    <h5>{{ __('Tasks') }}</h5>
+                    <h5>{{ __('Tasks') }}<span id="selected-date"
+                            style="margin-left: 10px; font-size: 0.8em; color: #666;"></span></h5>
                 </div>
                 <div class="card-body">
                     <ul class="list-unstyled" id="task-list">
-                        @if (isset($tasks) && count($tasks) > 0)
-                            @foreach ($tasks as $task)
-                                @php
-                                    $milestoneTitle = isset($milestones[$task->milestone_id])
-                                        ? $milestones[$task->milestone_id]->title
-                                        : $task->title;
-                                    $taskTitle = __($task->type_name) ?? 'No Type';
-                                    $taskTime = $taskHours[$task->id] ?? '00:00';
-                                @endphp
-                                <li class="liStyleTask">
-                                    <div class="divIconTask">
-                                        <i class="fa-solid fa-list-check iStyleTask"></i>
-                                    </div>
-                                    <div class="divAlignP">
-                                        <p class="titleTask milestoneTitle">{{ $milestoneTitle }} </p>
-                                        <p class="titleTask">{{ $taskTitle }}</p>
-                                        <p class="subtitleTask"> ({{ $taskTime }})</p>
-                                    </div>
-                                </li>
-                            @endforeach
-                        @else
-                            <p>{{ __('No tasks available') }}</p>
-                        @endif
+                        <p>{{ __('Select a day to view tasks') }}</p>
                     </ul>
-                    <p class="pTotalHours"><strong>{{ __('Total Hours:') }} </strong><span
-                            id="total-hours">{{ $formattedTotalHours }}</span></p>
+                    <p class="pTotalHours"><strong>{{ __('Total Hours:') }} </strong><span id="total-hours">00:00</span>
+                    </p>
                 </div>
             </div>
         </div>
@@ -208,17 +315,15 @@
 
 @push('scripts')
     <script>
+        let calendar;
+        const currentWorkspaceId = "{{ $currentWorkspace->id }}";
+
         $(document).ready(function() {
 
             // Deshabilitar el scroll
             document.body.style.overflow = 'hidden';
 
-            get_data();
             getCalendarInfo();
-            // Agregar evento de cambio para el filtro
-            $('#project_id').on('change', function() {
-                get_data();
-            });
 
             adjustLayout();
 
@@ -246,10 +351,15 @@
 
         function getCalendarInfo() {
             const operationUrl = '<?php echo url('get-timesheetCalendar'); ?>';
+            const mode = $('#workspace-select').val() || 'current';
 
             $.ajax({
                 type: 'GET',
                 url: operationUrl,
+                data: {
+                    workspace_id: currentWorkspaceId,
+                    all: mode === 'all'
+                },
                 headers: {
                     'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                 },
@@ -302,7 +412,8 @@
                                 backgroundColor: hexToRgba(item.color, opacity),
                                 borderColor: item.color,
                                 textColor: 'black',
-                                allDay: true
+                                allDay: true,
+                                date: item.date
                             }));
 
                         if (data.specialColorData && data.specialColorData.holidayRange) {
@@ -359,7 +470,14 @@
             const calendarEl = document.getElementById('calendar');
             const locale = '{{ app()->getLocale() }}';
 
-            const calendar = new FullCalendar.Calendar(calendarEl, {
+            if (calendar) {
+                calendar.removeAllEvents();
+                calendar.addEventSource(events);
+                document.getElementById('loader-overlay').style.display = 'none';
+                return;
+            }
+
+            calendar = new FullCalendar.Calendar(calendarEl, {
                 locale: locale,
                 initialView: 'dayGridMonth',
                 firstDay: 1,
@@ -372,7 +490,42 @@
                     today: "{{ trans('messages.today') }}"
                 },
                 events: events,
+                dateClick: function(info) {
+                    // Al hacer clic en un día, obtener las tareas
+                    const selectedDate = info.dateStr;
 
+                    // Remover la clase de todos los días
+                    document.querySelectorAll('.fc-daygrid-day.fc-day-today').forEach(el => {
+                        el.classList.remove('fc-day-today');
+                    });
+
+                    // Agregar la clase al día seleccionado
+                    info.dayEl.classList.add('fc-day-today');
+
+                    loadTasksByDate(selectedDate);
+                },
+                eventClick: function(info) {
+                    if (info.event.extendedProps.type === 'holiday' || info.event.extendedProps.type ===
+                        'intensive_work') {
+                        showDeleteModal(info.event);
+                    } else {
+                        // Cargar tareas para ese día
+                        const selectedDate = info.event.startStr;
+
+                        // Remover la clase de todos los días
+                        document.querySelectorAll('.fc-daygrid-day.fc-day-today').forEach(el => {
+                            el.classList.remove('fc-day-today');
+                        });
+
+                        // Buscar y agregar la clase al día padre del evento
+                        const dayCell = info.el.closest('.fc-daygrid-day');
+                        if (dayCell) {
+                            dayCell.classList.add('fc-day-today');
+                        }
+
+                        loadTasksByDate(selectedDate);
+                    }
+                },
                 eventDidMount: function(info) {
                     if (info.event.extendedProps.type === 'holiday' || info.event.extendedProps.type ===
                         'intensive_work') {
@@ -399,6 +552,149 @@
             document.body.style.overflow = 'auto';
             //esconder el loader
             document.getElementById('loader-overlay').style.display = 'none';
+
+            // Seleccionar el día de hoy por defecto
+            const today = new Date().toISOString().split('T')[0];
+            const todayElement = document.querySelector(`[data-date="${today}"]`);
+            if (todayElement) {
+                todayElement.classList.add('fc-day-today');
+            }
+            loadTasksByDate(today);
+
+            // Add Workspace Select Dropdown event listener
+            $('#workspace-select').on('change', function() {
+                // Show loader
+                document.getElementById('loader-overlay').style.display = 'flex';
+
+                getCalendarInfo();
+                const selectedDate = document.querySelector('.fc-day-today') ?
+                    document.querySelector('.fc-day-today').getAttribute('data-date') :
+                    new Date().toISOString().split('T')[0];
+                loadTasksByDate(selectedDate);
+            });
+        }
+
+        function loadTasksByDate(date) {
+            const url = '<?php echo url('get-tasks-by-date'); ?>';
+            const mode = $('#workspace-select').val() || 'current';
+
+            $.ajax({
+                type: 'GET',
+                url: url,
+                data: {
+                    date: date,
+                    workspace_id: currentWorkspaceId,
+                    all: mode === 'all'
+                },
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                },
+                success: function(response) {
+                    console.log("Tasks loaded:", response);
+
+                    // Actualizar el encabezado con la fecha seleccionada
+                    const dateObj = new Date(date + 'T00:00:00');
+                    const formattedDate = dateObj.toLocaleDateString('{{ app()->getLocale() }}', {
+                        weekday: 'long',
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric'
+                    });
+                    $('#selected-date').text('(' + formattedDate + ')');
+
+                    // Limpiar lista de tareas
+                    const taskList = $('#task-list');
+                    taskList.empty();
+
+                    if (response.tasks && response.tasks.length > 0) {
+                        // Agrupar tareas por proyecto (y workspace si aplica)
+                        const projectsMap = {};
+
+                        response.tasks.forEach(function(task) {
+                            // Crear clave única combinando proyecto y workspace para evitar mezclar si hay nombres repetidos
+                            const key = mode === 'all' ? `${task.projectName}__${task.workspaceName}` :
+                                task.projectName;
+
+                            if (!projectsMap[key]) {
+                                projectsMap[key] = {
+                                    projectName: task.projectName,
+                                    workspaceName: task.workspaceName,
+                                    tasks: []
+                                };
+                            }
+                            projectsMap[key].tasks.push(task);
+                        });
+
+                        // Crear acordeón por proyectos
+                        const accordion = document.createElement('ul');
+                        accordion.className = 'project-accordion';
+
+                        Object.values(projectsMap).forEach(function(group, index) {
+                            const projectItem = document.createElement('li');
+                            projectItem.className = 'project-item';
+
+                            let headerText = group.projectName;
+
+                            const projectHeader = document.createElement('div');
+                            projectHeader.className = 'project-header collapsed';
+                            projectHeader.innerHTML = `
+                                <span>${headerText}</span>
+                                <span class="icon"><i class="fa-solid fa-chevron-down"></i></span>
+                            `;
+
+                            const projectContent = document.createElement('div');
+                            projectContent.className = 'project-content';
+
+                            // Agregar tareas del proyecto
+                            group.tasks.forEach(function(task) {
+                                const taskItem = document.createElement('div');
+                                taskItem.className = 'task-item';
+
+                                let workspaceHtml = '';
+                                if (mode === 'all' && task.workspaceName) {
+                                    workspaceHtml = `
+                                        <div class="task-item-label">{{ __('Workspace') }}</div>
+                                        <div class="task-item-text">${task.workspaceName}</div>
+                                    `;
+                                }
+
+                                taskItem.innerHTML = `
+                                ${workspaceHtml}
+                                    <div class="task-item-label">{{ __('Milestone') }}</div>
+                                    <div class="task-item-text">${task.milestoneTitle}</div>
+                                    <div class="task-item-label">{{ __('Task') }}</div>
+                                    <div class="task-item-text">${task.taskTitle}</div>
+                                    
+                                    <div class="task-item-time">⏱️ ${task.totalTime}</div>
+                                `;
+                                projectContent.appendChild(taskItem);
+                            });
+
+                            // Event listener para expandir/contraer
+                            projectHeader.addEventListener('click', function() {
+                                projectHeader.classList.toggle('collapsed');
+                                projectHeader.classList.toggle('expanded');
+                                projectContent.classList.toggle('expanded');
+                            });
+
+                            projectItem.appendChild(projectHeader);
+                            projectItem.appendChild(projectContent);
+                            accordion.appendChild(projectItem);
+                        });
+
+                        taskList.append(accordion);
+                    } else {
+                        taskList.append('<p>{{ __('No tasks available') }}</p>');
+                    }
+
+                    // Actualizar las horas totales
+                    $('#total-hours').text(response.formattedTotalHours);
+                },
+                error: function(xhr) {
+                    console.error("Error loading tasks:", xhr.responseText);
+                    $('#task-list').html('<p>{{ __('Error loading tasks') }}</p>');
+                }
+            });
         }
 
         function showDeleteModal(event) {
@@ -425,136 +721,6 @@
                 },
                 error: function(xhr) {
                     alert("An error occurred while deleting the event.");
-                    console.error(xhr.responseText);
-                }
-            });
-        }
-        // Función para verificar si una fecha está en días festivos o de trabajo intensivo
-        function isDateRestricted(date) {
-            let formattedDate = date.toISOString().split('T')[0];
-
-            // Comprobar si la fecha está en los días festivos
-            if (data.specialColorData.holidayRange.includes(formattedDate)) {
-                return {
-                    restricted: true,
-                    message: 'This is a holiday. No work can be logged.'
-                };
-            }
-
-            // Comprobar si la fecha tiene jornada intensiva
-            for (const [hours, days] of Object.entries(data.specialColorData.intensiveWorkRange)) {
-                if (days.includes(formattedDate)) {
-                    return {
-                        restricted: true,
-                        message: `Intensive work day (${hours} hours). Adjust your schedule accordingly.`
-                    };
-                }
-            }
-
-            return {
-                restricted: false
-            };
-        }
-
-        function get_data() {
-            var project_id = $('#project_id').val();
-            $.ajax({
-                url: $("#path_admin").val() + "/calendarr",
-                method: "GET",
-                data: {
-                    'project_id': project_id
-                },
-                success: function(response) {
-                    /*
-                                var filteredEvents = response.events.filter(event => event.start !== null);
-
-                                var milestoneColors = {};
-                                var predefinedColors = [
-                                    '#A5BFF0', '#8797D9', '#B0A8F5', '#C3B1E1', '#B39DD6',
-                                    '#9FA8DA', '#7986CB', '#8E99F3', '#6D8ACF', '#A59FD8'
-                                ];
-
-                                function getMilestoneColor(id) {
-                                    if (!milestoneColors[id]) {
-                                        var colorIndex = Object.keys(milestoneColors).length % predefinedColors.length;
-                                        milestoneColors[id] = predefinedColors[colorIndex];
-                                    }
-                                    return milestoneColors[id];
-                                }
-
-                                // Asignar colores a los eventos
-                                filteredEvents = filteredEvents.map(event => {
-                                    event.backgroundColor = getMilestoneColor(event.milestone_id);
-                                    event.borderColor = event.backgroundColor;
-                                    event.textColor = 'white';
-                                    return event;
-                                });
-
-                                // Actualizar el calendario
-                                var calendarEl = document.getElementById('calendar');
-                                var locale = '{{ app()->getLocale() }}';
-
-                                var calendar = new FullCalendar.Calendar(calendarEl, {
-                                    locale: locale,
-                                    initialView: 'dayGridMonth', // Mostrar solo vista mensual
-                                    firstDay: 1, // Iniciar el calendario en lunes
-                                    headerToolbar: {
-                                        left: 'prev,next today',
-                                        center: 'title',
-                                        right: '' // Ocultar otras vistas
-                                    },
-                                    buttonText: {
-                                        today: "{{ trans('messages.today') }}",
-                                    },
-                                    events: filteredEvents,
-                                    eventClick: function(info) {
-                                        info.jsEvent.preventDefault();
-
-                                        // Obtén la URL actual
-                                        const currentUrl = window.location.href;
-
-                                        // Divide la URL por "/"
-                                        let splitUrl = currentUrl.split("/");
-
-                                        // Reemplaza la última parte del arreglo con "timesheet"
-                                        splitUrl[splitUrl.length - 1] = "timesheet";
-
-                                        // Une la URL de nuevo
-                                        let newUrl = splitUrl.join("/");
-
-                                        // Redirige al usuario a la nueva URL
-                                        window.location.href = newUrl;
-                                    }
-
-                                });
-                                calendar.render();
-                    */
-                    // Actualizar la lista de tareas
-                    var taskList = $('#task-list');
-                    taskList.empty(); // Limpiar la lista actual
-
-                    if (response.tasks.length > 0) {
-                        response.tasks.forEach(function(task) {
-                            var taskHtml = `<li class="liStyleTask">
-                                       <div class="divIconTask">
-                                        <i class="fa-solid fa-list-check iStyleTask"></i>
-                                        </div>
-                                        <div class="divAlignP">
-                                            <p class="titleTask milestoneTitle"> ${task.milestoneTitle}</p>
-                                            <p class="titleTask"> ${task.taskTitle}</p>
-                                            <p class="subtitleTask">(${task.taskTime})</p>
-                                       </div>
-                                    </li>`;
-                            taskList.append(taskHtml);
-                        });
-                    } else {
-                        taskList.append('<p>{{ __('No tasks available') }}</p>');
-                    }
-
-                    // Actualizar las horas totales
-                    $('#total-hours').text(response.formattedTotalHours);
-                },
-                error: function(xhr) {
                     console.error(xhr.responseText);
                 }
             });
