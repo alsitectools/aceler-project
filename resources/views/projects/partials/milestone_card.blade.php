@@ -121,7 +121,7 @@
 
                             {{-- Pausar --}}
                             <a href="#" class="dropdown-item"
-                                onclick="event.preventDefault(); document.getElementById('wait-milestone-{{ $milestone['id'] }}').submit();">
+                                onclick="event.preventDefault(); openPauseMilestoneModal({{ $milestone['id'] }}, '{{ $currentWorkspace->slug }}');">
                                 <i class="fa-regular fa-circle-pause"></i>
                                 {{ __('Wait Milestone') }}
                             </a>
@@ -309,3 +309,71 @@
 </div>
 
 <span class="empty-container" data-placeholder="Empty"></span>
+<!-- Modal para pausa de milestone con comentario -->
+<div class="modal fade" id="pauseMilestoneModal" tabindex="-1" role="dialog" aria-labelledby="pauseMilestoneModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="pauseMilestoneModalLabel">{{ __('Pause Milestone') }}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="pauseMilestoneForm" method="POST" style="display:none;">
+                @csrf
+            </form>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="pauseComment">{{ __('Pause Reason / Note') }}</label>
+                    <textarea class="form-control" id="pauseComment" name="pause_comment" rows="4" 
+                        placeholder="{{ __('Enter the reason for pausing this milestone...') }}"></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">{{ __('Cancel') }}</button>
+                <button type="button" class="btn btn-primary" onclick="submitPauseMilestone()">{{ __('Pause') }}</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function openPauseMilestoneModal(milestoneId, slug) {
+        // Guardar el ID y slug en el modal para usarlos después
+        document.getElementById('pauseMilestoneModal').dataset.milestoneId = milestoneId;
+        document.getElementById('pauseMilestoneModal').dataset.slug = slug;
+        
+        // Limpiar el textarea
+        document.getElementById('pauseComment').value = '';
+        
+        // Mostrar el modal
+        $('#pauseMilestoneModal').modal('show');
+    }
+
+    function submitPauseMilestone() {
+        const milestoneId = document.getElementById('pauseMilestoneModal').dataset.milestoneId;
+        const slug = document.getElementById('pauseMilestoneModal').dataset.slug;
+        const comment = document.getElementById('pauseComment').value;
+        
+        // Crear el formulario dinámicamente
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = '{{ route("projects.milestone.wait", [":slug", ":id"]) }}'.replace(':slug', slug).replace(':id', milestoneId);
+        
+        const csrfInput = document.createElement('input');
+        csrfInput.type = 'hidden';
+        csrfInput.name = '_token';
+        csrfInput.value = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+        form.appendChild(csrfInput);
+        
+        const commentInput = document.createElement('input');
+        commentInput.type = 'hidden';
+        commentInput.name = 'pause_comment';
+        commentInput.value = comment;
+        form.appendChild(commentInput);
+        
+        document.body.appendChild(form);
+        form.submit();
+        
+        // Cerrar el modal
+        $('#pauseMilestoneModal').modal('hide');
+    }
+</script>

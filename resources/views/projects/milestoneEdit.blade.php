@@ -59,7 +59,7 @@
                         <label for="milestone-title" class="col-form-label">{{ __('Milestone Title') }}</label>
                         <input type="text" class="form-control form-control-light" id="milestone-title"
                             placeholder="{{ __('Enter Title') }}" value="{{ $milestone->title }}" name="title"
-                            required disabled>
+                            required>
                     </div>
                 </div>
                 <div class="row">

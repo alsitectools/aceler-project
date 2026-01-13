@@ -447,26 +447,13 @@ class ProjectController extends Controller
     {
         $objUser = Auth::user();
         $currentWorkspace = Utility::getWorkspaceBySlug($slug);
-
-        // 🔍 LOGS DE DEBUGGING
-        \Log::info("=== SHOW PROJECT ===");
-        \Log::info("Slug recibido en ruta: " . $slug);
-        \Log::info("Project ID: " . $projectID);
-        \Log::info("currentWorkspace ID: " . ($currentWorkspace ? $currentWorkspace->id : 'NULL'));
-        \Log::info("currentWorkspace slug: " . ($currentWorkspace ? $currentWorkspace->slug : 'NULL'));
-        \Log::info("user current workspace (antes): " . $objUser->currant_workspace);
-        
         // � Validar que el proyecto pertenece a ese workspace y que el usuario es participante
-        $project = Project::select('projects.*')
-            ->join('user_projects', 'projects.id', '=', 'user_projects.project_id')
-            ->where('projects.workspace', $currentWorkspace->id)
-            ->where('projects.id', $projectID)
-            ->where('user_projects.user_id', $objUser->id)
+        $project = Project::where('workspace', $currentWorkspace->id)
+            ->where('id', $projectID)
             ->with('activities.user')
             ->first();
 
         if (!$project) {
-            \Log::error("Proyecto no encontrado para workspace_id: {$currentWorkspace->id}, project_id: {$projectID}");
             return redirect()->back()->with('error', __("Project Not Found."));
         }
 
@@ -494,10 +481,8 @@ class ProjectController extends Controller
         }
 
         if ($objUser && $currentWorkspace) {
-            $project = Project::select('projects.*')
-                ->join('user_projects', 'projects.id', '=', 'user_projects.project_id')
-                ->where('projects.workspace', '=', $currentWorkspace->id)
-                ->where('projects.id', '=', $projectID)
+            $project = Project::where('workspace', '=', $currentWorkspace->id)
+                ->where('id', '=', $projectID)
                 ->with('activities.user')
                 ->first();
 
@@ -1426,11 +1411,25 @@ class ProjectController extends Controller
 
     public function waitMilestone($slug, $milestoneID, Request $request)
     {
-        Milestone::where('id', $milestoneID)->update([
-            'is_waiting' => true
-        ]);
+        $milestone = Milestone::find($milestoneID);
+        
+        if (!$milestone) {
+            return redirect()->back()->with('error', __('Milestone not found.'));
+        }
 
-        return redirect()->back();
+        // Si hay un comentario, agregarlo al principio de la descripción existente
+        $pauseComment = $request->input('pause_comment');
+        if ($pauseComment) {
+            $timestamp = date('Y-m-d H:i:s'); //not used
+            $user = Auth::user()->name;
+            $newNote = "[Paused by $user]: \n\n$pauseComment\n\n";
+            $milestone->summary = $newNote . ($milestone->summary ?? '');
+        }
+
+        $milestone->is_waiting = true;
+        $milestone->save();
+
+        return redirect()->back()->with('success', __('Milestone paused successfully.'));
     }
 
     public function resumeMilestone($slug, $milestoneID, Request $request)
@@ -1799,6 +1798,18 @@ class ProjectController extends Controller
                 $user = Auth::user();
                 $milestone = Milestone::find($request->id);
                 $milestone->status = $request->new_status;
+                
+                // Si hay un comentario para el cambio de status (de review a en curso)
+                if ($request->has('status_change_comment') && !empty($request->status_change_comment)) {
+                    $comment = $request->status_change_comment;
+                    $timestamp = now()->format('Y-m-d H:i:s');
+                    $userName = $user->name;
+                    
+                    // Agregar el comentario al inicio de la descripción/summary
+                    $prefix = "[$userName] (Review → In Progress):\n$comment\n\n";
+                    $milestone->summary = $prefix . ($milestone->summary ?? '');
+                }
+                
                 $milestone->save();
 
                 if ($milestone->status == 4) {
@@ -1810,6 +1821,20 @@ class ProjectController extends Controller
                         $project->updateProjectStatus();
                     }
                 }
+                
+                // Si el cambio es de status 3 a 2, eliminar puntuaciones
+                if ($request->old_status == 3 && $request->new_status == 2) {
+                    try {
+                        \Log::info('Eliminando puntuaciones para milestone: ' . $milestone->id);
+                        \DB::table('evaluation_criteria_milestone')
+                            ->where('milestone_id', $milestone->id)
+                            ->delete();
+                        \Log::info('Puntuaciones eliminadas correctamente');
+                    } catch (\Exception $e) {
+                        \Log::error('Error al eliminar puntuaciones: ' . $e->getMessage());
+                    }
+                }
+                
                 $project->updateProjectStatus();
                 //Add log
                 $status = Stage::find($milestone->status);
@@ -2742,6 +2767,7 @@ class ProjectController extends Controller
             : $inputEndDate->toDateString();
 
         // Actualizar campos del milestone
+        $milestone->title = $request->title;
         $milestone->summary = $request->summary;
         // Solo actualizar milestone_assigned_to_user si viene con valor, de lo contrario mantener el actual
         if ($request->has('req_assing_to') && $request->req_assing_to !== '') {

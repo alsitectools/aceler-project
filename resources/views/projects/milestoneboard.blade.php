@@ -759,19 +759,24 @@
                                 .catch(error => console.error("Error al agregar notificación:", error));
                         }
                         if (oldStatus == 3 && newStatus == 2) {
-                            console.log("El milestone vuelve de estado 3 a 2 — eliminando puntuaciones...");
-                            $.ajax({
-                                url: '{{ route('projects.milestone.deletePuntuaciones', [$currentWorkspace->slug, ':id']) }}'
-                                    .replace(':id', cardId),
-                                type: 'POST',
-                                headers: {
-                                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
-                                },
-                                success: function(response) {},
-                                error: function(xhr, status, error) {
-                                    console.error('Error al eliminar puntuaciones:', error);
-                                }
-                            });
+                            console.log("El milestone pasa de review a en curso — mostrando modal de comentario...");
+                            // Guardar los datos del milestone en el modal para usarlos después
+                            document.getElementById('statusChangeModal').dataset.milestoneId = cardId;
+                            document.getElementById('statusChangeModal').dataset.slug = '{{ $currentWorkspace->slug }}';
+                            document.getElementById('statusChangeModal').dataset.oldStatus = oldStatus;
+                            document.getElementById('statusChangeModal').dataset.newStatus = newStatus;
+                            document.getElementById('statusChangeModal').dataset.projectId = project_id;
+                            document.getElementById('statusChangeModal').dataset.sort = JSON.stringify(sort);
+                            
+                            // Limpiar el textarea
+                            document.getElementById('statusChangeComment').value = '';
+                            
+                            // Mostrar el modal
+                            $('#statusChangeModal').modal('show');
+                            
+                            // Prevenir que se haga la actualización aquí, se hará después
+                            // Retornar de la función completa para no ejecutar el AJAX global
+                            return false;
                         }
                         if (oldStatus == 2 && newStatus == 3) {
                             /////////////INICIO status 2 a 3///////////////////////////
@@ -1436,6 +1441,73 @@
                         }, 100);
                     });
                 });
+            </script>
+
+            <!-- Modal para cambio de status de review a en curso -->
+            <div class="modal fade" id="statusChangeModal" tabindex="-1" role="dialog" aria-labelledby="statusChangeModalLabel" aria-hidden="true">
+                <div class="modal-dialog" role="document">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="statusChangeModalLabel">{{ __('Start Milestone - In Progress') }}</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <form id="statusChangeForm" method="POST" style="display:none;">
+                            @csrf
+                        </form>
+                        <div class="modal-body">
+                            <div class="form-group">
+                                <label for="statusChangeComment">{{ __('Notes / Reason') }}</label>
+                                <textarea class="form-control" id="statusChangeComment" name="status_change_comment" rows="4" 
+                                    placeholder="{{ __('Enter any notes or reason for starting this milestone...') }}"></textarea>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ __('Cancel') }}</button>
+                            <button type="button" class="btn btn-primary" onclick="submitStatusChange()">{{ __('Return to In progress') }}</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <script>
+                function submitStatusChange() {
+                    const milestoneId = document.getElementById('statusChangeModal').dataset.milestoneId;
+                    const slug = document.getElementById('statusChangeModal').dataset.slug;
+                    const oldStatus = document.getElementById('statusChangeModal').dataset.oldStatus;
+                    const newStatus = document.getElementById('statusChangeModal').dataset.newStatus;
+                    const projectId = document.getElementById('statusChangeModal').dataset.projectId;
+                    const sortData = document.getElementById('statusChangeModal').dataset.sort;
+                    const comment = document.getElementById('statusChangeComment').value;
+                    
+                    // Hacer AJAX directamente en lugar de enviar un formulario
+                    $.ajax({
+                        url: '{{ route('milestone.update.order', [$currentWorkspace->slug, ':projectId']) }}'.replace(':projectId', projectId),
+                        type: 'POST',
+                        headers: {
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                        },
+                        data: {
+                            id: milestoneId,
+                            old_status: oldStatus,
+                            new_status: newStatus,
+                            sort: JSON.parse(sortData),
+                            project_id: projectId,
+                            status_change_comment: comment
+                        },
+                        success: function(response) {
+                            console.log('Estado actualizado exitosamente');
+                            // Recargar la página para ver los cambios
+                            location.reload();
+                        },
+                        error: function(xhr, status, error) {
+                            console.error('Error al actualizar estado:', error);
+                            alert('{{ __('Error updating milestone status') }}');
+                        }
+                    });
+                    
+                    // Cerrar el modal
+                    $('#statusChangeModal').modal('hide');
+                }
             </script>
         @endpush
     @endif
