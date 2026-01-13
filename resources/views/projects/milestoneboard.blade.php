@@ -1099,6 +1099,15 @@
                         $(this).removeData('previous-status');
                         $(this).removeData('previous-container');
 
+                        // ✅ Limpiar todas las clases de tamaño del modal
+                        const $modalDialog = $(this).find('.modal-dialog');
+                        $modalDialog.removeClass(function (index, css) {
+                            return (css.match(/\bmodal-\S+/g) || []).join(' ');
+                        });
+                        
+                        // ✅ Remover estilos inline específicos del dropdown
+                        $(this).find('.dropdown-menu').removeAttr('style');
+
                         // Si no hay datos guardados, no hacemos nada
                         if (!milestoneId || !previousStatus) return;
 

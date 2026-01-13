@@ -86,12 +86,15 @@ $(document).ready(function () {
         handleInputChange($(this), salesList, searchSalesManagerUrl, 'Sin resultados encontrados', 'salesManagers');
     });
 
-    refMoInput.on('input', function () {
+    // Debounce más agresivo para M.O: 150ms en lugar de 300ms para búsqueda más rápida
+    const handleMoInputChange = debounce(function () {
         clientInput.val("");
         project_nameInput.val("");
         $('#projectId').val('');
-        handleInputChange($(this), refMoList, searchMoUrl, 'Sin resultados encontrados', 'mo');
-    });
+        handleInputChange(refMoInput, refMoList, searchMoUrl, 'Sin resultados encontrados', 'mo');
+    }, 150);
+    
+    refMoInput.on('input', handleMoInputChange);
 
     clientInput.on('input', function () {
         handleInputChange($(this), clipoList, searchClipoUrl, 'Sin resultados encontrados', 'clients');
@@ -289,7 +292,18 @@ $(document).ready(function () {
     }
     function populateClientList(selectedClients) {
         clipoList.empty().show();
-        const clientItems = selectedClients.map(client => {
+        
+        // Deduplicar clientes basándose en el nombre único
+        const uniqueClientsMap = new Map();
+        selectedClients.forEach(client => {
+            if (!uniqueClientsMap.has(client.name)) {
+                uniqueClientsMap.set(client.name, client);
+            }
+        });
+        
+        const uniqueClients = Array.from(uniqueClientsMap.values());
+        
+        const clientItems = uniqueClients.map(client => {
             return $('<a href="#" class="list-group-item list-group-item-action stylelist">')
                 .text(client.name)
                 .data('name', client.name)

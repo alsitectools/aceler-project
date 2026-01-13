@@ -1328,6 +1328,7 @@ class ProjectController extends Controller
                 'name'           => $taskType->name,
                 'estimated_date' => $task->estimated_date,
                 'technician'     => User::find($task->assign_to),
+                'logged_hours'   => $task->getTotalLoggedHours(),
             ] : null;
         })->filter()->values()->toArray();
 
@@ -2327,15 +2328,23 @@ class ProjectController extends Controller
         $query = MasterObra::query()->select(['ref_mo', 'name']);
 
         if ($search) {
-            $query->where(function ($query) use ($search) {
-                $query->where('ref_mo', 'LIKE', "%" . $search . "%")
+            // Optimización: buscar primero por ref_mo con coincidencia al inicio (más rápido)
+            // Si es corto y comienza con número, probablemente está buscando por referencia
+            if (strlen($search) <= 10 && is_numeric(substr($search, 0, 1))) {
+                $query->where('ref_mo', 'LIKE', $search . "%")
+                    ->orWhere('ref_mo', 'LIKE', "%" . $search . "%")
                     ->orWhere('name', 'LIKE', "%" . $search . "%");
-            });
+            } else {
+                $query->where(function ($query) use ($search) {
+                    $query->where('ref_mo', 'LIKE', "%" . $search . "%")
+                        ->orWhere('name', 'LIKE', "%" . $search . "%");
+                });
+            }
         }
 
         $objMo = $query->with(['clients' => function ($query) {
-            $query->select('potential_clients.potential_customer_id', 'potential_clients.name');
-        }])->paginate(25);
+            $query->select('potential_clients.potential_customer_id', 'potential_clients.name', 'potential_clients.customer_id');
+        }])->limit(50)->paginate(25);
 
         $arrMo = $objMo->toArray();
 

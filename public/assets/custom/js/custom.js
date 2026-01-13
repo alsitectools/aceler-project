@@ -79,6 +79,17 @@ $(document).ready(function () {
         $(document).off('focusin.modal');
     });
 
+    // ✅ Limpiar clases de tamaño del modal cuando se cierra
+    $('#commonModal').on('hidden.bs.modal', function () {
+        $(this).find('.modal-dialog').removeClass(function (index, css) {
+            return (css.match(/\bmodal-\S+/g) || []).join(' ');
+        });
+        // ✅ Remover estilos inline específicos del dropdown que puedan estar aplicados
+        $(this).find('.dropdown-menu').removeAttr('style');
+        $(this).find('.modal-body').html('');
+        $(this).find('.modal-title').html('');
+    });
+
     if ($(".summernote-simple").length) {
         $(".summernote-simple").summernote({
             dialogsInBody: !0,

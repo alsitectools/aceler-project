@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\DB;
 
 class Task extends Model
 {
@@ -126,5 +127,13 @@ class Task extends Model
         $percentageNumber = $percentageNumber > 100 ? 100 : ($percentageNumber < 0 ? 0 : $percentageNumber);
 
         return (int) number_format($percentageNumber);
+    }
+
+    public function getTotalLoggedHours()
+    {
+        $totalSeconds = $this->timesheets()->sum(\DB::raw('TIME_TO_SEC(time)'));
+        $hours = floor($totalSeconds / 3600);
+        $minutes = floor(($totalSeconds % 3600) / 60);
+        return sprintf('%02d:%02d', $hours, $minutes);
     }
 }
