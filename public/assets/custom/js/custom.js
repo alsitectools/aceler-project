@@ -79,15 +79,40 @@ $(document).ready(function () {
         $(document).off('focusin.modal');
     });
 
-    // ✅ Limpiar clases de tamaño del modal cuando se cierra
+    $('#commonModalModified').on('hidden.bs.modal', function () {
+        var $modal = $(this);
+        $modal.find('> .modal-dialog').attr('class', 'modal-dialog').removeAttr('style');
+        $modal.find('> .modal-dialog > .modal-content-modified').removeAttr('style');
+        $modal.find('.dropdown-menu').removeAttr('style');
+        $modal.find('.body').empty();
+        $modal.find('.modal-title').empty();
+
+        if ($('.modal.show').length === 0) {
+            $('.modal-backdrop').remove();
+            $('body').removeClass('modal-open').css('overflow', '').css('padding-right', '');
+        }
+    });
+
+    // ✅ Limpiar estado del modal al cerrar (evita que estilos/contenido del modal previo afecten al siguiente)
     $('#commonModal').on('hidden.bs.modal', function () {
-        $(this).find('.modal-dialog').removeClass(function (index, css) {
-            return (css.match(/\bmodal-\S+/g) || []).join(' ');
-        });
-        // ✅ Remover estilos inline específicos del dropdown que puedan estar aplicados
-        $(this).find('.dropdown-menu').removeAttr('style');
-        $(this).find('.modal-body').html('');
-        $(this).find('.modal-title').html('');
+        var $modal = $(this);
+
+        // Resetear el dialog a su estado base
+        $modal.find('> .modal-dialog').attr('class', 'modal-dialog').removeAttr('style');
+        $modal.find('> .modal-dialog > .modal-content').removeAttr('style');
+
+        // Remover estilos inline específicos del dropdown que puedan estar aplicados
+        $modal.find('.dropdown-menu').removeAttr('style');
+
+        // OJO: en este proyecto el contenedor es ".body" (no ".modal-body")
+        $modal.find('.body').empty();
+        $modal.find('.modal-title').empty();
+
+        // Si no hay más modales visibles, limpiar backdrop/estado del body
+        if ($('.modal.show').length === 0) {
+            $('.modal-backdrop').remove();
+            $('body').removeClass('modal-open').css('overflow', '').css('padding-right', '');
+        }
     });
 
     if ($(".summernote-simple").length) {
@@ -129,16 +154,23 @@ $(document).on('click', 'a[data-ajax-popup="true"], a[data_ajax_popup="true"], b
         size = $(this).attr('data_size');
     }
 
-    $("#" + modalId + " .modal-dialog").addClass('modal-' + size);
+    // Limpiar clases de tamaño previas antes de añadir la nueva
+    $("#" + modalId + " .modal-dialog").removeClass('modal-sm modal-md modal-lg modal-xl modal-fullscreen').addClass('modal-' + size);
     $("#" + modalId + " .modal-footer").addClass('modal-footer');
+
+    var modalElement = document.getElementById(modalId);
 
     $.ajax({
         url: url,
         cache: false,
         success: function (data) {
             $('#' + modalId + ' .body').html(data);
-            $("#" + modalId).modal('show');
             $("#" + modalId + " .modal-title").html(title);
+
+            // Usar Bootstrap 5 getOrCreateInstance para evitar conflictos
+            var modal = bootstrap.Modal.getOrCreateInstance(modalElement);
+            modal.show();
+
             commonLoader();
         },
         error: function (data) {

@@ -47,11 +47,11 @@
         </div>
         @if ($project_id != '-1')
             <!-- <div class="col-auto">
-                            <a href="{{ route($client_keyword . 'projects.show', [$currentWorkspace->slug, $project_id]) }}"
-                                class="btn btn-sm btn-primary">
-                                <i class=" ti ti-arrow-back-up"></i>
-                            </a>
-                        </div> -->
+                                                                <a href="{{ route($client_keyword . 'projects.show', [$currentWorkspace->slug, $project_id]) }}"
+                                                                    class="btn btn-sm btn-primary">
+                                                                    <i class=" ti ti-arrow-back-up"></i>
+                                                                </a>
+                                                            </div> -->
         @endif
     </div>
 @endsection
@@ -94,7 +94,7 @@
 @push('css-page')
 @endpush
 @push('scripts')
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    {{-- jQuery ya está cargado en el layout principal, no duplicar para evitar perder plugins de Bootstrap --}}
 
     <script>
         function ajaxFilterTimesheetTableView() {
@@ -161,6 +161,7 @@
 
         $(document).on('click', '[data-ajax-timesheet-popup="true"]', function(e) {
             e.preventDefault();
+            e.stopImmediatePropagation();
 
             var modalId = $(this).data('modal-id') || 'commonModal';
             var data = {};
@@ -191,33 +192,40 @@
                 data.milestone_id = milestone_id;
             }
 
+            var modalElement = document.getElementById(modalId);
+
             // Verifica que el modal existe en el DOM
-            if ($("#" + modalId).length) {
-                $("#" + modalId + " .modal-title").html(title + ` <small>(` + moment(date).format("ddd DD MMM") +
-                    `)</small>`);
-            } else {
+            if (!modalElement) {
                 console.error("El modal con ID '" + modalId + "' no existe en el DOM.");
+                return false;
             }
+
+            // Restaurar el modal-dialog a su estado original (solo clase 'modal-dialog')
+            $("#" + modalId + " .modal-dialog").attr('class', 'modal-dialog');
 
             $.ajax({
                 url: url,
                 data: data,
-                dataType: 'html',
+                cache: false,
                 success: function(data) {
                     $('#' + modalId + ' .body').html(data);
+                    $("#" + modalId + " .modal-title").html(title + ` <small>(` + moment(date).format(
+                        "ddd DD MMM") + `)</small>`);
 
-                    // Si estás usando Bootstrap 5
-                    var modal = new bootstrap.Modal(document.getElementById(modalId));
-                    modal.show(); // Muestra el modal
-
-                    // O si estás usando la versión anterior de Bootstrap, usa:
-                    // $("#" + modalId).modal('show');
+                    // Usar Bootstrap 5 getOrCreateInstance para evitar conflictos
+                    var modal = bootstrap.Modal.getOrCreateInstance(modalElement);
+                    modal.show();
 
                     commonLoader();
                     loadConfirm();
+                },
+                error: function(data) {
+                    data = data.responseJSON;
+                    show_toastr('Error', data.error, 'error');
                 }
             });
 
+            return false;
         });
     </script>
 @endpush
