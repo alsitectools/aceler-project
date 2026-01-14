@@ -102,22 +102,44 @@ class Project extends Model
     }
 
     public function updateProjectStatus()
-    {
-        $this->load('milestones'); // Recarga la relación para obtener datos actualizados.
+{
+    $this->loadMissing(['milestones:id,project_id,status,is_waiting']);
 
-        if (!$this->milestones->count()) {
-            $this->status = 'OnHold';
-        } else {
-            // Verificamos si existe al menos un hito con status distinto de 4.
-            if ($this->milestones->where('status', '<>', 4)->count()) {
-                $this->status = 'Ongoing';
-            } else {
-                $this->status = 'Finished';
-            }
-        }
-
-        $this->save();
+    // 1) Sin encargos => OnHold
+    if ($this->milestones->isEmpty()) {
+        $this->status = 'OnHold';
+        return $this->save();
     }
+
+    // 2) Todos Done => Finished
+    $allDone = $this->milestones->every(fn($m) => (int)$m->status === 4);
+    if ($allDone) {
+        $this->status = 'Finished';
+        return $this->save();
+    }
+
+    // Encargos NO terminados
+    $notDone = $this->milestones->filter(fn($m) => (int)$m->status !== 4);
+
+    // 3) Si los NO terminados están todos en ToDo(1) => OnHold
+    $allNotDoneAreTodo = $notDone->every(fn($m) => (int)$m->status === 1);
+    if ($allNotDoneAreTodo) {
+        $this->status = 'OnHold';
+        return $this->save();
+    }
+
+    // 4) Activo real = status 2/3 y NO en pausa
+    $hasActiveNotPaused = $notDone->contains(function ($m) {
+        return in_array((int)$m->status, [2, 3], true) && (int)$m->is_waiting === 0;
+    });
+
+    // 5) Si no hay activo real (porque están pausados) => OnHold
+    $this->status = $hasActiveNotPaused ? 'Ongoing' : 'OnHold';
+
+    return $this->save();
+}
+
+
 
 
     public function milestonesCount()

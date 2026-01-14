@@ -1437,44 +1437,68 @@ class ProjectController extends Controller
     }
 
     public function waitMilestone($slug, $milestoneID, Request $request)
-    {
-        $milestone = Milestone::find($milestoneID);
-        
-        if (!$milestone) {
-            return redirect()->back()->with('error', __('Milestone not found.'));
-        }
+{
+    $milestone = Milestone::find($milestoneID);
 
-        // Si hay un comentario, agregarlo al principio de la descripción existente
-        $pauseComment = $request->input('pause_comment');
-        if ($pauseComment) {
-            $timestamp = date('Y-m-d H:i:s'); //not used
-            $user = Auth::user()->name;
-            $newNote = "[Paused by $user]: \n\n$pauseComment\n\n";
-            $milestone->summary = $newNote . ($milestone->summary ?? '');
-        }
-
-        $milestone->is_waiting = true;
-        $milestone->save();
-
-        return redirect()->back()->with('success', __('Milestone paused successfully.'));
+    if (!$milestone) {
+        return redirect()->back()->with('error', __('Milestone not found.'));
     }
+
+    // Si hay un comentario, agregarlo al principio del summary
+    $pauseComment = $request->input('pause_comment');
+    if ($pauseComment) {
+        $user = Auth::user()->name;
+        $newNote = "[Paused by $user]: \n\n$pauseComment\n\n";
+        $milestone->summary = $newNote . ($milestone->summary ?? '');
+    }
+
+    $milestone->is_waiting = true;
+    $milestone->save();
+
+    // ✅ Recalcular estado del proyecto
+    $milestone->project?->updateProjectStatus();
+
+    return redirect()->back()->with('success', __('Milestone paused successfully.'));
+}
+
 
     public function resumeMilestone($slug, $milestoneID, Request $request)
-    {
-        Milestone::where('id', $milestoneID)->update([
-            'is_waiting' => false
-        ]);
-        return redirect()->back();
+{
+    $milestone = Milestone::find($milestoneID);
+
+    if (!$milestone) {
+        return redirect()->back()->with('error', __('Milestone not found.'));
     }
+
+    $milestone->is_waiting = false;
+    $milestone->save();
+
+    // ✅ Recalcular estado del proyecto
+    $milestone->project?->updateProjectStatus();
+
+    return redirect()->back()->with('success', __('Milestone resumed successfully.'));
+}
+
 
     public function clearFinalizationDate($slug, $milestoneID)
-    {
-        Milestone::where('id', $milestoneID)->update([
-            'finalization_date' => null
-        ]);
+{
+    $milestone = Milestone::find($milestoneID);
 
-        return response()->json(['success' => true]);
+    if (!$milestone) {
+        return response()->json(['success' => false], 404);
     }
+
+    $milestone->finalization_date = null;
+    $milestone->save();
+
+    // ✅ Recalcular estado del proyecto
+    if ($milestone->project) {
+        $milestone->project->updateProjectStatus();
+    }
+
+    return response()->json(['success' => true]);
+}
+
 
 
     public function getMilestones($projectId)
