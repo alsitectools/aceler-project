@@ -337,121 +337,7 @@
     <script src="{{ asset('assets/custom/js/dragula.min.js') }}"></script>
     @if ($milestones != null)
         @push('scripts')
-            <!-- <script>
-                ! function(a) {
-                    "use strict";
-
-                    var t = function() {
-                        this.$body = a("body");
-                    };
-
-                    t.prototype.init = function() {
-                        a('[data-toggle="dragula"]').each(function() {
-                            var containers = a(this).data("containers");
-                            var containersArray = [];
-
-                            if (containers && containers.length) {
-                                for (var i = 0; i < containers.length; i++) {
-                                    var container = a("#" + containers[i] + " .kanban-box")[0];
-                                    if (container) {
-                                        containersArray.push(container);
-                                    } else {
-                                        console.error('Contenedor no encontrado:', containers[i]);
-                                    }
-                                }
-                            } else {
-                                containersArray = [a(this)[0]];
-                            }
-                            var handleClass = a(this).data("handleclass");
-                            dragula(containersArray, {
-                                moves: function(el, container, handle) {
-
-                                    return el.classList.contains('card');
-                                }
-                            }).on('drop', handleDrop);
-                        });
-                    };
-
-                    function handleDrop(el, target, source, sibling) {
-                        var sort = [];
-                        a(target).find(".card").each(function(key) {
-                            var cardId = a(this).attr('id');
-                            if (cardId) {
-                                console.log('Card ID at index', key, ':', cardId);
-                                sort.push(cardId);
-                            } else {
-                                console.warn('Card at index', key, 'does not have an ID');
-                            }
-                        });
-
-                        // Obtenemos el cardId del elemento que se acaba de mover
-                        var cardId = a(el).attr('id');
-                        var oldStatus = a(source).data('status');
-                        var newStatus = a(target).data('status');
-                        var project_id = a(el).data('project-id');
-                        var milestoneTitle = a(el).find('#mileTitle').text(); // Obtenemos el título del milestone
-
-                        if (oldStatus == 1 && newStatus == 2) {
-                            console.log('De por hacer a in progress');
-                            console.log('Card ID:', cardId, 'Old status:', oldStatus, 'New status:', newStatus, 'Project ID:',
-                                project_id, 'Milestone Title:', milestoneTitle);
-
-                            // Se dispara la misma acción que al hacer clic en "Add Task on Timesheet"
-                            var url = '{{ route('tasks.create', $currentWorkspace->slug) }}' + '?project_id=' + project_id +
-                                '&milestoneTitle=' + milestoneTitle + '&milestone_id=' + cardId;
-                            var title = '{{ __('Create New Task') }}';
-                            var modalId = 'commonModal';
-
-                            $("#" + modalId + " .modal-title").html(title);
-                            $.ajax({
-                                url: url,
-                                dataType: 'html',
-                                success: function(data) {
-                                    $('#' + modalId + ' .body').html(data);
-                                    $("#" + modalId).modal('show');
-                                    commonLoader();
-                                    loadConfirm();
-                                }
-                            });
-                        }
-                        updateTaskCount(source);
-                        updateTaskCount(target);
-
-                        a.ajax({
-                            url: '{{ route('milestone.update.order', [$currentWorkspace->slug, $milestone['project_id']]) }}',
-                            type: 'POST',
-                            data: {
-                                id: cardId, // Se envía el cardId obtenido
-                                sort: sort,
-                                new_status: newStatus,
-                                old_status: oldStatus,
-                                project_id: project_id
-                            },
-                            success: function(data) {
-                                console.log('AJAX success');
-                            },
-                            error: function(xhr, status, error) {
-                                console.error('Error al actualizar el orden:', error);
-                            }
-                        });
-                    }
-
-                    function updateTaskCount(container) {
-                        var parentCardList = a(container).parents('.card-list');
-                        var count = a(container).children('.card').length;
-                        parentCardList.find('.count').text(count);
-                    }
-
-                    a.Dragula = new t;
-                    a.Dragula.Constructor = t;
-
-                }(window.jQuery);
-
-                ! function(a) {
-                    "use strict";
-                    a.Dragula.init();
-                }(window.jQuery);
-            </script> -->
+           
 
 
             <script>
@@ -592,13 +478,17 @@
                                 return;
                             }
 
+                            var project_name = a(el).data('project-name');
+                            var wsSlug = a(el).data('workspace-slug') || "{{ $currentWorkspace->slug }}";
+
                             var createTaskUrl =
-                                '{{ route('my_milestone.tasks.create', $currentWorkspace->slug) }}' +
-                                '?project_id=' + project_id +
-                                '&milestoneTitle=' + encodeURIComponent(
-                                    milestoneTitle) +
-                                '&milestone_id=' + cardId +
-                                '&fromMilestoneBoard=true';
+    '{{ route('tasks.create', ['slug' => '__SLUG__']) }}'
+      .replace('__SLUG__', wsSlug)
+    + '?project_id=' + project_id
+    + '&projectName=' + encodeURIComponent(project_name)
+    + '&milestoneTitle=' + encodeURIComponent(milestoneTitle)
+    + '&milestone_id=' + cardId
+    + '&fromMyMilestoneBoard=true';
                             
                             console.log('Create Task URL:', createTaskUrl);
                             var createTaskTitle = '{{ __('Create New Task') }}';

@@ -594,9 +594,25 @@
                         var project_id = a(el).data('project-id');
                         // var milestoneTitle = a(el).find('mileTitle').text(); // Título del milestone
                         var milestoneTitle = a(el).find('.mileTitle').attr('data-header');
+                        
+                        // Fallback: Si no encontramos data-header, intentar obtener el text()
+                        if (!milestoneTitle) {
+                            milestoneTitle = a(el).find('.mileTitle').text();
+                        }
+                        
+                        // Fallback: Si aún no tenemos título, intentar por id milestoneTitleForNotification
+                        if (!milestoneTitle) {
+                            milestoneTitle = a(el).find('#milestoneTitleForNotification').text();
+                        }
+                        
                         console.log("el completo ");
                         console.log(el)
+                        console.log("Milestone Title (obtenido): " + milestoneTitle);
                         console.log("longitud " + a(el).find('#milestoneTitleForNotification').length);
+                        
+                        // Guardar el título tanto en data como en atributo HTML para persistencia
+                        a(el).data('milestoneTitle', milestoneTitle);
+                        a(el).attr('data-milestone-title', milestoneTitle);
 
                         // Definir las transiciones permitidas
                         const allowedTransitions = {
@@ -682,14 +698,41 @@
                                             document.removeEventListener('milestoneAssigned',
                                                 showTaskModal);
 
+                                            // Recuperar el título del milestone del elemento
+                                            var $milestoneCard = a("#" + cardId);
+                                            var retrievedTitle = $milestoneCard.data('milestoneTitle');
+                                            
+                                            // Si no tenemos el título guardado en data, intentar desde atributo HTML
+                                            if (!retrievedTitle) {
+                                                retrievedTitle = $milestoneCard.attr('data-milestone-title');
+                                            }
+                                            
+                                            // Si no tenemos el título desde atributo, intentar obtenerlo directamente
+                                            if (!retrievedTitle) {
+                                                retrievedTitle = $milestoneCard.find('.mileTitle').attr('data-header');
+                                            }
+                                            if (!retrievedTitle) {
+                                                retrievedTitle = $milestoneCard.find('.mileTitle').text();
+                                            }
+                                            if (!retrievedTitle) {
+                                                retrievedTitle = $milestoneCard.find('#milestoneTitleForNotification').text();
+                                            }
+                                            if (!retrievedTitle) {
+                                                retrievedTitle = milestoneTitle || 'Sin título';
+                                            }
+                                            
+                                            console.log('Título recuperado para crear tarea:', retrievedTitle);
+                                            
                                             var createTaskUrl =
                                                 '{{ route('tasks.create', $currentWorkspace->slug) }}' +
                                                 '?project_id=' + project_id +
                                                 '&milestoneTitle=' + encodeURIComponent(
-                                                    milestoneTitle) +
+                                                    retrievedTitle) +
                                                 '&milestone_id=' + cardId +
                                                 '&fromMilestoneBoard=true';
                                             var createTaskTitle = '{{ __('Create New Task') }}';
+
+                                            console.log('URL de creación de tarea:', createTaskUrl);
 
                                             $("#" + modalId + " .modal-title").html(createTaskTitle);
                                             $.ajax({
@@ -1107,6 +1150,9 @@
                         
                         // ✅ Remover estilos inline específicos del dropdown
                         $(this).find('.dropdown-menu').removeAttr('style');
+                        
+                        // ✅ Limpiar el contenido del modal body después de cerrar
+                        $(this).find('.body').empty();
 
                         // Si no hay datos guardados, no hacemos nada
                         if (!milestoneId || !previousStatus) return;
