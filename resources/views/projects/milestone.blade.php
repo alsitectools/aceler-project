@@ -285,8 +285,9 @@
                     <div class="modal-footer">
                         <button type="button" class="btn btn-light"
                             data-bs-dismiss="modal">{{ __('Close') }}</button>
-                        <input type="submit" id="submitMilestoneBtn" value="{{ __('Save Changes') }}"
-                            class="btn btn-primary">
+                        <button type="button" id="submitMilestoneBtn" class="btn btn-primary">
+                            {{ __('Save Changes') }}
+                        </button>
                     </div>
                 </form>
             </div>
@@ -1006,80 +1007,109 @@
                 console.error('Fetch error:', error);
             });
     }
+    // Manejar click del botón de submit directamente
+    let isSubmitting = false;
 
-    // Manejar submit del formulario para capturar respuesta JSON
-    document.addEventListener('DOMContentLoaded', function() {
-        const milestoneForm = document.getElementById('milestone-form');
-        if (milestoneForm) {
-            // Usar propiedad del formulario para evitar conflictos globales
-            milestoneForm._isSubmitting = false;
+    document.addEventListener('click', function(e) {
+        const submitButton = e.target.closest('#submitMilestoneBtn');
+        if (!submitButton) return;
 
-            milestoneForm.addEventListener('submit', function(e) {
-                if (milestoneForm._isSubmitting) {
-                    e.preventDefault();
-                    return false;
-                }
-
-                // SIEMPRE prevenir submit tradicional y usar AJAX
-                e.preventDefault();
-                milestoneForm._isSubmitting = true;
-
-                const hasFiles = filesArrayMilestone && filesArrayMilestone.length > 0;
-                const formData = new FormData(this);
-
-                fetch(this.action, {
-                        method: 'POST',
-                        body: formData,
-                        headers: {
-                            'Accept': 'application/json'
-                        }
-                    })
-                    .then(response => response.json())
-                    .then(data => {
-                        // Limpiar arrays de archivos
-                        filesArrayMilestone = [];
-                        rejectedFilesMilestone = [];
-
-                        if (data.success) {
-                            // Mostrar toast con resumen de carga
-                            let message = '';
-                            if (data.uploaded_count > 0 && data.failed_count > 0) {
-                                message = data.uploaded_count + ' archivos subidos, ' + data
-                                    .failed_count + ' rechazados';
-                            } else if (data.uploaded_count > 0) {
-                                message = data.uploaded_count + ' archivos subidos exitosamente';
-                            } else if (data.failed_count > 0) {
-                                message = 'Todos los archivos fueron rechazados';
-                            } else {
-                                message = 'Encargo actualizado correctamente';
-                            }
-
-                            // Mostrar toast
-                            showToast(message, 'success');
-
-                            // Cerrar modal después de 1.5 segundos
-                            setTimeout(() => {
-                                const modal = bootstrap.Modal.getInstance(document
-                                    .querySelector('.modal'));
-                                if (modal) {
-                                    modal.hide();
-                                }
-                                // Redirigir para refrescar la página
-                                window.location.reload();
-                            }, 1500);
-                        } else {
-                            showToast(data.error || 'Error al guardar cambios', 'danger');
-                            milestoneForm._isSubmitting = false;
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Error:', error);
-                        showToast('Error al enviar formulario', 'danger');
-                        milestoneForm._isSubmitting = false;
-                    });
-            });
+        // Si ya está guardando, bloquear completamente
+        if (isSubmitting) {
+            e.preventDefault();
+            e.stopPropagation();
+            e.stopImmediatePropagation();
+            return false;
         }
-    });
+
+        const milestoneForm = document.getElementById('milestone-form');
+        if (!milestoneForm) {
+            console.error('Milestone form not found');
+            return;
+        }
+
+        // Marcar como en proceso
+        e.preventDefault();
+        e.stopPropagation();
+        isSubmitting = true;
+
+        // Deshabilitar el botón visualmente
+        submitButton.disabled = true;
+        submitButton.textContent = '{{ __('Saving...') }}';
+        submitButton.style.opacity = '0.6';
+        submitButton.style.cursor = 'not-allowed';
+        submitButton.style.pointerEvents = 'none';
+
+        // Crear FormData del formulario
+        const formData = new FormData(milestoneForm);
+        const actionUrl = milestoneForm.getAttribute('action');
+
+        console.log('Enviando formulario a:', actionUrl);
+
+        fetch(actionUrl, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'Accept': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log('Respuesta del servidor:', data);
+                // Limpiar arrays de archivos
+                filesArrayMilestone = [];
+                rejectedFilesMilestone = [];
+
+                if (data.success) {
+                    // Mostrar toast con resumen de carga
+                    let message = '';
+                    if (data.uploaded_count > 0 && data.failed_count > 0) {
+                        message = data.uploaded_count + ' archivos subidos, ' + data
+                            .failed_count + ' rechazados';
+                    } else if (data.uploaded_count > 0) {
+                        message = data.uploaded_count + ' archivos subidos exitosamente';
+                    } else if (data.failed_count > 0) {
+                        message = 'Todos los archivos fueron rechazados';
+                    } else {
+                        message = 'Encargo creado correctamente';
+                    }
+
+                    // Mostrar toast
+                    showToast(message, 'success');
+
+                    // Cerrar modal después de 1.5 segundos
+                    setTimeout(() => {
+                        const modal = bootstrap.Modal.getInstance(document
+                            .querySelector('.modal'));
+                        if (modal) {
+                            modal.hide();
+                        }
+                        // Redirigir para refrescar la página
+                        window.location.reload();
+                    }, 1500);
+                } else {
+                    showToast(data.error || 'Error al guardar cambios', 'danger');
+                    // Re-habilitar el botón en caso de error
+                    submitButton.disabled = false;
+                    submitButton.textContent = '{{ __('Save Changes') }}';
+                    submitButton.style.opacity = '1';
+                    submitButton.style.cursor = 'pointer';
+                    submitButton.style.pointerEvents = 'auto';
+                    isSubmitting = false;
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showToast('Error al enviar formulario', 'danger');
+                // Re-habilitar el botón en caso de error
+                submitButton.disabled = false;
+                submitButton.textContent = '{{ __('Save Changes') }}';
+                submitButton.style.opacity = '1';
+                submitButton.style.cursor = 'pointer';
+                submitButton.style.pointerEvents = 'auto';
+                isSubmitting = false;
+            });
+    }, false);
 
     // Función para mostrar toast
     function showToast(message, type = 'info') {

@@ -2,12 +2,14 @@
     $user = Auth::user();
     // Se leen los parámetros (si existen). Si no vienen, quedan como null.
     $selectedProjectId = request()->get('project_id');
+    $selectedProjectName = request()->get('projectName');
     $selectedMilestoneTitle = request()->get('milestoneTitle');
     $selectedMilestoneId = request()->get('milestone_id');
     $fromMilestoneBoard = request()->get('fromMilestoneBoard');
+    $fromMyMilestoneBoard = request()->get('fromMyMilestoneBoard');
     
     // Detectar si viene de my-milestone-board
-    $isMyMilestoneBoard = strpos(request()->url(), 'my-milestone-board') !== false;
+    $isMyMilestoneBoard = $fromMyMilestoneBoard || strpos(request()->url(), 'my-milestone-board') !== false;
     $formAction = $isMyMilestoneBoard 
         ? route('my_milestone.tasks.store', $currentWorkspace->slug)
         : route('tasks.store', $currentWorkspace->slug);
@@ -21,15 +23,21 @@
             <script>
                 console.log('=== TaskCreate Vista DEBUG ===');
                 console.log('Raw selectedProjectId:', '{{ request()->get('project_id') }}');
+                console.log('Raw selectedProjectName:', '{{ request()->get('projectName') }}');
                 console.log('Raw selectedMilestoneTitle:', '{{ request()->get('milestoneTitle') }}');
                 console.log('Raw selectedMilestoneId:', '{{ request()->get('milestone_id') }}');
+                console.log('From My Milestone Board:', '{{ request()->get('fromMyMilestoneBoard') }}');
                 console.log('=== FIN DEBUG ===');
             </script>
             <div class="row">
                 <!-- Select de Proyectos -->
                 <div class="form-group col-md-12">
                     <label class="col-form-label">{{ __('Projects') }}</label>
-                    @if ($selectedProjectId)
+                    @if ($selectedProjectId && $selectedProjectName)
+                        <!-- Si viene preseleccionado de my_milestone_board, mostrar como input de texto -->
+                        <input type="hidden" name="project_id" value="{{ $selectedProjectId }}" style="display: none;">
+                        <input type="text" class="form-control form-control-light" value="{{ $selectedProjectName }}" disabled>
+                    @elseif ($selectedProjectId)
                         <!-- Si existe proyecto preseleccionado, se muestra un select con el único option seleccionado -->
                         <input type="hidden" name="project_id" value="{{ $selectedProjectId }}" style="display: none;">
                         <select class="form-control form-control-light select2" name="project_id" id="project_id"
@@ -63,13 +71,11 @@
                     <label class="col-form-label">{{ __('Milestone') }}</label>
 
                     @if ($selectedMilestoneTitle)
-                        <input type="hidden" name="milestone_id" value="{{ $selectedMilestoneId }}"
-                            style="display: none;">
-                        <select class="form-control form-control-light select2" name="milestone_id" id="milestone_id"
-                            required disabled>
-                            <option value="{{ $selectedMilestoneId }}" selected>{{ $selectedMilestoneTitle }}</option>
-                        </select>
+                        <!-- Si viene preseleccionado, mostrar como input de texto y guardar el valor en hidden -->
+                        <input type="hidden" name="milestone_id" value="{{ $selectedMilestoneId }}">
+                        <input type="text" class="form-control form-control-light" value="{{ $selectedMilestoneTitle }}" disabled>
                     @else
+                        <!-- En caso contrario mostrar el select -->
                         <select class="form-control form-control-light select2" name="milestone_id"
                             id="milestone_id" required>
                             <option value="">{{ __('Select Milestone') }}</option>

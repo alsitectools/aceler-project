@@ -1255,8 +1255,10 @@ class ProjectController extends Controller
             })
             ->with([
                 'tasks:id,milestone_id,assign_to',
-                'project:id,workspace'
+                'project:id,workspace',
+                'project.workspaceData:id,slug,name',
             ])
+
             ->orderBy('created_at', 'desc')
             ->get();
 
@@ -1361,25 +1363,49 @@ class ProjectController extends Controller
      * Agrupa los milestones por estado.
      */
     private function groupMilestonesByStatus($allmilestones, $objUser = null, $stages)
-    {
-        $milestones = [];
-        foreach ($stages as $status) {
-            $filteredMilestones = $allmilestones->filter(function ($milestone) use ($status) {
-                return $milestone->status == $status->id;
-            });
-            if ($filteredMilestones->isNotEmpty()) {
-                $milestones[$status->id] = $filteredMilestones->map(function ($milestone) use ($objUser) {
-                    $project = Project::find($milestone->project_id);
-                    return $this->getMilestoneData($milestone, $project, $objUser);
-                })->toArray();
-            } else {
-                $milestones[$status->id] = [];
+{
+    $milestones = [];
+
+    foreach ($stages as $status) {
+
+        $filteredMilestones = $allmilestones->filter(function ($milestone) use ($status) {
+            return (int)$milestone->status === (int)$status->id;
+        });
+
+        $milestones[$status->id] = $filteredMilestones->map(function ($milestone) use ($objUser) {
+
+            // ✅ Usa el proyecto eager-loaded si existe, si no fallback a find()
+            $project = $milestone->relationLoaded('project') ? $milestone->project : null;
+            if (!$project) {
+                $project = Project::find($milestone->project_id);
             }
+
+            $data = $this->getMilestoneData($milestone, $project, $objUser);
+
+            // ✅ Añadir workspace_slug/name sin romper nada
+            $workspace = null;
+
+            // si viene eager-loaded: project.workspaceData
+            if ($project && method_exists($project, 'workspaceData')) {
+                // ojo: workspaceData() en tu Project es hasOne, así que se accede como propiedad
+                $workspace = $project->relationLoaded('workspaceData') ? $project->workspaceData : $project->workspaceData()->first();
+            }
+
+            $data['workspace_slug'] = $workspace->slug ?? null;
+            $data['workspace_name'] = $workspace->name ?? null;
+
+            return $data;
+
+        })->toArray();
+
+        if (empty($milestones[$status->id])) {
+            $milestones[$status->id] = [];
         }
-        return empty(array_filter($milestones, function ($ms) {
-            return !empty($ms);
-        })) ? null : $milestones;
     }
+
+    return empty(array_filter($milestones, fn($ms) => !empty($ms))) ? null : $milestones;
+}
+
 
 
     public function taskBoard($slug, $projectID)
@@ -1768,8 +1794,19 @@ class ProjectController extends Controller
         $task->save();
 
         $milestone = Milestone::find($request->milestone_id);
+        \Log::info('Milestone antes de actualizar:', $milestone->toArray());
+        
+        // Verificar que el título no esté vacío antes de guardar
+        if (empty($milestone->title)) {
+            \Log::warning('ADVERTENCIA: Milestone sin título detectado. Milestone ID: ' . $milestone->id);
+            return redirect()->back()->with('error', 'Error: El encargo no tiene título.');
+        }
+        
+        // Solo actualizar el status, sin tocar otros campos
         $milestone->status = 2;
-        $milestone->update();
+        $milestone->save();
+        
+        \Log::info('Milestone después de actualizar:', $milestone->toArray());
 
         return redirect()->back()->with(['success' => __('Task Created Successfully!')]);
     }
@@ -1798,6 +1835,9 @@ class ProjectController extends Controller
                 $old_status = Stage::find($request->old_status);
                 $user = Auth::user();
                 $milestone = Milestone::find($request->id);
+                
+                \Log::info('Milestone actualización - Antes:', $milestone->toArray());
+                
                 $milestone->status = $request->new_status;
                 
                 // Si hay un comentario para el cambio de status (de review a en curso)
@@ -1811,7 +1851,14 @@ class ProjectController extends Controller
                     $milestone->summary = $prefix . ($milestone->summary ?? '');
                 }
                 
+                // Verificar que el título no esté vacío antes de guardar
+                if (empty($milestone->title)) {
+                    \Log::error('CRÍTICO: Intento de guardar milestone sin título. ID: ' . $milestone->id . ' Status: ' . $milestone->status);
+                    $milestone->title = 'SIN TÍTULO'; // Fallback de emergencia
+                }
+                
                 $milestone->save();
+                \Log::info('Milestone actualización - Después:', $milestone->toArray());
 
                 if ($milestone->status == 4) {
                     $milestone->finalization_date = date('Y-m-d');
@@ -2776,7 +2823,17 @@ class ProjectController extends Controller
             : $inputEndDate->toDateString();
 
         // Actualizar campos del milestone
-        $milestone->title = $request->title;
+        // ✅ IMPORTANTE: Solo actualizar title si no está vacío (previene pérdida de título desde formulario de asignación)
+        \Log::info('milestoneUpdate - Antes de actualizar', [
+            'milestone_id' => $milestone->id,
+            'current_title' => $milestone->title,
+            'request_title' => $request->title,
+            'will_update_title' => !empty($request->title)
+        ]);
+        
+        if (!empty($request->title)) {
+            $milestone->title = $request->title;
+        }
         $milestone->summary = $request->summary;
         // Solo actualizar milestone_assigned_to_user si viene con valor, de lo contrario mantener el actual
         if ($request->has('req_assing_to') && $request->req_assing_to !== '') {
@@ -2785,7 +2842,18 @@ class ProjectController extends Controller
         $milestone->end_date = $finalEndDate;
         $milestone->planned_end_date = $request->planned_end_date;
         $milestone->priority = $request->priority === '' ? null : $request->priority;
+        
+        \Log::info('milestoneUpdate - Antes de save', [
+            'milestone_id' => $milestone->id,
+            'title' => $milestone->title,
+        ]);
+        
         $milestone->save();
+        
+        \Log::info('milestoneUpdate - Después de save', [
+            'milestone_id' => $milestone->id,
+            'title' => $milestone->title,
+        ]);
 
         $project = Project::where('id', $milestone->project_id)->first();
         if (!$project) {

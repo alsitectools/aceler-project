@@ -12,12 +12,15 @@
         {{ !empty($milestone['is_waiting']) && $milestone['is_waiting'] == 1 ? 'waitingMilestone' : '' }}
         {{ $extraClass ?? '' }}"
     id="{{ $milestone['id'] }}" data-status="{{ $status->id }}" data-project-id="{{ $milestone['project_id'] }}"
+    data-project-name="{{ $milestone['project_name'] ?? '' }}"
     data-assign-to="{{ $milestone['asiggned_user_data']->id ?? '' }}"
- data-is-waiting="{{ $milestone['is_waiting'] }}"
+    data-is-waiting="{{ $milestone['is_waiting'] }}"
+    data-milestone-title="{{ $milestone['title'] }}"
     style="{{ $inlineStyle ?? '' }}"
      data-created-by="{{ $milestone['created_by'] ?? '' }}"
      data-requested-by="{{ $milestone['assign_to'] ?? '' }}"
-     data-has-my-tasks="{{ $milestone['has_my_tasks'] ?? 0 }}">
+     data-has-my-tasks="{{ $milestone['has_my_tasks'] ?? 0 }}"
+     data-workspace-slug="{{ $milestone['workspace_slug'] ?? $currentWorkspace->slug }}">
 
 
     {{-- ========================= --}}
@@ -29,7 +32,7 @@
                 <b class="mileTitle cursor-pointer" id="milestoneTitleForNotification"
                     data-header="{{ $milestone['title'] }}" data-milestone-id="{{ $milestone['id'] }}"
                     data-is-waiting="{{ $milestone['is_waiting'] }}"
-                    data-project-slug="{{ $currentWorkspace->slug }}">
+                    data-project-slug="{{ $milestone['workspace_slug'] ?? $currentWorkspace->slug }}">
                     {{ $milestone['title'] }}
                 </b>
             </div>
