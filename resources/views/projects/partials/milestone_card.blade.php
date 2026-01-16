@@ -178,7 +178,7 @@
                 <div class="col-sm-12 p-3">
                     @foreach ($milestone['tasks'] as $task)
                         <div class="taskList tooltipCusTask p-target mb-2 col-sm-12 marginText" role="button"
-                            data-task-id="{{ $task['id'] }}" data-task-name="{{ $task['name'] }}"
+                            data-task-id="{{ $task['id'] }}" data-task-name="{{ $task['display_name'] ?? $task['name'] }}"
                             data-milestone-id="{{ $milestone['id'] }}"
                             data-project-id="{{ $milestone['project_id'] }}"
                             data-project-name="{{ $milestone['project_name'] }}"
@@ -187,7 +187,7 @@
                             data-ajax-timesheet-popup="true">
 
                             <i class="ms-2 me-2 fa-solid fa-hourglass-start fa-xs" style="color:black;"></i>
-                            {{ __($task['name']) }}
+                            {{ __($task['display_name'] ?? $task['name']) }}
                             
                             <div class="tooltipTaskContent">
                                 <strong>{{ $task['technician']->name }}</strong><br/>

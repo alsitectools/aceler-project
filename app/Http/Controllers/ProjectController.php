@@ -24,6 +24,7 @@ use App\Models\Mail\SendLoginDetail;
 use App\Models\Mail\SendWorkspaceInvication;
 use App\Models\Mail\ShareProjectToClient;
 use App\Models\Milestone;
+use App\Models\CustomTasks;
 use App\Models\Project;
 use App\Models\ProjectType;
 use App\Models\MasterObra;
@@ -1156,10 +1157,12 @@ class ProjectController extends Controller
                         });
                 })
                 ->with([
-                    // 🔑 Cargamos tareas para evitar N+1
-                    'tasks:id,milestone_id,assign_to',
-                    'project:id,workspace,name,type'
-                ])
+   'tasks:id,milestone_id,assign_to,type_id',
+   'tasks.type:id,name',
+   'tasks.customTask:id,id_task,name',
+   'project:id,workspace,name,type'
+])
+
                 ->orderBy('created_at', 'desc')
                 ->get();
 
@@ -1204,10 +1207,13 @@ class ProjectController extends Controller
         }
 
         $allmilestones = Milestone::where('project_id', $project->id)
-            ->with([
-                'tasks:id,milestone_id,assign_to'
-            ])
-            ->get();
+    ->with([
+        'tasks:id,milestone_id,assign_to,type_id',
+        'tasks.type:id,name',
+        'tasks.customTask:id,id_task,name',
+    ])
+    ->get();
+
 
         $milestones = $this->groupMilestonesByStatus($allmilestones, null, $stages);
 
@@ -1321,18 +1327,33 @@ class ProjectController extends Controller
         }
 
         $taskData = $tasksOfmilestone->map(function ($task) {
-            if (!$task) {
-                return null;
-            }
-            $taskType = TaskType::find($task->type_id);
-            return $taskType ? [
-                'id'             => $task->id,
-                'name'           => $taskType->name,
-                'estimated_date' => $task->estimated_date,
-                'technician'     => User::find($task->assign_to),
-                'logged_hours'   => $task->getTotalLoggedHours(),
-            ] : null;
-        })->filter()->values()->toArray();
+    if (!$task) {
+        return null;
+    }
+
+    $taskType = TaskType::find($task->type_id);
+    if (!$taskType) {
+        return null;
+    }
+
+    $isCustom = strtolower(trim($taskType->name)) === 'custom';
+
+    // Si es custom, leer el nombre de custom_tasks
+    $customName = null;
+    if ($isCustom) {
+        $customName = \App\Models\CustomTasks::where('id_task', $task->id)->value('name');
+    }
+
+    return [
+        'id'             => $task->id,
+        'name'           => $taskType->name, // se mantiene por compatibilidad
+        'display_name'   => $isCustom ? ($customName ?: 'Custom') : $taskType->name, // ✅ NUEVO
+        'estimated_date' => $task->estimated_date,
+        'technician'     => User::find($task->assign_to),
+        'logged_hours'   => $task->getTotalLoggedHours(),
+    ];
+})->filter()->values()->toArray();
+
 
         return [
             'id'            => $milestone->id,
@@ -1772,67 +1793,94 @@ class ProjectController extends Controller
     }
 
     public function taskStore(Request $request, $slug)
-    {
+{
+    $request->validate([
+        'project_id' => 'required',
+        'milestone_id' => 'required',
+        'type_id' => 'required',
+        'estimated_date' => 'required',
+    ]);
+
+    $currentWorkspace = Utility::getWorkspaceBySlug($slug);
+    $user = Auth::user();
+
+    $project = Project::where('id', $request->project_id)
+        ->where('workspace', $currentWorkspace->id)
+        ->first();
+
+    if (!$project) {
+        return redirect()->back()->with('error', 'Proyecto no encontrado o no pertenece al espacio de trabajo actual.');
+    }
+
+    // Detectar si el type_id seleccionado es el "Custom"
+    $type = TaskType::find($request->type_id);
+    $isCustom = $type && strtolower(trim($type->name)) === 'custom';
+
+    // Si es custom, validar el nombre
+    if ($isCustom) {
         $request->validate([
-            'project_id' => 'required',
-            'milestone_id' => 'required',
-            'type_id' => 'required',
-            'estimated_date' => 'required',
+            'custom_task_name' => 'required|string|max:255',
         ]);
+    }
 
-        // Obtener el workspace actual y el usuario autenticado
-        $currentWorkspace = Utility::getWorkspaceBySlug($slug);
-        $user = Auth::user();
-
-        \Log::info('info desde el store');
-        \Log::info($request->all());
-        \Log::info('Id del creador' . $user->id);
-
-        $project = Project::where('id', $request->project_id)
-            ->where('workspace', $currentWorkspace->id)
+    // ---- Duplicados ----
+    if ($isCustom) {
+        // Para custom: evitar duplicado por milestone + usuario + nombre custom
+        $existingTask = Task::where('milestone_id', $request->milestone_id)
+            ->where('type_id', $request->type_id)
+            ->where('assign_to', $user->id)
+            ->whereHas('customTask', function ($q) use ($request) {
+                $q->whereRaw('LOWER(name) = ?', [strtolower(trim($request->custom_task_name))]);
+            })
             ->first();
-
-        if (!$project) {
-            return redirect()->back()->with('error', 'Proyecto no encontrado o no pertenece al espacio de trabajo actual.');
-        }
-
-        // Verificar si ya existe una tarea con los mismos datos
+    } else {
+        // Para no custom: tu regla actual
         $existingTask = Task::where('milestone_id', $request->milestone_id)
             ->where('type_id', $request->type_id)
             ->where('assign_to', $user->id)
             ->first();
-
-        if ($existingTask) {
-            return redirect()->back()->with('error', 'Error, no se pueden duplicar tareas');
-        }
-
-        // Si no existe, se crea la tarea
-        $task = new Task();
-        $task->project_id = $request->project_id;
-        $task->milestone_id = $request->milestone_id;
-        $task->type_id = $request->type_id;
-        $task->start_date = date('Y-m-d');
-        $task->estimated_date = $request->estimated_date;
-        $task->assign_to = $user->id;
-        $task->save();
-
-        $milestone = Milestone::find($request->milestone_id);
-        \Log::info('Milestone antes de actualizar:', $milestone->toArray());
-
-        // Verificar que el título no esté vacío antes de guardar
-        if (empty($milestone->title)) {
-            \Log::warning('ADVERTENCIA: Milestone sin título detectado. Milestone ID: ' . $milestone->id);
-            return redirect()->back()->with('error', 'Error: El encargo no tiene título.');
-        }
-
-        // Solo actualizar el status, sin tocar otros campos
-        $milestone->status = 2;
-        $milestone->save();
-
-        \Log::info('Milestone después de actualizar:', $milestone->toArray());
-
-        return redirect()->back()->with(['success' => __('Task Created Successfully!')]);
     }
+
+    if ($existingTask) {
+        return redirect()->back()->with('error', 'Error, no se pueden duplicar tareas');
+    }
+
+    // Crear la Task
+    $task = new Task();
+    $task->project_id = $request->project_id;
+    $task->milestone_id = $request->milestone_id;
+    $task->type_id = $request->type_id;
+    $task->start_date = date('Y-m-d');
+    $task->estimated_date = $request->estimated_date;
+    $task->assign_to = $user->id;
+    $task->save();
+
+    // Si es custom, crear el registro en custom_tasks
+    if ($isCustom) {
+        CustomTasks::create([
+            'id_task' => $task->id,
+            'name'    => trim($request->custom_task_name),
+        ]);
+        // alternativa usando la relación:
+        // $task->customTask()->create(['name' => trim($request->custom_task_name)]);
+    }
+
+    // Actualizar milestone status
+    $milestone = Milestone::find($request->milestone_id);
+
+    if (!$milestone) {
+        return redirect()->back()->with('error', 'Encargo no encontrado.');
+    }
+
+    if (empty($milestone->title)) {
+        return redirect()->back()->with('error', 'Error: El encargo no tiene título.');
+    }
+
+    $milestone->status = 2;
+    $milestone->save();
+
+    return redirect()->back()->with(['success' => __('Task Created Successfully!')]);
+}
 
 
     public function milestoneOrderUpdate(Request $request, $slug, $projectID)
@@ -2483,12 +2531,31 @@ class ProjectController extends Controller
         ]);
     }
 
+    
+private function getEnumValues($table, $column)
+{
+    $type = DB::selectOne("
+        SELECT COLUMN_TYPE 
+        FROM information_schema.COLUMNS 
+        WHERE TABLE_NAME = ? 
+          AND COLUMN_NAME = ?
+    ", [$table, $column]);
+
+    preg_match("/^enum\((.*)\)$/", $type->COLUMN_TYPE, $matches);
+
+    return collect(explode(',', $matches[1]))
+        ->map(fn ($v) => trim($v, "'"))
+        ->toArray();
+}
+
     public function milestone($slug, $projectID)
     {
         $currentWorkspace = Utility::getWorkspaceBySlug($slug);
         $project_type = ProjectType::select('id', 'name')->get();
         $users = User::all();
 
+        $phases = $this->getEnumValues('milestone_phases', 'phases');
+        
         if ($projectID == -1) {
             $project_id = -1;
             $projects = Project::select('projects.*')
@@ -2496,11 +2563,11 @@ class ProjectController extends Controller
                 ->where('projects.status', '!=', 'Finished')
                 ->get();
 
-            return view('projects.milestone', compact('currentWorkspace', 'projects', 'project_id', 'project_type', 'users'));
+            return view('projects.milestone', compact('currentWorkspace', 'projects', 'project_id', 'project_type', 'users','phases'));
         } else {
             $project_id = $projectID;
             $project = Project::find($projectID);
-            return view('projects.milestone', compact('currentWorkspace', 'project', 'project_id', 'project_type', 'users'));
+            return view('projects.milestone', compact('currentWorkspace', 'project', 'project_id', 'project_type', 'users','phases'));
         }
     }
 
@@ -2546,10 +2613,17 @@ class ProjectController extends Controller
             'files' => 'nullable|array',
         ];
 
+        // ✅ Si el proyecto es tipo 3, phase es obligatoria
+        if ((int)$project->type === 3) {
+            $rules['phase'] = 'required|in:Planificación,Diseño,Implementación,Documentación,Validación funcional,Explotación comercial'; 
+            // 👆 cambia por los valores reales del enum de milestone_phases.phases
+        }
+
+
         $validator = Validator::make($request->all(), $rules);
 
         if ($validator->fails()) {
-            Log::error('Validation failed for milestone creation', [
+            \Log::error('Validation failed for milestone creation', [
                 'errors' => $validator->errors()->all(),
                 'request' => $request->all(),
             ]);
@@ -2591,6 +2665,14 @@ class ProjectController extends Controller
         $milestone->summary = $request->description ?? '';
         $milestone->priority = $request->priority === '' ? null : $request->priority;
         $milestone->save();
+
+        // ✅ Guardar fase solo para proyectos tipo 3
+        if ((int)$project->type === 3) {
+            \App\Models\MilestonePhases::updateOrCreate(
+                ['id_milestone' => $milestone->id],
+                ['phases' => $request->phase]
+            );
+        }
 
         if (isset($project)) {
             $project->updateProjectStatus();

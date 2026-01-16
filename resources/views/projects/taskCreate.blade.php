@@ -89,6 +89,18 @@
                     <select class="form-control form-control-light select2" id="task-list" name="type_id" required>
                         <option value="">{{ __('Select Task') }}</option>
                     </select>
+
+                    <div class="form-group col-md-12 d-none" id="custom-task-name-container">
+    <label class="col-form-label">{{ __('Custom task name') }}</label>
+    <input
+        type="text"
+        class="form-control form-control-light"
+        id="custom_task_name"
+        name="custom_task_name"
+        placeholder="{{ __('Write the custom task name...') }}"
+    >
+</div>
+
                 </div>
 
                 <!-- Fecha de inicio -->
@@ -154,55 +166,90 @@
     $(document).ready(function() {
 
         // Si hay un proyecto preseleccionado (vista 1) o se cambia de proyecto (vista 2) se actualizan los selects
-        function updateSelects() {
-            var selectedOption = $('#project_id').find('option:selected');
-            var projectId = selectedOption.val();
+        function toggleCustomTaskName() {
+        var opt = $('#task-list option:selected');
+        var isCustom = opt.data('is-custom') == 1; // ojo: usa .data()
 
-            // Reiniciamos los selects de task y milestone
-            $('#task-list').empty().append($('<option>', {
-                value: '',
-                text: "{{ __('Select Task') }}"
-            }));
-            $('#milestone_id').empty().append($('<option>', {
-                value: '',
-                text: "{{ __('Select Milestone') }}"
-            }));
+        $('#custom-task-name-container').toggleClass('d-none', !isCustom);
+        $('#custom_task_name').prop('required', !!isCustom);
 
-            // Obtenemos los datos del proyecto seleccionado (asegurando la conversión a objeto)
-            var selectedProject = selectedOption.data('project');
-            if (typeof selectedProject === 'string') {
-                selectedProject = JSON.parse(selectedProject);
-            }
+        if (!isCustom) $('#custom_task_name').val('');
+    }
 
-            // Cargar opciones para task-list según el tipo de proyecto
-            var taskTypes = @json($taskType);
-            $.each(taskTypes, function(index, task) {
-                if (selectedProject && selectedProject.type == task.project_type) {
-                    $('#task-list').append($('<option>', {
-                        value: task.id,
-                        text: task.name
-                    }));
-                }
-            });
+    // ✅ Listener SOLO UNA VEZ
+    $('#task-list').on('change', toggleCustomTaskName);
 
-            // Cargar opciones para milestone según el proyecto seleccionado
-            var milestones = @json($milestones);
-            $.each(milestones, function(index, milestone) {
-                if (projectId == milestone.project_id) {
-                    var option = $('<option>', {
-                        value: milestone.id,
-                        text: milestone.title
-                    });
-                    // Si el milestone coincide con el preseleccionado, se marca como seleccionado
-                    @if ($selectedMilestoneId)
-                        if (milestone.id == '{{ $selectedMilestoneId }}') {
-                            option.attr('selected', 'selected');
-                        }
-                    @endif
-                    $('#milestone_id').append(option);
-                }
-            });
+    function updateSelects() {
+        var selectedOption = $('#project_id').find('option:selected');
+        var projectId = selectedOption.val();
+
+        // Reset selects
+        $('#task-list').empty().append($('<option>', {
+            value: '',
+            text: "{{ __('Select Task') }}"
+        }));
+        $('#milestone_id').empty().append($('<option>', {
+            value: '',
+            text: "{{ __('Select Milestone') }}"
+        }));
+
+        // ✅ Obtener proyecto seleccionado ANTES de usarlo
+        var selectedProject = selectedOption.data('project');
+        if (typeof selectedProject === 'string') {
+            selectedProject = JSON.parse(selectedProject);
         }
+
+        // ✅ taskTypes ANTES de iterar
+        var taskTypes = @json($taskType);
+
+        // Cargar task types y marcar "custom"
+        $.each(taskTypes, function (index, task) {
+            if (selectedProject && String(selectedProject.type) == String(task.project_type)) {
+
+                var isCustom = String(task.name).trim().toLowerCase() === 'custom';
+
+                var $opt = $('<option>', {
+                    value: task.id,
+                    text: task.name
+                });
+
+                // ✅ marcar atributo para detectarlo al seleccionar
+                $opt.attr('data-is-custom', isCustom ? '1' : '0');
+
+                $('#task-list').append($opt);
+            }
+        });
+
+        // Cargar milestones
+        var milestones = @json($milestones);
+        $.each(milestones, function (index, milestone) {
+            if (String(projectId) == String(milestone.project_id)) {
+                var option = $('<option>', {
+                    value: milestone.id,
+                    text: milestone.title
+                });
+
+                @if ($selectedMilestoneId)
+                if (String(milestone.id) == '{{ $selectedMilestoneId }}') {
+                    option.attr('selected', 'selected');
+                }
+                @endif
+
+                $('#milestone_id').append(option);
+            }
+        });
+
+        // ✅ Ajustar visibilidad del input tras repintar
+        toggleCustomTaskName();
+    }
+
+    $('#project_id').on('change', updateSelects);
+
+    @if ($selectedProjectId)
+        $('#project_id').trigger('change');
+    @endif
+
+   
 
         // Al cambiar el select de proyecto se ejecuta la función
         $('#project_id').on('change', function() {

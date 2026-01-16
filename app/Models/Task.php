@@ -136,4 +136,9 @@ class Task extends Model
         $minutes = floor(($totalSeconds % 3600) / 60);
         return sprintf('%02d:%02d', $hours, $minutes);
     }
+
+       public function customTask()
+    {
+        return $this->hasOne(CustomTasks::class, 'id_task', 'id');
+    }
 }
