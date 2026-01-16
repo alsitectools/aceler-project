@@ -234,6 +234,7 @@
                         </div>
                     </div>
                     <div class="row mt-3">
+                        {{-- PRIORITY --}}
                         <div class="col-md-6">
                             <div class="form-group">
                                 <label class="form-label">{{ __('Priority') }}</label>
@@ -245,6 +246,26 @@
                                 </select>
                             </div>
                         </div>
+                        {{-- PHASE (solo visible si proyecto type = 3) --}}
+                        @php
+    $typeId   = isset($project) ? (int)$project->type : null;
+    $typeName = isset($project) ? ($project->typeRel->name ?? '') : '';
+    $showPhase = ($typeId === 3) || in_array($typeName, ['Product development', 'Desarrollo de producto']);
+@endphp
+
+<div class="col-md-6" id="phase-wrapper" style="{{ $showPhase ? '' : 'display:none;' }}">
+    <div class="form-group">
+        <label class="form-label">{{ __('Phase') }}</label>
+        <select class="form-control form-control-light" name="phase" id="phase">
+            <option value="">{{ __('Choose one') }}</option>
+            @foreach ($phases as $phase)
+                <option value="{{ $phase }}">{{ __($phase) }}</option>
+            @endforeach
+        </select>
+    </div>
+</div>
+
+
                     </div>
                     <div class="col-md-12 mt-3" style="padding-bottom: 10px;">
                         <div class="row">
@@ -560,6 +581,47 @@
             actionUrl = actionUrl.replace('PLACEHOLDER', selectedProjectId);
             $('#milestone-form').attr('action', actionUrl);
         });
+    });
+</script>
+<script>
+    function shouldShowPhase(typeId, typeName) {
+        typeId = parseInt(typeId, 10);
+        typeName = (typeName || '').trim().toLowerCase();
+
+        return typeId === 3 ||
+            typeName === 'product development' ||
+            typeName === 'desarrollo de producto';
+    }
+
+    function togglePhaseWrapper(show) {
+        const wrapper = document.getElementById('phase-wrapper');
+        const select  = document.getElementById('phase');
+
+        if (!wrapper) return;
+
+        wrapper.style.display = show ? '' : 'none';
+
+        // opcional: si ocultas, limpias el valor
+        if (!show && select) select.value = '';
+    }
+
+    // Caso: cuando cambie el tipo de proyecto (Create New Project)
+    document.addEventListener('change', function(e) {
+        if (e.target && e.target.id === 'project_type') {
+            const opt = e.target.options[e.target.selectedIndex];
+            const typeId = e.target.value;
+            const typeName = opt ? opt.getAttribute('data-type') : '';
+            togglePhaseWrapper(shouldShowPhase(typeId, typeName));
+        }
+    });
+
+    // Ejecutar al cargar por si ya hay algo seleccionado
+    document.addEventListener('DOMContentLoaded', function() {
+        const projectType = document.getElementById('project_type');
+        if (projectType && projectType.value) {
+            const opt = projectType.options[projectType.selectedIndex];
+            togglePhaseWrapper(shouldShowPhase(projectType.value, opt?.getAttribute('data-type')));
+        }
     });
 </script>
 

@@ -104,4 +104,11 @@ class Milestone extends Model
     {
         return $this->hasMany(MilestoneFile::class);
     }
+
+    // una milestone puede tener fase si el proyecto es type 3
+    public function phase()
+{
+    return $this->hasOne(MilestonePhases::class, 'id_milestone', 'id');
+}
+
 }
