@@ -1079,52 +1079,52 @@ class ProjectController extends Controller
     }
 
     public function getAllParticipatingProjects()
-{
-    $user = Auth::user();
+    {
+        $user = Auth::user();
 
-    /*
+        /*
      |------------------------------------------------------------
      | Proyectos donde el usuario participa (TODOS los workspaces)
      |------------------------------------------------------------
      */
-    $projects = Project::whereUserIsParticipant($user->id)
-        ->with([
-            'typeRel:id,name',
-            // 👇 cargar el workspace completo sin restricción de columnas
-            'workspaceData',
-            'milestones'
-        ])
-        ->orderByDesc('id')
-        ->get();
+        $projects = Project::whereUserIsParticipant($user->id)
+            ->with([
+                'typeRel:id,name',
+                // 👇 cargar el workspace completo sin restricción de columnas
+                'workspaceData',
+                'milestones'
+            ])
+            ->orderByDesc('id')
+            ->get();
 
-    // 🔍 Asegurar que cada proyecto tiene su workspace cargado correctamente
-    $projects = $projects->map(function ($project) {
-        if (!$project->workspaceData) {
-            // Si por alguna razón el workspace no se cargó, intentar cargarlo manualmente
-            $project->workspaceData = Workspace::find($project->workspace);
-        }
-        return $project;
-    });
+        // 🔍 Asegurar que cada proyecto tiene su workspace cargado correctamente
+        $projects = $projects->map(function ($project) {
+            if (!$project->workspaceData) {
+                // Si por alguna razón el workspace no se cargó, intentar cargarlo manualmente
+                $project->workspaceData = Workspace::find($project->workspace);
+            }
+            return $project;
+        });
 
-    /*
+        /*
      |------------------------------------------------------------
      | Tipos de proyecto
      |------------------------------------------------------------
      */
-    $project_type = ProjectType::select('id', 'name')->get();
+        $project_type = ProjectType::select('id', 'name')->get();
 
-    /*
+        /*
      |------------------------------------------------------------
      | Workspace actual (solo para el layout / sidebar)
      |------------------------------------------------------------
      */
-    $currentWorkspace = Workspace::find($user->currant_workspace);
+        $currentWorkspace = Workspace::find($user->currant_workspace);
 
-    return view(
-        'projects.my_projects',
-        compact('currentWorkspace', 'projects', 'project_type')
-    );
-}
+        return view(
+            'projects.my_projects',
+            compact('currentWorkspace', 'projects', 'project_type')
+        );
+    }
 
     public function milestoneBoard($slug, $id)
     {
@@ -1158,7 +1158,7 @@ class ProjectController extends Controller
                 ->with([
                     // 🔑 Cargamos tareas para evitar N+1
                     'tasks:id,milestone_id,assign_to',
-                    'project:id,workspace'
+                    'project:id,workspace,name,type'
                 ])
                 ->orderBy('created_at', 'desc')
                 ->get();
@@ -1171,7 +1171,7 @@ class ProjectController extends Controller
             $allUsersMilestones = Milestone::whereIn('project_id', $workspaceProjectsIds)
                 ->with([
                     'tasks:id,milestone_id,assign_to',
-                    'project:id,workspace'
+                    'project:id,workspace,name,type'
                 ])
                 ->get();
 
@@ -1234,7 +1234,7 @@ class ProjectController extends Controller
     public function myMilestoneBoard()
     {
         $objUser = Auth::user();
-        
+
         // Obtener el workspace actual del usuario
         $currentWorkspace = Utility::getWorkspaceBySlug($objUser->currentWorkspace->slug) ?? $objUser->currentWorkspace;
 
@@ -1246,16 +1246,16 @@ class ProjectController extends Controller
 
         // 🔹 Milestones del usuario actual de TODOS los workspaces
         $allmilestones = Milestone::where(function ($q) use ($objUser) {
-                $q->where('assign_to', $objUser->id)
-                  ->orWhere('milestone_assigned_to_user', $objUser->id)
-                  ->orWhere('created_by', $objUser->id)
-                  ->orWhereHas('tasks', function ($q2) use ($objUser) {
-                      $q2->where('assign_to', $objUser->id);
-                  });
-            })
+            $q->where('assign_to', $objUser->id)
+                ->orWhere('milestone_assigned_to_user', $objUser->id)
+                ->orWhere('created_by', $objUser->id)
+                ->orWhereHas('tasks', function ($q2) use ($objUser) {
+                    $q2->where('assign_to', $objUser->id);
+                });
+        })
             ->with([
                 'tasks:id,milestone_id,assign_to',
-                'project:id,workspace',
+                'project:id,workspace,name,type',
                 'project.workspaceData:id,slug,name',
             ])
 
@@ -1363,48 +1363,47 @@ class ProjectController extends Controller
      * Agrupa los milestones por estado.
      */
     private function groupMilestonesByStatus($allmilestones, $objUser = null, $stages)
-{
-    $milestones = [];
+    {
+        $milestones = [];
 
-    foreach ($stages as $status) {
+        foreach ($stages as $status) {
 
-        $filteredMilestones = $allmilestones->filter(function ($milestone) use ($status) {
-            return (int)$milestone->status === (int)$status->id;
-        });
+            $filteredMilestones = $allmilestones->filter(function ($milestone) use ($status) {
+                return (int)$milestone->status === (int)$status->id;
+            });
 
-        $milestones[$status->id] = $filteredMilestones->map(function ($milestone) use ($objUser) {
+            $milestones[$status->id] = $filteredMilestones->map(function ($milestone) use ($objUser) {
 
-            // ✅ Usa el proyecto eager-loaded si existe, si no fallback a find()
-            $project = $milestone->relationLoaded('project') ? $milestone->project : null;
-            if (!$project) {
-                $project = Project::find($milestone->project_id);
+                // ✅ Usa el proyecto eager-loaded si existe, si no fallback a find()
+                $project = $milestone->relationLoaded('project') ? $milestone->project : null;
+                if (!$project) {
+                    $project = Project::find($milestone->project_id);
+                }
+
+                $data = $this->getMilestoneData($milestone, $project, $objUser);
+
+                // ✅ Añadir workspace_slug/name sin romper nada
+                $workspace = null;
+
+                // si viene eager-loaded: project.workspaceData
+                if ($project && method_exists($project, 'workspaceData')) {
+                    // ojo: workspaceData() en tu Project es hasOne, así que se accede como propiedad
+                    $workspace = $project->relationLoaded('workspaceData') ? $project->workspaceData : $project->workspaceData()->first();
+                }
+
+                $data['workspace_slug'] = $workspace->slug ?? null;
+                $data['workspace_name'] = $workspace->name ?? null;
+
+                return $data;
+            })->toArray();
+
+            if (empty($milestones[$status->id])) {
+                $milestones[$status->id] = [];
             }
-
-            $data = $this->getMilestoneData($milestone, $project, $objUser);
-
-            // ✅ Añadir workspace_slug/name sin romper nada
-            $workspace = null;
-
-            // si viene eager-loaded: project.workspaceData
-            if ($project && method_exists($project, 'workspaceData')) {
-                // ojo: workspaceData() en tu Project es hasOne, así que se accede como propiedad
-                $workspace = $project->relationLoaded('workspaceData') ? $project->workspaceData : $project->workspaceData()->first();
-            }
-
-            $data['workspace_slug'] = $workspace->slug ?? null;
-            $data['workspace_name'] = $workspace->name ?? null;
-
-            return $data;
-
-        })->toArray();
-
-        if (empty($milestones[$status->id])) {
-            $milestones[$status->id] = [];
         }
-    }
 
-    return empty(array_filter($milestones, fn($ms) => !empty($ms))) ? null : $milestones;
-}
+        return empty(array_filter($milestones, fn($ms) => !empty($ms))) ? null : $milestones;
+    }
 
 
 
@@ -1437,67 +1436,67 @@ class ProjectController extends Controller
     }
 
     public function waitMilestone($slug, $milestoneID, Request $request)
-{
-    $milestone = Milestone::find($milestoneID);
+    {
+        $milestone = Milestone::find($milestoneID);
 
-    if (!$milestone) {
-        return redirect()->back()->with('error', __('Milestone not found.'));
+        if (!$milestone) {
+            return redirect()->back()->with('error', __('Milestone not found.'));
+        }
+
+        // Si hay un comentario, agregarlo al principio del summary
+        $pauseComment = $request->input('pause_comment');
+        if ($pauseComment) {
+            $user = Auth::user()->name;
+            $newNote = "[Paused by $user]: \n\n$pauseComment\n\n";
+            $milestone->summary = $newNote . ($milestone->summary ?? '');
+        }
+
+        $milestone->is_waiting = true;
+        $milestone->save();
+
+        // ✅ Recalcular estado del proyecto
+        $milestone->project?->updateProjectStatus();
+
+        return redirect()->back()->with('success', __('Milestone paused successfully.'));
     }
-
-    // Si hay un comentario, agregarlo al principio del summary
-    $pauseComment = $request->input('pause_comment');
-    if ($pauseComment) {
-        $user = Auth::user()->name;
-        $newNote = "[Paused by $user]: \n\n$pauseComment\n\n";
-        $milestone->summary = $newNote . ($milestone->summary ?? '');
-    }
-
-    $milestone->is_waiting = true;
-    $milestone->save();
-
-    // ✅ Recalcular estado del proyecto
-    $milestone->project?->updateProjectStatus();
-
-    return redirect()->back()->with('success', __('Milestone paused successfully.'));
-}
 
 
     public function resumeMilestone($slug, $milestoneID, Request $request)
-{
-    $milestone = Milestone::find($milestoneID);
+    {
+        $milestone = Milestone::find($milestoneID);
 
-    if (!$milestone) {
-        return redirect()->back()->with('error', __('Milestone not found.'));
+        if (!$milestone) {
+            return redirect()->back()->with('error', __('Milestone not found.'));
+        }
+
+        $milestone->is_waiting = false;
+        $milestone->save();
+
+        // ✅ Recalcular estado del proyecto
+        $milestone->project?->updateProjectStatus();
+
+        return redirect()->back()->with('success', __('Milestone resumed successfully.'));
     }
-
-    $milestone->is_waiting = false;
-    $milestone->save();
-
-    // ✅ Recalcular estado del proyecto
-    $milestone->project?->updateProjectStatus();
-
-    return redirect()->back()->with('success', __('Milestone resumed successfully.'));
-}
 
 
     public function clearFinalizationDate($slug, $milestoneID)
-{
-    $milestone = Milestone::find($milestoneID);
+    {
+        $milestone = Milestone::find($milestoneID);
 
-    if (!$milestone) {
-        return response()->json(['success' => false], 404);
+        if (!$milestone) {
+            return response()->json(['success' => false], 404);
+        }
+
+        $milestone->finalization_date = null;
+        $milestone->save();
+
+        // ✅ Recalcular estado del proyecto
+        if ($milestone->project) {
+            $milestone->project->updateProjectStatus();
+        }
+
+        return response()->json(['success' => true]);
     }
-
-    $milestone->finalization_date = null;
-    $milestone->save();
-
-    // ✅ Recalcular estado del proyecto
-    if ($milestone->project) {
-        $milestone->project->updateProjectStatus();
-    }
-
-    return response()->json(['success' => true]);
-}
 
 
 
@@ -1819,17 +1818,17 @@ class ProjectController extends Controller
 
         $milestone = Milestone::find($request->milestone_id);
         \Log::info('Milestone antes de actualizar:', $milestone->toArray());
-        
+
         // Verificar que el título no esté vacío antes de guardar
         if (empty($milestone->title)) {
             \Log::warning('ADVERTENCIA: Milestone sin título detectado. Milestone ID: ' . $milestone->id);
             return redirect()->back()->with('error', 'Error: El encargo no tiene título.');
         }
-        
+
         // Solo actualizar el status, sin tocar otros campos
         $milestone->status = 2;
         $milestone->save();
-        
+
         \Log::info('Milestone después de actualizar:', $milestone->toArray());
 
         return redirect()->back()->with(['success' => __('Task Created Successfully!')]);
@@ -1859,28 +1858,28 @@ class ProjectController extends Controller
                 $old_status = Stage::find($request->old_status);
                 $user = Auth::user();
                 $milestone = Milestone::find($request->id);
-                
+
                 \Log::info('Milestone actualización - Antes:', $milestone->toArray());
-                
+
                 $milestone->status = $request->new_status;
-                
+
                 // Si hay un comentario para el cambio de status (de review a en curso)
                 if ($request->has('status_change_comment') && !empty($request->status_change_comment)) {
                     $comment = $request->status_change_comment;
                     $timestamp = now()->format('Y-m-d H:i:s');
                     $userName = $user->name;
-                    
+
                     // Agregar el comentario al inicio de la descripción/summary
                     $prefix = "[$userName] (Review → In Progress):\n$comment\n\n";
                     $milestone->summary = $prefix . ($milestone->summary ?? '');
                 }
-                
+
                 // Verificar que el título no esté vacío antes de guardar
                 if (empty($milestone->title)) {
                     \Log::error('CRÍTICO: Intento de guardar milestone sin título. ID: ' . $milestone->id . ' Status: ' . $milestone->status);
                     $milestone->title = 'SIN TÍTULO'; // Fallback de emergencia
                 }
-                
+
                 $milestone->save();
                 \Log::info('Milestone actualización - Después:', $milestone->toArray());
 
@@ -1893,7 +1892,7 @@ class ProjectController extends Controller
                         $project->updateProjectStatus();
                     }
                 }
-                
+
                 // Si el cambio es de status 3 a 2, eliminar puntuaciones
                 if ($request->old_status == 3 && $request->new_status == 2) {
                     try {
@@ -1906,7 +1905,7 @@ class ProjectController extends Controller
                         \Log::error('Error al eliminar puntuaciones: ' . $e->getMessage());
                     }
                 }
-                
+
                 $project->updateProjectStatus();
                 //Add log
                 $status = Stage::find($milestone->status);
@@ -2854,7 +2853,7 @@ class ProjectController extends Controller
             'request_title' => $request->title,
             'will_update_title' => !empty($request->title)
         ]);
-        
+
         if (!empty($request->title)) {
             $milestone->title = $request->title;
         }
@@ -2866,14 +2865,14 @@ class ProjectController extends Controller
         $milestone->end_date = $finalEndDate;
         $milestone->planned_end_date = $request->planned_end_date;
         $milestone->priority = $request->priority === '' ? null : $request->priority;
-        
+
         \Log::info('milestoneUpdate - Antes de save', [
             'milestone_id' => $milestone->id,
             'title' => $milestone->title,
         ]);
-        
+
         $milestone->save();
-        
+
         \Log::info('milestoneUpdate - Después de save', [
             'milestone_id' => $milestone->id,
             'title' => $milestone->title,

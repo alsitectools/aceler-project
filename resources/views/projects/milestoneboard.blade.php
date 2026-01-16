@@ -361,6 +361,7 @@
                                 {{-- ========================= --}}
                                 @if (isset($milestones[$status->id]))
                                     @foreach ($milestones[$status->id] as $milestone)
+                                        {{-- @dump($milestone) --}}
                                         {{-- Registrar ID para evitar duplicados --}}
                                         @php $renderedMilestonesIds[] = $milestone['id']; @endphp
 
@@ -483,8 +484,16 @@
                                 url: url,
                                 dataType: 'html',
                                 success: function(data) {
+                                    var modalEl = document.getElementById(modalId);
+                                    var modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+                                    // Reset modal dialog
+                                    var modalDialog = modalEl.querySelector('.modal-dialog');
+                                    if (modalDialog) {
+                                        modalDialog.className = 'modal-dialog';
+                                        modalDialog.removeAttribute('style');
+                                    }
                                     $('#' + modalId + ' .body').html(data);
-                                    $("#" + modalId).modal('show');
+                                    modal.show();
                                     commonLoader();
                                     loadConfirm();
                                 }
@@ -594,22 +603,22 @@
                         var project_id = a(el).data('project-id');
                         // var milestoneTitle = a(el).find('mileTitle').text(); // Título del milestone
                         var milestoneTitle = a(el).find('.mileTitle').attr('data-header');
-                        
+
                         // Fallback: Si no encontramos data-header, intentar obtener el text()
                         if (!milestoneTitle) {
                             milestoneTitle = a(el).find('.mileTitle').text();
                         }
-                        
+
                         // Fallback: Si aún no tenemos título, intentar por id milestoneTitleForNotification
                         if (!milestoneTitle) {
                             milestoneTitle = a(el).find('#milestoneTitleForNotification').text();
                         }
-                        
+
                         console.log("el completo ");
                         console.log(el)
                         console.log("Milestone Title (obtenido): " + milestoneTitle);
                         console.log("longitud " + a(el).find('#milestoneTitleForNotification').length);
-                        
+
                         // Guardar el título tanto en data como en atributo HTML para persistencia
                         a(el).data('milestoneTitle', milestoneTitle);
                         a(el).attr('data-milestone-title', milestoneTitle);
@@ -680,14 +689,21 @@
                                 url: assignUrl,
                                 dataType: 'html',
                                 success: function(assignData) {
-                                    $('#' + modalId + ' .body').html(assignData);
-                                    // Marcamos el formulario para saber que viene del cambio de estado
-                                    $('#asignMilestoneForm').attr('data-from-status-change', 'true');
-                                    $("#" + modalId).modal({
+                                    var modalEl = document.getElementById(modalId);
+                                    var modal = bootstrap.Modal.getOrCreateInstance(modalEl, {
                                         backdrop: 'static',
                                         keyboard: false
                                     });
-                                    $("#" + modalId).modal('show');
+                                    // Reset modal dialog
+                                    var modalDialog = modalEl.querySelector('.modal-dialog');
+                                    if (modalDialog) {
+                                        modalDialog.className = 'modal-dialog';
+                                        modalDialog.removeAttribute('style');
+                                    }
+                                    $('#' + modalId + ' .body').html(assignData);
+                                    // Marcamos el formulario para saber que viene del cambio de estado
+                                    $('#asignMilestoneForm').attr('data-from-status-change', 'true');
+                                    modal.show();
 
 
                                     // Escuchar el evento solo si se disparó desde el form
@@ -701,28 +717,33 @@
                                             // Recuperar el título del milestone del elemento
                                             var $milestoneCard = a("#" + cardId);
                                             var retrievedTitle = $milestoneCard.data('milestoneTitle');
-                                            
+
                                             // Si no tenemos el título guardado en data, intentar desde atributo HTML
                                             if (!retrievedTitle) {
-                                                retrievedTitle = $milestoneCard.attr('data-milestone-title');
+                                                retrievedTitle = $milestoneCard.attr(
+                                                    'data-milestone-title');
                                             }
-                                            
+
                                             // Si no tenemos el título desde atributo, intentar obtenerlo directamente
                                             if (!retrievedTitle) {
-                                                retrievedTitle = $milestoneCard.find('.mileTitle').attr('data-header');
+                                                retrievedTitle = $milestoneCard.find('.mileTitle').attr(
+                                                    'data-header');
                                             }
                                             if (!retrievedTitle) {
-                                                retrievedTitle = $milestoneCard.find('.mileTitle').text();
+                                                retrievedTitle = $milestoneCard.find('.mileTitle')
+                                                    .text();
                                             }
                                             if (!retrievedTitle) {
-                                                retrievedTitle = $milestoneCard.find('#milestoneTitleForNotification').text();
+                                                retrievedTitle = $milestoneCard.find(
+                                                    '#milestoneTitleForNotification').text();
                                             }
                                             if (!retrievedTitle) {
                                                 retrievedTitle = milestoneTitle || 'Sin título';
                                             }
-                                            
-                                            console.log('Título recuperado para crear tarea:', retrievedTitle);
-                                            
+
+                                            console.log('Título recuperado para crear tarea:',
+                                                retrievedTitle);
+
                                             var createTaskUrl =
                                                 '{{ route('tasks.create', $currentWorkspace->slug) }}' +
                                                 '?project_id=' + project_id +
@@ -739,13 +760,25 @@
                                                 url: createTaskUrl,
                                                 dataType: 'html',
                                                 success: function(taskData) {
+                                                    var modalEl = document.getElementById(
+                                                        modalId);
+                                                    var modal = bootstrap.Modal
+                                                        .getOrCreateInstance(modalEl, {
+                                                            backdrop: 'static',
+                                                            keyboard: false
+                                                        });
+                                                    // Reset modal dialog
+                                                    var modalDialog = modalEl.querySelector(
+                                                        '.modal-dialog');
+                                                    if (modalDialog) {
+                                                        modalDialog.className =
+                                                            'modal-dialog';
+                                                        modalDialog.removeAttribute(
+                                                            'style');
+                                                    }
                                                     $('#' + modalId + ' .body').html(
                                                         taskData);
-                                                    $("#" + modalId).modal({
-                                                        backdrop: 'static',
-                                                        keyboard: false
-                                                    });
-                                                    $("#" + modalId).modal('show');
+                                                    modal.show();
                                                     commonLoader();
                                                     loadConfirm();
                                                 }
@@ -810,13 +843,15 @@
                             document.getElementById('statusChangeModal').dataset.newStatus = newStatus;
                             document.getElementById('statusChangeModal').dataset.projectId = project_id;
                             document.getElementById('statusChangeModal').dataset.sort = JSON.stringify(sort);
-                            
+
                             // Limpiar el textarea
                             document.getElementById('statusChangeComment').value = '';
-                            
+
                             // Mostrar el modal
-                            $('#statusChangeModal').modal('show');
-                            
+                            var statusModalEl = document.getElementById('statusChangeModal');
+                            var statusModal = bootstrap.Modal.getOrCreateInstance(statusModalEl);
+                            statusModal.show();
+
                             // Prevenir que se haga la actualización aquí, se hará después
                             // Retornar de la función completa para no ejecutar el AJAX global
                             return false;
@@ -875,13 +910,25 @@
                                                         project_id: projectId,
                                                     },
                                                     success: function(response) {
+                                                        var modalEl = document.getElementById(
+                                                            modalId);
+                                                        var modal = bootstrap.Modal
+                                                            .getOrCreateInstance(modalEl, {
+                                                                backdrop: 'static',
+                                                                keyboard: false
+                                                            });
+                                                        // Reset modal dialog
+                                                        var modalDialog = modalEl.querySelector(
+                                                            '.modal-dialog');
+                                                        if (modalDialog) {
+                                                            modalDialog.className =
+                                                                'modal-dialog';
+                                                            modalDialog.removeAttribute(
+                                                                'style');
+                                                        }
                                                         $("#" + modalId + " .body").html(
                                                             response);
-                                                        $("#" + modalId).modal({
-                                                            backdrop: 'static',
-                                                            keyboard: false
-                                                        });
-                                                        $("#" + modalId).modal('show');
+                                                        modal.show();
                                                         // 🧩 Guardamos datos para revertir si el popup se cancela
                                                         $("#" + modalId).data('milestone-id',
                                                             milestonetId);
@@ -997,7 +1044,7 @@
                             let msg = milestoneTitle + ' en el proyecto ' + projectName;
                             let ntipe = 5;
                             if (!msg) return;
-                                //AQUI FALTA MILESTONEID
+                            //AQUI FALTA MILESTONEID
                             fetch("{{ route('notifications.add') }}", {
                                     method: "POST",
                                     headers: {
@@ -1142,15 +1189,19 @@
                         $(this).removeData('previous-status');
                         $(this).removeData('previous-container');
 
-                        // ✅ Limpiar todas las clases de tamaño del modal
+                        // ✅ Limpiar todas las clases de tamaño del modal y restablecer a la base
                         const $modalDialog = $(this).find('.modal-dialog');
-                        $modalDialog.removeClass(function (index, css) {
-                            return (css.match(/\bmodal-\S+/g) || []).join(' ');
-                        });
-                        
+                        $modalDialog.attr('class', 'modal-dialog').removeAttr('style');
+
+                        // ✅ Limpiar estilos inline del modal-content
+                        $(this).find('.modal-content').removeAttr('style');
+
                         // ✅ Remover estilos inline específicos del dropdown
                         $(this).find('.dropdown-menu').removeAttr('style');
-                        
+
+                        // ✅ Limpiar el título del modal
+                        $(this).find('.modal-title').empty();
+
                         // ✅ Limpiar el contenido del modal body después de cerrar
                         $(this).find('.body').empty();
 
@@ -1190,6 +1241,22 @@
                 });
             </script>
 
+            <script>
+                // Limpieza del modal-container cuando se cierra
+                document.addEventListener('DOMContentLoaded', function() {
+                    const modalContainerEl = document.getElementById('modal-container');
+                    if (modalContainerEl) {
+                        modalContainerEl.addEventListener('hidden.bs.modal', function() {
+                            const $modal = $(this);
+                            // ✅ Resetear clases del modal-dialog
+                            $modal.find('.modal-dialog').attr('class', 'modal-dialog').removeAttr('style');
+                            // ✅ Limpiar estilos inline del modal-content
+                            $modal.find('.modal-content').removeAttr('style').empty();
+                        });
+                    }
+                });
+            </script>
+
 
             <script>
                 document.addEventListener('DOMContentLoaded', function() {
@@ -1208,13 +1275,20 @@
                         } else {
                             // Fallback manual
                             const url = `${window.location.origin}/projects/${slug}/milestone/${milestoneId}/show`;
-                            const modal = new bootstrap.Modal(document.getElementById('commonModal'));
+                            const modalEl = document.getElementById('commonModal');
+                            const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+
+                            // Reset modal dialog classes before loading new content
+                            const modalDialog = modalEl.querySelector('.modal-dialog');
+                            if (modalDialog) {
+                                modalDialog.className = 'modal-dialog';
+                                modalDialog.removeAttribute('style');
+                            }
 
                             fetch(url)
                                 .then(response => response.text())
                                 .then(data => {
-                                    document.getElementById('commonModal').querySelector('.modal-body')
-                                        .innerHTML = data;
+                                    modalEl.querySelector('.modal-body').innerHTML = data;
                                     modal.show();
                                 });
                         }
@@ -1355,9 +1429,18 @@
                                     type: 'GET',
                                     data: taskData,
                                     success: function(data) {
+                                        var modalEl = document.getElementById(
+                                            'modal-container');
+                                        // Reset modal dialog
+                                        var modalDialog = modalEl.querySelector(
+                                            '.modal-dialog');
+                                        if (modalDialog) {
+                                            modalDialog.className = 'modal-dialog';
+                                            modalDialog.removeAttribute('style');
+                                        }
                                         $('#modal-container .modal-content').html(data);
-                                        var myModal = new bootstrap.Modal(document
-                                            .getElementById('modal-container'));
+                                        var myModal = bootstrap.Modal.getOrCreateInstance(
+                                            modalEl);
                                         myModal.show();
                                     },
                                     error: function(xhr, status, error) {
@@ -1393,40 +1476,40 @@
                     }
 
                     function applyMilestoneFilters() {
-    const allMilestones = document.querySelectorAll('.card[data-project-id]');
+                        const allMilestones = document.querySelectorAll('.card[data-project-id]');
 
-    allMilestones.forEach(card => {
-        const assignedUser   = card.dataset.assignTo;
-        const createdBy      = card.dataset.createdBy;
-        const requestedBy    = card.dataset.requestedBy;
-        const hasMyTasks     = card.dataset.hasMyTasks === '1';
-        const isUnassigned   = card.classList.contains('notAsignedMilestone');
+                        allMilestones.forEach(card => {
+                            const assignedUser = card.dataset.assignTo;
+                            const createdBy = card.dataset.createdBy;
+                            const requestedBy = card.dataset.requestedBy;
+                            const hasMyTasks = card.dataset.hasMyTasks === '1';
+                            const isUnassigned = card.classList.contains('notAsignedMilestone');
 
-        let visible = true;
+                            let visible = true;
 
-        // 🟢 FILTRO: solo mis milestones
-        if (!showAll) {
+                            // 🟢 FILTRO: solo mis milestones
+                            if (!showAll) {
 
-            const isMine =
-                assignedUser == currentUserId ||
-                createdBy == currentUserId ||
-                requestedBy == currentUserId ||
-                hasMyTasks ||
-                (isUnassigned && createdBy == currentUserId);
+                                const isMine =
+                                    assignedUser == currentUserId ||
+                                    createdBy == currentUserId ||
+                                    requestedBy == currentUserId ||
+                                    hasMyTasks ||
+                                    (isUnassigned && createdBy == currentUserId);
 
-            if (!isMine) {
-                visible = false;
-            }
-        }
+                                if (!isMine) {
+                                    visible = false;
+                                }
+                            }
 
-        // 🔴 FILTRO: ocultar no asignadas
-        if (hideUnassigned && isUnassigned) {
-            visible = false;
-        }
+                            // 🔴 FILTRO: ocultar no asignadas
+                            if (hideUnassigned && isUnassigned) {
+                                visible = false;
+                            }
 
-        card.style.display = visible ? '' : 'none';
-    });
-}
+                            card.style.display = visible ? '' : 'none';
+                        });
+                    }
 
 
 
@@ -1499,11 +1582,13 @@
             </script>
 
             <!-- Modal para cambio de status de review a en curso -->
-            <div class="modal fade" id="statusChangeModal" tabindex="-1" role="dialog" aria-labelledby="statusChangeModalLabel" aria-hidden="true">
+            <div class="modal fade" id="statusChangeModal" tabindex="-1" role="dialog"
+                aria-labelledby="statusChangeModalLabel" aria-hidden="true">
                 <div class="modal-dialog" role="document">
                     <div class="modal-content">
                         <div class="modal-header">
-                            <h5 class="modal-title" id="statusChangeModalLabel">{{ __('Start Milestone - In Progress') }}</h5>
+                            <h5 class="modal-title" id="statusChangeModalLabel">{{ __('Start Milestone - In Progress') }}
+                            </h5>
                             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                         </div>
                         <form id="statusChangeForm" method="POST" style="display:none;">
@@ -1512,13 +1597,15 @@
                         <div class="modal-body">
                             <div class="form-group">
                                 <label for="statusChangeComment">{{ __('Notes / Reason') }}</label>
-                                <textarea class="form-control" id="statusChangeComment" name="status_change_comment" rows="4" 
+                                <textarea class="form-control" id="statusChangeComment" name="status_change_comment" rows="4"
                                     placeholder="{{ __('Enter any notes or reason for starting this milestone...') }}"></textarea>
                             </div>
                         </div>
                         <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ __('Cancel') }}</button>
-                            <button type="button" class="btn btn-primary" onclick="submitStatusChange()">{{ __('Return to In progress') }}</button>
+                            <button type="button" class="btn btn-secondary"
+                                data-bs-dismiss="modal">{{ __('Cancel') }}</button>
+                            <button type="button" class="btn btn-primary"
+                                onclick="submitStatusChange()">{{ __('Return to In progress') }}</button>
                         </div>
                     </div>
                 </div>
@@ -1533,10 +1620,11 @@
                     const projectId = document.getElementById('statusChangeModal').dataset.projectId;
                     const sortData = document.getElementById('statusChangeModal').dataset.sort;
                     const comment = document.getElementById('statusChangeComment').value;
-                    
+
                     // Hacer AJAX directamente en lugar de enviar un formulario
                     $.ajax({
-                        url: '{{ route('milestone.update.order', [$currentWorkspace->slug, ':projectId']) }}'.replace(':projectId', projectId),
+                        url: '{{ route('milestone.update.order', [$currentWorkspace->slug, ':projectId']) }}'.replace(
+                            ':projectId', projectId),
                         type: 'POST',
                         headers: {
                             'X-CSRF-TOKEN': '{{ csrf_token() }}'
@@ -1559,9 +1647,11 @@
                             alert('{{ __('Error updating milestone status') }}');
                         }
                     });
-                    
+
                     // Cerrar el modal
-                    $('#statusChangeModal').modal('hide');
+                    var statusModalEl = document.getElementById('statusChangeModal');
+                    var statusModal = bootstrap.Modal.getOrCreateInstance(statusModalEl);
+                    statusModal.hide();
                 }
             </script>
         @endpush
