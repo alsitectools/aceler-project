@@ -98,6 +98,51 @@ class ProjectController extends Controller
         return response()->json($projects);
     }
 
+    /**
+     * Genera un nombre único para un archivo si ya existe uno con el mismo nombre.
+     * Ejemplo: archivo.pdf -> archivo (2).pdf -> archivo (3).pdf
+     *
+     * @param string $fileName Nombre original del archivo
+     * @param array $existingNames Array de nombres existentes
+     * @return string Nombre único del archivo
+     */
+    private function generateUniqueFileName(string $fileName, array $existingNames): string
+    {
+        if (!in_array($fileName, $existingNames)) {
+            return $fileName;
+        }
+
+        // Separar nombre base y extensión
+        $lastDotIndex = strrpos($fileName, '.');
+        if ($lastDotIndex !== false && $lastDotIndex > 0) {
+            $baseName = substr($fileName, 0, $lastDotIndex);
+            $extension = substr($fileName, $lastDotIndex);
+        } else {
+            $baseName = $fileName;
+            $extension = '';
+        }
+
+        // Verificar si ya tiene un sufijo numérico como " (2)"
+        $originalBaseName = $baseName;
+        $startCounter = 2;
+
+        if (preg_match('/^(.+)\s\((\d+)\)$/', $baseName, $matches)) {
+            $originalBaseName = $matches[1];
+            $startCounter = (int)$matches[2] + 1;
+        }
+
+        // Buscar el siguiente número disponible
+        $counter = $startCounter;
+        $newFileName = "{$originalBaseName} ({$counter}){$extension}";
+
+        while (in_array($newFileName, $existingNames)) {
+            $counter++;
+            $newFileName = "{$originalBaseName} ({$counter}){$extension}";
+        }
+
+        return $newFileName;
+    }
+
 
     public function tracker($slug, $id)
     {
@@ -2688,9 +2733,23 @@ private function getEnumValues($table, $column)
                 mkdir(storage_path($dir), 0755, true);
             }
 
+            // Obtener nombres de archivos existentes en este milestone para evitar duplicados
+            $existingFileNames = MilestoneFile::where('milestone_id', $milestone->id)
+                ->pluck('name')
+                ->toArray();
+
             foreach ($request->file('files') as $file) {
                 if ($file->isValid()) {
-                    $fileName = $milestone->id . '_' . time() . '_' . $file->getClientOriginalName();
+                    $originalName = $file->getClientOriginalName();
+                    // Reemplazar espacios con guiones bajos
+                    $originalName = str_replace(' ', '_', $originalName);
+
+                    // Generar nombre único si ya existe
+                    $uniqueDisplayName = $this->generateUniqueFileName($originalName, $existingFileNames);
+                    // Agregar al array para evitar duplicados en el mismo lote
+                    $existingFileNames[] = $uniqueDisplayName;
+
+                    $fileName = $milestone->id . '_' . time() . '_' . $uniqueDisplayName;
                     $file->move(storage_path($dir), $fileName);
 
                     $filePath = storage_path($dir . '/' . $fileName);
@@ -2701,7 +2760,7 @@ private function getEnumValues($table, $column)
                     MilestoneFile::create([
                         'milestone_id' => $milestone->id,
                         'file' => $fileName,
-                        'name' => $file->getClientOriginalName(),
+                        'name' => $uniqueDisplayName,
                         'extension' => $file->getClientOriginalExtension(),
                         'file_size' => $fileSize,
                         'created_by' => Auth::id(),
@@ -2979,6 +3038,11 @@ private function getEnumValues($table, $column)
                 mkdir(storage_path($dir), 0755, true);
             }
 
+            // Obtener nombres de archivos existentes en este milestone para evitar duplicados
+            $existingFileNames = MilestoneFile::where('milestone_id', $milestone->id)
+                ->pluck('name')
+                ->toArray();
+
             foreach ($request->file('new_files') as $file) {
                 if (!$file->isValid()) {
                     $failedFiles[] = [
@@ -3000,7 +3064,13 @@ private function getEnumValues($table, $column)
                 $originalFileName = $file->getClientOriginalName();
                 // ✅ Reemplazar espacios con guiones bajos
                 $originalFileName = str_replace(' ', '_', $originalFileName);
-                $fileName = $milestone->id . '_' . time() . '_' . $originalFileName;
+
+                // Generar nombre único si ya existe
+                $uniqueDisplayName = $this->generateUniqueFileName($originalFileName, $existingFileNames);
+                // Agregar al array para evitar duplicados en el mismo lote
+                $existingFileNames[] = $uniqueDisplayName;
+
+                $fileName = $milestone->id . '_' . time() . '_' . $uniqueDisplayName;
                 $file->move(storage_path($dir), $fileName);
 
                 $filePath = storage_path($dir . '/' . $fileName);
@@ -3011,14 +3081,14 @@ private function getEnumValues($table, $column)
                 MilestoneFile::create([
                     'milestone_id' => $milestone->id,
                     'file' => $fileName,
-                    'name' => $originalFileName,
+                    'name' => $uniqueDisplayName,
                     'extension' => $file->getClientOriginalExtension(),
                     'file_size' => $fileSize,
                     'created_by' => Auth::user()->id,
                     'user_type' => Auth::user()->type,
                 ]);
 
-                $uploadedFiles[] = $originalFileName;
+                $uploadedFiles[] = $uniqueDisplayName;
             }
         }
 

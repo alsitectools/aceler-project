@@ -180,14 +180,14 @@
                         <input class="form-check-input" type="checkbox" role="switch" id="toggleFormSwitch">
                         <label class="form-check-label"
                             for="toggleFormSwitch">{{ __('Only in case it is necessary to to
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    carry out a project with a visa.') }}</label>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                carry out a project with a visa.') }}</label>
                     </div>
                     <div id="additionalForm" class="collapse mt-3">
                         <div class="card card-body">
                             <div class="mb-3">
                                 <label for="input1"
                                     class="form-label">{{ __('Name of the company that will install the
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    system') }}:</label>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        system') }}:</label>
                                 <input type="text" class="form-control" name="company" id="company"
                                     placeholder="Ingrese valor">
                             </div>
@@ -210,8 +210,8 @@
                             </div>
                             <p class="mb-3">
                                 <b>{{ __('Note: In order to carry out the project it is necessary to send the quotation of
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                the formwork and falsework system, and the complete assembly drawings and geometrical
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                definition of the structure.') }}
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                the formwork and falsework system, and the complete assembly drawings and geometrical
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                definition of the structure.') }}
                                 </b>
                             </p>
                         </div>
@@ -280,8 +280,7 @@
 
                             <!-- Sección de Archivos Adjuntos (Derecha) -->
                             <div class="col-md-6">
-                                <label for="file-uploadMilestone"
-                                    class="form-label"><strong>{{ __('Upload files') }}</strong></label>
+                                <label class="form-label"><strong>{{ __('Upload files') }}</strong></label>
                                 <div>
                                     <div class="col-md-12 dropzone browse-file" id="dropzonewidgetMilestone">
                                         <div class="dz-message" data-dz-message>
@@ -375,7 +374,7 @@
                         <div class="page-search">
                             <p class="text-muted mt-3">
                                 {{ __("It's looking like you may have taken a wrong turn. Don't worry... it happens to the
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            best of us. Here's a little tip that might help you get back on track.") }}
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            best of us. Here's a little tip that might help you get back on track.") }}
                             </p>
                             <div class="mt-3">
                                 <a class="btn-return-home badge-blue" href="{{ route('home') }}">
@@ -628,6 +627,11 @@
 
 <!-- Funciones para manejar la carga y listado de archivos -->
 <script>
+    // Limpiar handlers anteriores si existen (para evitar duplicados al reabrir modal)
+    if (window._milestoneHandlersCleanup) {
+        window._milestoneHandlersCleanup();
+    }
+
     const dropzoneMilestone = document.getElementById('dropzonewidgetMilestone');
     let fileInputMilestone = document.getElementById('file-uploadMilestone');
     const fileListMilestone = document.getElementById('file-list');
@@ -717,44 +721,46 @@
         if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length) {
             const droppedFiles = Array.from(e.dataTransfer.files);
             handleFilesMilestone(droppedFiles);
-            uploadFilesMilestone(droppedFiles);
+            // Los archivos se subirán al hacer submit del formulario, no aquí
             dropzoneMilestone.focus();
         }
     });
 
-    // Prevent default drag behavior on document
-    document.addEventListener('dragover', function(e) {
+    // Prevent default drag behavior on document - usar handlers con nombre
+    function _milestoneDocDragover(e) {
         e.preventDefault();
-    });
+    }
 
-    document.addEventListener('drop', function(e) {
+    function _milestoneDocDrop(e) {
         e.preventDefault();
-    });
+    }
+    document.addEventListener('dragover', _milestoneDocDragover);
+    document.addEventListener('drop', _milestoneDocDrop);
 
     // --- Selección manual desde input file ---
-    dropzoneMilestone.addEventListener('dblclick', function() {
+    // Click en dropzone abre el selector de archivos
+    dropzoneMilestone.addEventListener('click', function(e) {
+        // Evitar que se dispare si el click fue en un botón de eliminar dentro del dropzone
+        if (e.target.closest('.buttonFiles') || e.target.closest('a')) {
+            return;
+        }
         fileInputMilestone.value = '';
         fileInputMilestone.click();
     });
+
     fileInputMilestone.addEventListener('change', function() {
         if (fileInputMilestone.files && fileInputMilestone.files.length) {
             const selectedFiles = Array.from(fileInputMilestone.files);
-            // 1) Procesar y listar localmente
+            // Procesar y listar localmente (los archivos se subirán al hacer submit)
             handleFilesMilestone(selectedFiles);
-            // 2) Subir automáticamente los archivos al servidor
-            uploadFilesMilestone(selectedFiles);
-            dropzoneMilestone.focus();
         }
     });
 
     // --- Permitimos que la dropzone reciba foco y capture paste ---
     dropzoneMilestone.setAttribute('tabindex', '0'); // hace que se pueda enfocar
-    dropzoneMilestone.addEventListener('click', () => {
-        dropzoneMilestone.focus();
-    });
 
     // --- Capturar paste a nivel de document, pero sólo procesar si foco está dentro de dropzone ---
-    document.addEventListener('paste', function(e) {
+    function _milestonePasteHandler(e) {
         const focused = document.activeElement;
         if (focused !== dropzoneMilestone && !dropzoneMilestone.contains(focused)) {
             return;
@@ -803,13 +809,14 @@
             const archivosValidos = results.filter(f => f instanceof File);
             if (archivosValidos.length > 0) {
                 handleFilesMilestone(archivosValidos);
-                uploadFilesMilestone(archivosValidos);
+                // Los archivos se subirán al hacer submit del formulario
             } else {
                 alert('El portapapeles no contiene un archivo permitido');
             }
             dropzoneMilestone.focus();
         });
-    });
+    }
+    document.addEventListener('paste', _milestonePasteHandler);
 
     // --- Función ÚNICA para procesar archivos subidos (pegados, arrastrados o seleccionados) ---
     function handleFilesMilestone(files) {
@@ -877,13 +884,67 @@
         updateFileListMilestone();
     }
 
-    function addFileToMilestoneArray(file) {
-        if (!filesArrayMilestone.some(f => f.name === file.name && f.size === file.size)) {
-            filesArrayMilestone.push(file);
-            updateFileListMilestone();
-        } else {
-            console.warn(`Archivo duplicado ignorado: ${file.name}`);
+    /**
+     * Genera un nombre único para el archivo si ya existe uno con el mismo nombre.
+     * Ejemplo: archivo.pdf -> archivo (2).pdf -> archivo (3).pdf
+     */
+    function generateUniqueFileNameMilestone(fileName) {
+        const existingNames = filesArrayMilestone.map(f => f.name);
+
+        if (!existingNames.includes(fileName)) {
+            return fileName;
         }
+
+        // Separar nombre base y extensión
+        const lastDotIndex = fileName.lastIndexOf('.');
+        let baseName, extension;
+
+        if (lastDotIndex > 0) {
+            baseName = fileName.substring(0, lastDotIndex);
+            extension = fileName.substring(lastDotIndex);
+        } else {
+            baseName = fileName;
+            extension = '';
+        }
+
+        // Verificar si ya tiene un sufijo numérico como " (2)"
+        const suffixMatch = baseName.match(/^(.+)\s\((\d+)\)$/);
+        let originalBaseName = baseName;
+        let startCounter = 2;
+
+        if (suffixMatch) {
+            originalBaseName = suffixMatch[1];
+            startCounter = parseInt(suffixMatch[2]) + 1;
+        }
+
+        // Buscar el siguiente número disponible
+        let counter = startCounter;
+        let newFileName = `${originalBaseName} (${counter})${extension}`;
+
+        while (existingNames.includes(newFileName)) {
+            counter++;
+            newFileName = `${originalBaseName} (${counter})${extension}`;
+        }
+
+        return newFileName;
+    }
+
+    function addFileToMilestoneArray(file) {
+        // Generar nombre único si el nombre ya existe (permite archivos con mismo nombre)
+        const uniqueName = generateUniqueFileNameMilestone(file.name);
+
+        // Si el nombre cambió, crear un nuevo File con el nombre único
+        let fileToAdd = file;
+        if (uniqueName !== file.name) {
+            fileToAdd = new File([file], uniqueName, {
+                type: file.type,
+                lastModified: file.lastModified
+            });
+            console.info(`Archivo renombrado: ${file.name} -> ${uniqueName}`);
+        }
+
+        filesArrayMilestone.push(fileToAdd);
+        updateFileListMilestone();
     }
 
     // --- Conversión de imagen PNG/GIF a JPG usando canvas ---
@@ -1007,72 +1068,10 @@
         return filename.split('.').pop().toLowerCase().trim();
     }
 
-    // --- NUEVA FUNCIÓN: subir archivos vía AJAX al servidor ---
-    function uploadFilesMilestone(files) {
-        if (!files.length) {
-            return;
-        }
-
-        // Obtenemos el token CSRF que pusimos en <meta name="csrf-token" ...>
-        const token = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
-
-        // Creamos un FormData y añadimos cada archivo bajo "files[]"
-        const formData = new FormData();
-        files.forEach(file => {
-            formData.append('files[]', file);
-        });
-
-        // También pasamos otros campos que el servidor podría necesitar.
-        // Por ejemplo, si el formulario #milestone-form tiene campos adicionales, los incluimos:
-        const milestoneForm = document.getElementById('milestone-form');
-        if (milestoneForm) {
-            // Ej: título, asignado a, end_date, etc.
-            const extraInputs = milestoneForm.querySelectorAll('input, select, textarea');
-            extraInputs.forEach(input => {
-                if (!['files[]', '_token'].includes(input.name) && input.value) {
-                    formData.append(input.name, input.value);
-                }
-            });
-        }
-
-        // Hacemos el POST a la URL de acción del formulario
-        const actionUrl = (milestoneForm && milestoneForm.getAttribute('action')) ?
-            milestoneForm.getAttribute('action') :
-            window.location.href; // fallback
-
-        fetch(actionUrl, {
-                method: 'POST',
-                headers: {
-                    'X-CSRF-TOKEN': token
-                },
-                body: formData
-            })
-            .then(response => {
-                if (!response.ok) {
-                    // Si algo falla en el servidor, podemos leer el JSON o texto de error
-                    return response.json().then(err => {
-                        console.error('Error en subida de archivos:', err);
-                        // alert('Error al subir archivos: ' + (err.message || response.statusText));
-                        throw new Error('Upload failed');
-                    });
-                }
-                return response.json();
-            })
-            .then(data => {
-                // Aquí puedes manejar la respuesta exitosa (p. ej. mostrar mensaje, refrescar lista en servidor, etc.)
-                console.log('Archivos subidos correctamente:', data);
-                // Si quieres, puedes vaciar el arreglo local o actualizarlo según la respuesta:
-                // filesArrayMilestone = [];
-                // updateFileListMilestone();
-            })
-            .catch(error => {
-                console.error('Fetch error:', error);
-            });
-    }
     // Manejar click del botón de submit directamente
     let isSubmitting = false;
 
-    document.addEventListener('click', function(e) {
+    function _milestoneSubmitClickHandler(e) {
         const submitButton = e.target.closest('#submitMilestoneBtn');
         if (!submitButton) return;
 
@@ -1171,7 +1170,16 @@
                 submitButton.style.pointerEvents = 'auto';
                 isSubmitting = false;
             });
-    }, false);
+    }
+    document.addEventListener('click', _milestoneSubmitClickHandler, false);
+
+    // Registrar función de limpieza para cuando se cierre/reabra el modal
+    window._milestoneHandlersCleanup = function() {
+        document.removeEventListener('dragover', _milestoneDocDragover);
+        document.removeEventListener('drop', _milestoneDocDrop);
+        document.removeEventListener('paste', _milestonePasteHandler);
+        document.removeEventListener('click', _milestoneSubmitClickHandler, false);
+    };
 
     // Función para mostrar toast
     function showToast(message, type = 'info') {
