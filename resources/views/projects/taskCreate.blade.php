@@ -317,6 +317,25 @@
 
     });
 </script>
+<script>
+(function () {
+    // ✅ Detectar si este Create Task viene del cambio de estado 1->2
+    const fromStatusChange =
+        "{{ $fromMilestoneBoard ? 1 : 0 }}" === "1" ||
+        "{{ $fromMyMilestoneBoard ? 1 : 0 }}" === "1";
+
+    if (!fromStatusChange) return;
+
+    const modalEl = document.getElementById('commonModal');
+    if (!modalEl) return;
+
+    // Evitar múltiples handlers si reabres el modal varias veces
+    $(modalEl).off('hidden.bs.modal.taskCreateReload');
+    $(modalEl).on('hidden.bs.modal.taskCreateReload', function () {
+        location.reload();
+    });
+})();
+</script>
 
 <style>
     .estimated_date {

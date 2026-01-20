@@ -703,6 +703,16 @@
                                     $('#' + modalId + ' .body').html(assignData);
                                     // Marcamos el formulario para saber que viene del cambio de estado
                                     $('#asignMilestoneForm').attr('data-from-status-change', 'true');
+
+                                    // Guardar contexto para revertir si se cierra sin guardar
+$('#' + modalId).data('assign-flow', true);
+$('#' + modalId).data('assign-saved', false);
+$('#' + modalId).data('milestone-id', cardId);
+$('#' + modalId).data('previous-status', oldStatus);
+$('#' + modalId).data('previous-container', source);
+$('#' + modalId).data('original-index', a(el).data('originalIndex'));
+$('#' + modalId).data('moved-el-id', cardId); // por si quieres asegurar
+
                                     modal.show();
 
 
@@ -795,6 +805,8 @@
                                     console.error('Error al cargar el modal de asignación:', error);
                                 }
                             });
+                            return;
+
                         }
 
                         // Si se permite el movimiento y es de status 3 a 4, se genera una notificación
@@ -1174,72 +1186,149 @@
                 }(window.jQuery);
             </script>
 
-            <script>
-                document.addEventListener('DOMContentLoaded', function() {
-                    const modalEl = document.getElementById('commonModal');
+           <script>
+document.addEventListener('DOMContentLoaded', function() {
+    const modalEl = document.getElementById('commonModal');
+    if (!modalEl) return;
 
-                    // Se ejecuta cuando el modal se cierra (por cancelar o por la X)
-                    modalEl.addEventListener('hidden.bs.modal', function() {
-                        const milestoneId = $(this).data('milestone-id');
-                        const previousStatus = $(this).data('previous-status');
-                        const previousContainer = $(this).data('previous-container');
+    // Se ejecuta cuando el modal se cierra (por cancelar o por la X)
+    modalEl.addEventListener('hidden.bs.modal', function() {
 
-                        // Limpiamos los datos guardados
-                        $(this).removeData('milestone-id');
-                        $(this).removeData('previous-status');
-                        $(this).removeData('previous-container');
+        // ============================
+        // ✅ PASO 2: revertir si ASSIGN se canceló (1->2)
+        // ============================
+        const isAssignFlow = $(this).data('assign-flow') === true;
+        const assignSaved  = $(this).data('assign-saved') === true;
 
-                        // ✅ Limpiar todas las clases de tamaño del modal y restablecer a la base
-                        const $modalDialog = $(this).find('.modal-dialog');
-                        $modalDialog.attr('class', 'modal-dialog').removeAttr('style');
+        if (isAssignFlow && !assignSaved) {
 
-                        // ✅ Limpiar estilos inline del modal-content
-                        $(this).find('.modal-content').removeAttr('style');
+            const milestoneId     = $(this).data('milestone-id');
+            const previousStatus  = $(this).data('previous-status');      // debería ser 1
+            const previousContainer = $(this).data('previous-container'); // source
+            const originalIndex   = $(this).data('original-index');       // índice original
 
-                        // ✅ Remover estilos inline específicos del dropdown
-                        $(this).find('.dropdown-menu').removeAttr('style');
+            // Limpiar flags de assign (para que no se repita)
+            $(this).removeData('assign-flow');
+            $(this).removeData('assign-saved');
 
-                        // ✅ Limpiar el título del modal
-                        $(this).find('.modal-title').empty();
+            console.log(`↩️ ASSIGN cancelado. Revirtiendo milestone ${milestoneId} al estado ${previousStatus}`);
 
-                        // ✅ Limpiar el contenido del modal body después de cerrar
-                        $(this).find('.body').empty();
+            // Revertir DOM a la posición original
+            const $milestoneCard = $(`.card[id='${milestoneId}']`);
+            const $origin = $(previousContainer);
 
-                        // Si no hay datos guardados, no hacemos nada
-                        if (!milestoneId || !previousStatus) return;
+            if ($milestoneCard.length && $origin.length) {
 
-                        console.log(`🔄 Revirtiendo milestone ${milestoneId} al estado ${previousStatus}`);
+                // insertar en la misma posición si existe
+                const $cards = $origin.children('.card');
 
-                        // Buscamos la tarjeta del milestone y la movemos al contenedor anterior
-                        const $milestoneCard = $(`.card[id='${milestoneId}']`);
-                        const $oldContainer = $(`.kanban-box[data-status='${previousStatus}']`);
+                $milestoneCard.detach();
 
-                        if ($milestoneCard.length && $oldContainer.length) {
-                            $oldContainer.append($milestoneCard);
-                            $milestoneCard.attr('data-status', previousStatus);
-                        }
+                if ($cards.length > 0 && originalIndex != null && originalIndex < $cards.length) {
+                    $milestoneCard.insertBefore($cards.eq(originalIndex));
+                } else {
+                    $origin.append($milestoneCard);
+                }
 
-                        // ✅ Actualizamos en el servidor el cambio de vuelta
-                        $.ajax({
-                            url: '{{ route('milestone.update.order', [$currentWorkspace->slug, $project_id]) }}',
-                            type: 'POST',
-                            data: {
-                                id: milestoneId,
-                                sort: [], // no importa el orden en este caso
-                                new_status: previousStatus,
-                                old_status: 3,
-                                project_id: $milestoneCard.data('project-id')
-                            },
-                            success: function() {
-                                console.log(`✅ Milestone ${milestoneId} revertido correctamente`);
-                            },
-                            error: function(err) {
-                                console.error('❌ Error al revertir milestone:', err);
-                            }
-                        });
-                    });
-                });
-            </script>
+                $milestoneCard.attr('data-status', previousStatus);
+
+                // actualizar contadores
+                updateTaskCount(previousContainer);
+                const targetContainer = document.querySelector(`.kanban-box[data-status='2']`);
+                if (targetContainer) updateTaskCount(targetContainer);
+            }
+
+            // Revertir en backend a status 1
+            $.ajax({
+                url: '{{ route('milestone.update.order', [$currentWorkspace->slug, $project_id]) }}',
+                type: 'POST',
+                data: {
+                    id: milestoneId,
+                    sort: [],
+                    new_status: previousStatus, // 1
+                    old_status: 2,              // intentó ir a 2
+                    project_id: $milestoneCard.data('project-id')
+                },
+                complete: function() {
+                    // nada; no recargamos aquí para evitar parpadeos
+                }
+            });
+
+            // ✅ Limpieza visual del modal (igual que ya hacías)
+            const $modalDialog = $(this).find('.modal-dialog');
+            $modalDialog.attr('class', 'modal-dialog').removeAttr('style');
+            $(this).find('.modal-content').removeAttr('style');
+            $(this).find('.dropdown-menu').removeAttr('style');
+            $(this).find('.modal-title').empty();
+            $(this).find('.body').empty();
+
+            // 🔴 MUY IMPORTANTE: salir para que NO ejecute el revert de otros flujos
+            return;
+        }
+
+        // ============================
+        // ✅ TU LÓGICA EXISTENTE (revert por cancelación del popup de review, etc.)
+        // ============================
+        const milestoneId = $(this).data('milestone-id');
+        const previousStatus = $(this).data('previous-status');
+        const previousContainer = $(this).data('previous-container');
+
+        // Limpiamos los datos guardados
+        $(this).removeData('milestone-id');
+        $(this).removeData('previous-status');
+        $(this).removeData('previous-container');
+
+        // ✅ Limpiar todas las clases de tamaño del modal y restablecer a la base
+        const $modalDialog = $(this).find('.modal-dialog');
+        $modalDialog.attr('class', 'modal-dialog').removeAttr('style');
+
+        // ✅ Limpiar estilos inline del modal-content
+        $(this).find('.modal-content').removeAttr('style');
+
+        // ✅ Remover estilos inline específicos del dropdown
+        $(this).find('.dropdown-menu').removeAttr('style');
+
+        // ✅ Limpiar el título del modal
+        $(this).find('.modal-title').empty();
+
+        // ✅ Limpiar el contenido del modal body después de cerrar
+        $(this).find('.body').empty();
+
+        // Si no hay datos guardados, no hacemos nada
+        if (!milestoneId || !previousStatus) return;
+
+        console.log(`🔄 Revirtiendo milestone ${milestoneId} al estado ${previousStatus}`);
+
+        // Buscamos la tarjeta del milestone y la movemos al contenedor anterior
+        const $milestoneCard = $(`.card[id='${milestoneId}']`);
+        const $oldContainer = $(`.kanban-box[data-status='${previousStatus}']`);
+
+        if ($milestoneCard.length && $oldContainer.length) {
+            $oldContainer.append($milestoneCard);
+            $milestoneCard.attr('data-status', previousStatus);
+        }
+
+        // ✅ Actualizamos en el servidor el cambio de vuelta
+        $.ajax({
+            url: '{{ route('milestone.update.order', [$currentWorkspace->slug, $project_id]) }}',
+            type: 'POST',
+            data: {
+                id: milestoneId,
+                sort: [], // no importa el orden en este caso
+                new_status: previousStatus,
+                old_status: 3,
+                project_id: $milestoneCard.data('project-id')
+            },
+            success: function() {
+                console.log(`✅ Milestone ${milestoneId} revertido correctamente`);
+            },
+            error: function(err) {
+                console.error('❌ Error al revertir milestone:', err);
+            }
+        });
+    });
+});
+</script>
 
             <script>
                 // Limpieza del modal-container cuando se cierra

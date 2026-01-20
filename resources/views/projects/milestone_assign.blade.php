@@ -463,64 +463,75 @@
     }
 
     document.getElementById('asignMilestoneForm').addEventListener('submit', async function(e) {
-        e.preventDefault();
-        var formData = new FormData(this);
-        var fromStatusChange = this.hasAttribute('data-from-status-change');
+    e.preventDefault();
 
-        try {
-            // Primero mostramos la notificación
-            await displayNotification();
+    var formData = new FormData(this);
+    var fromStatusChange = this.hasAttribute('data-from-status-change');
 
-            // Luego enviamos el formulario usando AJAX
-            const response = await $.ajax({
-                url: this.action,
-                type: 'POST',
-                data: formData,
-                processData: false,
-                contentType: false,
-                headers: {
-                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
-                }
-            });
+    try {
+        await displayNotification();
 
-            // Cerramos el modal actual
-            $('#commonModal').modal('hide');
+        await $.ajax({
+            url: this.action,
+            type: 'POST',
+            data: formData,
+            processData: false,
+            contentType: false,
+            headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}' }
+        });
 
-            // Solo si viene del cambio de estado, disparamos el evento
-            if (fromStatusChange) {
-                document.getElementById('unassign-user-btn').style.display = '';
-                var event = new CustomEvent('milestoneAssigned', {
-                    detail: {
-                        success: true
-                    }
-                });
-                document.dispatchEvent(event);
-            } else {
-                // Solo recargamos si NO viene del cambio de estado
-                window.location.reload();
-            }
-        } catch (error) {
-            console.error('Error:', error);
+        // ✅ Si NO viene de drag&drop, recarga normal
+        if (!fromStatusChange) {
+            window.location.reload();
+            return;
         }
-    });
 
-    // Modificamos el comportamiento del botón cerrar
-    document.getElementById('closeBtn').addEventListener('click', function() {
-        var fromStatusChange = document.getElementById('asignMilestoneForm').hasAttribute(
-            'data-from-status-change');
+        // ✅ Si viene de drag&drop (1->2), cerrar y al terminar cerrar, disparar evento
+        const modalEl = document.getElementById('commonModal');
+
+        // IMPORTANT: se dispara SOLO cuando se ha cerrado del todo
+        $(modalEl).one('hidden.bs.modal', function() {
+            document.dispatchEvent(new CustomEvent('milestoneAssigned', {
+                detail: {
+                    success: true,
+                    milestoneId: {{ $milestone->id }},
+                    projectId: {{ $milestone->project_id }},
+                    wsSlug: "{{ $currentWorkspace->slug }}",
+                    milestoneTitle: "{{ addslashes($milestone->title) }}"
+                }
+            }));
+        });
 
         $('#commonModal').modal('hide');
 
-        // Si viene del cambio de estado, disparamos el evento
-        if (fromStatusChange) {
-            var event = new CustomEvent('milestoneAssigned', {
-                detail: {
-                    success: true
-                }
-            });
-            document.dispatchEvent(event);
-        }
-    });
+    } catch (error) {
+        console.error('Error:', error);
+    }
+});
+
+
+    // Modificamos el comportamiento del botón cerrar
+    document.getElementById('closeBtn').addEventListener('click', function() {
+    const form = document.getElementById('asignMilestoneForm');
+    const fromStatusChange = form && form.hasAttribute('data-from-status-change');
+
+    // Cerrar modal
+    $('#commonModal').modal('hide');
+
+    // ✅ Al cerrar, recargar si NO es flujo 1->2
+    // (si quieres recargar siempre, quita el if y deja solo location.reload())
+    if (!fromStatusChange) {
+        $(document.getElementById('commonModal')).one('hidden.bs.modal', function() {
+            location.reload();
+        });
+    } else {
+        // ✅ Si viene de drag&drop, recargar también (para “deshacer” el estado visual)
+        $(document.getElementById('commonModal')).one('hidden.bs.modal', function() {
+            location.reload();
+        });
+    }
+});
+
 
     document.getElementById('asignMilestoneForm').addEventListener('submit', function() {
         const searchInput = document.getElementById('search-requested-by');

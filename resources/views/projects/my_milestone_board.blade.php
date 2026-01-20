@@ -619,6 +619,7 @@
                             // IMPORTANTÍSIMO:
                             // NO abras aquí el modal de crear tarea.
                             // Solo debe abrirse cuando se dispare "milestoneAssigned".
+                            return;
                         }
 
 
