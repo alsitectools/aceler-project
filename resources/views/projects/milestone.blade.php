@@ -158,9 +158,10 @@
 
                         <div class="col-md-6" id="requestBy">
                             <label class="col-form-label">{{ __('Requested by') }}</label>
-                            <input type="text" class="form-control" id="search"
-                                placeholder="{{ __('Search') }}" value="{{ Auth::user()->name }}"
-                                autocomplete="off" required>
+                            <input type="text" class="form-control form-control-light" id="search"
+       placeholder="{{ __('Search') }}" autocomplete="off">
+
+
 
                             <div id="user-select" aria-label="Default select example" class="dropdown-menu"
                                 style="width: 45% !important;">
@@ -170,8 +171,7 @@
                                         {{ $user->name }}
                                     </div>
                                 @endforeach
-                                <input type="hidden" name="assing_to" id="assing_To"
-                                    value="{{ Auth::user()->id }}">
+                                <input type="hidden" name="assing_to" id="assing_To" required>
                             </div>
                         </div>
 
@@ -392,29 +392,45 @@
 <!-- Scripts para el dropdown de usuarios -->
 <script>
     // Definir valores por defecto del usuario logueado
-    var defaultUserId = '{{ Auth::user()->id }}';
-    var defaultUserName = '{{ Auth::user()->name }}';
-
     var searchInput = document.getElementById('search');
     var optionsList = document.getElementById('user-select');
     var options = optionsList.getElementsByClassName('option');
     var hiddenInput = document.getElementById('assing_To');
 
-    // Establecer por defecto el nombre y el ID del usuario logueado
-    hiddenInput.value = defaultUserId;
-    searchInput.value = defaultUserName;
+
+    function inputMatchesAnyOption(value) {
+    const v = (value || '').trim().toLowerCase();
+    if (!v) return false;
+
+    for (let i = 0; i < options.length; i++) {
+        const name = options[i].innerText.trim().toLowerCase();
+        if (name === v) return true; // match exacto
+    }
+    return false;
+}
+
+
+    // ✅ Asegurar que arranca vacío
+    hiddenInput.value = '';
+    searchInput.value = '';
 
     searchInput.addEventListener('click', function(event) {
         event.stopPropagation();
         optionsList.style.display = 'block';
     });
 
+    // ✅ Si el usuario escribe, invalidamos la selección (hidden vacío)
     searchInput.addEventListener('input', function() {
+        hiddenInput.value = '';
+        searchInput.classList.remove('is-invalid');
+
         const filter = searchInput.value.toLowerCase();
         let hasVisibleOption = false;
+
         for (let i = 0; i < options.length; i++) {
             const option = options[i];
             const text = option.innerText.toLowerCase();
+
             if (text.includes(filter)) {
                 option.style.display = 'block';
                 hasVisibleOption = true;
@@ -422,6 +438,7 @@
                 option.style.display = 'none';
             }
         }
+
         optionsList.style.display = hasVisibleOption ? 'block' : 'none';
     });
 
@@ -430,6 +447,7 @@
             const selectedUserId = this.getAttribute('data-id');
             searchInput.value = this.innerText;
             hiddenInput.value = selectedUserId;
+            searchInput.classList.remove('is-invalid');
             optionsList.style.display = 'none';
         });
     }
@@ -440,15 +458,18 @@
         }
     });
 
-    $(document).ready(function() {
-        $('#toggleFormSwitch').change(function() {
-            if ($(this).is(':checked')) {
-                $('#additionalForm').collapse('show');
-            } else {
-                $('#additionalForm').collapse('hide');
-            }
-        });
-    });
+    // ✅ Si sales del input sin seleccionar, limpiamos el texto
+    searchInput.addEventListener('blur', function() {
+    const typed = (searchInput.value || '').trim();
+
+    // Si no hay id seleccionado, o el texto NO coincide exactamente con un usuario, limpiamos
+    if (!hiddenInput.value || !inputMatchesAnyOption(typed)) {
+        hiddenInput.value = '';
+        searchInput.value = '';
+        searchInput.classList.add('is-invalid');
+    }
+});
+
 
     // Add event listener to capitalize the first letter of the milestone title
     document.getElementById('milestone-title').addEventListener('input', function() {
@@ -517,7 +538,9 @@
         const searchProjectsUrl = "{{ route('search-project-json', '__slug') }}".replace('__slug', currentWorkspaceSlug);
         const searchSalesManagerUrl = "{{ route('search-sales-json', '__slug') }}".replace('__slug', currentWorkspaceSlug);
     </script>
-    <script src="{{ asset('assets/js/create_project.js') }}"></script>
+   <script src="{{ asset('assets/js/create_project.js') }}?v={{ time() }}"></script>
+{{-- staging y produccion 
+ <script src="{{ asset('assets/js/create_project.js') }}"></script> --}}
 @endif
 
 <!-- Código para el envío del formulario "Add New project" -->
@@ -1089,6 +1112,34 @@
             return;
         }
 
+        // ✅ NUEVO: Validación específica de Requested by (assing_to)
+       const requestedById = hiddenInput.value;
+const typedName = (searchInput.value || '').trim();
+
+if (!requestedById || !inputMatchesAnyOption(typedName)) {
+    e.preventDefault();
+    e.stopPropagation();
+    searchInput.classList.add('is-invalid');
+    hiddenInput.value = '';
+    searchInput.value = '';
+    showToast('Debes seleccionar un usuario existente en "Requested by".', 'danger');
+    isSubmitting = false;
+    return;
+}
+else {
+            searchInput.classList.remove('is-invalid');
+        }
+
+        // ✅ NUEVO: Validación nativa del formulario (title, end_date, etc.)
+        // Si algo requerido falta, NO hacemos fetch.
+        if (!milestoneForm.checkValidity()) {
+            e.preventDefault();
+            e.stopPropagation();
+            milestoneForm.reportValidity();
+            isSubmitting = false;
+            return;
+        }
+
         // Marcar como en proceso
         e.preventDefault();
         e.stopPropagation();
@@ -1117,16 +1168,15 @@
             .then(response => response.json())
             .then(data => {
                 console.log('Respuesta del servidor:', data);
+
                 // Limpiar arrays de archivos
                 filesArrayMilestone = [];
                 rejectedFilesMilestone = [];
 
                 if (data.success) {
-                    // Mostrar toast con resumen de carga
                     let message = '';
                     if (data.uploaded_count > 0 && data.failed_count > 0) {
-                        message = data.uploaded_count + ' archivos subidos, ' + data
-                            .failed_count + ' rechazados';
+                        message = data.uploaded_count + ' archivos subidos, ' + data.failed_count + ' rechazados';
                     } else if (data.uploaded_count > 0) {
                         message = data.uploaded_count + ' archivos subidos exitosamente';
                     } else if (data.failed_count > 0) {
@@ -1135,21 +1185,19 @@
                         message = 'Encargo creado correctamente';
                     }
 
-                    // Mostrar toast
                     showToast(message, 'success');
 
-                    // Cerrar modal después de 1.5 segundos
                     setTimeout(() => {
-                        const modal = bootstrap.Modal.getInstance(document
-                            .querySelector('.modal'));
+                        const modal = bootstrap.Modal.getInstance(document.querySelector('.modal'));
                         if (modal) {
                             modal.hide();
                         }
-                        // Redirigir para refrescar la página
                         window.location.reload();
                     }, 1500);
+
                 } else {
                     showToast(data.error || 'Error al guardar cambios', 'danger');
+
                     // Re-habilitar el botón en caso de error
                     submitButton.disabled = false;
                     submitButton.textContent = '{{ __('Save Changes') }}';
@@ -1162,6 +1210,7 @@
             .catch(error => {
                 console.error('Error:', error);
                 showToast('Error al enviar formulario', 'danger');
+
                 // Re-habilitar el botón en caso de error
                 submitButton.disabled = false;
                 submitButton.textContent = '{{ __('Save Changes') }}';

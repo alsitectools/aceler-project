@@ -29,7 +29,7 @@
             <label class="col-form-label">{{ __('Date') }}</label>
             <input type="date" onclick="this.showPicker()" class="form-control form-control-light date"
                 value="{{ $parseArray['date'] }}" placeholder="{{ __('Date') }}" name="date"
-                max="{{ \Carbon\Carbon::now()->format('Y-m-d') }}" min="{{ $parseArray['taskCreationDate'] }}"
+                max="{{ \Carbon\Carbon::now()->format('Y-m-d') }}" 
                 @disabled($fromTimesheet)>
         </div>
 

@@ -1610,21 +1610,39 @@
                     </div>
                 </div>
             </div>
+            <script>
+                document.addEventListener('DOMContentLoaded', function() {
+                    const statusModal = document.getElementById('statusChangeModal');
+                    if (!statusModal) return;
+
+                    // Se ejecuta cuando se cierra por Cancelar, X o backdrop
+                    statusModal.addEventListener('hidden.bs.modal', function() {
+                        // Recargar la página siempre que se cierre el modal
+                        location.reload();
+                    });
+                });
+            </script>
 
             <script>
                 function submitStatusChange() {
-                    const milestoneId = document.getElementById('statusChangeModal').dataset.milestoneId;
-                    const slug = document.getElementById('statusChangeModal').dataset.slug;
-                    const oldStatus = document.getElementById('statusChangeModal').dataset.oldStatus;
-                    const newStatus = document.getElementById('statusChangeModal').dataset.newStatus;
-                    const projectId = document.getElementById('statusChangeModal').dataset.projectId;
-                    const sortData = document.getElementById('statusChangeModal').dataset.sort;
+                    const modal = document.getElementById('statusChangeModal');
+
+                    const milestoneId = modal.dataset.milestoneId;
+                    const oldStatus = modal.dataset.oldStatus; // 3
+                    const newStatus = modal.dataset.newStatus; // 2
+                    const projectId = modal.dataset.projectId;
+                    const sortData = modal.dataset.sort;
                     const comment = document.getElementById('statusChangeComment').value;
 
-                    // Hacer AJAX directamente en lugar de enviar un formulario
+                    // (Opcional) obligar comentario
+                    if (!comment.trim()) {
+                        alert("Debes indicar el motivo para volver a In Progress.");
+                        return;
+                    }
+
                     $.ajax({
-                        url: '{{ route('milestone.update.order', [$currentWorkspace->slug, ':projectId']) }}'.replace(
-                            ':projectId', projectId),
+                        url: '{{ route('milestone.update.order', [$currentWorkspace->slug, ':projectId']) }}'
+                            .replace(':projectId', projectId),
                         type: 'POST',
                         headers: {
                             'X-CSRF-TOKEN': '{{ csrf_token() }}'
@@ -1637,10 +1655,34 @@
                             project_id: projectId,
                             status_change_comment: comment
                         },
-                        success: function(response) {
-                            console.log('Estado actualizado exitosamente');
-                            // Recargar la página para ver los cambios
-                            location.reload();
+                        success: function() {
+
+                            // ✅ SOLO si realmente confirmamos 3 -> 2, borramos puntuaciones
+                            if (String(oldStatus) === '3' && String(newStatus) === '2') {
+                                console.log("El milestone vuelve de estado 3 a 2 — eliminando puntuaciones...");
+
+                                $.ajax({
+                                    url: '{{ route('projects.milestone.deletePuntuaciones', [$currentWorkspace->slug, ':id']) }}'
+                                        .replace(':id', milestoneId),
+                                    type: 'POST',
+                                    headers: {
+                                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                                    },
+                                    success: function() {
+                                        // cuando termina, recargamos
+                                        location.reload();
+                                    },
+                                    error: function(xhr, status, error) {
+                                        console.error('Error al eliminar puntuaciones:', error);
+                                        // aunque falle el borrado, recarga para reflejar el cambio de status
+                                        location.reload();
+                                    }
+                                });
+
+                            } else {
+                                // otros cambios -> recarga normal
+                                location.reload();
+                            }
                         },
                         error: function(xhr, status, error) {
                             console.error('Error al actualizar estado:', error);
@@ -1648,10 +1690,7 @@
                         }
                     });
 
-                    // Cerrar el modal
-                    var statusModalEl = document.getElementById('statusChangeModal');
-                    var statusModal = bootstrap.Modal.getOrCreateInstance(statusModalEl);
-                    statusModal.hide();
+                    bootstrap.Modal.getOrCreateInstance(modal).hide();
                 }
             </script>
         @endpush

@@ -222,8 +222,8 @@ $(document).ready(function () {
             e.preventDefault();
 
             const additionalForm = document.getElementById('visado');
-            console.log('tipo de busqueda', type);
-
+            console.log('handlelistitemclick type::', type);
+console.log('handlelistitemclick item::', item);
             // Verifica si el proyecto ya existe cuando el tipo es 'mo'
             if (type === 'mo') {
                 let existingProject = projects.find(project => project.ref_mo === item.ref_mo);
@@ -258,7 +258,11 @@ $(document).ready(function () {
                     additionalForm.style.display = 'block';
                 }
 
-
+                if(item.type == 3){
+                    document.getElementById('phase-wrapper').style.display = 'block';
+                }else{
+                    document.getElementById('phase-wrapper').style.display = 'none';
+                }
             } else if (type === 'salesManagers') {
                 salesManagerInput.val(item.name);
             }

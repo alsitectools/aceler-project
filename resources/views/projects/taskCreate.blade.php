@@ -103,7 +103,7 @@
 
                 </div>
 
-                <!-- Fecha de inicio -->
+                {{-- <!-- Fecha de inicio -->
                 <div class="form-group col-md-6" style="width: 100% !important;">
                     <label for="start_date" class="col-form-label">{{ __('Start date') }}</label>
                     <input type="text" class="form-control form-control-light date" id="start_date_display"
@@ -111,7 +111,7 @@
                     <!-- Campo oculto para enviar el valor -->
                     <input type="hidden" id="start_date" name="start_date"
                         value="{{ \Carbon\Carbon::now()->format('d/m/Y') }}">
-                </div>
+                </div> --}}
 
                 <!-- Fecha estimada -->
                 <!-- Campo oculto con fecha estimada (por defecto hoy) -->

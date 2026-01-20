@@ -337,7 +337,7 @@
     <script src="{{ asset('assets/custom/js/dragula.min.js') }}"></script>
     @if ($milestones != null)
         @push('scripts')
-           
+
 
 
             <script>
@@ -466,57 +466,161 @@
 
                         // Si se permite el movimiento y es de status 1 a 2, mostrar directamente el popup de crear tarea
                         if (oldStatus == 1 && newStatus >= 2) {
-                            console.log('De por hacer a in progress - Mostrando formulario de crear tarea');
 
-                            // Validar que tenemos los datos necesarios
-                            if (!project_id || !cardId || !milestoneTitle) {
-                                console.error('Error: Faltan datos necesarios');
-                                console.error('Project ID:', project_id);
-                                console.error('Card ID:', cardId);
-                                console.error('Milestone Title:', milestoneTitle);
-                                alert('Error: No se pudieron cargar los datos del encargo. Por favor, intenta de nuevo.');
+                            console.log('De por hacer a in progress');
+
+                            var modalId = 'commonModal';
+
+                            // cardId = el id del milestone (en tu HTML id="{{ $milestone['id'] }}")
+                            var cardId = a(el).attr('id');
+
+                            // slug del workspace REAL de esa card (en my board es crítico)
+                            var wsSlug = a(el).data('workspace-slug') || a(el).attr('data-workspace-slug');
+
+                            var project_id = a(el).data('project-id');
+
+                            // título robusto
+                            var milestoneTitle =
+                                a(el).data('milestone-title') ||
+                                a(el).attr('data-milestone-title') ||
+                                a(el).find('.mileTitle').attr('data-header') ||
+                                a(el).find('.mileTitle').text() ||
+                                'Sin título';
+
+                            if (!wsSlug || !cardId || !project_id) {
+                                console.error('Faltan datos:', {
+                                    wsSlug,
+                                    cardId,
+                                    project_id,
+                                    milestoneTitle
+                                });
+                                alert(
+                                    'Error: no se pudo determinar workspace/proyecto/milestone. Revisa data-workspace-slug en la card.');
                                 return;
                             }
 
-                            var project_name = a(el).data('project-name');
-                            var wsSlug = a(el).data('workspace-slug') || "{{ $currentWorkspace->slug }}";
+                            // -----------------------------
+                            // 1) Abrir modal ASSIGN
+                            // -----------------------------
+                            var assignUrlTemplate = "{{ route('projects.milestone.assign', ['__SLUG__', ':id']) }}";
+                            var assignUrl = assignUrlTemplate
+                                .replace('__SLUG__', encodeURIComponent(wsSlug))
+                                .replace(':id', cardId);
 
-                            var createTaskUrl =
-    '{{ route('tasks.create', ['slug' => '__SLUG__']) }}'
-      .replace('__SLUG__', wsSlug)
-    + '?project_id=' + project_id
-    + '&projectName=' + encodeURIComponent(project_name)
-    + '&milestoneTitle=' + encodeURIComponent(milestoneTitle)
-    + '&milestone_id=' + cardId
-    + '&fromMyMilestoneBoard=true';
-                            
-                            console.log('Create Task URL:', createTaskUrl);
-                            var createTaskTitle = '{{ __('Create New Task') }}';
-                            var modalId = 'commonModal';
+                            var assignTitle = "{{ __('Assign Milestone') }}";
+                            $("#" + modalId + " .modal-title").html(assignTitle);
 
-                            $("#" + modalId + " .modal-title").html(createTaskTitle);
                             $.ajax({
-                                url: createTaskUrl,
+                                url: assignUrl,
                                 dataType: 'html',
-                                success: function(taskData) {
-                                    $('#' + modalId + ' .body').html(
-                                        taskData);
-                                    $("#" + modalId).modal({
+                                success: function(assignData) {
+
+                                    var modalEl = document.getElementById(modalId);
+                                    var modal = bootstrap.Modal.getOrCreateInstance(modalEl, {
                                         backdrop: 'static',
                                         keyboard: false
                                     });
-                                    $("#" + modalId).modal('show');
+
+                                    // Reset modal dialog
+                                    var modalDialog = modalEl.querySelector('.modal-dialog');
+                                    if (modalDialog) {
+                                        modalDialog.className = 'modal-dialog';
+                                        modalDialog.removeAttribute('style');
+                                    }
+
+                                    $('#' + modalId + ' .body').html(assignData);
+
+                                    // Marcar que viene de drag&drop
+                                    $('#asignMilestoneForm').attr('data-from-status-change', 'true');
+
+                                    // Guardar contexto (por si lo necesitas dentro del form)
+                                    $('#' + modalId).data('ws-slug', wsSlug);
+                                    $('#' + modalId).data('milestone-id', cardId);
+                                    $('#' + modalId).data('project-id', project_id);
+
+                                    modal.show();
+
+                                    // -----------------------------------
+                                    // 2) Cuando se asigne -> abrir CREATE TASK
+                                    // -----------------------------------
+                                    document.addEventListener('milestoneAssigned', function showTaskModal() {
+
+                                        // (recalcular el título por si cambió algo)
+                                        var $milestoneCard = a("#" + cardId);
+                                        var retrievedTitle =
+                                            $milestoneCard.data('milestone-title') ||
+                                            $milestoneCard.attr('data-milestone-title') ||
+                                            $milestoneCard.find('.mileTitle').attr('data-header') ||
+                                            $milestoneCard.find('.mileTitle').text() ||
+                                            milestoneTitle ||
+                                            'Sin título';
+
+                                        var createTaskUrlTemplate =
+                                        "{{ route('tasks.create', ['__SLUG__']) }}";
+                                        var createTaskUrl = createTaskUrlTemplate
+                                            .replace('__SLUG__', encodeURIComponent(wsSlug)) +
+                                            '?project_id=' + encodeURIComponent(project_id) +
+                                            '&milestoneTitle=' + encodeURIComponent(retrievedTitle) +
+                                            '&milestone_id=' + encodeURIComponent(cardId) +
+                                            '&fromMyMilestoneBoard=true';
+
+                                        var createTaskTitle = "{{ __('Create New Task') }}";
+                                        $("#" + modalId + " .modal-title").html(createTaskTitle);
+
+                                        $.ajax({
+                                            url: createTaskUrl,
+                                            dataType: 'html',
+                                            success: function(taskData) {
+
+                                                var modalEl = document.getElementById(modalId);
+                                                var modal = bootstrap.Modal.getOrCreateInstance(
+                                                    modalEl, {
+                                                        backdrop: 'static',
+                                                        keyboard: false
+                                                    });
+
+                                                var modalDialog = modalEl.querySelector(
+                                                    '.modal-dialog');
+                                                if (modalDialog) {
+                                                    modalDialog.className = 'modal-dialog';
+                                                    modalDialog.removeAttribute('style');
+                                                }
+
+                                                $('#' + modalId + ' .body').html(taskData);
+                                                modal.show();
+
+                                                commonLoader();
+                                                loadConfirm();
+                                            },
+                                            error: function(xhr, status, error) {
+                                                console.error(
+                                                    'Error al cargar el formulario de tarea:',
+                                                    error);
+                                                console.error('Response:', xhr.responseText);
+                                                alert(
+                                                    'Error al cargar el formulario de creación de tarea');
+                                            }
+                                        });
+
+                                    }, {
+                                        once: true
+                                    });
+
                                     commonLoader();
                                     loadConfirm();
                                 },
                                 error: function(xhr, status, error) {
-                                    console.error('Error al cargar el formulario de tarea:', error);
-                                    console.error('Status:', status);
+                                    console.error('Error al cargar el modal de asignación:', error);
                                     console.error('Response:', xhr.responseText);
-                                    alert('Error al cargar el formulario de creación de tarea');
+                                    alert('Error al cargar el modal de asignación');
                                 }
                             });
+
+                            // IMPORTANTÍSIMO:
+                            // NO abras aquí el modal de crear tarea.
+                            // Solo debe abrirse cuando se dispare "milestoneAssigned".
                         }
+
 
                         // Si se permite el movimiento y es de status 3 a 4, se genera una notificación
 
@@ -556,20 +660,37 @@
                                 .catch(error => console.error("Error al agregar notificación:", error));
                         }
                         if (oldStatus == 3 && newStatus == 2) {
-                            console.log("El milestone vuelve de estado 3 a 2 — eliminando puntuaciones...");
-                            $.ajax({
-                                url: '{{ route('projects.milestone.deletePuntuaciones', [$currentWorkspace->slug, ':id']) }}'
-                                    .replace(':id', cardId),
-                                type: 'POST',
-                                headers: {
-                                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
-                                },
-                                success: function(response) {},
-                                error: function(xhr, status, error) {
-                                    console.error('Error al eliminar puntuaciones:', error);
-                                }
-                            });
+                            console.log("Milestone 3 -> 2: abrir modal de motivo (NO borrar puntuaciones aquí).");
+
+                            const modal = document.getElementById('statusChangeModal');
+                            if (!modal) {
+                                console.error('No existe #statusChangeModal en la vista.');
+                                return false;
+                            }
+
+                            // Guardar datos para el submit
+                            modal.dataset.milestoneId = cardId;
+                            modal.dataset.projectId = project_id;
+                            modal.dataset.oldStatus = oldStatus;
+                            modal.dataset.newStatus = newStatus;
+                            modal.dataset.sort = JSON.stringify(sort);
+
+                            // Para saber si se guardó o canceló
+                            modal.dataset.saved = '0';
+
+                            // Limpiar textarea
+                            document.getElementById('statusChangeComment').value = '';
+
+                            // Mostrar modal
+                            bootstrap.Modal.getOrCreateInstance(modal, {
+                                backdrop: 'static',
+                                keyboard: false
+                            }).show();
+
+                            // Cortar para que NO ejecute el AJAX global de abajo
+                            return false;
                         }
+
                         if (oldStatus == 2 && newStatus == 3) {
                             /////////////INICIO status 2 a 3///////////////////////////
                             var milestoneRequBy = a(el).find('#milestoneReqName').attr('data-technician-id');
@@ -746,7 +867,7 @@
                             let msg = milestoneTitle + ' en el proyecto ' + projectName;
                             let ntipe = 5;
                             if (!msg) return;
-                                //AQUI FALTA MILESTONEID
+                            //AQUI FALTA MILESTONEID
                             fetch("{{ route('notifications.add') }}", {
                                     method: "POST",
                                     headers: {
@@ -1148,5 +1269,120 @@
                     });
                 });
             </script>
+
+            <!-- Modal para cambio de status de review (3) a in progress (2) -->
+            <div class="modal fade" id="statusChangeModal" tabindex="-1" role="dialog"
+                aria-labelledby="statusChangeModalLabel" aria-hidden="true">
+                <div class="modal-dialog" role="document">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="statusChangeModalLabel">{{ __('Return to In progress') }}</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+
+                        <div class="modal-body">
+                            <div class="form-group">
+                                <label for="statusChangeComment">{{ __('Notes / Reason') }}</label>
+                                <textarea class="form-control" id="statusChangeComment" rows="4"
+                                    placeholder="{{ __('Enter any notes or reason for starting this milestone...') }}"></textarea>
+                            </div>
+                        </div>
+
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                                {{ __('Cancel') }}
+                            </button>
+                            <button type="button" class="btn btn-primary" onclick="submitStatusChange()">
+                                {{ __('Save') }}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <script>
+                function submitStatusChange() {
+                    const modal = document.getElementById('statusChangeModal');
+
+                    const milestoneId = modal.dataset.milestoneId;
+                    const projectId = modal.dataset.projectId;
+                    const oldStatus = modal.dataset.oldStatus; // 3
+                    const newStatus = modal.dataset.newStatus; // 2
+                    const sortData = modal.dataset.sort;
+                    const comment = (document.getElementById('statusChangeComment').value || '').trim();
+
+                    // Obligatorio
+                    if (!comment) {
+                        alert("Debes indicar el motivo.");
+                        return;
+                    }
+
+                    // Marcar como guardado (para que no haga reload por cancelar)
+                    modal.dataset.saved = '1';
+
+                    // 1) Actualizar status en servidor
+                    $.ajax({
+                        url: '{{ route('milestone.update.order', [$currentWorkspace->slug, ':projectId']) }}'
+                            .replace(':projectId', projectId),
+                        type: 'POST',
+                        headers: {
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                        },
+                        data: {
+                            id: milestoneId,
+                            old_status: oldStatus,
+                            new_status: newStatus,
+                            sort: JSON.parse(sortData || '[]'),
+                            project_id: projectId,
+                            status_change_comment: comment
+                        },
+                        success: function() {
+
+                            // 2) Borrar puntuaciones SOLO si se confirmó 3->2
+                            if (String(oldStatus) === '3' && String(newStatus) === '2') {
+                                console.log("Confirmado 3->2: eliminando puntuaciones...");
+
+                                $.ajax({
+                                    url: '{{ route('projects.milestone.deletePuntuaciones', [$currentWorkspace->slug, ':id']) }}'
+                                        .replace(':id', milestoneId),
+                                    type: 'POST',
+                                    headers: {
+                                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                                    },
+                                    complete: function() {
+                                        // 3) Siempre recargar al final (haya o no error borrando)
+                                        location.reload();
+                                    }
+                                });
+
+                            } else {
+                                location.reload();
+                            }
+                        },
+                        error: function(xhr, status, error) {
+                            console.error('Error al actualizar estado:', error);
+                            alert('Error updating milestone status');
+                        }
+                    });
+
+                    bootstrap.Modal.getOrCreateInstance(modal).hide();
+                }
+
+                // Cancelar => reload para volver a ver el estado correcto (y NO borrar puntuaciones)
+                document.addEventListener('DOMContentLoaded', function() {
+                    const modal = document.getElementById('statusChangeModal');
+                    if (!modal) return;
+
+                    modal.dataset.saved = '0';
+
+                    modal.addEventListener('hidden.bs.modal', function() {
+                        if (modal.dataset.saved !== '1') {
+                            // cancel / x
+                            location.reload();
+                        }
+                        modal.dataset.saved = '0';
+                    });
+                });
+            </script>
+
         @endpush
     @endif

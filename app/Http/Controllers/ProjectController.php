@@ -2538,24 +2538,25 @@ class ProjectController extends Controller
         ]);
     }
     public function getProjectsJson($slug, $search = null)
-    {
-        $query = Project::query()->select(['id', 'name', 'ref_mo']);
+{
+    $query = Project::query()
+        ->select(['id', 'name', 'ref_mo', 'type'])
+        ->with(['typeRel:id,name']);
 
-        if ($search) {
-            $query->where(function ($query) use ($search) {
-                $query->where('ref_mo', 'LIKE', "%" . $search . "%")
-                    ->orWhere('name', 'LIKE', "%" . $search . "%");
-            });
-        }
-
-        $objProject = $query->paginate(25);
-
-        $arrPropjects = $objProject->toArray();
-
-        return response()->json([
-            'projects' => $arrPropjects,
-        ]);
+    if ($search) {
+        $query->where(function ($query) use ($search) {
+            $query->where('ref_mo', 'LIKE', "%{$search}%")
+                  ->orWhere('name', 'LIKE', "%{$search}%");
+        });
     }
+
+    $objProject = $query->paginate(25);
+
+    return response()->json([
+        'projects' => $objProject,
+    ]);
+}
+
     public function getSalesJson($slug, $search = null)
     {
         $currentWorkspace = Utility::getWorkspaceBySlug($slug);
@@ -2597,7 +2598,7 @@ private function getEnumValues($table, $column)
     {
         $currentWorkspace = Utility::getWorkspaceBySlug($slug);
         $project_type = ProjectType::select('id', 'name')->get();
-        $users = User::all();
+        $users = User::orderBy('name', 'asc')->get();
 
         $phases = $this->getEnumValues('milestone_phases', 'phases');
         
@@ -2821,7 +2822,7 @@ private function getEnumValues($table, $column)
     {
         $currentWorkspace = Utility::getWorkspaceBySlug($slug);
         $milestone = Milestone::find($milestoneID);
-        $users = User::all();
+        $users = User::orderBy('name', 'asc')->get();
         $project_type = ProjectType::select('id', 'name')->get();
 
 
@@ -2831,7 +2832,7 @@ private function getEnumValues($table, $column)
     public function milestoneWorkload($slug, $projectID)
     {
         $currentWorkspace = Utility::getWorkspaceBySlug($slug);
-        $users = User::all();
+        $users = User::orderBy('name', 'asc')->get();
 
         // Determinar los project_ids a buscar según el projectID
         if ($projectID == -1) {
