@@ -87,6 +87,21 @@
                                 {{ __('Low Priority') }}</option>
                         </select>
                     </div>
+                    
+                    {{-- Phase field para proyectos tipo 3 --}}
+                    @if ($project && $project->type == 3)
+                        <div class="form-group col-md-6">
+                            <label for="phase" class="col-form-label">{{ __('Phase') }}</label>
+                            <select class="form-control form-control-light" id="phase" name="phase">
+                                <option value="">{{ __('Select a phase') }}</option>
+                                @foreach ($phases as $phase)
+                                    <option value="{{ $phase }}" {{ $currentPhase === $phase ? 'selected' : '' }}>
+                                        {{ $phase }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+                    @endif
                 </div>
                 <!-- Inputs hidden para mantener los usuarios asignados -->
                 <input type="hidden" name="assign_to" value="{{ $milestone->assign_to }}">

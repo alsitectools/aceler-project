@@ -477,7 +477,22 @@
         if (value.length > 0) {
             this.value = value.charAt(0).toUpperCase() + value.slice(1);
         }
+        // Quitar el error cuando el usuario escribe en el title
+        this.classList.remove('is-invalid');
     });
+
+    // Quitar el error cuando el usuario selecciona una fecha
+    document.getElementById('end_date').addEventListener('change', function() {
+        this.classList.remove('is-invalid');
+    });
+
+    // Quitar el error cuando el usuario selecciona una fase
+    const phaseField = document.getElementById('phase');
+    if (phaseField) {
+        phaseField.addEventListener('change', function() {
+            this.classList.remove('is-invalid');
+        });
+    }
 </script>
 {{-- // Script para el dropdown de "Asignado a" --}}
 {{-- <script>
@@ -1112,30 +1127,60 @@
             return;
         }
 
-        // ✅ NUEVO: Validación específica de Requested by (assing_to)
-       const requestedById = hiddenInput.value;
-const typedName = (searchInput.value || '').trim();
+        // ✅ Validación personalizada de campos requeridos
+        // Validar Title
+        const titleField = document.getElementById('milestone-title');
+        const titleValue = (titleField.value || '').trim();
+        let validationErrors = [];
 
-if (!requestedById || !inputMatchesAnyOption(typedName)) {
-    e.preventDefault();
-    e.stopPropagation();
-    searchInput.classList.add('is-invalid');
-    hiddenInput.value = '';
-    searchInput.value = '';
-    showToast('Debes seleccionar un usuario existente en "Requested by".', 'danger');
-    isSubmitting = false;
-    return;
-}
-else {
+        if (!titleValue) {
+            titleField.classList.add('is-invalid');
+            validationErrors.push('Debes introducir un título');
+        } else {
+            titleField.classList.remove('is-invalid');
+        }
+
+        // Validar End Date
+        const endDateField = document.getElementById('end_date');
+        const endDateValue = (endDateField.value || '').trim();
+
+        if (!endDateValue) {
+            endDateField.classList.add('is-invalid');
+            validationErrors.push('Debes seleccionar una fecha de entrega');
+        } else {
+            endDateField.classList.remove('is-invalid');
+        }
+
+        // Validar Requested by (assing_to)
+        const requestedById = hiddenInput.value;
+        const typedName = (searchInput.value || '').trim();
+
+        if (!requestedById || !inputMatchesAnyOption(typedName)) {
+            searchInput.classList.add('is-invalid');
+            validationErrors.push('Debs seleccionar un usuario existente en "Requested by"');
+        } else {
             searchInput.classList.remove('is-invalid');
         }
 
-        // ✅ NUEVO: Validación nativa del formulario (title, end_date, etc.)
-        // Si algo requerido falta, NO hacemos fetch.
-        if (!milestoneForm.checkValidity()) {
+        // Validar Phase (solo si la sección está visible)
+        const phaseWrapper = document.getElementById('phase-wrapper');
+        if (phaseWrapper && phaseWrapper.style.display !== 'none') {
+            const phaseField = document.getElementById('phase');
+            const phaseValue = (phaseField.value || '').trim();
+
+            if (!phaseValue) {
+                phaseField.classList.add('is-invalid');
+                validationErrors.push('Debes seleccionar una fase');
+            } else {
+                phaseField.classList.remove('is-invalid');
+            }
+        }
+
+        // Si hay errores, mostrar toast y retornar
+        if (validationErrors.length > 0) {
             e.preventDefault();
             e.stopPropagation();
-            milestoneForm.reportValidity();
+            showToast(validationErrors.join('. '), 'danger');
             isSubmitting = false;
             return;
         }

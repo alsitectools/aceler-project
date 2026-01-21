@@ -1,5 +1,5 @@
 @php
-    $user = $milestone->milestone_assigned_to_user
+    $assignedUser  = $milestone->milestone_assigned_to_user
         ? \App\Models\User::find($milestone->milestone_assigned_to_user)
         : null;
 @endphp
@@ -69,14 +69,14 @@
                     <label class="col-form-label">{{ __('Assigned to') }}</label>
                     <input type="hidden" id="milestone-requested-by" value="{{ $milestone->assign_to }}">
                     <input type="text" class="form-control" id="search-requested-by"
-                        placeholder="{{ __('Search') }}" name="search-requested-by" value="{{ $user->name ?? '' }}"
+                        placeholder="{{ __('Search') }}" name="search-requested-by" value="{{ $assignedUser->name ?? '' }}"
                         autocomplete="off">
                     <div id="user-select-req-by" aria-label="Default select example" class="dropdown-menu"
                         style="width: 45% !important;">
-                        @foreach ($users as $user)
+                        @foreach ($users as $u)
                             <div class="option list-group-item list-group-item-action stylelist ps-3"
-                                collected-data-id="{{ $user->id }}" style="padding: 8px; cursor: pointer;">
-                                {{ $user->name }}
+                                collected-data-id="{{ $u->id }}" style="padding: 8px; cursor: pointer;">
+                                {{ $u->name }}
                             </div>
                         @endforeach
                         <input type="text" name="req_assing_to" id="req_assing_To" style="display: none;"
@@ -150,7 +150,7 @@
             <button type="button" class="btn btn-light" id="closeBtn"
                 data-bs-dismiss="modal">{{ __('Close') }}</button>
             @php
-                $searchValue = $user->name ?? '';
+                $searchValue = $assignedUser->name ?? '';
                 $dateValue = $milestone->planned_end_date ?? '';
                 $shouldDisable = trim($searchValue) === '' || trim($dateValue) === '';
             @endphp

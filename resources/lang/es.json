@@ -1295,5 +1295,9 @@
     "My": "Mi",
     "No milestone files uploaded yet.": "No hay archivos subidos en hojas de encargo",
     "Current Workspace": "Espacio de trabajo actual",
-    "All Workspaces": "Todos los espacios de trabajo"
+    "All Workspaces": "Todos los espacios de trabajo",
+    "Saving...": "Guardando...",
+    "Phase" : "Fase",
+    "Phases" : "Fases",
+    "Debes seleccionar una fase": "Debes seleccionar una fase"
 }

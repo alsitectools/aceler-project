@@ -6,6 +6,16 @@
         filter: grayscale(100%) brightness(0.9);
         position: relative;
     }
+    .phasesDiv{
+    min-width: 60%;
+    height: 55%;
+    border-radius: 6px;
+    align-content: center;
+    background-color: rgb(25 24 24 / 26%);
+    font-size: 12.5px;
+    display: inline-block;
+    color: white;
+    }
 </style>
 <div class="card 
         {{ empty($milestone['assined_to_user']) ? 'notAsignedMilestone' : '' }} 
@@ -35,6 +45,15 @@
                     data-project-slug="{{ $milestone['workspace_slug'] ?? $currentWorkspace->slug }}">
                     {{ $milestone['title'] }}
                 </b>
+                
+                {{-- Mostrar Phase si es proyecto tipo 3 --}}
+                @if ($milestone['project_type_id'] == 3 && !empty($milestone['phases']))
+                    <div style="margin-top: 5px;">
+                        @foreach ($milestone['phases'] as $phase)
+                            <span class="phasesDiv">{{ $phase }}</span>
+                        @endforeach
+                    </div>
+                @endif
             </div>
 
             <div class="col-sm-2 pt-1 text-center">
