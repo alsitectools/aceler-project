@@ -1,5 +1,6 @@
 @php
     use Carbon\Carbon;
+    use App\Models\CustomTasks;
     // dd($timesheetArray);
     //print_r($workHoursWeek);
 @endphp
@@ -33,7 +34,7 @@
     }
 
     .hiddenPositioner {
-        width: 10rem !important;
+        width: 9rem !important;
         margin-left: 5% !important;
         opacity: 0;
     }
@@ -90,6 +91,44 @@
             margin-left: 2%;
         }
     }
+
+    .day-label {
+        color: #000000 !important;
+    }
+
+    .delimitatorContainer {
+        background-color: #af9b9c17;
+        border-radius: 8px;
+        padding: 5px;
+        margin-top: 16px;
+        width: 98%;
+        border: 1px solid #af9b9c5c
+    }
+
+    .delimitatorContainer .divTitleEncargo,
+    .delimitatorContainer .taskName,
+    .delimitatorContainer [data-task-name],
+    .delimitatorContainer [data-milestone-name] {
+        color: #000000 !important;
+    }
+
+    .divTitleEncargo {
+        margin-bottom: 33px;
+    }
+
+    .titleMilestone {
+        background-color: white;
+    }
+
+    .weekRow {
+        border: none !important;
+    }
+
+    .containerColum {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
 </style>
 
 <head>
@@ -131,93 +170,136 @@
                                                 <div class="table-responsive">
                                                     <table class="table">
                                                         @foreach ($timesheet['milestoneArray'] as $milestoneKey => $milestone)
-                                                            <td colspan="10" class="text-center">
-                                                                <div class="milestone-name justify-content-center align-items-center"
-                                                                    data-milestone-name="{{ $milestone['milestone_name'] }}">
-                                                                    <div data-title="{{ __('Milestone') }}"
-                                                                        class="tooltipCus text-dark mt-4 divTitleEncargo">
-                                                                        {{ $milestone['milestone_name'] }}
-                                                                    </div>
-                                                                </div>
-
-                                                            </td>
-                                                            @foreach ($milestone['taskArray'] as $taskKey => $taskTimesheet)
-                                                                <tr class="weekRow">
-                                                                    @if (Auth::user()->type != 'admin')
-                                                                        <td class="wid-150 firstTdInWeek text-start">
-                                                                            <div role="button"
-                                                                                data-title="{{ __('Task') }}"
-                                                                                data-url="{{ route('show.task', [$currentWorkspace->slug, $taskTimesheet['task_id'], $days['first_day'], $days['seventh_day']]) }}"
-                                                                                data-ajax-popup="true"
-                                                                                data-title="Task Detail"
-                                                                                class="taskName"
-                                                                                data-task-name="{{ $taskTimesheet['task_name'] }}"
-                                                                                data-modal-id="commonModalModified">
-
-                                                                                {{ __($taskTimesheet['task_name']) }}
+                                                            <tr>
+                                                                <td colspan="10" class="p-0 containerColum">
+                                                                    <div class="delimitatorContainer">
+                                                                        <div class="milestone-name justify-content-center align-items-center d-flex"
+                                                                            data-milestone-name="{{ $milestone['milestone_name'] }}">
+                                                                            <div data-title="{{ __('Milestone') }}"
+                                                                                class="tooltipCus mt-0 divTitleEncargo titleMilestone">
+                                                                                {{ $milestone['milestone_name'] }}
                                                                             </div>
-                                                                        </td>
-                                                                    @endif
-                                                                    @foreach ($taskTimesheet['dateArray'] as $dateTimeArray)
-                                                                        @foreach ($dateTimeArray as $dateKey => $dateSubArray)
-                                                                            <td>
-                                                                                <div class="day-container">
-                                                                                    @php
-                                                                                        // Convertir la fecha a un objeto Carbon
-                                                                                        $date = Carbon::parse(
-                                                                                            $dateSubArray['date'],
-                                                                                        );
-
-                                                                                        // Obtener el día de hoy
-                                                                                        $today = Carbon::today();
-
-                                                                                        // Determinar si el día es futuro
-                                                                                        $isFuture = $date->greaterThan(
-                                                                                            $today,
-                                                                                        );
-                                                                                    @endphp
-
-                                                                                    <div class="day-label">
-                                                                                        {{ ucfirst($date->isoFormat('dddd')) }}
-                                                                                        <!-- Muestra el día de la semana -->
-                                                                                    </div>
-
-                                                                                    @if (Auth::user()->id == $dateSubArray['user_id'])
-                                                                                        <div role="button"
-                                                                                            class="form-control week inputsTask {{ $isFuture ? 'disabled-day' : '' }}"
-                                                                                            title="{{ $isFuture ? __('This day is in the future and cannot be edited') : __('Click to Add/Edit Timesheet') }}"
-                                                                                            data-ajax-timesheet-popup="{{ $isFuture ? 'false' : 'true' }}"
-                                                                                            data-type="{{ $dateSubArray['type'] }}"
-                                                                                            data-user-id="{{ $dateSubArray['user_id'] }}"
-                                                                                            data-project-id="{{ $dateSubArray['project_id'] }}"
-                                                                                            data-task-id="{{ $dateSubArray['task_id'] }}"
-                                                                                            data-date="{{ $dateSubArray['date'] }}"
-                                                                                            data-url="{{ $dateSubArray['url'] }}"
-                                                                                            style="{{ $isFuture ? 'background-color: #a293933d; cursor: not-allowed; border: 2px solid #ced4da; color:black' : '' }}">
-                                                                                            {{ $dateSubArray['time'] != '00:00' ? $dateSubArray['time'] : '00:00' }}
-                                                                                        </div>
-                                                                                    @else
-                                                                                        <div class="form-control week">
-                                                                                            {{ $dateSubArray['time'] != '00:00' ? $dateSubArray['time'] : '00:00' }}
-                                                                                        </div>
-                                                                                    @endif
-                                                                                </div>
-                                                                            </td>
-                                                                        @endforeach
-                                                                    @endforeach
-
-                                                                    <td>
-                                                                        <div class="day-label marginForTotalText"
-                                                                            style="margin-left: 35px;">
-                                                                            Total
                                                                         </div>
-                                                                        <div
-                                                                            class="total form-control week inputsTaskTotal">
-                                                                            {{ $taskTimesheet['totaltime'] }}
+
+                                                                        <div class="table-responsive">
+                                                                            <table class="table mb-0">
+                                                                                @foreach ($milestone['taskArray'] as $taskKey => $taskTimesheet)
+                                                                                    <tr class="weekRow">
+                                                                                        @if (Auth::user()->type != 'admin')
+                                                                                            @php
+                                                                                                $displayTaskName =
+                                                                                                    $taskTimesheet[
+                                                                                                        'task_name'
+                                                                                                    ];
+                                                                                                if (
+                                                                                                    strtolower(
+                                                                                                        $taskTimesheet[
+                                                                                                            'task_name'
+                                                                                                        ],
+                                                                                                    ) === 'custom'
+                                                                                                ) {
+                                                                                                    try {
+                                                                                                        $customTask = CustomTasks::where(
+                                                                                                            'id_task',
+                                                                                                            $taskTimesheet[
+                                                                                                                'task_id'
+                                                                                                            ],
+                                                                                                        )->first();
+                                                                                                        $displayTaskName = $customTask
+                                                                                                            ? $customTask->name
+                                                                                                            : 'custom';
+                                                                                                    } catch (\Exception $e) {
+                                                                                                        $displayTaskName =
+                                                                                                            'custom';
+                                                                                                    }
+                                                                                                }
+                                                                                            @endphp
+                                                                                            <td
+                                                                                                class="wid-150 firstTdInWeek text-start">
+                                                                                                <div role="button"
+                                                                                                    data-title="{{ __('Task') }}"
+                                                                                                    data-url="{{ route('show.task', [$currentWorkspace->slug, $taskTimesheet['task_id'], $days['first_day'], $days['seventh_day']]) }}"
+                                                                                                    data-ajax-popup="true"
+                                                                                                    data-title="Task Detail"
+                                                                                                    class="taskName"
+                                                                                                    data-task-name="{{ $displayTaskName }}"
+                                                                                                    data-modal-id="commonModalModified">
+
+                                                                                                    {{ __($displayTaskName) }}
+
+                                                                                                </div>
+                                                                                            </td>
+                                                                                        @endif
+                                                                                        @foreach ($taskTimesheet['dateArray'] as $dateTimeArray)
+                                                                                            @foreach ($dateTimeArray as $dateKey => $dateSubArray)
+                                                                                                <td>
+                                                                                                    <div
+                                                                                                        class="day-container">
+                                                                                                        @php
+                                                                                                            // Convertir la fecha a un objeto Carbon
+                                                                                                            $date = Carbon::parse(
+                                                                                                                $dateSubArray[
+                                                                                                                    'date'
+                                                                                                                ],
+                                                                                                            );
+
+                                                                                                            // Obtener el día de hoy
+                                                                                                            $today = Carbon::today();
+
+                                                                                                            // Determinar si el día es futuro
+                                                                                                            $isFuture = $date->greaterThan(
+                                                                                                                $today,
+                                                                                                            );
+                                                                                                        @endphp
+
+                                                                                                        <div
+                                                                                                            class="day-label">
+                                                                                                            {{ ucfirst($date->isoFormat('dddd')) }}
+                                                                                                            <!-- Muestra el día de la semana -->
+                                                                                                        </div>
+
+                                                                                                        @if (Auth::user()->id == $dateSubArray['user_id'])
+                                                                                                            <div role="button"
+                                                                                                                class="form-control week inputsTask {{ $isFuture ? 'disabled-day' : '' }}"
+                                                                                                                title="{{ $isFuture ? __('This day is in the future and cannot be edited') : __('Click to Add/Edit Timesheet') }}"
+                                                                                                                data-ajax-timesheet-popup="{{ $isFuture ? 'false' : 'true' }}"
+                                                                                                                data-type="{{ $dateSubArray['type'] }}"
+                                                                                                                data-user-id="{{ $dateSubArray['user_id'] }}"
+                                                                                                                data-project-id="{{ $dateSubArray['project_id'] }}"
+                                                                                                                data-task-id="{{ $dateSubArray['task_id'] }}"
+                                                                                                                data-date="{{ $dateSubArray['date'] }}"
+                                                                                                                data-url="{{ $dateSubArray['url'] }}"
+                                                                                                                style="{{ $isFuture ? 'background-color: #a293933d; cursor: not-allowed; border: 2px solid #ced4da; color:black' : '' }}">
+                                                                                                                {{ $dateSubArray['time'] != '00:00' ? $dateSubArray['time'] : '00:00' }}
+                                                                                                            </div>
+                                                                                                        @else
+                                                                                                            <div
+                                                                                                                class="form-control week">
+                                                                                                                {{ $dateSubArray['time'] != '00:00' ? $dateSubArray['time'] : '00:00' }}
+                                                                                                            </div>
+                                                                                                        @endif
+                                                                                                    </div>
+                                                                                                </td>
+                                                                                            @endforeach
+                                                                                        @endforeach
+
+                                                                                        <td>
+                                                                                            <div class="day-label marginForTotalText"
+                                                                                                {{-- style="margin-left: 35px;" --}}>
+                                                                                                Total
+                                                                                            </div>
+                                                                                            <div
+                                                                                                class="total form-control week inputsTaskTotal">
+                                                                                                {{ $taskTimesheet['totaltime'] }}
+                                                                                            </div>
+                                                                                        </td>
+                                                                                    </tr>
+                                                                                @endforeach
+                                                                            </table>
                                                                         </div>
-                                                                    </td>
-                                                                </tr>
-                                                            @endforeach
+                                                                    </div>
+                                                                </td>
+                                                            </tr>
                                                         @endforeach
                                                     </table>
                                                 </div>
@@ -253,104 +335,147 @@
                                                     <table class="table">
                                                         @foreach ($timesheet['usersArray'] as $userKey => $user)
                                                             <tr>
-                                                                <td colspan="10" class="text-center">
-                                                                    <div class="user-name justify-content-center align-items-center"
-                                                                        data-user-name="{{ $user['user_name'] }}">
-                                                                        <div data-title="{{ __('User') }}"
-                                                                            class="tooltipCus text-dark mt-4 divTitleEncargo">
-                                                                            {{ $user['user_name'] }}
+                                                                <td colspan="10" class="p-0 containerColum">
+                                                                    <div class="delimitatorContainer">
+                                                                        <div class="user-name justify-content-center align-items-center d-flex"
+                                                                            data-user-name="{{ $user['user_name'] }}">
+                                                                            <div data-title="{{ __('User') }}"
+                                                                                class="tooltipCus text-dark mt-0 divTitleEncargo titleMilestone">
+                                                                                {{ $user['user_name'] }}
+                                                                            </div>
+                                                                        </div>
+
+                                                                        <div class="table-responsive">
+                                                                            <table class="table mb-0">
+                                                                                @foreach ($user['taskArray'] as $taskKey => $taskTimesheet)
+                                                                                    @php
+                                                                                        $displayTaskName2 =
+                                                                                            $taskTimesheet['task_name'];
+                                                                                        if (
+                                                                                            strtolower(
+                                                                                                $taskTimesheet[
+                                                                                                    'task_name'
+                                                                                                ],
+                                                                                            ) === 'custom'
+                                                                                        ) {
+                                                                                            try {
+                                                                                                $customTask2 = CustomTasks::where(
+                                                                                                    'id_task',
+                                                                                                    $taskTimesheet[
+                                                                                                        'task_id'
+                                                                                                    ],
+                                                                                                )->first();
+                                                                                                $displayTaskName2 = $customTask2
+                                                                                                    ? $customTask2->name
+                                                                                                    : 'custom';
+                                                                                            } catch (\Exception $e) {
+                                                                                                $displayTaskName2 =
+                                                                                                    'custom';
+                                                                                            }
+                                                                                        }
+                                                                                    @endphp
+                                                                                    <tr class="weekRow">
+                                                                                        <td
+                                                                                            class="wid-150 firstTdInWeek">
+                                                                                            <div role="button"
+                                                                                                data-title="{{ __('Task') }}"
+                                                                                                data-url="{{ route('show.task', [$currentWorkspace->slug, $taskTimesheet['task_id'], $days['first_day'], $days['seventh_day']]) }}"
+                                                                                                data-ajax-popup="true"
+                                                                                                data-title="Task Detail"
+                                                                                                data-task-name="{{ $displayTaskName2 }}"
+                                                                                                data-modal-id="commonModalModified">
+                                                                                                {{ __($displayTaskName2) }}
+                                                                                            </div>
+                                                                                        </td>
+                                                                                        @foreach ($taskTimesheet['dateArray'] as $dateTimeArray)
+                                                                                            @foreach ($dateTimeArray as $dateKey => $dateSubArray)
+                                                                                                <td>
+                                                                                                    <div
+                                                                                                        class="day-container">
+                                                                                                        @php
+
+                                                                                                            // Convertir la fecha a un objeto Carbon
+                                                                                                            $date = Carbon::parse(
+                                                                                                                $dateSubArray[
+                                                                                                                    'date'
+                                                                                                                ],
+                                                                                                            );
+
+                                                                                                            // Obtener el día de hoy
+                                                                                                            $today = Carbon::today();
+
+                                                                                                            // Determinar si el día es futuro
+                                                                                                            $isFuture = $date->greaterThan(
+                                                                                                                $today,
+                                                                                                            );
+
+                                                                                                            // Obtener el nombre del día en minúsculas (ejemplo: "monday", "tuesday", etc.)
+                                                                                                            $dayName = strtolower(
+                                                                                                                $date->format(
+                                                                                                                    'l',
+                                                                                                                ),
+                                                                                                            );
+
+                                                                                                            // Verificar si el día está permitido en workHoursWeek y si no es futuro
+                                                                                                            $isAllowed =
+                                                                                                                isset(
+                                                                                                                    $workHoursWeek[
+                                                                                                                        $dayName
+                                                                                                                    ],
+                                                                                                                ) &&
+                                                                                                                !$isFuture;
+                                                                                                        @endphp
+
+                                                                                                        <div
+                                                                                                            class="day-label">
+                                                                                                            {{ ucfirst($date->isoFormat('dddd')) }}
+                                                                                                            <!-- Muestra el día de la semana -->
+                                                                                                        </div>
+
+                                                                                                        @if (Auth::user()->id == $dateSubArray['user_id'])
+                                                                                                            <div role="button"
+                                                                                                                class="form-control week inputsTask {{ $isAllowed ? '' : 'disabled' }}"
+                                                                                                                title="{{ $isAllowed ? __('Click to Add/Edit Timesheet') : __('This day is not available or is in the future') }}"
+                                                                                                                data-ajax-timesheet-popup="{{ $isAllowed ? 'true' : 'false' }}"
+                                                                                                                data-type="{{ $dateSubArray['type'] }}"
+                                                                                                                data-user-id="{{ $dateSubArray['user_id'] }}"
+                                                                                                                data-project-id="{{ $dateSubArray['project_id'] }}"
+                                                                                                                data-task-id="{{ $dateSubArray['task_id'] }}"
+                                                                                                                data-date="{{ $dateSubArray['date'] }}"
+                                                                                                                data-url="{{ $dateSubArray['url'] }}"
+                                                                                                                data-milestone-id="{{ $timesheet['milestone_id'] }}"
+                                                                                                                style="{{ $isAllowed ? '' : 'background-color: #a293933d; cursor: not-allowed;border: 2px solid #ced4da; color:black' }}">
+                                                                                                                {{ $dateSubArray['time'] != '00:00' ? $dateSubArray['time'] : '00:00' }}
+                                                                                                            </div>
+                                                                                                        @else
+                                                                                                            <div
+                                                                                                                class="form-control week">
+                                                                                                                {{ $dateSubArray['time'] != '00:00' ? $dateSubArray['time'] : '00:00' }}
+                                                                                                            </div>
+                                                                                                        @endif
+                                                                                                    </div>
+                                                                                                </td>
+                                                                                            @endforeach
+                                                                                        @endforeach
+
+                                                                                        <td>
+                                                                                            <div class="day-label marginForTotalText"
+                                                                                                {{-- style="margin-left: 35px;
+                                                                                                " --}}>
+                                                                                                {{ 'Total' }}
+                                                                                            </div>
+                                                                                            <div
+                                                                                                class="total form-control week inputsTaskTotal">
+                                                                                                {{ $taskTimesheet['totaltime'] }}
+                                                                                            </div>
+                                                                                        </td>
+                                                                                    </tr>
+                                                                                @endforeach
+                                                                            </table>
                                                                         </div>
                                                                     </div>
                                                                 </td>
                                                             </tr>
-                                                            @foreach ($user['taskArray'] as $taskKey => $taskTimesheet)
-                                                                <tr class="weekRow">
-                                                                    <td class="wid-150 firstTdInWeek">
-                                                                        <div role="button"
-                                                                            data-title="{{ __('Task') }}"
-                                                                            data-url="{{ route('show.task', [$currentWorkspace->slug, $taskTimesheet['task_id'], $days['first_day'], $days['seventh_day']]) }}"
-                                                                            data-ajax-popup="true"
-                                                                            data-title="Task Detail"
-                                                                            data-task-name="{{ $taskTimesheet['task_name'] }}"
-                                                                            data-modal-id="commonModalModified">
-                                                                            {{ __($taskTimesheet['task_name']) }}
-                                                                        </div>
-                                                                    </td>
-                                                                    @foreach ($taskTimesheet['dateArray'] as $dateTimeArray)
-                                                                        @foreach ($dateTimeArray as $dateKey => $dateSubArray)
-                                                                            <td>
-                                                                                <div class="day-container">
-                                                                                    @php
-
-                                                                                        // Convertir la fecha a un objeto Carbon
-                                                                                        $date = Carbon::parse(
-                                                                                            $dateSubArray['date'],
-                                                                                        );
-
-                                                                                        // Obtener el día de hoy
-                                                                                        $today = Carbon::today();
-
-                                                                                        // Determinar si el día es futuro
-                                                                                        $isFuture = $date->greaterThan(
-                                                                                            $today,
-                                                                                        );
-
-                                                                                        // Obtener el nombre del día en minúsculas (ejemplo: "monday", "tuesday", etc.)
-                                                                                        $dayName = strtolower(
-                                                                                            $date->format('l'),
-                                                                                        );
-
-                                                                                        // Verificar si el día está permitido en workHoursWeek y si no es futuro
-                                                                                        $isAllowed =
-                                                                                            isset(
-                                                                                                $workHoursWeek[
-                                                                                                    $dayName
-                                                                                                ],
-                                                                                            ) && !$isFuture;
-                                                                                    @endphp
-
-                                                                                    <div class="day-label">
-                                                                                        {{ ucfirst($date->isoFormat('dddd')) }}
-                                                                                        <!-- Muestra el día de la semana -->
-                                                                                    </div>
-
-                                                                                    @if (Auth::user()->id == $dateSubArray['user_id'])
-                                                                                        <div role="button"
-                                                                                            class="form-control week inputsTask {{ $isAllowed ? '' : 'disabled' }}"
-                                                                                            title="{{ $isAllowed ? __('Click to Add/Edit Timesheet') : __('This day is not available or is in the future') }}"
-                                                                                            data-ajax-timesheet-popup="{{ $isAllowed ? 'true' : 'false' }}"
-                                                                                            data-type="{{ $dateSubArray['type'] }}"
-                                                                                            data-user-id="{{ $dateSubArray['user_id'] }}"
-                                                                                            data-project-id="{{ $dateSubArray['project_id'] }}"
-                                                                                            data-task-id="{{ $dateSubArray['task_id'] }}"
-                                                                                            data-date="{{ $dateSubArray['date'] }}"
-                                                                                            data-url="{{ $dateSubArray['url'] }}"
-                                                                                            data-milestone-id="{{ $timesheet['milestone_id'] }}"
-                                                                                            style="{{ $isAllowed ? '' : 'background-color: #a293933d; cursor: not-allowed;border: 2px solid #ced4da; color:black' }}">
-                                                                                            {{ $dateSubArray['time'] != '00:00' ? $dateSubArray['time'] : '00:00' }}
-                                                                                        </div>
-                                                                                    @else
-                                                                                        <div class="form-control week">
-                                                                                            {{ $dateSubArray['time'] != '00:00' ? $dateSubArray['time'] : '00:00' }}
-                                                                                        </div>
-                                                                                    @endif
-                                                                                </div>
-                                                                            </td>
-                                                                        @endforeach
-                                                                    @endforeach
-
-                                                                    <td>
-                                                                        <div class="day-label marginForTotalText"
-                                                                            style="margin-left: 35px;">
-                                                                            {{ 'Total' }}
-                                                                        </div>
-                                                                        <div
-                                                                            class="total form-control week inputsTaskTotal">
-                                                                            {{ $taskTimesheet['totaltime'] }}
-                                                                        </div>
-                                                                    </td>
-                                                                </tr>
-                                                            @endforeach
                                                         @endforeach
                                                     </table>
                                                 </div>

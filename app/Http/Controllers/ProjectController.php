@@ -114,7 +114,7 @@ class ProjectController extends Controller
             return $fileName;
         }
 
-        // Separar nombre base y extensión
+        // ✅ Separar nombre base y extensión
         $lastDotIndex = strrpos($fileName, '.');
         if ($lastDotIndex !== false && $lastDotIndex > 0) {
             $baseName = substr($fileName, 0, $lastDotIndex);
@@ -124,22 +124,22 @@ class ProjectController extends Controller
             $extension = '';
         }
 
-        // Verificar si ya tiene un sufijo numérico como " (2)"
+        // Verificar si ya tiene un sufijo numérico como " (2)" o "_(2)"
         $originalBaseName = $baseName;
         $startCounter = 2;
 
-        if (preg_match('/^(.+)\s\((\d+)\)$/', $baseName, $matches)) {
+        if (preg_match('/^(.+?)[ _]\((\d+)\)$/', $baseName, $matches)) {
             $originalBaseName = $matches[1];
             $startCounter = (int)$matches[2] + 1;
         }
 
         // Buscar el siguiente número disponible
         $counter = $startCounter;
-        $newFileName = "{$originalBaseName} ({$counter}){$extension}";
+        $newFileName = "{$originalBaseName}_({$counter}){$extension}";
 
         while (in_array($newFileName, $existingNames)) {
             $counter++;
-            $newFileName = "{$originalBaseName} ({$counter}){$extension}";
+            $newFileName = "{$originalBaseName}_({$counter}){$extension}";
         }
 
         return $newFileName;
@@ -1219,11 +1219,11 @@ class ProjectController extends Controller
                         });
                 })
                 ->with([
-   'tasks:id,milestone_id,assign_to,type_id',
-   'tasks.type:id,name',
-   'tasks.customTask:id,id_task,name',
-   'project:id,workspace,name,type'
-])
+                    'tasks:id,milestone_id,assign_to,type_id',
+                    'tasks.type:id,name',
+                    'tasks.customTask:id,id_task,name',
+                    'project:id,workspace,name,type'
+                ])
 
                 ->orderBy('created_at', 'desc')
                 ->get();
@@ -1269,12 +1269,12 @@ class ProjectController extends Controller
         }
 
         $allmilestones = Milestone::where('project_id', $project->id)
-    ->with([
-        'tasks:id,milestone_id,assign_to,type_id',
-        'tasks.type:id,name',
-        'tasks.customTask:id,id_task,name',
-    ])
-    ->get();
+            ->with([
+                'tasks:id,milestone_id,assign_to,type_id',
+                'tasks.type:id,name',
+                'tasks.customTask:id,id_task,name',
+            ])
+            ->get();
 
 
         $milestones = $this->groupMilestonesByStatus($allmilestones, null, $stages);
@@ -1389,32 +1389,32 @@ class ProjectController extends Controller
         }
 
         $taskData = $tasksOfmilestone->map(function ($task) {
-    if (!$task) {
-        return null;
-    }
+            if (!$task) {
+                return null;
+            }
 
-    $taskType = TaskType::find($task->type_id);
-    if (!$taskType) {
-        return null;
-    }
+            $taskType = TaskType::find($task->type_id);
+            if (!$taskType) {
+                return null;
+            }
 
-    $isCustom = strtolower(trim($taskType->name)) === 'custom';
+            $isCustom = strtolower(trim($taskType->name)) === 'custom';
 
-    // Si es custom, leer el nombre de custom_tasks
-    $customName = null;
-    if ($isCustom) {
-        $customName = \App\Models\CustomTasks::where('id_task', $task->id)->value('name');
-    }
+            // Si es custom, leer el nombre de custom_tasks
+            $customName = null;
+            if ($isCustom) {
+                $customName = \App\Models\CustomTasks::where('id_task', $task->id)->value('name');
+            }
 
-    return [
-        'id'             => $task->id,
-        'name'           => $taskType->name, // se mantiene por compatibilidad
-        'display_name'   => $isCustom ? ($customName ?: 'Custom') : $taskType->name, // ✅ NUEVO
-        'estimated_date' => $task->estimated_date,
-        'technician'     => User::find($task->assign_to),
-        'logged_hours'   => $task->getTotalLoggedHours(),
-    ];
-})->filter()->values()->toArray();
+            return [
+                'id'             => $task->id,
+                'name'           => $taskType->name, // se mantiene por compatibilidad
+                'display_name'   => $isCustom ? ($customName ?: 'Custom') : $taskType->name, // ✅ NUEVO
+                'estimated_date' => $task->estimated_date,
+                'technician'     => User::find($task->assign_to),
+                'logged_hours'   => $task->getTotalLoggedHours(),
+            ];
+        })->filter()->values()->toArray();
 
 
         // Si es proyecto tipo 3, cargar las phases
@@ -1916,94 +1916,94 @@ class ProjectController extends Controller
     }
 
     public function taskStore(Request $request, $slug)
-{
-    $request->validate([
-        'project_id' => 'required',
-        'milestone_id' => 'required',
-        'type_id' => 'required',
-        'estimated_date' => 'required',
-    ]);
-
-    $currentWorkspace = Utility::getWorkspaceBySlug($slug);
-    $user = Auth::user();
-
-    $project = Project::where('id', $request->project_id)
-        ->where('workspace', $currentWorkspace->id)
-        ->first();
-
-    if (!$project) {
-        return redirect()->back()->with('error', 'Proyecto no encontrado o no pertenece al espacio de trabajo actual.');
-    }
-
-    // Detectar si el type_id seleccionado es el "Custom"
-    $type = TaskType::find($request->type_id);
-    $isCustom = $type && strtolower(trim($type->name)) === 'custom';
-
-    // Si es custom, validar el nombre
-    if ($isCustom) {
+    {
         $request->validate([
-            'custom_task_name' => 'required|string|max:255',
+            'project_id' => 'required',
+            'milestone_id' => 'required',
+            'type_id' => 'required',
+            'estimated_date' => 'required',
         ]);
-    }
 
-    // ---- Duplicados ----
-    if ($isCustom) {
-        // Para custom: evitar duplicado por milestone + usuario + nombre custom
-        $existingTask = Task::where('milestone_id', $request->milestone_id)
-            ->where('type_id', $request->type_id)
-            ->where('assign_to', $user->id)
-            ->whereHas('customTask', function ($q) use ($request) {
-                $q->whereRaw('LOWER(name) = ?', [strtolower(trim($request->custom_task_name))]);
-            })
+        $currentWorkspace = Utility::getWorkspaceBySlug($slug);
+        $user = Auth::user();
+
+        $project = Project::where('id', $request->project_id)
+            ->where('workspace', $currentWorkspace->id)
             ->first();
-    } else {
-        // Para no custom: tu regla actual
-        $existingTask = Task::where('milestone_id', $request->milestone_id)
-            ->where('type_id', $request->type_id)
-            ->where('assign_to', $user->id)
-            ->first();
+
+        if (!$project) {
+            return redirect()->back()->with('error', 'Proyecto no encontrado o no pertenece al espacio de trabajo actual.');
+        }
+
+        // Detectar si el type_id seleccionado es el "Custom"
+        $type = TaskType::find($request->type_id);
+        $isCustom = $type && strtolower(trim($type->name)) === 'custom';
+
+        // Si es custom, validar el nombre
+        if ($isCustom) {
+            $request->validate([
+                'custom_task_name' => 'required|string|max:255',
+            ]);
+        }
+
+        // ---- Duplicados ----
+        if ($isCustom) {
+            // Para custom: evitar duplicado por milestone + usuario + nombre custom
+            $existingTask = Task::where('milestone_id', $request->milestone_id)
+                ->where('type_id', $request->type_id)
+                ->where('assign_to', $user->id)
+                ->whereHas('customTask', function ($q) use ($request) {
+                    $q->whereRaw('LOWER(name) = ?', [strtolower(trim($request->custom_task_name))]);
+                })
+                ->first();
+        } else {
+            // Para no custom: tu regla actual
+            $existingTask = Task::where('milestone_id', $request->milestone_id)
+                ->where('type_id', $request->type_id)
+                ->where('assign_to', $user->id)
+                ->first();
+        }
+
+        if ($existingTask) {
+            return redirect()->back()->with('error', 'Error, no se pueden duplicar tareas');
+        }
+
+        // Crear la Task
+        $task = new Task();
+        $task->project_id = $request->project_id;
+        $task->milestone_id = $request->milestone_id;
+        $task->type_id = $request->type_id;
+        $task->start_date = date('Y-m-d');
+        $task->estimated_date = $request->estimated_date;
+        $task->assign_to = $user->id;
+        $task->save();
+
+        // Si es custom, crear el registro en custom_tasks
+        if ($isCustom) {
+            CustomTasks::create([
+                'id_task' => $task->id,
+                'name'    => trim($request->custom_task_name),
+            ]);
+            // alternativa usando la relación:
+            // $task->customTask()->create(['name' => trim($request->custom_task_name)]);
+        }
+
+        // Actualizar milestone status
+        $milestone = Milestone::find($request->milestone_id);
+
+        if (!$milestone) {
+            return redirect()->back()->with('error', 'Encargo no encontrado.');
+        }
+
+        if (empty($milestone->title)) {
+            return redirect()->back()->with('error', 'Error: El encargo no tiene título.');
+        }
+
+        $milestone->status = 2;
+        $milestone->save();
+
+        return redirect()->back()->with(['success' => __('Task Created Successfully!')]);
     }
-
-    if ($existingTask) {
-        return redirect()->back()->with('error', 'Error, no se pueden duplicar tareas');
-    }
-
-    // Crear la Task
-    $task = new Task();
-    $task->project_id = $request->project_id;
-    $task->milestone_id = $request->milestone_id;
-    $task->type_id = $request->type_id;
-    $task->start_date = date('Y-m-d');
-    $task->estimated_date = $request->estimated_date;
-    $task->assign_to = $user->id;
-    $task->save();
-
-    // Si es custom, crear el registro en custom_tasks
-    if ($isCustom) {
-        CustomTasks::create([
-            'id_task' => $task->id,
-            'name'    => trim($request->custom_task_name),
-        ]);
-        // alternativa usando la relación:
-        // $task->customTask()->create(['name' => trim($request->custom_task_name)]);
-    }
-
-    // Actualizar milestone status
-    $milestone = Milestone::find($request->milestone_id);
-
-    if (!$milestone) {
-        return redirect()->back()->with('error', 'Encargo no encontrado.');
-    }
-
-    if (empty($milestone->title)) {
-        return redirect()->back()->with('error', 'Error: El encargo no tiene título.');
-    }
-
-    $milestone->status = 2;
-    $milestone->save();
-
-    return redirect()->back()->with(['success' => __('Task Created Successfully!')]);
-}
 
 
     public function milestoneOrderUpdate(Request $request, $slug, $projectID)
@@ -2655,22 +2655,22 @@ class ProjectController extends Controller
         ]);
     }
 
-    
-private function getEnumValues($table, $column)
-{
-    $type = DB::selectOne("
+
+    private function getEnumValues($table, $column)
+    {
+        $type = DB::selectOne("
         SELECT COLUMN_TYPE 
         FROM information_schema.COLUMNS 
         WHERE TABLE_NAME = ? 
           AND COLUMN_NAME = ?
     ", [$table, $column]);
 
-    preg_match("/^enum\((.*)\)$/", $type->COLUMN_TYPE, $matches);
+        preg_match("/^enum\((.*)\)$/", $type->COLUMN_TYPE, $matches);
 
-    return collect(explode(',', $matches[1]))
-        ->map(fn ($v) => trim($v, "'"))
-        ->toArray();
-}
+        return collect(explode(',', $matches[1]))
+            ->map(fn($v) => trim($v, "'"))
+            ->toArray();
+    }
 
     public function milestone($slug, $projectID)
     {
@@ -2679,7 +2679,7 @@ private function getEnumValues($table, $column)
         $users = User::orderBy('name', 'asc')->get();
 
         $phases = $this->getEnumValues('milestone_phases', 'phases');
-        
+
         if ($projectID == -1) {
             $project_id = -1;
             $projects = Project::select('projects.*')
@@ -2687,11 +2687,11 @@ private function getEnumValues($table, $column)
                 ->where('projects.status', '!=', 'Finished')
                 ->get();
 
-            return view('projects.milestone', compact('currentWorkspace', 'projects', 'project_id', 'project_type', 'users','phases'));
+            return view('projects.milestone', compact('currentWorkspace', 'projects', 'project_id', 'project_type', 'users', 'phases'));
         } else {
             $project_id = $projectID;
             $project = Project::find($projectID);
-            return view('projects.milestone', compact('currentWorkspace', 'project', 'project_id', 'project_type', 'users','phases'));
+            return view('projects.milestone', compact('currentWorkspace', 'project', 'project_id', 'project_type', 'users', 'phases'));
         }
     }
 
@@ -2739,7 +2739,7 @@ private function getEnumValues($table, $column)
 
         // ✅ Si el proyecto es tipo 3, phase es obligatoria
         if ((int)$project->type === 3) {
-            $rules['phase'] = 'required|in:Planificación,Diseño,Implementación,Documentación,Validación funcional,Explotación comercial'; 
+            $rules['phase'] = 'required|in:Planificación,Diseño,Implementación,Documentación,Validación funcional,Explotación comercial';
             // 👆 cambia por los valores reales del enum de milestone_phases.phases
         }
 
@@ -3372,12 +3372,17 @@ private function getEnumValues($table, $column)
         ]);
 
         $file = $request->file('file');
-        $file_name = $file->getClientOriginalName();
         // ✅ Reemplazar espacios con guiones bajos
-        $file_name = str_replace(' ', '_', $file_name);
+        $file_name = str_replace(' ', '_', $file->getClientOriginalName());
         $extension = $file->getClientOriginalExtension();
 
-        $newName = $project->id . "_" . md5(time()) . "_" . $file_name;
+        $existingNames = ProjectFile::where('project_id', $project->id)
+            ->pluck('file_name')
+            ->map(fn($name) => str_replace(' ', '_', $name))
+            ->toArray();
+        $uniqueFileName = $this->generateUniqueFileName($file_name, $existingNames);
+
+        $newName = $project->id . "_" . md5(time()) . "_" . $uniqueFileName;
 
         $projectFolder = str_replace(' ', '_', $project->name);
 
@@ -3400,7 +3405,7 @@ private function getEnumValues($table, $column)
 
         $projectFile = ProjectFile::create([
             'project_id' => $project->id,
-            'file_name'  => $file_name,
+            'file_name'  => $uniqueFileName,
             'file_path'  => $newName,
             'extension'  => $extension,
         ]);
@@ -3411,7 +3416,7 @@ private function getEnumValues($table, $column)
             'user_type'  => get_class(\Auth::user()),
             'project_id' => $project->id,
             'log_type'   => 'Upload File',
-            'remark'     => json_encode(['file_name' => $file_name]),
+            'remark'     => json_encode(['file_name' => $uniqueFileName]),
         ]);
 
         // Preparar la respuesta con las rutas para descargar y eliminar el archivo
