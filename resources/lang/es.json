@@ -1295,5 +1295,7 @@
     "My": "Mi",
     "No milestone files uploaded yet.": "No hay archivos subidos en hojas de encargo",
     "Current Workspace": "Espacio de trabajo actual",
-    "All Workspaces": "Todos los espacios de trabajo"
+    "All Workspaces": "Todos los espacios de trabajo",
+    "This day is in the future and cannot be edited": "Este día está en el futuro y no se puede editar.",
+    "Click to Add/Edit Timesheet": "Clica para añadir/editar hoja de horas"
 }

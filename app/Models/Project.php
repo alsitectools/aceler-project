@@ -102,42 +102,42 @@ class Project extends Model
     }
 
     public function updateProjectStatus()
-{
-    $this->loadMissing(['milestones:id,project_id,status,is_waiting']);
+    {
+        $this->loadMissing(['milestones:id,project_id,status,is_waiting']);
 
-    // 1) Sin encargos => OnHold
-    if ($this->milestones->isEmpty()) {
-        $this->status = 'OnHold';
+        // 1) Sin encargos => OnHold
+        if ($this->milestones->isEmpty()) {
+            $this->status = 'OnHold';
+            return $this->save();
+        }
+
+        // 2) Todos Done => Finished
+        $allDone = $this->milestones->every(fn($m) => (int)$m->status === 4);
+        if ($allDone) {
+            $this->status = 'Finished';
+            return $this->save();
+        }
+
+        // Encargos NO terminados
+        $notDone = $this->milestones->filter(fn($m) => (int)$m->status !== 4);
+
+        // 3) Si los NO terminados están todos en ToDo(1) => OnHold
+        $allNotDoneAreTodo = $notDone->every(fn($m) => (int)$m->status === 1);
+        if ($allNotDoneAreTodo) {
+            $this->status = 'OnHold';
+            return $this->save();
+        }
+
+        // 4) Activo real = status 2/3 y NO en pausa
+        $hasActiveNotPaused = $notDone->contains(function ($m) {
+            return in_array((int)$m->status, [2, 3], true) && (int)$m->is_waiting === 0;
+        });
+
+        // 5) Si no hay activo real (porque están pausados) => OnHold
+        $this->status = $hasActiveNotPaused ? 'Ongoing' : 'OnHold';
+
         return $this->save();
     }
-
-    // 2) Todos Done => Finished
-    $allDone = $this->milestones->every(fn($m) => (int)$m->status === 4);
-    if ($allDone) {
-        $this->status = 'Finished';
-        return $this->save();
-    }
-
-    // Encargos NO terminados
-    $notDone = $this->milestones->filter(fn($m) => (int)$m->status !== 4);
-
-    // 3) Si los NO terminados están todos en ToDo(1) => OnHold
-    $allNotDoneAreTodo = $notDone->every(fn($m) => (int)$m->status === 1);
-    if ($allNotDoneAreTodo) {
-        $this->status = 'OnHold';
-        return $this->save();
-    }
-
-    // 4) Activo real = status 2/3 y NO en pausa
-    $hasActiveNotPaused = $notDone->contains(function ($m) {
-        return in_array((int)$m->status, [2, 3], true) && (int)$m->is_waiting === 0;
-    });
-
-    // 5) Si no hay activo real (porque están pausados) => OnHold
-    $this->status = $hasActiveNotPaused ? 'Ongoing' : 'OnHold';
-
-    return $this->save();
-}
 
 
 
@@ -187,13 +187,13 @@ class Project extends Model
 
     // App\Models\Project.php
 
-public function scopeWhereUserIsParticipant($query, $userId)
-{
-    return $query->whereHas('users', function ($q) use ($userId) {
-        $q->where('users.id', $userId)
-          ->where('user_projects.is_active', 1);
-    });
-}
+    public function scopeWhereUserIsParticipant($query, $userId)
+    {
+        return $query->whereHas('users', function ($q) use ($userId) {
+            $q->where('users.id', $userId)
+                ->where('user_projects.is_active', 1);
+        });
+    }
 
 
     public function files()
@@ -443,46 +443,46 @@ public function scopeWhereUserIsParticipant($query, $userId)
     }
 
     public static function calculateGlobalDateTimes($days, $userId)
-{
-    $totalsByDate = [];
+    {
+        $totalsByDate = [];
 
-    // ✅ CONVERTIR Carbon -> Y-m-d
-    foreach ($days['datePeriod'] as $date) {
-        $dateKey = Carbon::parse($date)->toDateString();
-        $totalsByDate[$dateKey] = 0;
-    }
-
-    $timesheets = Timesheet::where('created_by', $userId)
-        ->whereBetween('date', [
-            Carbon::parse($days['first_day'])->toDateString(),
-            Carbon::parse($days['seventh_day'])->toDateString()
-        ])
-        ->get();
-
-    foreach ($timesheets as $timesheet) {
-
-        $dateKey = Carbon::parse($timesheet->date)->toDateString();
-
-        if (!array_key_exists($dateKey, $totalsByDate)) {
-            continue;
+        // ✅ CONVERTIR Carbon -> Y-m-d
+        foreach ($days['datePeriod'] as $date) {
+            $dateKey = Carbon::parse($date)->toDateString();
+            $totalsByDate[$dateKey] = 0;
         }
 
-        [$h, $m, $s] = explode(':', $timesheet->time);
-        $totalsByDate[$dateKey] += ($h * 60) + $m;
-    }
+        $timesheets = Timesheet::where('created_by', $userId)
+            ->whereBetween('date', [
+                Carbon::parse($days['first_day'])->toDateString(),
+                Carbon::parse($days['seventh_day'])->toDateString()
+            ])
+            ->get();
 
-    // ✅ Mantener el orden de los días
-    $result = [];
-    foreach ($totalsByDate as $minutes) {
-        $result[] = sprintf(
-            '%02d:%02d',
-            floor($minutes / 60),
-            $minutes % 60
-        );
-    }
+        foreach ($timesheets as $timesheet) {
 
-    return $result;
-}
+            $dateKey = Carbon::parse($timesheet->date)->toDateString();
+
+            if (!array_key_exists($dateKey, $totalsByDate)) {
+                continue;
+            }
+
+            [$h, $m, $s] = explode(':', $timesheet->time);
+            $totalsByDate[$dateKey] += ($h * 60) + $m;
+        }
+
+        // ✅ Mantener el orden de los días
+        $result = [];
+        foreach ($totalsByDate as $minutes) {
+            $result[] = sprintf(
+                '%02d:%02d',
+                floor($minutes / 60),
+                $minutes % 60
+            );
+        }
+
+        return $result;
+    }
 
 
     public static function getProjectAssignedTimesheetHTML($currentWorkspace, $timesheets = [], $days = [], $project_id = null, $seeAsOwner = false)
@@ -523,13 +523,17 @@ public function scopeWhereUserIsParticipant($query, $userId)
         $calculatedTotalTaskTime = Utility::calculateTimesheetHours($totalTaskTimes);
         //$totalDateTimes = self::calculateDateTimes($days, $currentWorkspace, $project_id, $allProjects);
         $totalDateTimes = self::calculateGlobalDateTimes(
-    $days,
-    Auth::id()
-);
+            $days,
+            Auth::id()
+        );
         //get all timetable info of the user
         $userTimetable = UserTimetable::where('user_id', $userId)->first();
 
         //conver to array
+        \Log::debug('PreArray', [
+            'user_id' => $userId,
+            'userTimetable' => $userTimetable,
+        ]);
         $userTimetableArray = $userTimetable->toArray();
 
         $daysOfWeek = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
