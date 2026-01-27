@@ -62,6 +62,17 @@
 @endphp
 
 <style>
+    .workspace-name-header {
+        font-weight: 700;
+        border-radius: 11px;
+        background: linear-gradient(180deg, rgba(170, 24, 44, 1) 0%, rgb(174 0 24) 100%);
+        font-size: 14px;
+        color: #ffffff;
+        padding: 10px 12px;
+        margin-bottom: 15px;
+        border-bottom: 1px solid #e9ecef;
+    }
+
     .ajustarImg {
         width: 270px;
     }
@@ -142,61 +153,11 @@
         font-weight: bold;
     }
 
-    /* Estilos para los grupos del sidebar */
-    .dash-label {
-        padding: 12px 15px;
-        margin: 15px 8px 8px 8px;
-        background-color: rgb(25 24 24 / 26%);
-        border-radius: 8px;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        width: 70%;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        user-select: none;
+    .menu-element {
+        background-color: #fcf9f9;
+        filter: drop-shadow(-4px 3px 0px #d8d8d8);
     }
 
-    .dash-label:hover {
-        background-color: rgb(25 24 24 / 40%);
-    }
-
-    .dash-label small {
-        font-size: 12px;
-        font-weight: 600;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-        color: rgba(255, 255, 255, 0.7);
-        display: flex;
-        align-items: center;
-    }
-
-    .dash-label .toggle-icon {
-        font-size: 12px;
-        transition: transform 0.3s ease;
-        color: rgba(255, 255, 255, 0.6);
-    }
-
-    .dash-label.collapsed .toggle-icon {
-        transform: rotate(-90deg);
-    }
-
-    [data-group-content] {
-        transition: opacity 0.3s ease, visibility 0.3s ease;
-    }
-
-    [data-group-content].collapsed {
-        opacity: 0;
-        visibility: hidden;
-        height: 0;
-        padding: 0;
-        margin: 0;
-        overflow: hidden;
-    }
-
-    .dash-label:first-child {
-        margin-top: 10px;
-    }
 
     #error-boxAlert {
         width: 90%;
@@ -454,69 +415,67 @@
             <a href="{{ route('home') }}" class="mt-2">
                 <img class="ajustarImg" src="{{ asset('assets/img/acerlerRemastered.png') }}" alt="logo" />
             </a>
+
         </div>
         <div class="navbar-content">
             <ul class="dash-navbar">
-                <!-- Grupo: {{ $currentWorkspace->name }} -->
-                <li class="dash-item dash-label" data-group="workspace">
-                    <small><i class="fa-solid fa-layer-group" style="margin-right: 8px;"></i>{{ $currentWorkspace->name }}</small>
-                    <i class="fa-solid fa-chevron-down toggle-icon"></i>
-                </li>
-                <li class="dash-item dash-hasmenu {{ Request::route()->getName() == 'home' || Request::route()->getName() == null || Request::route()->getName() == 'client.home' ? 'active' : '' }}" data-group-content="workspace">
-                    <a href="{{ route('home') }}" class="dash-link">
+                @if (isset($currentWorkspace) && $currentWorkspace)
+                    <div class="workspace-name-header text-center mt-2">
+                        {{ $currentWorkspace->name }}
+                    </div>
+                @endif
+                <li
+                    class="dash-item  dash-hasmenu {{ Request::route()->getName() == 'home' || Request::route()->getName() == null || Request::route()->getName() == 'client.home' ? 'active' : '' }}">
+                    <a href="{{ route('home') }}" class="dash-link menu-element">
                         <span class="dash-micon"><i class="fa-solid fa-bookmark"></i></span>
                         <span class="dash-mtext">{{ __('Resume') }}</span>
                     </a>
                 </li>
                 @if (isset($currentWorkspace) && $currentWorkspace)
-                    <li class="dash-item {{ Request::route()->getName() == 'projects.index' || Request::segment(2) == 'projects' ? 'active' : '' }}" data-group-content="workspace">
-                        <a href="{{ route('projects.index', $currentWorkspace->slug) }}" class="dash-link">
+                    <li
+                        class="dash-item  {{ Request::route()->getName() == 'projects.index' || Request::segment(2) == 'projects' ? 'active' : '' }}">
+                        <a href="{{ route('projects.index', $currentWorkspace->slug) }}"
+                            class="dash-link menu-element ">
                             <span class="dash-micon"><i class="fa-solid fa-diagram-project"></i></span><span
                                 class="dash-mtext">{{ __('Projects') }}</span></a>
                     </li>
-                    <li class="dash-item" data-group-content="workspace">
-                        <a href="{{ route('projects.milestone.board', [$currentWorkspace->slug, -1]) }}"
-                            class="dash-link ">
-                            <span class="dash-micon"><i class="fa-solid fa-file-lines"></i></span><span
-                                class="dash-mtext">{{ __('Encargos') }}</span></a>
-                    </li>
-
-                    <!-- Grupo: Mis -->
-                    <li class="dash-item dash-label" data-group="mis">
-                        <small><i class="fa-solid fa-folder" style="margin-right: 8px;"></i>{{ __('My') }}</small>
-                        <i class="fa-solid fa-chevron-down toggle-icon"></i>
-                    </li>
                     {{-- si mostramos todos los proyectos enviamos -1 o proyecto en especifico --}}
-                    <li class="dash-item {{ Request::route()->getName() == 'my_projects' ? 'active' : '' }}" data-group-content="mis">
-                        <a href="{{ route('my_projects', $currentWorkspace->slug) }}" class="dash-link ">
+                    <li class="dash-item  {{ Request::route()->getName() == 'my_projects' ? 'active' : '' }}">
+                        <a href="{{ route('my_projects', $currentWorkspace->slug) }}" class="dash-link menu-element ">
                             <span class="dash-micon"><i class="fa-solid fa-briefcase"></i></span><span
-                                class="dash-mtext">{{ __('Projects') }}</span></a>
+                                class="dash-mtext">{{ __('My Projects') }}</span></a>
                     </li>
-                    <li class="dash-item" data-group-content="mis">
-                        <a href="{{ route('projects.my_milestone_board') }}"
-                            class="dash-link ">
+                    <li class="dash-item ">
+                        <a href="{{ route('projects.milestone.board', [$currentWorkspace->slug, -1]) }}"
+                            class="dash-link menu-element ">
+                            <span class="dash-micon"><i class="fa-solid fa-file-lines"></i></span><span
+                                class="dash-mtext">{{ __('Milestones') }}</span></a>
+                    </li>
+                    <li class="dash-item ">
+                        <a href="{{ route('projects.my_milestone_board') }}" class="dash-link menu-element ">
                             <span class="dash-micon"><i class="fa-solid fa-clipboard-list"></i></span><span
-                                class="dash-mtext">{{ __('Encargos') }}</span></a>
+                                class="dash-mtext">{{ __('My Milestones') }}</span></a>
                     </li>
-                    <li class="dash-item {{ Request::route()->getName() == 'timesheet.index' ? 'active' : '' }}" data-group-content="mis">
-                        <a href="{{ route('timesheet.index', $currentWorkspace->slug) }}" class="dash-link ">
+                    <li class="dash-item  {{ Request::route()->getName() == 'timesheet.index' ? 'active' : '' }}">
+                        <a href="{{ route('timesheet.index', $currentWorkspace->slug) }}"
+                            class="dash-link menu-element ">
                             <span class="dash-micon"><i class="fas fa-tasks"></i></span><span
                                 class="dash-mtext">{{ __('Timesheet') }}</span></a>
                     </li>
-                    <li class="dash-item {{ Request::route()->getName() == 'calender.index' ? 'active' : '' }}" data-group-content="mis">
+                    <li class="dash-item  {{ Request::route()->getName() == 'calender.index' ? 'active' : '' }}">
                         <a href="{{ route('calender.google.calendar', $currentWorkspace->slug) }}"
-                            class="dash-link "><span class="dash-micon"><i
+                            class="dash-link menu-element "><span class="dash-micon"><i
                                     class="fa-regular fa-calendar"></i></span><span
                                 class="dash-mtext">{{ __('Calendar') }}</span></a>
                     </li>
 
                     <!-- Grupo: Otros -->
-                    {{-- <li class="dash-item dash-label" data-group="otros">
+                    {{-- <li class="dash-item  dash-label" data-group="otros">
                         <small><i class="fa-solid fa-ellipsis" style="margin-right: 8px;"></i>{{ __('Otros') }}</small>
                         <i class="fa-solid fa-chevron-down toggle-icon"></i>
                     </li>
-                    <li class="dash-item {{ Request::route()->getName() == 'tutorialHome' ? 'active' : '' }}" data-group-content="otros">
-                        <a href="{{ route('home.showTutorial', [$currentWorkspace->slug]) }}" class="dash-link "><span
+                    <li class="dash-item  {{ Request::route()->getName() == 'tutorialHome' ? 'active' : '' }}" data-group-content="otros">
+                        <a href="{{ route('home.showTutorial', [$currentWorkspace->slug]) }}" class="dash-link menu-element "><span
                                 class="dash-micon"><i class="fas fa-book"></i>
                             </span>
                             <span class="dash-mtext">Tutorial</span></a>
@@ -539,16 +498,16 @@
                                 </div>
                             </div>
                         @endif --}}
-                    <!-- <li class="dash-item dash-hasmenu">
+                    <!-- <li class="dash-item  dash-hasmenu">
                         <a href="{{ route('clients.index', $currentWorkspace->slug) }}"
-                            class="dash-link {{ Request::route()->getName() == 'clients.index' ? ' active' : '' }} "><span
+                            class="dash-link menu-element {{ Request::route()->getName() == 'clients.index' ? ' active' : '' }} "><span
                                 class="dash-micon"> <img class="img-fluid"
                                     src="{{ asset('assets/img/salesManager.png') }}" alt="logo" /> </span><span
                                 class="dash-mtext"> {{ __('Sales managers') }}</span></a>
                     </li>
                     <li
-                        class="dash-item {{ Request::route()->getName() == 'users.index' || Request::route()->getName() == 'users_logs.index' ? ' active' : '' }}">
-                        <a href="{{ route('users.index', $currentWorkspace->slug) }}" class="dash-link ">
+                        class="dash-item  {{ Request::route()->getName() == 'users.index' || Request::route()->getName() == 'users_logs.index' ? ' active' : '' }}">
+                        <a href="{{ route('users.index', $currentWorkspace->slug) }}" class="dash-link menu-element ">
                             <span
                             class="dash-micon"> <img class="img-fluid"
                                 src="{{ asset('assets/img/technicians.png') }}" alt="logo" /> </span>
@@ -558,9 +517,10 @@
                 @endif
                 {{-- colorAlsina #AA182C --}}
                 @if (\Auth::user()->type == 'admin')
-                    <li class="dash-item {{ Request::route()->getName() == 'workspace.settings' ? ' active' : '' }}">
-                        <a href="{{ route('workspace.settings', $currentWorkspace->slug) }}" class="dash-link "><span
-                                class="dash-micon"><i data-feather="settings"></i></span><span
+                    <li class="dash-item  {{ Request::route()->getName() == 'workspace.settings' ? ' active' : '' }}">
+                        <a href="{{ route('workspace.settings', $currentWorkspace->slug) }}"
+                            class="dash-link menu-element "><span class="dash-micon"><i
+                                    data-feather="settings"></i></span><span
                                 class="dash-mtext">{{ __('Settings') }}</span>
                         </a>
                     </li>
@@ -582,35 +542,4 @@
             window.location.href = nuevaUrl;
         });
     });*/
-
-    // Toggle para los grupos del sidebar
-    document.addEventListener('DOMContentLoaded', function() {
-        // Agregar event listeners a los labels de grupo
-        const groupLabels = document.querySelectorAll('.dash-label');
-        
-        groupLabels.forEach(label => {
-            label.addEventListener('click', function(e) {
-                e.preventDefault();
-                const groupName = this.getAttribute('data-group');
-                const groupItems = document.querySelectorAll(`[data-group-content="${groupName}"]`);
-                
-                // Toggle la clase collapsed solo en items de este grupo específico
-                const isCurrentlyCollapsed = this.classList.contains('collapsed');
-                
-                if (isCurrentlyCollapsed) {
-                    // Abrirlo
-                    this.classList.remove('collapsed');
-                    groupItems.forEach(item => {
-                        item.classList.remove('collapsed');
-                    });
-                } else {
-                    // Cerrarlo
-                    this.classList.add('collapsed');
-                    groupItems.forEach(item => {
-                        item.classList.add('collapsed');
-                    });
-                }
-            });
-        });
-    });
 </script>

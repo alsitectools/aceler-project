@@ -16519,6 +16519,7 @@ body.theme-3 .dash-sidebar .dash-navbar>.dash-item:hover>.dash-link {
     background: linear-gradient(141.55deg, #AA182C 3.46%, #AA182C 99.86%), #AA182C;
     color: #fff;
     box-shadow: 0 3px 5px rgb(0 0 0 / 23%);
+    filter: drop-shadow(-4px 3px 0px #851424);
 }
 
 body.theme-3 .dash-sidebar.light-sidebar .dash-navbar>.dash-item.active>.dash-link i,
