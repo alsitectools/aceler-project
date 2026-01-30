@@ -1,5 +1,5 @@
 @php
-    $user = $milestone->milestone_assigned_to_user
+    $assignedUser  = $milestone->milestone_assigned_to_user
         ? \App\Models\User::find($milestone->milestone_assigned_to_user)
         : null;
 @endphp
@@ -19,10 +19,9 @@
         width: 50%;
     }
 
-    .dropdown-menu {
+    #commonModal .dropdown-menu {
         max-height: 100px !important;
         overflow-y: auto !important;
-
     }
 </style>
 @if ($milestone && $currentWorkspace)
@@ -70,14 +69,14 @@
                     <label class="col-form-label">{{ __('Assigned to') }}</label>
                     <input type="hidden" id="milestone-requested-by" value="{{ $milestone->assign_to }}">
                     <input type="text" class="form-control" id="search-requested-by"
-                        placeholder="{{ __('Search') }}" name="search-requested-by" value="{{ $user->name ?? '' }}"
+                        placeholder="{{ __('Search') }}" name="search-requested-by" value="{{ $assignedUser->name ?? '' }}"
                         autocomplete="off">
                     <div id="user-select-req-by" aria-label="Default select example" class="dropdown-menu"
                         style="width: 45% !important;">
-                        @foreach ($users as $user)
+                        @foreach ($users as $u)
                             <div class="option list-group-item list-group-item-action stylelist ps-3"
-                                collected-data-id="{{ $user->id }}" style="padding: 8px; cursor: pointer;">
-                                {{ $user->name }}
+                                collected-data-id="{{ $u->id }}" style="padding: 8px; cursor: pointer;">
+                                {{ $u->name }}
                             </div>
                         @endforeach
                         <input type="text" name="req_assing_to" id="req_assing_To" style="display: none;"
@@ -113,7 +112,7 @@
                         <div class="dz-message" data-dz-message>
                             <input type="file" id="file-uploadMilestone" style="display:none" multiple />
                             <span> {{ __('Drop files here to upload') }}</span>
-                            <p class="text-muted" style="font-size:15px; margin:5px;">200MB</p>
+                            <p class="text-muted" style="font-size:15px; margin:5px;">50MB</p>
                             <small class="text-muted">.png .gif .pdf .txt .doc .docx .zip .rar .dwg .dxf</small>
                         </div>
                     </div>
@@ -151,7 +150,7 @@
             <button type="button" class="btn btn-light" id="closeBtn"
                 data-bs-dismiss="modal">{{ __('Close') }}</button>
             @php
-                $searchValue = $user->name ?? '';
+                $searchValue = $assignedUser->name ?? '';
                 $dateValue = $milestone->planned_end_date ?? '';
                 $shouldDisable = trim($searchValue) === '' || trim($dateValue) === '';
             @endphp
@@ -386,6 +385,8 @@
     }
 </script>
 <script>
+    const milestoneId = {{ $milestone->id }};
+
     async function displayNotification() {
         console.log('Generando notificacion de encargo creado');
         let milestoneTitle = document.getElementById('milestone-title').value;
@@ -440,7 +441,8 @@
                     msg: msg,
                     ntipe: ntipe,
                     milestoneAssignedTo: milestoneAssignedTo,
-                    milestoneRequestedBy: milestoneRequestedBy
+                    milestoneRequestedBy: milestoneRequestedBy,
+                    milestone_id: milestoneId,
                 })
             });
             const data = await response.json();
@@ -461,64 +463,75 @@
     }
 
     document.getElementById('asignMilestoneForm').addEventListener('submit', async function(e) {
-        e.preventDefault();
-        var formData = new FormData(this);
-        var fromStatusChange = this.hasAttribute('data-from-status-change');
+    e.preventDefault();
 
-        try {
-            // Primero mostramos la notificación
-            await displayNotification();
+    var formData = new FormData(this);
+    var fromStatusChange = this.hasAttribute('data-from-status-change');
 
-            // Luego enviamos el formulario usando AJAX
-            const response = await $.ajax({
-                url: this.action,
-                type: 'POST',
-                data: formData,
-                processData: false,
-                contentType: false,
-                headers: {
-                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
-                }
-            });
+    try {
+        await displayNotification();
 
-            // Cerramos el modal actual
-            $('#commonModal').modal('hide');
+        await $.ajax({
+            url: this.action,
+            type: 'POST',
+            data: formData,
+            processData: false,
+            contentType: false,
+            headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}' }
+        });
 
-            // Solo si viene del cambio de estado, disparamos el evento
-            if (fromStatusChange) {
-                document.getElementById('unassign-user-btn').style.display = '';
-                var event = new CustomEvent('milestoneAssigned', {
-                    detail: {
-                        success: true
-                    }
-                });
-                document.dispatchEvent(event);
-            } else {
-                // Solo recargamos si NO viene del cambio de estado
-                window.location.reload();
-            }
-        } catch (error) {
-            console.error('Error:', error);
+        // ✅ Si NO viene de drag&drop, recarga normal
+        if (!fromStatusChange) {
+            window.location.reload();
+            return;
         }
-    });
 
-    // Modificamos el comportamiento del botón cerrar
-    document.getElementById('closeBtn').addEventListener('click', function() {
-        var fromStatusChange = document.getElementById('asignMilestoneForm').hasAttribute(
-            'data-from-status-change');
+        // ✅ Si viene de drag&drop (1->2), cerrar y al terminar cerrar, disparar evento
+        const modalEl = document.getElementById('commonModal');
+
+        // IMPORTANT: se dispara SOLO cuando se ha cerrado del todo
+        $(modalEl).one('hidden.bs.modal', function() {
+            document.dispatchEvent(new CustomEvent('milestoneAssigned', {
+                detail: {
+                    success: true,
+                    milestoneId: {{ $milestone->id }},
+                    projectId: {{ $milestone->project_id }},
+                    wsSlug: "{{ $currentWorkspace->slug }}",
+                    milestoneTitle: "{{ addslashes($milestone->title) }}"
+                }
+            }));
+        });
 
         $('#commonModal').modal('hide');
 
-        // Si viene del cambio de estado, disparamos el evento
-        if (fromStatusChange) {
-            var event = new CustomEvent('milestoneAssigned', {
-                detail: {
-                    success: true
-                }
-            });
-            document.dispatchEvent(event);
-        }
-    });
+    } catch (error) {
+        console.error('Error:', error);
+    }
+});
+
+
+    // Modificamos el comportamiento del botón cerrar
+    document.getElementById('closeBtn').addEventListener('click', function() {
+    const form = document.getElementById('asignMilestoneForm');
+    const fromStatusChange = form && form.hasAttribute('data-from-status-change');
+
+    // Cerrar modal
+    $('#commonModal').modal('hide');
+
+    // ✅ Al cerrar, recargar si NO es flujo 1->2
+    // (si quieres recargar siempre, quita el if y deja solo location.reload())
+    if (!fromStatusChange) {
+        $(document.getElementById('commonModal')).one('hidden.bs.modal', function() {
+            location.reload();
+        });
+    } else {
+        // ✅ Si viene de drag&drop, recargar también (para “deshacer” el estado visual)
+        $(document.getElementById('commonModal')).one('hidden.bs.modal', function() {
+            location.reload();
+        });
+    }
+});
+
 
     document.getElementById('asignMilestoneForm').addEventListener('submit', function() {
         const searchInput = document.getElementById('search-requested-by');

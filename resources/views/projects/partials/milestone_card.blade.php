@@ -6,14 +6,38 @@
         filter: grayscale(100%) brightness(0.9);
         position: relative;
     }
+
+    .phasesDiv {
+        min-width: 60%;
+        height: 55%;
+        border-radius: 6px;
+        align-content: center;
+        background-color: rgb(25 24 24 / 52%);
+        font-size: 12.5px;
+        display: inline-block;
+        color: white;
+        padding: 6px;
+        font-weight: 600;
+    }
+
+    .centerPhaseLabel {
+        justify-content: center;
+        align-items: center;
+        align-content: center;
+        display: flex;
+    }
 </style>
 <div class="card 
         {{ empty($milestone['assined_to_user']) ? 'notAsignedMilestone' : '' }} 
         {{ !empty($milestone['is_waiting']) && $milestone['is_waiting'] == 1 ? 'waitingMilestone' : '' }}
         {{ $extraClass ?? '' }}"
     id="{{ $milestone['id'] }}" data-status="{{ $status->id }}" data-project-id="{{ $milestone['project_id'] }}"
-    data-assign-to="{{ $milestone['assign_to'] }}" data-is-waiting="{{ $milestone['is_waiting'] }}"
-    style="{{ $inlineStyle ?? '' }}">
+    data-project-name="{{ $milestone['project_name'] ?? '' }}"
+    data-assign-to="{{ $milestone['asiggned_user_data']->id ?? '' }}" data-is-waiting="{{ $milestone['is_waiting'] }}"
+    data-milestone-title="{{ $milestone['title'] }}" style="{{ $inlineStyle ?? '' }}"
+    data-created-by="{{ $milestone['created_by'] ?? '' }}" data-requested-by="{{ $milestone['assign_to'] ?? '' }}"
+    data-has-my-tasks="{{ $milestone['has_my_tasks'] ?? 0 }}"
+    data-workspace-slug="{{ $milestone['workspace_slug'] ?? $currentWorkspace->slug }}">
 
 
     {{-- ========================= --}}
@@ -25,9 +49,18 @@
                 <b class="mileTitle cursor-pointer" id="milestoneTitleForNotification"
                     data-header="{{ $milestone['title'] }}" data-milestone-id="{{ $milestone['id'] }}"
                     data-is-waiting="{{ $milestone['is_waiting'] }}"
-                    data-project-slug="{{ $currentWorkspace->slug }}">
+                    data-project-slug="{{ $milestone['workspace_slug'] ?? $currentWorkspace->slug }}">
                     {{ $milestone['title'] }}
                 </b>
+
+                {{-- Mostrar Phase si es proyecto tipo 3 --}}
+                @if ($milestone['project_type_id'] == 3 && !empty($milestone['phases']))
+                    <div class="centerPhaseLabel" style="margin-top: 5px;">
+                        @foreach ($milestone['phases'] as $phase)
+                            <span class="phasesDiv">{{ $phase }}</span>
+                        @endforeach
+                    </div>
+                @endif
             </div>
 
             <div class="col-sm-2 pt-1 text-center">
@@ -117,7 +150,7 @@
 
                             {{-- Pausar --}}
                             <a href="#" class="dropdown-item"
-                                onclick="event.preventDefault(); document.getElementById('wait-milestone-{{ $milestone['id'] }}').submit();">
+                                onclick="event.preventDefault(); openPauseMilestoneModal({{ $milestone['id'] }}, '{{ $currentWorkspace->slug }}');">
                                 <i class="fa-regular fa-circle-pause"></i>
                                 {{ __('Wait Milestone') }}
                             </a>
@@ -170,17 +203,23 @@
             @if ($milestone['tasks'])
                 <div class="col-sm-12 p-3">
                     @foreach ($milestone['tasks'] as $task)
-                        <div class="taskList tooltipCus p-target mb-2 col-sm-12 marginText" role="button"
-                            data-task-id="{{ $task['id'] }}" data-task-name="{{ $task['name'] }}"
+                        <div class="taskList tooltipCusTask p-target mb-2 col-sm-12 marginText" role="button"
+                            data-task-id="{{ $task['id'] }}"
+                            data-task-name="{{ $task['display_name'] ?? $task['name'] }}"
                             data-milestone-id="{{ $milestone['id'] }}"
                             data-project-id="{{ $milestone['project_id'] }}"
                             data-project-name="{{ $milestone['project_name'] }}"
                             data-technician-name="{{ $task['technician']->id }}"
                             data-url="{{ route('create.timesheet.from.orders', [$currentWorkspace->slug, $project_id]) }}"
-                            data-ajax-timesheet-popup="true" data-title="{{ $task['technician']->name }}">
+                            data-ajax-timesheet-popup="true">
 
                             <i class="ms-2 me-2 fa-solid fa-hourglass-start fa-xs" style="color:black;"></i>
-                            {{ __($task['name']) }}
+                            {{ __($task['display_name'] ?? $task['name']) }}
+
+                            <div class="tooltipTaskContent">
+                                <strong>{{ $task['technician']->name }}</strong><br />
+                                <small>{{ __('Imputed hours') }}: {{ $task['logged_hours'] }}</small>
+                            </div>
                         </div>
                     @endforeach
                 </div>
@@ -209,6 +248,12 @@
                                 <span class="text-muted">
                                     <b>{{ $milestone['project_ref'] }}</b>
                                 </span>
+                                {{-- Workspace --}}
+                                @if (strpos(request()->url(), 'my-milestone-board') !== false)
+                                    <small class="text-muted d-block mt-1" style="font-size:10px;">
+                                        <i class="fa-solid fa-layer-group"></i> {{ $milestone['workspace_name'] }}
+                                    </small>
+                                @endif
                             </div>
                         </div>
 
@@ -299,3 +344,74 @@
 </div>
 
 <span class="empty-container" data-placeholder="Empty"></span>
+<!-- Modal para pausa de milestone con comentario -->
+<div class="modal fade" id="pauseMilestoneModal" tabindex="-1" role="dialog"
+    aria-labelledby="pauseMilestoneModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="pauseMilestoneModalLabel">{{ __('Pause Milestone') }}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="pauseMilestoneForm" method="POST" style="display:none;">
+                @csrf
+            </form>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="pauseComment">{{ __('Pause Reason / Note') }}</label>
+                    <textarea class="form-control" id="pauseComment" name="pause_comment" rows="4"
+                        placeholder="{{ __('Enter the reason for pausing this milestone...') }}"></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">{{ __('Cancel') }}</button>
+                <button type="button" class="btn btn-primary"
+                    onclick="submitPauseMilestone()">{{ __('Pause') }}</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function openPauseMilestoneModal(milestoneId, slug) {
+        // Guardar el ID y slug en el modal para usarlos después
+        document.getElementById('pauseMilestoneModal').dataset.milestoneId = milestoneId;
+        document.getElementById('pauseMilestoneModal').dataset.slug = slug;
+
+        // Limpiar el textarea
+        document.getElementById('pauseComment').value = '';
+
+        // Mostrar el modal
+        $('#pauseMilestoneModal').modal('show');
+    }
+
+    function submitPauseMilestone() {
+        const milestoneId = document.getElementById('pauseMilestoneModal').dataset.milestoneId;
+        const slug = document.getElementById('pauseMilestoneModal').dataset.slug;
+        const comment = document.getElementById('pauseComment').value;
+
+        // Crear el formulario dinámicamente
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = '{{ route('projects.milestone.wait', [':slug', ':id']) }}'.replace(':slug', slug).replace(':id',
+            milestoneId);
+
+        const csrfInput = document.createElement('input');
+        csrfInput.type = 'hidden';
+        csrfInput.name = '_token';
+        csrfInput.value = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+        form.appendChild(csrfInput);
+
+        const commentInput = document.createElement('input');
+        commentInput.type = 'hidden';
+        commentInput.name = 'pause_comment';
+        commentInput.value = comment;
+        form.appendChild(commentInput);
+
+        document.body.appendChild(form);
+        form.submit();
+
+        // Cerrar el modal
+        $('#pauseMilestoneModal').modal('hide');
+    }
+</script>

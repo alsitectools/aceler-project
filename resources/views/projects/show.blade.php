@@ -558,6 +558,10 @@
                                                     <th>{{ __('Action') }}</th>
                                                 </tr> --}}
                                                 <tr>
+                                                    @if ($project->type == 3)
+                                                        <th class="sortable-header" data-sort="phase" data-type="text">
+                                                            {{ __('Phase') }}<span class="sort-indicator"></span></th>
+                                                    @endif
                                                     <th class="sortable-header" data-sort="title" data-type="text">
                                                         {{ __('Name') }}<span class="sort-indicator"></span></th>
                                                     <th class="sortable-header" data-sort="requested_by"
@@ -587,6 +591,18 @@
                                             <tbody>
                                                 @foreach ($project->milestones as $key => $milestone)
                                                     <tr>
+                                                        @if ($project->type == 3)
+                                                            <td>
+                                                                @php
+                                                                    $phase = $milestone->phases()->first();
+                                                                @endphp
+                                                                @if ($phase)
+                                                                    <span style="font-weight: bold;">{{ $phase->phases }}</span>
+                                                                @else
+                                                                    <span class="text-muted">...</span>
+                                                                @endif
+                                                            </td>
+                                                        @endif
                                                         <td><a href="#" class="d-block font-weight-500 mb-0"
                                                                 data-ajax-popup="true"
                                                                 data-title="{{ __('Order form details') }}"
@@ -977,7 +993,7 @@
                                             <p>
                                                 {{ __('You can Also hold click + Control + V to paste the content of the clipboard') }}
                                             </p>
-                                            <p class="text-muted" style="font-size:15px; margin:5px;">200MB</p>
+                                            <p class="text-muted" style="font-size:15px; margin:5px;">50MB</p>
                                             <small class="text-muted">.png .gif .pdf .txt .doc .docx .zip .rar .dwg
                                                 .dxf</small>
                                         </div>
@@ -1093,6 +1109,9 @@
                                                         </div>
                                                     </div>
                                                 @endforeach
+                                            @else
+                                                <p class="text-muted" style="margin-left: 20px;">
+                                                    {{ __('No milestone files uploaded yet.') }}</p>
                                             @endif
                                         </div>
 
@@ -1336,7 +1355,7 @@
         Dropzone.autoDiscover = false;
         myDropzone = new Dropzone("#dropzonewidget", {
             maxFiles: 20,
-            maxFilesize: 209715200, // Tamaño máximo = 200MB
+            maxFilesize: 52428800, // Tamaño máximo = 200MB
             parallelUploads: 1,
             acceptedFiles: ".jpeg,.jpg,.png,.gif,.svg,.pdf,.txt,.doc,.docx,.zip,.rar,.dwg,.dxf",
             url: "{{ route('projects.file.upload', [$currentWorkspace->slug, $project->id]) }}",
@@ -1351,7 +1370,13 @@
             },
             error: function(file, response) {
                 myDropzone.removeFile(file);
-                show_toastr('{{ __('Error') }}', 'Error while storing the document.', 'error');
+                let errorMsg = 'Error while storing the document.';
+                if (response && response.error) {
+                    errorMsg = response.error;
+                } else if (response && response.size) {
+                    errorMsg = 'File too big';
+                }
+                show_toastr('{{ __('Error') }}', errorMsg, 'error');
             },
 
             complete: function(file) {

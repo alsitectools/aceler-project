@@ -16,7 +16,7 @@
     <li class="breadcrumb-item"> {{ __('Timesheet') }}</li>
 @endsection
 @section('action-button')
-    <div class="d-flex justify-content-end row1">
+    <div class="d-flex justify-content-end align-items-center row1">
         @if (isset($currentWorkspace) && $currentWorkspace)
             @if ($project_id == -1)
                 <div class="col-sm-auto">
@@ -36,22 +36,24 @@
         @endif
         <div class="col-sm-auto">
             <div class="weekly-dates-div weekArrowsPadding">
-                <i role="button" class="fa fa-arrow-left previous"></i>
+                <button type="button" id="weekRangeDisplay" class="btn btn-primary weekPickerBtn"
+                    aria-label="{{ __('Select week') }}">
+                    <i class="fa-solid fa-calendar-days"></i>
+                    <span class="weekRangeText">{{ __('Select week') }}</span>
+                </button>
+                <input type="date" id="weekPicker" class="weekPickerHidden" tabindex="-1" aria-hidden="true">
 
-                <span class="weekly-dates"></span>
                 <input type="hidden" id="weeknumber" value="0">
                 <input type="hidden" id="selected_dates">
-
-                <i role="button" class="fa fa-arrow-right next"></i>
             </div>
         </div>
         @if ($project_id != '-1')
             <!-- <div class="col-auto">
-                            <a href="{{ route($client_keyword . 'projects.show', [$currentWorkspace->slug, $project_id]) }}"
-                                class="btn btn-sm btn-primary">
-                                <i class=" ti ti-arrow-back-up"></i>
-                            </a>
-                        </div> -->
+                                                                                                <a href="{{ route($client_keyword . 'projects.show', [$currentWorkspace->slug, $project_id]) }}"
+                                                                                                    class="btn btn-sm btn-primary">
+                                                                                                    <i class=" ti ti-arrow-back-up"></i>
+                                                                                                </a>
+                                                                                            </div> -->
         @endif
     </div>
 @endsection
@@ -94,9 +96,67 @@
 @push('css-page')
 @endpush
 @push('scripts')
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    {{-- jQuery ya está cargado en el layout principal, no duplicar para evitar perder plugins de Bootstrap --}}
 
     <script>
+        function getTimesheetWeekStorageKey() {
+            // Evita colisiones entre workspaces/proyectos
+            return 'timesheet:selectedWeekStart:{{ $currentWorkspace->slug }}:{{ $project_id }}';
+        }
+
+        function saveSelectedWeekStart(dateStr) {
+            try {
+                if (dateStr) {
+                    localStorage.setItem(getTimesheetWeekStorageKey(), dateStr);
+                }
+            } catch (e) {
+                // noop
+            }
+        }
+
+        function loadSelectedWeekStart() {
+            try {
+                return localStorage.getItem(getTimesheetWeekStorageKey());
+            } catch (e) {
+                return null;
+            }
+        }
+
+        function formatWeekRange(rangeStr) {
+            // Espera: "YYYY-MM-DD - YYYY-MM-DD" => "DD-MM-YYYY/DD-MM-YYYY"
+            if (!rangeStr) {
+                return '';
+            }
+
+            var parts = String(rangeStr).split(' - ');
+            if (parts.length !== 2) {
+                return String(rangeStr);
+            }
+
+            var start = moment(parts[0], 'YYYY-MM-DD', true);
+            var end = moment(parts[1], 'YYYY-MM-DD', true);
+
+            if (!start.isValid() || !end.isValid()) {
+                return String(rangeStr);
+            }
+
+            return start.format('DD-MM-YYYY') + '/' + end.format('DD-MM-YYYY');
+        }
+
+        function setWeekFromDate(dateStr) {
+            if (!dateStr) {
+                return;
+            }
+
+            // El backend usa Carbon::now()->addWeeks($week)->startOfWeek() (Lunes)
+            // Para alinear, usamos ISO week (lunes -> domingo)
+            var currentWeekStart = moment().startOf('isoWeek');
+            var targetWeekStart = moment(dateStr, 'YYYY-MM-DD').startOf('isoWeek');
+
+            var weekOffset = targetWeekStart.diff(currentWeekStart, 'weeks');
+            $('#weeknumber').val(weekOffset);
+        }
+
         function ajaxFilterTimesheetTableView() {
 
             var mainEle = $('#timesheet-table-view');
@@ -117,8 +177,18 @@
                 data: data,
                 success: function(data) {
 
-                    $('.weekly-dates-div .weekly-dates').text(data.onewWeekDate);
+                    // Mostrar el rango de semana dentro del "botón"
+                    $('#weekRangeDisplay .weekRangeText').text(formatWeekRange(data.onewWeekDate));
                     $('.weekly-dates-div #selected_dates').val(data.selectedDate);
+
+                    // Sincroniza el selector para que muestre el inicio de la semana actual cargada
+                    if (data.selectedDate) {
+                        var parts = String(data.selectedDate).split(' - ');
+                        if (parts.length > 0 && parts[0]) {
+                            $('#weekPicker').val(parts[0]);
+                            saveSelectedWeekStart(parts[0]);
+                        }
+                    }
 
                     $.each(data.tasks, function(i, item) {
                         $('#project_tasks').append($("<option></option>")
@@ -140,27 +210,42 @@
         }
 
         $(function() {
+            // Restaurar semana seleccionada tras recarga (fallback: hoy)
+            var savedWeekStart = loadSelectedWeekStart();
+            var initialDate = savedWeekStart || moment().format('YYYY-MM-DD');
+            $('#weekPicker').val(initialDate);
+
+            // Importantísimo: setea el offset antes del primer AJAX
+            setWeekFromDate(initialDate);
             ajaxFilterTimesheetTableView();
         });
 
-        $(document).on('click', '.weekly-dates-div i', function() {
-
-            var weeknumber = parseInt($('#weeknumber').val());
-
-            if ($(this).hasClass('previous')) {
-                weeknumber--;
-                $('#weeknumber').val(weeknumber);
-
-            } else if ($(this).hasClass('next')) {
-                weeknumber++;
-                $('#weeknumber').val(weeknumber);
+        // Abrir el calendario al clicar el "botón" del rango
+        $(document).on('click', '#weekRangeDisplay', function() {
+            var picker = document.getElementById('weekPicker');
+            if (!picker) {
+                return;
             }
 
+            // Chrome/Edge soportan showPicker()
+            if (typeof picker.showPicker === 'function') {
+                picker.showPicker();
+            } else {
+                picker.focus();
+                picker.click();
+            }
+        });
+
+        $(document).on('change', '#weekPicker', function() {
+            var picked = $(this).val();
+            saveSelectedWeekStart(picked);
+            setWeekFromDate(picked);
             ajaxFilterTimesheetTableView();
         });
 
         $(document).on('click', '[data-ajax-timesheet-popup="true"]', function(e) {
             e.preventDefault();
+            e.stopImmediatePropagation();
 
             var modalId = $(this).data('modal-id') || 'commonModal';
             var data = {};
@@ -191,33 +276,40 @@
                 data.milestone_id = milestone_id;
             }
 
+            var modalElement = document.getElementById(modalId);
+
             // Verifica que el modal existe en el DOM
-            if ($("#" + modalId).length) {
-                $("#" + modalId + " .modal-title").html(title + ` <small>(` + moment(date).format("ddd DD MMM") +
-                    `)</small>`);
-            } else {
+            if (!modalElement) {
                 console.error("El modal con ID '" + modalId + "' no existe en el DOM.");
+                return false;
             }
+
+            // Restaurar el modal-dialog a su estado original (solo clase 'modal-dialog')
+            $("#" + modalId + " .modal-dialog").attr('class', 'modal-dialog');
 
             $.ajax({
                 url: url,
                 data: data,
-                dataType: 'html',
+                cache: false,
                 success: function(data) {
                     $('#' + modalId + ' .body').html(data);
+                    $("#" + modalId + " .modal-title").html(title + ` <small>(` + moment(date).format(
+                        "ddd DD MMM") + `)</small>`);
 
-                    // Si estás usando Bootstrap 5
-                    var modal = new bootstrap.Modal(document.getElementById(modalId));
-                    modal.show(); // Muestra el modal
-
-                    // O si estás usando la versión anterior de Bootstrap, usa:
-                    // $("#" + modalId).modal('show');
+                    // Usar Bootstrap 5 getOrCreateInstance para evitar conflictos
+                    var modal = bootstrap.Modal.getOrCreateInstance(modalElement);
+                    modal.show();
 
                     commonLoader();
                     loadConfirm();
+                },
+                error: function(data) {
+                    data = data.responseJSON;
+                    show_toastr('Error', data.error, 'error');
                 }
             });
 
+            return false;
         });
     </script>
 @endpush
@@ -225,6 +317,9 @@
 <style type="text/css">
     .weekly-dates-div {
         padding: 8px 12px 8px 15px !important;
+        display: flex;
+        align-items: center;
+        gap: 10px;
     }
 
     @media screen and (max-width:1200px) and (min-width:1000px) {
@@ -242,5 +337,39 @@
         align-items: center;
         justify-content: space-around !important;
         width: 320px;
+    }
+
+    .weekly-dates-div #weekRangeDisplay.weekPickerBtn {
+        text-align: left;
+        border-color: transparent;
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        white-space: nowrap;
+    }
+
+    .weekly-dates-div #weekRangeDisplay.weekPickerBtn:hover {
+        border-color: transparent;
+    }
+
+    .weekly-dates-div #weekRangeDisplay.weekPickerBtn:focus {
+        box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+    }
+
+    .weekly-dates-div #weekRangeDisplay.weekPickerBtn {
+        cursor: pointer;
+    }
+
+    /* Input date oculto: se usa solo para abrir el calendario */
+    .weekly-dates-div #weekPicker.weekPickerHidden {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        opacity: 0;
+        pointer-events: none;
+    }
+
+    .weekly-dates-div #weekRangeDisplay .weekRangeText {
+        color: rgba(255, 255, 255, 0.95);
     }
 </style>

@@ -483,6 +483,12 @@ Route::prefix('client')->as('client.')->group(function () {
   Route::get('/{slug}/zoom-meeting', [ZoomMeetingController::class, 'index'])->name('zoom-meeting.index')->middleware(['auth:client']);
 });
 
+// Ruta para "Mis Encargos" - Fuera del grupo client
+Route::get('/my-milestone-board', [ProjectController::class, 'myMilestoneBoard'])->name('projects.my_milestone_board')->middleware(['auth', 'XSS']);
+Route::get('/{slug}/my-milestone-board/task-create', [ProjectController::class, 'taskCreate'])->name('my_milestone.tasks.create')->middleware(['auth', 'XSS']);
+Route::post('/{slug}/my-milestone-board/task-store', [ProjectController::class, 'taskStore'])->name('my_milestone.tasks.store')->middleware(['auth', 'XSS']);
+Route::get('/{slug}/my-milestone-board/timesheet/createOrderForms/{project_id}', [ProjectController::class, 'creatTimeshitFromOrderForms'])->name('my_milestone.create.timesheet.from.orders')->middleware(['auth', 'XSS']);
+Route::post('/{slug}/my-milestone-board/timesheet/store/{project_id}', [ProjectController::class, 'timesheetStore'])->name('my_milestone.timesheet.store')->middleware(['auth', 'XSS']);
 
 
 // Route::any('/plan/error/{flag}', [PaymentWallPaymentController::class, 'paymenterror'])->name('callback.error')->middleware(['auth','XSS']);
@@ -610,6 +616,8 @@ Route::get('/projects/{slug}/search-mo/{search?}', [ProjectController::class, 'g
 Route::get('/projects/{slug}/search-clipo/{search?}', [ProjectController::class, 'getClientJson'])->name('search-clipo-json')->middleware(['auth', 'XSS']);
 Route::get('/projects/{slug}/search-project/{search?}', [ProjectController::class, 'getProjectsJson'])->name('search-project-json')->middleware(['auth', 'XSS']);
 Route::get('/projects/{slug}/search-sales/{search?}', [ProjectController::class, 'getSalesJson'])->name('search-sales-json')->middleware(['auth', 'XSS']);
+//My projects
+Route::get('/projects/myProjects', [ProjectController::class, 'getAllParticipatingProjects'])->name('my_projects')->middleware(['auth', 'XSS']);
 
 // Route::get('/search-mo/{search?}', [ProjectController::class, 'getMoJson'])->name('search-mo-json');
 Route::get('/{slug}/projects', [ProjectController::class, 'index'])->name('projects.index')->middleware(['auth', 'XSS']);
@@ -648,9 +656,11 @@ Route::get('/{slug}/projects/milestone-board/{id}/asign', [ProjectController::cl
 Route::post('/{slug}/projects/milestone-board/{id}/wait', [ProjectController::class, 'waitMilestone'])->name('projects.milestone.wait')->middleware(['auth', 'XSS']);
 Route::post('/{slug}/projects/milestone-board/{id}/resume', [ProjectController::class, 'resumeMilestone'])->name('projects.milestone.resume')->middleware(['auth', 'XSS']);
 
-Route::post('/{slug}/milestone/{id}/clear-finalization-date', 
-    [ProjectController::class, 'clearFinalizationDate'])
-    ->name('projects.milestone.clearFinalizationDate');
+Route::post(
+  '/{slug}/milestone/{id}/clear-finalization-date',
+  [ProjectController::class, 'clearFinalizationDate']
+)
+  ->name('projects.milestone.clearFinalizationDate');
 
 
 Route::get('/{slug}/projects/milestone-board/{id}/workload', [ProjectController::class, 'milestoneWorkload'])->name('projects.milestone.workload')->middleware(['auth', 'XSS']);
@@ -1024,6 +1034,7 @@ Route::get('/user/get-timetable', [UserController::class, 'getTimetable'])->name
 
 //Get timesheet of the calendar 
 Route::get('/get-timesheetCalendar', [CalenderController::class, 'getTimesheetColor'])->name('calender.getTimesheetColor');
+Route::get('/get-tasks-by-date', [CalenderController::class, 'getTasksByDate'])->name('calender.getTasksByDate');
 
 //Download project files
 Route::post('/projects/download-file', [ProjectController::class, 'downloadFile'])->name('project.downloadFile');

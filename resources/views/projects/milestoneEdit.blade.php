@@ -59,7 +59,7 @@
                         <label for="milestone-title" class="col-form-label">{{ __('Milestone Title') }}</label>
                         <input type="text" class="form-control form-control-light" id="milestone-title"
                             placeholder="{{ __('Enter Title') }}" value="{{ $milestone->title }}" name="title"
-                            required disabled>
+                            required>
                     </div>
                 </div>
                 <div class="row">
@@ -87,6 +87,22 @@
                                 {{ __('Low Priority') }}</option>
                         </select>
                     </div>
+
+                    {{-- Phase field para proyectos tipo 3 --}}
+                    @if ($project && $project->type == 3)
+                        <div class="form-group col-md-6">
+                            <label for="phase" class="col-form-label">{{ __('Phase') }}</label>
+                            <select class="form-control form-control-light" id="phase" name="phase">
+                                <option value="">{{ __('Select a phase') }}</option>
+                                @foreach ($phases as $phase)
+                                    <option value="{{ $phase }}"
+                                        {{ $currentPhase === $phase ? 'selected' : '' }}>
+                                        {{ $phase }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+                    @endif
                 </div>
                 <!-- Inputs hidden para mantener los usuarios asignados -->
                 <input type="hidden" name="assign_to" value="{{ $milestone->assign_to }}">
@@ -99,7 +115,7 @@
             </div>
             <!-- Archivos adjuntos existentes -->
             <div class="form-group col-md-12">
-                <label for="file-uploadMilestone" class="form-label">
+                <label class="form-label">
                     <strong>{{ __('Upload files') }}</strong>
                 </label>
                 <div>
@@ -110,7 +126,7 @@
                             <p>
                                 {{ __('You can Also hold click + Control + V to paste the content of the clipboard') }}
                             </p>
-                            <p class="text-muted" style="font-size:15px; margin:5px;">200MB</p>
+                            <p class="text-muted" style="font-size:15px; margin:5px;">50MB</p>
                             <small class="text-muted">.png .gif .pdf .txt .doc .docx .zip .rar .dwg .dxf</small>
                         </div>
                     </div>
@@ -163,100 +179,7 @@
 </script>
 
 <script>
-    var filesArray = [];
-
-    document.getElementById('dropzonewidgetMilestone').addEventListener('click', function() {
-        document.getElementById('file-uploadMilestone').click();
-    });
-
-    document.getElementById('file-uploadMilestone').addEventListener('change', function(event) {
-        const newFiles = Array.from(event.target.files);
-        const existingFileNames = Array.from(document.querySelectorAll('.file-name'))
-            .map(fileNameElement => fileNameElement.textContent.trim().split(" (")[0]);
-
-        newFiles.forEach(file => {
-            let fileName = file.name;
-            let fileBaseName = fileName.substring(0, fileName.lastIndexOf(".")) || fileName;
-            let fileExtension = fileName.substring(fileName.lastIndexOf(".")) || "";
-            let newFileName = fileName;
-
-            // Evitar archivos con nombres duplicados agregando "_update"
-            while (existingFileNames.includes(newFileName)) {
-                fileBaseName = fileBaseName.endsWith("_update") ? fileBaseName + "_update" :
-                    fileBaseName + "_update";
-                newFileName = `${fileBaseName}${fileExtension}`;
-            }
-
-            let renamedFile = new File([file], newFileName, {
-                type: file.type,
-                lastModified: file.lastModified
-            });
-
-            let fileKey = `${renamedFile.name}-${renamedFile.size}-${renamedFile.lastModified}`;
-            if (!filesArray.some(f => `${f.name}-${f.size}-${f.lastModified}` === fileKey)) {
-                filesArray.push(renamedFile);
-                existingFileNames.push(newFileName);
-            }
-        });
-
-        updateFileList();
-    });
-
-    function updateFileList() {
-        const fileListElement = document.getElementById('file-list');
-        const hiddenInputsContainer = document.getElementById('hidden-file-inputs');
-
-        fileListElement.innerHTML = '';
-        hiddenInputsContainer.innerHTML = '';
-
-        filesArray.forEach(file => {
-            const fileKey = `${file.name}-${file.size}-${file.lastModified}`;
-
-            const fileContainer = document.createElement('div');
-            fileContainer.classList.add('custom-file'); // ✅ Se aplica estilo nuevo
-
-            const icon = document.createElement('img');
-            icon.src = getIconPath(file.name);
-            icon.alt = `${getExtension(file.name)} icon`;
-            icon.style.width = '20px';
-            icon.style.height = '25px';
-            fileContainer.appendChild(icon);
-
-            const fileNameContainer = document.createElement('div');
-            fileNameContainer.classList.add('file-name');
-            fileNameContainer.textContent = file.name;
-            fileContainer.appendChild(fileNameContainer);
-
-            const removeButton = document.createElement('a');
-            removeButton.classList.add('buttonFiles');
-            removeButton.innerHTML =
-                '<i class="fa-solid fa-trash" style="color:white; background-color:#aa182c; padding:7px; border-radius:6px;></i>';
-            removeButton.addEventListener('click', function() {
-                filesArray = filesArray.filter(f => `${f.name}-${f.size}-${f.lastModified}` !==
-                    fileKey);
-                document.getElementById(fileKey).remove();
-                updateFileList();
-            });
-            fileContainer.appendChild(removeButton);
-
-            fileListElement.appendChild(fileContainer);
-
-            if (!document.getElementById(fileKey)) {
-                const input = document.createElement('input');
-                input.type = 'file';
-                input.name = 'new_files[]';
-                input.id = fileKey;
-                input.style.display = 'none';
-
-                const dataTransfer = new DataTransfer();
-                dataTransfer.items.add(file);
-                input.files = dataTransfer.files;
-
-                hiddenInputsContainer.appendChild(input);
-            }
-        });
-    }
-
+    // Función para eliminar archivos existentes del servidor
     function deleteFile(idProject, milestoneId, fileId) {
         event.preventDefault();
         const deleteUrl = "{{ route('milestone.destroy.file') }}";
@@ -305,187 +228,421 @@
             }
         });
     }
-
-
-    //  Funciones auxiliares para íconos, extensiones y tamaños de archivos
-    function getIconPath(filename) {
-        const extension = getExtension(filename);
-        const supportedExtensions = ['pdf', 'doc', 'jpg', 'png', 'xlsx', 'txt', 'dwg', 'dxf', 'img', 'docx', 'zip'];
-
-        return supportedExtensions.includes(extension) ?
-            `${assetBasePath}${extension}.png` :
-            `${assetBasePath}default.png`;
-    }
-
-    function getExtension(filename) {
-        return filename.split('.').pop().toLowerCase();
-    }
-
-    function formatFileSize(bytes) {
-        if (bytes < 1024) return `${bytes} B`;
-        if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(2)} KB`;
-        return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
-    }
 </script>
 <script>
-    // --- Dropzone lógica igual que milestone.blade.php ---
-    const dropzoneMilestone = document.getElementById('dropzonewidgetMilestone');
-    let fileInputMilestone = document.getElementById('file-uploadMilestone');
-    const fileListMilestone = document.getElementById('file-list');
-    const hiddenInputsMilestone = document.getElementById('hidden-file-inputs');
-    var filesArrayMilestone = [];
+    (function() {
+        // Cleanup de listeners anteriores
+        if (window._milestoneEditCleanup) {
+            window._milestoneEditCleanup();
+        }
 
-    // Drag & Drop visual feedback
-    dropzoneMilestone.addEventListener('dragenter', function(e) {
-        e.preventDefault();
-        e.stopPropagation();
-        dropzoneMilestone.classList.add('dragover');
-    });
+        // --- Dropzone lógica igual que milestone.blade.php ---
+        const dropzoneMilestone = document.getElementById('dropzonewidgetMilestone');
+        let fileInputMilestone = document.getElementById('file-uploadMilestone');
+        const fileListMilestone = document.getElementById('file-list');
+        const hiddenInputsMilestone = document.getElementById('hidden-file-inputs');
+        var filesArrayMilestone = [];
 
-    dropzoneMilestone.addEventListener('dragover', function(e) {
-        e.preventDefault();
-        e.stopPropagation();
-        dropzoneMilestone.classList.add('dragover');
-    });
+        // Drag & Drop visual feedback
+        dropzoneMilestone.addEventListener('dragenter', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            dropzoneMilestone.classList.add('dragover');
+        });
 
-    ['dragleave', 'dragend'].forEach(eventName => {
-        dropzoneMilestone.addEventListener(eventName, function(e) {
+        dropzoneMilestone.addEventListener('dragover', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            dropzoneMilestone.classList.add('dragover');
+        });
+
+        ['dragleave', 'dragend'].forEach(eventName => {
+            dropzoneMilestone.addEventListener(eventName, function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                dropzoneMilestone.classList.remove('dragover');
+            });
+        });
+
+        dropzoneMilestone.addEventListener('drop', function(e) {
             e.preventDefault();
             e.stopPropagation();
             dropzoneMilestone.classList.remove('dragover');
+
+            const dt = e.dataTransfer;
+            if (dt.files && dt.files.length) {
+                const files = Array.from(dt.files);
+                handleFilesMilestone(files);
+                dropzoneMilestone.focus();
+            }
         });
-    });
 
-    dropzoneMilestone.addEventListener('drop', function(e) {
-        e.preventDefault();
-        e.stopPropagation();
-        dropzoneMilestone.classList.remove('dragover');
+        // Asegurarse de que el dropzone mantenga el foco después de cualquier operación
+        function refocusDropzone() {
+            setTimeout(() => {
+                dropzoneMilestone.focus();
+            }, 10);
+        }
 
-        const dt = e.dataTransfer;
-        if (dt.files && dt.files.length) {
-            const files = Array.from(dt.files);
-            handleFilesMilestone(files);
+        // Click para seleccionar archivos
+        dropzoneMilestone.setAttribute('tabindex', '0');
+        dropzoneMilestone.addEventListener('click', function(e) {
+            // Evitar que se dispare si el click fue en un botón de eliminar
+            if (e.target.closest('.buttonFiles') || e.target.closest('a')) {
+                return;
+            }
+            fileInputMilestone.value = '';
+            fileInputMilestone.click();
+        });
+
+        // Selección manual desde input file
+        fileInputMilestone.addEventListener('change', function() {
+            if (fileInputMilestone.files && fileInputMilestone.files.length) {
+                handleFilesMilestone(Array.from(fileInputMilestone.files));
+            }
+        });
+
+        // Ctrl+V para pegar archivos
+        function _pasteHandler(e) {
+            const focused = document.activeElement;
+            if (focused !== dropzoneMilestone && !dropzoneMilestone.contains(focused)) {
+                return;
+            }
+            e.preventDefault();
+            if (!e.clipboardData || !e.clipboardData.items) {
+                return;
+            }
+            const items = Array.from(e.clipboardData.items);
+            const files = items
+                .filter(item => item.kind === 'file')
+                .map(item => item.getAsFile())
+                .filter(file => file !== null);
+            if (files.length > 0) {
+                handleFilesMilestone(files);
+            }
             dropzoneMilestone.focus();
         }
-    });
+        document.addEventListener('paste', _pasteHandler);
 
-    // Asegurarse de que el dropzone mantenga el foco después de cualquier operación
-    function refocusDropzone() {
-        setTimeout(() => {
-            dropzoneMilestone.focus();
-        }, 10);
-    }
+        window._milestoneEditCleanup = function() {
+            document.removeEventListener('paste', _pasteHandler);
+        };
 
-    // Actualizar handleFilesMilestone para mantener el foco
-    function handleFilesMilestone(files) {
-        files.forEach(file => {
-            addFileToMilestoneArray(file);
-        });
-        refocusDropzone();
-    }
+        function handleFilesMilestone(files) {
+            const MAX_FILE_SIZE = 52428800; // 50MB en bytes
+            const rejectedInThisBatch = [];
 
-    // Click para seleccionar archivos
-    dropzoneMilestone.setAttribute('tabindex', '0');
-    dropzoneMilestone.addEventListener('click', () => {
-        dropzoneMilestone.focus();
-        fileInputMilestone.click();
-    });
+            files.forEach(file => {
+                // Validar tamaño del archivo
+                if (file.size > MAX_FILE_SIZE) {
+                    rejectedInThisBatch.push(file.name);
+                    rejectedFilesMilestone.push({
+                        name: file.name,
+                        reason: 'File too big'
+                    });
+                    return;
+                }
 
-    // Selección manual desde input file
-    fileInputMilestone.addEventListener('change', function() {
-        if (fileInputMilestone.files && fileInputMilestone.files.length) {
-            handleFilesMilestone(Array.from(fileInputMilestone.files));
-            dropzoneMilestone.focus();
-        }
-    });
+                // Reemplazar espacios con guiones bajos en el nombre
+                const processedFile = new File(
+                    [file],
+                    file.name.replace(/\s+/g, '_'), {
+                        type: file.type,
+                        lastModified: file.lastModified
+                    }
+                );
 
-    // Ctrl+V para pegar archivos
-    document.addEventListener('paste', function(e) {
-        const focused = document.activeElement;
-        if (focused !== dropzoneMilestone && !dropzoneMilestone.contains(focused)) {
-            return;
-        }
-        e.preventDefault();
-        if (!e.clipboardData || !e.clipboardData.items) {
-            return;
-        }
-        const items = Array.from(e.clipboardData.items);
-        const files = items
-            .filter(item => item.kind === 'file')
-            .map(item => item.getAsFile())
-            .filter(file => file !== null);
-        if (files.length > 0) {
-            handleFilesMilestone(files);
-        }
-        dropzoneMilestone.focus();
-    });
-
-    function handleFilesMilestone(files) {
-        files.forEach(file => {
-            addFileToMilestoneArray(file);
-        });
-    }
-
-    function addFileToMilestoneArray(file) {
-        if (!filesArrayMilestone.some(f => f.name === file.name && f.size === file.size)) {
-            filesArrayMilestone.push(file);
-            updateFileListMilestone();
-        }
-    }
-
-    function updateFileListMilestone() {
-        fileListMilestone.innerHTML = '';
-        hiddenInputsMilestone.innerHTML = '';
-        filesArrayMilestone.forEach((file, index) => {
-            const fileContainer = document.createElement('div');
-            fileContainer.classList.add('custom-file');
-
-            const icon = document.createElement('img');
-            icon.src = getIconPath(file.name);
-            icon.alt = `${getExtension(file.name)} icon`;
-            icon.style.width = '20px';
-            icon.style.height = '25px';
-            fileContainer.appendChild(icon);
-
-            const fileNameContainer = document.createElement('div');
-            fileNameContainer.classList.add('file-name');
-            fileNameContainer.textContent = file.name;
-            fileContainer.appendChild(fileNameContainer);
-
-            const removeButton = document.createElement('a');
-            removeButton.classList.add('buttonFiles');
-            removeButton.innerHTML =
-                '<i class="fa-solid fa-trash" style="color:white; background-color:#aa182c; padding:7px; border-radius:6px;"></i>';
-            removeButton.addEventListener('click', function() {
-                filesArrayMilestone.splice(index, 1);
-                updateFileListMilestone();
+                addFileToMilestoneArray(processedFile);
             });
 
-            fileContainer.appendChild(removeButton);
-            fileListMilestone.appendChild(fileContainer);
+            // Mostrar alerta si hay archivos rechazados
+            if (rejectedInThisBatch.length > 0) {
+                const rejectedList = rejectedInThisBatch.join('\n- ');
+                alert('Los siguientes archivos fueron rechazados por exceder el límite de 50MB:\n- ' +
+                    rejectedList);
+            }
+        }
 
-            const input = document.createElement('input');
-            input.type = 'file';
-            input.name = 'new_files[]';
-            input.style.display = 'none';
-            const dataTransfer = new DataTransfer();
-            dataTransfer.items.add(file);
-            input.files = dataTransfer.files;
-            hiddenInputsMilestone.appendChild(input);
+        /**
+         * Genera un nombre único para el archivo si ya existe uno con el mismo nombre.
+         * Ejemplo: archivo.pdf -> archivo (2).pdf -> archivo (3).pdf
+         */
+        function generateUniqueFileNameMilestone(fileName) {
+            // Incluir tanto archivos en el array como archivos existentes del servidor
+            const existingNamesFromArray = filesArrayMilestone.map(f => f.name);
+
+            // Para archivos del servidor, extraer solo el nombre sin el tamaño
+            const existingNamesFromDOM = Array.from(document.querySelectorAll(
+                    '.fileMilestoneEdit .file-name, #file-list .file-name'))
+                .map(el => {
+                    // Si tiene un <small> dentro (tamaño del archivo), obtener solo el texto antes
+                    const smallElement = el.querySelector('small');
+                    if (smallElement) {
+                        // Obtener solo el primer nodo de texto (el nombre del archivo)
+                        const textNodes = Array.from(el.childNodes).filter(node => node.nodeType === Node
+                            .TEXT_NODE);
+                        return textNodes.length > 0 ? textNodes[0].textContent.trim() : el.textContent.trim();
+                    }
+                    return el.textContent.trim();
+                });
+
+            const existingNames = [...new Set([...existingNamesFromArray, ...existingNamesFromDOM])];
+
+            if (!existingNames.includes(fileName)) {
+                return fileName;
+            }
+
+            // Separar nombre base y extensión
+            const lastDotIndex = fileName.lastIndexOf('.');
+            let baseName, extension;
+
+            if (lastDotIndex > 0) {
+                baseName = fileName.substring(0, lastDotIndex);
+                extension = fileName.substring(lastDotIndex);
+            } else {
+                baseName = fileName;
+                extension = '';
+            }
+
+            // Verificar si ya tiene un sufijo numérico como " (2)"
+            const suffixMatch = baseName.match(/^(.+)\s\((\d+)\)$/);
+            let originalBaseName = baseName;
+            let startCounter = 2;
+
+            if (suffixMatch) {
+                originalBaseName = suffixMatch[1];
+                startCounter = parseInt(suffixMatch[2]) + 1;
+            }
+
+            // Buscar el siguiente número disponible
+            let counter = startCounter;
+            let newFileName = `${originalBaseName} (${counter})${extension}`;
+
+            while (existingNames.includes(newFileName)) {
+                counter++;
+                newFileName = `${originalBaseName} (${counter})${extension}`;
+            }
+
+            return newFileName;
+        }
+
+        function addFileToMilestoneArray(file) {
+            // Generar nombre único si el nombre ya existe (permite archivos con mismo nombre)
+            const uniqueName = generateUniqueFileNameMilestone(file.name);
+
+            // Si el nombre cambió, crear un nuevo File con el nombre único
+            let fileToAdd = file;
+            if (uniqueName !== file.name) {
+                fileToAdd = new File([file], uniqueName, {
+                    type: file.type,
+                    lastModified: file.lastModified
+                });
+                console.info(`Archivo renombrado: ${file.name} -> ${uniqueName}`);
+            }
+
+            filesArrayMilestone.push(fileToAdd);
+            updateFileListMilestone();
+        }
+
+        function updateFileListMilestone() {
+            fileListMilestone.innerHTML = '';
+            hiddenInputsMilestone.innerHTML = '';
+
+            // Mostrar archivos válidos
+            filesArrayMilestone.forEach((file, index) => {
+                const fileContainer = document.createElement('div');
+                fileContainer.classList.add('custom-file');
+
+                const icon = document.createElement('img');
+                icon.src = getIconPath(file.name);
+                icon.alt = `${getExtension(file.name)} icon`;
+                icon.style.width = '20px';
+                icon.style.height = '25px';
+                fileContainer.appendChild(icon);
+
+                const fileNameContainer = document.createElement('div');
+                fileNameContainer.classList.add('file-name');
+                fileNameContainer.textContent = file.name;
+                fileContainer.appendChild(fileNameContainer);
+
+                const removeButton = document.createElement('a');
+                removeButton.classList.add('buttonFiles');
+                removeButton.innerHTML =
+                    '<i class="fa-solid fa-trash" style="color:white; background-color:#aa182c; padding:7px; border-radius:6px;"></i>';
+                removeButton.addEventListener('click', function() {
+                    filesArrayMilestone.splice(index, 1);
+                    updateFileListMilestone();
+                });
+
+                fileContainer.appendChild(removeButton);
+                fileListMilestone.appendChild(fileContainer);
+
+                const input = document.createElement('input');
+                input.type = 'file';
+                input.name = 'new_files[]';
+                input.style.display = 'none';
+                const dataTransfer = new DataTransfer();
+                dataTransfer.items.add(file);
+                input.files = dataTransfer.files;
+                hiddenInputsMilestone.appendChild(input);
+            });
+
+            // Mostrar archivos rechazados (tachados)
+            rejectedFilesMilestone.forEach((rejectedFile, index) => {
+                const fileContainer = document.createElement('div');
+                fileContainer.classList.add('custom-file');
+                fileContainer.style.opacity = '0.5';
+                fileContainer.style.textDecoration = 'line-through';
+                fileContainer.title = 'File too big: Exceeds 50MB limit';
+                fileContainer.style.cursor = 'not-allowed';
+
+                const icon = document.createElement('img');
+                icon.src = getIconPath(rejectedFile.name);
+                icon.alt = `${getExtension(rejectedFile.name)} icon`;
+                icon.style.width = '20px';
+                icon.style.height = '25px';
+                icon.style.opacity = '0.5';
+                fileContainer.appendChild(icon);
+
+                const fileNameContainer = document.createElement('div');
+                fileNameContainer.classList.add('file-name');
+                fileNameContainer.textContent = rejectedFile.name;
+                fileContainer.appendChild(fileNameContainer);
+
+                const removeButton = document.createElement('a');
+                removeButton.classList.add('buttonFiles');
+                removeButton.innerHTML =
+                    '<i class="fa-solid fa-trash" style="color:white; background-color:#aa182c; padding:7px; border-radius:6px;"></i>';
+                removeButton.addEventListener('click', function() {
+                    rejectedFilesMilestone.splice(index, 1);
+                    updateFileListMilestone();
+                });
+                fileContainer.appendChild(removeButton);
+                fileListMilestone.appendChild(fileContainer);
+            });
+        }
+
+        function getIconPath(filename) {
+            const extension = getExtension(filename);
+            const supportedExtensions = ['pdf', 'doc', 'jpg', 'png', 'xlsx', 'txt', 'dwg', 'dxf', 'img', 'docx',
+                'zip',
+                'rar', 'gif', 'jpeg'
+            ];
+            return supportedExtensions.includes(extension) ?
+                `${assetBasePath}${extension}.png` :
+                `${assetBasePath}default.png`;
+        }
+
+        function getExtension(filename) {
+            return filename.split('.').pop().toLowerCase();
+        }
+
+        // Manejar submit del formulario para capturar respuesta JSON
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.querySelector('form[method="post"]');
+            if (form) {
+                // Usar propiedad del formulario para evitar conflictos globales
+                form._isSubmitting = false;
+
+                form.addEventListener('submit', function(e) {
+                    if (form._isSubmitting) {
+                        e.preventDefault();
+                        return false;
+                    }
+
+                    // SIEMPRE prevenir submit tradicional y usar AJAX
+                    e.preventDefault();
+                    form._isSubmitting = true;
+
+                    const hasFiles = filesArrayMilestone && filesArrayMilestone.length > 0;
+                    const formData = new FormData(this);
+
+                    fetch(this.action, {
+                            method: 'POST',
+                            body: formData,
+                            headers: {
+                                'Accept': 'application/json'
+                            }
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            // Limpiar arrays de archivos
+                            filesArrayMilestone = [];
+                            rejectedFilesMilestone = [];
+
+                            if (data.success) {
+                                // Mostrar toast con resumen de carga
+                                let message = '';
+                                if (data.uploaded_count > 0 && data.failed_count > 0) {
+                                    message = data.uploaded_count + ' archivos subidos, ' + data
+                                        .failed_count + ' rechazados';
+                                } else if (data.uploaded_count > 0) {
+                                    message = data.uploaded_count +
+                                        ' archivos subidos exitosamente';
+                                } else if (data.failed_count > 0) {
+                                    message = 'Todos los archivos fueron rechazados';
+                                } else {
+                                    message = 'Cambios guardados correctamente';
+                                }
+
+                                // Mostrar toast
+                                showToast(message, 'success');
+
+                                // Cerrar modal después de 1.5 segundos
+                                setTimeout(() => {
+                                    const modal = bootstrap.Modal.getInstance(document
+                                        .querySelector('.modal'));
+                                    if (modal) {
+                                        modal.hide();
+                                    }
+                                    // Redirigir para refrescar la página
+                                    window.location.reload();
+                                }, 1500);
+                            } else {
+                                showToast('Error al guardar cambios', 'danger');
+                                form._isSubmitting = false;
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error:', error);
+                            showToast('Error al enviar formulario', 'danger');
+                            form._isSubmitting = false;
+                        });
+                });
+            }
         });
-    }
 
-    function getIconPath(filename) {
-        const extension = getExtension(filename);
-        const supportedExtensions = ['pdf', 'doc', 'jpg', 'png', 'xlsx', 'txt', 'dwg', 'dxf', 'img', 'docx', 'zip',
-            'rar', 'gif', 'jpeg'
-        ];
-        return supportedExtensions.includes(extension) ?
-            `${assetBasePath}${extension}.png` :
-            `${assetBasePath}default.png`;
-    }
+        // Función para mostrar toast (usa la misma del sitio)
+        function showToast(message, type = 'info') {
+            const toastHTML = `
+            <div class="toast align-items-center text-white bg-${type === 'success' ? 'success' : type === 'danger' ? 'danger' : 'info'}" role="alert" aria-live="assertive" aria-atomic="true">
+                <div class="d-flex">
+                    <div class="toast-body">
+                        ${message}
+                    </div>
+                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                </div>
+            </div>
+        `;
 
-    function getExtension(filename) {
-        return filename.split('.').pop().toLowerCase();
-    }
+            const toastContainer = document.getElementById('toastContainer') || createToastContainer();
+            const toastElement = document.createElement('div');
+            toastElement.innerHTML = toastHTML;
+            toastContainer.appendChild(toastElement.firstElementChild);
+
+            const toast = new bootstrap.Toast(toastContainer.querySelector('.toast:last-child'));
+            toast.show();
+        }
+
+        function createToastContainer() {
+            const container = document.createElement('div');
+            container.id = 'toastContainer';
+            container.style.position = 'fixed';
+            container.style.top = '20px';
+            container.style.right = '20px';
+            container.style.zIndex = '9999';
+            document.body.appendChild(container);
+            return container;
+        }
+    })();
 </script>

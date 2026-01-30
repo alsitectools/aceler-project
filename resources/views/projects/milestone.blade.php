@@ -158,9 +158,10 @@
 
                         <div class="col-md-6" id="requestBy">
                             <label class="col-form-label">{{ __('Requested by') }}</label>
-                            <input type="text" class="form-control" id="search"
-                                placeholder="{{ __('Search') }}" value="{{ Auth::user()->name }}"
-                                autocomplete="off" required>
+                            <input type="text" class="form-control form-control-light" id="search"
+                                placeholder="{{ __('Search') }}" autocomplete="off">
+
+
 
                             <div id="user-select" aria-label="Default select example" class="dropdown-menu"
                                 style="width: 45% !important;">
@@ -170,8 +171,7 @@
                                         {{ $user->name }}
                                     </div>
                                 @endforeach
-                                <input type="hidden" name="assing_to" id="assing_To"
-                                    value="{{ Auth::user()->id }}">
+                                <input type="hidden" name="assing_to" id="assing_To" required>
                             </div>
                         </div>
 
@@ -180,14 +180,14 @@
                         <input class="form-check-input" type="checkbox" role="switch" id="toggleFormSwitch">
                         <label class="form-check-label"
                             for="toggleFormSwitch">{{ __('Only in case it is necessary to to
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        carry out a project with a visa.') }}</label>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        carry out a project with a visa.') }}</label>
                     </div>
                     <div id="additionalForm" class="collapse mt-3">
                         <div class="card card-body">
                             <div class="mb-3">
                                 <label for="input1"
                                     class="form-label">{{ __('Name of the company that will install the
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                system') }}:</label>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                system') }}:</label>
                                 <input type="text" class="form-control" name="company" id="company"
                                     placeholder="Ingrese valor">
                             </div>
@@ -210,8 +210,8 @@
                             </div>
                             <p class="mb-3">
                                 <b>{{ __('Note: In order to carry out the project it is necessary to send the quotation of
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                the formwork and falsework system, and the complete assembly drawings and geometrical
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                definition of the structure.') }}
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                the formwork and falsework system, and the complete assembly drawings and geometrical
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                definition of the structure.') }}
                                 </b>
                             </p>
                         </div>
@@ -234,6 +234,7 @@
                         </div>
                     </div>
                     <div class="row mt-3">
+                        {{-- PRIORITY --}}
                         <div class="col-md-6">
                             <div class="form-group">
                                 <label class="form-label">{{ __('Priority') }}</label>
@@ -245,6 +246,27 @@
                                 </select>
                             </div>
                         </div>
+                        {{-- PHASE (solo visible si proyecto type = 3) --}}
+                        @php
+                            $typeId = isset($project) ? (int) $project->type : null;
+                            $typeName = isset($project) ? $project->typeRel->name ?? '' : '';
+                            $showPhase =
+                                $typeId === 3 || in_array($typeName, ['Product development', 'Desarrollo de producto']);
+                        @endphp
+
+                        <div class="col-md-6" id="phase-wrapper" style="{{ $showPhase ? '' : 'display:none;' }}">
+                            <div class="form-group">
+                                <label class="form-label">{{ __('Phase') }}</label>
+                                <select class="form-control form-control-light" name="phase" id="phase">
+                                    <option value="">{{ __('Choose one') }}</option>
+                                    @foreach ($phases as $phase)
+                                        <option value="{{ $phase }}">{{ __($phase) }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                        </div>
+
+
                     </div>
                     <div class="col-md-12 mt-3" style="padding-bottom: 10px;">
                         <div class="row">
@@ -259,8 +281,7 @@
 
                             <!-- Sección de Archivos Adjuntos (Derecha) -->
                             <div class="col-md-6">
-                                <label for="file-uploadMilestone"
-                                    class="form-label"><strong>{{ __('Upload files') }}</strong></label>
+                                <label class="form-label"><strong>{{ __('Upload files') }}</strong></label>
                                 <div>
                                     <div class="col-md-12 dropzone browse-file" id="dropzonewidgetMilestone">
                                         <div class="dz-message" data-dz-message>
@@ -270,7 +291,7 @@
                                             <p>
                                                 {{ __('You can Also hold click + Control + V to paste the content of the clipboard') }}
                                             </p>
-                                            <p class="text-muted" style="font-size:15px; margin:5px;">200MB</p>
+                                            <p class="text-muted" style="font-size:15px; margin:5px;">50MB</p>
                                             <small class="text-muted">.png .gif .pdf .txt .doc .docx .zip .rar .dwg
                                                 .dxf</small>
 
@@ -285,8 +306,9 @@
                     <div class="modal-footer">
                         <button type="button" class="btn btn-light"
                             data-bs-dismiss="modal">{{ __('Close') }}</button>
-                        <input type="submit" id="submitMilestoneBtn" value="{{ __('Save Changes') }}"
-                            class="btn btn-primary">
+                        <button type="button" id="submitMilestoneBtn" class="btn btn-primary">
+                            {{ __('Save Changes') }}
+                        </button>
                     </div>
                 </form>
             </div>
@@ -353,7 +375,7 @@
                         <div class="page-search">
                             <p class="text-muted mt-3">
                                 {{ __("It's looking like you may have taken a wrong turn. Don't worry... it happens to the
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            best of us. Here's a little tip that might help you get back on track.") }}
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            best of us. Here's a little tip that might help you get back on track.") }}
                             </p>
                             <div class="mt-3">
                                 <a class="btn-return-home badge-blue" href="{{ route('home') }}">
@@ -370,97 +392,133 @@
 <script src="{{ asset('assets/custom/libs/nicescroll/jquery.nicescroll.min.js') }} "></script>
 <!-- Scripts para el dropdown de usuarios -->
 <script>
-    let isSubmitting = false; // 🔒 bandera para prevenir múltiples envíos
+    (function() {
+        // Definir valores por defecto del usuario logueado
+        var searchInput = document.getElementById('search');
+        var optionsList = document.getElementById('user-select');
+        var options = optionsList ? optionsList.getElementsByClassName('option') : [];
+        var hiddenInput = document.getElementById('assing_To');
 
-    document.getElementById('milestone-form').addEventListener('submit', async function(event) {
-        event.preventDefault();
-
-        if (isSubmitting) return; // ⛔ si ya se está enviando, no hacer nada
-        isSubmitting = true;
-
-        const submitBtn = document.getElementById('submitMilestoneBtn');
-        submitBtn.disabled = true;
-        submitBtn.value = 'Guardando...';
-
-        try {
-            await displayNotification(); // 👈 Notificación previa (si es necesaria)
-            this.submit(); // ✅ envío real solo una vez
-        } catch (error) {
-            console.error('Error al enviar el formulario:', error);
-            isSubmitting = false;
-            submitBtn.disabled = false;
-            submitBtn.value = '{{ __('Save Changes') }}';
+        // Nombres para handlers del documento para poder eliminarlos luego
+        function _requestedByDocClick(event) {
+            if (!event.target.closest('#requestBy') && !event.target.closest('#search') && optionsList) {
+                optionsList.style.display = 'none';
+            }
         }
-    });
-</script>
 
-<script>
-    // Definir valores por defecto del usuario logueado
-    var defaultUserId = '{{ Auth::user()->id }}';
-    var defaultUserName = '{{ Auth::user()->name }}';
+        // Limpiar handlers anteriores si existen
+        if (window._requestedByCleanup) {
+            window._requestedByCleanup();
+        }
 
-    var searchInput = document.getElementById('search');
-    var optionsList = document.getElementById('user-select');
-    var options = optionsList.getElementsByClassName('option');
-    var hiddenInput = document.getElementById('assing_To');
+        // Registrar cleanup
+        window._requestedByCleanup = function() {
+            document.removeEventListener('click', _requestedByDocClick);
+        };
 
-    // Establecer por defecto el nombre y el ID del usuario logueado
-    hiddenInput.value = defaultUserId;
-    searchInput.value = defaultUserName;
+        if (!searchInput || !optionsList || !hiddenInput) {
+            // Si no existen elementos, salir (puede ocurrir si se carga mal el modal)
+            return;
+        }
 
-    searchInput.addEventListener('click', function(event) {
-        event.stopPropagation();
-        optionsList.style.display = 'block';
-    });
+        function inputMatchesAnyOption(value) {
+            const v = (value || '').trim().toLowerCase();
+            if (!v) return false;
 
-    searchInput.addEventListener('input', function() {
-        const filter = searchInput.value.toLowerCase();
-        let hasVisibleOption = false;
+            for (let i = 0; i < options.length; i++) {
+                const name = options[i].innerText.trim().toLowerCase();
+                if (name === v) return true; // match exacto
+            }
+            return false;
+        }
+
+
+        // ✅ Asegurar que arranca vacío
+        hiddenInput.value = '';
+        searchInput.value = '';
+
+        searchInput.addEventListener('click', function(event) {
+            event.stopPropagation();
+            optionsList.style.display = 'block';
+        });
+
+        // ✅ Si el usuario escribe, invalidamos la selección (hidden vacío)
+        searchInput.addEventListener('input', function() {
+            hiddenInput.value = '';
+            searchInput.classList.remove('is-invalid');
+
+            const filter = searchInput.value.toLowerCase();
+            let hasVisibleOption = false;
+
+            for (let i = 0; i < options.length; i++) {
+                const option = options[i];
+                const text = option.innerText.toLowerCase();
+
+                if (text.includes(filter)) {
+                    option.style.display = 'block';
+                    hasVisibleOption = true;
+                } else {
+                    option.style.display = 'none';
+                }
+            }
+
+            optionsList.style.display = hasVisibleOption ? 'block' : 'none';
+        });
+
         for (let i = 0; i < options.length; i++) {
-            const option = options[i];
-            const text = option.innerText.toLowerCase();
-            if (text.includes(filter)) {
-                option.style.display = 'block';
-                hasVisibleOption = true;
-            } else {
-                option.style.display = 'none';
-            }
+            options[i].addEventListener('click', function() {
+                const selectedUserId = this.getAttribute('data-id');
+                searchInput.value = this.innerText;
+                hiddenInput.value = selectedUserId;
+                searchInput.classList.remove('is-invalid');
+                optionsList.style.display = 'none';
+            });
         }
-        optionsList.style.display = hasVisibleOption ? 'block' : 'none';
-    });
 
-    for (let i = 0; i < options.length; i++) {
-        options[i].addEventListener('click', function() {
-            const selectedUserId = this.getAttribute('data-id');
-            searchInput.value = this.innerText;
-            hiddenInput.value = selectedUserId;
-            optionsList.style.display = 'none';
-        });
-    }
+        document.addEventListener('click', _requestedByDocClick);
 
-    document.addEventListener('click', function(event) {
-        if (!event.target.closest('#requestBy') && !event.target.closest('#search')) {
-            optionsList.style.display = 'none';
-        }
-    });
+        // ✅ Si sales del input sin seleccionar, limpiamos el texto
+        searchInput.addEventListener('blur', function() {
+            const typed = (searchInput.value || '').trim();
 
-    $(document).ready(function() {
-        $('#toggleFormSwitch').change(function() {
-            if ($(this).is(':checked')) {
-                $('#additionalForm').collapse('show');
-            } else {
-                $('#additionalForm').collapse('hide');
+            // Si no hay id seleccionado, o el texto NO coincide exactamente con un usuario, limpiamos
+            if (!hiddenInput.value || !inputMatchesAnyOption(typed)) {
+                hiddenInput.value = '';
+                searchInput.value = '';
+                searchInput.classList.add('is-invalid');
             }
         });
-    });
 
-    // Add event listener to capitalize the first letter of the milestone title
-    document.getElementById('milestone-title').addEventListener('input', function() {
-        let value = this.value;
-        if (value.length > 0) {
-            this.value = value.charAt(0).toUpperCase() + value.slice(1);
+
+        // Add event listener to capitalize the first letter of the milestone title
+        const milestoneTitle = document.getElementById('milestone-title');
+        if (milestoneTitle) {
+            milestoneTitle.addEventListener('input', function() {
+                let value = this.value;
+                if (value.length > 0) {
+                    this.value = value.charAt(0).toUpperCase() + value.slice(1);
+                }
+                // Quitar el error cuando el usuario escribe en el title
+                this.classList.remove('is-invalid');
+            });
         }
-    });
+
+        // Quitar el error cuando el usuario selecciona una fecha
+        const endDate = document.getElementById('end_date');
+        if (endDate) {
+            endDate.addEventListener('change', function() {
+                this.classList.remove('is-invalid');
+            });
+        }
+
+        // Quitar el error cuando el usuario selecciona una fase
+        const phaseField = document.getElementById('phase');
+        if (phaseField) {
+            phaseField.addEventListener('change', function() {
+                this.classList.remove('is-invalid');
+            });
+        }
+    })();
 </script>
 {{-- // Script para el dropdown de "Asignado a" --}}
 {{-- <script>
@@ -521,7 +579,9 @@
         const searchProjectsUrl = "{{ route('search-project-json', '__slug') }}".replace('__slug', currentWorkspaceSlug);
         const searchSalesManagerUrl = "{{ route('search-sales-json', '__slug') }}".replace('__slug', currentWorkspaceSlug);
     </script>
-    <script src="{{ asset('assets/js/create_project.js') }}"></script>
+    <script src="{{ asset('assets/js/create_project.js') }}?v={{ time() }}"></script>
+    {{-- staging y produccion 
+ <script src="{{ asset('assets/js/create_project.js') }}"></script> --}}
 @endif
 
 <!-- Código para el envío del formulario "Add New project" -->
@@ -586,441 +646,757 @@
         });
     });
 </script>
+<script>
+    function shouldShowPhase(typeId, typeName) {
+        typeId = parseInt(typeId, 10);
+        typeName = (typeName || '').trim().toLowerCase();
+
+        return typeId === 3 ||
+            typeName === 'product development' ||
+            typeName === 'desarrollo de producto';
+    }
+
+    function togglePhaseWrapper(show) {
+        const wrapper = document.getElementById('phase-wrapper');
+        const select = document.getElementById('phase');
+
+        if (!wrapper) return;
+
+        wrapper.style.display = show ? '' : 'none';
+
+        // opcional: si ocultas, limpias el valor
+        if (!show && select) select.value = '';
+    }
+
+    // Caso: cuando cambie el tipo de proyecto (Create New Project)
+    document.addEventListener('change', function(e) {
+        if (e.target && e.target.id === 'project_type') {
+            const opt = e.target.options[e.target.selectedIndex];
+            const typeId = e.target.value;
+            const typeName = opt ? opt.getAttribute('data-type') : '';
+            togglePhaseWrapper(shouldShowPhase(typeId, typeName));
+        }
+    });
+
+    // Ejecutar al cargar por si ya hay algo seleccionado
+    document.addEventListener('DOMContentLoaded', function() {
+        const projectType = document.getElementById('project_type');
+        if (projectType && projectType.value) {
+            const opt = projectType.options[projectType.selectedIndex];
+            togglePhaseWrapper(shouldShowPhase(projectType.value, opt?.getAttribute('data-type')));
+        }
+    });
+</script>
 
 
-<!-- Funciones para manejar la carga y listado de archivos -->
 <!-- Funciones para manejar la carga y listado de archivos -->
 <script>
-    const dropzoneMilestone = document.getElementById('dropzonewidgetMilestone');
-    let fileInputMilestone = document.getElementById('file-uploadMilestone');
-    const fileListMilestone = document.getElementById('file-list');
-    const hiddenInputsMilestone = document.getElementById('hidden-file-inputs');
-    var filesArrayMilestone = [];
-
-    // --- Extensiones y tipos MIME permitidos ---
-    const allowedMilestone = [{
-            ext: 'png',
-            mime: 'image/png'
-        },
-        {
-            ext: 'gif',
-            mime: 'image/gif'
-        },
-        {
-            ext: 'pdf',
-            mime: 'application/pdf'
-        },
-        {
-            ext: 'txt',
-            mime: 'text/plain'
-        },
-        {
-            ext: 'doc',
-            mime: 'application/msword'
-        },
-        {
-            ext: 'docx',
-            mime: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
-        },
-        {
-            ext: 'zip',
-            mime: 'application/zip'
-        },
-        {
-            ext: 'rar',
-            mime: 'application/vnd.rar'
-        },
-        {
-            ext: 'rar',
-            mime: 'application/x-rar-compressed'
-        },
-        {
-            ext: 'dwg',
-            mime: 'application/acad'
-        },
-        {
-            ext: 'dwg',
-            mime: 'application/autocad_dwg'
-        },
-        {
-            ext: 'dxf',
-            mime: 'application/dxf'
+    (function() {
+        // Limpiar handlers anteriores si existen (para evitar duplicados al reabrir modal)
+        if (window._milestoneHandlersCleanup) {
+            window._milestoneHandlersCleanup();
         }
-    ];
-    const allowedExtsMilestone = allowedMilestone.map(a => a.ext.toLowerCase());
-    const allowedMimesMilestone = allowedMilestone.map(a => a.mime);
 
-    // --- Drag & Drop visual feedback ---
-    dropzoneMilestone.addEventListener('dragenter', function(e) {
-        e.preventDefault();
-        e.stopPropagation();
-        dropzoneMilestone.classList.add('dragover');
-    });
+        const dropzoneMilestone = document.getElementById('dropzonewidgetMilestone');
+        let fileInputMilestone = document.getElementById('file-uploadMilestone');
+        const fileListMilestone = document.getElementById('file-list');
+        const hiddenInputsMilestone = document.getElementById('hidden-file-inputs');
+        var filesArrayMilestone = [];
+        var rejectedFilesMilestone = [];
 
-    dropzoneMilestone.addEventListener('dragover', function(e) {
-        e.preventDefault();
-        e.stopPropagation();
-        dropzoneMilestone.classList.add('dragover');
-    });
-
-    dropzoneMilestone.addEventListener('dragleave', function(e) {
-        e.preventDefault();
-        e.stopPropagation();
-        if (e.target === dropzoneMilestone) {
-            dropzoneMilestone.classList.remove('dragover');
-        }
-    });
-
-    dropzoneMilestone.addEventListener('drop', function(e) {
-        e.preventDefault();
-        e.stopPropagation();
-        dropzoneMilestone.classList.remove('dragover');
-
-        if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length) {
-            const droppedFiles = Array.from(e.dataTransfer.files);
-            handleFilesMilestone(droppedFiles);
-            uploadFilesMilestone(droppedFiles);
-            dropzoneMilestone.focus();
-        }
-    });
-
-    // Prevent default drag behavior on document
-    document.addEventListener('dragover', function(e) {
-        e.preventDefault();
-    });
-
-    document.addEventListener('drop', function(e) {
-        e.preventDefault();
-    });
-
-    // --- Selección manual desde input file ---
-    dropzoneMilestone.addEventListener('dblclick', function() {
-        fileInputMilestone.value = '';
-        fileInputMilestone.click();
-    });
-    fileInputMilestone.addEventListener('change', function() {
-        if (fileInputMilestone.files && fileInputMilestone.files.length) {
-            const selectedFiles = Array.from(fileInputMilestone.files);
-            // 1) Procesar y listar localmente
-            handleFilesMilestone(selectedFiles);
-            // 2) Subir automáticamente los archivos al servidor
-            uploadFilesMilestone(selectedFiles);
-            dropzoneMilestone.focus();
-        }
-    });
-
-    // --- Permitimos que la dropzone reciba foco y capture paste ---
-    dropzoneMilestone.setAttribute('tabindex', '0'); // hace que se pueda enfocar
-    dropzoneMilestone.addEventListener('click', () => {
-        dropzoneMilestone.focus();
-    });
-
-    // --- Capturar paste a nivel de document, pero sólo procesar si foco está dentro de dropzone ---
-    document.addEventListener('paste', function(e) {
-        const focused = document.activeElement;
-        if (focused !== dropzoneMilestone && !dropzoneMilestone.contains(focused)) {
-            return;
-        }
-        e.preventDefault();
-        if (!e.clipboardData || !e.clipboardData.items) {
-            return;
-        }
-        const items = Array.from(e.clipboardData.items);
-        const conversionPromises = items.map(item => {
-            if (item.kind !== 'file') {
-                return Promise.resolve(null);
+        // --- Extensiones y tipos MIME permitidos ---
+        const allowedMilestone = [{
+                ext: 'png',
+                mime: 'image/png'
+            },
+            {
+                ext: 'gif',
+                mime: 'image/gif'
+            },
+            {
+                ext: 'pdf',
+                mime: 'application/pdf'
+            },
+            {
+                ext: 'txt',
+                mime: 'text/plain'
+            },
+            {
+                ext: 'doc',
+                mime: 'application/msword'
+            },
+            {
+                ext: 'docx',
+                mime: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+            },
+            {
+                ext: 'zip',
+                mime: 'application/zip'
+            },
+            {
+                ext: 'rar',
+                mime: 'application/vnd.rar'
+            },
+            {
+                ext: 'rar',
+                mime: 'application/x-rar-compressed'
+            },
+            {
+                ext: 'dwg',
+                mime: 'application/acad'
+            },
+            {
+                ext: 'dwg',
+                mime: 'application/autocad_dwg'
+            },
+            {
+                ext: 'dxf',
+                mime: 'application/dxf'
             }
-            const file = item.getAsFile();
-            if (!file) {
-                return Promise.resolve(null);
-            }
-            const ext = file.name.split('.').pop().toLowerCase().trim();
-            const mime = file.type;
-
-            // Si es PNG o GIF → convertir a JPG
-            if (
-                mime === 'image/png' || mime === 'image/gif' ||
-                ext === 'png' || ext === 'gif'
-            ) {
-                return new Promise(resolve => {
-                    convertImageToJPGMilestone(file, function(jpgFile) {
-                        resolve(jpgFile);
-                    });
-                });
-            }
-
-            // Si su extensión O su MIME están permitidos, devolvemos el File
-            if (
-                allowedExtsMilestone.includes(ext) ||
-                allowedMimesMilestone.includes(mime)
-            ) {
-                return Promise.resolve(file);
-            }
-
-            // De lo contrario, no lo tomamos
-            return Promise.resolve(null);
-        });
-
-        Promise.all(conversionPromises).then(results => {
-            const archivosValidos = results.filter(f => f instanceof File);
-            if (archivosValidos.length > 0) {
-                handleFilesMilestone(archivosValidos);
-                uploadFilesMilestone(archivosValidos);
-            } else {
-                alert('El portapapeles no contiene un archivo permitido');
-            }
-            dropzoneMilestone.focus();
-        });
-    });
-
-    // --- Función ÚNICA para procesar archivos subidos (pegados, arrastrados o seleccionados) ---
-    function handleFilesMilestone(files) {
-        files.forEach(file => {
-            const ext = file.name.split('.').pop().toLowerCase().trim();
-            const mime = file.type;
-
-            // 1) Si el archivo ya es un JPEG (resultado de la conversión), lo añadimos directamente
-            if (mime === 'image/jpeg') {
-                addFileToMilestoneArray(file);
-                return;
-            }
-
-            // 2) Si es PNG o GIF (arrastrado, pegado o seleccionado manualmente), convertimos a JPG
-            if (
-                mime === 'image/png' || mime === 'image/gif' ||
-                ext === 'png' || ext === 'gif'
-            ) {
-                convertImageToJPGMilestone(file, function(jpgFile) {
-                    addFileToMilestoneArray(jpgFile);
-                });
-                return;
-            }
-
-            // 3) Si su extensión o su MIME están permitidos, lo añadimos tal cual
-            if (
-                allowedExtsMilestone.includes(ext) ||
-                allowedMimesMilestone.includes(mime)
-            ) {
-                addFileToMilestoneArray(file);
-                return;
-            }
-
-            // 4) Cualquier otro, se ignora (console.warn para depuración)
-            console.warn(`Archivo no permitido: ${file.name} (${mime || 'sin MIME detectado'})`);
-        });
-    }
-
-    function addFileToMilestoneArray(file) {
-        if (!filesArrayMilestone.some(f => f.name === file.name && f.size === file.size)) {
-            filesArrayMilestone.push(file);
-            updateFileListMilestone();
-        } else {
-            console.warn(`Archivo duplicado ignorado: ${file.name}`);
-        }
-    }
-
-    // --- Conversión de imagen PNG/GIF a JPG usando canvas ---
-    function convertImageToJPGMilestone(blobOrFile, callback) {
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            const img = new Image();
-            img.onload = function() {
-                const canvas = document.createElement('canvas');
-                canvas.width = img.width;
-                canvas.height = img.height;
-                const ctx = canvas.getContext('2d');
-                ctx.drawImage(img, 0, 0);
-                canvas.toBlob(function(jpgBlob) {
-                    const nuevoNombre = (blobOrFile.name || 'clipboard').replace(/\.(png|gif)$/i,
-                        '.jpg');
-                    const jpgFile = new File([jpgBlob], nuevoNombre, {
-                        type: 'image/jpeg',
-                        lastModified: Date.now(),
-                    });
-                    callback(jpgFile);
-                }, 'image/jpeg', 0.92);
-            };
-            img.src = e.target.result;
-        };
-        reader.readAsDataURL(blobOrFile);
-    }
-
-    function updateFileListMilestone() {
-        const assetBasePath = '{{ asset('assets/iconFilesTypes') }}/';
-        fileListMilestone.innerHTML = '';
-        hiddenInputsMilestone.innerHTML = '';
-
-        filesArrayMilestone.forEach((file, index) => {
-            const fileContainer = document.createElement('div');
-            fileContainer.classList.add('file');
-
-            const icon = document.createElement('img');
-            icon.src = getIconPathMilestone(file.name, assetBasePath);
-            icon.alt = `${getExtensionMilestone(file.name)} icon`;
-            icon.style.width = '20px';
-            icon.style.height = '25px';
-            fileContainer.appendChild(icon);
-
-            const fileNameContainer = document.createElement('div');
-            fileNameContainer.classList.add('file-name');
-            fileNameContainer.textContent = file.name;
-            fileNameContainer.style.maxWidth = "70%";
-            fileContainer.appendChild(fileNameContainer);
-
-            const removeButton = document.createElement('a');
-            removeButton.classList.add('buttonFiles');
-            removeButton.innerHTML = '<i class="fa-solid fa-trash deleteFileButton" style="color:white"></i>';
-            removeButton.addEventListener('click', function() {
-                filesArrayMilestone.splice(index, 1);
-                updateFileListMilestone();
-            });
-
-            fileContainer.appendChild(removeButton);
-            fileListMilestone.appendChild(fileContainer);
-
-            const input = document.createElement('input');
-            input.type = 'file';
-            input.name = 'files[]';
-            input.style.display = 'none';
-            const dataTransfer = new DataTransfer();
-            dataTransfer.items.add(file);
-            input.files = dataTransfer.files;
-            hiddenInputsMilestone.appendChild(input);
-        });
-    }
-
-    function getIconPathMilestone(filename, assetBasePath) {
-        const extension = getExtensionMilestone(filename);
-        const iconPath = `${assetBasePath}${extension}.png`;
-        const defaultIcon = `${assetBasePath}default.png`;
-        const supportedExtensions = [
-            'pdf', 'doc', 'jpg', 'png', 'xlsx', 'txt',
-            'dwg', 'dxf', 'img', 'docx', 'zip', 'rar', 'gif', 'jpeg'
         ];
-        return supportedExtensions.includes(extension) ? iconPath : defaultIcon;
-    }
+        const allowedExtsMilestone = allowedMilestone.map(a => a.ext.toLowerCase());
+        const allowedMimesMilestone = allowedMilestone.map(a => a.mime);
 
-    function getExtensionMilestone(filename) {
-        return filename.split('.').pop().toLowerCase().trim();
-    }
-
-    // --- NUEVA FUNCIÓN: subir archivos vía AJAX al servidor ---
-    function uploadFilesMilestone(files) {
-        if (!files.length) {
-            return;
-        }
-
-        // Obtenemos el token CSRF que pusimos en <meta name="csrf-token" ...>
-        const token = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
-
-        // Creamos un FormData y añadimos cada archivo bajo "files[]"
-        const formData = new FormData();
-        files.forEach(file => {
-            formData.append('files[]', file);
+        // --- Drag & Drop visual feedback ---
+        dropzoneMilestone.addEventListener('dragenter', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            dropzoneMilestone.classList.add('dragover');
         });
 
-        // También pasamos otros campos que el servidor podría necesitar.
-        // Por ejemplo, si el formulario #milestone-form tiene campos adicionales, los incluimos:
-        const milestoneForm = document.getElementById('milestone-form');
-        if (milestoneForm) {
-            // Ej: título, asignado a, end_date, etc.
-            const extraInputs = milestoneForm.querySelectorAll('input, select, textarea');
-            extraInputs.forEach(input => {
-                if (!['files[]', '_token'].includes(input.name) && input.value) {
-                    formData.append(input.name, input.value);
+        dropzoneMilestone.addEventListener('dragover', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            dropzoneMilestone.classList.add('dragover');
+        });
+
+        dropzoneMilestone.addEventListener('dragleave', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            if (e.target === dropzoneMilestone) {
+                dropzoneMilestone.classList.remove('dragover');
+            }
+        });
+
+        dropzoneMilestone.addEventListener('drop', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            dropzoneMilestone.classList.remove('dragover');
+
+            if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length) {
+                const droppedFiles = Array.from(e.dataTransfer.files);
+                handleFilesMilestone(droppedFiles);
+                // Los archivos se subirán al hacer submit del formulario, no aquí
+                dropzoneMilestone.focus();
+            }
+        });
+
+        // Prevent default drag behavior on document - usar handlers con nombre
+        function _milestoneDocDragover(e) {
+            e.preventDefault();
+        }
+
+        function _milestoneDocDrop(e) {
+            e.preventDefault();
+        }
+        document.addEventListener('dragover', _milestoneDocDragover);
+        document.addEventListener('drop', _milestoneDocDrop);
+
+        // --- Selección manual desde input file ---
+        // Click en dropzone abre el selector de archivos
+        dropzoneMilestone.addEventListener('click', function(e) {
+            // Evitar que se dispare si el click fue en un botón de eliminar dentro del dropzone
+            if (e.target.closest('.buttonFiles') || e.target.closest('a')) {
+                return;
+            }
+            fileInputMilestone.value = '';
+            fileInputMilestone.click();
+        });
+
+        fileInputMilestone.addEventListener('change', function() {
+            if (fileInputMilestone.files && fileInputMilestone.files.length) {
+                const selectedFiles = Array.from(fileInputMilestone.files);
+                // Procesar y listar localmente (los archivos se subirán al hacer submit)
+                handleFilesMilestone(selectedFiles);
+            }
+        });
+
+        // --- Permitimos que la dropzone reciba foco y capture paste ---
+        dropzoneMilestone.setAttribute('tabindex', '0'); // hace que se pueda enfocar
+
+        // --- Capturar paste a nivel de document, pero sólo procesar si foco está dentro de dropzone ---
+        function _milestonePasteHandler(e) {
+            const focused = document.activeElement;
+            if (focused !== dropzoneMilestone && !dropzoneMilestone.contains(focused)) {
+                return;
+            }
+            e.preventDefault();
+            if (!e.clipboardData || !e.clipboardData.items) {
+                return;
+            }
+            const items = Array.from(e.clipboardData.items);
+            const conversionPromises = items.map(item => {
+                if (item.kind !== 'file') {
+                    return Promise.resolve(null);
                 }
+                const file = item.getAsFile();
+                if (!file) {
+                    return Promise.resolve(null);
+                }
+                const ext = file.name.split('.').pop().toLowerCase().trim();
+                const mime = file.type;
+
+                // Si es PNG o GIF → convertir a JPG
+                if (
+                    mime === 'image/png' || mime === 'image/gif' ||
+                    ext === 'png' || ext === 'gif'
+                ) {
+                    return new Promise(resolve => {
+                        convertImageToJPGMilestone(file, function(jpgFile) {
+                            resolve(jpgFile);
+                        });
+                    });
+                }
+
+                // Si su extensión O su MIME están permitidos, devolvemos el File
+                if (
+                    allowedExtsMilestone.includes(ext) ||
+                    allowedMimesMilestone.includes(mime)
+                ) {
+                    return Promise.resolve(file);
+                }
+
+                // De lo contrario, no lo tomamos
+                return Promise.resolve(null);
+            });
+
+            Promise.all(conversionPromises).then(results => {
+                const archivosValidos = results.filter(f => f instanceof File);
+                if (archivosValidos.length > 0) {
+                    handleFilesMilestone(archivosValidos);
+                    // Los archivos se subirán al hacer submit del formulario
+                } else {
+                    alert('El portapapeles no contiene un archivo permitido');
+                }
+                dropzoneMilestone.focus();
+            });
+        }
+        document.addEventListener('paste', _milestonePasteHandler);
+
+        // --- Función ÚNICA para procesar archivos subidos (pegados, arrastrados o seleccionados) ---
+        function handleFilesMilestone(files) {
+            const MAX_FILE_SIZE = 52428800; // 50MB en bytes
+            const rejectedInThisBatch = [];
+
+            files.forEach(file => {
+                // Validar tamaño del archivo
+                if (file.size > MAX_FILE_SIZE) {
+                    rejectedInThisBatch.push(file.name);
+                    rejectedFilesMilestone.push({
+                        name: file.name,
+                        reason: 'File too big'
+                    });
+                    return;
+                }
+
+                const ext = file.name.split('.').pop().toLowerCase().trim();
+                const mime = file.type;
+
+                // Reemplazar espacios con guiones bajos en el nombre (de lo contrario las descargas no funcionaran correctamente)
+                const processedFile = new File(
+                    [file],
+                    file.name.replace(/\s+/g, '_'), {
+                        type: file.type
+                    }
+                );
+
+                // 1) Si el archivo ya es un JPEG (resultado de la conversión), lo añadimos directamente
+                if (mime === 'image/jpeg') {
+                    addFileToMilestoneArray(processedFile);
+                    return;
+                }
+
+                // 2) Si es PNG o GIF (arrastrado, pegado o seleccionado manualmente), convertimos a JPG
+                if (
+                    mime === 'image/png' || mime === 'image/gif' ||
+                    ext === 'png' || ext === 'gif'
+                ) {
+                    convertImageToJPGMilestone(processedFile, function(jpgFile) {
+                        addFileToMilestoneArray(jpgFile);
+                    });
+                    return;
+                }
+
+                // 3) Si su extensión o su MIME están permitidos, lo añadimos tal cual
+                if (
+                    allowedExtsMilestone.includes(ext) ||
+                    allowedMimesMilestone.includes(mime)
+                ) {
+                    addFileToMilestoneArray(processedFile);
+                    return;
+                }
+
+                // 4) Cualquier otro, se ignora (console.warn para depuración)
+                console.warn(
+                    `Archivo no permitido: ${processedFile.name} (${mime || 'sin MIME detectado'})`);
+            });
+
+            // Mostrar alerta si hay archivos rechazados
+            if (rejectedInThisBatch.length > 0) {
+                const rejectedList = rejectedInThisBatch.join('\n- ');
+                alert('Los siguientes archivos fueron rechazados por exceder el límite de 50MB:\n- ' +
+                    rejectedList);
+            }
+
+            updateFileListMilestone();
+        }
+
+        /**
+         * Genera un nombre único para el archivo si ya existe uno con el mismo nombre.
+         * Ejemplo: archivo.pdf -> archivo (2).pdf -> archivo (3).pdf
+         */
+        function generateUniqueFileNameMilestone(fileName) {
+            const existingNames = filesArrayMilestone.map(f => f.name);
+
+            if (!existingNames.includes(fileName)) {
+                return fileName;
+            }
+
+            // Separar nombre base y extensión
+            const lastDotIndex = fileName.lastIndexOf('.');
+            let baseName, extension;
+
+            if (lastDotIndex > 0) {
+                baseName = fileName.substring(0, lastDotIndex);
+                extension = fileName.substring(lastDotIndex);
+            } else {
+                baseName = fileName;
+                extension = '';
+            }
+
+            // Verificar si ya tiene un sufijo numérico como " (2)"
+            const suffixMatch = baseName.match(/^(.+)\s\((\d+)\)$/);
+            let originalBaseName = baseName;
+            let startCounter = 2;
+
+            if (suffixMatch) {
+                originalBaseName = suffixMatch[1];
+                startCounter = parseInt(suffixMatch[2]) + 1;
+            }
+
+            // Buscar el siguiente número disponible
+            let counter = startCounter;
+            let newFileName = `${originalBaseName} (${counter})${extension}`;
+
+            while (existingNames.includes(newFileName)) {
+                counter++;
+                newFileName = `${originalBaseName} (${counter})${extension}`;
+            }
+
+            return newFileName;
+        }
+
+        function addFileToMilestoneArray(file) {
+            // Generar nombre único si el nombre ya existe (permite archivos con mismo nombre)
+            const uniqueName = generateUniqueFileNameMilestone(file.name);
+
+            // Si el nombre cambió, crear un nuevo File con el nombre único
+            let fileToAdd = file;
+            if (uniqueName !== file.name) {
+                fileToAdd = new File([file], uniqueName, {
+                    type: file.type,
+                    lastModified: file.lastModified
+                });
+                console.info(`Archivo renombrado: ${file.name} -> ${uniqueName}`);
+            }
+
+            filesArrayMilestone.push(fileToAdd);
+            updateFileListMilestone();
+        }
+
+        // --- Conversión de imagen PNG/GIF a JPG usando canvas ---
+        function convertImageToJPGMilestone(blobOrFile, callback) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const img = new Image();
+                img.onload = function() {
+                    const canvas = document.createElement('canvas');
+                    canvas.width = img.width;
+                    canvas.height = img.height;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0);
+                    canvas.toBlob(function(jpgBlob) {
+                        const nuevoNombre = (blobOrFile.name || 'clipboard').replace(
+                            /\.(png|gif)$/i,
+                            '.jpg');
+                        const jpgFile = new File([jpgBlob], nuevoNombre, {
+                            type: 'image/jpeg',
+                            lastModified: Date.now(),
+                        });
+                        callback(jpgFile);
+                    }, 'image/jpeg', 0.92);
+                };
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(blobOrFile);
+        }
+
+        function updateFileListMilestone() {
+            const assetBasePath = '{{ asset('assets/iconFilesTypes') }}/';
+            fileListMilestone.innerHTML = '';
+            hiddenInputsMilestone.innerHTML = '';
+
+            // Mostrar archivos válidos
+            filesArrayMilestone.forEach((file, index) => {
+                const fileContainer = document.createElement('div');
+                fileContainer.classList.add('file');
+
+                const icon = document.createElement('img');
+                icon.src = getIconPathMilestone(file.name, assetBasePath);
+                icon.alt = `${getExtensionMilestone(file.name)} icon`;
+                icon.style.width = '20px';
+                icon.style.height = '25px';
+                fileContainer.appendChild(icon);
+
+                const fileNameContainer = document.createElement('div');
+                fileNameContainer.classList.add('file-name');
+                fileNameContainer.textContent = file.name;
+                fileNameContainer.style.maxWidth = "70%";
+                fileContainer.appendChild(fileNameContainer);
+
+                const removeButton = document.createElement('a');
+                removeButton.classList.add('buttonFiles');
+                removeButton.innerHTML =
+                    '<i class="fa-solid fa-trash deleteFileButton" style="color:white"></i>';
+                removeButton.addEventListener('click', function() {
+                    filesArrayMilestone.splice(index, 1);
+                    updateFileListMilestone();
+                });
+
+                fileContainer.appendChild(removeButton);
+                fileListMilestone.appendChild(fileContainer);
+
+                const input = document.createElement('input');
+                input.type = 'file';
+                input.name = 'files[]';
+                input.style.display = 'none';
+                const dataTransfer = new DataTransfer();
+                dataTransfer.items.add(file);
+                input.files = dataTransfer.files;
+                hiddenInputsMilestone.appendChild(input);
+            });
+
+            // Mostrar archivos rechazados (tachados)
+            rejectedFilesMilestone.forEach((rejectedFile, index) => {
+                const fileContainer = document.createElement('div');
+                fileContainer.classList.add('file');
+                fileContainer.style.opacity = '0.5';
+                fileContainer.style.textDecoration = 'line-through';
+                fileContainer.title = 'File too big: Exceeds 50MB limit';
+                fileContainer.style.cursor = 'not-allowed';
+
+                const icon = document.createElement('img');
+                icon.src = getIconPathMilestone(rejectedFile.name, assetBasePath);
+                icon.alt = `${getExtensionMilestone(rejectedFile.name)} icon`;
+                icon.style.width = '20px';
+                icon.style.height = '25px';
+                icon.style.opacity = '0.5';
+                fileContainer.appendChild(icon);
+
+                const fileNameContainer = document.createElement('div');
+                fileNameContainer.classList.add('file-name');
+                fileNameContainer.textContent = rejectedFile.name;
+                fileNameContainer.style.maxWidth = "70%";
+                fileContainer.appendChild(fileNameContainer);
+
+                const removeButton = document.createElement('a');
+                removeButton.classList.add('buttonFiles');
+                removeButton.innerHTML =
+                    '<i class="fa-solid fa-trash deleteFileButton" style="color:white"></i>';
+                removeButton.addEventListener('click', function() {
+                    rejectedFilesMilestone.splice(index, 1);
+                    updateFileListMilestone();
+                });
+
+                fileContainer.appendChild(removeButton);
+                fileListMilestone.appendChild(fileContainer);
             });
         }
 
-        // Hacemos el POST a la URL de acción del formulario
-        const actionUrl = (milestoneForm && milestoneForm.getAttribute('action')) ?
-            milestoneForm.getAttribute('action') :
-            window.location.href; // fallback
+        function getIconPathMilestone(filename, assetBasePath) {
+            const extension = getExtensionMilestone(filename);
+            const iconPath = `${assetBasePath}${extension}.png`;
+            const defaultIcon = `${assetBasePath}default.png`;
+            const supportedExtensions = [
+                'pdf', 'doc', 'jpg', 'png', 'xlsx', 'txt',
+                'dwg', 'dxf', 'img', 'docx', 'zip', 'rar', 'gif', 'jpeg'
+            ];
+            return supportedExtensions.includes(extension) ? iconPath : defaultIcon;
+        }
 
-        fetch(actionUrl, {
-                method: 'POST',
-                headers: {
-                    'X-CSRF-TOKEN': token
-                },
-                body: formData
-            })
-            .then(response => {
-                if (!response.ok) {
-                    // Si algo falla en el servidor, podemos leer el JSON o texto de error
-                    return response.json().then(err => {
-                        console.error('Error en subida de archivos:', err);
-                        // alert('Error al subir archivos: ' + (err.message || response.statusText));
-                        throw new Error('Upload failed');
-                    });
+        function getExtensionMilestone(filename) {
+            return filename.split('.').pop().toLowerCase().trim();
+        }
+
+        // Manejar click del botón de submit directamente
+        let isSubmitting = false;
+
+        function _milestoneSubmitClickHandler(e) {
+            const submitButton = e.target.closest('#submitMilestoneBtn');
+            if (!submitButton) return;
+
+            // Si ya está guardando, bloquear completamente
+            if (isSubmitting) {
+                e.preventDefault();
+                e.stopPropagation();
+                e.stopImmediatePropagation();
+                return false;
+            }
+
+            const milestoneForm = document.getElementById('milestone-form');
+            if (!milestoneForm) {
+                console.error('Milestone form not found');
+                return;
+            }
+
+            // ✅ Validación personalizada de campos requeridos
+            // Validar Title
+            const titleField = document.getElementById('milestone-title');
+            const titleValue = (titleField.value || '').trim();
+            let validationErrors = [];
+
+            if (!titleValue) {
+                titleField.classList.add('is-invalid');
+                validationErrors.push('Debes introducir un título');
+            } else {
+                titleField.classList.remove('is-invalid');
+            }
+
+            // Validar End Date
+            const endDateField = document.getElementById('end_date');
+            const endDateValue = (endDateField.value || '').trim();
+
+            if (!endDateValue) {
+                endDateField.classList.add('is-invalid');
+                validationErrors.push('Debes seleccionar una fecha de entrega');
+            } else {
+                endDateField.classList.remove('is-invalid');
+            }
+
+            // Validar Requested by (assing_to)
+            const hiddenInput = document.getElementById('assing_To');
+            const searchInput = document.getElementById('search');
+
+            const requestedById = hiddenInput ? hiddenInput.value : '';
+            const typedName = searchInput ? (searchInput.value || '').trim() : '';
+
+            // Helper para validar si el input coincide con alguna opción (copia local para evitar ReferenceError)
+            function _localInputMatchesAnyOption(value) {
+                const optionsList = document.getElementById('user-select');
+                if (!optionsList) return false;
+                const options = optionsList.getElementsByClassName('option');
+                const v = (value || '').trim().toLowerCase();
+                if (!v) return false;
+                for (let i = 0; i < options.length; i++) {
+                    if (options[i].innerText.trim().toLowerCase() === v) return true;
                 }
-                return response.json();
-            })
-            .then(data => {
-                // Aquí puedes manejar la respuesta exitosa (p. ej. mostrar mensaje, refrescar lista en servidor, etc.)
-                console.log('Archivos subidos correctamente:', data);
-                // Si quieres, puedes vaciar el arreglo local o actualizarlo según la respuesta:
-                // filesArrayMilestone = [];
-                // updateFileListMilestone();
-            })
-            .catch(error => {
-                console.error('Fetch error:', error);
-            });
-    }
+                return false;
+            }
+
+            if (!requestedById || !_localInputMatchesAnyOption(typedName)) {
+                if (searchInput) searchInput.classList.add('is-invalid');
+                validationErrors.push('Debs seleccionar un usuario existente en "Requested by"');
+            } else {
+                if (searchInput) searchInput.classList.remove('is-invalid');
+            }
+
+            // Validar Phase (solo si la sección está visible)
+            const phaseWrapper = document.getElementById('phase-wrapper');
+            if (phaseWrapper && phaseWrapper.style.display !== 'none') {
+                const phaseField = document.getElementById('phase');
+                const phaseValue = (phaseField.value || '').trim();
+
+                if (!phaseValue) {
+                    phaseField.classList.add('is-invalid');
+                    validationErrors.push('Debes seleccionar una fase');
+                } else {
+                    phaseField.classList.remove('is-invalid');
+                }
+            }
+
+            // Si hay errores, mostrar toast y retornar
+            if (validationErrors.length > 0) {
+                e.preventDefault();
+                e.stopPropagation();
+                showToast(validationErrors.join('. '), 'danger');
+                isSubmitting = false;
+                return;
+            }
+
+            // Marcar como en proceso
+            e.preventDefault();
+            e.stopPropagation();
+            isSubmitting = true;
+
+            // Deshabilitar el botón visualmente
+            submitButton.disabled = true;
+            submitButton.textContent = '{{ __('Saving...') }}';
+            submitButton.style.opacity = '0.6';
+            submitButton.style.cursor = 'not-allowed';
+            submitButton.style.pointerEvents = 'none';
+
+            // Crear FormData del formulario
+            const formData = new FormData(milestoneForm);
+            const actionUrl = milestoneForm.getAttribute('action');
+
+            console.log('Enviando formulario a:', actionUrl);
+
+            fetch(actionUrl, {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'Accept': 'application/json'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    console.log('Respuesta del servidor:', data);
+
+                    // Limpiar arrays de archivos
+                    filesArrayMilestone = [];
+                    rejectedFilesMilestone = [];
+
+                    if (data.success) {
+                        let message = '';
+                        if (data.uploaded_count > 0 && data.failed_count > 0) {
+                            message = data.uploaded_count + ' archivos subidos, ' + data.failed_count +
+                                ' rechazados';
+                        } else if (data.uploaded_count > 0) {
+                            message = data.uploaded_count + ' archivos subidos exitosamente';
+                        } else if (data.failed_count > 0) {
+                            message = 'Todos los archivos fueron rechazados';
+                        } else {
+                            message = 'Encargo creado correctamente';
+                        }
+
+                        showToast(message, 'success');
+
+                        setTimeout(() => {
+                            const modal = bootstrap.Modal.getInstance(document.querySelector('.modal'));
+                            if (modal) {
+                                modal.hide();
+                            }
+                            window.location.reload();
+                        }, 1500);
+
+                    } else {
+                        showToast(data.error || 'Error al guardar cambios', 'danger');
+
+                        // Re-habilitar el botón en caso de error
+                        submitButton.disabled = false;
+                        submitButton.textContent = '{{ __('Save Changes') }}';
+                        submitButton.style.opacity = '1';
+                        submitButton.style.cursor = 'pointer';
+                        submitButton.style.pointerEvents = 'auto';
+                        isSubmitting = false;
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    showToast('Error al enviar formulario', 'danger');
+
+                    // Re-habilitar el botón en caso de error
+                    submitButton.disabled = false;
+                    submitButton.textContent = '{{ __('Save Changes') }}';
+                    submitButton.style.opacity = '1';
+                    submitButton.style.cursor = 'pointer';
+                    submitButton.style.pointerEvents = 'auto';
+                    isSubmitting = false;
+                });
+        }
+        document.addEventListener('click', _milestoneSubmitClickHandler, false);
+
+        // Registrar función de limpieza para cuando se cierre/reabra el modal
+        window._milestoneHandlersCleanup = function() {
+            document.removeEventListener('dragover', _milestoneDocDragover);
+            document.removeEventListener('drop', _milestoneDocDrop);
+            document.removeEventListener('paste', _milestonePasteHandler);
+            document.removeEventListener('click', _milestoneSubmitClickHandler, false);
+        };
+
+        // Función para mostrar toast
+        function showToast(message, type = 'info') {
+            const toastHTML = `
+            <div class="toast align-items-center text-white bg-${type === 'success' ? 'success' : type === 'danger' ? 'danger' : 'info'}" role="alert" aria-live="assertive" aria-atomic="true">
+                <div class="d-flex">
+                    <div class="toast-body">
+                        ${message}
+                    </div>
+                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                </div>
+            </div>
+        `;
+
+            const toastContainer = document.getElementById('toastContainer') || createToastContainer();
+            const toastElement = document.createElement('div');
+            toastElement.innerHTML = toastHTML;
+            toastContainer.appendChild(toastElement.firstElementChild);
+
+            const toast = new bootstrap.Toast(toastContainer.querySelector('.toast:last-child'));
+            toast.show();
+        }
+
+        function createToastContainer() {
+            const container = document.createElement('div');
+            container.id = 'toastContainer';
+            container.style.position = 'fixed';
+            container.style.top = '20px';
+            container.style.right = '20px';
+            container.style.zIndex = '9999';
+            document.body.appendChild(container);
+            return container;
+        }
+    })();
 </script>
 
 <!-- NUEVO: Función para notificación antes del submit del formulario de milestone -->
 <script>
-    async function displayNotification() {
-        console.log('Generando notificacion de encargo creado');
+    async function displayNotification(milestoneId) {
+        console.log("Enviando notificación con milestone ID:", milestoneId);
+
         let milestoneTitle = document.getElementById('milestone-title').value;
         let milestoneParent;
-        milestoneAssignedTo = -2;
-        // let milestoneAssignedTo = document.getElementById('req_assing_To').value
-        // if (milestoneAssignedTo == '') {
-        //     milestoneAssignedTo = -2;
-        // }
+
         try {
             milestoneParent = document.getElementById('searchProject').value;
-            console.log("Milestone parent:", milestoneParent);
-        } catch (error) {
+        } catch {
             milestoneParent = document.getElementById('projectIdDisabled').value;
-            console.log("Milestone parent pero en el catch:", milestoneParent);
         }
-
-
 
         let msg = milestoneTitle + ' en ' + milestoneParent;
         let ntipe = 2;
 
-        if (!msg) return;
         try {
             const response = await fetch("{{ route('notifications.add') }}", {
                 method: "POST",
                 headers: {
-                    "Content-Type": "application/json",
-                    "X-CSRF-TOKEN": "{{ csrf_token() }}"
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': "{{ csrf_token() }}"
                 },
                 body: JSON.stringify({
                     workspace_id: {{ $currentWorkspace->id }},
                     msg: msg,
                     ntipe: ntipe,
-                    milestoneAssignedTo: milestoneAssignedTo
+                    milestoneAssignedTo: -2,
+                    milestone_id: milestoneId // ✅ AQUÍ SE ENVÍA A LARAVEL
                 })
             });
+
             const data = await response.json();
-            if (data.success) {
-                let notificationList = document.querySelector('.limited');
-                let newNotification = document.createElement('div');
-                newNotification.classList.add('notificationSTL');
-                newNotification.innerHTML = `
-                    <span class="textRepo">${data.data.msg}</span>
-                    <span class="textRepo">${data.data.type}</span>
-                    <button type="button" class="btn-close repoIcon" aria-label="Close"></button>
-                `;
-                notificationList.prepend(newNotification);
-            }
+            console.log("Respuesta de notificación:", data);
+
         } catch (error) {
-            console.error("Error al agregar notificación:", error);
+            console.error("Error al enviar la notificación:", error);
         }
     }
 </script>

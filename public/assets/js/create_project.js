@@ -86,12 +86,15 @@ $(document).ready(function () {
         handleInputChange($(this), salesList, searchSalesManagerUrl, 'Sin resultados encontrados', 'salesManagers');
     });
 
-    refMoInput.on('input', function () {
+    // Debounce más agresivo para M.O: 150ms en lugar de 300ms para búsqueda más rápida
+    const handleMoInputChange = debounce(function () {
         clientInput.val("");
         project_nameInput.val("");
         $('#projectId').val('');
-        handleInputChange($(this), refMoList, searchMoUrl, 'Sin resultados encontrados', 'mo');
-    });
+        handleInputChange(refMoInput, refMoList, searchMoUrl, 'Sin resultados encontrados', 'mo');
+    }, 150);
+    
+    refMoInput.on('input', handleMoInputChange);
 
     clientInput.on('input', function () {
         handleInputChange($(this), clipoList, searchClipoUrl, 'Sin resultados encontrados', 'clients');
@@ -181,7 +184,10 @@ $(document).ready(function () {
 
         if (dataList && dataList.length) {
             const listItems = dataList.map(item => {
-                let displayText = item.ref_mo ? `${item.ref_mo} - ${item.name}` : item.name;
+                console.log(item);
+               let displayText = item.potential_customer_id
+                ? `${item.potential_customer_id} - ${item.name}`
+                : (item.name);
                 return $('<a href="#" class="list-group-item list-group-item-action stylelist">')
                     .text(displayText.trim())
                     .data('item', item)
@@ -216,8 +222,8 @@ $(document).ready(function () {
             e.preventDefault();
 
             const additionalForm = document.getElementById('visado');
-            console.log('tipo de busqueda', type);
-
+            console.log('handlelistitemclick type::', type);
+console.log('handlelistitemclick item::', item);
             // Verifica si el proyecto ya existe cuando el tipo es 'mo'
             if (type === 'mo') {
                 let existingProject = projects.find(project => project.ref_mo === item.ref_mo);
@@ -252,7 +258,11 @@ $(document).ready(function () {
                     additionalForm.style.display = 'block';
                 }
 
-
+                if(item.type == 3){
+                    document.getElementById('phase-wrapper').style.display = 'block';
+                }else{
+                    document.getElementById('phase-wrapper').style.display = 'none';
+                }
             } else if (type === 'salesManagers') {
                 salesManagerInput.val(item.name);
             }
@@ -286,7 +296,18 @@ $(document).ready(function () {
     }
     function populateClientList(selectedClients) {
         clipoList.empty().show();
-        const clientItems = selectedClients.map(client => {
+        
+        // Deduplicar clientes basándose en el nombre único
+        const uniqueClientsMap = new Map();
+        selectedClients.forEach(client => {
+            if (!uniqueClientsMap.has(client.name)) {
+                uniqueClientsMap.set(client.name, client);
+            }
+        });
+        
+        const uniqueClients = Array.from(uniqueClientsMap.values());
+        
+        const clientItems = uniqueClients.map(client => {
             return $('<a href="#" class="list-group-item list-group-item-action stylelist">')
                 .text(client.name)
                 .data('name', client.name)

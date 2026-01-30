@@ -120,30 +120,69 @@ Utility
     public static function getWorkspaceBySlug($slug)
     {
         $objUser = Auth::user();
+        
+        // 🔍 Prioridad 1: Si se proporciona un slug específico, buscar ese workspace
+        // SIN restricción de membresía - la validación de acceso se hace a nivel de proyecto
+        if ($objUser && !empty($slug)) {
+            $rs = Workspace::where('slug', '=', $slug)->first();
+            
+            if ($rs) {
+                // Si el usuario es miembro, cargar el permission
+                $userWorkspace = UserWorkspace::where('workspace_id', $rs->id)
+                    ->where('user_id', $objUser->id)
+                    ->first();
+                
+                if ($userWorkspace) {
+                    $rs->permission = $userWorkspace->permission;
+                } else {
+                    // Si no es miembro pero el workspace existe, permitir acceso de lectura
+                    $rs->permission = 'Guest'; // o null, según necesites
+                }
+                
+                Utility::setLang($rs);
+                return $rs;
+            }
+        }
+        
+        // 🔍 Prioridad 2: Si el usuario tiene un workspace actual asignado, usar ese
         if ($objUser && $objUser->currant_workspace) {
-
-            $rs = Workspace::select(['workspaces.*', 'user_workspaces.permission',])->join('user_workspaces', 'workspaces.id', '=', 'user_workspaces.workspace_id')
+            $rs = Workspace::select(['workspaces.*', 'user_workspaces.permission',])
+                ->join('user_workspaces', 'workspaces.id', '=', 'user_workspaces.workspace_id')
                 ->where('workspaces.id', '=', $objUser->currant_workspace)
-                ->where('user_id', '=', $objUser->id)->first();
-        } elseif ($objUser && !empty($slug)) {
-
+                ->where('user_id', '=', $objUser->id)
+                ->first();
+            
+            if ($rs) {
+                Utility::setLang($rs);
+                return $rs;
+            }
+        }
+        
+        // 🔍 Prioridad 3: Si no hay nada, obtener el primer workspace del usuario
+        if ($objUser) {
             $rs = Workspace::select([
                 'workspaces.*',
                 'user_workspaces.permission',
             ])->join('user_workspaces', 'workspaces.id', '=', 'user_workspaces.workspace_id')
-                ->where('slug', '=', $slug)->where('user_id', '=', $objUser->id)->first();
-        } elseif ($objUser) {
-
-            $rs = Workspace::select([
-                'workspaces.*',
-                'user_workspaces.permission',
-            ])->join('user_workspaces', 'workspaces.id', '=', 'user_workspaces.workspace_id')->where('user_id', '=', $objUser->id)->orderBy('workspaces.id', 'desc')->limit(1)->first();
-        } else {
-            $rs = Workspace::select(['workspaces.*'])->where('slug', '=', $slug)->limit(1)->first();
+                ->where('user_id', '=', $objUser->id)
+                ->orderBy('workspaces.id', 'desc')
+                ->limit(1)
+                ->first();
+            
+            if ($rs) {
+                Utility::setLang($rs);
+                return $rs;
+            }
         }
+        
+        // 🔍 Prioridad 4: Si no hay usuario autenticado, buscar por slug directamente
+        $rs = Workspace::select(['workspaces.*'])
+            ->where('slug', '=', $slug)
+            ->limit(1)
+            ->first();
+        
         if ($rs) {
             Utility::setLang($rs);
-
             return $rs;
         }
     }

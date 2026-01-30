@@ -95,7 +95,7 @@
                 <div class="form-group col-md-8">
                     <fieldset class="custom-fieldset ctr">
                         <legend class="custom-legend">{{ __('Description') }}:</legend>
-                        <h5 class="pt-2 ps-2"> {{ $milestone->summary }}</h5>
+                        <div class="pt-2 ps-2" style="white-space: pre-wrap; word-wrap: break-word;">{{ $milestone->summary }}</div>
                     </fieldset>
                 </div>
                 {{-- {test} --}}

@@ -2,27 +2,49 @@
     $user = Auth::user();
     // Se leen los parámetros (si existen). Si no vienen, quedan como null.
     $selectedProjectId = request()->get('project_id');
+    $selectedProjectName = request()->get('projectName');
     $selectedMilestoneTitle = request()->get('milestoneTitle');
     $selectedMilestoneId = request()->get('milestone_id');
     $fromMilestoneBoard = request()->get('fromMilestoneBoard');
+    $fromMyMilestoneBoard = request()->get('fromMyMilestoneBoard');
+    
+    // Detectar si viene de my-milestone-board
+    $isMyMilestoneBoard = $fromMyMilestoneBoard || strpos(request()->url(), 'my-milestone-board') !== false;
+    $formAction = $isMyMilestoneBoard 
+        ? route('my_milestone.tasks.store', $currentWorkspace->slug)
+        : route('tasks.store', $currentWorkspace->slug);
 @endphp
 
 @if ($projects && $currentWorkspace)
-    <form method="post" action="@auth('web'){{ route('tasks.store', $currentWorkspace->slug) }}@endauth">
+    <form method="post" action="@auth('web'){{ $formAction }}@endauth">
         @csrf
         <div class="modal-body">
+            <!-- DEBUG INFO -->
+            <script>
+                console.log('=== TaskCreate Vista DEBUG ===');
+                console.log('Raw selectedProjectId:', '{{ request()->get('project_id') }}');
+                console.log('Raw selectedProjectName:', '{{ request()->get('projectName') }}');
+                console.log('Raw selectedMilestoneTitle:', '{{ request()->get('milestoneTitle') }}');
+                console.log('Raw selectedMilestoneId:', '{{ request()->get('milestone_id') }}');
+                console.log('From My Milestone Board:', '{{ request()->get('fromMyMilestoneBoard') }}');
+                console.log('=== FIN DEBUG ===');
+            </script>
             <div class="row">
                 <!-- Select de Proyectos -->
                 <div class="form-group col-md-12">
                     <label class="col-form-label">{{ __('Projects') }}</label>
-                    @if ($selectedProjectId)
+                    @if ($selectedProjectId && $selectedProjectName)
+                        <!-- Si viene preseleccionado de my_milestone_board, mostrar como input de texto -->
+                        <input type="hidden" name="project_id" value="{{ $selectedProjectId }}" style="display: none;">
+                        <input type="text" class="form-control form-control-light" value="{{ $selectedProjectName }}" disabled>
+                    @elseif ($selectedProjectId)
                         <!-- Si existe proyecto preseleccionado, se muestra un select con el único option seleccionado -->
                         <input type="hidden" name="project_id" value="{{ $selectedProjectId }}" style="display: none;">
                         <select class="form-control form-control-light select2" name="project_id" id="project_id"
                             required disabled>
                             <option value="">{{ __('Select Project') }}</option>
                             @foreach ($projects as $project)
-                                @if ($selectedProjectId == $project->id)
+                                @if ((int)$selectedProjectId == (int)$project->id)
                                     <option value="{{ $project->id }}" data-project='{{ json_encode($project) }}'
                                         selected>
                                         {{ $project->name }}
@@ -49,17 +71,16 @@
                     <label class="col-form-label">{{ __('Milestone') }}</label>
 
                     @if ($selectedMilestoneTitle)
-                        <input type="hidden" name="milestone_id" value="{{ $selectedMilestoneId }}"
-                            style="display: none;">
-                        <select class="form-control form-control-light select2" name="milestone_id" id="milestone_id"
-                            required disabled>
-                            <option value="{{ $selectedMilestoneId }}">{{ $selectedMilestoneTitle }}</option>
-                        @else
-                            <select class="form-control form-control-light select2" name="milestone_id"
-                                id="milestone_id" required>
-                                <option value="">{{ __('Select Milestone') }}</option>
+                        <!-- Si viene preseleccionado, mostrar como input de texto y guardar el valor en hidden -->
+                        <input type="hidden" name="milestone_id" value="{{ $selectedMilestoneId }}">
+                        <input type="text" class="form-control form-control-light" value="{{ $selectedMilestoneTitle }}" disabled>
+                    @else
+                        <!-- En caso contrario mostrar el select -->
+                        <select class="form-control form-control-light select2" name="milestone_id"
+                            id="milestone_id" required>
+                            <option value="">{{ __('Select Milestone') }}</option>
+                        </select>
                     @endif
-                    </select>
                 </div>
 
                 <!-- Select de Task Type -->
@@ -68,9 +89,21 @@
                     <select class="form-control form-control-light select2" id="task-list" name="type_id" required>
                         <option value="">{{ __('Select Task') }}</option>
                     </select>
+
+                    <div class="form-group col-md-12 d-none" id="custom-task-name-container">
+    <label class="col-form-label">{{ __('Custom task name') }}</label>
+    <input
+        type="text"
+        class="form-control form-control-light"
+        id="custom_task_name"
+        name="custom_task_name"
+        placeholder="{{ __('Write the custom task name...') }}"
+    >
+</div>
+
                 </div>
 
-                <!-- Fecha de inicio -->
+                {{-- <!-- Fecha de inicio -->
                 <div class="form-group col-md-6" style="width: 100% !important;">
                     <label for="start_date" class="col-form-label">{{ __('Start date') }}</label>
                     <input type="text" class="form-control form-control-light date" id="start_date_display"
@@ -78,7 +111,7 @@
                     <!-- Campo oculto para enviar el valor -->
                     <input type="hidden" id="start_date" name="start_date"
                         value="{{ \Carbon\Carbon::now()->format('d/m/Y') }}">
-                </div>
+                </div> --}}
 
                 <!-- Fecha estimada -->
                 <!-- Campo oculto con fecha estimada (por defecto hoy) -->
@@ -133,55 +166,90 @@
     $(document).ready(function() {
 
         // Si hay un proyecto preseleccionado (vista 1) o se cambia de proyecto (vista 2) se actualizan los selects
-        function updateSelects() {
-            var selectedOption = $('#project_id').find('option:selected');
-            var projectId = selectedOption.val();
+        function toggleCustomTaskName() {
+        var opt = $('#task-list option:selected');
+        var isCustom = opt.data('is-custom') == 1; // ojo: usa .data()
 
-            // Reiniciamos los selects de task y milestone
-            $('#task-list').empty().append($('<option>', {
-                value: '',
-                text: "{{ __('Select Task') }}"
-            }));
-            $('#milestone_id').empty().append($('<option>', {
-                value: '',
-                text: "{{ __('Select Milestone') }}"
-            }));
+        $('#custom-task-name-container').toggleClass('d-none', !isCustom);
+        $('#custom_task_name').prop('required', !!isCustom);
 
-            // Obtenemos los datos del proyecto seleccionado (asegurando la conversión a objeto)
-            var selectedProject = selectedOption.data('project');
-            if (typeof selectedProject === 'string') {
-                selectedProject = JSON.parse(selectedProject);
-            }
+        if (!isCustom) $('#custom_task_name').val('');
+    }
 
-            // Cargar opciones para task-list según el tipo de proyecto
-            var taskTypes = @json($taskType);
-            $.each(taskTypes, function(index, task) {
-                if (selectedProject && selectedProject.type == task.project_type) {
-                    $('#task-list').append($('<option>', {
-                        value: task.id,
-                        text: task.name
-                    }));
-                }
-            });
+    // ✅ Listener SOLO UNA VEZ
+    $('#task-list').on('change', toggleCustomTaskName);
 
-            // Cargar opciones para milestone según el proyecto seleccionado
-            var milestones = @json($milestones);
-            $.each(milestones, function(index, milestone) {
-                if (projectId == milestone.project_id) {
-                    var option = $('<option>', {
-                        value: milestone.id,
-                        text: milestone.title
-                    });
-                    // Si el milestone coincide con el preseleccionado, se marca como seleccionado
-                    @if ($selectedMilestoneId)
-                        if (milestone.id == '{{ $selectedMilestoneId }}') {
-                            option.attr('selected', 'selected');
-                        }
-                    @endif
-                    $('#milestone_id').append(option);
-                }
-            });
+    function updateSelects() {
+        var selectedOption = $('#project_id').find('option:selected');
+        var projectId = selectedOption.val();
+
+        // Reset selects
+        $('#task-list').empty().append($('<option>', {
+            value: '',
+            text: "{{ __('Select Task') }}"
+        }));
+        $('#milestone_id').empty().append($('<option>', {
+            value: '',
+            text: "{{ __('Select Milestone') }}"
+        }));
+
+        // ✅ Obtener proyecto seleccionado ANTES de usarlo
+        var selectedProject = selectedOption.data('project');
+        if (typeof selectedProject === 'string') {
+            selectedProject = JSON.parse(selectedProject);
         }
+
+        // ✅ taskTypes ANTES de iterar
+        var taskTypes = @json($taskType);
+
+        // Cargar task types y marcar "custom"
+        $.each(taskTypes, function (index, task) {
+            if (selectedProject && String(selectedProject.type) == String(task.project_type)) {
+
+                var isCustom = String(task.name).trim().toLowerCase() === 'custom';
+
+                var $opt = $('<option>', {
+                    value: task.id,
+                    text: task.name
+                });
+
+                // ✅ marcar atributo para detectarlo al seleccionar
+                $opt.attr('data-is-custom', isCustom ? '1' : '0');
+
+                $('#task-list').append($opt);
+            }
+        });
+
+        // Cargar milestones
+        var milestones = @json($milestones);
+        $.each(milestones, function (index, milestone) {
+            if (String(projectId) == String(milestone.project_id)) {
+                var option = $('<option>', {
+                    value: milestone.id,
+                    text: milestone.title
+                });
+
+                @if ($selectedMilestoneId)
+                if (String(milestone.id) == '{{ $selectedMilestoneId }}') {
+                    option.attr('selected', 'selected');
+                }
+                @endif
+
+                $('#milestone_id').append(option);
+            }
+        });
+
+        // ✅ Ajustar visibilidad del input tras repintar
+        toggleCustomTaskName();
+    }
+
+    $('#project_id').on('change', updateSelects);
+
+    @if ($selectedProjectId)
+        $('#project_id').trigger('change');
+    @endif
+
+   
 
         // Al cambiar el select de proyecto se ejecuta la función
         $('#project_id').on('change', function() {
@@ -248,6 +316,25 @@
         @endif
 
     });
+</script>
+<script>
+(function () {
+    // ✅ Detectar si este Create Task viene del cambio de estado 1->2
+    const fromStatusChange =
+        "{{ $fromMilestoneBoard ? 1 : 0 }}" === "1" ||
+        "{{ $fromMyMilestoneBoard ? 1 : 0 }}" === "1";
+
+    if (!fromStatusChange) return;
+
+    const modalEl = document.getElementById('commonModal');
+    if (!modalEl) return;
+
+    // Evitar múltiples handlers si reabres el modal varias veces
+    $(modalEl).off('hidden.bs.modal.taskCreateReload');
+    $(modalEl).on('hidden.bs.modal.taskCreateReload', function () {
+        location.reload();
+    });
+})();
 </script>
 
 <style>
