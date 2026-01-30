@@ -1297,7 +1297,9 @@
     "Current Workspace": "Espacio de trabajo actual",
     "All Workspaces": "Todos los espacios de trabajo",
     "Saving...": "Guardando...",
-    "Phase" : "Fase",
-    "Phases" : "Fases",
-    "Debes seleccionar una fase": "Debes seleccionar una fase"
+    "Phase": "Fase",
+    "Phases": "Fases",
+    "Debes seleccionar una fase": "Debes seleccionar una fase",
+    "My Projects": "Mis Proyectos",
+    "My Milestones": "Mis Hojas de encargo"
 }

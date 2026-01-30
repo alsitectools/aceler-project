@@ -288,6 +288,9 @@ class CalenderController extends Controller
 
         // 1️⃣ Agrupar imputaciones por fecha sumando las horas
         $groupedByDate = [];
+        $minDate = null;
+        $maxDate = null;
+
         foreach ($timesheets as $timesheet) {
             $date = $timesheet->date;
             if (!isset($groupedByDate[$date])) {
@@ -295,6 +298,14 @@ class CalenderController extends Controller
             }
             list($h, $m, $s) = explode(':', $timesheet->time);
             $groupedByDate[$date] += ($h * 60) + $m; // sumar minutos
+
+            // Rastrear la fecha mínima y máxima
+            if ($minDate === null || $date < $minDate) {
+                $minDate = $date;
+            }
+            if ($maxDate === null || $date > $maxDate) {
+                $maxDate = $date;
+            }
         }
 
         // 2️⃣ Generar calendarData con total horas por fecha
@@ -312,64 +323,90 @@ class CalenderController extends Controller
         }
 
         $today = Carbon::now()->toDateString();
-        $currentYear = Carbon::now()->year;
 
-        // Generar todas las semanas del año
-        $startOfYear = Carbon::create($currentYear, 1, 1)->startOfWeek();
-        $endOfYear = Carbon::create($currentYear, 12, 31)->endOfWeek();
-        $period = CarbonPeriod::create($startOfYear, '1 week', $endOfYear);
+        // Determinar el período de semanas a generar
+        // Si hay timesheets, empezar desde el año del primer timesheet
+        // Si no hay timesheets, usar el año actual
+        if ($minDate !== null) {
+            $startOfPeriod = Carbon::parse($minDate)->startOfYear()->startOfWeek();
+        } else {
+            $startOfPeriod = Carbon::now()->startOfYear()->startOfWeek();
+        }
+
+        $endOfPeriod = Carbon::now()->endOfWeek();
+
+        // Crear un índice de calendarData por fecha para búsqueda rápida
+        $calendarDataByDate = [];
+        foreach ($calendarData as $dataDay) {
+            $calendarDataByDate[$dataDay['date']] = $dataDay;
+        }
 
         $colorData = [];
 
-        foreach ($period as $weekStartDate) {
-            $weekStartDate = $weekStartDate->startOfWeek();
-            $weekDays = $this->getWeekDaysOfMonth($weekStartDate->toDateString());
+        // Generar colorData solo para días con timesheets (optimizado para evitar memory exhausted)
+        foreach ($groupedByDate as $currentDate => $totalMinutes) {
+            // Excluir días futuros
+            if ($currentDate > $today) {
+                continue;
+            }
 
-            foreach ($weekDays['datePeriod'] as $currentDate) {
-                $dayOfWeek = strtolower($this->getDayOfWeek($currentDate));
-                $expectedHour = $expectedHours[$dayOfWeek] ?? null;
+            $dayOfWeek = strtolower($this->getDayOfWeek($currentDate));
+            $expectedHour = $expectedHours[$dayOfWeek] ?? null;
 
-                // Excluir días futuros
-                if ($currentDate > $today) {
-                    continue;
-                }
+            if ($expectedHour === null) {
+                continue;
+            }
 
-                // Comprobar horas trabajadas para este día
-                $workedHours = '00:00';
-                $dayColor = '#e06c71'; // rojo por defecto
+            $hours = floor($totalMinutes / 60);
+            $minutes = $totalMinutes % 60;
+            $workedHours = sprintf('%02d:%02d', $hours, $minutes);
 
-                foreach ($calendarData as $dataDay) {
-                    if ($dataDay['date'] === $currentDate) {
-                        $workedHours = $dataDay['hours'];
+            // Determinar color
+            if ($workedHours == '00:00') {
+                $dayColor = '#e06c71'; // rojo
+            } elseif ($workedHours < $expectedHour) {
+                $dayColor = '#fcf75e'; // amarillo
+            } elseif ($workedHours == $expectedHour) {
+                $dayColor = '#89e186'; // verde
+            } else {
+                $dayColor = '#b2e2f2'; // azul
+            }
 
-                        if ($workedHours == '00:00') {
-                            $dayColor = '#e06c71'; // rojo
-                        } elseif ($workedHours < $expectedHour) {
-                            $dayColor = '#fcf75e'; // amarillo
-                        } elseif ($workedHours == $expectedHour) {
-                            $dayColor = '#89e186'; // verde
-                        } elseif ($workedHours > $expectedHour) {
-                            $dayColor = '#b2e2f2'; // azul
-                        }
+            $colorData[] = [
+                'dayOfWeek' => ucfirst($dayOfWeek),
+                'date' => $currentDate,
+                'hours' => $workedHours,
+                'color' => $dayColor,
+            ];
+        }
 
-                        break;
-                    }
-                }
+        // Generar días sin imputaciones (rojos) para el año actual y el anterior
+        $twoYearsAgoStart = Carbon::now()->subYear()->startOfYear()->startOfWeek();
+        $period = CarbonPeriod::create($twoYearsAgoStart, '1 day', $endOfPeriod);
 
-                // Si no hay imputaciones pero es un día pasado y tiene horario esperado
-                if (!isset($groupedByDate[$currentDate]) && $currentDate < $today && $expectedHour !== null) {
-                    $workedHours = '00:00';
-                    $dayColor = '#e06c71'; // rojo
-                }
+        foreach ($period as $dateObj) {
+            $currentDate = $dateObj->toDateString();
 
-                if ($expectedHour !== null) {
-                    $colorData[] = [
-                        'dayOfWeek' => ucfirst($dayOfWeek),
-                        'date' => $currentDate,
-                        'hours' => $workedHours,
-                        'color' => $dayColor,
-                    ];
-                }
+            // Excluir días futuros
+            if ($currentDate > $today) {
+                continue;
+            }
+
+            // Si ya existe en groupedByDate, ya fue procesado arriba
+            if (isset($groupedByDate[$currentDate])) {
+                continue;
+            }
+
+            $dayOfWeek = strtolower($this->getDayOfWeek($currentDate));
+            $expectedHour = $expectedHours[$dayOfWeek] ?? null;
+
+            if ($expectedHour !== null) {
+                $colorData[] = [
+                    'dayOfWeek' => ucfirst($dayOfWeek),
+                    'date' => $currentDate,
+                    'hours' => '00:00',
+                    'color' => '#e06c71', // rojo
+                ];
             }
         }
 
@@ -430,9 +467,10 @@ class CalenderController extends Controller
             ->join('workspaces', 'projects.workspace', '=', 'workspaces.id')
             ->leftJoin('milestones', 'tasks.milestone_id', '=', 'milestones.id')
             ->leftJoin('task_types', 'tasks.type_id', '=', 'task_types.id')
+            ->leftJoin('custom_tasks', 'tasks.id', '=', 'custom_tasks.id_task')
             ->where('timesheets.date', '=', $date)
             ->whereRaw("find_in_set('" . $userId . "',tasks.assign_to)")
-            ->select('projects.name as project_name', 'milestones.title as milestone_title', 'task_types.name as task_title', 'timesheets.time', 'tasks.id as task_id', 'workspaces.name as workspace_name');
+            ->select('projects.name as project_name', 'milestones.title as milestone_title', 'task_types.name as task_title', 'timesheets.time', 'tasks.id as task_id', 'workspaces.name as workspace_name', 'custom_tasks.name as custom_task_name');
 
         if ($request->has('workspace_id') && $request->get('all') != 'true') {
             $query->where('projects.workspace', '=', $request->workspace_id);
@@ -445,16 +483,32 @@ class CalenderController extends Controller
         $totalMinutes = 0;
 
         foreach ($timesheets as $timesheet) {
-            $milestoneTitle = $timesheet->milestone_title ?? $timesheet->task_title;
+            $rawTaskTitle = $timesheet->task_title ?? '';
+            // task_types.name is coming from DB; translate it here (server-side)
+            // so the frontend can just render the already-translated label.
+            $translatedTaskTitle = __($rawTaskTitle);
+
+            if (strtolower($rawTaskTitle) == 'custom') {
+                $customName = $timesheet->custom_task_name;
+                if (!empty($customName)) {
+                    $rawTaskTitle = $customName;
+                    $translatedTaskTitle = $customName;
+                }
+            }
+
+            // Keep grouping key stable (use raw DB values), but display translated fallback.
+            $milestoneTitleKey = $timesheet->milestone_title ?? $rawTaskTitle;
+            $milestoneTitle = $timesheet->milestone_title ?? $translatedTaskTitle;
             // Clave única considerando el workspace para diferenciar proyectos con mismo nombre en diferentes workspaces
-            $key = $timesheet->project_name . '_' . $milestoneTitle . '_' . $timesheet->task_title . '_' . $timesheet->workspace_name;
+            $key = $timesheet->project_name . '_' . $milestoneTitleKey . '_' . $rawTaskTitle . '_' . $timesheet->workspace_name;
 
             if (!isset($tasks[$key])) {
                 $tasks[$key] = [
                     'projectName' => $timesheet->project_name,
                     'workspaceName' => $timesheet->workspace_name,
                     'milestoneTitle' => $milestoneTitle,
-                    'taskTitle' => $timesheet->task_title,
+                    'taskTitle' => $translatedTaskTitle,
+                    'taskId' => $timesheet->task_id,
                     'totalTime' => 0,
                     'totalMinutes' => 0
                 ];

@@ -91,6 +91,27 @@
     .project-accordion {
         list-style: none;
         padding: 0;
+        max-height: 82.5vh;
+        overflow-y: scroll;
+        padding-top: 3px;
+    }
+
+    /* el ancho de la barra */
+    .project-accordion::-webkit-scrollbar {
+        width: 10px;
+    }
+
+    /* El "track" (el fondo) */
+    .project-accordion::-webkit-scrollbar-track {
+        background: transparent;
+    }
+
+    /*El "thumb" (la pieza que se mueve) */
+    .project-accordion::-webkit-scrollbar-thumb {
+        background-color: #ab1126;
+        border-radius: 10px;
+        border: 3px solid transparent;
+        background-clip: content-box;
     }
 
     .project-item {
@@ -200,6 +221,16 @@
     @media (max-width: 576px) {
         .header_breadcrumb {
             width: 100% !important;
+        }
+    }
+
+    @media screen and (min-width:1399px) and (max-width:1600px) {
+        /* * {
+            border: 1px solid red;
+        } */
+
+        .project-accordion {
+            max-height: 66vh;
         }
     }
 
@@ -364,7 +395,7 @@
                     'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                 },
                 success: function(data) {
-                    console.log("success", data);
+                    // console.log("success", data);
 
                     const opacity = 0.4;
                     let allEvents = [];
@@ -373,27 +404,42 @@
                         const nonWorkingDays = Object.keys(data.expectedHours).filter(day => data.expectedHours[
                             day] === null);
 
-                        const currentYear = new Date().getUTCFullYear();
                         const nonWorkingEvents = [];
 
-                        const startOfYear = new Date(Date.UTC(currentYear, 0, 1));
-                        const endOfYear = new Date(Date.UTC(currentYear, 11, 31));
+                        // Determinar el rango de fechas a partir de colorData
+                        let minDate = null;
+                        let maxDate = null;
 
-                        for (let date = new Date(startOfYear); date <= endOfYear; date.setUTCDate(date
-                                .getUTCDate() + 1)) {
-                            const dayOfWeek = date.toLocaleDateString('en-US', {
-                                weekday: 'long',
-                                timeZone: 'UTC'
-                            }).toLowerCase();
-                            if (nonWorkingDays.includes(dayOfWeek)) {
-                                nonWorkingEvents.push({
-                                    title: 'Non-working day',
-                                    start: date.toISOString().split('T')[0],
-                                    backgroundColor: hexToRgba("#d3d3d3", opacity),
-                                    borderColor: '#d3d3d3',
-                                    textColor: 'black',
-                                    allDay: true
-                                });
+                        data.colorData.forEach(item => {
+                            if (!minDate || item.date < minDate) {
+                                minDate = item.date;
+                            }
+                            if (!maxDate || item.date > maxDate) {
+                                maxDate = item.date;
+                            }
+                        });
+
+                        // Si hay colorData, generar non-working days para ese rango
+                        if (minDate && maxDate) {
+                            const startDate = new Date(minDate + 'T00:00:00Z');
+                            const endDate = new Date(maxDate + 'T00:00:00Z');
+
+                            for (let date = new Date(startDate); date <= endDate; date.setUTCDate(date
+                                    .getUTCDate() + 1)) {
+                                const dayOfWeek = date.toLocaleDateString('en-US', {
+                                    weekday: 'long',
+                                    timeZone: 'UTC'
+                                }).toLowerCase();
+                                if (nonWorkingDays.includes(dayOfWeek)) {
+                                    nonWorkingEvents.push({
+                                        title: 'Non-working day',
+                                        start: date.toISOString().split('T')[0],
+                                        backgroundColor: hexToRgba("#d3d3d3", opacity),
+                                        borderColor: '#d3d3d3',
+                                        textColor: 'black',
+                                        allDay: true
+                                    });
+                                }
                             }
                         }
 
@@ -647,6 +693,7 @@
 
                             // Agregar tareas del proyecto
                             group.tasks.forEach(function(task) {
+                                // console.log(task);
                                 const taskItem = document.createElement('div');
                                 taskItem.className = 'task-item';
 
@@ -657,7 +704,6 @@
                                         <div class="task-item-text">${task.workspaceName}</div>
                                     `;
                                 }
-
                                 taskItem.innerHTML = `
                                 ${workspaceHtml}
                                     <div class="task-item-label">{{ __('Milestone') }}</div>
@@ -680,9 +726,11 @@
                             projectItem.appendChild(projectHeader);
                             projectItem.appendChild(projectContent);
                             accordion.appendChild(projectItem);
+
                         });
 
                         taskList.append(accordion);
+
                     } else {
                         taskList.append('<p>{{ __('No tasks available') }}</p>');
                     }
