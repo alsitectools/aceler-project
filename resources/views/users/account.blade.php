@@ -38,6 +38,12 @@
                         class="list-group-item list-group-item-action border-0">{{ __('Holiday') }}
                         <div class="float-end"><i class="ti ti-chevron-right"></i></div>
                     </a>
+                    @if ($user->is_exporter === 1)
+                        <a href="#v-pills-axapta"
+                            class="list-group-item list-group-item-action border-0">{{ __('Export to Axapta') }}
+                            <div class="float-end"><i class="ti ti-chevron-right"></i></div>
+                        </a>
+                    @endif
                 </div>
             </div>
         </div>
@@ -96,6 +102,13 @@
                                     <div style="display: flex; flex-direction: column;" class="col-12">
                                         <strong for="name" class="form-label ">{{ __('Job title') }}</strong>
                                         {{ $user->jobTitle }}
+                                    </div>
+                                </div>
+                                <div class="d-flex mt-4">
+                                    <i class="fa-solid fa-hashtag fa-xl mt-4 me-3"></i>
+                                    <div style="display: flex; flex-direction: column;" class="col-12">
+                                        <strong for="name" class="form-label ">{{ __('Employee number') }}</strong>
+                                        {{ $user->employeeNumber ?? __('N/A') }}
                                     </div>
                                 </div>
                             </div>
@@ -200,12 +213,12 @@
                             <input type="checkbox" class="dayCheckbox" id="{{ strtolower($day) }}Checkbox">
                             <span class="slider round"></span>
                         </label>
-                        <input id="{{ strtolower($day) }}Input" type="time" class="inputToggle">
+                        <input id="{{ strtolower($day) }}Input" type="time" lang="es-ES" step="60" class="inputToggle">
                     </div>
                 @endforeach
             </div>
             <div class="alignCenterItems">
-                <button id="saveTimetable" class="btn btn-sm btn-primary saveButton">{{ _('Save') }}</button>
+                <button id="saveTimetable" class="btn btn-sm btn-primary saveButton">{{ __('Save') }}</button>
             </div>
         </div>
 
@@ -238,6 +251,32 @@
                 <button id="saveHoliday" class="btn btn-sm btn-primary saveButton">{{ __('Save') }}</button>
             </div>
         </div>
+
+        <!-- Axapta Exporter-->
+        @if ($user->is_exporter === 1)
+            <div class="card divTimetable" id="v-pills-axapta">
+                <div class="card-header buttonColocation">
+                    <h5>{{ __('Export to Axapta') }}</h5>
+                    <button class="btn btn-sm btn-primary toggle-section buttonColapse"
+                        data-target="#axapta-content">-</button>
+                </div>
+
+                <div class="collapse-section card-body" id="axapta-content">
+                    <div style="display: flex;justify-content: flex-start;">
+                        <i class="bi bi-info-circle"
+                            style="color: #FFD43B;font-size: 30px;margin-left: 15px;margin-right: -63px;"></i>
+                        <p class="text-muted infoWorkspace">
+                            {{ __('Click the following button to export all Jobside projects to Axapta') }}
+                        </p>
+                    </div>
+                    <div style="display: flex;justify-content: center;">
+                        <button id="exportAxapta" class="btn btn-sm btn-primary" style="width: 15%">
+                            {{ __('Export') }}
+                        </button>
+                    </div>
+                </div>
+            </div>
+        @endif
     @endsection
     @push('scripts')
         <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
@@ -577,6 +616,27 @@
                 target: '#useradd-sidenav',
                 offset: 300
             })
+        </script>
+
+        <script>
+            $('#exportAxapta').on('click', function() {
+
+                operationUrl = '<?php echo url('/projects/export-axapta'); ?>';
+                $.ajax({
+                    type: 'POST',
+                    url: operationUrl,
+                    headers: {
+                        "Content-Type": "application/json",
+                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') // Incluye el token CSRF
+                    },
+                    success: function(data) {
+                        console.log("success");
+                    },
+                    error: function(xhr, status, error) {
+                        console.error("Error:", error);
+                    }
+                });
+            });
         </script>
     @endpush
     <style>

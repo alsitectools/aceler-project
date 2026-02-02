@@ -144,6 +144,7 @@ class AzureController extends Controller
                     'messenger_color' => '#2180f3',
                     'dark_mode' => 0,
                     'active_status' => 1,
+                    'number_employee' => $data['employee_number'],
                 ]
             );
 

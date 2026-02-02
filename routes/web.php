@@ -1056,3 +1056,7 @@ Route::post('/{slug}/milestone/{id}/review', [ProjectController::class, 'milesto
 //DELETE MILESTONE PUNTUATION
 Route::post('/{slug}/milestone/{id}/delete-puntuaciones', [ProjectController::class, 'deletePuntuaciones'])
   ->name('projects.milestone.deletePuntuaciones');
+
+//EXPORT PROJECTS TO AXAPTA
+Route::post('/projects/export-axapta', [ProjectController::class, 'exportProjectsToAxapta'])
+  ->name('projects.export.axapta');

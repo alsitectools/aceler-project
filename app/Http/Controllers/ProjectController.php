@@ -490,6 +490,11 @@ class ProjectController extends Controller
         return redirect()->back()->with('success', __('Permission Updated Successfully!'));
     }
 
+    public function exportProjectsToAxapta()
+    {
+        
+    }
+
     // FUNCION QUE SE LLAMA AL ESTAR DENTRO DE UN PROYECTO
     public function show($slug, $projectID)
     {
@@ -1614,7 +1619,7 @@ class ProjectController extends Controller
     {
         $currentWorkspace = Utility::getWorkspaceBySlug($slug);
         $milestone = Milestone::findOrFail($id);
-        $systemOptions = System::all();
+        $systemOptions = System::orderBy('name_system', 'asc')->get();
         // Retorna una vista parcial (para el popup)
         return view('projects.milestoneReview', compact('milestone', 'currentWorkspace', 'systemOptions'));
     }

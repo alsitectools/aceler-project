@@ -589,7 +589,7 @@
                                                 </tr>
                                             </thead>
                                             <tbody>
-                                                @foreach ($project->milestones as $key => $milestone)
+                                                @foreach ($project->milestones->sortByDesc('id') as $key => $milestone)
                                                     <tr>
                                                         @if ($project->type == 3)
                                                             <td>
