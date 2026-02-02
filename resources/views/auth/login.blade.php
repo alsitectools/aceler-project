@@ -181,7 +181,7 @@
 
 
                         <div class="row">
-                            <div class="form-group col-md-8">
+                            <div class="form-group col-md-4">
                                 <fieldset class="custom-fieldset disabled">
                                     <legend class="custom-legend">{{ __('Name') }}</legend>
                                     <input type="text" class="custom-input"
@@ -193,6 +193,13 @@
                                     <legend class="custom-legend">{{ __('Department') }}</legend>
                                     <input type="text" class="custom-input"
                                         value="{{ session('userProfile.department') }}" readonly>
+                                </fieldset>
+                            </div>
+                            <div class="form-group col-md-4">
+                                <fieldset class="custom-fieldset">
+                                    <legend class="custom-legend">{{ __('Employee number') }}</legend>
+                                    <input type="number" class="custom-input" name="employee_number" 
+                                    placeholder="{{ __('Enter your employee number') }}" required>
                                 </fieldset>
                             </div>
                         </div>
@@ -247,7 +254,7 @@
                                                         id="{{ strtolower($day) }}Checkbox">
                                                     <span class="slider round"></span>
                                                 </label>
-                                                <input id="{{ strtolower($day) }}Input" type="time"
+                                                <input id="{{ strtolower($day) }}Input" type="time" lang="es-ES" step="60"
                                                     class="inputToggle">
                                             </div>
                                         @endforeach
