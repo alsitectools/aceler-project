@@ -206,7 +206,7 @@
         margin: 2px 0px 8px 0px;
         font-size: 13px;
         max-width: 100%;
-        white-space: nowrap;
+        /* white-space: nowrap; */
         overflow: hidden;
         text-overflow: ellipsis;
     }
@@ -652,11 +652,15 @@
                     const taskList = $('#task-list');
                     taskList.empty();
 
-                    if (response.tasks && response.tasks.length > 0) {
+                    // Filtrar tareas con totalTime diferente de 00:00
+                    const filteredTasks = response.tasks ? response.tasks.filter(task => task.totalTime !==
+                        '00:00') : [];
+
+                    if (filteredTasks.length > 0) {
                         // Agrupar tareas por proyecto (y workspace si aplica)
                         const projectsMap = {};
 
-                        response.tasks.forEach(function(task) {
+                        filteredTasks.forEach(function(task) {
                             // Crear clave única combinando proyecto y workspace para evitar mezclar si hay nombres repetidos
                             const key = mode === 'all' ? `${task.projectName}__${task.workspaceName}` :
                                 task.projectName;
