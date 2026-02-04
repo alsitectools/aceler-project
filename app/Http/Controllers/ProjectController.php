@@ -101,6 +101,34 @@ class ProjectController extends Controller
     }
 
     /**
+     * Sanitiza una cadena para ser usada como nombre de DIRECTORIO.
+     * Reemplaza espacios y caracteres especiales con guiones bajos.
+     *
+     * @param string $string Cadena a sanitizar
+     * @return string Cadena sanitizada
+     */
+    private function sanitizePath($string)
+    {
+        // Reemplaza espacios por guiones bajos
+        $string = str_replace(' ', '_', $string);
+        // Reemplaza cualquier carácter que NO sea alfanumérico, guion bajo, guion medio o punto por guion bajo
+        return preg_replace('/[^A-Za-z0-9_\-\.]/', '_', $string);
+    }
+
+    /**
+     * Normaliza un nombre de archivo SIN cambiar caracteres legibles (á, ñ, espacios, etc.).
+     * Solo evita que vengan segmentos de ruta (/, \\) o bytes nulos.
+     */
+    private function cleanFileName(string $fileName): string
+    {
+        $fileName = str_replace("\0", '', $fileName);
+        // Unificar separadores por seguridad y extraer el basename
+        $fileName = str_replace('\\', '/', $fileName);
+        $fileName = basename($fileName);
+        return trim($fileName);
+    }
+
+    /**
      * Genera un nombre único para un archivo si ya existe uno con el mismo nombre.
      * Ejemplo: archivo.pdf -> archivo (2).pdf -> archivo (3).pdf
      *
@@ -504,7 +532,7 @@ class ProjectController extends Controller
         $projectQuery = Project::where('workspace', $currentWorkspace->id)
             ->where('id', $projectID)
             ->with('activities.user');
-        
+
         $project = $projectQuery->first();
 
         if (!$project) {
@@ -559,7 +587,7 @@ class ProjectController extends Controller
                 $storage = \Storage::disk('local');
 
                 // Obtener archivos del proyecto
-                $projectFolder = 'project_files' . '/' . strtr($project->name, [" " => "_"]);
+                $projectFolder = 'project_files' . '/' . $this->sanitizePath($project->name);
                 // $projectFiles = $storage->files($projectFolder);
                 $projectFiles = ProjectFile::where('project_id', '=', $projectID)->get();
 
@@ -569,12 +597,12 @@ class ProjectController extends Controller
                 $milestonesQuery = Milestone::where('project_id', '=', $projectID)
                     ->whereHas('files') // Filtra milestones que tienen archivos
                     ->with(['files']);
-                
+
                 // Si el proyecto es tipo 3, cargar también las phases
                 if ($project->type == 3) {
                     $milestonesQuery->with(['phases']);
                 }
-                
+
                 $milestones = $milestonesQuery
                     ->select('id', 'title')
                     ->get(); // Obtiene una colección de objetos Eloquent
@@ -774,24 +802,50 @@ class ProjectController extends Controller
             ], 404);
         }
 
-        $projectName = strtr($project->name, [' ' => '_']);
-        $milestoneName = isset($inputs['milestoneTitle']) ? strtr($inputs['milestoneTitle'], [' ' => '_']) : null;
+        $projectName = $this->sanitizePath($project->name);
+        $milestoneName = isset($inputs['milestoneTitle']) ? $this->sanitizePath($inputs['milestoneTitle']) : null;
+
+        if (!isset($inputs['fileName'])) {
+            return response()->json([
+                'success' => false,
+                'message' => 'File name is required.'
+            ], 400);
+        }
+
+        // ✅ NO sanitizar el nombre del archivo (mantener caracteres originales)
+        $requestedFileName = $this->cleanFileName($inputs['fileName']);
 
         $filePath = '';
 
         if ($milestoneName !== null) {
-            $filePath = 'project_files/' . $projectName . '/' . $milestoneName . '/' . $inputs['fileName'];
+            // Buscar primero por el nombre tal cual (sin sanitizar)
+            $filePath = 'project_files/' . $projectName . '/' . $milestoneName . '/' . $requestedFileName;
+
+            // Fallback: compatibilidad con archivos antiguos sanitizados
+            if (!Storage::disk('local')->exists($filePath)) {
+                $legacySanitized = $this->sanitizePath($requestedFileName);
+                $filePath = 'project_files/' . $projectName . '/' . $milestoneName . '/' . $legacySanitized;
+            }
         } else {
-            $filePath = 'project_files/' . $projectName . '/' . $inputs['fileName'];
+            // Buscar primero por el nombre tal cual (sin sanitizar)
+            $filePath = 'project_files/' . $projectName . '/' . $requestedFileName;
+
+            // Fallback: compatibilidad con archivos antiguos sanitizados
+            if (!Storage::disk('local')->exists($filePath)) {
+                $legacySanitized = $this->sanitizePath($requestedFileName);
+                $filePath = 'project_files/' . $projectName . '/' . $legacySanitized;
+            }
         }
 
         if (!Storage::disk('local')->exists($filePath)) {
+            \Log::error("File verification failed. Inputs: " . json_encode($inputs) . " | Checked Path: " . $filePath);
             return response()->json([
                 'success' => false,
                 'message' => 'File not found.'
             ], 404);
         }
-        $url = asset('storage/' . $filePath);
+        $encodedPath = implode('/', array_map('rawurlencode', explode('/', $filePath)));
+        $url = asset('storage/' . $encodedPath);
 
         return response()->json([
             'success' => true,
@@ -806,8 +860,8 @@ class ProjectController extends Controller
 
         // Obtener el proyecto usando el ID
         $project = Project::findOrFail($inputs['idProject']);
-        $projectName = strtr($project->name, [' ' => '_']);
-        $milestoneName = strtr($inputs['milestoneTitle'], [' ' => '_']);
+        $projectName = $this->sanitizePath($project->name);
+        $milestoneName = $this->sanitizePath($inputs['milestoneTitle']);
 
         // check if it's a milestone file or a project file
         $filePath = '';
@@ -1063,7 +1117,7 @@ class ProjectController extends Controller
         try {
             DB::transaction(function () use ($projectID, $project) {
 
-                $projectFolder = str_replace(' ', '_', $project->name);
+                $projectFolder = $this->sanitizePath($project->name);
 
                 //** Funciones que eliminan los ficheros del sistema teniendo en cuenta que no esta conectado al sharePoint */
 
@@ -1071,7 +1125,7 @@ class ProjectController extends Controller
                 $milestones = Milestone::where('project_id', $projectID)->get();
                 foreach ($milestones as $milestone) {
                     foreach ($milestone->files as $file) {
-                        $milestoneFolder = str_replace(' ', '_', $milestone->title);
+                        $milestoneFolder = $this->sanitizePath($milestone->title);
                         $dir = 'project_files/' . $projectFolder . '/' . $milestoneFolder;
 
                         if (Storage::exists($dir)) {
@@ -1085,7 +1139,7 @@ class ProjectController extends Controller
 
                 $projectFiles = ProjectFile::where('project_id', $projectID)->get();
                 foreach ($projectFiles as $file) {
-                    $milestoneFolder = str_replace(' ', '_', $milestone->title);
+                    // $milestoneFolder = str_replace(' ', '_', $milestone->title); // Removed incorrect line if using projectFolder only next
 
                     $dir = 'project_files/' . $projectFolder;
                     if (Storage::exists($dir)) {
@@ -1630,15 +1684,14 @@ class ProjectController extends Controller
         $milestone = \App\Models\Milestone::with('project')->findOrFail($milestoneId);
         $project = $milestone->project;
 
-        $originalName = $file->getClientOriginalName();
-        $originalName = str_replace(' ', '_', $originalName);
+        $originalName = $this->cleanFileName($file->getClientOriginalName());
 
         $extension = $file->getClientOriginalExtension();
         $fileSize = round($file->getSize() / 1024, 2) . ' KB';
         $uniqueName = $milestone->id . '_' . time() . '_' . uniqid() . '_rf_' . $originalName;
 
-        $projectFolder = str_replace(' ', '_', $project->name);
-        $milestoneFolder = str_replace(' ', '_', $milestone->title);
+        $projectFolder = $this->sanitizePath($project->name);
+        $milestoneFolder = $this->sanitizePath($milestone->title);
 
         $dir = storage_path('project_files/' . $projectFolder . '/' . $milestoneFolder);
 
@@ -1709,168 +1762,168 @@ class ProjectController extends Controller
 
 
     public function milestoneReviewSubmit(Request $request, $slug, $id)
-{
-    try {
-        $milestoneId = $request->input('milestone_id', $id);
+    {
+        try {
+            $milestoneId = $request->input('milestone_id', $id);
 
-        if (!$milestoneId || !is_numeric($milestoneId)) {
-            return redirect()->back()->with('error', 'Falta el ID del milestone.');
-        }
+            if (!$milestoneId || !is_numeric($milestoneId)) {
+                return redirect()->back()->with('error', 'Falta el ID del milestone.');
+            }
 
-        $milestone = Milestone::with('tasks')->find($milestoneId);
-        if (!$milestone) {
-            return redirect()->back()->with('error', 'Milestone no encontrado.');
-        }
+            $milestone = Milestone::with('tasks')->find($milestoneId);
+            if (!$milestone) {
+                return redirect()->back()->with('error', 'Milestone no encontrado.');
+            }
 
-        // ✅ Ahora vienen como array: review_files[]
-        $hasPdfs = $request->hasFile('review_files');
+            // ✅ Ahora vienen como array: review_files[]
+            $hasPdfs = $request->hasFile('review_files');
 
-        $systems = $request->input('systems', []);
-        if (empty($systems)) {
-            return redirect()->back()->with('error', 'Debes seleccionar al menos un sistema.');
-        }
+            $systems = $request->input('systems', []);
+            if (empty($systems)) {
+                return redirect()->back()->with('error', 'Debes seleccionar al menos un sistema.');
+            }
 
-        // ---------------------------------------
-        // ✅ Validación condicional
-        // ---------------------------------------
-        $rules = [
-            'systems'   => ['required', 'array', 'min:1'],
-            'systems.*' => ['string'],
-        ];
+            // ---------------------------------------
+            // ✅ Validación condicional
+            // ---------------------------------------
+            $rules = [
+                'systems'   => ['required', 'array', 'min:1'],
+                'systems.*' => ['string'],
+            ];
 
-        if ($hasPdfs) {
-            $rules = array_merge($rules, [
-                'review_files'    => ['required', 'array', 'min:1', 'max:5'],
-                'review_files.*'  => ['file', 'mimes:pdf', 'max:51200'], // 50MB por archivo
-                'num_plans'       => ['required', 'integer', 'min:1'],
-                'document_format' => ['required', 'in:dwg,pdf,papel'],
-                'detail_level'    => ['required', 'in:oferta,montaje,edificacion'],
+            if ($hasPdfs) {
+                $rules = array_merge($rules, [
+                    'review_files'    => ['required', 'array', 'min:1', 'max:5'],
+                    'review_files.*'  => ['file', 'mimes:pdf', 'max:51200'], // 50MB por archivo
+                    'num_plans'       => ['required', 'integer', 'min:1'],
+                    'document_format' => ['required', 'in:dwg,pdf,papel'],
+                    'detail_level'    => ['required', 'in:oferta,montaje,edificacion'],
+                ]);
+            }
+
+            $validator = Validator::make($request->all(), $rules, [
+                'review_files.max'    => 'Puedes subir como máximo 5 PDFs.',
+                'review_files.*.mimes' => 'Todos los archivos deben ser PDF.',
+                'review_files.*.max'  => 'Cada PDF no puede superar 50MB.',
+                'systems.required'    => 'Debes seleccionar al menos un sistema.',
+                'systems.min'         => 'Debes seleccionar al menos un sistema.',
             ]);
+
+            if ($validator->fails()) {
+                return redirect()->back()->withErrors($validator)->withInput();
+            }
+
+            // ---------------------------------------
+            // ✅ Subir PDFs (solo si existen)
+            // ---------------------------------------
+            if ($hasPdfs) {
+                $this->uploadMilestoneReviewFiles($request, $slug, $milestoneId);
+            }
+
+            // ---------------------------------------
+            // ✅ Inputs para cálculo:
+            // Normal: vienen del request
+            // Omit: defaults neutros para evitar 0
+            // ---------------------------------------
+            if ($hasPdfs) {
+                $numPlans       = (int) $request->input('num_plans');
+                $documentFormat = $request->input('document_format');
+                $detailLevel    = $request->input('detail_level');
+
+                $formatPoints = Puntuacion::where('nombre', $documentFormat)->value('valor') ?? 0;
+                $detailPoints = Puntuacion::where('nombre', $detailLevel)->value('valor') ?? 0;
+            } else {
+                // ✅ Defaults en modo omit
+                $numPlans     = 1;
+                $formatPoints = 0;
+                $detailPoints = 1;
+            }
+
+            // ---------------------------------------
+            // Calcular systemPoints (igual que antes)
+            // ---------------------------------------
+            $systemPoints = Puntuacion::whereIn('nombre', $systems)
+                ->get()
+                ->pluck('valor')
+                ->reduce(function ($carry, $item) {
+                    return $carry * $item;
+                }, 1);
+
+            if ($systemPoints > 2) $systemPoints = 2;
+
+            // ---------------------------------------
+            // Calcular tiempo estimado
+            // ---------------------------------------
+            $estimated_time = ($numPlans * $systemPoints * $detailPoints) + $formatPoints;
+
+            // ✅ guarda anti-0 para evitar división por 0 en calculatePoints
+            if ($estimated_time <= 0) {
+                $estimated_time = 1;
+            }
+
+            // ---------------------------------------
+            // Obtener horas imputadas desde Tarea Drawing
+            // ---------------------------------------
+            $drawingTask = $milestone->tasks()
+                ->whereHas('type', function ($q) {
+                    $q->where('name', 'Drawing');
+                })
+                ->first();
+
+            if (!$drawingTask) {
+                \Log::warning("No se encontró tarea tipo Drawing en el milestone {$milestone->id}");
+                $real_imputed_time = 0;
+            } else {
+                $real_imputed_time = $drawingTask->timesheets()
+                    ->selectRaw('SUM(TIME_TO_SEC(time)) as total_seconds')
+                    ->value('total_seconds');
+
+                $real_imputed_time = ($real_imputed_time ?? 0) / 3600;
+            }
+
+            // ---------------------------------------
+            // Puntos extras por tareas
+            // ---------------------------------------
+            $extraTaskPoints = TaskType::where('project_type', 1)
+                ->whereIn('id', $milestone->tasks()->pluck('type_id'))
+                ->sum('puntuacion');
+
+            // ---------------------------------------
+            // Calcular puntos
+            // ---------------------------------------
+            $allPoints = $this->calculatePoints($estimated_time, $real_imputed_time, $extraTaskPoints);
+
+            if ($allPoints['totalPoints'] === null) {
+                $allPoints['totalPoints'] = 0;
+            }
+
+            foreach ($milestone->tasks as $task) {
+                PuntuacionTarea::updateOrCreate(
+                    ['id_tarea' => $task->id],
+                    [
+                        'cantidad_puntaje' => $allPoints['totalPoints'],
+                        'user_id'          => $task->assign_to,
+                        'puntos_hora'      => $allPoints['pointsHour'],
+                    ]
+                );
+            }
+
+            ActivityLog::create([
+                'user_id'    => \Auth::user()->id,
+                'user_type'  => get_class(\Auth::user()),
+                'project_id' => $milestone->project_id,
+                'log_type'   => $hasPdfs ? 'has uploaded review files' : 'has omitted the review files',
+                'remark'     => json_encode([
+                    'milestoneTitle' => $milestone->title ?? 'Unnamed milestone',
+                ]),
+            ]);
+
+            return redirect()->back()->with('success', 'Revisión guardada correctamente.');
+        } catch (\Throwable $e) {
+            \Log::error("Error en milestoneReviewSubmit", ['error' => $e->getMessage()]);
+            return redirect()->back()->with('error', 'Ocurrió un error: ' . $e->getMessage());
         }
-
-        $validator = Validator::make($request->all(), $rules, [
-            'review_files.max'    => 'Puedes subir como máximo 5 PDFs.',
-            'review_files.*.mimes'=> 'Todos los archivos deben ser PDF.',
-            'review_files.*.max'  => 'Cada PDF no puede superar 50MB.',
-            'systems.required'    => 'Debes seleccionar al menos un sistema.',
-            'systems.min'         => 'Debes seleccionar al menos un sistema.',
-        ]);
-
-        if ($validator->fails()) {
-            return redirect()->back()->withErrors($validator)->withInput();
-        }
-
-        // ---------------------------------------
-        // ✅ Subir PDFs (solo si existen)
-        // ---------------------------------------
-        if ($hasPdfs) {
-            $this->uploadMilestoneReviewFiles($request, $slug, $milestoneId);
-        }
-
-        // ---------------------------------------
-        // ✅ Inputs para cálculo:
-        // Normal: vienen del request
-        // Omit: defaults neutros para evitar 0
-        // ---------------------------------------
-        if ($hasPdfs) {
-            $numPlans       = (int) $request->input('num_plans');
-            $documentFormat = $request->input('document_format');
-            $detailLevel    = $request->input('detail_level');
-
-            $formatPoints = Puntuacion::where('nombre', $documentFormat)->value('valor') ?? 0;
-            $detailPoints = Puntuacion::where('nombre', $detailLevel)->value('valor') ?? 0;
-        } else {
-            // ✅ Defaults en modo omit
-            $numPlans     = 1;
-            $formatPoints = 0;
-            $detailPoints = 1;
-        }
-
-        // ---------------------------------------
-        // Calcular systemPoints (igual que antes)
-        // ---------------------------------------
-        $systemPoints = Puntuacion::whereIn('nombre', $systems)
-            ->get()
-            ->pluck('valor')
-            ->reduce(function ($carry, $item) {
-                return $carry * $item;
-            }, 1);
-
-        if ($systemPoints > 2) $systemPoints = 2;
-
-        // ---------------------------------------
-        // Calcular tiempo estimado
-        // ---------------------------------------
-        $estimated_time = ($numPlans * $systemPoints * $detailPoints) + $formatPoints;
-
-        // ✅ guarda anti-0 para evitar división por 0 en calculatePoints
-        if ($estimated_time <= 0) {
-            $estimated_time = 1;
-        }
-
-        // ---------------------------------------
-        // Obtener horas imputadas desde Tarea Drawing
-        // ---------------------------------------
-        $drawingTask = $milestone->tasks()
-            ->whereHas('type', function ($q) {
-                $q->where('name', 'Drawing');
-            })
-            ->first();
-
-        if (!$drawingTask) {
-            \Log::warning("No se encontró tarea tipo Drawing en el milestone {$milestone->id}");
-            $real_imputed_time = 0;
-        } else {
-            $real_imputed_time = $drawingTask->timesheets()
-                ->selectRaw('SUM(TIME_TO_SEC(time)) as total_seconds')
-                ->value('total_seconds');
-
-            $real_imputed_time = ($real_imputed_time ?? 0) / 3600;
-        }
-
-        // ---------------------------------------
-        // Puntos extras por tareas
-        // ---------------------------------------
-        $extraTaskPoints = TaskType::where('project_type', 1)
-            ->whereIn('id', $milestone->tasks()->pluck('type_id'))
-            ->sum('puntuacion');
-
-        // ---------------------------------------
-        // Calcular puntos
-        // ---------------------------------------
-        $allPoints = $this->calculatePoints($estimated_time, $real_imputed_time, $extraTaskPoints);
-
-        if ($allPoints['totalPoints'] === null) {
-            $allPoints['totalPoints'] = 0;
-        }
-
-        foreach ($milestone->tasks as $task) {
-            PuntuacionTarea::updateOrCreate(
-                ['id_tarea' => $task->id],
-                [
-                    'cantidad_puntaje' => $allPoints['totalPoints'],
-                    'user_id'          => $task->assign_to,
-                    'puntos_hora'      => $allPoints['pointsHour'],
-                ]
-            );
-        }
-
-        ActivityLog::create([
-            'user_id'    => \Auth::user()->id,
-            'user_type'  => get_class(\Auth::user()),
-            'project_id' => $milestone->project_id,
-            'log_type'   => $hasPdfs ? 'has uploaded review files' : 'has omitted the review files',
-            'remark'     => json_encode([
-                'milestoneTitle' => $milestone->title ?? 'Unnamed milestone',
-            ]),
-        ]);
-
-        return redirect()->back()->with('success', 'Revisión guardada correctamente.');
-    } catch (\Throwable $e) {
-        \Log::error("Error en milestoneReviewSubmit", ['error' => $e->getMessage()]);
-        return redirect()->back()->with('error', 'Ocurrió un error: ' . $e->getMessage());
     }
-}
 
 
     public function deletePuntuaciones($slug, $milestoneId)
@@ -2621,24 +2674,24 @@ class ProjectController extends Controller
         ]);
     }
     public function getProjectsJson($slug, $search = null)
-{
-    $query = Project::query()
-        ->select(['id', 'name', 'ref_mo', 'type'])
-        ->with(['typeRel:id,name']);
+    {
+        $query = Project::query()
+            ->select(['id', 'name', 'ref_mo', 'type'])
+            ->with(['typeRel:id,name']);
 
-    if ($search) {
-        $query->where(function ($query) use ($search) {
-            $query->where('ref_mo', 'LIKE', "%{$search}%")
-                  ->orWhere('name', 'LIKE', "%{$search}%");
-        });
+        if ($search) {
+            $query->where(function ($query) use ($search) {
+                $query->where('ref_mo', 'LIKE', "%{$search}%")
+                    ->orWhere('name', 'LIKE', "%{$search}%");
+            });
+        }
+
+        $objProject = $query->paginate(25);
+
+        return response()->json([
+            'projects' => $objProject,
+        ]);
     }
-
-    $objProject = $query->paginate(25);
-
-    return response()->json([
-        'projects' => $objProject,
-    ]);
-}
 
     public function getSalesJson($slug, $search = null)
     {
@@ -2809,8 +2862,8 @@ class ProjectController extends Controller
 
         // Subida de archivos
         if ($request->hasFile('files')) {
-            $projectFolder = str_replace(' ', '_', $project->name);
-            $milestoneFolder = str_replace(' ', '_', $milestone->title);
+            $projectFolder = $this->sanitizePath($project->name);
+            $milestoneFolder = $this->sanitizePath($milestone->title);
             $dir = 'project_files/' . $projectFolder . '/' . $milestoneFolder;
 
             if (!file_exists(storage_path($dir))) {
@@ -2824,9 +2877,7 @@ class ProjectController extends Controller
 
             foreach ($request->file('files') as $file) {
                 if ($file->isValid()) {
-                    $originalName = $file->getClientOriginalName();
-                    // Reemplazar espacios con guiones bajos
-                    $originalName = str_replace(' ', '_', $originalName);
+                    $originalName = $this->cleanFileName($file->getClientOriginalName());
 
                     // Generar nombre único si ya existe
                     $uniqueDisplayName = $this->generateUniqueFileName($originalName, $existingFileNames);
@@ -2988,20 +3039,20 @@ class ProjectController extends Controller
     {
         $currentWorkspace = Utility::getWorkspaceBySlug($slug);
         $milestone = Milestone::find($milestoneID);
-        
+
         // Cargar el proyecto para determinar si es tipo 3
         $project = null;
         $phases = [];
         $currentPhase = null;
-        
+
         if ($milestone) {
             $project = $milestone->project;
-            
+
             // Si es proyecto tipo 3, cargar las phases disponibles y la phase actual del milestone
             if ($project && $project->type == 3) {
                 // Cargar todas las phases disponibles (del modelo MilestonePhases)
                 $phases = MilestonePhases::PHASES;
-                
+
                 // Cargar la phase actual del milestone
                 $currentPhaseObj = MilestonePhases::where('id_milestone', $milestone->id)->first();
                 $currentPhase = $currentPhaseObj ? $currentPhaseObj->phases : null;
@@ -3017,11 +3068,11 @@ class ProjectController extends Controller
         \Log::info(['request' => $request->all(), 'inputs' => $inputs]);
         // Obtener el proyecto usando el ID
         $project = Project::findOrFail($inputs['idProject']);
-        $projectName = strtr($project->name, [' ' => '_']);
+        $projectName = $this->sanitizePath($project->name);
 
         // Obtener el milestone
         $milestone = Milestone::findOrFail($inputs['milestoneId']);
-        $milestoneName = strtr($milestone->title, [' ' => '_']);
+        $milestoneName = $this->sanitizePath($milestone->title);
 
         // Directorio donde se almacenan los archivos del milestone
         $milestoneFolder = 'project_files/' . $projectName . '/' . $milestoneName;
@@ -3126,7 +3177,7 @@ class ProjectController extends Controller
         if ($request->has('phase') && !empty($request->phase)) {
             // Eliminar la phase anterior si existe
             MilestonePhases::where('id_milestone', $milestone->id)->delete();
-            
+
             // Crear la nueva phase
             MilestonePhases::create([
                 'id_milestone' => $milestone->id,
@@ -3144,8 +3195,8 @@ class ProjectController extends Controller
         $failedFiles = [];
 
         if ($request->hasFile('new_files')) {
-            $projectFolder = str_replace(' ', '_', $project->name);
-            $milestoneFolder = str_replace(' ', '_', $milestone->title);
+            $projectFolder = $this->sanitizePath($project->name);
+            $milestoneFolder = $this->sanitizePath($milestone->title);
             $dir = 'project_files/' . $projectFolder . '/' . $milestoneFolder;
             $MAX_FILE_SIZE = 52428800; // 50MB en bytes
 
@@ -3177,8 +3228,7 @@ class ProjectController extends Controller
                 }
 
                 $originalFileName = $file->getClientOriginalName();
-                // ✅ Reemplazar espacios con guiones bajos
-                $originalFileName = str_replace(' ', '_', $originalFileName);
+                $originalFileName = $this->cleanFileName($originalFileName);
 
                 // Generar nombre único si ya existe
                 $uniqueDisplayName = $this->generateUniqueFileName($originalFileName, $existingFileNames);
@@ -3263,14 +3313,17 @@ class ProjectController extends Controller
 
                 $milestone->tasks()->delete();
 
-                $milestoneFolder = str_replace(' ', '_', $milestone->title);
-                $projectFolder = str_replace(' ', '_', $project->name);
+                $milestoneFolder = $this->sanitizePath($milestone->title);
+                $projectFolder = $this->sanitizePath($project->name);
                 $dir = "project_files/{$projectFolder}/{$milestoneFolder}";
 
-                if (Storage::exists($dir)) {
-                    if (!Storage::deleteDirectory($dir)) {
-                        return redirect()->back()->with('error', __('Error deleting milestone files.'));
+                try {
+                    if (Storage::exists($dir)) {
+                        if (!Storage::deleteDirectory($dir)) {
+                            return redirect()->back()->with('error', __('Error deleting milestone files.'));
+                        }
                     }
+                } catch (\Exception $e) {
                 }
 
                 $milestone->delete();
@@ -3377,19 +3430,18 @@ class ProjectController extends Controller
         ]);
 
         $file = $request->file('file');
-        // ✅ Reemplazar espacios con guiones bajos
-        $file_name = str_replace(' ', '_', $file->getClientOriginalName());
+        // ✅ Mantener el nombre original del archivo (sin sanitizar)
+        $file_name = $this->cleanFileName($file->getClientOriginalName());
         $extension = $file->getClientOriginalExtension();
 
         $existingNames = ProjectFile::where('project_id', $project->id)
             ->pluck('file_name')
-            ->map(fn($name) => str_replace(' ', '_', $name))
             ->toArray();
         $uniqueFileName = $this->generateUniqueFileName($file_name, $existingNames);
 
         $newName = $project->id . "_" . md5(time()) . "_" . $uniqueFileName;
 
-        $projectFolder = str_replace(' ', '_', $project->name);
+        $projectFolder = $this->sanitizePath($project->name);
 
         $dir = 'project_files/' . $projectFolder;
 
@@ -3461,7 +3513,7 @@ class ProjectController extends Controller
         if ($file) {
 
             $logo = Utility::get_file('project_files/');
-            $project_name = str_replace(' ', '_', $project->name);
+            $project_name = $this->sanitizePath($project->name);
             $settings = Utility::getAdminPaymentSettings();
             try {
                 if ($settings['storage_setting'] == 'local') {
