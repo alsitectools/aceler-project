@@ -8,7 +8,7 @@
     </li>
     <li class="breadcrumb-item"><a href="{{ route('projects.index', $currentWorkspace->slug) }}">{{ __('Projects') }}</a>
     </li>
-    <li class="breadcrumb-item">{{ $project->name }}</li>
+    <li class="breadcrumb-item lastBreadCrumb">{{ $project->name }}</li>
 @endsection
 @php
     use Carbon\Carbon;
@@ -19,6 +19,15 @@
 @endphp
 
 <style type="text/css">
+    .lastBreadCrumb {
+        /* background-color: #AA182C !important; */
+        /* width: 80%; */
+        max-width: 700px;
+        overflow: hidden;
+        text-wrap: nowrap;
+        text-overflow: ellipsis;
+    }
+
     .fix_img {
         width: 40px !important;
         border-radius: 50%;
@@ -597,7 +606,8 @@
                                                                     $phase = $milestone->phases()->first();
                                                                 @endphp
                                                                 @if ($phase)
-                                                                    <span style="font-weight: bold;">{{ $phase->phases }}</span>
+                                                                    <span
+                                                                        style="font-weight: bold;">{{ $phase->phases }}</span>
                                                                 @else
                                                                     <span class="text-muted">...</span>
                                                                 @endif
@@ -1076,7 +1086,7 @@
                                                                             {{ $file->name }}
                                                                         </p>
                                                                         <div class="uploaded-file-buttons">
-                                                                            <a onclick="downloadFile({{ $project->id }}, '', '{{ $milestone['title'] }}/{{ basename($file->file) }}')"
+                                                                            <a onclick="downloadFile({{ $project->id }}, '{{ $milestone['title'] }}', '{{ basename($file->file) }}')"
                                                                                 class="buttonFiles btn btn-sm">
                                                                                 <i class="ti ti-download"
                                                                                     style="color:white"></i>
@@ -1209,8 +1219,6 @@
     <script src="{{ asset('assets/js/plugins/apexcharts.min.js') }}"></script>
     <script>
         function downloadFile(idProject, titleMilestone, file) {
-            file = file.replace(/\s+/g, '_')
-
             const downloadUrl = "{{ route('project.downloadFile') }}";
             $.ajax({
                 url: downloadUrl,
