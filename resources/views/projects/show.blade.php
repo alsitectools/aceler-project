@@ -1561,31 +1561,39 @@
 
             function getCellValue(row, sortKey) {
                 const cells = row.querySelectorAll('td');
-                switch (sortKey) {
-                    case 'title':
-                        return row.querySelector('td:nth-child(1) h5').textContent.trim();
+                // Calculate index dynamically based on header position
+                const idx = Array.from(sortableHeaders).findIndex(h => h.dataset.sort === sortKey);
 
-                    case 'requested_by':
-                        return row.querySelector('td:nth-child(2) img')?.title?.trim() || '';
+                // If index is valid
+                if (idx >= 0 && idx < cells.length) {
+                    const cell = cells[idx];
 
-                    case 'assigned_to':
-                        return row.querySelector('td:nth-child(3) img')?.title?.trim() || '';
+                    switch (sortKey) {
+                        case 'title':
+                            return cell.querySelector('h5')?.textContent.trim() || '';
 
-                    case 'status':
-                        return row.querySelector('td:nth-child(4) label').textContent.trim();
+                        case 'requested_by':
+                            return cell.querySelector('img')?.title?.trim() || '';
 
-                    case 'start_date':
-                    case 'end_date':
-                    case 'planned_end_date':
-                    case 'task_start_date':
-                    case 'finalization_date':
-                        const idx = Array.from(sortableHeaders).findIndex(h => h.dataset.sort === sortKey);
-                        const dateStr = cells[idx].textContent.trim();
-                        return parseDate(dateStr);
+                        case 'assigned_to':
+                            return cell.querySelector('img')?.title?.trim() || '';
 
-                    default:
-                        return '';
+                        case 'status':
+                            return cell.querySelector('label')?.textContent.trim() || '';
+
+                        case 'start_date':
+                        case 'end_date':
+                        case 'planned_end_date':
+                        case 'task_start_date':
+                        case 'finalization_date':
+                            const dateStr = cell.textContent.trim();
+                            return parseDate(dateStr);
+
+                        default:
+                            return cell.textContent.trim();
+                    }
                 }
+                return '';
             }
 
             function compareValues(a, b, type, direction) {

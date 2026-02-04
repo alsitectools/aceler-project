@@ -27,6 +27,10 @@
         display: flex;
     }
 </style>
+
+{{-- aqui esta el dedeo --}}
+{{-- @dump($milestone) --}}
+
 <div class="card 
         {{ empty($milestone['assined_to_user']) ? 'notAsignedMilestone' : '' }} 
         {{ !empty($milestone['is_waiting']) && $milestone['is_waiting'] == 1 ? 'waitingMilestone' : '' }}
@@ -77,10 +81,13 @@
                              avatar="{{ $milestone['sales']->name }}" @endif>
 
                     {{-- Avatar del usuario asignado --}}
-                    @if (isset($milestone['asiggned_user_data']) && $milestone['asiggned_user_data']->avatar)
-                        <img alt="image" class="user-groupTasks tooltipCus" style="margin-top:-10px;"
-                            src="{{ asset($milestone['asiggned_user_data']->avatar) }}"
-                            title="{{ __('Assigned to') }} {{ $milestone['asiggned_user_data']->name }}">
+                    @if (isset($milestone['asiggned_user_data']))
+                        <img alt="image" class="user-groupTasks tooltipCus"
+                            title="{{ __('Assigned to') }} {{ $milestone['asiggned_user_data']->name }}"
+                            style="margin-top:-10px;"
+                            @if ($milestone['asiggned_user_data']->avatar) src="{{ asset($milestone['asiggned_user_data']->avatar) }}"
+                             @else
+                                 avatar="{{ $milestone['asiggned_user_data']->name }}" @endif>
                     @endif
                 </a>
             </div>

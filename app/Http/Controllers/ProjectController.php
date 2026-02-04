@@ -518,10 +518,7 @@ class ProjectController extends Controller
         return redirect()->back()->with('success', __('Permission Updated Successfully!'));
     }
 
-    public function exportProjectsToAxapta()
-    {
-        
-    }
+    public function exportProjectsToAxapta() {}
 
     // FUNCION QUE SE LLAMA AL ESTAR DENTRO DE UN PROYECTO
     public function show($slug, $projectID)
@@ -1265,8 +1262,8 @@ class ProjectController extends Controller
             $objUser = Auth::user();
 
             // 🔹 Milestones visibles para el usuario
-            $allmilestones = Milestone::whereHas('project', function ($q) use ($objUser) {
-                $q->where('workspace', $objUser->currant_workspace);
+            $allmilestones = Milestone::whereHas('project', function ($q) use ($currentWorkspace) {
+                $q->where('workspace', $currentWorkspace->id);
             })
                 ->where(function ($q) use ($objUser) {
                     $q->where('assign_to', $objUser->id)
@@ -1286,6 +1283,8 @@ class ProjectController extends Controller
 
                 ->orderBy('created_at', 'desc')
                 ->get();
+
+            // dd($allmilestones->pluck('title'));
 
             // 🔹 TODOS los milestones del workspace (para "ver todos")
             $workspaceProjectsIds = Project::where('workspace', $currentWorkspace->id)
