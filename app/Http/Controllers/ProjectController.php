@@ -2532,11 +2532,17 @@ class ProjectController extends Controller
             ->unique(); // Obtener solo IDs únicos
 
         // Comprobar si todas las tareas tienen al menos una entrada en timesheets
-        $allExist = $taskIds->diff($tasksWithTimesheets)->isEmpty();
+        // Además, debe existir al menos una tarea para permitir el paso a review
+        $hasTasks = $taskIds->isNotEmpty();
+        $allExist = $hasTasks && $taskIds->diff($tasksWithTimesheets)->isEmpty();
 
+        \Log::info('Tiene tareas asociadas: ' . ($hasTasks ? 'Sí' : 'No'));
         \Log::info('Todas las tareas tienen al menos una entrada en timesheets: ' . ($allExist ? 'Sí' : 'No'));
 
-        return response()->json(['all_exist' => $allExist]);
+        return response()->json([
+            'all_exist' => $allExist,
+            'has_tasks' => $hasTasks,
+        ]);
     }
 
     public function downloadCsv($project_id)

@@ -55,6 +55,8 @@
     .toastNegation {
         z-index: 30;
         position: absolute;
+        top: 100px;
+        bottom: auto;
         right: 10px;
         display: flex;
         text-align: center;
@@ -197,6 +199,15 @@
         font-weight: 600;
         color: black;
     }
+
+    .lastBreadCrumb {
+        /* background-color: #AA182C !important; */
+        /* width: 80%; */
+        max-width: 700px;
+        overflow: hidden;
+        text-wrap: nowrap;
+        text-overflow: ellipsis;
+    }
 </style>
 @section('links')
     @if (isset($project_id) && $project_id != -1)
@@ -204,7 +215,7 @@
         <li class="breadcrumb-item"><a href="{{ route('projects.index', $currentWorkspace->slug) }}">{{ __('Projects') }}</a>
         </li>
 
-        <li class="breadcrumb-item"><a
+        <li class="breadcrumb-item lastBreadCrumb"><a
                 href="{{ route('projects.show', [$currentWorkspace->slug, $project_id]) }}">{{ $project_name }}</a></li>
     @else
         <li class="breadcrumb-item"><a href="{{ route('home') }}">{{ __('Home') }}</a></li>
@@ -495,7 +506,8 @@
                                     milestoneTitle
                                 });
                                 alert(
-                                    'Error: no se pudo determinar workspace/proyecto/milestone. Revisa data-workspace-slug en la card.');
+                                    'Error: no se pudo determinar workspace/proyecto/milestone. Revisa data-workspace-slug en la card.'
+                                );
                                 return;
                             }
 
@@ -556,7 +568,7 @@
                                             'Sin título';
 
                                         var createTaskUrlTemplate =
-                                        "{{ route('tasks.create', ['__SLUG__']) }}";
+                                            "{{ route('tasks.create', ['__SLUG__']) }}";
                                         var createTaskUrl = createTaskUrlTemplate
                                             .replace('__SLUG__', encodeURIComponent(wsSlug)) +
                                             '?project_id=' + encodeURIComponent(project_id) +
@@ -598,7 +610,8 @@
                                                     error);
                                                 console.error('Response:', xhr.responseText);
                                                 alert(
-                                                    'Error al cargar el formulario de creación de tarea');
+                                                    'Error al cargar el formulario de creación de tarea'
+                                                );
                                             }
                                         });
 
@@ -711,6 +724,46 @@
                                 success: function(data) {
                                     if (data.all_exist) {
                                         console.log('Todas las tareas tienen timesheets.');
+
+                                        console.log("lo ha solicitado:");
+                                        console.log(milestoneRequBy)
+                                        console.log('Generando notificacion de milestone completado');
+                                        console.log('Titulo: ' +
+                                            milestoneTitle)
+                                        let msg = milestoneTitle + ' en el proyecto ' + projectName;
+                                        let ntipe = 5;
+                                        if (msg) {
+                                            //AQUI FALTA MILESTONEID
+                                            fetch("{{ route('notifications.add') }}", {
+                                                    method: "POST",
+                                                    headers: {
+                                                        "Content-Type": "application/json",
+                                                        "X-CSRF-TOKEN": "{{ csrf_token() }}"
+                                                    },
+                                                    body: JSON.stringify({
+                                                        workspace_id: {{ $currentWorkspace->id }},
+                                                        msg: msg,
+                                                        ntipe: ntipe,
+                                                        milestoneAssignedTo: milestoneRequBy,
+                                                        milestone_id: milestonetId,
+                                                    })
+                                                })
+                                                .then(response => response.json())
+                                                .then(data => {
+                                                    if (data.success) {
+                                                        let notificationList = document.querySelector('.limited');
+                                                        let newNotification = document.createElement('div');
+                                                        newNotification.classList.add('notificationSTL');
+                                                        newNotification.innerHTML = `
+                <span class="textRepo">${data.data.msg}</span>
+                <span class="textRepo">${data.data.type}</span>
+                <button type="button" class="btn-close repoIcon" aria-label="Close"></button>
+            `;
+                                                        notificationList.prepend(newNotification);
+                                                    }
+                                                })
+                                                .catch(error => console.error("Error al agregar notificación:", error));
+                                        }
                                         ///// CHECK IF THE MILESTONE HAS A DRAWING TASK /////
                                         // ✅ Verificar si el milestone tiene tareas con type_id = 1 antes de mostrar el popup
                                         $.ajax({
@@ -811,6 +864,10 @@
                                                     updateTaskCount(newContainer);
                                                 }
 
+                                                const toastMessage = data.has_tasks ?
+                                                    "{{ __('Todas las tareas tienen que tener horas inputadas') }}" :
+                                                    "{{ __('No se puede mover un encargo sin tareas') }}";
+
                                                 // Crear el toast dinámicamente
                                                 const toastHTML = `
                         <div aria-live="polite" aria-atomic="true"
@@ -818,7 +875,7 @@
                              role="alert" id="successToast" data-bs-autohide="true" data-bs-delay="2000">
                             <div class="d-flex">
                                 <div class="toast-body">
-                                    {{ __('Todas las tareas tienen que tener horas inputadas') }}
+                                    ${toastMessage}
                                 </div>
                             </div>
                         </div>
@@ -827,19 +884,27 @@
                                                 // Buscar el elemento con data-title="Hoja de encargo" y añadir el toast encima
                                                 const targetElement = document.querySelector(
                                                     '[data-title="Hoja de encargo"]');
+                                                const existingToast = document.getElementById(
+                                                    'successToast');
+                                                if (existingToast) {
+                                                    existingToast.remove();
+                                                }
+
                                                 if (targetElement) {
                                                     // Inserta el toast justo antes del targetElement
                                                     $(targetElement).before(toastHTML);
+                                                } else {
+                                                    // Fallback: insertar al final del body si no hay target
+                                                    document.body.insertAdjacentHTML('beforeend',
+                                                        toastHTML);
+                                                }
 
-                                                    // Inicializa y muestra el toast con Bootstrap
-                                                    const toastElement = document.getElementById(
-                                                        'successToast');
+                                                // Inicializa y muestra el toast con Bootstrap
+                                                const toastElement = document.getElementById(
+                                                    'successToast');
+                                                if (toastElement) {
                                                     const toast = new bootstrap.Toast(toastElement);
                                                     toast.show();
-                                                } else {
-                                                    console.warn(
-                                                        'No se encontró el elemento con data-title="Hoja de encargo".'
-                                                    );
                                                 }
                                             },
                                             error: function(xhr, status, error) {
@@ -859,45 +924,6 @@
 
 
 
-
-                            console.log("lo ha solicitado:");
-                            console.log(milestoneRequBy)
-                            console.log('Generando notificacion de milestone completado');
-                            console.log('Titulo: ' +
-                                milestoneTitle)
-                            let msg = milestoneTitle + ' en el proyecto ' + projectName;
-                            let ntipe = 5;
-                            if (!msg) return;
-                            //AQUI FALTA MILESTONEID
-                            fetch("{{ route('notifications.add') }}", {
-                                    method: "POST",
-                                    headers: {
-                                        "Content-Type": "application/json",
-                                        "X-CSRF-TOKEN": "{{ csrf_token() }}"
-                                    },
-                                    body: JSON.stringify({
-                                        workspace_id: {{ $currentWorkspace->id }},
-                                        msg: msg,
-                                        ntipe: ntipe,
-                                        milestoneAssignedTo: milestoneRequBy,
-                                        milestone_id: milestonetId,
-                                    })
-                                })
-                                .then(response => response.json())
-                                .then(data => {
-                                    if (data.success) {
-                                        let notificationList = document.querySelector('.limited');
-                                        let newNotification = document.createElement('div');
-                                        newNotification.classList.add('notificationSTL');
-                                        newNotification.innerHTML = `
-                <span class="textRepo">${data.data.msg}</span>
-                <span class="textRepo">${data.data.type}</span>
-                <button type="button" class="btn-close repoIcon" aria-label="Close"></button>
-            `;
-                                        notificationList.prepend(newNotification);
-                                    }
-                                })
-                                .catch(error => console.error("Error al agregar notificación:", error));
 
                             /////////////FINAL status 2 a 3///////////////////////////
 

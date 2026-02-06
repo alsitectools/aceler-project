@@ -6,6 +6,15 @@
             padding-left: 30% !important;
         }
     }
+
+    .lastBreadCrumb {
+        /* background-color: #AA182C !important; */
+        /* width: 80%; */
+        max-width: 700px;
+        overflow: hidden;
+        text-wrap: nowrap;
+        text-overflow: ellipsis;
+    }
 </style>
 @section('page-title')
     {{ __('Project Detail') }}
@@ -28,7 +37,7 @@
         <li class="breadcrumb-item"><a
                 href="{{ route('project_report.index', $currentWorkspace->slug) }}">{{ __('Project Report') }}</a></li>
     @endif
-    <li class="breadcrumb-item">{{ $project->name }}</li>
+    <li class="breadcrumb-item lastBreadCrumb">{{ $project->name }}</li>
 @endsection
 
 
@@ -92,7 +101,8 @@
                                                             {{ App\Models\Utility::dateFormat($project->end_date) }}</td>
                                                     </tr>
                                                     <tr>
-                                                        <th class="table_border">{{ trans('messages.Total_Members') }}:</th>
+                                                        <th class="table_border">{{ trans('messages.Total_Members') }}:
+                                                        </th>
                                                         <td class="table_border">
                                                             {{ (int) $project->users->count() + (int) $project->clients->count() }}
                                                         </td>
@@ -106,7 +116,16 @@
                                             @php
                                                 $task_percentage = $project->project_progress()['percentage'];
                                                 $data = trim($task_percentage, '%');
-                                                $status = $data > 0 && $data <= 25 ? 'red' : ($data > 25 && $data <= 50 ? 'orange' : ($data > 50 && $data <= 75 ? 'blue' : ($data > 75 && $data <= 100 ? 'green' : '')));
+                                                $status =
+                                                    $data > 0 && $data <= 25
+                                                        ? 'red'
+                                                        : ($data > 25 && $data <= 50
+                                                            ? 'orange'
+                                                            : ($data > 50 && $data <= 75
+                                                                ? 'blue'
+                                                                : ($data > 75 && $data <= 100
+                                                                    ? 'green'
+                                                                    : '')));
                                             @endphp
 
                                             <div class="circular-progressbar p-sm-0">
@@ -116,13 +135,13 @@
                                                             class="circular-chart orange {{ $status }}">
                                                             <path class="circle-bg"
                                                                 d="M18 2.0845
-                                                                                          a 15.9155 15.9155 0 0 1 0 31.831
-                                                                                          a 15.9155 15.9155 0 0 1 0 -31.831" />
+                                                                                              a 15.9155 15.9155 0 0 1 0 31.831
+                                                                                              a 15.9155 15.9155 0 0 1 0 -31.831" />
                                                             <path class="circle"
                                                                 stroke-dasharray="{{ $data }}, 100"
                                                                 d="M18 2.0845
-                                                                                          a 15.9155 15.9155 0 0 1 0 31.831
-                                                                                          a 15.9155 15.9155 0 0 1 0 -31.831" />
+                                                                                              a 15.9155 15.9155 0 0 1 0 31.831
+                                                                                              a 15.9155 15.9155 0 0 1 0 -31.831" />
                                                             <text x="18" y="20.35"
                                                                 class="percentage">{{ $data }}%</text>
                                                         </svg>
@@ -259,7 +278,12 @@
                                                         //     ->whereRaw('FIND_IN_SET(?,  assign_to) > 0', [$user->id])
                                                         //     ->get();
 
-                                                        $total_complete_task = App\Models\Task::join('stages', 'stages.id', '=', 'tasks.status')
+                                                        $total_complete_task = App\Models\Task::join(
+                                                            'stages',
+                                                            'stages.id',
+                                                            '=',
+                                                            'tasks.status',
+                                                        )
                                                             ->where('project_id', '=', $project->id)
                                                             ->where('assign_to', '=', $user->id)
                                                             ->where('stages.complete', '=', '1')
@@ -267,7 +291,10 @@
                                                             ->count();
 
                                                         $logged_hours = 0;
-                                                        $timesheets = App\Models\Timesheet::where('project_id', $project->id)
+                                                        $timesheets = App\Models\Timesheet::where(
+                                                            'project_id',
+                                                            $project->id,
+                                                        )
                                                             ->where('created_by', $user->id)
                                                             ->get();
                                                     @endphp
@@ -280,7 +307,12 @@
                                                             $minutes = date('i', strtotime($date_time));
                                                             $total_hours = $hours + $minutes / 60;
                                                             $logged_hours += $total_hours;
-                                                            $hours_format_number = number_format($logged_hours, 2, '.', '');
+                                                            $hours_format_number = number_format(
+                                                                $logged_hours,
+                                                                2,
+                                                                '.',
+                                                                '',
+                                                            );
                                                         @endphp
                                                     @endforeach
 

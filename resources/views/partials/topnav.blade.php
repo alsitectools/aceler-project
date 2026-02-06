@@ -66,10 +66,13 @@
     .notificationSTL {
         display: flex;
         align-content: center;
-        align-items: center;
-        justify-content: center;
+        align-items: flex-start;
+        justify-content: flex-start;
+        flex-direction: column;
+        position: relative;
+        padding: 12px 48px 12px 16px;
         /* background-color: #a5222f; */
-        height: 105px;
+        height: auto;
         border-radius: 10px;
         box-shadow: 0 6px 30px rgba(182, 186, 203, 0.3);
         font-size: 16px;
@@ -78,7 +81,8 @@
 
     .repoIcon {
         position: absolute;
-        right: 10%;
+        right: 12px;
+        top: 12px;
         /* filter: invert(1); */
     }
 
@@ -92,11 +96,9 @@
 
     .textRepo {
         color: black;
-        position: absolute;
-        left: 10%;
         font-size: 15px;
-        max-width: 75%;
-        margin-bottom: 19px;
+        max-width: 100%;
+        margin-bottom: 6px;
     }
 
     .MC {
@@ -160,10 +162,9 @@
     }
 
     .smallDate {
-        position: relative;
-        top: 30%;
+        display: block;
         width: 100%;
-        left: 6%;
+        margin-top: auto;
         font-style: italic;
     }
 
@@ -182,14 +183,14 @@
     }
 
     @media (max-width: 1400px) {
-    .noti-body {
-        max-height: 300px !important;
-    }
-    .dash-header .drp-notification .noti-body  {
-        max-height: 0px;
-    }
-}
+        .noti-body {
+            max-height: 300px !important;
+        }
 
+        .dash-header .drp-notification .noti-body {
+            max-height: 0px;
+        }
+    }
 </style>
 <header class="dash-header {{ isset($cust_theme_bg) && $cust_theme_bg == 'on' ? 'transprent-bg' : '' }}">
     <div class="header-wrapper p-0 me-1">
@@ -576,10 +577,14 @@
     });
 </script>
 <script>
+    let clearAllInProgress = false;
+
     // Manejador para "Clear all" (eliminar todas las notificaciones)
     document.querySelector('.clear_all_notifications').addEventListener('click', function(event) {
         event.preventDefault();
         event.stopPropagation(); // Evita que el click cierre el dropdown
+
+        clearAllInProgress = true;
 
         // Obtén la URL desde el atributo data-url del enlace
         let clearUrl = this.getAttribute('data-url');
@@ -597,8 +602,19 @@
                 if (data.is_success) {
                     // Selecciona todas las notificaciones dentro del contenedor ".limited"
                     let notifications = document.querySelectorAll('.limited .notificationSTL');
-                    notifications.forEach(function(notificationElement, index) {
+
+                    // Animación con velocidad exponencial (cada vez más rápida)
+                    let delay = 300;
+                    let cumulativeDelay = 0;
+                    notifications.forEach(function(notificationElement) {
+                        cumulativeDelay += delay;
+                        delay = Math.max(30, delay * 0.7);
+
                         setTimeout(function() {
+                            if (!notificationElement || !document.body.contains(
+                                    notificationElement)) {
+                                return;
+                            }
                             // Añade la clase para la animación
                             notificationElement.classList.add('notification-slide-out');
                             // Una vez finalizada la transición, elimina el elemento
@@ -606,8 +622,10 @@
                                 function() {
                                     notificationElement.remove();
                                     checkEmptyState();
+                                }, {
+                                    once: true
                                 });
-                        }, index * 300); // 300ms de delay entre cada eliminación
+                        }, cumulativeDelay);
                     });
                 } else {
                     console.error("Error:", data.error);
@@ -615,6 +633,23 @@
             })
             .catch(error => console.error("Error al eliminar todas las notificaciones:", error));
     });
+
+    // Si se cierra el dropdown y venimos de "Clear all", limpiar inmediatamente la bandeja
+    const notificationDropdown = document.querySelector('.drp-notification');
+    if (notificationDropdown) {
+        notificationDropdown.addEventListener('hidden.bs.dropdown', function() {
+            if (!clearAllInProgress) return;
+
+            const notificationContainer = document.querySelector('.limited');
+            if (!notificationContainer) return;
+
+            notificationContainer.querySelectorAll('.notificationSTL').forEach(function(notificationElement) {
+                notificationElement.remove();
+            });
+            checkEmptyState();
+            clearAllInProgress = false;
+        });
+    }
 </script>
 {{-- Comprobar dinámicamente si hay notificaciones --}}
 <script>
