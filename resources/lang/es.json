@@ -668,7 +668,7 @@
     "Milestone Summary": "Resumen de encargos",
     "Milestone Title": "T\u00edtulo del encargo",
     "Milestone Updated Successfully!": "\u00a1Encargo actualizado con \u00e9xito!",
-    "Milestones": "Hojas de encargo",
+    "Milestones": "Encargos",
     "Minutes": "Minutos",
     "Mobile Number": "N\u00famero de tel\u00e9fono m\u00f3vil",
     "Module": "M\u00f3dulo",
@@ -1160,7 +1160,7 @@
     "Average start-up time": "Tiempo medio de inicio",
     "Average delay time": "Tiempo medio de retraso",
     "Your tasks": "Tus tareas",
-    "Your milestones": "Tus hojas de encargo",
+    "Your milestones": "Tus encargos",
     "Resume of": "Resumen de",
     "Please, complete your workday information": "Por favor, complete su jornada laboral",
     "A new project has been created:": "Se ha creado el proyecto",
@@ -1305,5 +1305,13 @@
     "Enter your employee number" : "Introduce tu número de empleado",
     "Employee number" : "Número de empleado",
     "My Projects": "Mis Proyectos",
-    "My Milestones": "Mis Hojas de encargo"
+    "My Milestones": "Mis Encargos",
+    "My Calendar": "Mi Calendario",
+    "My Timesheet": "Mi Hoja de horas",
+    "Your Area": "Tu Área",
+    "Finished date" : "Fecha de finalización",
+    "There is no finalization date.": "No hay fecha de finalización.",
+    "There is no estimated delivery date.": "No hay fecha de entrega prevista.",
+    "No tasks for this milestone.": "No hay tareas para este encargo.",
+    "No description provided for this milestone.": "No hay descripción para este encargo."
 }

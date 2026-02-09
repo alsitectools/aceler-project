@@ -1205,7 +1205,7 @@
 
             if (!requestedById || !_localInputMatchesAnyOption(typedName)) {
                 if (searchInput) searchInput.classList.add('is-invalid');
-                validationErrors.push('Debs seleccionar un usuario existente en "Requested by"');
+                validationErrors.push('Debes seleccionar un usuario existente en "Requested by"');
             } else {
                 if (searchInput) searchInput.classList.remove('is-invalid');
             }

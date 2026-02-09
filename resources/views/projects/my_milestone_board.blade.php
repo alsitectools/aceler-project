@@ -865,7 +865,7 @@
                                                 }
 
                                                 const toastMessage = data.has_tasks ?
-                                                    "{{ __('Todas las tareas tienen que tener horas inputadas') }}" :
+                                                    "{{ __('Todas las tareas tienen que tener horas imputadas') }}" :
                                                     "{{ __('No se puede mover un encargo sin tareas') }}";
 
                                                 // Crear el toast dinámicamente

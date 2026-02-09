@@ -26,6 +26,7 @@
         }
     }
 
+    $userName = Auth::user()->name;
     if ($color == '' || $color == null) {
         $settings = App\Models\Utility::getAdminPaymentSettings();
         $color = $settings['color'];
@@ -68,9 +69,116 @@
         background: linear-gradient(180deg, rgba(170, 24, 44, 1) 0%, rgb(174 0 24) 100%);
         font-size: 14px;
         color: #ffffff;
-        padding: 10px 12px;
+        padding: 8px 10px;
         margin-bottom: 15px;
         border-bottom: 1px solid #e9ecef;
+        cursor: pointer;
+        border: none;
+        width: 100%;
+        text-align: center;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+    }
+
+    .workspace-name-header:hover {
+        background: linear-gradient(180deg, rgba(190, 44, 64, 1) 0%, rgb(194 20 44) 100%);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+    }
+
+    .workspace-dropdown-container {
+        position: relative;
+        display: inline-block;
+        width: 100%;
+    }
+
+    .workspace-dropdown {
+        display: none;
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        background-color: #ffffff;
+        min-width: 100%;
+        max-width: 95vw;
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+        border-radius: 8px;
+        z-index: 1000;
+        margin-top: -8px;
+        border: 1px solid #e0e0e0;
+        box-sizing: border-box;
+    }
+
+    .workspace-dropdown.active {
+        display: block;
+    }
+
+    .workspace-search {
+        padding: 12px;
+        border-bottom: 1px solid #e0e0e0;
+    }
+
+    .workspace-search input {
+        width: 100%;
+        padding: 8px 12px;
+        border: 1px solid #ddd;
+        border-radius: 6px;
+        font-size: 13px;
+        box-sizing: border-box;
+    }
+
+    .workspace-search input:focus {
+        outline: none;
+        border-color: #aa182c;
+        box-shadow: 0 0 0 3px rgba(170, 24, 44, 0.1);
+    }
+
+    .workspace-list {
+        max-height: 300px;
+        overflow-y: auto;
+        padding: 8px 0;
+    }
+
+    .workspace-item {
+        padding: 10px 16px;
+        cursor: pointer;
+        transition: background-color 0.2s ease;
+        border-left: 3px solid transparent;
+        color: #333;
+        font-size: 13px;
+    }
+
+    .workspace-item:hover {
+        background-color: #f5f5f5;
+        border-left-color: #aa182c;
+    }
+
+    .workspace-item.active {
+        background-color: #f0f0f0;
+        border-left-color: #aa182c;
+        font-weight: 600;
+        color: #aa182c;
+    }
+
+    .workspace-item.hidden {
+        display: none;
+    }
+
+    .workspace-dropdown-icon {
+        transition: transform 0.3s ease;
+        font-size: 12px;
+    }
+
+    .workspace-dropdown-icon.rotate {
+        transform: rotate(180deg);
+    }
+
+    .menu-element {
+        background-color: #fcf9f9;
+        filter: drop-shadow(-4px 3px 0px #d8d8d8);
     }
 
     .ajustarImg {
@@ -153,10 +261,7 @@
         font-weight: bold;
     }
 
-    .menu-element {
-        background-color: #fcf9f9;
-        filter: drop-shadow(-4px 3px 0px #d8d8d8);
-    }
+   
 
 
     #error-boxAlert {
@@ -418,10 +523,29 @@
 
         </div>
         <div class="navbar-content">
-            <ul class="dash-navbar">
+            <ul class="dash-navbar ">
                 @if (isset($currentWorkspace) && $currentWorkspace)
-                    <div class="workspace-name-header text-center mt-2">
-                        {{ $currentWorkspace->name }}
+                    <div class="workspace-dropdown-container mt-2">
+                        <button class="workspace-name-header" id="workspaceButton">
+                            <span id="workspaceName">{{ $currentWorkspace->name }}</span>
+                            <i class="fa-solid fa-chevron-down workspace-dropdown-icon"></i>
+                        </button>
+                        <div class="workspace-dropdown" id="workspaceDropdown">
+                            <div class="workspace-search">
+                                <input type="text" id="workspaceSearchInput" placeholder="{{ __('Search workspace...') }}">
+                            </div>
+                            <div class="workspace-list" id="workspaceList">
+                                @forelse(Auth::user()->workspaces() as $ws)
+                                    <div class="workspace-item @if($ws->workspace_id == $currentWorkspace->id) active @endif" data-workspace-id="{{ $ws->workspace_id }}" data-workspace-name="{{ $ws->name }}" data-workspace-url="{{ route('change-workspace', $ws->workspace_id) }}">
+                                        {{ $ws->name }}
+                                    </div>
+                                @empty
+                                    <div style="padding: 12px 16px; color: #999; font-size: 13px;">
+                                        {{ __('No workspaces available') }}
+                                    </div>
+                                @endforelse
+                            </div>
+                        </div>
                     </div>
                 @endif
                 <li
@@ -435,47 +559,48 @@
                     <li
                         class="dash-item  {{ Request::route()->getName() == 'projects.index' || Request::segment(2) == 'projects' ? 'active' : '' }}">
                         <a href="{{ route('projects.index', $currentWorkspace->slug) }}"
-                            class="dash-link menu-element ">
+                            class="dash-link  menu-element">
                             <span class="dash-micon"><i class="fa-solid fa-diagram-project"></i></span><span
                                 class="dash-mtext">{{ __('Projects') }}</span></a>
                     </li>
-                    {{-- si mostramos todos los proyectos enviamos -1 o proyecto en especifico --}}
-                    <li class="dash-item  {{ Request::route()->getName() == 'my_projects' ? 'active' : '' }}">
-                        <a href="{{ route('my_projects', $currentWorkspace->slug) }}" class="dash-link menu-element ">
-                            <span class="dash-micon"><i class="fa-solid fa-briefcase"></i></span><span
-                                class="dash-mtext">{{ __('My Projects') }}</span></a>
+                    
                     </li>
                     <li class="dash-item ">
                         <a href="{{ route('projects.milestone.board', [$currentWorkspace->slug, -1]) }}"
-                            class="dash-link menu-element ">
+                            class="dash-link  menu-element">
                             <span class="dash-micon"><i class="fa-solid fa-file-lines"></i></span><span
                                 class="dash-mtext">{{ __('Milestones') }}</span></a>
                     </li>
+                    {{-- si mostramos todos los proyectos enviamos -1 o proyecto en especifico --}}
+                    <li class="dash-item  {{ Request::route()->getName() == 'my_projects' ? 'active' : '' }}">
+                        <a href="{{ route('my_projects', $currentWorkspace->slug) }}" class="dash-link  menu-element">
+                            <span class="dash-micon"><i class="fa-solid fa-briefcase"></i></span><span
+                                class="dash-mtext">{{ __('My Projects') }}</span></a>
                     <li class="dash-item ">
-                        <a href="{{ route('projects.my_milestone_board') }}" class="dash-link menu-element ">
+                        <a href="{{ route('projects.my_milestone_board') }}" class="dash-link  menu-element">
                             <span class="dash-micon"><i class="fa-solid fa-clipboard-list"></i></span><span
                                 class="dash-mtext">{{ __('My Milestones') }}</span></a>
                     </li>
                     <li class="dash-item  {{ Request::route()->getName() == 'timesheet.index' ? 'active' : '' }}">
                         <a href="{{ route('timesheet.index', $currentWorkspace->slug) }}"
-                            class="dash-link menu-element ">
+                            class="dash-link  menu-element">
                             <span class="dash-micon"><i class="fas fa-tasks"></i></span><span
-                                class="dash-mtext">{{ __('Timesheet') }}</span></a>
+                                class="dash-mtext">{{ __('My Timesheet') }}</span></a>
                     </li>
                     <li class="dash-item  {{ Request::route()->getName() == 'calender.index' ? 'active' : '' }}">
                         <a href="{{ route('calender.google.calendar', $currentWorkspace->slug) }}"
-                            class="dash-link menu-element "><span class="dash-micon"><i
+                            class="dash-link  menu-element"><span class="dash-micon"><i
                                     class="fa-regular fa-calendar"></i></span><span
-                                class="dash-mtext">{{ __('Calendar') }}</span></a>
+                                class="dash-mtext">{{ __('My Calendar') }}</span></a>
                     </li>
-
+                </ul>
                     <!-- Grupo: Otros -->
                     {{-- <li class="dash-item  dash-label" data-group="otros">
                         <small><i class="fa-solid fa-ellipsis" style="margin-right: 8px;"></i>{{ __('Otros') }}</small>
                         <i class="fa-solid fa-chevron-down toggle-icon"></i>
                     </li>
                     <li class="dash-item  {{ Request::route()->getName() == 'tutorialHome' ? 'active' : '' }}" data-group-content="otros">
-                        <a href="{{ route('home.showTutorial', [$currentWorkspace->slug]) }}" class="dash-link menu-element "><span
+                        <a href="{{ route('home.showTutorial', [$currentWorkspace->slug]) }}" class="dash-link  "><span
                                 class="dash-micon"><i class="fas fa-book"></i>
                             </span>
                             <span class="dash-mtext">Tutorial</span></a>
@@ -500,14 +625,14 @@
                         @endif --}}
                     <!-- <li class="dash-item  dash-hasmenu">
                         <a href="{{ route('clients.index', $currentWorkspace->slug) }}"
-                            class="dash-link menu-element {{ Request::route()->getName() == 'clients.index' ? ' active' : '' }} "><span
+                            class="dash-link  {{ Request::route()->getName() == 'clients.index' ? ' active' : '' }} "><span
                                 class="dash-micon"> <img class="img-fluid"
                                     src="{{ asset('assets/img/salesManager.png') }}" alt="logo" /> </span><span
                                 class="dash-mtext"> {{ __('Sales managers') }}</span></a>
                     </li>
                     <li
                         class="dash-item  {{ Request::route()->getName() == 'users.index' || Request::route()->getName() == 'users_logs.index' ? ' active' : '' }}">
-                        <a href="{{ route('users.index', $currentWorkspace->slug) }}" class="dash-link menu-element ">
+                        <a href="{{ route('users.index', $currentWorkspace->slug) }}" class="dash-link  ">
                             <span
                             class="dash-micon"> <img class="img-fluid"
                                 src="{{ asset('assets/img/technicians.png') }}" alt="logo" /> </span>
@@ -533,6 +658,82 @@
 <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
 
 <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const workspaceButton = document.getElementById('workspaceButton');
+        const workspaceDropdown = document.getElementById('workspaceDropdown');
+        const workspaceSearchInput = document.getElementById('workspaceSearchInput');
+        const workspaceItems = document.querySelectorAll('.workspace-item');
+        const dropdownIcon = workspaceButton.querySelector('.workspace-dropdown-icon');
+
+        // Toggle dropdown cuando se hace click en el botón
+        workspaceButton.addEventListener('click', function(e) {
+            e.preventDefault();
+            workspaceDropdown.classList.toggle('active');
+            dropdownIcon.classList.toggle('rotate');
+        });
+
+        // Cerrar dropdown cuando se hace click fuera
+        document.addEventListener('click', function(e) {
+            if (!e.target.closest('.workspace-dropdown-container')) {
+                workspaceDropdown.classList.remove('active');
+                dropdownIcon.classList.remove('rotate');
+                workspaceSearchInput.value = '';
+                filterWorkspaces('');
+            }
+        });
+
+        // Búsqueda de workspaces
+        workspaceSearchInput.addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase();
+            filterWorkspaces(searchTerm);
+        });
+
+        // Cambiar workspace cuando se selecciona uno
+        workspaceItems.forEach(item => {
+            item.addEventListener('click', function() {
+                const workspaceName = this.getAttribute('data-workspace-name');
+                const workspaceUrl = this.getAttribute('data-workspace-url');
+                
+                // Actualizar el nombre mostrado
+                document.getElementById('workspaceName').textContent = workspaceName;
+                
+                // Cerrar el dropdown
+                workspaceDropdown.classList.remove('active');
+                dropdownIcon.classList.remove('rotate');
+                workspaceSearchInput.value = '';
+                filterWorkspaces('');
+                
+                // Navegar al workspace usando la URL correcta generada con route()
+                if (workspaceUrl) {
+                    window.location.href = workspaceUrl;
+                }
+            });
+        });
+
+        // Función para filtrar workspaces
+        function filterWorkspaces(searchTerm) {
+            const items = document.querySelectorAll('.workspace-item');
+            items.forEach(item => {
+                const name = item.getAttribute('data-workspace-name').toLowerCase();
+                if (name.includes(searchTerm)) {
+                    item.classList.remove('hidden');
+                } else {
+                    item.classList.add('hidden');
+                }
+            });
+        }
+
+        // Permitir navegación con Enter cuando se busca
+        workspaceSearchInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                const visibleItems = Array.from(document.querySelectorAll('.workspace-item:not(.hidden)'));
+                if (visibleItems.length === 1) {
+                    visibleItems[0].click();
+                }
+            }
+        });
+    });
+
     //when the user clicks on create timetable redirect it to timetable creation
     /*$(document).ready(function() {
         $('.buttonAlertCreate').click(function() {
