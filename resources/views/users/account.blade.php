@@ -620,20 +620,37 @@
 
         <script>
             $('#exportAxapta').on('click', function() {
-
                 operationUrl = '<?php echo url('/projects/export-axapta'); ?>';
                 $.ajax({
                     type: 'POST',
                     url: operationUrl,
                     headers: {
                         "Content-Type": "application/json",
-                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') // Incluye el token CSRF
+                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                     },
-                    success: function(data) {
-                        console.log("success");
+                    success: function(response) {
+                        if (response.success) {
+                            // Decodificar el contenido del archivo
+                            const fileContent = atob(response.fileContent);
+                            const blob = new Blob([fileContent], { type: 'text/plain' });
+                            
+                            // Crear un link de descarga
+                            const link = document.createElement('a');
+                            link.href = window.URL.createObjectURL(blob);
+                            link.download = response.fileName;
+                            document.body.appendChild(link);
+                            link.click();
+                            document.body.removeChild(link);
+                            window.URL.revokeObjectURL(link.href);
+                        } else {
+                            console.error("Error en la respuesta:", response.error);
+                            alert('Error: ' + (response.error || 'Error desconocido'));
+                        }
                     },
                     error: function(xhr, status, error) {
-                        console.error("Error:", error);
+                        console.error("Error AJAX:", error);
+                        console.error("Response:", xhr.responseText);
+                        alert('Error al descargar el archivo: ' + error);
                     }
                 });
             });

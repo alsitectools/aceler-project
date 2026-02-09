@@ -38,8 +38,9 @@ class Milestone extends Model
 
     function showMilestonetasks()
     {
-        return Task::join('task_types', 'task_types.id', 'tasks.type_id')
-            ->where('tasks.milestone_id', $this->id)->pluck('task_types.name');
+        return Task::with(['type', 'user', 'timesheets'])
+            ->where('tasks.milestone_id', $this->id)
+            ->get();
     }
 
     public function project()

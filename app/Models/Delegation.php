@@ -14,4 +14,9 @@ class Delegation extends Model
     public $incrementing = false; // ❌ importante
     protected $keyType = 'string'; // ❌ clave primaria tipo string
     protected $fillable = ['delegation_name'];
+
+    public function workspace()
+    {
+        return $this->hasOne('App\Models\Workspace', 'delegation_id', 'id');
+    }
 }

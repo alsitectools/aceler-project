@@ -215,7 +215,7 @@
                         <i class="ti ti-chevron-down drp-arrow nocolor hide-mob"></i>
                     </a>
                     <div class="dropdown-menu dash-h-dropdown">
-                        @foreach (Auth::user()->workspaces() as $workspace)
+                        {{-- @foreach (Auth::user()->workspaces() as $workspace)
                             @if (Auth::user()->id == $workspace->user_id)
                                 <a href="{{ route('change-workspace', $workspace->workspace_id) }}"
                                     id="change-workspace" class="dropdown-item">
@@ -230,7 +230,7 @@
                                     <span>{{ $workspace->name }}</span>
                                 </a>
                             @endif
-                        @endforeach
+                        @endforeach --}}
 
                         <a href="@auth('web'){{ route('users.my.account') }}@elseauth{{ route('client.users.my.account') }}@endauth"
                             class="dropdown-item">

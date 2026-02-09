@@ -1006,7 +1006,7 @@ $('#' + modalId).data('moved-el-id', cardId); // por si quieres asegurar
                              role="alert" id="successToast" data-bs-autohide="true" data-bs-delay="2000">
                             <div class="d-flex">
                                 <div class="toast-body">
-                                    {{ __('Todas las tareas tienen que tener horas inputadas') }}
+                                    {{ __('Todas las tareas tienen que tener horas imputadas') }}
                                 </div>
                             </div>
                         </div>

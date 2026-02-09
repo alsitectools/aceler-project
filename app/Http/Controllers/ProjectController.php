@@ -492,7 +492,226 @@ class ProjectController extends Controller
 
     public function exportProjectsToAxapta()
     {
+        //regId -  id de la exportación 
+        //fecha- fecha de imputación de horas a una tarea de una hoja de encargo del proyecto  (done)
+        //Empresa - campo empresa, tabla delegations 
+        //delegacion - id delegacion  (done)
+        //empleado - numero empleado  (done)
+        //masterobrasid - id masterobra (done)
+        //obra - se puede dejar vacio (done)
+        //descripcion - se puede dejar vacio (done)
+        //op - poner 210 siempre (done)
+        //horas - cantidad de horas imputadas en la fecha  (done)
+        //ref - delegacion + id del proyecto (done)
+        //linea - poner siempre 1 (done)
+        //hrDecimal -  ??
+        //puntos - cantidad_puntos (done)
         
+        // Obtener todos los proyectos de tipo = 1
+        $projects = Project::where('type', 1)->get();
+
+        \Log::info("=== EXPORT AXAPTA ===");
+        \Log::info("Proyectos tipo 1: " . $projects->count());
+
+        if ($projects->isEmpty()) {
+            \Log::warning("No hay proyectos de tipo 1");
+            return response()->json(['error' => 'No projects found'], 404);
+        }
+
+        $fileContent = '';
+        $fieldWidths = [
+            'regId' => 10,
+            'fecha' => 10,
+            'empresa' => 20,
+            'delegacion' => 20,
+            'empleado' => 20,
+            'masterobrasid' => 20,
+            'obra' => 20,
+            'descripcion' => 50,
+            'op' => 10,
+            'horas' => 10,
+            'ref' => 14,
+            'linea' => 10,
+            'hrDecimal' => 10,
+            'puntos' => 10,
+        ];
+        
+        // Contador global para regId
+        $regId = 0;
+
+        // Agregar encabezado con los nombres de los campos
+        $headerLine = '';
+        $headerLine .= str_pad('regId', $fieldWidths['regId']);
+        $headerLine .= str_pad('fecha', $fieldWidths['fecha']);
+        $headerLine .= str_pad('empresa', $fieldWidths['empresa']);
+        $headerLine .= str_pad('delegacion', $fieldWidths['delegacion']);
+        $headerLine .= str_pad('empleado', $fieldWidths['empleado']);
+        $headerLine .= str_pad('masterobrasid', $fieldWidths['masterobrasid']);
+        $headerLine .= str_pad('obra', $fieldWidths['obra']);
+        $headerLine .= str_pad('descripcion', $fieldWidths['descripcion']);
+        $headerLine .= str_pad('op', $fieldWidths['op']);
+        $headerLine .= str_pad('horas', $fieldWidths['horas']);
+        $headerLine .= str_pad('ref', $fieldWidths['ref']);
+        $headerLine .= str_pad('linea', $fieldWidths['linea']);
+        $headerLine .= str_pad('hrDecimal', $fieldWidths['hrDecimal']);
+        $headerLine .= str_pad('puntos', $fieldWidths['puntos']);
+        
+        $fileContent .= $headerLine . PHP_EOL;
+        \Log::info("Encabezado: " . $headerLine);
+
+        // Iterar sobre cada proyecto
+        foreach ($projects as $project) {
+            \Log::info("Procesando proyecto: " . $project->id . " - " . $project->name);
+            
+            // Obtener el workspace del proyecto para sacar la delegación
+            $workspace = Workspace::find($project->workspace);
+            $delegacion = $workspace ? ($workspace->delegation_id ?? '0') : '0';
+            
+            // Obtener la delegación para sacar el nombre de empresa
+            $delegation = Delegation::find($delegacion);
+            $empresa = $delegation ? ($delegation->empresa ?? '') : '';
+            \Log::info("  Workspace: " . $project->workspace . ", Delegación: " . $delegacion . ", Empresa: " . $empresa);
+            
+            // Obtener todos los milestones del proyecto
+            $milestones = Milestone::where('project_id', $project->id)->get();
+            \Log::info("  Milestones: " . $milestones->count());
+
+            // Obtener todos los timesheets de este proyecto (a través de tasks del proyecto)
+            $projectTasks = Task::whereIn('milestone_id', $milestones->pluck('id'))->get();
+            $allTimesheets = Timesheet::whereIn('task_id', $projectTasks->pluck('id'))->get();
+            
+            // Obtener empleados únicos en este proyecto
+            $uniqueEmployees = $allTimesheets->pluck('created_by')->unique();
+            \Log::info("  Empleados únicos en proyecto: " . $uniqueEmployees->count());
+
+            // Iterar por cada empleado del proyecto
+            foreach ($uniqueEmployees as $userId) {
+                $user = User::find($userId);
+                if (!$user) continue;
+                
+                $employeeNumber = $user->number_employee ?? '0';
+                \Log::info("  Procesando empleado: " . $userId . " - " . $employeeNumber);
+                
+                // Contador de línea por empleado (resetea para cada empleado)
+                $lineNumber = 0;
+
+                // Iterar por cada milestone del proyecto
+                foreach ($milestones as $milestone) {
+                    \Log::info("    Procesando milestone: " . $milestone->id . " - " . ($milestone->name ?? 'sin nombre'));
+                    
+                    // Obtener todas las tareas del milestone
+                    $tasks = Task::where('milestone_id', $milestone->id)->get();
+                    \Log::info("      Tareas: " . $tasks->count());
+
+                    // Acumuladores para este empleado en esta milestone
+                    $totalHoras = 0;
+                    $totalPuntos = 0;
+                    $totalHrDecimal = 0;
+                    $hasData = false;
+
+                    foreach ($tasks as $task) {
+                        \Log::info("      Procesando tarea: " . $task->id . " - " . ($task->title ?? 'sin título'));
+                        
+                        // Obtener timesheets de ESTE EMPLEADO en ESTA TAREA
+                        $timesheets = Timesheet::where('task_id', $task->id)
+                            ->where('created_by', $userId)
+                            ->get();
+                        
+                        if ($timesheets->count() > 0) {
+                            $hasData = true;
+                            \Log::info("        Timesheets para este empleado: " . $timesheets->count());
+                            
+                            // Obtener cantidad_puntaje de puntuacion_tarea (una sola vez por tarea)
+                            $puntuacion = PuntuacionTarea::where('id_tarea', $task->id)->first();
+                            $cantidadPuntajeTarea = $puntuacion ? ($puntuacion->cantidad_puntaje ?? '0') : '0';
+                            $puntuacionHora = $puntuacion ? ($puntuacion->puntos_hora ?? '0') : '0';
+                            \Log::info("        Puntuación tarea: " . $cantidadPuntajeTarea . ", PuntuacionHora: " . $puntuacionHora);
+
+                            // Sumar los puntos de esta tarea
+                            $totalPuntos += floatval($cantidadPuntajeTarea);
+                            
+                            // Sumar el hrDecimal de esta tarea
+                            $totalHrDecimal += floatval($puntuacionHora);
+
+                            foreach ($timesheets as $timesheet) {
+                                // time está en formato HH:MM, convertir a horas
+                                $timeValue = $timesheet->time ?? '00:00';
+                                $hours = 0;
+                                
+                                // Convertir HH:MM a horas decimales
+                                if (strpos($timeValue, ':') !== false) {
+                                    $parts = explode(':', $timeValue);
+                                    $h = isset($parts[0]) ? intval($parts[0]) : 0;
+                                    $m = isset($parts[1]) ? intval($parts[1]) : 0;
+                                    $hours = $h + ($m / 60);
+                                }
+                                
+                                \Log::info("          Hours: " . $hours);
+                                $totalHoras += $hours;
+                            }
+                        }
+                    }
+
+                    // Si este empleado tiene datos en esta milestone, generar una línea
+                    if ($hasData) {
+                        $lineNumber++;
+                        $regId++;
+                        \Log::info("    Generando línea " . $lineNumber . " para empleado " . $employeeNumber . " en milestone " . $milestone->id);
+                        
+                        // Preparar los valores
+                        $fecha = date('Ymd'); // YYYYMMDD
+                        $masterobrasid = $project->ref_mo ?? '';
+                        $obra = ''; // siempre vacío
+                        $descripcion = ''; // siempre vacío
+                        $op = '210'; // siempre 210
+                        $ref = $delegacion . '-' . $project->id; // delegacion-id del proyecto
+                        
+                        // Convertir horas decimales a formato HH:MM:SS
+                        $hoursInt = intval($totalHoras);
+                        $minutesDecimal = ($totalHoras - $hoursInt) * 60;
+                        $minutesInt = intval($minutesDecimal);
+                        $secondsDecimal = ($minutesDecimal - $minutesInt) * 60;
+                        $secondsInt = intval($secondsDecimal);
+                        
+                        $horas = sprintf('%02d:%02d:%02d', $hoursInt, $minutesInt, $secondsInt);
+
+                        // Formatear con ancho fijo
+                        $line = '';
+                        $line .= str_pad($regId, $fieldWidths['regId']);
+                        $line .= str_pad($fecha, $fieldWidths['fecha']);
+                        $line .= str_pad($empresa, $fieldWidths['empresa']);
+                        $line .= str_pad($delegacion, $fieldWidths['delegacion']);
+                        $line .= str_pad($employeeNumber, $fieldWidths['empleado']);
+                        $line .= str_pad($masterobrasid, $fieldWidths['masterobrasid']);
+                        $line .= str_pad($obra, $fieldWidths['obra']);
+                        $line .= str_pad($descripcion, $fieldWidths['descripcion']);
+                        $line .= str_pad($op, $fieldWidths['op']);
+                        $line .= str_pad($horas, $fieldWidths['horas']);
+                        $line .= str_pad($ref, $fieldWidths['ref']);
+                        $line .= str_pad($lineNumber, $fieldWidths['linea']);
+                        $line .= str_pad($totalHrDecimal, $fieldWidths['hrDecimal']);
+                        $line .= str_pad($totalPuntos, $fieldWidths['puntos']);
+
+                        \Log::info("      Línea generada - Horas: " . $totalHoras . ", HrDecimal: " . $totalHrDecimal . ", Puntos: " . $totalPuntos);
+                        \Log::info("      Línea: " . $line);
+                        $fileContent .= $line . PHP_EOL;
+                    }
+                }
+            }
+        }
+
+        \Log::info("Contenido final: " . strlen($fileContent) . " caracteres");
+        
+        // Generar nombre del archivo con timestamp
+        $timestamp = now()->format('Y-m-d-H-i-s');
+        $fileName = "Exp_TiemposAX_open-and-close_12_{$timestamp}.fil";
+
+        // Retornar el contenido en base64 para descarga via AJAX
+        return response()->json([
+            'success' => true,
+            'fileName' => $fileName,
+            'fileContent' => base64_encode($fileContent)
+        ]);
     }
 
     // FUNCION QUE SE LLAMA AL ESTAR DENTRO DE UN PROYECTO
@@ -3305,8 +3524,7 @@ class ProjectController extends Controller
         $milestoneFiles = MilestoneFile::where('milestone_id', '=', $milestone->id)
             ->select('id', 'name', 'file', 'extension')
             ->get();
-
-
+            
         return view('projects.milestoneShow', compact('currentWorkspace', 'milestone', 'salesManager', 'assignedToUser', 'project', 'milestoneFiles', 'delegation_name'));
     }
 
