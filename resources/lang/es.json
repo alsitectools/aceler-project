@@ -1313,5 +1313,7 @@
     "There is no finalization date.": "No hay fecha de finalización.",
     "There is no estimated delivery date.": "No hay fecha de entrega prevista.",
     "No tasks for this milestone.": "No hay tareas para este encargo.",
-    "No description provided for this milestone.": "No hay descripción para este encargo."
+    "No description provided for this milestone.": "No hay descripción para este encargo.",
+    "Completed date" : "Fecha de finalización",
+    "Planned delivery date" : "Fecha de entrega prevista"
 }

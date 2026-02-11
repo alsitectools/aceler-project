@@ -26,6 +26,18 @@
         align-content: center;
         display: flex;
     }
+
+    .dateDiv {
+        flex: 0 0 auto;
+        width: 40%;
+    }
+
+    .fatherDateDivAlign {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        align-content: center;
+    }
 </style>
 
 {{-- aqui esta el dedeo --}}
@@ -264,35 +276,106 @@
                             </div>
                         </div>
 
-                        {{-- Fecha deseada --}}
-                        <div class="col-6 text-center tooltipCus" data-title="{{ __('Desired delivery date') }}">
+                        {{-- finalization_date (fecha finalización) --}}
+                        {{-- planned_end_date (fecha prevista) --}}
 
-                            @php
-                                if ($milestone['finalization_date'] == null) {
-                                    $currentDate = new DateTime();
-                                    $estimatedDate = new DateTime($milestone['end_date']);
-                                    $isOverdue = $currentDate > $estimatedDate;
-                                } else {
-                                    $estimatedDate = new DateTime($milestone['end_date']);
-                                    $finalDate = new DateTime($milestone['finalization_date']);
-                                    $isOverdue = $finalDate > $estimatedDate;
-                                }
-                                $statusNumber = (int) $status->id;
+                        <div class="fatherDateDivAlign">
+                            {{-- Fecha deseada --}}
+                            <div class="dateDiv text-center tooltipCus"
+                                data-title="{{ __('Desired delivery date') }}">
 
-                                if ($statusNumber <= 2) {
-                                    $iconColor = $isOverdue ? '#db8d33' : 'black';
-                                } else {
-                                    $iconColor = $isOverdue ? 'red' : '#53b446';
-                                }
-                            @endphp
+                                @php
+                                    if ($milestone['finalization_date'] == null) {
+                                        $currentDate = new DateTime();
+                                        $estimatedDate = new DateTime($milestone['end_date']);
+                                        $isOverdue = $currentDate > $estimatedDate;
+                                    } else {
+                                        $estimatedDate = new DateTime($milestone['end_date']);
+                                        $finalDate = new DateTime($milestone['finalization_date']);
+                                        $isOverdue = $finalDate > $estimatedDate;
+                                    }
+                                    $statusNumber = (int) $status->id;
 
-                            <i class="fa-solid fa-calendar-check fa-2xl m-1 calendarAlert"
-                                style="color:{{ $iconColor }};"></i>
+                                    if ($statusNumber <= 2) {
+                                        $iconColor = $isOverdue ? '#db8d33' : 'black';
+                                    } else {
+                                        $iconColor = $isOverdue ? 'red' : '#53b446';
+                                    }
+                                @endphp
 
-                            <div class="adjustTextCalendar">
-                                <b style="font-size:12px;">
-                                    {{ \App\Models\Utility::dateFormat($milestone['end_date']) }}
-                                </b>
+                                <i class="fa-solid fa-calendar-check fa-2xl m-1 calendarAlert"
+                                    style="color:{{ $iconColor }};"></i>
+
+                                <div class="adjustTextCalendar">
+                                    <b style="font-size:12px;">
+                                        {{ \App\Models\Utility::dateFormat($milestone['end_date']) }}
+                                    </b>
+                                </div>
+                            </div>
+                            {{-- Fecha prevista --}}
+                            <div class="dateDiv text-center tooltipCus"
+                                data-title="{{ __('Planned delivery date') }}">
+                                @if ($milestone['planned_end_date'] != null && $milestone['planned_end_date'] != '0000-00-00')
+                                    @php
+                                        if ($milestone['finalization_date'] == null) {
+                                            $currentDate = new DateTime();
+                                            $estimatedDate = new DateTime($milestone['planned_end_date']);
+                                            $isOverdue = $currentDate > $estimatedDate;
+                                        } else {
+                                            $estimatedDate = new DateTime($milestone['planned_end_date']);
+                                            $finalDate = new DateTime($milestone['finalization_date']);
+                                            $isOverdue = $finalDate > $estimatedDate;
+                                        }
+                                        $statusNumber = (int) $status->id;
+
+                                        if ($statusNumber <= 2) {
+                                            $iconColor = $isOverdue ? '#db8d33' : 'black';
+                                        } else {
+                                            $iconColor = $isOverdue ? 'red' : '#53b446';
+                                        }
+                                    @endphp
+
+                                    <i class="fa-solid fa-calendar-check fa-2xl m-1 calendarAlert"
+                                        style="color:{{ $iconColor }};"></i>
+
+                                    <div class="adjustTextCalendar">
+                                        <b style="font-size:12px;">
+                                            {{ \App\Models\Utility::dateFormat($milestone['planned_end_date']) }}
+                                        </b>
+                                    </div>
+                                @else
+                                    <i class="fa-solid fa-calendar-check fa-2xl m-1 calendarAlert"
+                                        style="color:lightgrey"></i>
+                                @endif
+                            </div>
+                            {{-- Fecha completada --}}
+                            <div class="dateDiv text-center tooltipCus" data-title="{{ __('Completed date') }}">
+                                @if ($milestone['finalization_date'] != null && $milestone['finalization_date'] != '0000-00-00')
+                                    
+                                 @php
+                                 $estimatedDate = new DateTime($milestone['planned_end_date']);
+                                 $requestedDate = new DateTime($milestone['end_date']);
+                                 $completedDate = new DateTime($milestone['finalization_date']);
+
+                                        if ($estimatedDate < $completedDate && $requestedDate < $completedDate) {
+                                            $iconColor = $isOverdue ? '#db8d33' : 'black';
+                                        } else {
+                                            $iconColor = $isOverdue ? 'red' : '#53b446';
+                                        }
+                                    @endphp
+
+                                <i class="fa-solid fa-calendar-check fa-2xl m-1 calendarAlert"
+                                        style="color:{{ $iconColor }};"></i>
+
+                                    <div class="adjustTextCalendar">
+                                        <b style="font-size:12px;">
+                                            {{ \App\Models\Utility::dateFormat($milestone['finalization_date']) }}
+                                        </b>
+                                    </div>
+                                @else
+                                    <i class="fa-solid fa-calendar-check fa-2xl m-1 calendarAlert"
+                                        style="color:lightgrey"></i>
+                                @endif
                             </div>
                         </div>
                     </div>
@@ -371,7 +454,8 @@
                 </div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ __('Cancel') }}</button>
+                <button type="button" class="btn btn-secondary"
+                    data-bs-dismiss="modal">{{ __('Cancel') }}</button>
                 <button type="button" class="btn btn-primary"
                     onclick="submitPauseMilestone()">{{ __('Pause') }}</button>
             </div>
