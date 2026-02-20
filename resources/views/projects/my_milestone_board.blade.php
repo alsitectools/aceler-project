@@ -341,6 +341,8 @@
     </div>
 @endsection
 
+@include('projects.file_preview')
+
 @push('css-page')
     <link rel="stylesheet" href="{{ asset('assets/custom/css/dropzone.min.css') }}">
 @endpush
@@ -1240,8 +1242,12 @@
                                     type: 'GET',
                                     data: taskData,
                                     success: function(data) {
-                                        $('#modal-container .modal-content').html(data);
-                                        var myModal = new bootstrap.Modal(document
+                                        $('#modal-container .modal-content').html(data).css({
+                                            'text-align': 'left',
+                                            'width': '800px'
+                                        });
+                                        var myModal = bootstrap.Modal.getOrCreateInstance(
+                                            document
                                             .getElementById('modal-container'));
                                         myModal.show();
                                     },

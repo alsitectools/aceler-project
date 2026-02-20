@@ -418,6 +418,8 @@
     </div>
 @endsection
 
+@include('projects.file_preview')
+
 @push('css-page')
     <link rel="stylesheet" href="{{ asset('assets/custom/css/dropzone.min.css') }}">
 @endpush
@@ -1365,8 +1367,11 @@
                             const $modal = $(this);
                             // ✅ Resetear clases del modal-dialog
                             $modal.find('.modal-dialog').attr('class', 'modal-dialog').removeAttr('style');
-                            // ✅ Limpiar estilos inline del modal-content
-                            $modal.find('.modal-content').removeAttr('style').empty();
+                            // ✅ Limpiar estilos inline del modal-content y restaurar los por defecto (800px)
+                            $modal.find('.modal-content').css({
+                                'text-align': 'left',
+                                'width': '800px'
+                            }).empty();
                         });
                     }
                 });
@@ -1553,7 +1558,10 @@
                                             modalDialog.className = 'modal-dialog';
                                             modalDialog.removeAttribute('style');
                                         }
-                                        $('#modal-container .modal-content').html(data);
+                                        $('#modal-container .modal-content').html(data).css({
+                                            'text-align': 'left',
+                                            'width': '800px'
+                                        });
                                         var myModal = bootstrap.Modal.getOrCreateInstance(
                                             modalEl);
                                         myModal.show();

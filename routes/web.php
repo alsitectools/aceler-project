@@ -11,6 +11,7 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\SettingsController;
 use App\Http\Controllers\StripePaymentController;
 use App\Http\Controllers\ProjectController;
+use App\Http\Controllers\ViewerController;
 use App\Http\Controllers\WorkspaceController;
 use App\Http\Controllers\Auth\RegisteredUserController;
 use App\Http\Controllers\Auth\VerifyEmailController;
@@ -1038,6 +1039,7 @@ Route::get('/get-tasks-by-date', [CalenderController::class, 'getTasksByDate'])-
 
 //Download project files
 Route::post('/projects/download-file', [ProjectController::class, 'downloadFile'])->name('project.downloadFile');
+Route::post('/projects/archive-list', [ViewerController::class, 'getArchiveFiles'])->name('project.archiveList');
 //Delete project files
 Route::delete('/projects/delete-file', [ProjectController::class, 'deleteFile'])->name('project.deleteFile');
 Route::get('/home/tutorial/{slug}', [HomeController::class, 'showTutorial'])->name('home.showTutorial');

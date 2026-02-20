@@ -95,7 +95,8 @@
                 <div class="form-group col-md-8">
                     <fieldset class="custom-fieldset ctr">
                         <legend class="custom-legend">{{ __('Description') }}:</legend>
-                        <div class="pt-2 ps-2" style="white-space: pre-wrap; word-wrap: break-word;">{{ $milestone->summary }}</div>
+                        <div class="pt-2 ps-2" style="white-space: pre-wrap; word-wrap: break-word;">
+                            {{ $milestone->summary }}</div>
                     </fieldset>
                 </div>
                 {{-- {test} --}}
@@ -142,9 +143,13 @@
                             @if (!empty($milestoneFiles) && count($milestoneFiles) > 0)
                                 @foreach ($milestoneFiles as $file)
                                     <div class="custom-file">
-                                        <img src="{{ asset('assets/iconFilesTypes/' . $file->extension . '.png') }}"
-                                            alt="{{ $file->extension }} icon" class="styleIconFiles">
-                                        <p class="file-name">{{ $file->name }}</p>
+                                        <div class="d-flex align-items-center flex-grow-1"
+                                            style="cursor: pointer; overflow: hidden;"
+                                            onclick='previewFile({{ $project->id }}, @json($milestone->title), @json($file->file), @json($file->extension))'>
+                                            <img src="{{ asset('assets/iconFilesTypes/' . $file->extension . '.png') }}"
+                                                alt="{{ $file->extension }} icon" class="styleIconFiles">
+                                            <p class="file-name">{{ $file->name }}</p>
+                                        </div>
                                         <a onclick="downloadFile({{ $project->id }}, '{{ $milestone->title }}', '{{ $file->file }}')"
                                             class="buttonFiles btn btn-sm">
                                             <i class="ti ti-download" style="color:white"></i>
@@ -174,7 +179,7 @@
                             <div class="page-search">
                                 <p class="text-muted mt-3">
                                     {{ __("It's looking like you may have taken a wrong turn. Don't worry... it happens to
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    the best of us. Here's a little tip that might help you get back on track.") }}
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                the best of us. Here's a little tip that might help you get back on track.") }}
                                 </p>
                                 <div class="mt-3">
                                     <a class="btn-return-home badge-blue" href="{{ route('home') }}"><i

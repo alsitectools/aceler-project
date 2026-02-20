@@ -143,10 +143,12 @@
                             @endphp
                             <div class="fileMilestoneEdit exist d-flex align-items-center mt-2 custom-file"
                                 data-file-id="{{ $file->id }}">
-                                <img src="{{ asset($iconPath) }}" alt="{{ $extension }} icon"
-                                    style="width: 20px; height: 25px;">
-                                <div class="file-name ms-2">{{ $file->name }} <small
-                                        class="text-muted">({{ $file->file_size }})</small></div>
+                                <div class="d-flex align-items-center flex-grow-1" style="cursor: pointer;"
+                                    onclick="previewFile({{ $milestone->project_id }}, '{{ $milestone->title }}', '{{ $file->file }}', '{{ $extension }}')">
+                                    <img src="{{ asset($iconPath) }}" alt="{{ $extension }} icon"
+                                        style="width: 20px; height: 25px;">
+                                    <div class="file-name ms-2">{{ $file->name }} </div>
+                                </div>
                                 <a class="buttonFiles btn btn-sm"
                                     onclick="deleteFile({{ $milestone->project_id }}, '{{ $milestone->id }}', '{{ $file->id }}')">
                                     <i class="fa-solid fa-trash-alt"

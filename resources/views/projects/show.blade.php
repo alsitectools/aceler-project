@@ -1004,7 +1004,8 @@
                                                 {{ __('You can Also hold click + Control + V to paste the content of the clipboard') }}
                                             </p>
                                             <p class="text-muted" style="font-size:15px; margin:5px;">50MB</p>
-                                            <small class="text-muted">.png .gif .pdf .txt .doc .docx .zip .rar .dwg
+                                            <small class="text-muted">.jpg .jpeg .png .gif .pdf .txt .doc .docx .zip .rar
+                                                .dwg
                                                 .dxf</small>
                                         </div>
                                     </div>
@@ -1017,13 +1018,17 @@
                                             @if (!empty($projectFiles) && count($projectFiles) > 0)
                                                 @foreach ($projectFiles as $file)
                                                     <div class="custom-file">
-                                                        <img src="{{ asset('assets/iconFilesTypes/' . $file->extension . '.png') }}"
-                                                            alt="{{ $file->extension }} icon"
-                                                            class="styleIconFiles mt-2">
-                                                        <p class="m-2"
-                                                            style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-                                                            {{ $file->file_name }}
-                                                        </p>
+                                                        <div class="d-flex align-items-center flex-grow-1"
+                                                            style="cursor: pointer; overflow: hidden;"
+                                                            onclick='previewFile({{ $project->id }}, "", @json($file->file_path), @json($file->extension))'>
+                                                            <img src="{{ asset('assets/iconFilesTypes/' . $file->extension . '.png') }}"
+                                                                alt="{{ $file->extension }} icon"
+                                                                class="styleIconFiles mt-2">
+                                                            <p class="m-2"
+                                                                style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                                                                {{ $file->file_name }}
+                                                            </p>
+                                                        </div>
                                                         <div class="uploaded-file-buttons">
                                                             {{-- @php
                                                                 dump($project);
@@ -1078,13 +1083,17 @@
          data-bs-toggle="tooltip"
          data-bs-placement="bottom"
          title="Archivo de replanteo" @endif>
-                                                                        <img src="{{ asset('assets/iconFilesTypes/' . $file->extension . '.png') }}"
-                                                                            alt="{{ $file->extension }} icon"
-                                                                            class="styleIconFiles mt-2">
-                                                                        <p class="m-2"
-                                                                            style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-                                                                            {{ $file->name }}
-                                                                        </p>
+                                                                        <div class="d-flex align-items-center flex-grow-1"
+                                                                            style="cursor: pointer; overflow: hidden;"
+                                                                            onclick='previewFile({{ $project->id }}, @json($milestone['title']), @json(basename($file->file)), @json($file->extension))'>
+                                                                            <img src="{{ asset('assets/iconFilesTypes/' . $file->extension . '.png') }}"
+                                                                                alt="{{ $file->extension }} icon"
+                                                                                class="styleIconFiles mt-2">
+                                                                            <p class="m-2"
+                                                                                style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                                                                                {{ $file->name }}
+                                                                            </p>
+                                                                        </div>
                                                                         <div class="uploaded-file-buttons">
                                                                             <a onclick="downloadFile({{ $project->id }}, '{{ $milestone['title'] }}', '{{ basename($file->file) }}')"
                                                                                 class="buttonFiles btn btn-sm">
@@ -1210,6 +1219,7 @@
         </div>
         <!-- [ Main Content ] end -->
     </div>
+    @include('projects.file_preview')
 @endsection
 
 @push('css-page')
