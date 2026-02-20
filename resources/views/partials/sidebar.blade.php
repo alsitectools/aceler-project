@@ -557,7 +557,7 @@
                 </li>
                 @if (isset($currentWorkspace) && $currentWorkspace)
                     <li
-                        class="dash-item  {{ Request::route()->getName() == 'projects.index' || Request::segment(2) == 'projects' ? 'active' : '' }}">
+                        class="dash-item  {{ (Request::route()->getName() == 'projects.index' || Request::segment(2) == 'projects') && Request::route()->getName() != 'projects.milestone.board' ? 'active' : '' }}">
                         <a href="{{ route('projects.index', $currentWorkspace->slug) }}"
                             class="dash-link  menu-element">
                             <span class="dash-micon"><i class="fa-solid fa-diagram-project"></i></span><span
@@ -565,7 +565,8 @@
                     </li>
                     
                     </li>
-                    <li class="dash-item ">
+                    <li
+                        class="dash-item {{ Request::route()->getName() == 'projects.milestone.board' ? 'active' : '' }}">
                         <a href="{{ route('projects.milestone.board', [$currentWorkspace->slug, -1]) }}"
                             class="dash-link  menu-element">
                             <span class="dash-micon"><i class="fa-solid fa-file-lines"></i></span><span
