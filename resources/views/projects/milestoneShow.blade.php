@@ -17,11 +17,11 @@
     }
 
 
-    .employeeAndHoursOnTask{
+    .employeeAndHoursOnTask {
         margin-left: 24px;
-    font-size: 0.9em;
-    color: #666;
-    margin-top: 4px;
+        font-size: 0.9em;
+        color: #666;
+        margin-top: 4px;
     }
 
     .minDivHeight {
@@ -168,16 +168,17 @@
                                                     '"></i>'
                                                 : '<i class="ms-2 me-2 fa-solid fa-hourglass-start fa-xs text-' .
                                                     $dateClass .
-                                                '"></i>';
-                                            $taskName = $task->customTask?->name ?? $task->type?->name ?? 'Task';
+                                                    '"></i>';
+                                            $taskName = $task->customTask?->name ?? ($task->type?->name ?? 'Task');
                                             $taskUser = $task->user?->name ?? 'Unassigned';
                                             $taskHours = $task->getTotalLoggedHours();
                                         @endphp
-                                        {!! $icon !!} 
+                                        {!! $icon !!}
                                         <span><strong>{{ __($taskName) }}</strong></span>
                                         <br>
                                         <span class="employeeAndHoursOnTask">
-                                            <strong>{{ $taskUser }}</strong> : <strong>{{ $taskHours }}h</strong>
+                                            <strong>{{ $taskUser }}</strong> :
+                                            <strong>{{ $taskHours }}h</strong>
                                         </span>
                                     </div>
                                 @endforeach
@@ -191,14 +192,15 @@
                 <div class="form-group col-md-8">
                     <fieldset class="custom-fieldset ctr pb-2">
                         <legend class="custom-legend">{{ __('Files') }}:</legend>
-                        <div class="@if(count($milestoneFiles) > 0) custom-file-container mt-3 @else mt-3 @endif">
+                        <div class="@if (count($milestoneFiles) > 0) custom-file-container mt-3 @else mt-3 @endif">
                             @if (!empty($milestoneFiles) && count($milestoneFiles) > 0)
                                 @foreach ($milestoneFiles as $file)
-                                    <div class="custom-file">
+                                    <div class="custom-file" style="cursor: pointer;"
+                                        onclick="previewFile({{ $project->id }}, '{{ $milestone->title }}', '{{ $file->file }}', '{{ $file->extension }}')">
                                         <img src="{{ asset('assets/iconFilesTypes/' . $file->extension . '.png') }}"
                                             alt="{{ $file->extension }} icon" class="styleIconFiles">
                                         <p class="file-name">{{ $file->name }}</p>
-                                        <a onclick="downloadFile({{ $project->id }}, '{{ $milestone->title }}', '{{ $file->file }}')"
+                                        <a onclick="event.stopPropagation(); downloadFile({{ $project->id }}, '{{ $milestone->title }}', '{{ $file->file }}')"
                                             class="buttonFiles btn btn-sm">
                                             <i class="ti ti-download" style="color:white"></i>
                                         </a>
@@ -227,7 +229,7 @@
                             <div class="page-search">
                                 <p class="text-muted mt-3">
                                     {{ __("It's looking like you may have taken a wrong turn. Don't worry... it happens to
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    the best of us. Here's a little tip that might help you get back on track.") }}
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        the best of us. Here's a little tip that might help you get back on track.") }}
                                 </p>
                                 <div class="mt-3">
                                     <a class="btn-return-home badge-blue" href="{{ route('home') }}"><i
