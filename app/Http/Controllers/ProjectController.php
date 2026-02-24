@@ -523,6 +523,8 @@ class ProjectController extends Controller
 
     public function exportProjectsToAxapta()
     {
+        //el campo puntos en axapta no pilla las horas y lo pilla en hDecimal
+        //el export no debe ser por suma del total, sino por dia, es decir, cada dia imputado tendra unas puntuaciones, cada linea es un dia imputado
         \Log::info("=== EXPORT AXAPTA - DELTA MODE ===");
 
         // Obtener todos los proyectos de tipo = 1
@@ -2235,6 +2237,7 @@ class ProjectController extends Controller
     public function taskCreate($slug)
     {
         $currentWorkspace = Utility::getWorkspaceBySlug($slug);
+        
         $taskType = TaskType::select('id', 'name', 'project_type')->get()->map(function ($task) {
             return [
                 'id' => $task->id,
@@ -2242,7 +2245,20 @@ class ProjectController extends Controller
                 'name' => __($task->name)
             ];
         });
+        
+        // Traer proyectos del workspace actual siempre
         $projects = Project::where('workspace', $currentWorkspace->id)->get();
+        
+        // Si viene de my_milestone_board con un project_id, incluir su proyecto aunque sea de otro workspace
+        if (request()->get('fromMyMilestoneBoard') && request()->get('project_id')) {
+            $projectId = request()->get('project_id');
+            $otherProject = Project::find($projectId);
+            
+            if ($otherProject && !$projects->contains('id', $projectId)) {
+                $projects = $projects->concat([$otherProject]);
+            }
+        }
+        
         $milestones = Milestone::all();
 
         return view('projects.taskCreate', compact('currentWorkspace', 'projects', 'taskType', 'milestones'));
@@ -2260,9 +2276,15 @@ class ProjectController extends Controller
         $currentWorkspace = Utility::getWorkspaceBySlug($slug);
         $user = Auth::user();
 
-        $project = Project::where('id', $request->project_id)
-            ->where('workspace', $currentWorkspace->id)
-            ->first();
+        // Si viene de my_milestone_board, permitir proyectos de otros workspaces
+        // Si no, validar que el proyecto pertenezca al workspace actual
+        if ($request->get('fromMyMilestoneBoard')) {
+            $project = Project::where('id', $request->project_id)->first();
+        } else {
+            $project = Project::where('id', $request->project_id)
+                ->where('workspace', $currentWorkspace->id)
+                ->first();
+        }
 
         if (!$project) {
             return redirect()->back()->with('error', 'Proyecto no encontrado o no pertenece al espacio de trabajo actual.');
@@ -3854,6 +3876,7 @@ class ProjectController extends Controller
 
         if ($currentWorkspace) {
 
+            $userTasks = Task::where('assign_to',$objUser->id)->get();
             if ($currentWorkspace->permissio == 'Owner') {
                 $timesheets = Timesheet::select('timesheets.*')
                     ->join('projects', 'projects.id', '=', 'timesheets.project_id')
@@ -3869,7 +3892,7 @@ class ProjectController extends Controller
                     ->whereRaw("find_in_set('" . $objUser->id . "',tasks.assign_to)")->get();
             }
 
-            return view('projects.timesheet', compact('currentWorkspace', 'timesheets', 'project_id'));
+            return view('projects.timesheet', compact('currentWorkspace', 'timesheets', 'project_id', 'userTasks'));
         } else {
             return redirect()->back()->with('error', __('Workspace Not Found.'));
         }
@@ -5201,6 +5224,7 @@ class ProjectController extends Controller
         $project_id = $request->project_id;
         $currentWorkspace = Utility::getWorkspaceBySlug($slug);
         $objUser = Auth::user();
+        $showAllWorkspaces = $request->get('all') === 'true';
 
         $user_id = $objUser->id;
 
@@ -5221,8 +5245,12 @@ class ProjectController extends Controller
                     ->join('timesheets', 'timesheets.task_id', '=', 'tasks.id')
                     ->join('milestones', 'tasks.milestone_id', '=', 'milestones.id')
                     ->join('projects', 'milestones.project_id', '=', 'projects.id')
-                    ->where('projects.workspace', '=', $currentWorkspace->id)
                     ->where('tasks.assign_to', '=', $user_id);
+
+                // Filtrar por workspace actual o todos los workspaces
+                if (!$showAllWorkspaces) {
+                    $timesheets->where('projects.workspace', '=', $currentWorkspace->id);
+                }
             } else {
                 //--------------------- Los timesheets de todos en un proyecto  -------------------//
                 $timesheets = Task::select(
@@ -5266,7 +5294,7 @@ class ProjectController extends Controller
                     'task_id'
                 ])->toArray();
             }
-            $results = Project::getProjectAssignedTimesheetHTML($currentWorkspace, $timesheets, $days, $project_id);
+            $results = Project::getProjectAssignedTimesheetHTML($currentWorkspace, $timesheets, $days, $project_id, false, $showAllWorkspaces);
             $returnHTML = $results['htmlContent'];         // HTML generado
             $totalrecords = $results['totalrecords']; // Total de registros
             if ($project_id != '-1') {

@@ -17,6 +17,15 @@
 @endsection
 @section('action-button')
     <div class="d-flex justify-content-end align-items-center row1">
+        @if ($project_id == -1)
+            <div class="col-sm-auto">
+                <select id="workspace-filter-select" class="form-select"
+                    style="width: auto; display: inline-block; font-size: 0.9rem; padding: 0.25rem 2.5rem 0.25rem 0.75rem; cursor: pointer; font-weight: 500; margin-right: 10px;">
+                    <option value="current" selected>{{ __('Current Workspace') }}</option>
+                    <option value="all">{{ __('All Workspaces') }}</option>
+                </select>
+            </div>
+        @endif
         @if (isset($currentWorkspace) && $currentWorkspace)
             @if ($project_id == -1)
                 <div class="col-sm-auto">
@@ -164,11 +173,15 @@
 
             var week = parseInt($('#weeknumber').val());
             var project_id = '{{ $project_id }}';
+            var allWorkspaces = $('#workspace-filter-select').length ? ($('#workspace-filter-select').val() === 'all' ? 'true' : 'false') : 'false';
 
             var data = {
                 week: week,
                 project_id: project_id,
+                all: allWorkspaces,
             };
+
+            console.log('Enviando datos:', data); // Debug
 
             $.ajax({
                 url: '{{ route('filter.timesheet.table.view', '__slug') }}'.replace('__slug',
@@ -176,6 +189,8 @@
 
                 data: data,
                 success: function(data) {
+
+                    console.log('Respuesta recibida:', data); // Debug
 
                     // Mostrar el rango de semana dentro del "botón"
                     $('#weekRangeDisplay .weekRangeText').text(formatWeekRange(data.onewWeekDate));
@@ -240,6 +255,10 @@
             var picked = $(this).val();
             saveSelectedWeekStart(picked);
             setWeekFromDate(picked);
+            ajaxFilterTimesheetTableView();
+        });
+
+        $(document).on('change', '#workspace-filter-select', function() {
             ajaxFilterTimesheetTableView();
         });
 
@@ -308,6 +327,80 @@
                     show_toastr('Error', data.error, 'error');
                 }
             });
+
+            return false;
+        });
+
+        // Evento para mostrar popup al hacer click en las horas totales del día
+        $(document).on('click', '.day-total-hours', function(e) {
+            e.preventDefault();
+            e.stopImmediatePropagation();
+
+            var dateFormatted = $(this).data('date-formatted');
+            var dateValue = $(this).data('date');
+            var hoursValue = $(this).text().trim();
+            var tasksData = $(this).data('tasks') || [];
+
+            var modalId = 'dayTotalModal';
+            var modalElement = document.getElementById(modalId);
+
+            
+            // Si el modal no existe, crear uno dinámicamente
+            if (!modalElement) {
+                var modalHTML = `
+                    <div class="modal fade" id="dayTotalModal" tabindex="-1" role="dialog" aria-labelledby="dayTotalModalLabel" aria-hidden="true">
+                        <div class="modal-dialog" role="document">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title" id="dayTotalModalLabel"></h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <div id="dayTotalContent"></div>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ __('Close') }}</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                $('body').append(modalHTML);
+                modalElement = document.getElementById(modalId);
+            }
+
+            console.log("he sido clicked dentro del resumen")
+            // Construir el contenido del modal
+            var contentHTML = '<div class="day-summary">';
+            
+            // Encabezado con fecha y total de horas
+            contentHTML += '<div class="summary-header mb-3" style="border-bottom: 2px solid #aa182c;padding-bottom: 10px;display: flex;flex-direction: row;align-content: center;justify-content: space-evenly;align-items: center;">';
+            contentHTML += '<p style="margin: 0;"><strong>' + dateFormatted + '</strong></p>';
+            contentHTML += '<strong>' + hoursValue + '</strong>';
+            contentHTML += '</div>';
+            
+            // Listar las tareas
+            if (tasksData && tasksData.length > 0) {
+                contentHTML += '<div class="tasks-list">';
+                tasksData.forEach(function(task, index) {
+                    contentHTML += '<div class="task-item mb-2" style="padding: 8px; background-color: #f8f9fa; border-radius: 4px;">';
+                    contentHTML += '<div class="task-name" style="font-weight: 500; margin-bottom: 4px;">• ' + (task.project_name || '') + ' - ' + task.task_name + ' - ' + task.hours + '</div>';
+                    contentHTML += '</div>';
+                });
+                contentHTML += '</div>';
+            } else {
+                contentHTML += '<p class="text-muted">{{ __('No tasks recorded for this day') }}</p>';
+            }
+            
+            contentHTML += '</div>';
+
+            // Llenar los datos del modal
+            $('#dayTotalModalLabel').text('{{ __('Day Summary') }}');
+            $('#dayTotalContent').html(contentHTML);
+
+            // Mostrar el modal
+            var modal = bootstrap.Modal.getOrCreateInstance(modalElement);
+            modal.show();
 
             return false;
         });

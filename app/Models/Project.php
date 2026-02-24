@@ -228,14 +228,22 @@ class Project extends Model
                     $taskStart = Carbon::parse($task->start_date);
                     $taskEnd = $task->end_date ? Carbon::parse($task->end_date) : null;
 
-                    \Log::debug('Evaluando tarea', [
-                        'task_id' => $task->id,
-                        'task_name' => $task->type ? $task->type->name : '',
-                        'task_start' => $taskStart->toDateString(),
-                        'task_end' => $taskEnd ? $taskEnd->toDateString() : null,
-                        'first_day' => $first_day->toDateString(),
-                        'seventh_day' => $seventh_day->toDateString(),
-                    ]);
+                    // Obtener el nombre correcto especialmente si es custom
+                    
+                    $taskName = $task->type ? $task->type->name : '';
+                    if ($task->type->name === 'custom') {
+                        $customTask = CustomTasks::where('id_task', $task->id)->first();
+                        $taskName = $customTask ? $customTask->name : $taskName;
+                    }
+                    // \Log::debug('Task name' .$taskName);
+                    // \Log::debug('Evaluando tarea', [
+                    //     'task_id' => $task->id,
+                    //     'task_name' => $task->type ? $task->type->name : '',
+                    //     'task_start' => $taskStart->toDateString(),
+                    //     'task_end' => $taskEnd ? $taskEnd->toDateString() : null,
+                    //     'first_day' => $first_day->toDateString(),
+                    //     'seventh_day' => $seventh_day->toDateString(),
+                    // ]);
                     // Permitir mostrar tareas hasta 5 años atrás
                     $milestoneStatus = $milestone->status;
 
@@ -485,7 +493,7 @@ class Project extends Model
     }
 
 
-    public static function getProjectAssignedTimesheetHTML($currentWorkspace, $timesheets = [], $days = [], $project_id = null, $seeAsOwner = false)
+    public static function getProjectAssignedTimesheetHTML($currentWorkspace, $timesheets = [], $days = [], $project_id = null, $seeAsOwner = false, $showAllWorkspaces = false)
     {
         $userId = Auth::id();
         $allProjects = false;
@@ -497,13 +505,18 @@ class Project extends Model
         if ($project_id == -1) {
             $allProjects = true;
 
-            $projects = Project::select(['id', 'name', 'ref_delegation'])
-                ->where('workspace', $currentWorkspace->id)
-                ->whereHas('milestones.tasks')
-                ->with(['milestones' => function ($query) {
-                    $query->select(['id', 'title', 'project_id'])
-                        ->whereHas('tasks');
-                }])
+            $query = Project::select(['id', 'name', 'ref_delegation'])
+                ->whereHas('milestones.tasks');
+
+            // Filtrar por workspace actual o todos los workspaces
+            if (!$showAllWorkspaces) {
+                $query->where('workspace', $currentWorkspace->id);
+            }
+
+            $projects = $query->with(['milestones' => function ($query) {
+                $query->select(['id', 'title', 'project_id'])
+                    ->whereHas('tasks');
+            }])
                 ->get();
 
             $results = self::processAllProjectsTimesheets($projects, $timesheets, $days, $currentWorkspace, $userId, $totalTaskTimes);

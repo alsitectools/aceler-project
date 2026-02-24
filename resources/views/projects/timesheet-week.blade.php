@@ -492,6 +492,71 @@
         <div class="custom-tfoot d-grid">
             @php
                 $combinedData = array_combine($days['datePeriod'], $totalDateTimes);
+                
+                // Construir un array de tareas por fecha
+                $tasksByDate = [];
+                
+                if (isset($allProjects) && $allProjects == true) {
+                    foreach ($timesheetArray as $timesheet) {
+                        foreach ($timesheet['milestoneArray'] as $milestone) {
+                            foreach ($milestone['taskArray'] as $task) {
+                                foreach ($task['dateArray'] as $dateTimeArray) {
+                                    foreach ($dateTimeArray as $dateSubArray) {
+                                        $date = $dateSubArray['date'];
+                                        if (!isset($tasksByDate[$date])) {
+                                            $tasksByDate[$date] = [];
+                                        }
+                                        
+                                        $displayTaskName = $task['task_name'];
+                                        if (strtolower($task['task_name']) === 'custom') {
+                                            try {
+                                                $customTask = CustomTasks::where('id_task', $task['task_id'])->first();
+                                                $displayTaskName = $customTask ? $customTask->name : 'custom';
+                                            } catch (\Exception $e) {
+                                                $displayTaskName = 'custom';
+                                            }
+                                        }
+                                        
+                                        $tasksByDate[$date][] = [
+                                            'task_name' => $displayTaskName,
+                                            'hours' => $dateSubArray['time'] != '00:00' ? $dateSubArray['time'] : '00:00'
+                                        ];
+                                    }
+                                }
+                            }
+                        }
+                    }
+                } else {
+                    foreach ($timesheetArray as $timesheet) {
+                        foreach ($timesheet['usersArray'] as $user) {
+                            foreach ($user['taskArray'] as $task) {
+                                foreach ($task['dateArray'] as $dateTimeArray) {
+                                    foreach ($dateTimeArray as $dateSubArray) {
+                                        $date = $dateSubArray['date'];
+                                        if (!isset($tasksByDate[$date])) {
+                                            $tasksByDate[$date] = [];
+                                        }
+                                        
+                                        $displayTaskName = $task['task_name'];
+                                        if (strtolower($task['task_name']) === 'custom') {
+                                            try {
+                                                $customTask = CustomTasks::where('id_task', $task['task_id'])->first();
+                                                $displayTaskName = $customTask ? $customTask->name : 'custom';
+                                            } catch (\Exception $e) {
+                                                $displayTaskName = 'custom';
+                                            }
+                                        }
+                                        
+                                        $tasksByDate[$date][] = [
+                                            'task_name' => $displayTaskName,
+                                            'hours' => $dateSubArray['time'] != '00:00' ? $dateSubArray['time'] : '00:00'
+                                        ];
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
             @endphp
             <div class="footer-cell hiddenPositioner">
                 <p><b>{{ __('Total') }}</b></p>
@@ -536,10 +601,15 @@
                     }
                 @endphp
 
-                <div class="footer-cell">
+                <div class="footer-cell" data-date="{{ $perioddate }}" data-date-formatted="{{ $dateFormatted }}">
                     <p><b>{{ $dateFormatted }}</b></p>
-                    <div class="greyBackgroundTotalHours"
-                        style="background-color: {{ $dayColor }} !important; padding: 5px; border-radius: 5px;">
+                    <div class="greyBackgroundTotalHours day-total-hours"
+                        style="background-color: {{ $dayColor }} !important; padding: 5px; border-radius: 5px; cursor: pointer;"
+                        role="button"
+                        data-date="{{ $perioddate }}"
+                        data-date-formatted="{{ $dateFormatted }}"
+                        data-tasks="{{ json_encode($tasksByDate[$perioddate] ?? []) }}"
+                        title="{{ __('Click to view day details') }}">
                         {{ $totaldatetime != '00:00' ? $totaldatetime : '00:00' }}
                     </div>
                 </div>

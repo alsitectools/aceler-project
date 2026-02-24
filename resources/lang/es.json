@@ -1315,5 +1315,7 @@
     "No tasks for this milestone.": "No hay tareas para este encargo.",
     "No description provided for this milestone.": "No hay descripción para este encargo.",
     "Completed date" : "Fecha de finalización",
-    "Planned delivery date" : "Fecha de entrega prevista"
+    "Planned delivery date" : "Fecha de entrega prevista",
+    "Search workspace...": "Buscar espacio de trabajo...",
+    "Day Summary" : "Resumen del día"
 }
