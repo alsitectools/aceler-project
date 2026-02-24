@@ -116,6 +116,7 @@
                 <!-- Fecha estimada -->
                 <!-- Campo oculto con fecha estimada (por defecto hoy) -->
 <input type="hidden" id="estimated_date" name="estimated_date" value="{{ \Carbon\Carbon::now()->format('Y-m-d') }}">
+<input type="hidden" name="fromMyMilestoneBoard" value="{{ $fromMyMilestoneBoard ?? 0 }}">
 
             </div>
         </div>
@@ -179,9 +180,24 @@
     // ✅ Listener SOLO UNA VEZ
     $('#task-list').on('change', toggleCustomTaskName);
 
-    function updateSelects() {
-        var selectedOption = $('#project_id').find('option:selected');
-        var projectId = selectedOption.val();
+    function updateSelects(projectIdOverride = null) {
+        var projectId, selectedProject;
+
+        // Si viene projectIdOverride (cuando está preseleccionado), usarlo
+        if (projectIdOverride !== null) {
+            projectId = projectIdOverride;
+            // Buscar el proyecto en @json($projects) para obtener sus datos
+            var projects = @json($projects);
+            selectedProject = projects.find(p => String(p.id) === String(projectId));
+        } else {
+            // Normal: obtener del select
+            var selectedOption = $('#project_id').find('option:selected');
+            projectId = selectedOption.val();
+            selectedProject = selectedOption.data('project');
+            if (typeof selectedProject === 'string') {
+                selectedProject = JSON.parse(selectedProject);
+            }
+        }
 
         // Reset selects
         $('#task-list').empty().append($('<option>', {
@@ -192,12 +208,6 @@
             value: '',
             text: "{{ __('Select Milestone') }}"
         }));
-
-        // ✅ Obtener proyecto seleccionado ANTES de usarlo
-        var selectedProject = selectedOption.data('project');
-        if (typeof selectedProject === 'string') {
-            selectedProject = JSON.parse(selectedProject);
-        }
 
         // ✅ taskTypes ANTES de iterar
         var taskTypes = @json($taskType);
@@ -245,8 +255,9 @@
 
     $('#project_id').on('change', updateSelects);
 
+    // Si ya hay proyecto preseleccionado, disparar updateSelects con el ID
     @if ($selectedProjectId)
-        $('#project_id').trigger('change');
+        updateSelects('{{ $selectedProjectId }}');
     @endif
 
    
@@ -255,11 +266,6 @@
         $('#project_id').on('change', function() {
             updateSelects();
         });
-
-        // Si ya hay proyecto preseleccionado, disparamos el evento change
-        @if ($selectedProjectId)
-            $('#project_id').trigger('change');
-        @endif
         var openedFromStatusChangeTrigger = '{{ $fromMilestoneBoard }}';
         console.log(openedFromStatusChangeTrigger)
         var closeBtnCollection = document.getElementsByClassName('btn-close').length;
