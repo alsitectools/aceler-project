@@ -13,40 +13,6 @@
     <link rel="stylesheet" href="{{ asset('assets/css/milestoneboard.css') }}">
 </head>
 <style>
-    .showAllMilestonesIcon {
-        width: 24px;
-        transition: filter 0.2s;
-    }
-
-    .showAllMilestonesIcon.enabled {
-        filter: grayscale(0);
-    }
-
-    .showAllMilestonesIcon.disabled {
-        filter: grayscale(1);
-    }
-
-
-    .showCompletedProjectGroup {
-        display: flex;
-        gap: 17px;
-    }
-
-    .showCompletedProjects {
-        width: 20px;
-        height: 20px;
-        margin-top: -6px;
-    }
-
-    .showCompletedProjects:hover {
-        cursor: pointer;
-
-    }
-
-    .showCompletedProjectsUnabled {
-        filter: grayscale(1);
-    }
-
     .modifiedWidth {
         width: 99.9%;
     }
@@ -64,16 +30,6 @@
     .adjustTextCalendar {
         padding-top: 10% !important;
         font-size: 12px !important;
-    }
-
-    .hideUnasignedTasks {
-        margin-top: -6px;
-        width: 24px;
-    }
-
-    .hideUnasignedTasks:hover {
-        cursor: pointer;
-
     }
 
     .toastNegation {
@@ -298,6 +254,7 @@
             </div>
         </div>
         @if (isset($currentWorkspace) && $currentWorkspace)
+            @include('projects.partials.milestone_filter_popUp', ['filtersPopupMode' => 'standard'])
             <div class="col-sm-auto" style="margin-right: 20px;">
                 <button style="width: 100%" type="button" class="btn btn-primary addMilestone" data-ajax-popup="true"
                     data-title="{{ __('Check Workloads') }}"
@@ -319,6 +276,7 @@
         @endif
     </div>
 @endsection
+
 @section('content')
     <div class="row modifiedWidth">
         <div class="col-sm-12">
@@ -328,27 +286,7 @@
                     <div class="col-3 pe-1" id="{{ 'milestone-list-' . str_replace(' ', '_', $status->id) }}">
                         <div class="card card-list">
                             <div class="card-header">
-                                <div class="float-end showCompletedProjectGroup">
-
-                                    @if ($status->name === 'Done')
-                                        @if ($project_id == -1)
-                                            <img id="toggleCompletedProjectsIcon"
-                                                src="{{ asset('assets/img/clipboard-check-solid.svg') }}"
-                                                alt="show completed projects" title="{{ __('Show Completed Projects') }}"
-                                                class="showCompletedProjects showCompletedProjectsUnabled" />
-                                        @endif
-                                    @endif
-                                    @if ($status->name === 'To Do')
-                                        <img id="hideUnassignedMilstoneIcon"
-                                            src="{{ asset('assets/img/address-card-regular.svg') }}"
-                                            alt="show completed projects" title="{{ __('Hide Unasigned Order Forms') }}"
-                                            class="hideUnasignedTasks" />
-                                        <img id="toggleAllMilestonesIcon"
-                                            src="{{ asset('assets/img/users-solid-full.svg') }}"
-                                            title="{{ __('Show All Workspace Milestones') }}"
-                                            class="showAllMilestonesIcon"
-                                            style="width:24px; cursor:pointer; margin-left:10px;margin-bottom: 5px;" />
-                                    @endif
+                                <div class="float-end">
                                     <button class="btn-submit btn btn-md btn-primary btn-icon px-1 py-0 "
                                         style="height: 19.7px;">
                                         <span class="badge badge-secondary rounded-pill count">
@@ -1415,102 +1353,6 @@
                     });
                 });
             </script>
-            @if ($project_id == -1)
-                <!-- Script encargado de mostrar/ocultar los proyectos completado -->
-                <script>
-                    document.addEventListener('DOMContentLoaded', function() {
-                        let showCompleted = false; // Variable global para rastrear la visibilidad de proyectos completados
-
-                        // Inicializa: Oculta grupos de milestones cuyo TODOS elementos tengan status 4
-                        initializeCompletedProjects();
-
-                        // Configura el listener para el toggle
-                        const toggleIcon = document.getElementById('toggleCompletedProjectsIcon');
-                        if (toggleIcon) {
-                            toggleIcon.addEventListener('click', function() {
-                                showCompleted = !showCompleted;
-                                toggleCompletedProjects(showCompleted);
-                                this.classList.toggle('showCompletedProjectsUnabled', !showCompleted);
-                                this.title = showCompleted ? "{{ __('Hide Completed Projects') }}" :
-                                    "{{ __('Show Completed Projects') }}";
-                            });
-                        }
-
-                        function initializeCompletedProjects() {
-                            const milestones = document.querySelectorAll('.card[data-project-id]');
-                            const projectMap = new Map();
-
-                            milestones.forEach(milestone => {
-                                const projectId = milestone.dataset.projectId;
-                                if (!projectMap.has(projectId)) {
-                                    projectMap.set(projectId, []);
-                                }
-                                projectMap.get(projectId).push(milestone);
-                            });
-
-                            projectMap.forEach((milestones, projectId) => {
-                                const allInStatus4 = milestones.every(m => parseInt(m.dataset.status) === 4);
-                                if (allInStatus4) {
-                                    milestones.forEach(m => m.style.display = 'none');
-                                }
-                            });
-                        }
-
-                        function toggleCompletedProjects(shouldShow) {
-                            const milestones = document.querySelectorAll('.card[data-project-id]');
-                            const projectMap = new Map();
-
-                            milestones.forEach(milestone => {
-                                const projectId = milestone.dataset.projectId;
-                                if (!projectMap.has(projectId)) {
-                                    projectMap.set(projectId, []);
-                                }
-                                projectMap.get(projectId).push(milestone);
-                            });
-
-                            projectMap.forEach((milestones, projectId) => {
-                                const allInStatus4 = milestones.every(m => parseInt(m.dataset.status) === 4);
-                                milestones.forEach(m => {
-                                    m.style.display = (allInStatus4 && !shouldShow) ? 'none' : 'block';
-                                    m.style.border = (allInStatus4 && shouldShow) ? '3px solid #15b500' :
-                                        'none';
-                                });
-                            });
-                        }
-
-                        function checkAndUpdateProjectVisibility(el) {
-                            const projectId = el.dataset.projectId;
-                            const projectMilestones = document.querySelectorAll(`.card[data-project-id='${projectId}']`);
-                            const allInStatus4 = Array.from(projectMilestones).every(m => parseInt(m.dataset.status) === 4);
-
-                            if (allInStatus4 && !showCompleted) {
-                                projectMilestones.forEach(m => m.style.display = 'none');
-                            }
-                        }
-
-                        // Agrega un MutationObserver para detectar cambios en data-status y actualizar dinámicamente
-                        function observeMilestoneStatusChanges() {
-                            const milestoneCards = document.querySelectorAll('.card[data-project-id]');
-                            milestoneCards.forEach(card => {
-                                const observer = new MutationObserver(mutations => {
-                                    mutations.forEach(mutation => {
-                                        if (mutation.type === 'attributes' && mutation.attributeName ===
-                                            'data-status') {
-                                            checkAndUpdateProjectVisibility(card);
-                                        }
-                                    });
-                                });
-                                observer.observe(card, {
-                                    attributes: true,
-                                    attributeFilter: ['data-status']
-                                });
-                            });
-                        }
-
-                        observeMilestoneStatusChanges();
-                    });
-                </script>
-            @endif
             <!-- Script encargado de la acción de "Add Task on Timesheet" al hacer clic en una tarea (se desactiva si el milestone está en status 4) -->
             <script>
                 // Espera a que el DOM esté completamente cargado
@@ -1581,92 +1423,6 @@
                             task.style.cursor = 'not-allowed';
                         }
                     });
-                });
-            </script>
-            <!-- Script encargado de mostrar/ocultar las opciones cuando el estado del proyecto esta en 4 (en Hecho) -->
-            <script>
-                document.addEventListener('DOMContentLoaded', function() {
-                    const hideUnassignedIcon = document.getElementById('hideUnassignedMilstoneIcon');
-                    const toggleAllIcon = document.getElementById('toggleAllMilestonesIcon');
-
-                    // Estado de los filtros
-                    let hideUnassigned = false; // true => ocultar no asignadas
-                    let showAll = false; // true => ver todas, false => ver solo las mías
-                    const currentUserId = "{{ Auth::id() }}";
-
-                    if (toggleAllIcon) {
-                        toggleAllIcon.classList.add('disabled');
-                    }
-
-                    function applyMilestoneFilters() {
-                        const allMilestones = document.querySelectorAll('.card[data-project-id]');
-
-                        allMilestones.forEach(card => {
-                            const assignedUser = card.dataset.assignTo;
-                            const createdBy = card.dataset.createdBy;
-                            const requestedBy = card.dataset.requestedBy;
-                            const hasMyTasks = card.dataset.hasMyTasks === '1';
-                            const isUnassigned = card.classList.contains('notAsignedMilestone');
-
-                            let visible = true;
-
-                            // 🟢 FILTRO: solo mis milestones
-                            if (!showAll) {
-
-                                const isMine =
-                                    assignedUser == currentUserId ||
-                                    createdBy == currentUserId ||
-                                    requestedBy == currentUserId ||
-                                    hasMyTasks ||
-                                    (isUnassigned && createdBy == currentUserId);
-
-                                if (!isMine) {
-                                    visible = false;
-                                }
-                            }
-
-                            // 🔴 FILTRO: ocultar no asignadas
-                            if (hideUnassigned && isUnassigned) {
-                                visible = false;
-                            }
-
-                            card.style.display = visible ? '' : 'none';
-                        });
-                    }
-
-
-
-                    // Click en "ocultar hojas no asignadas"
-                    if (hideUnassignedIcon) {
-                        hideUnassignedIcon.addEventListener('click', function() {
-                            hideUnassigned = !hideUnassigned;
-
-                            this.style.filter = hideUnassigned ? 'grayscale(1)' : 'none';
-                            this.title = hideUnassigned ?
-                                "{{ __('Show Unassigned Order Forms') }}" :
-                                "{{ __('Hide Unasigned Order Forms') }}";
-
-                            applyMilestoneFilters();
-                        });
-                    }
-
-                    // Click en "todas las milestones del workspace"
-                    if (toggleAllIcon) {
-                        toggleAllIcon.addEventListener('click', function() {
-                            showAll = !showAll;
-
-                            this.classList.toggle('disabled', !showAll);
-                            this.classList.toggle('enabled', showAll);
-                            this.title = showAll ?
-                                "{{ __('Hide other users milestones') }}" :
-                                "{{ __('Show all workspace milestones') }}";
-
-                            applyMilestoneFilters();
-                        });
-                    }
-
-                    // Si quieres, puedes aplicar filtros iniciales al cargar:
-                    // applyMilestoneFilters();
                 });
             </script>
             <!-- Script encargado de mostrar/ocultar la leyenda de colores -->

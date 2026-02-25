@@ -273,6 +273,9 @@
                 </div>
             </div>
         </div>
+        @if (isset($currentWorkspace) && $currentWorkspace)
+            @include('projects.partials.milestone_filter_popUp', ['filtersPopupMode' => 'my_board'])
+        @endif
     </div>
 @endsection
 @section('content')
@@ -287,12 +290,12 @@
                                 <div class="float-end showCompletedProjectGroup">
 
                                     @if ($status->name === 'Done')
-                                        @if ($project_id == -1)
+                                        {{-- @if ($project_id == -1)
                                             <img id="toggleCompletedProjectsIcon"
                                                 src="{{ asset('assets/img/clipboard-check-solid.svg') }}"
                                                 alt="show completed projects" title="{{ __('Show Completed Projects') }}"
                                                 class="showCompletedProjects showCompletedProjectsUnabled" />
-                                        @endif
+                                        @endif --}}
                                     @endif
                                     <button class="btn-submit btn btn-md btn-primary btn-icon px-1 py-0 "
                                         style="height: 19.7px;">
