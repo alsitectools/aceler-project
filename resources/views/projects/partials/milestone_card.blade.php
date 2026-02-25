@@ -49,10 +49,19 @@
         {{ $extraClass ?? '' }}"
     id="{{ $milestone['id'] }}" data-status="{{ $status->id }}" data-project-id="{{ $milestone['project_id'] }}"
     data-project-name="{{ $milestone['project_name'] ?? '' }}"
+    data-project-type="{{ strtolower($milestone['project_type'] ?? '') }}"
+    data-project-type-label="{{ __($milestone['project_type'] ?? '') }}"
     data-assign-to="{{ $milestone['asiggned_user_data']->id ?? '' }}" data-is-waiting="{{ $milestone['is_waiting'] }}"
-    data-milestone-title="{{ $milestone['title'] }}" style="{{ $inlineStyle ?? '' }}"
-    data-created-by="{{ $milestone['created_by'] ?? '' }}" data-requested-by="{{ $milestone['assign_to'] ?? '' }}"
+    data-priority="{{ strtolower($milestone['priority'] ?? '') }}" data-milestone-title="{{ $milestone['title'] }}"
+    style="{{ $inlineStyle ?? '' }}" data-created-by="{{ $milestone['created_by'] ?? '' }}"
+    data-requested-by="{{ $milestone['assign_to'] ?? '' }}"
+    data-requested-by-name="{{ $milestone['sales']->name ?? '' }}"
+    data-assign-to-name="{{ $milestone['asiggned_user_data']->name ?? '' }}"
     data-has-my-tasks="{{ $milestone['has_my_tasks'] ?? 0 }}"
+    data-desired-delivery-date="{{ $milestone['end_date'] ?? '' }}"
+    data-planned-delivery-date="{{ $milestone['planned_end_date'] ?? '' }}"
+    data-completed-date="{{ $milestone['finalization_date'] ?? '' }}"
+    data-workspace-name="{{ $milestone['workspace_name'] ?? '' }}"
     data-workspace-slug="{{ $milestone['workspace_slug'] ?? $currentWorkspace->slug }}">
 
 
@@ -351,11 +360,10 @@
                             {{-- Fecha completada --}}
                             <div class="dateDiv text-center tooltipCus" data-title="{{ __('Completed date') }}">
                                 @if ($milestone['finalization_date'] != null && $milestone['finalization_date'] != '0000-00-00')
-                                    
-                                 @php
-                                 $estimatedDate = new DateTime($milestone['planned_end_date']);
-                                 $requestedDate = new DateTime($milestone['end_date']);
-                                 $completedDate = new DateTime($milestone['finalization_date']);
+                                    @php
+                                        $estimatedDate = new DateTime($milestone['planned_end_date']);
+                                        $requestedDate = new DateTime($milestone['end_date']);
+                                        $completedDate = new DateTime($milestone['finalization_date']);
 
                                         if ($estimatedDate < $completedDate && $requestedDate < $completedDate) {
                                             $iconColor = $isOverdue ? '#db8d33' : 'black';
@@ -364,7 +372,7 @@
                                         }
                                     @endphp
 
-                                <i class="fa-solid fa-calendar-check fa-2xl m-1 calendarAlert"
+                                    <i class="fa-solid fa-calendar-check fa-2xl m-1 calendarAlert"
                                         style="color:{{ $iconColor }};"></i>
 
                                     <div class="adjustTextCalendar">
