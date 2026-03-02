@@ -649,6 +649,10 @@ Route::delete('/{slug}/projects/{id}/client/{uid}', [ProjectController::class, '
 Route::post('/{slug}/projects/share/{id}', [ProjectController::class, 'share'])->name('projects.share')->middleware(['auth', 'XSS']);
 Route::post('/{slug}/projects/invite/{id}/update', [ProjectController::class, 'invite'])->name('projects.invite.update')->middleware(['auth', 'XSS']);
 Route::get('/{slug}/projects/milestone/{id}', [ProjectController::class, 'milestone'])->name('projects.milestone')->middleware(['auth', 'XSS']);
+Route::get('/{slug}/projects/{id}/stages-popup', [ProjectController::class, 'stagesPopup'])->name('projects.stages.popup')->middleware(['auth', 'XSS']);
+Route::post('/{slug}/projects/{id}/stages', [ProjectController::class, 'stagesStore'])->name('projects.stages.store')->middleware(['auth', 'XSS']);
+Route::post('/{slug}/projects/{id}/stages/{stageId}/update', [ProjectController::class, 'stagesUpdate'])->name('projects.stages.update')->middleware(['auth', 'XSS']);
+Route::delete('/{slug}/projects/{id}/stages/{stageId}', [ProjectController::class, 'stagesDestroy'])->name('projects.stages.destroy')->middleware(['auth', 'XSS']);
 Route::post('/{slug}/projects/milestone/{id}/store', [ProjectController::class, 'milestoneStore'])->name('projects.milestone.store')->middleware(['auth', 'XSS']);
 Route::get('/{slug}/projects/milestone/{id}/show', [ProjectController::class, 'milestoneShow'])->name('projects.milestone.show')->middleware(['auth', 'XSS']);
 Route::get('/{slug}/projects/milestone/{id}/edit', [ProjectController::class, 'milestoneEdit'])->name('projects.milestone.edit')->middleware(['auth', 'XSS']);

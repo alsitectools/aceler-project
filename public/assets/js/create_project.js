@@ -246,6 +246,12 @@ console.log('handlelistitemclick item::', item);
 
                 $('#projectId').val(item.id);
                 projectInput.val(item.name);
+                const isPhaseProject = [3, 5].includes(parseInt(item.type, 10));
+                const phaseWrapper = document.getElementById('phase-wrapper');
+                const moWrapper = document.getElementById('mo-wrapper');
+                const phaseSelect = document.getElementById('phase');
+                const stageWrapper = document.getElementById('stage-wrapper');
+                const stageSelect = document.getElementById('stage');
 
                 if (!item.ref_mo) {
 
@@ -258,10 +264,41 @@ console.log('handlelistitemclick item::', item);
                     additionalForm.style.display = 'block';
                 }
 
-                if(item.type == 3){
-                    document.getElementById('phase-wrapper').style.display = 'block';
-                }else{
-                    document.getElementById('phase-wrapper').style.display = 'none';
+                if (phaseWrapper) {
+                    phaseWrapper.style.display = isPhaseProject ? 'block' : 'none';
+                }
+
+                if (moWrapper) {
+                    moWrapper.style.display = isPhaseProject ? 'none' : 'block';
+                }
+
+                if (phaseSelect) {
+                    phaseSelect.required = isPhaseProject;
+                    if (!isPhaseProject) {
+                        phaseSelect.value = '';
+                    }
+                }
+
+                if (stageWrapper) {
+                    stageWrapper.style.display = isPhaseProject ? 'block' : 'none';
+                }
+
+                if (stageSelect) {
+                    stageSelect.innerHTML = '<option value="">Choose one</option>';
+
+                    if (isPhaseProject && Array.isArray(item.stages) && item.stages.length > 0) {
+                        item.stages.forEach((stageName) => {
+                            const option = document.createElement('option');
+                            option.value = stageName;
+                            option.textContent = stageName;
+                            stageSelect.appendChild(option);
+                        });
+                    }
+                }
+
+                if (isPhaseProject) {
+                    milestoneMoInput.val('');
+                    milestoneMoInput.prop('required', false);
                 }
             } else if (type === 'salesManagers') {
                 salesManagerInput.val(item.name);

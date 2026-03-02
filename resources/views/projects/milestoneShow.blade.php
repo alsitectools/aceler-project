@@ -44,15 +44,35 @@
                         style="display: flex; justify-content: space-between; align-items: center;">
                         <legend class="custom-legend">{{ __('Name') }}:</legend>
                         <h2 class="ps-2" style="font-size: 24px;">{{ $milestone->title }}</h2>
-                        @if ($milestone->status == 3)
-                            <label class="statusBadge bg-warning ">{{ __('For Review') }}</label>
-                        @elseif ($milestone->status == 4)
-                            <label class="bg-success statusBadge">{{ __('Finished') }}</label>
-                        @else
-                            <label class="statusBadge {{ $milestone->status == 1 ? 'bg-info' : 'bg-secondary' }}">
-                                {{ $milestone->status == 1 ? __('To Do') : __('Ongoing') }}
-                            </label>
-                        @endif
+                        <div class="d-flex align-items-center gap-2">
+                            @php
+                                $phaseName = optional($milestone->phase)->phases;
+                                $stageName = $milestone->resolved_stage_name;
+                            @endphp
+
+                            @if (filled($phaseName))
+                                <label class="statusBadge " style="background-color: #493d3f !important;"
+                                    title="{{ __('Stage') }}">{{ $phaseName }}</label>
+                            @endif
+
+                            @if (filled($stageName))
+                                <label class="statusBadge " style="background-color: #9E9E9E !important;"
+                                    title="{{ __('Phase') }}">{{ $stageName }}</label>
+                            @endif
+
+                            @if ($milestone->status == 3)
+                                <label class="statusBadge bg-warning "
+                                    title="{{ __('Status') }}">{{ __('For Review') }}</label>
+                            @elseif ($milestone->status == 4)
+                                <label class="bg-success statusBadge"
+                                    title="{{ __('Status') }}">{{ __('Finished') }}</label>
+                            @else
+                                <label class="statusBadge {{ $milestone->status == 1 ? 'bg-info' : 'bg-secondary' }}"
+                                    title="{{ __('Status') }}">
+                                    {{ $milestone->status == 1 ? __('To Do') : __('Ongoing') }}
+                                </label>
+                            @endif
+                        </div>
                     </fieldset>
                 </div>
             </div>

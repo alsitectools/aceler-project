@@ -532,11 +532,19 @@
                                             </h5>
                                         </div>
                                         <div class="float-end">
+                                            @if ($project->type == 3 || $project->type == 5)
+                                                <a href="#" class="btn btn-primary ms-2" data-ajax-popup="true"
+                                                    data-size="md" data-title="{{ __('See stages') }}"
+                                                    data-url="{{ route('projects.stages.popup', [$currentWorkspace->slug, $project->id]) }}"
+                                                    data-toggle="popover"><i class="fa-solid fa-layer-group me-2"></i>
+                                                    {{ __('See stages') }}</a>
+                                            @endif
                                             <a href="#" class="btn btn-primary addMilestone" data-ajax-popup="true"
                                                 data-title="{{ __('Milestone order') }}"
                                                 data-url="{{ route('projects.milestone', [$currentWorkspace->slug, $project->id]) }}"
                                                 data-toggle="popover"><i class="fa-solid fa-file-lines me-3"
                                                     style="color: #ffffff;"></i> {{ __('Create Order Form') }}</a>
+
                                         </div>
                                     </div>
                                 </div>
@@ -567,7 +575,9 @@
                                                     <th>{{ __('Action') }}</th>
                                                 </tr> --}}
                                                 <tr>
-                                                    @if ($project->type == 3)
+                                                    @if ($project->type == 3 || $project->type == 5)
+                                                        <th class="sortable-header" data-sort="stage" data-type="text">
+                                                            {{ __('Stage') }}<span class="sort-indicator"></span></th>
                                                         <th class="sortable-header" data-sort="phase" data-type="text">
                                                             {{ __('Phase') }}<span class="sort-indicator"></span></th>
                                                     @endif
@@ -600,14 +610,24 @@
                                             <tbody>
                                                 @foreach ($project->milestones->sortByDesc('id') as $key => $milestone)
                                                     <tr>
-                                                        @if ($project->type == 3)
+                                                        @if ($project->type == 3 || $project->type == 5)
                                                             <td>
                                                                 @php
-                                                                    $phase = $milestone->phases()->first();
+                                                                    $phase = $milestone->phase;
                                                                 @endphp
                                                                 @if ($phase)
                                                                     <span
                                                                         style="font-weight: bold;">{{ $phase->phases }}</span>
+                                                                @else
+                                                                    <span class="text-muted">...</span>
+                                                                @endif
+                                                                <td>
+                                                                @php
+                                                                    $stageName = $milestone->resolved_stage_name;
+                                                                @endphp
+                                                                @if (filled($stageName))
+                                                                    <span
+                                                                        style="font-weight: bold;">{{ $stageName }}</span>
                                                                 @else
                                                                     <span class="text-muted">...</span>
                                                                 @endif

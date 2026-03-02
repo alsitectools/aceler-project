@@ -26,6 +26,8 @@ use App\Models\Mail\SendWorkspaceInvication;
 use App\Models\Mail\ShareProjectToClient;
 use App\Models\Milestone;
 use App\Models\MilestonePhases;
+use App\Models\MilestoneStageProject;
+use App\Models\MilestoneStages;
 use App\Models\CustomTasks;
 use App\Models\Project;
 use App\Models\ProjectType;
@@ -53,6 +55,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\Rule;
 // use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 use Jenssegers\Date\Date;
@@ -521,6 +524,15 @@ class ProjectController extends Controller
         return redirect()->back()->with('success', __('Permission Updated Successfully!'));
     }
 
+    private function getProjectsPhasesAndStages($project)
+    {
+        if ($project->type == 3 || $project->type === 5) {
+            $project->load(['milestones.phase', 'milestones.stage.stageProject']);
+        } else {
+            $project->load('milestones');
+        }
+        return $project;
+    }
     public function exportProjectsToAxapta()
     {
         //el campo puntos en axapta no pilla las horas y lo pilla en hDecimal
@@ -813,13 +825,6 @@ class ProjectController extends Controller
             return redirect()->back()->with('error', __("Project Not Found."));
         }
 
-        // ✅ Si el proyecto es tipo 3, cargar también las phases de los milestones
-        if ($project->type == 3) {
-            $project->load(['milestones.phase']);
-        } else {
-            $project->load('milestones');
-        }
-
         // ✅ VERIFICAR SI EL USUARIO ESTÁ REGISTRADO EN ESTE WORKSPACE
         $userWorkspace = UserWorkspace::where('user_id', $objUser->id)
             ->where('workspace_id', $currentWorkspace->id)
@@ -850,6 +855,8 @@ class ProjectController extends Controller
                 ->first();
 
             if ($project) {
+                $this->getProjectsPhasesAndStages($project);
+
                 $chartData = $this->getProjectChart([
                     'workspace_id' => $currentWorkspace->id,
                     'project_id' => $projectID,
@@ -1751,13 +1758,32 @@ class ProjectController extends Controller
             ];
         })->filter()->values()->toArray();
 
-
-        // Si es proyecto tipo 3, cargar las phases
+        // Si es proyecto tipo 3 o 5, cargar las phases y el stage actual
         $phases = [];
-        if ($project->type == 3) {
+        $stage = null;
+        if (in_array((int) $project->type, [3, 5], true)) {
             $phases = MilestonePhases::where('id_milestone', $milestone->id)
                 ->pluck('phases')
                 ->toArray();
+
+            $currentStageRecord = MilestoneStages::where('id_milestone', $milestone->id)
+                ->orderByDesc('id')
+                ->first(['stages', 'milestone_stage_project_id']);
+
+            if ($currentStageRecord) {
+                if (!empty($currentStageRecord->milestone_stage_project_id)) {
+                    $stage = MilestoneStageProject::where('project_id', $project->id)
+                        ->where('id', $currentStageRecord->milestone_stage_project_id)
+                        ->value('name');
+                }
+
+                if (empty($stage) && !empty($currentStageRecord->stages)) {
+                    $stage = MilestoneStageProject::where('project_id', $project->id)
+                        ->where('name', trim((string) $currentStageRecord->stages))
+                        ->value('name')
+                        ?? trim((string) $currentStageRecord->stages);
+                }
+            }
         }
 
         return [
@@ -1784,6 +1810,7 @@ class ProjectController extends Controller
             'asiggned_user_data'         => User::find($milestone->milestone_assigned_to_user),
             'is_waiting' => $milestone->is_waiting,
             'phases' => $phases,
+            'stage' => $stage,
         ];
         //\Log::info($milestone);
     }
@@ -2991,6 +3018,21 @@ class ProjectController extends Controller
 
         $objProject = $query->paginate(25);
 
+        $projectIds = collect($objProject->items())->pluck('id')->toArray();
+        $stagesByProject = MilestoneStageProject::whereIn('project_id', $projectIds)
+            ->orderBy('name', 'asc')
+            ->get(['project_id', 'name'])
+            ->groupBy('project_id')
+            ->map(function ($stages) {
+                return $stages->pluck('name')->values()->toArray();
+            });
+
+        $objProject->getCollection()->transform(function ($project) use ($stagesByProject) {
+            $project->stages = $stagesByProject->get($project->id, []);
+
+            return $project;
+        });
+
         return response()->json([
             'projects' => $objProject,
         ]);
@@ -3033,6 +3075,40 @@ class ProjectController extends Controller
             ->toArray();
     }
 
+    private function getDefaultMilestoneStages()
+    {
+        try {
+            $stages = $this->getEnumValues('milestone_stages', 'stages');
+
+            return collect($stages)
+                ->map(fn($stage) => trim($stage))
+                ->filter()
+                ->values()
+                ->toArray();
+        } catch (\Throwable $e) {
+            return MilestoneStages::STAGES;
+        }
+    }
+
+    private function ensureProjectDefaultStages($project)
+    {
+        if (!$project || !in_array((int) $project->type, [3, 5], true)) {
+            return;
+        }
+
+        $exists = MilestoneStageProject::where('project_id', $project->id)->exists();
+        if ($exists) {
+            return;
+        }
+
+        foreach ($this->getDefaultMilestoneStages() as $stageName) {
+            MilestoneStageProject::firstOrCreate([
+                'project_id' => $project->id,
+                'name' => $stageName,
+            ]);
+        }
+    }
+
     public function milestone($slug, $projectID)
     {
         $currentWorkspace = Utility::getWorkspaceBySlug($slug);
@@ -3040,6 +3116,7 @@ class ProjectController extends Controller
         $users = User::orderBy('name', 'asc')->get();
 
         $phases = $this->getEnumValues('milestone_phases', 'phases');
+        $stagesProject = [];
 
         if ($projectID == -1) {
             $project_id = -1;
@@ -3052,8 +3129,103 @@ class ProjectController extends Controller
         } else {
             $project_id = $projectID;
             $project = Project::find($projectID);
-            return view('projects.milestone', compact('currentWorkspace', 'project', 'project_id', 'project_type', 'users', 'phases'));
+            if ($project && in_array((int) $project->type, [3, 5], true)) {
+                $this->ensureProjectDefaultStages($project);
+
+                $stagesProject = MilestoneStageProject::where('project_id', $project->id)
+                    ->orderBy('name', 'asc')
+                    ->pluck('name')
+                    ->toArray();
+            }
+
+            return view('projects.milestone', compact('currentWorkspace', 'project', 'project_id', 'project_type', 'users', 'phases', 'stagesProject'));
         }
+    }
+
+    public function stagesPopup($slug, $projectID)
+    {
+        $currentWorkspace = Utility::getWorkspaceBySlug($slug);
+        $project = Project::findOrFail($projectID);
+
+        $this->ensureProjectDefaultStages($project);
+
+        $stages = MilestoneStageProject::where('project_id', $project->id)
+            ->orderBy('name', 'asc')
+            ->get();
+
+        return view('projects.stages_popup', compact('currentWorkspace', 'project', 'stages'));
+    }
+
+    public function stagesStore($slug, $projectID, Request $request)
+    {
+        $project = Project::findOrFail($projectID);
+
+        $validated = $request->validate([
+            'name' => [
+                'required',
+                'string',
+                'max:255',
+                Rule::unique('milestone_stages_project', 'name')->where(function ($query) use ($project) {
+                    return $query->where('project_id', $project->id);
+                }),
+            ],
+        ]);
+
+        MilestoneStageProject::create([
+            'project_id' => $project->id,
+            'name' => trim($validated['name']),
+        ]);
+
+        return redirect()->back()->with('success', __('Stage created successfully.'));
+    }
+
+    public function stagesUpdate($slug, $projectID, $stageID, Request $request)
+    {
+        $project = Project::findOrFail($projectID);
+        $stage = MilestoneStageProject::where('project_id', $project->id)->findOrFail($stageID);
+
+        $validated = $request->validate([
+            'name' => [
+                'required',
+                'string',
+                'max:255',
+                Rule::unique('milestone_stages_project', 'name')
+                    ->where(function ($query) use ($project) {
+                        return $query->where('project_id', $project->id);
+                    })
+                    ->ignore($stage->id),
+            ],
+        ]);
+
+        $stage->update([
+            'name' => trim($validated['name']),
+        ]);
+
+        MilestoneStages::whereHas('milestone', function ($query) use ($project) {
+            $query->where('project_id', $project->id);
+        })->where('stages', $stage->getOriginal('name'))->update([
+            'stages' => trim($validated['name']),
+        ]);
+
+        return redirect()->back()->with('success', __('Stage updated successfully.'));
+    }
+
+    public function stagesDestroy($slug, $projectID, $stageID)
+    {
+        $project = Project::findOrFail($projectID);
+        $stage = MilestoneStageProject::where('project_id', $project->id)->findOrFail($stageID);
+
+        $isStageInUse = MilestoneStages::whereHas('milestone', function ($query) use ($project) {
+            $query->where('project_id', $project->id);
+        })->where('stages', $stage->name)->exists();
+
+        if ($isStageInUse) {
+            return redirect()->back()->with('error', __('This stage is being used in one or more order forms.'));
+        }
+
+        $stage->delete();
+
+        return redirect()->back()->with('success', __('Stage deleted successfully.'));
     }
 
     public function milestoneStore($slug, $projectID, Request $request)
@@ -3098,10 +3270,20 @@ class ProjectController extends Controller
             'files' => 'nullable|array',
         ];
 
-        // ✅ Si el proyecto es tipo 3, phase es obligatoria
-        if ((int)$project->type === 3) {
+        // ✅ Si el proyecto es tipo 3 o 5, phase es obligatoria
+        if (in_array((int) $project->type, [3, 5], true)) {
             $rules['phase'] = 'required|in:Planificación,Diseño,Implementación,Documentación,Validación funcional,Explotación comercial';
             // 👆 cambia por los valores reales del enum de milestone_phases.phases
+        }
+
+        if (in_array((int) $project->type, [3, 5], true)) {
+            $this->ensureProjectDefaultStages($project);
+
+            $availableStages = MilestoneStageProject::where('project_id', $project->id)
+                ->pluck('name')
+                ->toArray();
+
+            $rules['stage'] = ['nullable', Rule::in($availableStages)];
         }
 
 
@@ -3151,11 +3333,26 @@ class ProjectController extends Controller
         $milestone->priority = $request->priority === '' ? null : $request->priority;
         $milestone->save();
 
-        // ✅ Guardar fase solo para proyectos tipo 3
-        if ((int)$project->type === 3) {
+        // ✅ Guardar fase para proyectos tipo 3 o 5
+        if (in_array((int) $project->type, [3, 5], true)) {
             \App\Models\MilestonePhases::updateOrCreate(
                 ['id_milestone' => $milestone->id],
                 ['phases' => $request->phase]
+            );
+        }
+
+        if (in_array((int) $project->type, [3, 5], true) && !empty($request->stage)) {
+            $selectedStageName = trim((string) $request->stage);
+            $selectedStageId = MilestoneStageProject::where('project_id', $project->id)
+                ->where('name', $selectedStageName)
+                ->value('id');
+
+            MilestoneStages::updateOrCreate(
+                ['id_milestone' => $milestone->id],
+                [
+                    'stages' => $selectedStageName,
+                    'milestone_stage_project_id' => $selectedStageId,
+                ]
             );
         }
 
@@ -3347,22 +3544,56 @@ class ProjectController extends Controller
         $project = null;
         $phases = [];
         $currentPhase = null;
+        $stagesProject = [];
+        $currentStage = null;
 
         if ($milestone) {
             $project = $milestone->project;
 
-            // Si es proyecto tipo 3, cargar las phases disponibles y la phase actual del milestone
-            if ($project && $project->type == 3) {
-                // Cargar todas las phases disponibles (del modelo MilestonePhases)
-                $phases = MilestonePhases::PHASES;
+            // Si es proyecto tipo 3 o 5, cargar las phases disponibles y la phase actual del milestone
+            if ($project && in_array((int) $project->type, [3, 5], true)) {
+                try {
+                    $phases = $this->getEnumValues('milestone_phases', 'phases');
+                } catch (\Throwable $e) {
+                    $phases = MilestonePhases::PHASES;
+                }
 
                 // Cargar la phase actual del milestone
-                $currentPhaseObj = MilestonePhases::where('id_milestone', $milestone->id)->first();
-                $currentPhase = $currentPhaseObj ? $currentPhaseObj->phases : null;
+                $currentPhase = MilestonePhases::where('id_milestone', $milestone->id)
+                    ->orderByDesc('id')
+                    ->value('phases');
+            }
+
+            if ($project && in_array((int) $project->type, [3, 5], true)) {
+                $this->ensureProjectDefaultStages($project);
+
+                $stagesProject = MilestoneStageProject::where('project_id', $project->id)
+                    ->orderBy('name', 'asc')
+                    ->pluck('name')
+                    ->toArray();
+
+                $currentStageRecord = MilestoneStages::where('id_milestone', $milestone->id)
+                    ->orderByDesc('id')
+                    ->first(['stages', 'milestone_stage_project_id']);
+
+                if ($currentStageRecord) {
+                    if (!empty($currentStageRecord->milestone_stage_project_id)) {
+                        $currentStage = MilestoneStageProject::where('project_id', $project->id)
+                            ->where('id', $currentStageRecord->milestone_stage_project_id)
+                            ->value('name');
+                    }
+
+                    if (empty($currentStage) && !empty($currentStageRecord->stages)) {
+                        $currentStage = MilestoneStageProject::where('project_id', $project->id)
+                            ->where('name', trim((string) $currentStageRecord->stages))
+                            ->value('name')
+                            ?? trim((string) $currentStageRecord->stages);
+                    }
+                }
             }
         }
 
-        return view('projects.milestoneEdit', compact('currentWorkspace', 'milestone', 'project', 'phases', 'currentPhase'));
+        return view('projects.milestoneEdit', compact('currentWorkspace', 'milestone', 'project', 'phases', 'currentPhase', 'stagesProject', 'currentStage'));
     }
 
     public function milestoneDestroyFile(Request $request)
@@ -3486,6 +3717,25 @@ class ProjectController extends Controller
                 'id_milestone' => $milestone->id,
                 'phases' => $request->phase,
             ]);
+        }
+
+        if ($request->has('stage')) {
+            if (!empty($request->stage)) {
+                $selectedStageName = trim((string) $request->stage);
+                $selectedStageId = MilestoneStageProject::where('project_id', $milestone->project_id)
+                    ->where('name', $selectedStageName)
+                    ->value('id');
+
+                MilestoneStages::updateOrCreate(
+                    ['id_milestone' => $milestone->id],
+                    [
+                        'stages' => $selectedStageName,
+                        'milestone_stage_project_id' => $selectedStageId,
+                    ]
+                );
+            } else {
+                MilestoneStages::where('id_milestone', $milestone->id)->delete();
+            }
         }
 
         $project = Project::where('id', $milestone->project_id)->first();
@@ -3629,6 +3879,8 @@ class ProjectController extends Controller
                 } catch (\Exception $e) {
                 }
 
+                MilestoneStages::where('id_milestone', $milestone->id)->delete();
+
                 $milestone->delete();
                 $project->updateProjectStatus();
 
@@ -3651,7 +3903,7 @@ class ProjectController extends Controller
     public function milestoneShow($slug, $milestoneID)
     {
         $currentWorkspace = Utility::getWorkspaceBySlug($slug);
-        $milestone = Milestone::find($milestoneID);
+        $milestone = Milestone::with(['phase', 'stage.stageProject'])->find($milestoneID);
         $project = Project::find($milestone->project_id);
         $project_name = $project->name;
         $salesManager = User::find($milestone->assign_to);
@@ -3662,6 +3914,7 @@ class ProjectController extends Controller
             ->select('id', 'name', 'file', 'extension')
             ->get();
             
+        \Log::debug("MILESTONE", ['milestone' => $milestone]);
         return view('projects.milestoneShow', compact('currentWorkspace', 'milestone', 'salesManager', 'assignedToUser', 'project', 'milestoneFiles', 'delegation_name'));
     }
 

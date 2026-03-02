@@ -555,10 +555,19 @@
                                     <div>
                                         <button type="button" class="btn disp-btn zoom  text-muted filterTypo"
                                             data-filter=".type-3">
-                                            <img src="{{ asset('assets/img/Product development.png') }}"
+                                            <img src="{{ asset('assets/img/I+D Project.png') }}"
                                                 style="width: 25px; height: 25px;" alt="..." class="me-1">
-                                            {{ __('Product Development') }}
+                                            {{ __('I+D Project') }}
                                         </button>
+                                        <button type="button" class="btn disp-btn zoom  text-muted filterTypo"
+                                            data-filter=".type-5">
+                                            <img src="{{ asset('assets/img/I+D Development.png') }}"
+                                                style="width: 25px; height: 25px;" alt="..." class="me-1">
+                                            {{ __('I+D Development') }}
+                                        </button>
+                                    </div>
+                                    <div>
+                                        
                                         <button type="button" class="btn disp-btn zoom  text-muted filterTypo"
                                             data-filter=".type-4">
                                             <img src="{{ asset('assets/img/Office.png') }}"

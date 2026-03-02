@@ -12,12 +12,25 @@
         height: 55%;
         border-radius: 6px;
         align-content: center;
-        background-color: rgb(25 24 24 / 52%);
+        background-color: #493d3f;
         font-size: 12.5px;
         display: inline-block;
         color: white;
         padding: 6px;
         font-weight: 600;
+    }
+
+    .stageDiv {
+        min-width: 60%;
+        border-radius: 6px;
+        align-content: center;
+        background-color: rgb(25 24 24 / 35%);
+        font-size: 12px;
+        display: inline-block;
+        color: white;
+        padding: 5px 8px;
+        font-weight: 600;
+        margin-top: 4px;
     }
 
     .centerPhaseLabel {
@@ -78,13 +91,19 @@
                     {{ $milestone['title'] }}
                 </b>
 
-                {{-- Mostrar Phase si es proyecto tipo 3 --}}
-                @if ($milestone['project_type_id'] == 3 && !empty($milestone['phases']))
+                {{-- Mostrar Phase si es proyecto tipo 3 o 5 --}}
+                @if (in_array((int) $milestone['project_type_id'], [3, 5], true) && !empty($milestone['phases']))
                     <div class="centerPhaseLabel" style="margin-top: 5px;">
                         @foreach ($milestone['phases'] as $phase)
                             <span class="phasesDiv">{{ $phase }}</span>
                         @endforeach
                     </div>
+
+                    @if (!empty($milestone['stage']))
+                        <div class="centerPhaseLabel">
+                            <span class="stageDiv">{{ $milestone['stage'] }}</span>
+                        </div>
+                    @endif
                 @endif
             </div>
 

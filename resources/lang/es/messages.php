@@ -103,7 +103,7 @@ return [
     'next' => 'Siguiente',
     'Click_here_to_add_New_Project' => 'Click aqui para añadir nuevo proyecto',
     'Workspace_Settings' => 'Ajustes espacio de trabajo',
-    'Task_Stage_Settings' => 'Ajusta fase de Tarea',
+    'Task_Stage_Settings' => 'Ajusta etapa de tarea',
     'Tax_Settings' => 'Ajustes fiscales',
     'Theme_Customizer' => 'Personalizar tema',
     'Primary_color_settings' => 'Ajustes color primario',
