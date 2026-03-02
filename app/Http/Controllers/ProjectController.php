@@ -2237,7 +2237,7 @@ class ProjectController extends Controller
     public function taskCreate($slug)
     {
         $currentWorkspace = Utility::getWorkspaceBySlug($slug);
-        
+
         $taskType = TaskType::select('id', 'name', 'project_type')->get()->map(function ($task) {
             return [
                 'id' => $task->id,
@@ -2245,23 +2245,24 @@ class ProjectController extends Controller
                 'name' => __($task->name)
             ];
         });
-        
+
         // Traer proyectos del workspace actual siempre
         $projects = Project::where('workspace', $currentWorkspace->id)->get();
-        
+
         // Si viene de my_milestone_board con un project_id, incluir su proyecto aunque sea de otro workspace
         if (request()->get('fromMyMilestoneBoard') && request()->get('project_id')) {
             $projectId = request()->get('project_id');
             $otherProject = Project::find($projectId);
-            
+
             if ($otherProject && !$projects->contains('id', $projectId)) {
                 $projects = $projects->concat([$otherProject]);
             }
         }
-        
-        $milestones = Milestone::all();
 
-        return view('projects.taskCreate', compact('currentWorkspace', 'projects', 'taskType', 'milestones'));
+        $milestones = Milestone::all();
+        $users = User::orderBy('name', 'asc')->get();
+
+        return view('projects.taskCreate', compact('currentWorkspace', 'projects', 'taskType', 'milestones', 'users'));
     }
 
     public function taskStore(Request $request, $slug)
@@ -2271,6 +2272,7 @@ class ProjectController extends Controller
             'milestone_id' => 'required',
             'type_id' => 'required',
             'estimated_date' => 'required',
+            'task_assign_override' => 'nullable|integer|exists:users,id',
         ]);
 
         $currentWorkspace = Utility::getWorkspaceBySlug($slug);
@@ -2290,6 +2292,31 @@ class ProjectController extends Controller
             return redirect()->back()->with('error', 'Proyecto no encontrado o no pertenece al espacio de trabajo actual.');
         }
 
+        $milestoneForRules = Milestone::where('id', $request->milestone_id)
+            ->where('project_id', $project->id)
+            ->first();
+
+        if (!$milestoneForRules) {
+            return redirect()->back()->with('error', __('Milestone not found for selected project.'));
+        }
+
+        $projectTypeAllowsOverride = in_array((int) $project->type, [3, 5], true);
+        $isAssignedMilestoneOwner = (int) ($milestoneForRules->milestone_assigned_to_user ?? 0) === (int) $user->id;
+        $canOverrideTaskAssignee = $projectTypeAllowsOverride && $isAssignedMilestoneOwner;
+
+        if ($canOverrideTaskAssignee) {
+            $request->validate([
+                'task_assign_override' => 'required|integer|exists:users,id',
+            ], [
+                'task_assign_override.required' => __('Please select an assignee for this task.'),
+            ]);
+        }
+
+        $taskAssignedUserId = $user->id;
+        if ($canOverrideTaskAssignee && $request->filled('task_assign_override')) {
+            $taskAssignedUserId = (int) $request->task_assign_override;
+        }
+
         // Detectar si el type_id seleccionado es el "Custom"
         $type = TaskType::find($request->type_id);
         $isCustom = $type && strtolower(trim($type->name)) === 'custom';
@@ -2306,7 +2333,7 @@ class ProjectController extends Controller
             // Para custom: evitar duplicado por milestone + usuario + nombre custom
             $existingTask = Task::where('milestone_id', $request->milestone_id)
                 ->where('type_id', $request->type_id)
-                ->where('assign_to', $user->id)
+                ->where('assign_to', $taskAssignedUserId)
                 ->whereHas('customTask', function ($q) use ($request) {
                     $q->whereRaw('LOWER(name) = ?', [strtolower(trim($request->custom_task_name))]);
                 })
@@ -2315,7 +2342,7 @@ class ProjectController extends Controller
             // Para no custom: tu regla actual
             $existingTask = Task::where('milestone_id', $request->milestone_id)
                 ->where('type_id', $request->type_id)
-                ->where('assign_to', $user->id)
+                ->where('assign_to', $taskAssignedUserId)
                 ->first();
         }
 
@@ -2330,7 +2357,7 @@ class ProjectController extends Controller
         $task->type_id = $request->type_id;
         $task->start_date = date('Y-m-d');
         $task->estimated_date = $request->estimated_date;
-        $task->assign_to = $user->id;
+        $task->assign_to = $taskAssignedUserId;
         $task->save();
 
         // Si es custom, crear el registro en custom_tasks
@@ -2344,7 +2371,7 @@ class ProjectController extends Controller
         }
 
         // Actualizar milestone status
-        $milestone = Milestone::find($request->milestone_id);
+        $milestone = $milestoneForRules;
 
         if (!$milestone) {
             return redirect()->back()->with('error', 'Encargo no encontrado.');
@@ -3661,7 +3688,7 @@ class ProjectController extends Controller
         $milestoneFiles = MilestoneFile::where('milestone_id', '=', $milestone->id)
             ->select('id', 'name', 'file', 'extension')
             ->get();
-            
+
         return view('projects.milestoneShow', compact('currentWorkspace', 'milestone', 'salesManager', 'assignedToUser', 'project', 'milestoneFiles', 'delegation_name'));
     }
 
@@ -3876,7 +3903,7 @@ class ProjectController extends Controller
 
         if ($currentWorkspace) {
 
-            $userTasks = Task::where('assign_to',$objUser->id)->get();
+            $userTasks = Task::where('assign_to', $objUser->id)->get();
             if ($currentWorkspace->permissio == 'Owner') {
                 $timesheets = Timesheet::select('timesheets.*')
                     ->join('projects', 'projects.id', '=', 'timesheets.project_id')
@@ -3979,12 +4006,12 @@ class ProjectController extends Controller
         // Verificar que el usuario tenga acceso a la tarea
         // Puede ser porque la tarea está asignada a él, o porque está en el proyecto (user_projects), o es admin
         $hasAccess = false;
-        
+
         // 1. Si la tarea está asignada al usuario
         if ($task->assign_to == $user->id) {
             $hasAccess = true;
         }
-        
+
         // 2. Si el usuario está en user_projects del proyecto
         if (!$hasAccess) {
             $userProject = UserProject::where('user_id', $user->id)
@@ -3994,7 +4021,7 @@ class ProjectController extends Controller
                 $hasAccess = true;
             }
         }
-        
+
         // 3. Si el usuario es admin o es el creador del proyecto
         if (!$hasAccess && ($user->type == 'admin' || $user->type == 'owner' || $project->created_by == $user->id)) {
             $hasAccess = true;

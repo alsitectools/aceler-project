@@ -607,7 +607,7 @@
                                                                 @endphp
                                                                 @if ($phase)
                                                                     <span
-                                                                        style="font-weight: bold;">{{ $phase->phases }}</span>
+                                                                        style="font-weight: bold;">{{ __(\App\Models\MilestonePhases::translationKey($phase->phases)) }}</span>
                                                                 @else
                                                                     <span class="text-muted">...</span>
                                                                 @endif

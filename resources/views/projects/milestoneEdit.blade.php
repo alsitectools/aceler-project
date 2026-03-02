@@ -97,7 +97,7 @@
                                 @foreach ($phases as $phase)
                                     <option value="{{ $phase }}"
                                         {{ $currentPhase === $phase ? 'selected' : '' }}>
-                                        {{ $phase }}
+                                        {{ __(\App\Models\MilestonePhases::translationKey($phase)) }}
                                     </option>
                                 @endforeach
                             </select>
