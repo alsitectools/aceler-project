@@ -108,7 +108,7 @@
                         {{ __('Please select an assignee from the list.') }}
                     </small>
                     <div id="user-select-task-assignee" class="dropdown-menu" style="width: 100%;">
-                        @foreach ($users as $u)
+                        @foreach ($users ?? collect() as $u)
                             <div class="task-assignee-option list-group-item list-group-item-action stylelist ps-3"
                                 collected-data-id="{{ $u->id }}" style="padding: 8px; cursor: pointer;">
                                 {{ $u->name }}
