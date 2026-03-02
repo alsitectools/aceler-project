@@ -151,7 +151,7 @@
             <div class="titleDivDisplay">
                 <h3 id="month-year" style="font-size: 20px;">Enero 2023</h3>
                 <ul id="month-dropdown" class="month-dropdown"></ul>
-                <span id="clear-selection">Borrar</span>
+                <span id="clear-selection">{{ __('Delete') }}</span>
             </div>
             <button id="next-month">&gt;</button>
         </div>

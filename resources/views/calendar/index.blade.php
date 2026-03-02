@@ -432,7 +432,7 @@
                                 }).toLowerCase();
                                 if (nonWorkingDays.includes(dayOfWeek)) {
                                     nonWorkingEvents.push({
-                                        title: 'Non-working day',
+                                        title: '{{ __('Non-working day') }}',
                                         start: date.toISOString().split('T')[0],
                                         backgroundColor: hexToRgba("#d3d3d3", opacity),
                                         borderColor: '#d3d3d3',

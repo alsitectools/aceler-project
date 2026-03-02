@@ -95,7 +95,8 @@
                 @if (in_array((int) $milestone['project_type_id'], [3, 5], true) && !empty($milestone['phases']))
                     <div class="centerPhaseLabel" style="margin-top: 5px;">
                         @foreach ($milestone['phases'] as $phase)
-                            <span class="phasesDiv">{{ $phase }}</span>
+                            <span
+                                class="phasesDiv">{{ __(\App\Models\MilestonePhases::translationKey($phase)) }}</span>
                         @endforeach
                     </div>
 
@@ -185,21 +186,25 @@
                             {{-- Crear Task --}}
                             @php
                                 $isMyMilestoneBoardUrl = strpos(request()->url(), 'my-milestone-board') !== false;
-                                $taskCreateRoute = $isMyMilestoneBoardUrl 
+                                $taskCreateRoute = $isMyMilestoneBoardUrl
                                     ? route('my_milestone.tasks.create', $currentWorkspace->slug)
                                     : route('tasks.create', $currentWorkspace->slug);
-                                
+
                                 // Agregar parámetros a la ruta
-                                $taskCreateRoute .= '?project_id=' . $milestone['project_id'] 
-                                    . '&projectName=' . urlencode($milestone['project_name'] ?? '')
-                                    . '&milestoneTitle=' . urlencode($milestone['title'])
-                                    . '&milestone_id=' . $milestone['id']
-                                    . '&fromMyMilestoneBoard=' . ($isMyMilestoneBoardUrl ? 1 : 0);
+                                $taskCreateRoute .=
+                                    '?project_id=' .
+                                    $milestone['project_id'] .
+                                    '&projectName=' .
+                                    urlencode($milestone['project_name'] ?? '') .
+                                    '&milestoneTitle=' .
+                                    urlencode($milestone['title']) .
+                                    '&milestone_id=' .
+                                    $milestone['id'] .
+                                    '&fromMyMilestoneBoard=' .
+                                    ($isMyMilestoneBoardUrl ? 1 : 0);
                             @endphp
                             <a href="#" class="dropdown-item" data-ajax-popup="true"
-                                data-title="{{ __('Add Task') }}"
-                                data-url="{{ $taskCreateRoute }}"
-                                >
+                                data-title="{{ __('Add Task') }}" data-url="{{ $taskCreateRoute }}">
                                 <i class="fas fa-tasks"></i>
                                 {{ __('Add Task') }}
                             </a>

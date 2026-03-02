@@ -213,12 +213,14 @@ class WorkspaceController extends Controller
         $user = \Auth::user();
         $user->lang = $lang;
         $user->save();
+        app()->setLocale($lang);
         return redirect()->back()->with('success', __('Language Change Successfully!'));
     }
 
     public function changeLangcopylink($lang)
     {
         \Cookie::queue('LANGUAGE', $lang, 120);
+        app()->setLocale($lang);
 
         return redirect()->back()->with('success', __('Language Change Successfully!'));
     }
@@ -229,6 +231,7 @@ class WorkspaceController extends Controller
         $user = \Auth::user();
         $user->lang = $lang;
         $user->save();
+        app()->setLocale($lang);
         return redirect()->back()->with('success', __('Language Change Successfully!'));
     }
     public function changeLangWorkspace($workspaceID, $lang)
@@ -237,6 +240,7 @@ class WorkspaceController extends Controller
         $user = \Auth::user();
         $user->lang = $lang;
         $user->save();
+        app()->setLocale($lang);
 
         return redirect()->back()->with('success', __('Language Change Successfully!'));
     }
