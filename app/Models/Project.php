@@ -547,7 +547,7 @@ class Project extends Model
             'user_id' => $userId,
             'userTimetable' => $userTimetable,
         ]);
-        $userTimetableArray = $userTimetable->toArray();
+        $userTimetableArray = $userTimetable ? $userTimetable->toArray() : [];
 
         $daysOfWeek = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
         $workHoursWeek = []; // Array para almacenar los días laborables y horas
@@ -559,6 +559,32 @@ class Project extends Model
                 $workHoursWeek[$key] = $value;
             }
         }
+
+        $holidayDates = [];
+        if (!empty($userTimetableArray['range_holidays'])) {
+            $decodedHolidays = json_decode($userTimetableArray['range_holidays'], true);
+            if (is_array($decodedHolidays)) {
+                $holidayDates = array_values($decodedHolidays);
+            }
+        }
+
+        $intensiveHoursByDate = [];
+        if (!empty($userTimetableArray['range_intensive_workday'])) {
+            $decodedIntensive = json_decode($userTimetableArray['range_intensive_workday'], true);
+
+            if (is_array($decodedIntensive)) {
+                foreach ($decodedIntensive as $hours => $dates) {
+                    if (!is_array($dates)) {
+                        continue;
+                    }
+
+                    foreach ($dates as $date) {
+                        $intensiveHoursByDate[$date] = $hours;
+                    }
+                }
+            }
+        }
+
         $htmlContent = view('projects.timesheet-week', compact(
             'currentWorkspace',
             'timesheetArray',
@@ -567,7 +593,9 @@ class Project extends Model
             'days',
             'seeAsOwner',
             'allProjects',
-            'workHoursWeek'
+            'workHoursWeek',
+            'holidayDates',
+            'intensiveHoursByDate'
         ))->render();
 
         return compact('htmlContent', 'totalrecords');

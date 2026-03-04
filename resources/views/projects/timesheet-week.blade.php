@@ -1,6 +1,8 @@
 @php
     use Carbon\Carbon;
     use App\Models\CustomTasks;
+    $holidayDates = $holidayDates ?? [];
+    $intensiveHoursByDate = $intensiveHoursByDate ?? [];
     // dd($timesheetArray);
     //print_r($workHoursWeek);
 @endphp
@@ -250,6 +252,30 @@
                                                                                                             $isFuture = $date->greaterThan(
                                                                                                                 $today,
                                                                                                             );
+
+                                                                                                            // Obtener el nombre del día en minúsculas (ejemplo: "monday", "tuesday", etc.)
+                                                                                                            $dayName = strtolower(
+                                                                                                                $date->format(
+                                                                                                                    'l',
+                                                                                                                ),
+                                                                                                            );
+
+                                                                                                            // Verificar festivo y disponibilidad de jornada
+                                                                                                            $isHoliday = in_array(
+                                                                                                                $dateSubArray[
+                                                                                                                    'date'
+                                                                                                                ],
+                                                                                                                $holidayDates,
+                                                                                                                true,
+                                                                                                            );
+                                                                                                            $isAllowed =
+                                                                                                                isset(
+                                                                                                                    $workHoursWeek[
+                                                                                                                        $dayName
+                                                                                                                    ],
+                                                                                                                ) &&
+                                                                                                                !$isFuture &&
+                                                                                                                !$isHoliday;
                                                                                                         @endphp
 
                                                                                                         <div
@@ -260,16 +286,16 @@
 
                                                                                                         @if (Auth::user()->id == $dateSubArray['user_id'])
                                                                                                             <div role="button"
-                                                                                                                class="form-control week inputsTask {{ $isFuture ? 'disabled-day' : '' }}"
-                                                                                                                title="{{ $isFuture ? __('This day is in the future and cannot be edited') : __('Click to Add/Edit Timesheet') }}"
-                                                                                                                data-ajax-timesheet-popup="{{ $isFuture ? 'false' : 'true' }}"
+                                                                                                                class="form-control week inputsTask {{ $isAllowed ? '' : 'disabled-day' }}"
+                                                                                                                title="{{ $isHoliday ? __('This day is marked as holiday and cannot be edited') : ($isFuture ? __('This day is in the future and cannot be edited') : __('Click to Add/Edit Timesheet')) }}"
+                                                                                                                data-ajax-timesheet-popup="{{ $isAllowed ? 'true' : 'false' }}"
                                                                                                                 data-type="{{ $dateSubArray['type'] }}"
                                                                                                                 data-user-id="{{ $dateSubArray['user_id'] }}"
                                                                                                                 data-project-id="{{ $dateSubArray['project_id'] }}"
                                                                                                                 data-task-id="{{ $dateSubArray['task_id'] }}"
                                                                                                                 data-date="{{ $dateSubArray['date'] }}"
                                                                                                                 data-url="{{ $dateSubArray['url'] }}"
-                                                                                                                style="{{ $isFuture ? 'background-color: #a293933d; cursor: not-allowed; border: 2px solid #ced4da; color:black' : '' }}">
+                                                                                                                style="{{ $isAllowed ? '' : 'background-color: #a293933d; cursor: not-allowed; border: 2px solid #ced4da; color:black' }}">
                                                                                                                 {{ $dateSubArray['time'] != '00:00' ? $dateSubArray['time'] : '00:00' }}
                                                                                                             </div>
                                                                                                         @else
@@ -417,13 +443,21 @@
                                                                                                             );
 
                                                                                                             // Verificar si el día está permitido en workHoursWeek y si no es futuro
+                                                                                                            $isHoliday = in_array(
+                                                                                                                $dateSubArray[
+                                                                                                                    'date'
+                                                                                                                ],
+                                                                                                                $holidayDates,
+                                                                                                                true,
+                                                                                                            );
                                                                                                             $isAllowed =
                                                                                                                 isset(
                                                                                                                     $workHoursWeek[
                                                                                                                         $dayName
                                                                                                                     ],
                                                                                                                 ) &&
-                                                                                                                !$isFuture;
+                                                                                                                !$isFuture &&
+                                                                                                                !$isHoliday;
                                                                                                         @endphp
 
                                                                                                         <div
@@ -435,7 +469,7 @@
                                                                                                         @if (Auth::user()->id == $dateSubArray['user_id'])
                                                                                                             <div role="button"
                                                                                                                 class="form-control week inputsTask {{ $isAllowed ? '' : 'disabled' }}"
-                                                                                                                title="{{ $isAllowed ? __('Click to Add/Edit Timesheet') : __('This day is not available or is in the future') }}"
+                                                                                                                title="{{ $isHoliday ? __('This day is marked as holiday and cannot be edited') : ($isAllowed ? __('Click to Add/Edit Timesheet') : __('This day is not available or is in the future')) }}"
                                                                                                                 data-ajax-timesheet-popup="{{ $isAllowed ? 'true' : 'false' }}"
                                                                                                                 data-type="{{ $dateSubArray['type'] }}"
                                                                                                                 data-user-id="{{ $dateSubArray['user_id'] }}"
@@ -491,7 +525,11 @@
         </table>
         <div class="custom-tfoot d-grid">
             @php
-                $combinedData = array_combine($days['datePeriod'], $totalDateTimes);
+                $combinedData = [];
+                foreach ($days['datePeriod'] as $index => $datePeriod) {
+                    $dateKey = Carbon::parse($datePeriod)->toDateString();
+                    $combinedData[$dateKey] = $totalDateTimes[$index] ?? '00:00';
+                }
                 
                 // Construir un array de tareas por fecha
                 $tasksByDate = [];
@@ -517,10 +555,12 @@
                                             }
                                         }
                                         
-                                        $tasksByDate[$date][] = [
-                                            'task_name' => $displayTaskName,
-                                            'hours' => $dateSubArray['time'] != '00:00' ? $dateSubArray['time'] : '00:00'
-                                        ];
+                                        if ($dateSubArray['time'] !== '00:00') {
+                                            $tasksByDate[$date][] = [
+                                                'task_name' => $displayTaskName,
+                                                'hours' => $dateSubArray['time']
+                                            ];
+                                        }
                                     }
                                 }
                             }
@@ -547,10 +587,12 @@
                                             }
                                         }
                                         
-                                        $tasksByDate[$date][] = [
-                                            'task_name' => $displayTaskName,
-                                            'hours' => $dateSubArray['time'] != '00:00' ? $dateSubArray['time'] : '00:00'
-                                        ];
+                                        if ($dateSubArray['time'] !== '00:00') {
+                                            $tasksByDate[$date][] = [
+                                                'task_name' => $displayTaskName,
+                                                'hours' => $dateSubArray['time']
+                                            ];
+                                        }
                                     }
                                 }
                             }
@@ -581,14 +623,19 @@
 
                     // Verificar si el día está en workHoursWeek (es laborable)
                     $isWorkday = isset($workHoursWeek[$dayName]);
+                    $isHoliday = in_array($perioddate, $holidayDates, true);
 
                     // Convertir horas trabajadas y esperadas a formato decimal para comparación
                     $workedHoursFormatted =
                         $totaldatetime !== '00:00' ? floatval(str_replace(':', '.', $totaldatetime)) : 0;
-                    $expectedHour = $isWorkday ? floatval(str_replace(':', '.', $workHoursWeek[$dayName])) : 0;
+                    $expectedHourByDate = $intensiveHoursByDate[$perioddate] ?? null;
+                    $expectedHourRaw = $expectedHourByDate ?? ($isWorkday ? $workHoursWeek[$dayName] : '00:00');
+                    $expectedHour = floatval(str_replace(':', '.', $expectedHourRaw));
 
                     // Determinar color según la lógica proporcionada
-                    if (!$isWorkday || $isFuture) {
+                    if ($isHoliday) {
+                        $dayColor = 'rgba(145, 221, 207, 0.4)'; // Festivo
+                    } elseif (!$isWorkday || $isFuture) {
                         $dayColor = '#d3d3d3'; // Gris para días no laborables o futuros
                     } elseif ($workedHoursFormatted == 0) {
                         $dayColor = '#e06c71'; // Rojo (sin horas)
@@ -608,6 +655,7 @@
                         role="button"
                         data-date="{{ $perioddate }}"
                         data-date-formatted="{{ $dateFormatted }}"
+                        data-is-holiday="{{ $isHoliday ? '1' : '0' }}"
                         data-tasks="{{ json_encode($tasksByDate[$perioddate] ?? []) }}"
                         title="{{ __('Click to view day details') }}">
                         {{ $totaldatetime != '00:00' ? $totaldatetime : '00:00' }}

@@ -1330,5 +1330,12 @@
     "Date field": "Tipo de fecha",
     "Search requester": "Buscar solicitante",
     "Search assignee": "Buscar asignado",
-    "None": "Nadie"
+    "None": "Nadie",
+    "Search workspaces...": "Buscar espacios de trabajo...",
+    "Add new workspace" : "Añadir nuevo espacio de trabajo",
+    "Multi-day selection" : "Selección de múltiples días",
+    "Edit mode" : "Modo edición",
+    "Apply selection" : "Aplicar selección",
+    "Set special day" : "Establecer día especial"
+
 }

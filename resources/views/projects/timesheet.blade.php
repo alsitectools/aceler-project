@@ -340,6 +340,7 @@
             var dateValue = $(this).data('date');
             var hoursValue = $(this).text().trim();
             var tasksData = $(this).data('tasks') || [];
+            var isHoliday = String($(this).data('is-holiday')) === '1';
 
             var modalId = 'dayTotalModal';
             var modalElement = document.getElementById(modalId);
@@ -389,7 +390,11 @@
                 });
                 contentHTML += '</div>';
             } else {
-                contentHTML += '<p class="text-muted">{{ __('No tasks recorded for this day') }}</p>';
+                if (isHoliday) {
+                    contentHTML += '<p class="text-muted">{{ __('This day is marked as holiday and cannot be edited') }}</p>';
+                } else {
+                    contentHTML += '<p class="text-muted">{{ __('No tasks recorded for this day') }}</p>';
+                }
             }
             
             contentHTML += '</div>';

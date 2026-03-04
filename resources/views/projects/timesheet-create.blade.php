@@ -31,6 +31,9 @@
                 value="{{ $parseArray['date'] }}" placeholder="{{ __('Date') }}" name="date"
                 max="{{ \Carbon\Carbon::now()->format('Y-m-d') }}" 
                 @disabled($fromTimesheet)>
+            <small id="holiday-date-alert" class="text-danger d-none mt-1 d-block">
+                {{ __('You cannot log hours on a holiday.') }}
+            </small>
         </div>
 
     </div>
@@ -75,7 +78,7 @@
         {{ __('Delete task') }}
     </button>
     <button type="button" class="btn btn-light" data-bs-dismiss="modal">{{ __('Close') }}</button>
-    <input type="submit" value="{{ __('Save Changes') }}" class="btn btn-primary">
+    <input type="submit" value="{{ __('Save Changes') }}" class="btn btn-primary" id="timesheet-save-btn">
 </div>
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
@@ -85,7 +88,46 @@
         const totalTimeDisplay = $('.display-total-time span');
         const timeHourSelect = $('select[name="time_hour"]');
         const timeMinuteSelect = $('select[name="time_minute"]');
-        const dateInput = $('input[name="date"]');
+        const dateInput = $('input[name="date"][type="date"]').first();
+        const saveButton = $('#timesheet-save-btn');
+        const holidayAlert = $('#holiday-date-alert');
+        const holidayCheckUrl = "{{ route('timesheet.check.holiday', $currentWorkspace->slug) }}";
+        let isCurrentDateHoliday = false;
+        let lastValidatedDate = null;
+
+        function applyHolidayUiState(isHoliday) {
+            isCurrentDateHoliday = !!isHoliday;
+            holidayAlert.toggleClass('d-none', !isCurrentDateHoliday);
+            saveButton.prop('disabled', isCurrentDateHoliday);
+        }
+
+        function validateHolidayDate() {
+            const selectedDate = (dateInput.val() || '').trim();
+
+            if (!selectedDate) {
+                lastValidatedDate = null;
+                applyHolidayUiState(false);
+                return $.Deferred().resolve(true).promise();
+            }
+
+            return $.ajax({
+                url: holidayCheckUrl,
+                method: 'POST',
+                dataType: 'json',
+                data: {
+                    _token: '{{ csrf_token() }}',
+                    date: selectedDate
+                }
+            }).then(function(response) {
+                lastValidatedDate = selectedDate;
+                applyHolidayUiState(!!response?.is_holiday);
+                return !isCurrentDateHoliday;
+            }).catch(function() {
+                lastValidatedDate = null;
+                applyHolidayUiState(false);
+                return true;
+            });
+        }
 
         // Función para actualizar el Total Time (solo con los nuevos valores seleccionados)
         function updateTotalTime() {
@@ -133,31 +175,62 @@
             const selectedDate = $(this).val();
             console.log("Fecha seleccionada:", selectedDate);
 
-            $.ajax({
-                url: '{{ route('getTotalTime') }}',
-                method: 'POST',
-                dataType: 'json',
-                data: {
-                    _token: '{{ csrf_token() }}',
-                    project_id: "{{ $parseArray['project_id'] }}",
-                    task_id: "{{ $parseArray['task_id'] }}",
-                    selected_date: selectedDate,
-                    user_id: "{{ Auth::id() }}"
-                },
-                success: function(data) {
-
-                    console.log("Success: Response received", data);
-                    totalTimeDisplay.text(
-                        `Hours charged: ${data.totaltaskhour} Hours ${data.totaltaskminute.toString().padStart(2, '0')} Minutes`
-                    );
-                    $('.display-total-time').css('background-color', data.dayColor);
-                },
-                error: function(xhr, status, error) {
-                    console.error("AJAX Error:", error);
-                    console.error("Detalles del error:", xhr.responseText);
+            validateHolidayDate().then(function(canLogHours) {
+                if (!canLogHours) {
+                    return;
                 }
+
+                $.ajax({
+                    url: '{{ route('getTotalTime') }}',
+                    method: 'POST',
+                    dataType: 'json',
+                    data: {
+                        _token: '{{ csrf_token() }}',
+                        project_id: "{{ $parseArray['project_id'] }}",
+                        task_id: "{{ $parseArray['task_id'] }}",
+                        selected_date: selectedDate,
+                        user_id: "{{ Auth::id() }}"
+                    },
+                    success: function(data) {
+
+                        console.log("Success: Response received", data);
+                        totalTimeDisplay.text(
+                            `Hours charged: ${data.totaltaskhour} Hours ${data.totaltaskminute.toString().padStart(2, '0')} Minutes`
+                        );
+                        $('.display-total-time').css('background-color', data.dayColor);
+                    },
+                    error: function(xhr, status, error) {
+                        console.error("AJAX Error:", error);
+                        console.error("Detalles del error:", xhr.responseText);
+                    }
+                });
             });
         });
+
+        $('#project_form').on('submit', function(event) {
+            const selectedDate = (dateInput.val() || '').trim();
+
+            if (selectedDate && lastValidatedDate === selectedDate) {
+                if (isCurrentDateHoliday) {
+                    event.preventDefault();
+                }
+                return;
+            }
+
+            event.preventDefault();
+            const form = this;
+
+            validateHolidayDate().then(function(canLogHours) {
+                if (!canLogHours) {
+                    return;
+                }
+
+                $('#project_form').off('submit');
+                form.submit();
+            });
+        });
+
+        validateHolidayDate();
     });
 </script>
 <script>
