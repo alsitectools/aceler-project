@@ -286,6 +286,29 @@ class CalenderController extends Controller
             'sunday' => $timetable->sunday,
         ];
 
+        $rangeDays = DB::table('user_timetable')
+            ->where('user_id', $userId)
+            ->select('range_holidays', 'range_intensive_workday')
+            ->first();
+
+        $intensiveHoursByDate = [];
+
+        if (isset($rangeDays) && !is_null($rangeDays->range_intensive_workday)) {
+            $intensiveWorkdays = json_decode($rangeDays->range_intensive_workday, true);
+
+            if (is_array($intensiveWorkdays)) {
+                foreach ($intensiveWorkdays as $hours => $days) {
+                    if (!is_array($days)) {
+                        continue;
+                    }
+
+                    foreach ($days as $day) {
+                        $intensiveHoursByDate[$day] = $hours;
+                    }
+                }
+            }
+        }
+
         // 1️⃣ Agrupar imputaciones por fecha sumando las horas
         $groupedByDate = [];
         $minDate = null;
@@ -351,7 +374,7 @@ class CalenderController extends Controller
             }
 
             $dayOfWeek = strtolower($this->getDayOfWeek($currentDate));
-            $expectedHour = $expectedHours[$dayOfWeek] ?? null;
+            $expectedHour = $intensiveHoursByDate[$currentDate] ?? ($expectedHours[$dayOfWeek] ?? null);
 
             if ($expectedHour === null) {
                 continue;
@@ -398,7 +421,7 @@ class CalenderController extends Controller
             }
 
             $dayOfWeek = strtolower($this->getDayOfWeek($currentDate));
-            $expectedHour = $expectedHours[$dayOfWeek] ?? null;
+            $expectedHour = $intensiveHoursByDate[$currentDate] ?? ($expectedHours[$dayOfWeek] ?? null);
 
             if ($expectedHour !== null) {
                 $colorData[] = [
@@ -409,12 +432,6 @@ class CalenderController extends Controller
                 ];
             }
         }
-
-        // Obtener festivos y jornadas intensivas
-        $rangeDays = DB::table('user_timetable')
-            ->where('user_id', $userId)
-            ->select('range_holidays', 'range_intensive_workday')
-            ->first();
 
         $specialColorData = [];
 

@@ -1,9 +1,20 @@
 @php
     $logo = \App\Models\Utility::get_file('logo/');
+    $userWorkspaces = \App\Models\UserWorkspace::query()
+        ->join('workspaces', 'user_workspaces.workspace_id', '=', 'workspaces.id')
+        ->where('user_workspaces.user_id', Auth::user()->id)
+        ->select('user_workspaces.workspace_id', 'workspaces.name')
+        ->orderBy('workspaces.name')
+        ->get();
+    $currentWorkspace = $currentWorkspace ?? Auth::user()->currentWorkspace;
+    $currentWorkspaceId = (int) (Auth::user()->currant_workspace ?? 0);
+
+    if (!$currentWorkspace && $userWorkspaces->isNotEmpty()) {
+        $currentWorkspace = App\Models\Workspace::find($userWorkspaces->first()->workspace_id);
+    }
+
     if (Auth::user()->type == 'admin') {
         $setting = App\Models\Utility::getAdminPaymentSettings();
-        //añadido
-        $currentWorkspace = Auth::user()->currentWorkspace;
         if ($setting['color']) {
             $color = $setting['color'];
         } else {
@@ -14,13 +25,21 @@
         $SITE_RTL = $setting['site_rtl'];
         $company_logo = App\Models\Utility::get_logo();
     } else {
-        $setting = App\Models\Utility::getcompanySettings($currentWorkspace->id);
-        $color = $setting->theme_color;
-        $dark_mode = $setting->cust_darklayout;
-        $SITE_RTL = $setting->site_rtl;
-        $cust_theme_bg = $setting->cust_theme_bg;
+        if ($currentWorkspace) {
+            $setting = App\Models\Utility::getcompanySettings($currentWorkspace->id);
+            $color = $setting->theme_color;
+            $dark_mode = $setting->cust_darklayout;
+            $SITE_RTL = $setting->site_rtl;
+            $cust_theme_bg = $setting->cust_theme_bg;
+        } else {
+            $setting = App\Models\Utility::getAdminPaymentSettings();
+            $color = $setting['color'] ?? 'theme-3';
+            $dark_mode = $setting['cust_darklayout'] ?? 'off';
+            $SITE_RTL = $setting['site_rtl'] ?? env('SITE_RTL');
+            $cust_theme_bg = $setting['cust_theme_bg'] ?? 'off';
+        }
         $adminSetting = App\Models\Utility::getAdminPaymentSettings();
-        $company_logo = App\Models\Utility::getcompanylogo($currentWorkspace->id);
+        $company_logo = $currentWorkspace ? App\Models\Utility::getcompanylogo($currentWorkspace->id) : App\Models\Utility::get_logo();
         if ($company_logo == '' || $company_logo == null) {
             $company_logo = App\Models\Utility::get_logo();
         }
@@ -524,10 +543,10 @@
         </div>
         <div class="navbar-content">
             <ul class="dash-navbar ">
-                @if (isset($currentWorkspace) && $currentWorkspace)
+                @if ($userWorkspaces->isNotEmpty())
                     <div class="workspace-dropdown-container mt-2">
                         <button class="workspace-name-header" id="workspaceButton">
-                            <span id="workspaceName">{{ $currentWorkspace->name }}</span>
+                            <span id="workspaceName">{{ $currentWorkspace?->name ?? __('Select workspace') }}</span>
                             <i class="fa-solid fa-chevron-down workspace-dropdown-icon"></i>
                         </button>
                         <div class="workspace-dropdown" id="workspaceDropdown">
@@ -535,8 +554,8 @@
                                 <input type="text" id="workspaceSearchInput" placeholder="{{ __('Search workspace...') }}">
                             </div>
                             <div class="workspace-list" id="workspaceList">
-                                @forelse(Auth::user()->workspaces() as $ws)
-                                    <div class="workspace-item @if($ws->workspace_id == $currentWorkspace->id) active @endif" data-workspace-id="{{ $ws->workspace_id }}" data-workspace-name="{{ $ws->name }}" data-workspace-url="{{ route('change-workspace', $ws->workspace_id) }}">
+                                @forelse($userWorkspaces as $ws)
+                                    <div class="workspace-item @if($ws->workspace_id == $currentWorkspaceId) active @endif" data-workspace-id="{{ $ws->workspace_id }}" data-workspace-name="{{ $ws->name }}" data-workspace-url="{{ route('change-workspace', $ws->workspace_id) }}">
                                         {{ $ws->name }}
                                     </div>
                                 @empty
@@ -663,7 +682,13 @@
         const workspaceButton = document.getElementById('workspaceButton');
         const workspaceDropdown = document.getElementById('workspaceDropdown');
         const workspaceSearchInput = document.getElementById('workspaceSearchInput');
-        const workspaceItems = document.querySelectorAll('.workspace-item');
+        const workspaceList = document.getElementById('workspaceList');
+
+        if (!workspaceButton || !workspaceDropdown || !workspaceSearchInput || !workspaceList) {
+            return;
+        }
+
+        const workspaceItems = workspaceList.querySelectorAll('.workspace-item');
         const dropdownIcon = workspaceButton.querySelector('.workspace-dropdown-icon');
 
         // Toggle dropdown cuando se hace click en el botón
@@ -713,9 +738,15 @@
 
         // Función para filtrar workspaces
         function filterWorkspaces(searchTerm) {
-            const items = document.querySelectorAll('.workspace-item');
+            const items = workspaceList.querySelectorAll('.workspace-item');
             items.forEach(item => {
-                const name = item.getAttribute('data-workspace-name').toLowerCase();
+                const workspaceName = item.getAttribute('data-workspace-name');
+                if (!workspaceName) {
+                    item.classList.add('hidden');
+                    return;
+                }
+
+                const name = workspaceName.toLowerCase();
                 if (name.includes(searchTerm)) {
                     item.classList.remove('hidden');
                 } else {
@@ -727,7 +758,7 @@
         // Permitir navegación con Enter cuando se busca
         workspaceSearchInput.addEventListener('keypress', function(e) {
             if (e.key === 'Enter') {
-                const visibleItems = Array.from(document.querySelectorAll('.workspace-item:not(.hidden)'));
+                const visibleItems = Array.from(workspaceList.querySelectorAll('.workspace-item:not(.hidden)'));
                 if (visibleItems.length === 1) {
                     visibleItems[0].click();
                 }

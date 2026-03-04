@@ -90,41 +90,24 @@
         const timeHourSelect = $('select[name="time_hour"]');
         const timeMinuteSelect = $('select[name="time_minute"]');
         const dateInput = $('input[name="date"]'); // Aunque en esta vista está disabled
+        const expectedHourByDate = Number(@json($expectedHour ?? 0));
 
         const timesheet = @json($timesheetEdit);
 
         console.log(timesheet['time']);
 
-        const totalhourToday = "{{ $parseArray['totaltaskhour'] }}";
-        const totalMinutsToday = "{{ $parseArray['totaltaskminute'] }}";
-        const totalTimeToday = parseInt(totalhourToday) + (parseInt(totalMinutsToday) / 60);
-
-        console.log("Total Time Today:", totalTimeToday);
-
-
         // Función para actualizar el Total Time (solo con los nuevos valores seleccionados)
         function updateTotalTime() {
             const selectedHour = parseInt(timeHourSelect.val()) || 0;
             const selectedMinute = parseInt(timeMinuteSelect.val()) || 0;
-            const timetable = @json($timeTable);
-            var dayOfWeek = new Date().toLocaleString('en-us', {
-                weekday: 'long'
-            }).toLowerCase();
-
-            var expectedHour = 0;
-            if (timetable && timetable[dayOfWeek]) {
-                var expectedTime = timetable[dayOfWeek].split(':');
-                expectedHour = parseInt(expectedTime[0], 10);
-            }
-
-            var workedHoursFormatted = selectedHour + totalhourToday + (selectedMinute + totalMinutsToday / 60);
+            const workedHoursFormatted = selectedHour + (selectedMinute / 60);
 
             var dayColor = '';
             if (workedHoursFormatted === 0) {
                 dayColor = '#e06c71'; // Rojo (sin horas)
-            } else if (workedHoursFormatted < expectedHour) {
+            } else if (workedHoursFormatted < expectedHourByDate) {
                 dayColor = '#fcf75e'; // Amarillo (horas parciales)
-            } else if (workedHoursFormatted === expectedHour) {
+            } else if (workedHoursFormatted === expectedHourByDate) {
                 dayColor = '#89e186'; // Verde (horas completas)
             } else {
                 dayColor = '#b2e2f2'; // Azul (horas extras)

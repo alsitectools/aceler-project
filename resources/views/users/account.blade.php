@@ -16,13 +16,60 @@
     @include('loader.loader')
     @include('saver.saver')
 
+    <style>
+        /* styles for searchable workspace list */
+        .workspace-search-wrapper .workspace-chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 15px;
+        }
+
+        .workspace-search-wrapper .workspace-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 12px;
+            background-color: #d3d3d378;
+            border-radius: 15px;
+            font-size: 14px;
+            border: 1px solid lightgray;
+            font-weight: bold;
+        }
+
+        .workspace-search-wrapper .workspace-chip-close {
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 16px;
+        }
+
+        .workspace-search-wrapper .workspace-list {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 8px;
+        }
+
+        .workspace-search-wrapper .workspace-item {
+            padding: 8px 12px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            text-align: center;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .workspace-search-wrapper .workspace-item.selected {
+            background-color: #aa182c3b;
+            border-color: #aa182c;
+        }
+    </style>
     <div class="row">
         <div class="col-xl-3">
             <div class="card sticky-top">
                 <div class="list-group list-group-flush" id="useradd-sidenav">
-                    <a href="#v-pills-home" class="list-group-item list-group-item-action border-0">{{ __('Account') }}
-                        <div class="float-end"><i class="ti ti-chevron-right"></i></div>
-                    </a>
 
                     <a href="#v-pills-profile"
                         class="list-group-item list-group-item-action border-0">{{ __('Add another workspace') }}
@@ -34,10 +81,6 @@
                         <div class="float-end"><i class="ti ti-chevron-right"></i></div>
                     </a>
 
-                    <a href="#v-pills-HolidayPicker"
-                        class="list-group-item list-group-item-action border-0">{{ __('Holiday') }}
-                        <div class="float-end"><i class="ti ti-chevron-right"></i></div>
-                    </a>
                     @if ($user->is_exporter === 1)
                         <a href="#v-pills-axapta"
                             class="list-group-item list-group-item-action border-0">{{ __('Export to Axapta') }}
@@ -48,91 +91,6 @@
             </div>
         </div>
         <div class="col-xl-9">
-            <div id="v-pills-home" class="card">
-                <div class="card-header buttonColocation">
-                    <h5>{{ __('Avatar') }}</h5>
-                    <button style="margin-right: 1%;" class="btn btn-sm btn-primary toggle-section buttonColapse"
-                        data-target="#avatar-content">-</button>
-                </div>
-                @php
-                    $workspace = $currentWorkspace ? $currentWorkspace->id : 0;
-                    $user_id = $user ? $user->id : 0;
-                @endphp
-                <div class="card-body collapse-section" id="avatar-content">
-                    <form method="post"
-                        action="@auth('web'){{ route('update.account', [$workspace, $user_id]) }}@elseauth{{ route('client.update.account', [$workspace, $user_id]) }}@endauth"
-                        enctype="multipart/form-data">
-                        @csrf
-                        <div class="row">
-                            <div class="col-lg-4 avatar-centrado">
-                                <div class="form-group">
-                                    <img @if ($user->avatar) src="{{ asset($user->avatar) }}" @else avatar="{{ $user->name }}" @endif
-                                        id="myAvatar" alt="user-image" class="rounded-circle img-thumbnail">
-                                    {{-- <div class="choose-file">
-                                        <label for="avatar">
-                                            <div class=" bg-primary "><i
-                                                    class="ti ti-upload px-1"></i>{{ __('Choose file here') }}
-                                            </div>
-                                            <input type="file" class="form-control choose_file_custom" name="avatar"
-                                                id="avatar" data-filename="avatar-logo" style="display: none;">
-                                        </label>
-                                        @error('avatar')
-                                            <span class="invalid-feedback" role="alert">
-                                                <strong>{{ $message }}</strong>
-                                            </span>
-                                        @enderror
-                                    </div> --}}
-                                </div>
-                                {{-- <small
-                                    class="text-muted text-center">{{ __('Please upload a valid image file. Size of image should not be more than 2MB.') }}</small> --}}
-                            </div>
-                            <div class="col-lg-8">
-                                <div class="d-flex">
-                                    <h1> {{ $user->name }}</h1>
-                                </div>
-                                <div class="d-flex mt-4">
-                                    <i class="fa-regular fa-envelope fa-xl mt-4 me-3"></i>
-                                    <div style="display: flex; flex-direction: column;" class="col-12">
-                                        <strong for="name" class="form-label ">{{ __('Email') }}</strong>
-                                        {{ $user->email }}
-                                    </div>
-                                </div>
-                                <div class="d-flex mt-4">
-                                    <i class="fa-regular fa-user fa-xl mt-4 me-3"></i>
-                                    <div style="display: flex; flex-direction: column;" class="col-12">
-                                        <strong for="name" class="form-label ">{{ __('Job title') }}</strong>
-                                        {{ $user->jobTitle }}
-                                    </div>
-                                </div>
-                                <div class="d-flex mt-4">
-                                    <i class="fa-solid fa-hashtag fa-xl mt-4 me-3"></i>
-                                    <div style="display: flex; flex-direction: column;" class="col-12">
-                                        <strong for="name" class="form-label ">{{ __('Employee number') }}</strong>
-                                        {{ $user->employeeNumber ?? __('N/A') }}
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        {{-- <div class="row mt-4">
-                            <div class=" row">
-                                <div class="text-end">
-                                    <button type="submit" class="btn-submit btn btn-primary col-sm-auto col-12">
-                                        {{ __('Save Changes') }}
-                                    </button>
-                                </div>
-                            </div>
-                        </div> --}}
-                    </form>
-                    @if ($user->avatar != '')
-                        <form
-                            action="@auth('web'){{ route('delete.avatar') }}@elseauth{{ route('client.delete.avatar') }}@endauth"
-                            method="post" id="delete_avatar">
-                            @csrf
-                            @method('DELETE')
-                        </form>
-                    @endif
-                </div>
-            </div>
 
             <div class="card" id="v-pills-profile">
                 <div class="card-header buttonColocation">
@@ -142,45 +100,37 @@
                 </div>
                 <div class="card-body collapse-section" id="workspace-content">
                     <div class="col-12 d-flex">
-                        <div class="col-4">
-                            <div class="d-flex mt-4">
-                                <h1><i class="ti ti-users text-success card-icon-text-space m-2"></i>
-                                </h1>
-                                <div style="display: flex; flex-direction: column;" class="col-8">
-                                    <strong for="name" class="form-label mb-3">{{ __('Current workspace') }}</strong>
-                                    {{ $currentWorkspace->name }}
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-8 mt-4 ms-5">
-                            <a href="#" class="d-flex">
-                                <h1 class="mt-2 me-1 d-inline"><i class="bi bi-info-circle" style="color: #FFD43B;"></i>
-                                </h1>
-                                <p class="text-muted infoWorkspace">
-                                    {{ __('The selected workspaces indicate which ones you belong to. You can also select others to be displayed in the list of your workspaces.') }}
-                                </p>
-                            </a>
-                        </div>
-                    </div>
                     <div class="col-12">
                         <div class="d-flex mt-4">
-                            <h1><i class="ti ti-users text-primary card-icon-text-space m-2"></i></h1>
                             <div style="display: flex; flex-direction: column; width: 100%;">
-                                <strong for="name" class="form-label mb-4">{{ __('New workspace') }}</strong>
-                                <div class="container">
-                                    <div class="row">
+                                <strong for="name" class="form-label mb-4">{{ __('Add new workspace') }}</strong>
+                                <div class="workspace-search-wrapper">
+                                    <input type="text" id="workspaceSearch"
+                                        placeholder="{{ __('Search workspaces...') }}" class="form-control mb-3">
+                                    <div class="workspace-chips" id="workspaceChips">
                                         @foreach ($workspaces as $workspace)
-                                            <div class="col-md-4 mb-2">
-                                                <div class="form-check form-switch">
-                                                    <input class="form-check-input" type="checkbox" role="switch"
-                                                        id="workspaceCheckbox-{{ $workspace->id }}"
-                                                        onchange="workspaceManager({{ $workspace->id }})"
-                                                        @if (in_array($workspace->id, $anotherWorkspaces)) checked @endif>
+                                            @if (in_array($workspace->id, $anotherWorkspaces))
+                                                <div class="workspace-chip" data-workspace-id="{{ $workspace->id }}">
                                                     {{ $workspace->name }}
+                                                    <span class="workspace-chip-close">✕</span>
                                                 </div>
-
+                                            @endif
+                                        @endforeach
+                                    </div>
+                                    <div class="workspace-list">
+                                        @foreach ($workspaces as $workspace)
+                                            <div class="workspace-item"
+                                                style="{{ in_array($workspace->id, $anotherWorkspaces) ? 'display:none;' : '' }}"
+                                                data-name="{{ strtolower($workspace->name) }}"
+                                                data-workspace-id="{{ $workspace->id }}">
+                                                {{ $workspace->name }}
                                             </div>
                                         @endforeach
+                                    </div>
+                                    <div class="alignCenterItems">
+                                        <button id="saveWorkspaces" class="btn btn-sm btn-primary saveButton" style="margin-top: 1%;">
+                                            {{ __('Save') }}
+                                        </button>
                                     </div>
                                 </div>
                             </div>
@@ -189,6 +139,7 @@
                 </div>
             </div> <!-- end col -->
         </div> <!-- end row -->
+    </div>
 
         <!-- timetable-->
         <div class="card divTimetable" id="v-pills-timetable">
@@ -213,42 +164,13 @@
                             <input type="checkbox" class="dayCheckbox" id="{{ strtolower($day) }}Checkbox">
                             <span class="slider round"></span>
                         </label>
-                        <input id="{{ strtolower($day) }}Input" type="time" lang="es-ES" step="60" class="inputToggle">
+                        <input id="{{ strtolower($day) }}Input" type="time" lang="es-ES" step="60"
+                            class="inputToggle">
                     </div>
                 @endforeach
             </div>
             <div class="alignCenterItems">
                 <button id="saveTimetable" class="btn btn-sm btn-primary saveButton">{{ __('Save') }}</button>
-            </div>
-        </div>
-
-        <!-- holiday picker-->
-        <div class="card divTimetable" id="v-pills-HolidayPicker">
-            <div class="card-header buttonColocation">
-                <h5>{{ __('Holiday') }}</h5>
-                <button class="btn btn-sm btn-primary toggle-section buttonColapse"
-                    data-target="#Holiday-content">-</button>
-            </div>
-            <div class="collapse-section card-body divHolidayContent" id="Holiday-content">
-                <div id="startDayPick">
-                    @include('calendar.customCalendar')
-
-                </div>
-                <div style="display: flex; flex-direction: column; align-items: center;">
-                    <div class="HolidayToggleDiv">
-                        <p class="holidayP">{{ __('Holiday') }}</p>
-                        <label class="switch switchHoliday">
-                            <input type="checkbox">
-                            <span class="slider round"></span>
-                        </label>
-                        <p class="holidayPIntenisve">{{ __('Intensive workday') }}</p>
-                    </div>
-                    <input class="intensiveWorkInput" type="time" id="intesiveWordaykInput"
-                        onclick="this.showPicker()" disabled></input>
-                </div>
-            </div>
-            <div class="alignCenterItems">
-                <button id="saveHoliday" class="btn btn-sm btn-primary saveButton">{{ __('Save') }}</button>
             </div>
         </div>
 
@@ -349,64 +271,9 @@
                 });
             };
 
-
-            let saveButtonHoliday = document.getElementById('saveHoliday');
-
-            saveButtonHoliday.addEventListener('click', function() {
-
-                //when the user save, show the loader
-                document.getElementById('saving-overlay').style.display = 'flex';
-
-                // Deshabilitar el scroll
-                document.body.style.overflow = 'hidden';
-
-                //get range of the localstorage
-                let rangeDate = localStorage.getItem('DateSelectedRange');
-                console.log("rangeDate", rangeDate);
-
-                //check if the days will be Holidays or intensive workdays
-                let HolidayToggle = document.querySelector('.HolidayToggleDiv .switch input[type="checkbox"]');
-
-                let rangeAndInput = {
-                    "rangeDate": rangeDate
-                };
-                if (HolidayToggle.checked) {
-                    //check the value of the input 
-                    let intensiveWorkInput = document.getElementById('intesiveWordaykInput');
-                    console.log("Holiday toggle is ON (Checked)");
-
-                    rangeAndInput["intensiveWorkday"] = intensiveWorkInput.value;
-
-                }
-
-                console.log("range and Input::", rangeAndInput);
-                operationUrl = '<?php echo url('user/specialUpdate-timetable'); ?>';
-                $.ajax({
-                    type: 'POST',
-                    url: operationUrl,
-                    data: {
-                        "rangeAndInput": JSON.stringify(rangeAndInput),
-                    },
-                    headers: {
-                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') // Incluye el token CSRF
-                    },
-                    success: function(data) {
-                        console.log("success");
-                        document.getElementById('saving-overlay').style.display = 'none';
-                        //reactivar scroll
-                        document.body.style.overflow = 'auto';
-                    },
-                    fail: function() {
-                        console.log("fail");
-                        document.getElementById('saving-overlay').style.display = 'none';
-                        //reactivar scroll
-                        document.body.style.overflow = 'auto';
-                    },
-                });
-            });
-
             let saveButton = document.getElementById('saveTimetable');
-            saveButton.addEventListener('click', function() {
+            if (saveButton) {
+                saveButton.addEventListener('click', function() {
                 // Mostrar el loader cuando el usuario guarda
                 document.getElementById('saving-overlay').style.display = 'flex';
 
@@ -459,7 +326,8 @@
                         document.body.style.overflow = 'auto';
                     },
                 });
-            });
+                });
+            }
 
 
             $(document).ready(function() {
@@ -593,6 +461,150 @@
                     }
                 });
             }
+
+            // search/filter behavior and chip-based selection for workspace list
+            document.addEventListener('DOMContentLoaded', function() {
+                const workspaceSection = document.querySelector('#workspace-content .workspace-search-wrapper');
+                if (!workspaceSection) {
+                    return;
+                }
+
+                const searchInput = workspaceSection.querySelector('#workspaceSearch');
+                const chipsContainer = workspaceSection.querySelector('#workspaceChips');
+                const saveBtn = workspaceSection.querySelector('#saveWorkspaces');
+                const workspaceItems = workspaceSection.querySelectorAll('.workspace-item');
+                const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+
+                // Initialize selected workspace IDs from existing chips
+                let selectedWorkspaceIds = new Set();
+                workspaceSection.querySelectorAll('.workspace-chip').forEach(function(chip) {
+                    selectedWorkspaceIds.add(parseInt(chip.dataset.workspaceId));
+                });
+                const initialWorkspaceIds = new Set(selectedWorkspaceIds);
+
+                function renderWorkspaceList() {
+                    const filter = (searchInput?.value || '').toLowerCase();
+
+                    workspaceItems.forEach(function(item) {
+                        const workspaceId = parseInt(item.dataset.workspaceId);
+                        const workspaceName = (item.dataset.name || item.textContent || '').trim().toLowerCase();
+                        const matchesFilter = workspaceName.includes(filter);
+                        const isSelected = selectedWorkspaceIds.has(workspaceId);
+
+                        item.style.display = !isSelected && matchesFilter ? '' : 'none';
+                    });
+                }
+
+                function createChip(workspaceId, workspaceName) {
+                    const chip = document.createElement('div');
+                    chip.className = 'workspace-chip';
+                    chip.dataset.workspaceId = workspaceId;
+                    chip.innerHTML = workspaceName + ' <span class="workspace-chip-close">✕</span>';
+                    chipsContainer.appendChild(chip);
+
+                    chip.querySelector('.workspace-chip-close').addEventListener('click', function(e) {
+                        e.stopPropagation();
+                        removeChip(chip, workspaceId);
+                    });
+                }
+
+                // Filter list by search input
+                if (searchInput) {
+                    searchInput.addEventListener('input', function() {
+                        renderWorkspaceList();
+                    });
+                }
+
+                // Handle workspace item click - add chip and hide item
+                workspaceItems.forEach(function(item) {
+                    item.addEventListener('click', function() {
+                        const workspaceId = parseInt(this.dataset.workspaceId);
+                        const workspaceName = this.textContent.trim();
+
+                        if (selectedWorkspaceIds.has(workspaceId)) {
+                            return;
+                        }
+
+                        selectedWorkspaceIds.add(workspaceId);
+                        createChip(workspaceId, workspaceName);
+                        renderWorkspaceList();
+                    });
+                });
+
+                // Handle chip close click
+                function removeChip(chipElement, workspaceId) {
+                    selectedWorkspaceIds.delete(workspaceId);
+                    chipElement.remove();
+                    renderWorkspaceList();
+                }
+
+                // Handle save button
+                if (saveBtn) {
+                    saveBtn.addEventListener('click', async function() {
+                        let selectedIds = Array.from(selectedWorkspaceIds);
+                        const initialIds = Array.from(initialWorkspaceIds);
+                        const currentWorkspaceId = {{ (int) $currentWorkspace->id }};
+
+                        if (selectedIds.length === 0) {
+                            selectedIds = [currentWorkspaceId];
+                        }
+
+                        const selectedIdSet = new Set(selectedIds);
+                        const idsToAdd = selectedIds.filter(id => !initialWorkspaceIds.has(id));
+                        const idsToRemove = initialIds.filter(id => !selectedIdSet.has(id));
+
+                        saveBtn.disabled = true;
+                        document.getElementById('saving-overlay').style.display = 'flex';
+                        document.body.style.overflow = 'hidden';
+
+                        const doAddWorkspace = function(workspaceId) {
+                            return $.ajax({
+                                url: '{{ route('addWorkspace', ':id') }}'.replace(':id', workspaceId),
+                                type: 'GET',
+                                beforeSend: function(xhr) {
+                                    xhr.setRequestHeader('X-CSRF-TOKEN', csrfToken);
+                                }
+                            });
+                        };
+
+                        const doRemoveWorkspace = function(workspaceId) {
+                            return $.ajax({
+                                url: '{{ route('leave-workspace', ':id') }}'.replace(':id', workspaceId),
+                                type: 'DELETE',
+                                beforeSend: function(xhr) {
+                                    xhr.setRequestHeader('X-CSRF-TOKEN', csrfToken);
+                                }
+                            });
+                        };
+
+                        try {
+                            for (const workspaceId of idsToAdd) {
+                                await doAddWorkspace(workspaceId);
+                            }
+
+                            for (const workspaceId of idsToRemove) {
+                                await doRemoveWorkspace(workspaceId);
+                            }
+                        } catch (error) {
+                            console.error('Error saving selected workspaces:', error);
+                        } finally {
+                            window.location.reload();
+                        }
+                    });
+                }
+
+                // Add event listeners to close buttons on existing chips
+                workspaceSection.querySelectorAll('.workspace-chip-close').forEach(function(closeBtn) {
+                    closeBtn.addEventListener('click', function(e) {
+                        e.stopPropagation();
+                        const chip = this.closest('.workspace-chip');
+                        const workspaceId = parseInt(chip.dataset.workspaceId);
+                        removeChip(chip, workspaceId);
+                    });
+                });
+
+                renderWorkspaceList();
+            });
         </script>
         <script>
             $(document).on('click', '.list-group-item', function() {
@@ -632,8 +644,10 @@
                         if (response.success) {
                             // Decodificar el contenido del archivo
                             const fileContent = atob(response.fileContent);
-                            const blob = new Blob([fileContent], { type: 'text/plain' });
-                            
+                            const blob = new Blob([fileContent], {
+                                type: 'text/plain'
+                            });
+
                             // Crear un link de descarga
                             const link = document.createElement('a');
                             link.href = window.URL.createObjectURL(blob);

@@ -134,6 +134,123 @@ class ProjectController extends Controller
         return trim($fileName);
     }
 
+    private function parseTimeToDecimal(?string $time): float
+    {
+        if (empty($time)) {
+            return 0.0;
+        }
+
+        $parts = explode(':', $time);
+        $hours = (int) ($parts[0] ?? 0);
+        $minutes = (int) ($parts[1] ?? 0);
+
+        return $hours + ($minutes / 60);
+    }
+
+    private function getIntensiveHoursByDate(?string $rangeIntensiveWorkday): array
+    {
+        if (empty($rangeIntensiveWorkday)) {
+            return [];
+        }
+
+        $decodedIntensive = json_decode($rangeIntensiveWorkday, true);
+        if (!is_array($decodedIntensive)) {
+            return [];
+        }
+
+        $intensiveHoursByDate = [];
+
+        foreach ($decodedIntensive as $hours => $dates) {
+            if (!is_array($dates)) {
+                continue;
+            }
+
+            foreach ($dates as $date) {
+                if (empty($date)) {
+                    continue;
+                }
+
+                $intensiveHoursByDate[$date] = $hours;
+            }
+        }
+
+        return $intensiveHoursByDate;
+    }
+
+    private function getExpectedHoursByDate(?UserTimetable $timeTable, ?string $date): float
+    {
+        if (!$timeTable || empty($date)) {
+            return 0.0;
+        }
+
+        $targetDate = Carbon::parse($date)->toDateString();
+        $intensiveHoursByDate = $this->getIntensiveHoursByDate($timeTable->range_intensive_workday ?? null);
+
+        if (isset($intensiveHoursByDate[$targetDate])) {
+            return $this->parseTimeToDecimal($intensiveHoursByDate[$targetDate]);
+        }
+
+        $dayOfWeek = strtolower(Carbon::parse($targetDate)->format('l'));
+        return $this->parseTimeToDecimal($timeTable->$dayOfWeek ?? '00:00');
+    }
+
+    private function resolveDayColor(float $workedHours, float $expectedHour): string
+    {
+        if ($workedHours == 0) {
+            return '#e06c71';
+        }
+
+        if ($workedHours < $expectedHour) {
+            return '#fcf75e';
+        }
+
+        if ($workedHours == $expectedHour) {
+            return '#89e186';
+        }
+
+        return '#b2e2f2';
+    }
+
+    private function getUserHolidayDates(int $userId): array
+    {
+        $timeTable = UserTimetable::where('user_id', $userId)->first();
+
+        if (!$timeTable || empty($timeTable->range_holidays)) {
+            return [];
+        }
+
+        $decodedHolidays = json_decode($timeTable->range_holidays, true);
+        if (!is_array($decodedHolidays)) {
+            return [];
+        }
+
+        $holidayDates = [];
+        foreach (array_values($decodedHolidays) as $holidayDate) {
+            if (empty($holidayDate)) {
+                continue;
+            }
+
+            try {
+                $holidayDates[] = Carbon::parse($holidayDate)->toDateString();
+            } catch (\Throwable $e) {
+                continue;
+            }
+        }
+
+        return array_values(array_unique($holidayDates));
+    }
+
+    private function isUserHolidayDate(int $userId, string $date): bool
+    {
+        try {
+            $normalizedDate = Carbon::parse($date)->toDateString();
+        } catch (\Throwable $e) {
+            return false;
+        }
+
+        return in_array($normalizedDate, $this->getUserHolidayDates($userId), true);
+    }
+
     /**
      * Genera un nombre único para un archivo si ya existe uno con el mismo nombre.
      * Ejemplo: archivo.pdf -> archivo (2).pdf -> archivo (3).pdf
@@ -4227,6 +4344,18 @@ class ProjectController extends Controller
             return redirect()->back()->with('error', $validator->errors()->first());
         }
 
+        try {
+            $selectedDate = Carbon::parse($request->date)->toDateString();
+        } catch (\Throwable $e) {
+            return redirect()->back()->withInput()->with('error', __('Invalid date selected.'));
+        }
+
+        if ($this->isUserHolidayDate($user->id, $selectedDate)) {
+            return redirect()->back()->withInput()->with('error', __('You cannot log hours on a holiday.'));
+        }
+
+        $request->merge(['date' => $selectedDate]);
+
         // Verificar que el proyecto exista
         $project = Project::find($request->project_id);
 
@@ -4346,29 +4475,11 @@ class ProjectController extends Controller
         $totaltaskhour = $totalhourstimes[0] ?? '00';
         $totaltaskminute = $totalhourstimes[1] ?? '00';
 
-        // Obtener horario esperado según el día de la semana
         $timeTable = UserTimetable::where('user_id', $user_id)->first();
-        $dayOfWeek = strtolower(date('l')); // Día en inglés (ej: "monday")
+        $expectedHour = $this->getExpectedHoursByDate($timeTable, $selected_date);
 
-        $expectedHour = 0;
-        if ($timeTable && isset($timeTable->$dayOfWeek)) {
-            $expectedTime = explode(':', $timeTable->$dayOfWeek);
-            $expectedHour = (int) $expectedTime[0]; // Solo horas
-        }
-
-        // Convertir horas trabajadas a decimal
-        $workedHoursFormatted = $totaltaskhour + ($totaltaskminute / 60);
-        $dayColor = '';
-        // Determinar el color según la comparación
-        if ($workedHoursFormatted == 0) {
-            $dayColor = '#e06c71'; // Rojo (sin horas)
-        } elseif ($workedHoursFormatted < $expectedHour) {
-            $dayColor = '#fcf75e'; // Amarillo (horas parciales)
-        } elseif ($workedHoursFormatted == $expectedHour) {
-            $dayColor = '#89e186'; // Verde (horas completas)
-        } elseif ($workedHoursFormatted > $expectedHour) {
-            $dayColor = '#b2e2f2'; // Azul (horas extras)
-        }
+        $workedHoursFormatted = ((int) $totaltaskhour) + (((int) $totaltaskminute) / 60);
+        $dayColor = $this->resolveDayColor($workedHoursFormatted, $expectedHour);
 
         if (!$task) {
             return response()->json(['error' => 'Task not found'], 404);
@@ -4386,6 +4497,33 @@ class ProjectController extends Controller
             'dayColor'        => $dayColor,
             'is_edit' => $timesheetEdit ? true : false,
             'timesheet' => $timesheetEdit ? $timesheetEdit : null,
+        ]);
+    }
+
+    public function checkHolidayDate($slug, Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'date' => 'required|date',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => __('Invalid date selected.'),
+                'is_holiday' => false,
+            ], 422);
+        }
+
+        $selectedDate = Carbon::parse($request->input('date'))->toDateString();
+        $isHoliday = $this->isUserHolidayDate((int) Auth::id(), $selectedDate);
+
+        return response()->json([
+            'success' => true,
+            'date' => $selectedDate,
+            'is_holiday' => $isHoliday,
+            'message' => $isHoliday
+                ? __('You cannot log hours on a holiday.')
+                : null,
         ]);
     }
 
@@ -4474,6 +4612,17 @@ class ProjectController extends Controller
             $dayColor = '#b2e2f2'; // Azul (horas extras)
         }
 
+        $holidayDates = $this->getUserHolidayDates($objUser->id);
+        $isHolidayDate = false;
+
+        if (!empty($selected_date)) {
+            try {
+                $isHolidayDate = in_array(Carbon::parse($selected_date)->toDateString(), $holidayDates, true);
+            } catch (\Throwable $e) {
+                $isHolidayDate = false;
+            }
+        }
+
         $parseArray = [
             'project_id' => $project->id,
             'project_name' => $project_name,
@@ -4487,7 +4636,7 @@ class ProjectController extends Controller
             'taskCreationDate' => $taskCreationDate,
         ];
 
-        return view('projects.timesheet-create', compact('currentWorkspace', 'parseArray', 'fromTimesheet', 'dayColor', 'timeTable', 'timesheetEdit'));
+        return view('projects.timesheet-create', compact('currentWorkspace', 'parseArray', 'fromTimesheet', 'dayColor', 'timeTable', 'timesheetEdit', 'holidayDates', 'isHolidayDate'));
     }
 
     public function timesheetUpdate($slug, $timesheetID, Request $request)
@@ -5824,26 +5973,11 @@ class ProjectController extends Controller
                 $time = explode(':', $timesheet->time);
 
                 $timeTable = UserTimetable::where('user_id', $objUser->id)->first();
-                $dayOfWeek = strtolower(date('l'));
+                $targetDate = $selected_date ?: ($timesheet->date ?? null);
+                $expectedHour = $this->getExpectedHoursByDate($timeTable, $targetDate);
 
-                $expectedHour = 0;
-                if ($timeTable && isset($timeTable->$dayOfWeek)) {
-                    $expectedTime = explode(':', $timeTable->$dayOfWeek);
-                    $expectedHour = (int) $expectedTime[0];
-                }
-
-                $workedHoursFormatted = $totaltaskhour + ($totaltaskminute / 60);
-                $dayColor = '';
-
-                if ($workedHoursFormatted == 0) {
-                    $dayColor = '#e06c71'; // Rojo (sin horas)
-                } elseif ($workedHoursFormatted < $expectedHour) {
-                    $dayColor = '#fcf75e'; // Amarillo (horas parciales)
-                } elseif ($workedHoursFormatted == $expectedHour) {
-                    $dayColor = '#89e186'; // Verde (horas completas)
-                } elseif ($workedHoursFormatted > $expectedHour) {
-                    $dayColor = '#b2e2f2'; // Azul (horas extras)
-                }
+                $workedHoursFormatted = ((int) $totaltaskhour) + (((int) $totaltaskminute) / 60);
+                $dayColor = $this->resolveDayColor($workedHoursFormatted, $expectedHour);
                 $parseArray = [
                     'project_id' => $project_id,
                     'project_name' => $project_name,
@@ -5860,7 +5994,7 @@ class ProjectController extends Controller
                 $user = Auth::user();
                 $timesheetEdit = Timesheet::find($timesheet_id);
 
-                return view('projects.timesheet-edit', compact('timesheet', 'currentWorkspace', 'parseArray', 'project_id', 'dayColor', 'timeTable', 'timesheetEdit'));
+                return view('projects.timesheet-edit', compact('timesheet', 'currentWorkspace', 'parseArray', 'project_id', 'dayColor', 'timeTable', 'timesheetEdit', 'expectedHour'));
             }
         }
     }
