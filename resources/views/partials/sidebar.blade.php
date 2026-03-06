@@ -261,7 +261,7 @@
         font-weight: bold;
     }
 
-   
+
 
 
     #error-boxAlert {
@@ -503,6 +503,17 @@
         }
     }
 
+    /* Sub icono de usuario en My Projects / My Milestones */
+
+
+    .dash-item:hover .user-badge-sub {
+        color: #aa182c !important;
+    }
+
+    .dash-item.active .user-badge-sub {
+        color: #aa182c !important;
+    }
+
     @media screen and (max-width:1200px) and (min-width:1100px) {
         .vistaPortatil {
             width: 18%;
@@ -532,11 +543,15 @@
                         </button>
                         <div class="workspace-dropdown" id="workspaceDropdown">
                             <div class="workspace-search">
-                                <input type="text" id="workspaceSearchInput" placeholder="{{ __('Search workspace...') }}">
+                                <input type="text" id="workspaceSearchInput"
+                                    placeholder="{{ __('Search workspace...') }}">
                             </div>
                             <div class="workspace-list" id="workspaceList">
                                 @forelse(Auth::user()->workspaces() as $ws)
-                                    <div class="workspace-item @if($ws->workspace_id == $currentWorkspace->id) active @endif" data-workspace-id="{{ $ws->workspace_id }}" data-workspace-name="{{ $ws->name }}" data-workspace-url="{{ route('change-workspace', $ws->workspace_id) }}">
+                                    <div class="workspace-item @if ($ws->workspace_id == $currentWorkspace->id) active @endif"
+                                        data-workspace-id="{{ $ws->workspace_id }}"
+                                        data-workspace-name="{{ $ws->name }}"
+                                        data-workspace-url="{{ route('change-workspace', $ws->workspace_id) }}">
                                         {{ $ws->name }}
                                     </div>
                                 @empty
@@ -563,7 +578,7 @@
                             <span class="dash-micon"><i class="fa-solid fa-diagram-project"></i></span><span
                                 class="dash-mtext">{{ __('Projects') }}</span></a>
                     </li>
-                    
+
                     </li>
                     <li
                         class="dash-item {{ Request::route()->getName() == 'projects.milestone.board' ? 'active' : '' }}">
@@ -573,14 +588,27 @@
                                 class="dash-mtext">{{ __('Milestones') }}</span></a>
                     </li>
                     {{-- si mostramos todos los proyectos enviamos -1 o proyecto en especifico --}}
-                    <li class="dash-item  {{ Request::route()->getName() == 'my_projects' ? 'active' : '' }}">
-                        <a href="{{ route('my_projects', $currentWorkspace->slug) }}" class="dash-link  menu-element">
-                            <span class="dash-micon"><i class="fa-solid fa-briefcase"></i></span><span
-                                class="dash-mtext">{{ __('My Projects') }}</span></a>
+                    <li class="dash-item {{ Request::route()->getName() == 'my_projects' ? 'active' : '' }}">
+                        <a href="{{ route('my_projects', $currentWorkspace->slug) }}" class="dash-link menu-element">
+                            <span class="dash-micon"
+                                style="position: relative; display: inline-flex; align-items: center; justify-content: center;">
+                                <i class="fa-solid fa-diagram-project"></i>
+                                <i class="fa-solid fa-user user-badge-sub"
+                                    style="position: absolute; bottom: -2px; right: -4px; font-size: 15px; color: #525a69; background: #fcf9f9; border-radius: 50%; padding: 2px;"></i>
+                            </span>
+                            <span class="dash-mtext">{{ __('My Projects') }}</span>
+                        </a>
+                    </li>
                     <li class="dash-item ">
-                        <a href="{{ route('projects.my_milestone_board') }}" class="dash-link  menu-element">
-                            <span class="dash-micon"><i class="fa-solid fa-clipboard-list"></i></span><span
-                                class="dash-mtext">{{ __('My Milestones') }}</span></a>
+                        <a href="{{ route('projects.my_milestone_board') }}" class="dash-link menu-element">
+                            <span class="dash-micon"
+                                style="position: relative; display: inline-flex; align-items: center; justify-content: center;">
+                                <i class="fa-solid fa-file-lines"></i>
+                                <i class="fa-solid fa-user user-badge-sub"
+                                    style="position: absolute; bottom: -2px; right: -4px; font-size: 15px; color: #525a69; background: #fcf9f9; border-radius: 50%; padding: 2px;"></i>
+                            </span>
+                            <span class="dash-mtext">{{ __('My Milestones') }}</span>
+                        </a>
                     </li>
                     <li class="dash-item  {{ Request::route()->getName() == 'timesheet.index' ? 'active' : '' }}">
                         <a href="{{ route('timesheet.index', $currentWorkspace->slug) }}"
@@ -594,9 +622,9 @@
                                     class="fa-regular fa-calendar"></i></span><span
                                 class="dash-mtext">{{ __('My Calendar') }}</span></a>
                     </li>
-                </ul>
-                    <!-- Grupo: Otros -->
-                    {{-- <li class="dash-item  dash-label" data-group="otros">
+            </ul>
+            <!-- Grupo: Otros -->
+            {{-- <li class="dash-item  dash-label" data-group="otros">
                         <small><i class="fa-solid fa-ellipsis" style="margin-right: 8px;"></i>{{ __('Otros') }}</small>
                         <i class="fa-solid fa-chevron-down toggle-icon"></i>
                     </li>
@@ -606,7 +634,7 @@
                             </span>
                             <span class="dash-mtext">Tutorial</span></a>
                     </li> --}}
-                    {{-- @if ($emptyTimetable == 1 && $userType != 'client')
+            {{-- @if ($emptyTimetable == 1 && $userType != 'client')
                             <div id="container-alert">
                                 <div id="error-boxAlert">
                                     <div style="padding-bottom: 1px;"></div>
@@ -624,7 +652,7 @@
                                 </div>
                             </div>
                         @endif --}}
-                    <!-- <li class="dash-item  dash-hasmenu">
+            <!-- <li class="dash-item  dash-hasmenu">
                         <a href="{{ route('clients.index', $currentWorkspace->slug) }}"
                             class="dash-link  {{ Request::route()->getName() == 'clients.index' ? ' active' : '' }} "><span
                                 class="dash-micon"> <img class="img-fluid"
@@ -640,17 +668,16 @@
                             <span class="dash-mtext">{{ __('Technicians') }}</span>
                         </a>
                     </li> -->
-                @endif
-                {{-- colorAlsina #AA182C --}}
-                @if (\Auth::user()->type == 'admin')
-                    <li class="dash-item  {{ Request::route()->getName() == 'workspace.settings' ? ' active' : '' }}">
-                        <a href="{{ route('workspace.settings', $currentWorkspace->slug) }}"
-                            class="dash-link menu-element "><span class="dash-micon"><i
-                                    data-feather="settings"></i></span><span
-                                class="dash-mtext">{{ __('Settings') }}</span>
-                        </a>
-                    </li>
-                @endif
+            @endif
+            {{-- colorAlsina #AA182C --}}
+            @if (\Auth::user()->type == 'admin')
+                <li class="dash-item  {{ Request::route()->getName() == 'workspace.settings' ? ' active' : '' }}">
+                    <a href="{{ route('workspace.settings', $currentWorkspace->slug) }}"
+                        class="dash-link menu-element "><span class="dash-micon"><i
+                                data-feather="settings"></i></span><span class="dash-mtext">{{ __('Settings') }}</span>
+                    </a>
+                </li>
+            @endif
             </ul>
         </div>
     </div>
@@ -694,16 +721,16 @@
             item.addEventListener('click', function() {
                 const workspaceName = this.getAttribute('data-workspace-name');
                 const workspaceUrl = this.getAttribute('data-workspace-url');
-                
+
                 // Actualizar el nombre mostrado
                 document.getElementById('workspaceName').textContent = workspaceName;
-                
+
                 // Cerrar el dropdown
                 workspaceDropdown.classList.remove('active');
                 dropdownIcon.classList.remove('rotate');
                 workspaceSearchInput.value = '';
                 filterWorkspaces('');
-                
+
                 // Navegar al workspace usando la URL correcta generada con route()
                 if (workspaceUrl) {
                     window.location.href = workspaceUrl;
@@ -727,7 +754,8 @@
         // Permitir navegación con Enter cuando se busca
         workspaceSearchInput.addEventListener('keypress', function(e) {
             if (e.key === 'Enter') {
-                const visibleItems = Array.from(document.querySelectorAll('.workspace-item:not(.hidden)'));
+                const visibleItems = Array.from(document.querySelectorAll(
+                    '.workspace-item:not(.hidden)'));
                 if (visibleItems.length === 1) {
                     visibleItems[0].click();
                 }

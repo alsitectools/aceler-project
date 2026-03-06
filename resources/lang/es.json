@@ -1354,5 +1354,9 @@
     "Stages": "Etapas",
     "Select a phase": "Selecciona una fase",
     "Wait Milestone": "Pausar Encargo",
-    "Assign Task": "Asignar Tarea"
+    "Assign Task": "Asignar Tarea",
+    "Search name": "Buscar por nombre",
+    "Table Visibility": "Visibilidad de la tabla",
+    "Creation date": "Fecha de creación",
+    "Upload Files": "Subir archivos"
 }
