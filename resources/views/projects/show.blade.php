@@ -166,6 +166,46 @@
         align-items: baseline;
     }
 
+    .file-folder-toggle {
+        cursor: pointer;
+        user-select: none;
+        transition: opacity 0.2s ease;
+    }
+
+    .file-folder-toggle:hover {
+        opacity: 0.8;
+    }
+
+    .folder-toggle-icon {
+        transition: transform 0.2s ease, opacity 0.2s ease;
+    }
+
+    .file-folder-toggle:hover .folder-toggle-icon {
+        transform: scale(1.05);
+    }
+
+    #files-upload-row {
+        transition: opacity 0.22s ease, transform 0.22s ease;
+    }
+
+    #files-upload-row:not(.is-visible) {
+        opacity: 0;
+        transform: translateY(-8px);
+    }
+
+    #files-upload-row.is-visible {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    #toggleUploadSectionBtn i {
+        transition: transform 0.2s ease;
+    }
+
+    #toggleUploadSectionBtn[aria-expanded='true'] i {
+        transform: scale(1.08);
+    }
+
     @media (max-width: 1300px) {
         .header_breadcrumb {
             width: 100% !important;
@@ -216,16 +256,6 @@
             </a>
         </div>
     @endif
-    <div class="col-lg-auto pb-3">
-        <a href="{{ route('projects.milestone.board', [$currentWorkspace->slug, $project->id]) }}"
-            class="btn btn-primary btn-task-milestone" title="{{ __('Milestones') }}"><i
-                class="fa-solid fa-file-lines fileIcon me-3"></i>{{ __('Order forms') }}</a>
-    </div>
-    <div class="col-lg-auto pb-3">
-        <a href="{{ route('projects.timesheet.index', [$currentWorkspace->slug, $project->id]) }}"
-            class="btn btn-primary btn-task-milestone" title="{{ __('Tasks') }}"><i
-                class="fas fa-tasks text-white me-3"></i>{{ __('Timesheet') }}</a>
-    </div>
 @endsection
 
 <style type="text/css">
@@ -406,18 +436,572 @@
     }
 </style>
 <style>
-    .sortable-header {
+    #orderFiltersModal .modal-dialog {
+        max-width: 980px;
+    }
+
+    #orderFiltersModal .modal-content {
+        border: none;
+        border-radius: 20px;
+        box-shadow: 0 24px 80px rgba(0, 0, 0, 0.10), 0 2px 6px rgba(0, 0, 0, 0.03);
+        overflow: visible;
+    }
+
+    #orderFiltersModal .modal-header {
+        padding: 24px 28px 16px;
+        border-bottom: 1px solid #bfbfbf;
+    }
+
+    #orderFiltersModal .modal-body {
+        padding: 18px 28px 24px;
+        overflow: visible;
+    }
+
+    .orderFiltersGrid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 0 20px;
+    }
+
+    .orderFiltersGrid.orderFiltersGrid--with-stage-phase {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+
+    .orderFilterBlock {
+        border: 1px solid #c0c0c0;
+        background: #fafafa;
+        border-radius: 10px;
+        margin-bottom: 10px;
+        padding: 2px 15px;
+    }
+
+    .orderFilterHeader {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
         cursor: pointer;
+        user-select: none;
+        padding: 10px 0;
+    }
+
+    .orderFilterLabel {
+        font-size: 11px;
+        font-weight: 700;
+        color: black;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin: 0;
+    }
+
+    .orderFilterChevron {
+        font-size: 1rem;
+        color: #111;
+        transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .orderFilterBlock.open .orderFilterChevron {
+        transform: rotate(180deg);
+    }
+
+    .orderFilterContent {
+        display: block;
+        max-height: 0;
+        opacity: 0;
+        overflow: hidden;
+        transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease, margin 0.3s ease, padding 0.3s ease;
+        margin: 0;
+        padding: 0;
+    }
+
+    .orderFilterBlock.open .orderFilterContent {
+        max-height: 520px;
+        opacity: 1;
+        overflow: visible;
+        margin: 0 0 8px;
+        padding: 0 0 4px;
+    }
+
+    .orderAutocompleteWrap {
         position: relative;
     }
 
-    .sortable-header:hover {
-        background-color: #f8f9fa;
+    .orderFilterInputWrap {
+        display: flex;
+        gap: 10px;
+        align-items: center;
     }
 
-    .sort-indicator {
-        margin-left: 5px;
+    #orderFiltersModal .form-control,
+    #orderFiltersModal .form-select {
+        border: 1px solid #c8c5c5;
+        background: #ffffff;
+        border-radius: 10px;
+        font-size: 13px;
+        font-weight: 500;
+        padding: 10px 14px;
+        color: #333;
+        transition: background 0.25s ease, box-shadow 0.25s ease;
+    }
+
+    #orderFiltersModal .form-control:focus,
+    #orderFiltersModal .form-select:focus {
+        background: #fff;
+        box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.08);
+        outline: none;
+    }
+
+    #orderFiltersModal .form-control::placeholder {
+        color: #bbb;
+        font-weight: 400;
+    }
+
+    #orderFiltersModal #ofDateField {
+        cursor: pointer;
+    }
+
+    .orderSuggestions {
+        position: absolute;
+        top: calc(100% + 6px);
+        left: 0;
+        right: 0;
+        max-height: 200px;
+        overflow-y: auto;
+        background: #fff;
+        border: 1px solid #dee2e6;
+        border-radius: 8px;
+        z-index: 2000;
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.10);
+        display: none;
+    }
+
+    .orderSuggestions.visible {
+        display: block;
+    }
+
+    .orderSuggestionItem {
+        padding: 10px 14px;
+        font-size: 13px;
+        cursor: pointer;
+        border-bottom: 1px solid #f5f5f5;
+    }
+
+    .orderSuggestionItem:last-child {
+        border-bottom: none;
+    }
+
+    .orderSuggestionItem:hover {
+        background: #f8f8f8;
+    }
+
+    .orderSelectedList {
+        margin-top: 8px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+    }
+
+    .orderSelectedTag {
+        background: #fff;
+        border: 1px solid #e0e0e0;
+        border-radius: 20px;
+        padding: 4px 12px;
+        font-size: 11px;
+        font-weight: 600;
+        color: #666;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .orderSelectedTag button {
+        border: none;
+        background: transparent;
+        color: #888;
+        line-height: 1;
+        padding: 0;
+        font-size: 13px;
+    }
+
+    .orderCheckList {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+    }
+
+    .orderCheckItem {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 13px;
+        font-weight: 500;
+        color: #444;
+        padding: 8px 10px;
+        border-radius: 8px;
+    }
+
+    .orderCheckItem:hover {
+        background-color: #f5f5f5;
+    }
+
+    .orderCheckItem input[type='checkbox'] {
+        accent-color: #AA182C;
+        cursor: pointer;
+    }
+
+    .orderDateRangeRow {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+    }
+
+    .orderDateLabel {
+        font-size: 10px;
+        font-weight: 700;
+        color: #aaa;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        margin: 0 0 6px;
+    }
+
+    .orderFiltersActions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px;
+        padding-top: 10px;
+    }
+
+    #ofAddNameBtn,
+    #ofAddRequestedBtn,
+    #ofAddAssignedBtn,
+    #ofAddDateBtn {
+        width: 32px;
+        height: 32px;
+        min-width: 32px;
+        min-height: 32px;
+        padding: 0;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 10px;
+        border: none;
+        background: #AA182C;
+        color: #fff;
+        transition: background 0.2s ease, transform 0.15s ease;
+    }
+
+    #ofAddNameBtn:hover,
+    #ofAddRequestedBtn:hover,
+    #ofAddAssignedBtn:hover,
+    #ofAddDateBtn:hover {
+        background: #8f1525;
+        transform: scale(1.05);
+    }
+
+    #ofAddNameBtn i,
+    #ofAddRequestedBtn i,
+    #ofAddAssignedBtn i,
+    #ofAddDateBtn i {
+        font-size: 11px;
+    }
+
+    .orderActiveFiltersBar {
+        margin-top: 12px;
+        padding: 10px;
+        border: 1px solid #e9ecef;
+        border-radius: 10px;
+        background: #f8f9fa;
+    }
+
+    .orderActiveFiltersTitle {
         font-size: 12px;
+        font-weight: 700;
+        color: #495057;
+        margin: 0 0 8px;
+    }
+
+    .orderActiveFiltersList {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+    }
+
+    .addmMilestoneButton {
+        padding: 8px;
+        /* padding: 8px !important; */
+        display: flex !important;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .orderFormsHeaderActions {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+    .orderFormsHeaderActions .addmMilestoneButton {
+        min-width: 42px;
+    }
+
+    .files-section {
+        border: 1px solid #eceef3;
+        border-radius: 12px;
+    }
+
+    .files-section .card-header {
+        padding: 14px 18px;
+        border-bottom: 1px solid #eceef3;
+    }
+
+    .files-title {
+        font-size: 1rem;
+        font-weight: 700;
+        letter-spacing: 0.2px;
+    }
+
+    .files-upload-toggle {
+        width: 32px;
+        height: 32px;
+        min-width: 32px;
+        min-height: 32px;
+        padding: 0;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 10px;
+        transition: background 0.2s ease, transform 0.15s ease, box-shadow 0.2s ease;
+    }
+
+    .files-upload-toggle[aria-expanded='true'] {
+        background: #8f1525;
+        box-shadow: 0 6px 14px rgba(170, 24, 44, 0.22);
+    }
+
+    .files-upload-toggle:hover {
+        transform: translateY(-1px);
+    }
+
+    .files-body {
+        padding: 16px 18px !important;
+    }
+
+    .files-body .author-box-name {
+        margin-bottom: 0 !important;
+    }
+
+    .files-column {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .files-group-title {
+        align-items: center !important;
+        padding: 4px 2px 10px;
+        border-bottom: 1px solid #f0f1f4;
+    }
+
+    .files-group-title h5,
+    .files-group-title h6 {
+        margin: 0;
+        font-size: 14px;
+        font-weight: 700;
+        line-height: 1.2;
+    }
+
+    .files-section .file-folder-toggle {
+        border-radius: 8px;
+        transition: background-color 0.2s ease, opacity 0.2s ease;
+    }
+
+    .files-section .file-folder-toggle:hover {
+        background-color: #f7f8fa;
+        opacity: 1;
+    }
+
+    .files-section .file-folder-toggle:focus-visible {
+        outline: 2px solid rgba(170, 24, 44, 0.25);
+        outline-offset: 2px;
+    }
+
+    .files-section .folder-toggle-target {
+        padding-top: 4px;
+    }
+
+    .files-section .custom-file-container {
+        gap: 8px;
+    }
+
+    .files-section .custom-file {
+        background: #ffffff;
+        border: 1px solid #eceef3;
+        box-shadow: none;
+        padding: 6px 8px;
+        margin: 0;
+        transition: border-color 0.2s ease, transform 0.15s ease;
+    }
+
+    .files-section .custom-file:hover {
+        border-color: #d7dce6;
+        transform: translateY(-1px);
+    }
+
+    .files-section .milestone-files {
+        padding: 6px 8px;
+        border: 1px solid #f0f1f4;
+        border-radius: 10px;
+        background: #fcfcfd;
+    }
+
+    .files-section .milestone-files hr {
+        margin: 6px 0 10px !important;
+        border-color: #eceef3 !important;
+    }
+
+    .files-section #files-upload-row .dropzone {
+        min-height: 146px;
+        border-radius: 12px;
+    }
+
+    @media (max-width: 992px) {
+        .files-body {
+            padding: 14px !important;
+        }
+    }
+
+    .projectSubnav {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin: 14px 0 16px;
+        padding: 6px;
+        border: 1px solid #eceef3;
+        border-radius: 12px;
+        background: #fff;
+        overflow-x: auto;
+    }
+
+    .projectSubnavItem {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 12px;
+        border-radius: 9px;
+        border: 1px solid transparent;
+        color: #515a66;
+        text-decoration: none;
+        font-size: 13px;
+        font-weight: 600;
+        white-space: nowrap;
+        transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease,
+            transform 0.15s ease;
+    }
+
+    .projectSubnavItem:hover {
+        background: #f7f8fa;
+        border-color: #e4e7ee;
+        color: #2f3741;
+        text-decoration: none;
+        transform: translateY(-1px);
+    }
+
+    .projectSubnavItem.is-active {
+        background: #aa182c;
+        border-color: #aa182c;
+        color: #ffffff;
+        box-shadow: 0 6px 14px rgba(170, 24, 44, 0.18);
+    }
+
+    .projectSubnavItem:focus-visible {
+        outline: 2px solid rgba(170, 24, 44, 0.25);
+        outline-offset: 2px;
+    }
+
+    .projectSubnav.projectSubnav--header {
+        justify-content: flex-end;
+        margin: 0 0 0 auto;
+        width: max-content;
+        max-width: 100%;
+        border-color: rgba(255, 255, 255, 0.28);
+        background: rgba(255, 255, 255, 0.08);
+        backdrop-filter: blur(2px);
+    }
+
+    .projectHeaderMain {
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 10px;
+        min-height: 50px;
+    }
+
+    .projectHeaderMain .projectTitleH3 {
+        margin: 0;
+        text-align: center;
+        width: 100%;
+    }
+
+    .projectHeaderMain .projectSubnav.projectSubnav--header {
+        position: absolute;
+        right: 0;
+        top: 50%;
+        transform: translateY(-50%);
+    }
+
+    @media (max-width: 768px) {
+        .projectHeaderMain {
+            flex-direction: column;
+            align-items: stretch;
+            gap: 8px;
+            min-height: 0;
+        }
+
+        .projectHeaderMain .projectTitleH3 {
+            text-align: center;
+        }
+
+        .projectHeaderMain .projectSubnav.projectSubnav--header {
+            position: static;
+            transform: none;
+        }
+
+        .projectSubnav.projectSubnav--header {
+            margin: 0;
+            width: 100%;
+            justify-content: flex-start;
+        }
+    }
+
+    .projectSubnav--header .projectSubnavItem {
+        color: rgba(255, 255, 255, 0.92);
+    }
+
+    .projectSubnav--header .projectSubnavItem:hover {
+        background: rgba(255, 255, 255, 0.14);
+        border-color: rgba(255, 255, 255, 0.22);
+        color: #ffffff;
+    }
+
+    .projectSubnav--header .projectSubnavItem.is-active {
+        background: #ffffff;
+        border-color: #ffffff;
+        color: #aa182c;
+        box-shadow: 0 6px 14px rgba(0, 0, 0, 0.12);
+    }
+
+    .projectSubnav--header .projectSubnavItem:focus-visible {
+        outline-color: rgba(255, 255, 255, 0.45);
+    }
+
+    /* Text ellipsis para columna Name cuando excede 30 caracteres */
+    .col-name h5 {
+        max-width: 350px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
     }
 </style>
 @section('content')
@@ -428,26 +1012,39 @@
                 <div class="col-xxl-12">
                     <div class="card bg-primary widthAdjustDiv">
                         <div class="card-body pb-2">
-                            <div>
+                            <div class="projectHeaderMain">
                                 <h3 class="text-white projectTitleH3"> {{ $project->name }}</h3>
+                                <nav class="projectSubnav projectSubnav--header"
+                                    aria-label="{{ __('Project navigation') }}">
+                                    <a href="{{ route('projects.milestone.board', [$currentWorkspace->slug, $project->id]) }}"
+                                        class="projectSubnavItem">
+                                        <i class="fa-solid fa-file-lines"></i>
+                                        <span>{{ __('Order forms') }}</span>
+                                    </a>
+                                    <a href="{{ route('projects.timesheet.index', [$currentWorkspace->slug, $project->id]) }}"
+                                        class="projectSubnavItem">
+                                        <i class="fas fa-tasks"></i>
+                                        <span>{{ __('Timesheet') }}</span>
+                                    </a>
+                                </nav>
                             </div>
                             <div>
                                 <div class="projectDivSubtitle">
-                                    <div data-toggle="tooltip" data-placement="top" title="{{ __('Company') }}">
+                                    <div title="{{ __('Workspace') }}" id="workspaceNameTitle">
                                         <i class="fa-regular fa-building fa-xl me-2"></i>
                                         {{ $currentWorkspace->country }} / {{ $currentWorkspace->name }}
                                     </div>
-                                    <div>
+                                    <div id="membersCountTitle" title="{{ __('Members') }}">
                                         <i class="fas fa-users fa-xl me-2"></i>
                                         {{ (int) $project->technicians->count() + (int) $project->salesManager->count() }}
                                     </div>
 
-                                    <div>
+                                    <div id="creationDateTitle" title="{{ __('Creation date') }}">
                                         <i class="fas fas fa-calendar-day"></i>
                                         {{ App\Models\Utility::dateFormat($project->start_date) }}
                                     </div>
 
-                                    <div>
+                                    <div id="projectTypeTitle" title="{{ __('Project type') }}">
                                         <i class="fa-solid fa-diagram-project  text-white"></i>
                                         {{ $project->ref_mo != '' ? $project->ref_mo : __($project->typeName()) }}
                                     </div>
@@ -527,30 +1124,36 @@
                                 <div class="card-header">
                                     <div class="d-flex justify-content-between align-items-center">
                                         <div>
-                                            <h5 class="mb-0">{{ __('Order forms') }}
-                                                ({{ count($project->milestones) }})
+                                            <h5 class="mb-0 d-flex align-items-center" style="gap: 8px;">
+                                                <span>{{ __('Order forms') }} ({{ count($project->milestones) }})</span>
+                                                <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal"
+                                                    data-bs-target="#orderFiltersModal" title="{{ __('Filter') }}">
+                                                    <i class="fa-solid fa-filter"></i>
+                                                </button>
                                             </h5>
                                         </div>
-                                        <div class="float-end">
+                                        <div class="orderFormsHeaderActions">
                                             @if ($project->type == 3 || $project->type == 5)
-                                                <a href="#" class="btn btn-primary ms-2" data-ajax-popup="true"
-                                                    data-size="md" data-title="{{ __('See stages') }}"
+                                                <a href="#" class="btn btn-primary" data-ajax-popup="true"
+                                                    data-size="md" title="{{ __('See stages') }}"
                                                     data-url="{{ route('projects.stages.popup', [$currentWorkspace->slug, $project->id]) }}"
                                                     data-toggle="popover"><i class="fa-solid fa-layer-group me-2"></i>
-                                                    {{ __('See stages') }}</a>
+                                                </a>
                                             @endif
-                                            <a href="#" class="btn btn-primary addMilestone" data-ajax-popup="true"
-                                                data-title="{{ __('Milestone order') }}"
+                                            <a href="#" class="btn btn-primary addmMilestoneButton"
+                                                title="{{ __('Create Order Form') }}" data-ajax-popup="true"
                                                 data-url="{{ route('projects.milestone', [$currentWorkspace->slug, $project->id]) }}"
-                                                data-toggle="popover"><i class="fa-solid fa-file-lines me-3"
-                                                    style="color: #ffffff;"></i> {{ __('Create Order Form') }}</a>
+                                                data-toggle="popover"><i class="fa-solid fa-plus me-2"
+                                                    style="color: #ffffff; font-size: 15px;"></i><i
+                                                    class="fa-solid fa-file-lines" style="color: #ffffff;"></i></a>
 
                                         </div>
                                     </div>
                                 </div>
                                 <div class="card-body">
                                     <div class="table-responsive" style="max-height: 41vh;">
-                                        <table id="" class="table table-bordered" style="text-align: center;">
+                                        <table id="orderFormsTable" class="table table-bordered"
+                                            style="text-align: center;">
                                             <thead>
                                                 {{-- <tr>
                                                     <th>{{ __('Name') }}</th>
@@ -576,42 +1179,77 @@
                                                 </tr> --}}
                                                 <tr>
                                                     @if ($project->type == 3 || $project->type == 5)
-                                                        <th class="sortable-header" data-sort="stage" data-type="text">
-                                                            {{ __('Stage') }}<span class="sort-indicator"></span></th>
-                                                        <th class="sortable-header" data-sort="phase" data-type="text">
-                                                            {{ __('Phase') }}<span class="sort-indicator"></span></th>
+                                                        <th data-col-key="stage">
+                                                            {{ __('Stage') }}</th>
+                                                        <th data-col-key="phase">
+                                                            {{ __('Phase') }}</th>
                                                     @endif
-                                                    <th class="sortable-header" data-sort="title" data-type="text">
-                                                        {{ __('Name') }}<span class="sort-indicator"></span></th>
-                                                    <th class="sortable-header" data-sort="requested_by"
-                                                        data-type="text">{{ __('Requested by') }}<span
-                                                            class="sort-indicator"></span></th>
-                                                    <th class="sortable-header" data-sort="assigned_to" data-type="text">
-                                                        {{ __('Assigned to') }}<span class="sort-indicator"></span></th>
-                                                    <th class="sortable-header" data-sort="status" data-type="status">
-                                                        {{ __('Status') }}<span class="sort-indicator"></span></th>
-                                                    <th class="sortable-header" data-sort="start_date" data-type="date">
-                                                        {{ __('Created') }}<span class="sort-indicator"></span></th>
-                                                    <th class="sortable-header" data-sort="end_date" data-type="date">
-                                                        {{ __('Desired delivery') }}<span class="sort-indicator"></span>
+                                                    <th data-col-key="name">
+                                                        {{ __('Name') }}</th>
+                                                    <th data-col-key="requested_by">{{ __('Requested by') }}</th>
+                                                    <th data-col-key="assigned_to">
+                                                        {{ __('Assigned to') }}</th>
+                                                    <th data-col-key="status">
+                                                        {{ __('Status') }}</th>
+                                                    <th data-col-key="created">
+                                                        {{ __('Created') }}</th>
+                                                    <th data-col-key="desired_delivery">
+                                                        {{ __('Desired delivery') }}
                                                     </th>
-                                                    <th class="sortable-header" data-sort="planned_end_date"
-                                                        data-type="date">{{ __('Expected delivery') }}<span
-                                                            class="sort-indicator"></span></th>
-                                                    <th class="sortable-header" data-sort="task_start_date"
-                                                        data-type="date">{{ __('Task started') }}<span
-                                                            class="sort-indicator"></span></th>
-                                                    <th class="sortable-header" data-sort="finalization_date"
-                                                        data-type="date">{{ __('Completion') }}<span
-                                                            class="sort-indicator"></span></th>
-                                                    <th>{{ __('Action') }}</th>
+                                                    <th data-col-key="expected_delivery">
+                                                        {{ __('Expected delivery') }}
+                                                    </th>
+                                                    <th data-col-key="task_started">
+                                                        {{ __('Task started') }}</th>
+                                                    <th data-col-key="completion">
+                                                        {{ __('Completion') }}</th>
+                                                    <th data-col-key="action">{{ __('Action') }}</th>
                                                 </tr>
                                             </thead>
-                                            <tbody>
+                                            <tbody id="orderFormsTableBody">
                                                 @foreach ($project->milestones->sortByDesc('id') as $key => $milestone)
-                                                    <tr>
+                                                    @php
+                                                        $stageFilterValue = '';
+                                                        $phaseFilterValue = '';
+
+                                                        if ($project->type == 3 || $project->type == 5) {
+                                                            $stageFilterValue = trim(
+                                                                (string) ($milestone->resolved_stage_name ?? ''),
+                                                            );
+                                                            $phaseModel = $milestone->phase;
+                                                            if ($phaseModel) {
+                                                                $phaseFilterValue = trim(
+                                                                    (string) __(
+                                                                        \App\Models\MilestonePhases::translationKey(
+                                                                            $phaseModel->phases,
+                                                                        ),
+                                                                    ),
+                                                                );
+                                                            }
+                                                        }
+
+                                                        $statusText =
+                                                            $milestone->status == 3
+                                                                ? __('For Review')
+                                                                : ($milestone->status == 4
+                                                                    ? __('Finished')
+                                                                    : ($milestone->status == 1
+                                                                        ? __('To Do')
+                                                                        : __('Ongoing')));
+                                                    @endphp
+                                                    <tr data-name="{{ mb_strtolower(trim($milestone->title ?? '')) }}"
+                                                        data-stage="{{ mb_strtolower(trim($stageFilterValue ?? '')) }}"
+                                                        data-phase="{{ mb_strtolower(trim($phaseFilterValue ?? '')) }}"
+                                                        data-requested-by="{{ mb_strtolower(trim(optional($milestone->getRequestedBy())->name ?? '')) }}"
+                                                        data-assigned-to="{{ mb_strtolower(trim(optional($milestone->getAssignedToUser())->name ?? '')) }}"
+                                                        data-status="{{ mb_strtolower(trim($statusText)) }}"
+                                                        data-created-date="{{ !empty($milestone->start_date) && $milestone->start_date !== '0000-00-00' ? \Carbon\Carbon::parse($milestone->start_date)->format('Y-m-d') : '' }}"
+                                                        data-desired-date="{{ !empty($milestone->end_date) && $milestone->end_date !== '0000-00-00' ? \Carbon\Carbon::parse($milestone->end_date)->format('Y-m-d') : '' }}"
+                                                        data-expected-date="{{ !empty($milestone->planned_end_date) && $milestone->planned_end_date !== '0000-00-00' ? \Carbon\Carbon::parse($milestone->planned_end_date)->format('Y-m-d') : '' }}"
+                                                        data-task-started-date="{{ !empty($milestone->task_start_date) && $milestone->task_start_date !== '0000-00-00' ? \Carbon\Carbon::parse($milestone->task_start_date)->format('Y-m-d') : '' }}"
+                                                        data-completion-date="{{ !empty($milestone->finalization_date) && $milestone->finalization_date !== '0000-00-00' ? \Carbon\Carbon::parse($milestone->finalization_date)->format('Y-m-d') : '' }}">
                                                         @if ($project->type == 3 || $project->type == 5)
-                                                            <td>
+                                                            <td class="col-stage">
                                                                 @php
                                                                     $phase = $milestone->phase;
                                                                 @endphp
@@ -621,7 +1259,7 @@
                                                                 @else
                                                                     <span class="text-muted">...</span>
                                                                 @endif
-                                                                <td>
+                                                            <td class="col-phase">
                                                                 @php
                                                                     $stageName = $milestone->resolved_stage_name;
                                                                 @endphp
@@ -633,21 +1271,23 @@
                                                                 @endif
                                                             </td>
                                                         @endif
-                                                        <td><a href="#" class="d-block font-weight-500 mb-0"
+                                                        <td class="col-name"><a href="#"
+                                                                class="d-block font-weight-500 mb-0"
                                                                 data-ajax-popup="true"
                                                                 data-title="{{ __('Order form details') }}"
                                                                 data-url="{{ route('projects.milestone.show', [$currentWorkspace->slug, $milestone->id]) }}">
-                                                                <h5 class="m-0"> {{ $milestone->title }} </h5>
+                                                                <h5 class="m-0" title="{{ $milestone->title }}">
+                                                                    {{ $milestone->title }} </h5>
                                                             </a>
                                                         </td>
-                                                        <td class="reqByImgContainer">
+                                                        <td class="reqByImgContainer col-requested_by">
                                                             @if ($milestone->getRequestedBy() != null)
                                                                 <img class="fix_img"
                                                                     title="{{ $milestone->getRequestedBy()->name }}"
                                                                     @if ($milestone->getRequestedBy()->avatar) src="{{ asset($milestone->getRequestedBy()->avatar) }}" @else avatar="{{ $milestone->getRequestedBy()->name }}" @endif>
                                                             @endif
                                                         </td>
-                                                        <td class="assignedToImgContainer">
+                                                        <td class="assignedToImgContainer col-assigned_to">
                                                             @if ($milestone->getAssignedToUser() != null)
                                                                 <img class="fix_img"
                                                                     title="{{ $milestone->getAssignedToUser()->name }}"
@@ -657,7 +1297,7 @@
                                                             @endif
                                                         </td>
 
-                                                        <td>
+                                                        <td class="col-status">
                                                             @if ($milestone->status == 3)
                                                                 <label
                                                                     class="badge bg-warning p-2 px-3 rounded">{{ __('For Review') }}</label>
@@ -671,13 +1311,15 @@
                                                                 </label>
                                                             @endif
                                                         </td>
-                                                        <td>{{ $milestone->start_date ? Carbon::parse($milestone->start_date)->format('d-m-Y') : '...' }}
+                                                        <td class="col-created">
+                                                            {{ $milestone->start_date ? Carbon::parse($milestone->start_date)->format('d-m-Y') : '...' }}
                                                         </td>
-                                                        <td>{{ $milestone->end_date ? Carbon::parse($milestone->end_date)->format('d-m-Y') : '...' }}
+                                                        <td class="col-desired_delivery">
+                                                            {{ $milestone->end_date ? Carbon::parse($milestone->end_date)->format('d-m-Y') : '...' }}
                                                         </td>
                                                         {{-- <td>{{ $milestone->planned_end_date ? Carbon::parse($milestone->planned_end_date)->format('d-m-Y') : '...' }}
                                                         </td> --}}
-                                                        <td>
+                                                        <td class="col-expected_delivery">
                                                             {{ $milestone->planned_end_date && $milestone->planned_end_date !== '0000-00-00'
                                                                 ? \Carbon\Carbon::parse($milestone->planned_end_date)->format('d-m-Y')
                                                                 : '...' }}
@@ -719,7 +1361,7 @@
                                                                 $startColor = '#db8d33';
                                                             }
                                                         @endphp
-                                                        <td style="color: {{ $startColor }}">
+                                                        <td class="col-task_started" style="color: {{ $startColor }}">
                                                             {{ $taskStartDate ? $taskStartDate->format('d-m-Y') : '...' }}
                                                         </td>
 
@@ -744,12 +1386,12 @@
                                                                 }
                                                             }
                                                         @endphp
-                                                        <td style="color: {{ $completionColor }}">
+                                                        <td class="col-completion" style="color: {{ $completionColor }}">
                                                             {{ $completionDate ? $completionDate->format('d-m-Y') : '...' }}
                                                         </td>
 
                                                         </td>
-                                                        <td class="text-right">
+                                                        <td class="text-right col-action">
                                                             <div class="col-auto">
                                                                 <a href="#"
                                                                     class="action-btn btn-info mx-1  btn btn-sm d-inline-flex align-items-center"
@@ -780,84 +1422,216 @@
                                     </div>
                                 </div>
 
+                                <div class="modal fade" id="orderFiltersModal" tabindex="-1"
+                                    aria-labelledby="orderFiltersModalLabel" aria-hidden="true">
+                                    <div class="modal-dialog modal-dialog-centered">
+                                        <div class="modal-content">
+                                            <div class="modal-header">
+                                                <h5 class="modal-title" id="orderFiltersModalLabel">
+                                                    {{ __('Filter Order Forms') }}</h5>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                                    aria-label="Close"></button>
+                                            </div>
+                                            <div class="modal-body">
+                                                <div
+                                                    class="orderFiltersGrid {{ $project->type == 3 || $project->type == 5 ? 'orderFiltersGrid--with-stage-phase' : '' }}">
+                                                    <div>
+                                                        <div class="orderFilterBlock open" data-filter-block>
+                                                            <div class="orderFilterHeader" data-filter-toggle>
+                                                                <p class="orderFilterLabel">{{ __('Name') }}</p>
+                                                                <i class="fa-solid fa-chevron-down orderFilterChevron"></i>
+                                                            </div>
+                                                            <div class="orderFilterContent">
+                                                                <div class="orderFilterInputWrap">
+                                                                    <div class="orderAutocompleteWrap w-100">
+                                                                        <input type="text" class="form-control"
+                                                                            id="ofNameInput"
+                                                                            placeholder="{{ __('Search name') }}"
+                                                                            autocomplete="off">
+                                                                        <div id="ofNameSuggestions"
+                                                                            class="orderSuggestions"></div>
+                                                                    </div>
+                                                                    <button type="button" class="btn btn-primary"
+                                                                        id="ofAddNameBtn"><i
+                                                                            class="fa-solid fa-check"></i></button>
+                                                                </div>
+                                                                <div id="ofNameTags" class="orderSelectedList"></div>
+                                                            </div>
+                                                        </div>
+
+                                                        <div class="orderFilterBlock" data-filter-block>
+                                                            <div class="orderFilterHeader" data-filter-toggle>
+                                                                <p class="orderFilterLabel">{{ __('Status') }}</p>
+                                                                <i class="fa-solid fa-chevron-down orderFilterChevron"></i>
+                                                            </div>
+                                                            <div class="orderFilterContent">
+                                                                <div id="ofStatusList" class="orderCheckList"></div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                    <div>
+                                                        <div class="orderFilterBlock open" data-filter-block>
+                                                            <div class="orderFilterHeader" data-filter-toggle>
+                                                                <p class="orderFilterLabel">{{ __('Requested by') }}</p>
+                                                                <i class="fa-solid fa-chevron-down orderFilterChevron"></i>
+                                                            </div>
+                                                            <div class="orderFilterContent">
+                                                                <div class="orderFilterInputWrap">
+                                                                    <div class="orderAutocompleteWrap w-100">
+                                                                        <input type="text" class="form-control"
+                                                                            id="ofRequestedInput"
+                                                                            placeholder="{{ __('Search requester') }}"
+                                                                            autocomplete="off">
+                                                                        <div id="ofRequestedSuggestions"
+                                                                            class="orderSuggestions"></div>
+                                                                    </div>
+                                                                    <button type="button" class="btn btn-primary"
+                                                                        id="ofAddRequestedBtn"><i
+                                                                            class="fa-solid fa-check"></i></button>
+                                                                </div>
+                                                                <div id="ofRequestedTags" class="orderSelectedList"></div>
+                                                            </div>
+                                                        </div>
+
+                                                        <div class="orderFilterBlock" data-filter-block>
+                                                            <div class="orderFilterHeader" data-filter-toggle>
+                                                                <p class="orderFilterLabel">{{ __('Date range') }}</p>
+                                                                <i class="fa-solid fa-chevron-down orderFilterChevron"></i>
+                                                            </div>
+                                                            <div class="orderFilterContent">
+                                                                <div class="orderFilterInputWrap mb-2">
+                                                                    <div class="w-100">
+                                                                        <p class="orderDateLabel">{{ __('Date field') }}
+                                                                        </p>
+                                                                        <select id="ofDateField"
+                                                                            class="form-select form-select-sm">
+                                                                            <option value="created">{{ __('Created') }}
+                                                                            </option>
+                                                                            <option value="desired_delivery">
+                                                                                {{ __('Desired delivery') }}</option>
+                                                                            <option value="expected_delivery">
+                                                                                {{ __('Expected delivery') }}</option>
+                                                                            <option value="task_started">
+                                                                                {{ __('Task started') }}
+                                                                            </option>
+                                                                            <option value="completion">
+                                                                                {{ __('Completion') }}
+                                                                            </option>
+                                                                        </select>
+                                                                    </div>
+                                                                    <button type="button" class="btn btn-primary mt-4"
+                                                                        id="ofAddDateBtn"><i
+                                                                            class="fa-solid fa-check"></i></button>
+                                                                </div>
+                                                                <div class="orderDateRangeRow">
+                                                                    <div>
+                                                                        <p class="orderDateLabel">{{ __('From') }}</p>
+                                                                        <input type="date" id="ofDateFrom"
+                                                                            class="form-control form-control-sm">
+                                                                    </div>
+                                                                    <div>
+                                                                        <p class="orderDateLabel">{{ __('To') }}</p>
+                                                                        <input type="date" id="ofDateTo"
+                                                                            class="form-control form-control-sm">
+                                                                    </div>
+                                                                </div>
+                                                                <div id="ofDateTags" class="orderSelectedList"></div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                    <div>
+                                                        <div class="orderFilterBlock open" data-filter-block>
+                                                            <div class="orderFilterHeader" data-filter-toggle>
+                                                                <p class="orderFilterLabel">{{ __('Assigned to') }}</p>
+                                                                <i class="fa-solid fa-chevron-down orderFilterChevron"></i>
+                                                            </div>
+                                                            <div class="orderFilterContent">
+                                                                <div class="orderFilterInputWrap">
+                                                                    <div class="orderAutocompleteWrap w-100">
+                                                                        <input type="text" class="form-control"
+                                                                            id="ofAssignedInput"
+                                                                            placeholder="{{ __('Search assignee') }}"
+                                                                            autocomplete="off">
+                                                                        <div id="ofAssignedSuggestions"
+                                                                            class="orderSuggestions"></div>
+                                                                    </div>
+                                                                    <button type="button" class="btn btn-primary"
+                                                                        id="ofAddAssignedBtn"><i
+                                                                            class="fa-solid fa-check"></i></button>
+                                                                </div>
+                                                                <div id="ofAssignedTags" class="orderSelectedList"></div>
+                                                                <div class="orderCheckList mt-2">
+                                                                    <label class="orderCheckItem mb-0">
+                                                                        <input type="checkbox"
+                                                                            id="ofAssignedNoneCheckbox">
+                                                                        <span>{{ __('None') }}</span>
+                                                                    </label>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+
+                                                        <div class="orderFilterBlock" data-filter-block>
+                                                            <div class="orderFilterHeader" data-filter-toggle>
+                                                                <p class="orderFilterLabel">{{ __('Table Visibility') }}
+                                                                </p>
+                                                                <i class="fa-solid fa-chevron-down orderFilterChevron"></i>
+                                                            </div>
+                                                            <div class="orderFilterContent">
+                                                                <div id="ofVisibilityList" class="orderCheckList"></div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                    @if ($project->type == 3 || $project->type == 5)
+                                                        <div>
+                                                            <div class="orderFilterBlock open" data-filter-block>
+                                                                <div class="orderFilterHeader" data-filter-toggle>
+                                                                    <p class="orderFilterLabel">{{ __('Stage') }}</p>
+                                                                    <i
+                                                                        class="fa-solid fa-chevron-down orderFilterChevron"></i>
+                                                                </div>
+                                                                <div class="orderFilterContent">
+                                                                    <div id="ofStageList" class="orderCheckList"></div>
+                                                                </div>
+                                                            </div>
+
+                                                            <div class="orderFilterBlock" data-filter-block>
+                                                                <div class="orderFilterHeader" data-filter-toggle>
+                                                                    <p class="orderFilterLabel">{{ __('Phase') }}</p>
+                                                                    <i
+                                                                        class="fa-solid fa-chevron-down orderFilterChevron"></i>
+                                                                </div>
+                                                                <div class="orderFilterContent">
+                                                                    <div id="ofPhaseList" class="orderCheckList"></div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    @endif
+                                                </div>
+
+                                                <div id="ofActiveFiltersBar" class="orderActiveFiltersBar d-none">
+                                                    <p class="orderActiveFiltersTitle">{{ __('Active filters') }}</p>
+                                                    <div id="ofActiveFiltersList" class="orderActiveFiltersList"></div>
+                                                </div>
+
+                                                <div class="orderFiltersActions">
+                                                    <button type="button" class="btn btn-primary"
+                                                        id="ofResetBtn">{{ __('Reset filters') }}</button>
+                                                    <button type="button" class="btn btn-primary"
+                                                        data-bs-dismiss="modal">{{ __('Close') }}</button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
                             </div>
                         @endif
                     </div>
                     {{-- ======================================================================================== --}}
-                    <div class="row">
-                        <div class="col-md-3">
-                            <div class="card min-h">
-                                <div class="card-header">
-                                    <div class="d-flex justify-content-between align-items-center">
-                                        <div>
-                                            <h5 class="mb-0">
-                                                {{ __('Average delivery time') }}
-                                            </h5>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="card-body alignMiddle">
-                                    <span class="size40AndBold">
-                                        {{ $averageDelivery }}
-                                    </span>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="card min-h">
-                                <div class="card-header">
-                                    <div class="d-flex justify-content-between align-items-center">
-                                        <div>
-                                            <h5 class="mb-0">
-                                                {{ __('Average working time') }}
-                                            </h5>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="card-body alignMiddle">
-                                    <span class="size40AndBold">
-                                        {{ $averageWorkingTime }}
-                                    </span>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="card min-h">
-                                <div class="card-header">
-                                    <div class="d-flex justify-content-between align-items-center">
-                                        <div>
-                                            <h5 class="mb-0">
-                                                {{ __('Average start-up time') }}
-                                            </h5>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="card-body alignMiddle">
-                                    <span class="size40AndBold">
-                                        {{ $averageStartUpTime }}
-                                    </span>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="card min-h">
-                                <div class="card-header">
-                                    <div class="d-flex justify-content-between align-items-center">
-                                        <div>
-                                            <h5 class="mb-0">
-                                                {{ __('Average delay time') }}
-                                            </h5>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="card-body alignMiddle">
-                                    <span class="size40AndBold">
-                                        {{ $averageDelayTime }}
-                                    </span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                    {{-- Fila 1: Usuarios --}}
                     <div class="row">
                         {{-- Usuarios que han creado un encargo --}}
                         <div class="col-md-6">
@@ -1005,161 +1779,90 @@
                     </div>
                 </div>
                 <div class="col-xxl-12">
+                    {{-- Fila 2: Averages y Activity --}}
                     <div class="row">
-                        <div class="col-md-6">
-                            <div class="card">
-                                <div class="card-header">
-                                    <div class="d-flex justify-content-between align-items-center">
-                                        <div>
-                                            <h5 class="mb-0"> {{ __('Files') }}</h5>
+                        <div class="col-md-6 d-flex flex-column">
+                            <div class="row flex-grow-1">
+                                <div class="col-md-6 mb-4 d-flex flex-column">
+                                    <div class="card min-h flex-grow-1 mb-0">
+                                        <div class="card-header">
+                                            <div class="d-flex justify-content-between align-items-center">
+                                                <div>
+                                                    <h5 class="mb-0">
+                                                        {{ __('Average delivery time') }}
+                                                    </h5>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div
+                                            class="card-body alignMiddle d-flex align-items-center justify-content-center w-100 flex-grow-1">
+                                            <span class="size40AndBold">
+                                                {{ $averageDelivery }}
+                                            </span>
                                         </div>
                                     </div>
                                 </div>
-                                <div class="card-body p-3 col-md-12" style="min-height: 374px;">
-                                    <div class="author-box-name form-control-label mb-4"></div>
-                                    <div class="col-md-12 dropzone browse-file" id="dropzonewidget">
-                                        <div class="dz-message" data-dz-message>
-                                            <span> {{ __('Drop files here to upload') }}</span>
-                                            <p>
-                                                {{ __('You can Also hold click + Control + V to paste the content of the clipboard') }}
-                                            </p>
-                                            <p class="text-muted" style="font-size:15px; margin:5px;">50MB</p>
-                                            <small class="text-muted">.jpg .jpeg .png .gif .pdf .txt .doc .docx .zip .rar
-                                                .dwg
-                                                .dxf</small>
+                                <div class="col-md-6 mb-4 d-flex flex-column">
+                                    <div class="card min-h flex-grow-1 mb-0">
+                                        <div class="card-header">
+                                            <div class="d-flex justify-content-between align-items-center">
+                                                <div>
+                                                    <h5 class="mb-0">
+                                                        {{ __('Average working time') }}
+                                                    </h5>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div
+                                            class="card-body alignMiddle d-flex align-items-center justify-content-center w-100 flex-grow-1">
+                                            <span class="size40AndBold">
+                                                {{ $averageWorkingTime }}
+                                            </span>
                                         </div>
                                     </div>
-                                    <div class="mt-3 col-md-12">
-                                        <div class="titleFiles">
-                                            <i class="fa-regular fa-folder-open d-inline me-2 fa-xl"></i>
-                                            <h5>{{ __('Project files') }}</h5>
+                                </div>
+                                <div class="col-md-6 mb-4 d-flex flex-column">
+                                    <div class="card min-h flex-grow-1 mb-0">
+                                        <div class="card-header">
+                                            <div class="d-flex justify-content-between align-items-center">
+                                                <div>
+                                                    <h5 class="mb-0">
+                                                        {{ __('Average start-up time') }}
+                                                    </h5>
+                                                </div>
+                                            </div>
                                         </div>
-                                        <div class="custom-file-container ms-4">
-                                            @if (!empty($projectFiles) && count($projectFiles) > 0)
-                                                @foreach ($projectFiles as $file)
-                                                    <div class="custom-file">
-                                                        <div class="d-flex align-items-center flex-grow-1"
-                                                            style="cursor: pointer; overflow: hidden;"
-                                                            onclick='previewFile({{ $project->id }}, "", @json($file->file_path), @json($file->extension))'>
-                                                            <img src="{{ asset('assets/iconFilesTypes/' . $file->extension . '.png') }}"
-                                                                alt="{{ $file->extension }} icon"
-                                                                class="styleIconFiles mt-2">
-                                                            <p class="m-2"
-                                                                style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-                                                                {{ $file->file_name }}
-                                                            </p>
-                                                        </div>
-                                                        <div class="uploaded-file-buttons">
-                                                            {{-- @php
-                                                                dump($project);
-                                                                dump($file);
-                                                            @endphp --}}
-                                                            <a onclick="downloadFile({{ $project->id }}, '', '{{ $file->file_path }}')"
-                                                                class="buttonFiles btn btn-sm">
-                                                                <i class="ti ti-download" style="color:white"></i>
-                                                            </a>
-                                                            <a class="bs-pass-para buttonFiles btn btn-sm"
-                                                                data-confirm="{{ __('Are You Sure?') }}"
-                                                                data-toggle="popover" title="{{ __('Delete File') }}"
-                                                                data-text="{{ __('This action can not be undone. Do you want to continue?') }}"
-                                                                data-confirm-yes="delete-file-{{ $file->id }}">
-                                                                <i class="fa-solid fa-trash" style="color:white"></i>
-                                                            </a>
-                                                            <form id="delete-file-{{ $file->id }}"
-                                                                action="{{ route('project.deleteFile', ['idProject' => $project->id, 'milestoneTitle' => '', 'fileID' => $file->id]) }}"
-                                                                method="POST" style="display: none;">
-                                                                @csrf
-                                                                @method('DELETE')
-                                                            </form>
-                                                        </div>
-                                                    </div>
-                                                @endforeach
-                                            @else
-                                                <p class="text-muted">{{ __('No project files uploaded yet.') }}</p>
-                                            @endif
+                                        <div
+                                            class="card-body alignMiddle d-flex align-items-center justify-content-center w-100 flex-grow-1">
+                                            <span class="size40AndBold">
+                                                {{ $averageStartUpTime }}
+                                            </span>
                                         </div>
-                                        <div class="mt-4 titleFiles">
-                                            <i class="fa-regular fa-folder-open d-inline me-2 fa-xl"></i>
-                                            <h6>{{ __('Milestone files') }}</h6>
+                                    </div>
+                                </div>
+                                <div class="col-md-6 mb-4 d-flex flex-column">
+                                    <div class="card min-h flex-grow-1 mb-0">
+                                        <div class="card-header">
+                                            <div class="d-flex justify-content-between align-items-center">
+                                                <div>
+                                                    <h5 class="mb-0">
+                                                        {{ __('Average delay time') }}
+                                                    </h5>
+                                                </div>
+                                            </div>
                                         </div>
-                                        <div class="col-md-12">
-                                            <!-- Sección de archivos de Milestones -->
-                                            @if (!empty($milestoneFiles) && count($milestoneFiles) > 0)
-                                                @foreach ($milestoneFiles as $milestone)
-                                                    <div class="milestone-files mb-4">
-                                                        <div class="ms-4 mt-2">
-                                                            <div class="titleFiles">
-                                                                <i class="fa-solid fa-file-lines me-2 text-dark"></i>
-                                                                <h6>{{ $milestone['title'] }}</h6>
-                                                            </div>
-                                                            <hr class="mt-0" style="border: 1px solid #eeeeee;">
-                                                        </div>
-
-                                                        <div class="custom-file-container ms-4">
-                                                            @if (!empty($milestone['files']) && count($milestone['files']) > 0)
-                                                                @foreach ($milestone['files'] as $file)
-                                                                    <div class="custom-file position-relative"
-                                                                        @if (str_contains(basename($file->file), '_rf')) style="border: 2px solid #aa182c; border-radius: 5px;"
-         data-bs-toggle="tooltip"
-         data-bs-placement="bottom"
-         title="Archivo de replanteo" @endif>
-                                                                        <div class="d-flex align-items-center flex-grow-1"
-                                                                            style="cursor: pointer; overflow: hidden;"
-                                                                            onclick='previewFile({{ $project->id }}, @json($milestone['title']), @json(basename($file->file)), @json($file->extension))'>
-                                                                            <img src="{{ asset('assets/iconFilesTypes/' . $file->extension . '.png') }}"
-                                                                                alt="{{ $file->extension }} icon"
-                                                                                class="styleIconFiles mt-2">
-                                                                            <p class="m-2"
-                                                                                style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-                                                                                {{ $file->name }}
-                                                                            </p>
-                                                                        </div>
-                                                                        <div class="uploaded-file-buttons">
-                                                                            <a onclick="downloadFile({{ $project->id }}, '{{ $milestone['title'] }}', '{{ basename($file->file) }}')"
-                                                                                class="buttonFiles btn btn-sm">
-                                                                                <i class="ti ti-download"
-                                                                                    style="color:white"></i>
-                                                                            </a>
-                                                                            @if (!str_contains(basename($file->file), '_rf'))
-                                                                                <a class="bs-pass-para buttonFiles btn btn-sm"
-                                                                                    data-confirm="{{ __('Are You Sure?') }}"
-                                                                                    data-toggle="popover"
-                                                                                    title="{{ __('Delete File') }}"
-                                                                                    data-text="{{ __('This action can not be undone. Do you want to continue?') }}"
-                                                                                    data-confirm-yes="delete-file-{{ $file->id }}">
-                                                                                    <i class="fa-solid fa-trash"
-                                                                                        style="color:white"></i>
-                                                                                </a>
-                                                                                <form
-                                                                                    id="delete-file-{{ $file->id }}"
-                                                                                    action="{{ route('project.deleteFile', ['idProject' => $project->id, 'milestoneTitle' => $milestone['title'], 'fileID' => $file->id]) }}"
-                                                                                    method="POST" style="display: none;">
-                                                                                    @csrf
-                                                                                    @method('DELETE')
-                                                                                </form>
-                                                                            @endif
-                                                                        </div>
-                                                                    </div>
-                                                                @endforeach
-                                                            @else
-                                                                <p class="text-muted">
-                                                                    {{ __('No files uploaded for this milestone.') }}</p>
-                                                            @endif
-                                                        </div>
-                                                    </div>
-                                                @endforeach
-                                            @else
-                                                <p class="text-muted" style="margin-left: 20px;">
-                                                    {{ __('No milestone files uploaded yet.') }}</p>
-                                            @endif
+                                        <div
+                                            class="card-body alignMiddle d-flex align-items-center justify-content-center w-100 flex-grow-1">
+                                            <span class="size40AndBold">
+                                                {{ $averageDelayTime }}
+                                            </span>
                                         </div>
-
                                     </div>
                                 </div>
                             </div>
                         </div>
-                        <div class="col-md-6">
-                            <div class="card">
+                        <div class="col-md-6 mb-4 d-flex flex-column">
+                            <div class="card flex-grow-1 mb-0">
                                 <div class="card-header">
                                     <div class="d-flex justify-content-between align-items-center">
                                         <div>
@@ -1219,7 +1922,8 @@
                                                         <p> {!! $activity->getRemark() !!} : </p>
                                                         <br>
                                                         <div class="notification_time_main">
-                                                            <p style="text-align:center; text-wrap:nowrap;">
+                                                            <p style="text-align:center; text-wrap:nowrap;"
+                                                                title="{{ $activity->created_at }}">
                                                                 {{ $activity->created_at->diffForHumans() }}</p>
                                                         </div>
                                                     </div>
@@ -1229,9 +1933,194 @@
                                     </div>
                                 </div>
                             </div>
-
                         </div>
+                    </div>
 
+                    {{-- Fila 3: Files --}}
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="card files-section">
+                                <div class="card-header">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <h5 class="mb-0 d-flex align-items-center files-title" style="gap: 8px;">
+                                                <span>{{ __('Files') }}</span>
+                                                <button type="button" class="btn btn-sm btn-primary files-upload-toggle"
+                                                    id="toggleUploadSectionBtn" title="{{ __('Upload Files') }}"
+                                                    aria-expanded="false" aria-controls="files-upload-row">
+                                                    <i class="fa-solid fa-file-arrow-up"></i>
+                                                </button>
+                                            </h5>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="card-body p-3 col-md-12 files-body" style="min-height: 374px;">
+                                    <div class="author-box-name form-control-label mb-4"></div>
+                                    <div class="row g-4">
+                                        <div class="col-12 d-none" id="files-upload-row">
+                                            <div class="dropzone browse-file" id="dropzonewidget">
+                                                <div class="dz-message" data-dz-message>
+                                                    <span> {{ __('Drop files here to upload') }}</span>
+                                                    <p>
+                                                        {{ __('You can Also hold click + Control + V to paste the content of the clipboard') }}
+                                                    </p>
+                                                    <p class="text-muted" style="font-size:15px; margin:5px;">50MB</p>
+                                                    <small class="text-muted">.jpg .jpeg .png .gif .pdf .txt .doc .docx
+                                                        .zip .rar
+                                                        .dwg
+                                                        .dxf</small>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-lg-6 col-md-12 files-column">
+                                            <div class="titleFiles files-group-title file-folder-toggle" role="button"
+                                                tabindex="0" aria-expanded="true" aria-controls="project-files-content"
+                                                data-folder-toggle="project-files-content">
+                                                <i
+                                                    class="fa-regular fa-folder-open d-inline me-2 fa-xl folder-toggle-icon"></i>
+                                                <h5>{{ __('Project files') }}</h5>
+                                            </div>
+                                            <div class="custom-file-container files-grid folder-toggle-target"
+                                                id="project-files-content">
+                                                @if (!empty($projectFiles) && count($projectFiles) > 0)
+                                                    @foreach ($projectFiles as $file)
+                                                        <div class="custom-file">
+                                                            <div class="d-flex align-items-center flex-grow-1"
+                                                                style="cursor: pointer; overflow: hidden;"
+                                                                onclick='previewFile({{ $project->id }}, "", @json($file->file_path), @json($file->extension))'>
+                                                                <img src="{{ asset('assets/iconFilesTypes/' . $file->extension . '.png') }}"
+                                                                    alt="{{ $file->extension }} icon"
+                                                                    class="styleIconFiles mt-2">
+                                                                <p class="m-2"
+                                                                    style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                                                                    {{ $file->file_name }}
+                                                                </p>
+                                                            </div>
+                                                            <div class="uploaded-file-buttons">
+                                                                {{-- @php
+                                                                dump($project);
+                                                                dump($file);
+                                                            @endphp --}}
+                                                                <a onclick="downloadFile({{ $project->id }}, '', '{{ $file->file_path }}')"
+                                                                    class="buttonFiles btn btn-sm">
+                                                                    <i class="ti ti-download" style="color:white"></i>
+                                                                </a>
+                                                                <a class="bs-pass-para buttonFiles btn btn-sm"
+                                                                    data-confirm="{{ __('Are You Sure?') }}"
+                                                                    data-toggle="popover"
+                                                                    title="{{ __('Delete File') }}"
+                                                                    data-text="{{ __('This action can not be undone. Do you want to continue?') }}"
+                                                                    data-confirm-yes="delete-file-{{ $file->id }}">
+                                                                    <i class="fa-solid fa-trash" style="color:white"></i>
+                                                                </a>
+                                                                <form id="delete-file-{{ $file->id }}"
+                                                                    action="{{ route('project.deleteFile', ['idProject' => $project->id, 'milestoneTitle' => '', 'fileID' => $file->id]) }}"
+                                                                    method="POST" style="display: none;">
+                                                                    @csrf
+                                                                    @method('DELETE')
+                                                                </form>
+                                                            </div>
+                                                        </div>
+                                                    @endforeach
+                                                @else
+                                                    <p class="text-muted">{{ __('No project files uploaded yet.') }}</p>
+                                                @endif
+                                            </div>
+                                        </div>
+                                        <div class="col-lg-6 col-md-12 files-column">
+                                            <div class="titleFiles files-group-title file-folder-toggle" role="button"
+                                                tabindex="0" aria-expanded="true"
+                                                aria-controls="milestone-files-content"
+                                                data-folder-toggle="milestone-files-content">
+                                                <i
+                                                    class="fa-regular fa-folder-open d-inline me-2 fa-xl folder-toggle-icon"></i>
+                                                <h6>{{ __('Milestone files') }}</h6>
+                                            </div>
+                                            <div class="folder-toggle-target" id="milestone-files-content">
+                                                <!-- Sección de archivos de Milestones -->
+                                                @if (!empty($milestoneFiles) && count($milestoneFiles) > 0)
+                                                    @foreach ($milestoneFiles as $milestone)
+                                                        <div class="milestone-files mb-4">
+                                                            <div class="mt-2">
+                                                                <div class="titleFiles file-folder-toggle" role="button"
+                                                                    tabindex="0" aria-expanded="true"
+                                                                    aria-controls="milestone-item-content-{{ $loop->index }}"
+                                                                    data-folder-toggle="milestone-item-content-{{ $loop->index }}">
+                                                                    <i
+                                                                        class="fa-regular fa-folder-open me-2 text-dark folder-toggle-icon"></i>
+                                                                    <h6>{{ $milestone['title'] }}</h6>
+                                                                </div>
+                                                            </div>
+
+                                                            <div class="folder-toggle-target"
+                                                                id="milestone-item-content-{{ $loop->index }}">
+                                                                <hr class="mt-0" style="border: 1px solid #eeeeee;">
+                                                                <div class="custom-file-container">
+                                                                    @if (!empty($milestone['files']) && count($milestone['files']) > 0)
+                                                                        @foreach ($milestone['files'] as $file)
+                                                                            <div class="custom-file position-relative"
+                                                                                @if (str_contains(basename($file->file), '_rf')) style="border: 2px solid #aa182c; border-radius: 5px;"
+         data-bs-toggle="tooltip"
+         data-bs-placement="bottom"
+         title="Archivo de replanteo" @endif>
+                                                                                <div class="d-flex align-items-center flex-grow-1"
+                                                                                    style="cursor: pointer; overflow: hidden;"
+                                                                                    onclick='previewFile({{ $project->id }}, @json($milestone['title']), @json(basename($file->file)), @json($file->extension))'>
+                                                                                    <img src="{{ asset('assets/iconFilesTypes/' . $file->extension . '.png') }}"
+                                                                                        alt="{{ $file->extension }} icon"
+                                                                                        class="styleIconFiles mt-2">
+                                                                                    <p class="m-2"
+                                                                                        style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                                                                                        {{ $file->name }}
+                                                                                    </p>
+                                                                                </div>
+                                                                                <div class="uploaded-file-buttons">
+                                                                                    <a onclick="downloadFile({{ $project->id }}, '{{ $milestone['title'] }}', '{{ basename($file->file) }}')"
+                                                                                        class="buttonFiles btn btn-sm">
+                                                                                        <i class="ti ti-download"
+                                                                                            style="color:white"></i>
+                                                                                    </a>
+                                                                                    @if (!str_contains(basename($file->file), '_rf'))
+                                                                                        <a class="bs-pass-para buttonFiles btn btn-sm"
+                                                                                            data-confirm="{{ __('Are You Sure?') }}"
+                                                                                            data-toggle="popover"
+                                                                                            title="{{ __('Delete File') }}"
+                                                                                            data-text="{{ __('This action can not be undone. Do you want to continue?') }}"
+                                                                                            data-confirm-yes="delete-file-{{ $file->id }}">
+                                                                                            <i class="fa-solid fa-trash"
+                                                                                                style="color:white"></i>
+                                                                                        </a>
+                                                                                        <form
+                                                                                            id="delete-file-{{ $file->id }}"
+                                                                                            action="{{ route('project.deleteFile', ['idProject' => $project->id, 'milestoneTitle' => $milestone['title'], 'fileID' => $file->id]) }}"
+                                                                                            method="POST"
+                                                                                            style="display: none;">
+                                                                                            @csrf
+                                                                                            @method('DELETE')
+                                                                                        </form>
+                                                                                    @endif
+                                                                                </div>
+                                                                            </div>
+                                                                        @endforeach
+                                                                    @else
+                                                                        <p class="text-muted">
+                                                                            {{ __('No files uploaded for this milestone.') }}
+                                                                        </p>
+                                                                    @endif
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    @endforeach
+                                                @else
+                                                    <p class="text-muted">
+                                                        {{ __('No milestone files uploaded yet.') }}</p>
+                                                @endif
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -1546,116 +2435,724 @@
             });
         @endforeach
     </script>
-    {{-- Sorting  table script --}}
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            const sortableHeaders = document.querySelectorAll('.sortable-header');
-            let currentSort = {
-                key: null,
-                direction: 'asc' // 'asc' o 'desc'
+            const table = document.getElementById('orderFormsTable');
+            const tbody = document.getElementById('orderFormsTableBody');
+            if (!table || !tbody) {
+                return;
+            }
+
+            const rows = Array.from(tbody.querySelectorAll('tr'));
+            const filterState = {
+                names: [],
+                stages: [],
+                phases: [],
+                requestedBy: [],
+                assignedTo: [],
+                assignedToNone: false,
+                statuses: [],
+                dateRanges: []
             };
 
-            sortableHeaders.forEach(header => {
-                header.addEventListener('click', function() {
-                    const sortKey = this.dataset.sort;
-                    const sortType = this.dataset.type;
+            let dateRangeIdCounter = 0;
 
-                    // Determinar dirección
-                    if (currentSort.key === sortKey) {
-                        currentSort.direction = currentSort.direction === 'asc' ? 'desc' : 'asc';
-                    } else {
-                        currentSort.key = sortKey;
-                        currentSort.direction = 'asc';
+            const visibilityState = {};
+            const allHeaders = Array.from(table.querySelectorAll('thead th[data-col-key]'));
+            allHeaders.forEach(header => {
+                visibilityState[header.dataset.colKey] = true;
+            });
+
+            function normalize(text) {
+                return (text || '').toString().trim().toLowerCase();
+            }
+
+            function uniqueDatasetValues(key) {
+                const values = new Set();
+                rows.forEach(row => {
+                    const rawValue = normalize(row.dataset[key]);
+                    if (rawValue) {
+                        values.add(rawValue);
+                    }
+                });
+                return Array.from(values).sort((a, b) => a.localeCompare(b, 'es', {
+                    sensitivity: 'base'
+                }));
+            }
+
+            function datasetValueCounts(key, visibleOnly = false) {
+                const counts = new Map();
+                const rowsToCount = visibleOnly ? rows.filter(row => row.style.display !== 'none') : rows;
+
+                rowsToCount.forEach(row => {
+                    const rawValue = normalize(row.dataset[key]);
+                    if (!rawValue) {
+                        return;
+                    }
+                    counts.set(rawValue, (counts.get(rawValue) || 0) + 1);
+                });
+
+                return Array.from(counts.entries())
+                    .map(([value, count]) => ({
+                        value,
+                        count
+                    }))
+                    .sort((a, b) => a.value.localeCompare(b.value, 'es', {
+                        sensitivity: 'base'
+                    }));
+            }
+
+            function renderSuggestions(inputEl, containerEl, getValuesWithCount, onSelect) {
+                const query = normalize(inputEl.value);
+                const valuesWithCount = typeof getValuesWithCount === 'function' ? getValuesWithCount() :
+                    getValuesWithCount;
+                const filtered = valuesWithCount.filter(item => item.value.includes(query));
+                containerEl.innerHTML = '';
+
+                if (!filtered.length) {
+                    containerEl.classList.remove('visible');
+                    return;
+                }
+
+                filtered.forEach(itemData => {
+                    const item = document.createElement('div');
+                    item.className = 'orderSuggestionItem';
+                    item.textContent = `${itemData.value} (${itemData.count})`;
+                    item.addEventListener('click', function() {
+                        onSelect(itemData.value);
+                        containerEl.classList.remove('visible');
+                    });
+                    containerEl.appendChild(item);
+                });
+
+                containerEl.classList.add('visible');
+            }
+
+            function renderTags(containerId, values, onRemove) {
+                const container = document.getElementById(containerId);
+                container.innerHTML = '';
+
+                values.forEach(value => {
+                    const tag = document.createElement('span');
+                    tag.className = 'orderSelectedTag';
+                    tag.innerHTML = `<span>${value}</span><button type="button">×</button>`;
+                    tag.querySelector('button').addEventListener('click', function() {
+                        onRemove(value);
+                    });
+                    container.appendChild(tag);
+                });
+            }
+
+            function refreshStateTags(containerId, stateKey) {
+                renderTags(containerId, filterState[stateKey], (toRemove) => {
+                    filterState[stateKey] = filterState[stateKey].filter(item => item !== toRemove);
+                    refreshStateTags(containerId, stateKey);
+                    renderActiveFilterChips();
+                    applyFilters();
+                });
+            }
+
+            function parseDateSafe(value) {
+                if (!value) {
+                    return null;
+                }
+                const parsed = new Date(`${value}T00:00:00`);
+                return Number.isNaN(parsed.getTime()) ? null : parsed;
+            }
+
+            function getRowDateByField(row, field) {
+                const fieldMap = {
+                    created: 'createdDate',
+                    desired_delivery: 'desiredDate',
+                    expected_delivery: 'expectedDate',
+                    task_started: 'taskStartedDate',
+                    completion: 'completionDate'
+                };
+
+                return parseDateSafe(row.dataset[fieldMap[field]] || '');
+            }
+
+            function rowMatchesDate(row) {
+                if (!filterState.dateRanges.length) {
+                    return true;
+                }
+
+                return filterState.dateRanges.every((dateRange) => {
+                    const rowDate = getRowDateByField(row, dateRange.field);
+                    const fromDate = parseDateSafe(dateRange.from || '');
+                    const toDate = parseDateSafe(dateRange.to || '');
+
+                    if (!fromDate && !toDate) {
+                        return true;
                     }
 
-                    sortTable(sortKey, sortType, currentSort.direction);
-                    updateSortIndicators(this);
+                    if (!rowDate) {
+                        return false;
+                    }
+
+                    if (fromDate && rowDate < fromDate) {
+                        return false;
+                    }
+
+                    if (toDate && rowDate > toDate) {
+                        return false;
+                    }
+
+                    return true;
+                });
+            }
+
+            function getDateFieldLabel(field) {
+                const labels = {
+                    created: "{{ __('Created') }}",
+                    desired_delivery: "{{ __('Desired delivery') }}",
+                    expected_delivery: "{{ __('Expected delivery') }}",
+                    task_started: "{{ __('Task started') }}",
+                    completion: "{{ __('Completion') }}"
+                };
+
+                return labels[field] || field;
+            }
+
+            function formatDateForChip(value) {
+                if (!value) {
+                    return '...';
+                }
+
+                const parts = value.split('-');
+                if (parts.length !== 3) {
+                    return value;
+                }
+
+                return `${parts[2]}-${parts[1]}-${parts[0]}`;
+            }
+
+            function renderDateRangeTags() {
+                renderTags('ofDateTags', filterState.dateRanges.map((dateRange) => {
+                    const fromLabel = formatDateForChip(dateRange.from);
+                    const toLabel = formatDateForChip(dateRange.to);
+                    return `${getDateFieldLabel(dateRange.field)}: ${fromLabel} → ${toLabel}`;
+                }), (labelText) => {
+                    const found = filterState.dateRanges.find((dateRange) => {
+                        const fromLabel = formatDateForChip(dateRange.from);
+                        const toLabel = formatDateForChip(dateRange.to);
+                        return `${getDateFieldLabel(dateRange.field)}: ${fromLabel} → ${toLabel}` ===
+                            labelText;
+                    });
+
+                    if (found) {
+                        filterState.dateRanges = filterState.dateRanges.filter(item => item.id !== found
+                            .id);
+                        renderDateRangeTags();
+                        renderActiveFilterChips();
+                        applyFilters();
+                    }
+                });
+            }
+
+            function getVisibilityLabelByKey(key) {
+                const checkbox = document.querySelector(`.of-visibility-checkbox[data-key="${key}"]`);
+                if (!checkbox) {
+                    return key;
+                }
+
+                const label = checkbox.closest('label');
+                const textNode = label ? label.querySelector('span') : null;
+                return (textNode?.textContent || key).trim();
+            }
+
+            function recalculateAndUpdateCounts() {
+                // Actualizar Status checkboxes
+                const statusList = document.getElementById('ofStatusList');
+                if (statusList) {
+                    const statusCounts = datasetValueCounts('status', true);
+                    const statusCountMap = new Map(statusCounts.map(item => [item.value, item.count]));
+
+                    statusList.querySelectorAll('.of-status-checkbox').forEach(checkbox => {
+                        const countSpan = checkbox.closest('label').querySelector('span');
+                        const value = normalize(checkbox.value);
+                        const count = statusCountMap.get(value) || 0;
+                        const labelText = checkbox.value;
+                        countSpan.textContent = `${labelText} (${count})`;
+                    });
+                }
+
+                // Actualizar Stage checkboxes
+                const stageList = document.getElementById('ofStageList');
+                if (stageList) {
+                    const stageCounts = datasetValueCounts('stage', true);
+                    const stageCountMap = new Map(stageCounts.map(item => [item.value, item.count]));
+
+                    stageList.querySelectorAll('.of-stage-checkbox').forEach(checkbox => {
+                        const countSpan = checkbox.closest('label').querySelector('span');
+                        const value = normalize(checkbox.value);
+                        const count = stageCountMap.get(value) || 0;
+                        const labelText = checkbox.value;
+                        countSpan.textContent = `${labelText} (${count})`;
+                    });
+                }
+
+                // Actualizar Phase checkboxes
+                const phaseList = document.getElementById('ofPhaseList');
+                if (phaseList) {
+                    const phaseCounts = datasetValueCounts('phase', true);
+                    const phaseCountMap = new Map(phaseCounts.map(item => [item.value, item.count]));
+
+                    phaseList.querySelectorAll('.of-phase-checkbox').forEach(checkbox => {
+                        const countSpan = checkbox.closest('label').querySelector('span');
+                        const value = normalize(checkbox.value);
+                        const count = phaseCountMap.get(value) || 0;
+                        const labelText = checkbox.value;
+                        countSpan.textContent = `${labelText} (${count})`;
+                    });
+                }
+            }
+
+            function renderActiveFilterChips() {
+                const bar = document.getElementById('ofActiveFiltersBar');
+                const list = document.getElementById('ofActiveFiltersList');
+                if (!bar || !list) {
+                    return;
+                }
+
+                const chips = [];
+
+                filterState.names.forEach(value => {
+                    chips.push({
+                        label: `{{ __('Name') }}: ${value}`,
+                        remove: () => {
+                            filterState.names = filterState.names.filter(v => v !== value);
+                            refreshStateTags('ofNameTags', 'names');
+                        }
+                    });
+                });
+
+                filterState.stages.forEach(value => {
+                    chips.push({
+                        label: `{{ __('Stage') }}: ${value}`,
+                        remove: () => {
+                            filterState.stages = filterState.stages.filter(v => v !== value);
+                            document.querySelectorAll('.of-stage-checkbox').forEach(cb => {
+                                if (normalize(cb.value) === value) {
+                                    cb.checked = false;
+                                }
+                            });
+                        }
+                    });
+                });
+
+                filterState.phases.forEach(value => {
+                    chips.push({
+                        label: `{{ __('Phase') }}: ${value}`,
+                        remove: () => {
+                            filterState.phases = filterState.phases.filter(v => v !== value);
+                            document.querySelectorAll('.of-phase-checkbox').forEach(cb => {
+                                if (normalize(cb.value) === value) {
+                                    cb.checked = false;
+                                }
+                            });
+                        }
+                    });
+                });
+
+                filterState.requestedBy.forEach(value => {
+                    chips.push({
+                        label: `{{ __('Requested by') }}: ${value}`,
+                        remove: () => {
+                            filterState.requestedBy = filterState.requestedBy.filter(v => v !==
+                                value);
+                            refreshStateTags('ofRequestedTags', 'requestedBy');
+                        }
+                    });
+                });
+
+                filterState.assignedTo.forEach(value => {
+                    chips.push({
+                        label: `{{ __('Assigned to') }}: ${value}`,
+                        remove: () => {
+                            filterState.assignedTo = filterState.assignedTo.filter(v => v !==
+                                value);
+                            refreshStateTags('ofAssignedTags', 'assignedTo');
+                        }
+                    });
+                });
+
+                if (filterState.assignedToNone) {
+                    chips.push({
+                        label: `{{ __('Assigned to') }}: {{ __('Nobody') }}`,
+                        remove: () => {
+                            filterState.assignedToNone = false;
+                            const assignedNoneCheckbox = document.getElementById(
+                                'ofAssignedNoneCheckbox');
+                            if (assignedNoneCheckbox) {
+                                assignedNoneCheckbox.checked = false;
+                            }
+                        }
+                    });
+                }
+
+                filterState.statuses.forEach(value => {
+                    chips.push({
+                        label: `{{ __('Status') }}: ${value}`,
+                        remove: () => {
+                            filterState.statuses = filterState.statuses.filter(v => v !==
+                                value);
+                            document.querySelectorAll('.of-status-checkbox').forEach(cb => {
+                                if (normalize(cb.value) === value) {
+                                    cb.checked = false;
+                                }
+                            });
+                        }
+                    });
+                });
+
+                filterState.dateRanges.forEach(dateRange => {
+                    const fromLabel = formatDateForChip(dateRange.from);
+                    const toLabel = formatDateForChip(dateRange.to);
+                    chips.push({
+                        label: `${getDateFieldLabel(dateRange.field)}: ${fromLabel} → ${toLabel}`,
+                        remove: () => {
+                            filterState.dateRanges = filterState.dateRanges.filter(item => item
+                                .id !== dateRange.id);
+                            renderDateRangeTags();
+                        }
+                    });
+                });
+
+                Object.entries(visibilityState).forEach(([key, isVisible]) => {
+                    if (isVisible !== false) {
+                        return;
+                    }
+
+                    chips.push({
+                        label: `{{ __('Hide') }} ${getVisibilityLabelByKey(key)}`,
+                        remove: () => {
+                            visibilityState[key] = true;
+                            const checkbox = document.querySelector(
+                                `.of-visibility-checkbox[data-key="${key}"]`);
+                            if (checkbox) {
+                                checkbox.checked = true;
+                            }
+                            applyVisibility();
+                        }
+                    });
+                });
+
+                list.innerHTML = '';
+
+                if (!chips.length) {
+                    bar.classList.add('d-none');
+                    return;
+                }
+
+                chips.forEach(chip => {
+                    const chipNode = document.createElement('span');
+                    chipNode.className = 'orderSelectedTag';
+                    chipNode.innerHTML = `<span>${chip.label}</span><button type="button">×</button>`;
+                    chipNode.querySelector('button').addEventListener('click', function() {
+                        chip.remove();
+                        renderActiveFilterChips();
+                        applyFilters();
+                    });
+                    list.appendChild(chipNode);
+                });
+
+                bar.classList.remove('d-none');
+            }
+
+            function applyFilters() {
+                rows.forEach(row => {
+                    const name = normalize(row.dataset.name);
+                    const stage = normalize(row.dataset.stage);
+                    const phase = normalize(row.dataset.phase);
+                    const requestedBy = normalize(row.dataset.requestedBy);
+                    const assignedTo = normalize(row.dataset.assignedTo);
+                    const status = normalize(row.dataset.status);
+
+                    const matchName = !filterState.names.length || filterState.names.some(value => name
+                        .includes(normalize(value)));
+                    const matchStage = !filterState.stages.length || filterState.stages.includes(stage);
+                    const matchPhase = !filterState.phases.length || filterState.phases.includes(phase);
+                    const matchRequested = !filterState.requestedBy.length || filterState.requestedBy
+                        .includes(requestedBy);
+                    const matchAssignedValues = filterState.assignedTo.includes(assignedTo);
+                    const matchAssignedNone = filterState.assignedToNone && !assignedTo;
+                    const matchAssigned = (!filterState.assignedTo.length && !filterState
+                            .assignedToNone) ||
+                        matchAssignedValues || matchAssignedNone;
+                    const matchStatus = !filterState.statuses.length || filterState.statuses.includes(
+                        status);
+                    const matchDate = rowMatchesDate(row);
+
+                    row.style.display = matchName && matchStage && matchPhase && matchRequested &&
+                        matchAssigned &&
+                        matchStatus &&
+                        matchDate ? '' : 'none';
+                });
+
+                recalculateAndUpdateCounts();
+            }
+
+            function applyVisibility() {
+                allHeaders.forEach((header, index) => {
+                    const key = header.dataset.colKey;
+                    const visible = visibilityState[key] !== false;
+                    header.style.display = visible ? '' : 'none';
+                    rows.forEach(row => {
+                        const cell = row.children[index];
+                        if (cell) {
+                            cell.style.display = visible ? '' : 'none';
+                        }
+                    });
+                });
+            }
+
+            function setupAutocomplete({
+                inputId,
+                suggestionsId,
+                addBtnId,
+                getSourceValues,
+                stateKey,
+                tagsId
+            }) {
+                const input = document.getElementById(inputId);
+                const suggestions = document.getElementById(suggestionsId);
+                const addBtn = document.getElementById(addBtnId);
+
+                function addValue(value) {
+                    const normalized = normalize(value);
+                    if (!normalized) {
+                        return;
+                    }
+                    if (!filterState[stateKey].includes(normalized)) {
+                        filterState[stateKey].push(normalized);
+                    }
+                    input.value = '';
+                    refreshStateTags(tagsId, stateKey);
+                    renderActiveFilterChips();
+                    applyFilters();
+                }
+
+                input.addEventListener('input', function() {
+                    renderSuggestions(input, suggestions, getSourceValues, addValue);
+                });
+
+                input.addEventListener('focus', function() {
+                    renderSuggestions(input, suggestions, getSourceValues, addValue);
+                });
+
+                input.addEventListener('click', function() {
+                    renderSuggestions(input, suggestions, getSourceValues, addValue);
+                });
+
+                addBtn.addEventListener('click', function() {
+                    addValue(input.value);
+                    suggestions.classList.remove('visible');
+                });
+
+                input.addEventListener('keydown', function(event) {
+                    if (event.key === 'Enter') {
+                        event.preventDefault();
+                        addValue(input.value);
+                        suggestions.classList.remove('visible');
+                    }
+                });
+
+                document.addEventListener('click', function(event) {
+                    if (!suggestions.contains(event.target) && event.target !== input) {
+                        suggestions.classList.remove('visible');
+                    }
+                });
+            }
+
+            const statusList = document.getElementById('ofStatusList');
+            datasetValueCounts('status').forEach((statusItem) => {
+                const label = document.createElement('label');
+                label.className = 'orderCheckItem';
+                label.innerHTML =
+                    `<input type="checkbox" class="of-status-checkbox" value="${statusItem.value}"><span>${statusItem.value} (${statusItem.count})</span>`;
+                statusList.appendChild(label);
+            });
+
+            statusList.addEventListener('change', function() {
+                filterState.statuses = Array.from(statusList.querySelectorAll(
+                    '.of-status-checkbox:checked')).map(cb => normalize(cb.value));
+                renderActiveFilterChips();
+                applyFilters();
+            });
+
+            const stageList = document.getElementById('ofStageList');
+            if (stageList) {
+                datasetValueCounts('stage').forEach((stageItem) => {
+                    const label = document.createElement('label');
+                    label.className = 'orderCheckItem';
+                    label.innerHTML =
+                        `<input type="checkbox" class="of-stage-checkbox" value="${stageItem.value}"><span>${stageItem.value} (${stageItem.count})</span>`;
+                    stageList.appendChild(label);
+                });
+
+                stageList.addEventListener('change', function() {
+                    filterState.stages = Array.from(stageList.querySelectorAll(
+                        '.of-stage-checkbox:checked')).map(cb => normalize(cb.value));
+                    renderActiveFilterChips();
+                    applyFilters();
+                });
+            }
+
+            const phaseList = document.getElementById('ofPhaseList');
+            if (phaseList) {
+                datasetValueCounts('phase').forEach((phaseItem) => {
+                    const label = document.createElement('label');
+                    label.className = 'orderCheckItem';
+                    label.innerHTML =
+                        `<input type="checkbox" class="of-phase-checkbox" value="${phaseItem.value}"><span>${phaseItem.value} (${phaseItem.count})</span>`;
+                    phaseList.appendChild(label);
+                });
+
+                phaseList.addEventListener('change', function() {
+                    filterState.phases = Array.from(phaseList.querySelectorAll(
+                        '.of-phase-checkbox:checked')).map(cb => normalize(cb.value));
+                    renderActiveFilterChips();
+                    applyFilters();
+                });
+            }
+
+            const assignedNoneCheckbox = document.getElementById('ofAssignedNoneCheckbox');
+            if (assignedNoneCheckbox) {
+                assignedNoneCheckbox.addEventListener('change', function() {
+                    filterState.assignedToNone = assignedNoneCheckbox.checked;
+                    renderActiveFilterChips();
+                    applyFilters();
+                });
+            }
+
+            const visibilityList = document.getElementById('ofVisibilityList');
+            allHeaders.forEach(header => {
+                const key = header.dataset.colKey;
+                const labelText = (header.textContent || '').replace('⮝', '').replace('⮟', '').trim();
+                const label = document.createElement('label');
+                label.className = 'orderCheckItem';
+                label.innerHTML =
+                    `<input type="checkbox" class="of-visibility-checkbox" data-key="${key}" checked><span>${labelText}</span>`;
+                visibilityList.appendChild(label);
+            });
+
+            visibilityList.addEventListener('change', function() {
+                const checks = visibilityList.querySelectorAll('.of-visibility-checkbox');
+                checks.forEach(check => {
+                    visibilityState[check.dataset.key] = check.checked;
+                });
+                applyVisibility();
+                renderActiveFilterChips();
+            });
+
+            setupAutocomplete({
+                inputId: 'ofNameInput',
+                suggestionsId: 'ofNameSuggestions',
+                addBtnId: 'ofAddNameBtn',
+                getSourceValues: () => datasetValueCounts('name', true),
+                stateKey: 'names',
+                tagsId: 'ofNameTags'
+            });
+
+            setupAutocomplete({
+                inputId: 'ofRequestedInput',
+                suggestionsId: 'ofRequestedSuggestions',
+                addBtnId: 'ofAddRequestedBtn',
+                getSourceValues: () => datasetValueCounts('requestedBy', true),
+                stateKey: 'requestedBy',
+                tagsId: 'ofRequestedTags'
+            });
+
+            setupAutocomplete({
+                inputId: 'ofAssignedInput',
+                suggestionsId: 'ofAssignedSuggestions',
+                addBtnId: 'ofAddAssignedBtn',
+                getSourceValues: () => datasetValueCounts('assignedTo', true),
+                stateKey: 'assignedTo',
+                tagsId: 'ofAssignedTags'
+            });
+
+            document.getElementById('ofAddDateBtn').addEventListener('click', function() {
+                const field = document.getElementById('ofDateField').value;
+                const from = document.getElementById('ofDateFrom').value;
+                const to = document.getElementById('ofDateTo').value;
+
+                if (!from && !to) {
+                    return;
+                }
+
+                const exists = filterState.dateRanges.some(item => item.field === field && item.from ===
+                    from && item.to === to);
+                if (exists) {
+                    return;
+                }
+
+                filterState.dateRanges.push({
+                    id: ++dateRangeIdCounter,
+                    field,
+                    from,
+                    to
+                });
+
+                document.getElementById('ofDateFrom').value = '';
+                document.getElementById('ofDateTo').value = '';
+
+                renderDateRangeTags();
+                renderActiveFilterChips();
+                applyFilters();
+            });
+
+            document.getElementById('ofResetBtn').addEventListener('click', function() {
+                filterState.names = [];
+                filterState.stages = [];
+                filterState.phases = [];
+                filterState.requestedBy = [];
+                filterState.assignedTo = [];
+                filterState.assignedToNone = false;
+                filterState.statuses = [];
+                filterState.dateRanges = [];
+
+                document.getElementById('ofNameInput').value = '';
+                document.getElementById('ofRequestedInput').value = '';
+                document.getElementById('ofAssignedInput').value = '';
+                document.getElementById('ofDateField').value = 'created';
+                document.getElementById('ofDateFrom').value = '';
+                document.getElementById('ofDateTo').value = '';
+
+                if (assignedNoneCheckbox) {
+                    assignedNoneCheckbox.checked = false;
+                }
+
+                document.querySelectorAll('.of-status-checkbox').forEach(cb => cb.checked = false);
+                document.querySelectorAll('.of-stage-checkbox').forEach(cb => cb.checked = false);
+                document.querySelectorAll('.of-phase-checkbox').forEach(cb => cb.checked = false);
+                document.querySelectorAll('.of-visibility-checkbox').forEach(cb => {
+                    cb.checked = true;
+                    visibilityState[cb.dataset.key] = true;
+                });
+
+                renderTags('ofNameTags', [], () => {});
+                renderTags('ofRequestedTags', [], () => {});
+                renderTags('ofAssignedTags', [], () => {});
+                renderTags('ofDateTags', [], () => {});
+
+                renderActiveFilterChips();
+                applyVisibility();
+                applyFilters();
+                recalculateAndUpdateCounts();
+            });
+
+            document.querySelectorAll('#orderFiltersModal [data-filter-toggle]').forEach(toggle => {
+                toggle.addEventListener('click', function() {
+                    const block = this.closest('[data-filter-block]');
+                    block.classList.toggle('open');
                 });
             });
 
-            function sortTable(sortKey, sortType, direction) {
-                const tbody = document.querySelector('tbody');
-                const rows = Array.from(tbody.querySelectorAll('tr'));
-
-                rows.sort((a, b) => {
-                    const aValue = getCellValue(a, sortKey);
-                    const bValue = getCellValue(b, sortKey);
-
-                    return compareValues(aValue, bValue, sortType, direction);
-                });
-
-                // Limpiar y reinsertar filas ordenadas
-                tbody.innerHTML = '';
-                rows.forEach(row => tbody.appendChild(row));
-            }
-
-            function getCellValue(row, sortKey) {
-                const cells = row.querySelectorAll('td');
-                // Calculate index dynamically based on header position
-                const idx = Array.from(sortableHeaders).findIndex(h => h.dataset.sort === sortKey);
-
-                // If index is valid
-                if (idx >= 0 && idx < cells.length) {
-                    const cell = cells[idx];
-
-                    switch (sortKey) {
-                        case 'title':
-                            return cell.querySelector('h5')?.textContent.trim() || '';
-
-                        case 'requested_by':
-                            return cell.querySelector('img')?.title?.trim() || '';
-
-                        case 'assigned_to':
-                            return cell.querySelector('img')?.title?.trim() || '';
-
-                        case 'status':
-                            return cell.querySelector('label')?.textContent.trim() || '';
-
-                        case 'start_date':
-                        case 'end_date':
-                        case 'planned_end_date':
-                        case 'task_start_date':
-                        case 'finalization_date':
-                            const dateStr = cell.textContent.trim();
-                            return parseDate(dateStr);
-
-                        default:
-                            return cell.textContent.trim();
-                    }
-                }
-                return '';
-            }
-
-            function compareValues(a, b, type, direction) {
-                const modifier = direction === 'asc' ? 1 : -1;
-
-                if (type === 'text' || type === 'status') {
-                    // Sort alphabetically, case-insensitive (español)
-                    return a.localeCompare(b, 'es', {
-                        sensitivity: 'base'
-                    }) * modifier;
-                } else if (type === 'date') {
-                    return (a - b) * modifier;
-                }
-
-                return 0;
-            }
-
-            function parseDate(dateStr) {
-                if (dateStr === '...') return 0;
-                const [day, month, year] = dateStr.split('-');
-                return new Date(year, month - 1, day);
-            }
-
-            function updateSortIndicators(activeHeader) {
-                sortableHeaders.forEach(header => {
-                    header.querySelector('.sort-indicator').textContent = '';
-                    if (header === activeHeader) {
-                        header.querySelector('.sort-indicator').textContent =
-                            currentSort.direction === 'asc' ? '⮝' : '⮟';
-                    }
-                });
-            }
+            applyVisibility();
+            renderActiveFilterChips();
+            applyFilters();
         });
     </script>
     <script>
@@ -1913,5 +3410,103 @@
                 return new bootstrap.Tooltip(tooltipTriggerEl)
             })
         })
+    </script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const folderToggles = document.querySelectorAll('[data-folder-toggle]');
+
+            function setExpanded(toggleElement, isExpanded, animate = true) {
+                const targetId = toggleElement.getAttribute('data-folder-toggle');
+                if (!targetId) {
+                    return;
+                }
+
+                const content = document.getElementById(targetId);
+                if (!content) {
+                    return;
+                }
+
+                toggleElement.setAttribute('aria-expanded', isExpanded ? 'true' : 'false');
+
+                const icon = toggleElement.querySelector('.folder-toggle-icon');
+                if (icon) {
+                    icon.classList.remove('fa-folder-open', 'fa-folder');
+                    icon.classList.add(isExpanded ? 'fa-folder-open' : 'fa-folder');
+                }
+
+                if (window.jQuery) {
+                    const $content = window.jQuery(content);
+                    if (isExpanded) {
+                        animate ? $content.stop(true, true).slideDown(160) : $content.show();
+                    } else {
+                        animate ? $content.stop(true, true).slideUp(160) : $content.hide();
+                    }
+                    return;
+                }
+
+                content.style.display = isExpanded ? '' : 'none';
+            }
+
+            folderToggles.forEach(function(toggleElement) {
+                const targetId = toggleElement.getAttribute('data-folder-toggle') || '';
+                const isMilestoneInnerToggle = targetId.startsWith('milestone-item-content-');
+
+                setExpanded(toggleElement, !isMilestoneInnerToggle, false);
+
+                toggleElement.addEventListener('click', function() {
+                    const isCurrentlyExpanded = toggleElement.getAttribute('aria-expanded') ===
+                        'true';
+                    setExpanded(toggleElement, !isCurrentlyExpanded, true);
+                });
+
+                toggleElement.addEventListener('keydown', function(event) {
+                    if (event.key === 'Enter' || event.key === ' ') {
+                        event.preventDefault();
+                        const isCurrentlyExpanded = toggleElement.getAttribute('aria-expanded') ===
+                            'true';
+                        setExpanded(toggleElement, !isCurrentlyExpanded, true);
+                    }
+                });
+            });
+        });
+    </script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const toggleUploadBtn = document.getElementById('toggleUploadSectionBtn');
+            const uploadRow = document.getElementById('files-upload-row');
+            let hideTimer = null;
+
+            if (!toggleUploadBtn || !uploadRow) {
+                return;
+            }
+
+            function setUploadVisible(visible) {
+                toggleUploadBtn.setAttribute('aria-expanded', visible ? 'true' : 'false');
+
+                if (hideTimer) {
+                    clearTimeout(hideTimer);
+                    hideTimer = null;
+                }
+
+                if (visible) {
+                    uploadRow.classList.remove('d-none');
+                    requestAnimationFrame(function() {
+                        uploadRow.classList.add('is-visible');
+                    });
+                } else {
+                    uploadRow.classList.remove('is-visible');
+                    hideTimer = setTimeout(function() {
+                        uploadRow.classList.add('d-none');
+                    }, 220);
+                }
+            }
+
+            setUploadVisible(false);
+
+            toggleUploadBtn.addEventListener('click', function() {
+                const isVisible = !uploadRow.classList.contains('d-none');
+                setUploadVisible(!isVisible);
+            });
+        });
     </script>
 @endpush

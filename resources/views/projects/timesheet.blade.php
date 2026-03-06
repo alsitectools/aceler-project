@@ -19,8 +19,7 @@
     <div class="d-flex justify-content-end align-items-center row1">
         @if ($project_id == -1)
             <div class="col-sm-auto">
-                <select id="workspace-filter-select" class="form-select"
-                    style="width: auto; display: inline-block; font-size: 0.9rem; padding: 0.25rem 2.5rem 0.25rem 0.75rem; cursor: pointer; font-weight: 500; margin-right: 10px;">
+                <select id="workspace-filter-select" class="modern-saas-select">
                     <option value="current" selected>{{ __('Current Workspace') }}</option>
                     <option value="all">{{ __('All Workspaces') }}</option>
                 </select>
@@ -45,11 +44,20 @@
         @endif
         <div class="col-sm-auto">
             <div class="weekly-dates-div weekArrowsPadding">
-                <button type="button" id="weekRangeDisplay" class="btn btn-primary weekPickerBtn"
-                    aria-label="{{ __('Select week') }}">
-                    <i class="fa-solid fa-calendar-days"></i>
-                    <span class="weekRangeText">{{ __('Select week') }}</span>
-                </button>
+                <div class="btn-group" role="group">
+                    <button type="button" id="prevWeekBtn" class="btn btn-primary weekPickerBtn"
+                        aria-label="{{ __('Previous week') }}" title="{{ __('Previous week') }}">
+                        <i class="fa-solid fa-chevron-left"></i>
+                    </button>
+                    <button type="button" id="weekRangeDisplay" class="btn btn-primary weekPickerBtn"
+                        aria-label="{{ __('Select week') }}" title="{{ __('Select week') }}">
+                        <i class="fa-solid fa-calendar-days"></i>
+                    </button>
+                    <button type="button" id="nextWeekBtn" class="btn btn-primary weekPickerBtn"
+                        aria-label="{{ __('Next week') }}" title="{{ __('Next week') }}">
+                        <i class="fa-solid fa-chevron-right"></i>
+                    </button>
+                </div>
                 <input type="date" id="weekPicker" class="weekPickerHidden" tabindex="-1" aria-hidden="true">
 
                 <input type="hidden" id="weeknumber" value="0">
@@ -58,11 +66,11 @@
         </div>
         @if ($project_id != '-1')
             <!-- <div class="col-auto">
-                                                                                                <a href="{{ route($client_keyword . 'projects.show', [$currentWorkspace->slug, $project_id]) }}"
-                                                                                                    class="btn btn-sm btn-primary">
-                                                                                                    <i class=" ti ti-arrow-back-up"></i>
-                                                                                                </a>
-                                                                                            </div> -->
+                                                                                                                                                                                    <a href="{{ route($client_keyword . 'projects.show', [$currentWorkspace->slug, $project_id]) }}"
+                                                                                                                                                                                        class="btn btn-sm btn-primary">
+                                                                                                                                                                                        <i class=" ti ti-arrow-back-up"></i>
+                                                                                                                                                                                    </a>
+                                                                                                                                                                                </div> -->
         @endif
     </div>
 @endsection
@@ -72,25 +80,33 @@
             <div class="row">
                 <div class="col-md-12">
 
-                    <div class="card border modifiedWidthTime">
-                        <div id="timesheet-table-view"></div>
-                    </div>
-                    <div class="card notfound-timesheet text-center">
-                        <div class="card-body p-3">
-                            <div class="page-error">
-                                <div class="page-inner">
-                                    <div class="page-description">
-                                        {{ __("We couldn't find any data") }}
-                                    </div>
-                                    <div class="page-search">
-                                        <p class="text-muted mt-3">
-                                            {{ __("Sorry we can't find any timesheet records on this week") }}
-                                            <br>
-                                            @if ($project_id != '-1')
-                                                {{ __('To add timesheet record go to') }}
-                                                <b>{{ __('Add Task on Timesheet.') }}</b>
-                                            @endif
-                                        </p>
+                    <div class="card border modifiedWidthTime position-relative mt-4" style="min-height: 180px;">
+                        <div class="text-center position-absolute" style="top: -18px; left: 0; right: 0; z-index: 10;">
+                            <div class="d-inline-flex align-items-center justify-content-center tag-date-range">
+                                <span id="weekRangeSpinner" class="spinner-border spinner-border-sm" role="status"
+                                    style="display: none; margin-right: 8px;"></span>
+                                <span class="weekRangeText">{{ __('Select week') }}</span>
+                            </div>
+                        </div>
+                        <div id="timesheet-table-view" class="pt-4"></div>
+
+                        <div class="notfound-timesheet text-center w-100" style="display: none; padding-top: 3rem;">
+                            <div class="card-body p-3">
+                                <div class="page-error">
+                                    <div class="page-inner">
+                                        <div class="page-description">
+                                            {{ __("We couldn't find any data") }}
+                                        </div>
+                                        <div class="page-search">
+                                            <p class="text-muted mt-3">
+                                                {{ __("Sorry we can't find any timesheet records on this week") }}
+                                                <br>
+                                                @if ($project_id != '-1')
+                                                    {{ __('To add timesheet record go to') }}
+                                                    <b>{{ __('Add Task on Timesheet.') }}</b>
+                                                @endif
+                                            </p>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -132,7 +148,7 @@
         }
 
         function formatWeekRange(rangeStr) {
-            // Espera: "YYYY-MM-DD - YYYY-MM-DD" => "DD-MM-YYYY/DD-MM-YYYY"
+            // Espera: "YYYY-MM-DD - YYYY-MM-DD" => "DD-MM-YYYY → DD-MM-YYYY"
             if (!rangeStr) {
                 return '';
             }
@@ -149,7 +165,9 @@
                 return String(rangeStr);
             }
 
-            return start.format('DD-MM-YYYY') + '/' + end.format('DD-MM-YYYY');
+            return start.format('DD/MM/YYYY') +
+                ' <i class="fa-solid fa-arrow-right" style="margin: 0 8px; font-size: 12px;"></i> ' + end.format(
+                    'DD/MM/YYYY');
         }
 
         function setWeekFromDate(dateStr) {
@@ -170,10 +188,17 @@
 
             var mainEle = $('#timesheet-table-view');
             var notfound = $('.notfound-timesheet');
+            var weekRangeSpinner = $('#weekRangeSpinner');
+            var weekRangeText = $('.weekRangeText');
+
+            // Mostrar spinner y ocultar texto durante la carga
+            weekRangeSpinner.show();
+            weekRangeText.hide();
 
             var week = parseInt($('#weeknumber').val());
             var project_id = '{{ $project_id }}';
-            var allWorkspaces = $('#workspace-filter-select').length ? ($('#workspace-filter-select').val() === 'all' ? 'true' : 'false') : 'false';
+            var allWorkspaces = $('#workspace-filter-select').length ? ($('#workspace-filter-select').val() === 'all' ?
+                'true' : 'false') : 'false';
 
             var data = {
                 week: week,
@@ -192,8 +217,12 @@
 
                     console.log('Respuesta recibida:', data); // Debug
 
-                    // Mostrar el rango de semana dentro del "botón"
-                    $('#weekRangeDisplay .weekRangeText').text(formatWeekRange(data.onewWeekDate));
+                    // Ocultar spinner y mostrar texto
+                    weekRangeSpinner.hide();
+                    weekRangeText.show();
+
+                    // Mostrar el rango de semana fuera del "botón"
+                    $('.weekRangeText').html(formatWeekRange(data.onewWeekDate));
                     $('.weekly-dates-div #selected_dates').val(data.selectedDate);
 
                     // Sincroniza el selector para que muestre el inicio de la semana actual cargada
@@ -220,6 +249,11 @@
                     }
 
                     mainEle.html(data.html);
+                },
+                error: function() {
+                    // Ocultar spinner y mostrar texto en caso de error
+                    weekRangeSpinner.hide();
+                    weekRangeText.show();
                 }
             });
         }
@@ -235,7 +269,6 @@
             ajaxFilterTimesheetTableView();
         });
 
-        // Abrir el calendario al clicar el "botón" del rango
         $(document).on('click', '#weekRangeDisplay', function() {
             var picker = document.getElementById('weekPicker');
             if (!picker) {
@@ -249,6 +282,36 @@
                 picker.focus();
                 picker.click();
             }
+        });
+
+        // Navegación a semana anterior
+        $(document).on('click', '#prevWeekBtn', function() {
+            var currentWeek = parseInt($('#weeknumber').val());
+            var newWeek = currentWeek - 1;
+
+            var currentWeekStart = moment().startOf('isoWeek');
+            var targetWeekStart = currentWeekStart.clone().add(newWeek, 'weeks');
+
+            $('#weeknumber').val(newWeek);
+            $('#weekPicker').val(targetWeekStart.format('YYYY-MM-DD'));
+            saveSelectedWeekStart(targetWeekStart.format('YYYY-MM-DD'));
+
+            ajaxFilterTimesheetTableView();
+        });
+
+        // Navegación a semana siguiente
+        $(document).on('click', '#nextWeekBtn', function() {
+            var currentWeek = parseInt($('#weeknumber').val());
+            var newWeek = currentWeek + 1;
+
+            var currentWeekStart = moment().startOf('isoWeek');
+            var targetWeekStart = currentWeekStart.clone().add(newWeek, 'weeks');
+
+            $('#weeknumber').val(newWeek);
+            $('#weekPicker').val(targetWeekStart.format('YYYY-MM-DD'));
+            saveSelectedWeekStart(targetWeekStart.format('YYYY-MM-DD'));
+
+            ajaxFilterTimesheetTableView();
         });
 
         $(document).on('change', '#weekPicker', function() {
@@ -345,7 +408,7 @@
             var modalId = 'dayTotalModal';
             var modalElement = document.getElementById(modalId);
 
-            
+
             // Si el modal no existe, crear uno dinámicamente
             if (!modalElement) {
                 var modalHTML = `
@@ -373,19 +436,23 @@
             console.log("he sido clicked dentro del resumen")
             // Construir el contenido del modal
             var contentHTML = '<div class="day-summary">';
-            
+
             // Encabezado con fecha y total de horas
-            contentHTML += '<div class="summary-header mb-3" style="border-bottom: 2px solid #aa182c;padding-bottom: 10px;display: flex;flex-direction: row;align-content: center;justify-content: space-evenly;align-items: center;">';
+            contentHTML +=
+                '<div class="summary-header mb-3" style="border-bottom: 2px solid #aa182c;padding-bottom: 10px;display: flex;flex-direction: row;align-content: center;justify-content: space-evenly;align-items: center;">';
             contentHTML += '<p style="margin: 0;"><strong>' + dateFormatted + '</strong></p>';
             contentHTML += '<strong>' + hoursValue + '</strong>';
             contentHTML += '</div>';
-            
+
             // Listar las tareas
             if (tasksData && tasksData.length > 0) {
                 contentHTML += '<div class="tasks-list">';
                 tasksData.forEach(function(task, index) {
-                    contentHTML += '<div class="task-item mb-2" style="padding: 8px; background-color: #f8f9fa; border-radius: 4px;">';
-                    contentHTML += '<div class="task-name" style="font-weight: 500; margin-bottom: 4px;">• ' + (task.project_name || '') + ' - ' + task.task_name + ' - ' + task.hours + '</div>';
+                    contentHTML +=
+                        '<div class="task-item mb-2" style="padding: 8px; background-color: #f8f9fa; border-radius: 4px;">';
+                    contentHTML +=
+                        '<div class="task-name" style="font-weight: 500; margin-bottom: 4px;">• ' + (task
+                            .project_name || '') + ' - ' + task.task_name + ' - ' + task.hours + '</div>';
                     contentHTML += '</div>';
                 });
                 contentHTML += '</div>';
@@ -396,7 +463,7 @@
                     contentHTML += '<p class="text-muted">{{ __('No tasks recorded for this day') }}</p>';
                 }
             }
-            
+
             contentHTML += '</div>';
 
             // Llenar los datos del modal
@@ -450,8 +517,11 @@
         border-color: transparent;
     }
 
-    .weekly-dates-div #weekRangeDisplay.weekPickerBtn:focus {
-        box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+    .weekly-dates-div #weekRangeDisplay.weekPickerBtn:focus,
+    .weekly-dates-div #weekRangeDisplay.weekPickerBtn:active,
+    .weekly-dates-div #weekRangeDisplay.weekPickerBtn:focus-visible {
+        outline: none;
+        border-color: transparent;
     }
 
     .weekly-dates-div #weekRangeDisplay.weekPickerBtn {
@@ -467,7 +537,52 @@
         pointer-events: none;
     }
 
-    .weekly-dates-div #weekRangeDisplay .weekRangeText {
-        color: rgba(255, 255, 255, 0.95);
+    /* Tag de fecha centrado flotante */
+    .tag-date-range {
+        background-color: #aa182c;
+        color: #ffffff;
+        font-weight: 700;
+        font-size: 16px;
+        letter-spacing: 0.5px;
+        padding: 10px 33px;
+        border-radius: 13px;
+        box-shadow: 0 4px 12px rgba(170, 24, 44, 0.2);
+        display: inline-flex;
+        border: 2px solid #6b101c;
+    }
+
+    /* Select moderno estilo Neutro / Soft */
+    .modern-saas-select {
+        appearance: none;
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        width: auto;
+        display: inline-block;
+        font-size: 0.9rem;
+        font-weight: 500;
+        color: #495057;
+        background-color: #f8f9fa;
+        padding: 0.5rem 2.2rem 0.5rem 1rem;
+        margin-right: 15px;
+        border: 1px solid #aa182c;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        /* Flecha gris neutra */
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%236c757d' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 0.8rem center;
+        background-size: 1rem;
+    }
+
+    .modern-saas-select:hover {
+        background-color: #e9ecef;
+        border-color: #aa182c;
+    }
+
+    .modern-saas-select:focus {
+        outline: none;
+        background-color: #ffffff;
+        box-shadow: 0 0 0 3px rgba(108, 117, 125, 0.1);
     }
 </style>
