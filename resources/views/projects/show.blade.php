@@ -294,10 +294,71 @@
 
     .projectDivSubtitle {
         display: flex;
-        justify-content: space-evenly;
+        justify-content: center;
         align-items: center;
-        color: white;
-        margin-bottom: 10px;
+        flex-wrap: wrap;
+        gap: 8px 16px;
+        color: rgba(255, 255, 255, 0.92);
+        margin-bottom: 15px;
+        padding-top: 5px;
+    }
+
+    /* Chips de metadatos: pill blanco sobre fondo carmesí */
+    .projectDivSubtitle>div {
+        display: inline-flex;
+        align-items: center;
+        background: rgba(255, 255, 255, 0.92);
+        border: none;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 12.5px;
+        font-weight: 600;
+        letter-spacing: 0.05px;
+        white-space: nowrap;
+        cursor: default;
+        user-select: none;
+        color: #7a0e1e;
+    }
+
+    .projectDivSubtitle>div i {
+        margin-right: 6px;
+        font-size: 12px;
+        opacity: 0.7;
+    }
+
+    .projectDivSubtitle>div.badge-container {
+        padding: 0;
+        border: none;
+        background: transparent;
+        box-shadow: none;
+    }
+
+    .projectDivSubtitle .badge {
+        font-size: 12.5px;
+        font-weight: 500;
+        padding: 4px 12px !important;
+        border-radius: 20px !important;
+        display: inline-flex;
+        align-items: center;
+        margin: 0;
+        border: none;
+        letter-spacing: 0.15px;
+        cursor: default;
+        user-select: none;
+        text-transform: none;
+    }
+
+    .projectDivSubtitle .badge.bg-success {
+        background: rgba(83, 180, 70, 0.95) !important;
+    }
+
+    .projectDivSubtitle .badge.bg-secondary {
+        background: rgba(144, 150, 158, 0.95) !important;
+        color: #fff !important;
+    }
+
+    .projectDivSubtitle .badge.bg-warning {
+        background: rgba(219, 141, 51, 0.95) !important;
     }
 
     .uploaded-files-container {
@@ -751,7 +812,7 @@
     }
 
     .files-section .card-header {
-        padding: 14px 18px;
+        padding: 17px 25px;
         border-bottom: 1px solid #eceef3;
     }
 
@@ -899,6 +960,13 @@
             transform 0.15s ease;
     }
 
+
+    .divisorLineNav {
+        background-color: #c66572;
+        height: 37px !important;
+        width: 1px !important;
+    }
+
     .projectSubnavItem:hover {
         background: #f7f8fa;
         border-color: #e4e7ee;
@@ -1021,6 +1089,7 @@
                                         <i class="fa-solid fa-file-lines"></i>
                                         <span>{{ __('Order forms') }}</span>
                                     </a>
+                                    <div class="divisorLineNav"></div>
                                     <a href="{{ route('projects.timesheet.index', [$currentWorkspace->slug, $project->id]) }}"
                                         class="projectSubnavItem">
                                         <i class="fas fa-tasks"></i>
@@ -1031,43 +1100,49 @@
                             <div>
                                 <div class="projectDivSubtitle">
                                     <div title="{{ __('Workspace') }}" id="workspaceNameTitle">
-                                        <i class="fa-regular fa-building fa-xl me-2"></i>
+                                        <i class="fa-regular fa-building"></i>
                                         {{ $currentWorkspace->country }} / {{ $currentWorkspace->name }}
                                     </div>
                                     <div id="membersCountTitle" title="{{ __('Members') }}">
-                                        <i class="fas fa-users fa-xl me-2"></i>
+                                        <i class="fas fa-users"></i>
                                         {{ (int) $project->technicians->count() + (int) $project->salesManager->count() }}
                                     </div>
 
                                     <div id="creationDateTitle" title="{{ __('Creation date') }}">
-                                        <i class="fas fas fa-calendar-day"></i>
+                                        <i class="fas fa-calendar-day"></i>
                                         {{ App\Models\Utility::dateFormat($project->start_date) }}
                                     </div>
 
                                     <div id="projectTypeTitle" title="{{ __('Project type') }}">
-                                        <i class="fa-solid fa-diagram-project  text-white"></i>
+                                        <i class="fa-solid fa-diagram-project"></i>
                                         {{ $project->ref_mo != '' ? $project->ref_mo : __($project->typeName()) }}
                                     </div>
 
-                                    <div>
+                                    <div class="badge-container">
                                         @if ($project->status == 'Finished')
-                                            <div class="badge bg-success p-2 px-3 rounded"> {{ __('Finished') }}
-                                            </div>
+                                            <span class="badge bg-success p-2 px-3 rounded"
+                                                style=" padding: 8px 12px !important;">
+                                                {{ __('Finished') }}
+                                            </span>
                                         @elseif($project->status == 'Ongoing')
-                                            <div class="badge bg-secondary p-2 px-3 rounded">
+                                            <span class="badge bg-secondary p-2 px-3 rounded"
+                                                style=" padding: 8px 12px !important;">
                                                 {{ __('Ongoing') }}
-                                            </div>
+                                            </span>
                                         @else
-                                            <div class="badge bg-warning p-2 px-3 rounded">{{ __('OnHold') }}</div>
+                                            <span class="badge bg-warning p-2 px-3 rounded "
+                                                style=" padding: 8px 12px !important;">{{ __('OnHold') }}</span>
                                         @endif
                                     </div>
 
-                                    <div>
+                                    <div title="{{ __('Hours charged') }}">
+                                        <i class="fa-regular fa-clock"></i>
                                         {{ __('Hours charged') }}: {{ $totalHours ? $totalHours : '00:00' }}h
                                     </div>
 
-                                    <div>
-                                        {{ __('Order forms createds') }}: {{ $totalMilestones ? $totalMilestones : '0' }}
+                                    <div title="{{ __('Order forms createds') }}">
+                                        <i class="fa-regular fa-file-lines"></i>
+                                        {{ __('Order forms') }}: {{ $totalMilestones ? $totalMilestones : '0' }}
                                     </div>
                                 </div>
 
@@ -1126,8 +1201,9 @@
                                         <div>
                                             <h5 class="mb-0 d-flex align-items-center" style="gap: 8px;">
                                                 <span>{{ __('Order forms') }} ({{ count($project->milestones) }})</span>
-                                                <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal"
-                                                    data-bs-target="#orderFiltersModal" title="{{ __('Filter') }}">
+                                                <button type="button" class="btn btn-sm btn-primary"
+                                                    data-bs-toggle="modal" data-bs-target="#orderFiltersModal"
+                                                    title="{{ __('Filter') }}">
                                                     <i class="fa-solid fa-filter"></i>
                                                 </button>
                                             </h5>
@@ -1593,20 +1669,22 @@
                                                                         class="fa-solid fa-chevron-down orderFilterChevron"></i>
                                                                 </div>
                                                                 <div class="orderFilterContent">
-                                                                    <div id="ofStageList" class="orderCheckList"></div>
+                                                                    <div id="ofPhaseList" class="orderCheckList"></div>
                                                                 </div>
                                                             </div>
-
-                                                            <div class="orderFilterBlock" data-filter-block>
+                                                            <div class="orderFilterBlock " data-filter-block>
                                                                 <div class="orderFilterHeader" data-filter-toggle>
                                                                     <p class="orderFilterLabel">{{ __('Phase') }}</p>
                                                                     <i
                                                                         class="fa-solid fa-chevron-down orderFilterChevron"></i>
                                                                 </div>
                                                                 <div class="orderFilterContent">
-                                                                    <div id="ofPhaseList" class="orderCheckList"></div>
+                                                                    <div id="ofStageList" class="orderCheckList"></div>
                                                                 </div>
                                                             </div>
+
+
+
                                                         </div>
                                                     @endif
                                                 </div>

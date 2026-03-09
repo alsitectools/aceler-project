@@ -41,15 +41,24 @@
     }
 
     .dateDiv {
-        flex: 0 0 auto;
-        width: 40%;
+        flex: 1 1 0%;
+        min-width: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
     }
 
     .fatherDateDivAlign {
         display: flex;
-        justify-content: center;
-        align-items: center;
+        justify-content: space-around;
+        align-items: flex-start;
         align-content: center;
+        width: 100%;
+        gap: 5px;
+    }
+
+    .adjustTextCalendar {
+        white-space: nowrap;
     }
 </style>
 
@@ -184,30 +193,32 @@
                             </a>
 
                             {{-- Crear Task --}}
-                            @php
-                                $isMyMilestoneBoardUrl = strpos(request()->url(), 'my-milestone-board') !== false;
-                                $taskCreateRoute = $isMyMilestoneBoardUrl
-                                    ? route('my_milestone.tasks.create', $currentWorkspace->slug)
-                                    : route('tasks.create', $currentWorkspace->slug);
+                            @if ($status->id != 1)
+                                @php
+                                    $isMyMilestoneBoardUrl = strpos(request()->url(), 'my-milestone-board') !== false;
+                                    $taskCreateRoute = $isMyMilestoneBoardUrl
+                                        ? route('my_milestone.tasks.create', $currentWorkspace->slug)
+                                        : route('tasks.create', $currentWorkspace->slug);
 
-                                // Agregar parámetros a la ruta
-                                $taskCreateRoute .=
-                                    '?project_id=' .
-                                    $milestone['project_id'] .
-                                    '&projectName=' .
-                                    urlencode($milestone['project_name'] ?? '') .
-                                    '&milestoneTitle=' .
-                                    urlencode($milestone['title']) .
-                                    '&milestone_id=' .
-                                    $milestone['id'] .
-                                    '&fromMyMilestoneBoard=' .
-                                    ($isMyMilestoneBoardUrl ? 1 : 0);
-                            @endphp
-                            <a href="#" class="dropdown-item" data-ajax-popup="true"
-                                data-title="{{ __('Add Task') }}" data-url="{{ $taskCreateRoute }}">
-                                <i class="fas fa-tasks"></i>
-                                {{ __('Add Task') }}
-                            </a>
+                                    // Agregar parámetros a la ruta
+                                    $taskCreateRoute .=
+                                        '?project_id=' .
+                                        $milestone['project_id'] .
+                                        '&projectName=' .
+                                        urlencode($milestone['project_name'] ?? '') .
+                                        '&milestoneTitle=' .
+                                        urlencode($milestone['title']) .
+                                        '&milestone_id=' .
+                                        $milestone['id'] .
+                                        '&fromMyMilestoneBoard=' .
+                                        ($isMyMilestoneBoardUrl ? 1 : 0);
+                                @endphp
+                                <a href="#" class="dropdown-item" data-ajax-popup="true"
+                                    data-title="{{ __('Add Task') }}" data-url="{{ $taskCreateRoute }}">
+                                    <i class="fas fa-tasks"></i>
+                                    {{ __('Add Task') }}
+                                </a>
+                            @endif
 
                             {{-- Pausar --}}
                             <a href="#" class="dropdown-item"

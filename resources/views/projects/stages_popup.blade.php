@@ -2,10 +2,11 @@
     .fontSize14px {
         font-size: 14px !important;
     }
+
     .marginLeft57 {
-        margin-left: 57% !important;
+        /* margin-left: 57% !important; */
     }
-    </style>
+</style>
 <div class="container-fluid py-2">
 
     @if (session('success'))
@@ -57,10 +58,12 @@
                             action="{{ route('projects.stages.update', [$currentWorkspace->slug, $project->id, $stage->id]) }}"
                             class="d-flex align-items-center gap-2 w-100">
                             @csrf
-                            <label for="stage-name-{{ $stage->id }}" class="visually-hidden">{{ __('Stage name') }}</label>
-                            <input id="stage-name-{{ $stage->id }}" type="text" name="name" class="form-control"
-                                value="{{ $stage->name }}" required>
-                            <button type="submit" class="btn btn-primary text-nowrap">{{ __('Save changes') }}</button>
+                            <label for="stage-name-{{ $stage->id }}"
+                                class="visually-hidden">{{ __('Stage name') }}</label>
+                            <input id="stage-name-{{ $stage->id }}" type="text" name="name"
+                                class="form-control" value="{{ $stage->name }}" required>
+                            <button type="submit"
+                                class="btn btn-primary text-nowrap">{{ __('Save changes') }}</button>
                         </form>
 
                         <form method="POST"

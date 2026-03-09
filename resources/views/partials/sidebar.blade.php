@@ -612,10 +612,10 @@
                     <li class="dash-item {{ Request::route()->getName() == 'my_projects' ? 'active' : '' }}">
                         <a href="{{ route('my_projects', $currentWorkspace->slug) }}" class="dash-link menu-element">
                             <span class="dash-micon"
-                                style="position: relative; display: inline-flex; align-items: center; justify-content: center;">
+                                style="position: relative; display: inline-flex; align-items: center; justify-content: center; overflow:hidden;">
                                 <i class="fa-solid fa-diagram-project"></i>
                                 <i class="fa-solid fa-user user-badge-sub"
-                                    style="position: absolute; bottom: -2px; right: -4px; font-size: 15px; color: #525a69; background: #fcf9f9; border-radius: 50%; padding: 2px;"></i>
+                                    style="position: absolute; bottom: -2px; right: -1px; font-size: 15px; color: #525a69; background: #fcf9f9; border-radius: 50%; padding: 2px;"></i>
                             </span>
                             <span class="dash-mtext">{{ __('My Projects') }}</span>
                         </a>
@@ -623,10 +623,10 @@
                     <li class="dash-item ">
                         <a href="{{ route('projects.my_milestone_board') }}" class="dash-link menu-element">
                             <span class="dash-micon"
-                                style="position: relative; display: inline-flex; align-items: center; justify-content: center;">
+                                style="position: relative; display: inline-flex; align-items: center; justify-content: center; overflow:hidden;">
                                 <i class="fa-solid fa-file-lines"></i>
                                 <i class="fa-solid fa-user user-badge-sub"
-                                    style="position: absolute; bottom: -2px; right: -4px; font-size: 15px; color: #525a69; background: #fcf9f9; border-radius: 50%; padding: 2px;"></i>
+                                    style="position: absolute; bottom: -2px; right: -1px; font-size: 15px; color: #525a69; background: #fcf9f9; border-radius: 50%; padding: 2px;"></i>
                             </span>
                             <span class="dash-mtext">{{ __('My Milestones') }}</span>
                         </a>
