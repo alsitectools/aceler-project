@@ -608,6 +608,17 @@
                             <span class="dash-micon"><i class="fa-solid fa-file-lines"></i></span><span
                                 class="dash-mtext">{{ __('Milestones') }}</span></a>
                     </li>
+                    <li class="dash-item {{ Request::route()->getName() == 'my_summary' ? 'active' : '' }}">
+                        <a href="{{ route('my_summary') }}" class="dash-link menu-element">
+                            <span class="dash-micon"
+                                style="position: relative; display: inline-flex; align-items: center; justify-content: center; overflow:hidden;">
+                                <i class="fa-solid fa-bookmark"></i>
+                                <i class="fa-solid fa-user user-badge-sub"
+                                    style="position: absolute; bottom: -2px; right: -1px; font-size: 15px; color: #525a69; background: #fcf9f9; border-radius: 50%; padding: 2px;"></i>
+                            </span>
+                            <span class="dash-mtext">{{ __('My Summary') }}</span>
+                        </a>
+                    </li>
                     {{-- si mostramos todos los proyectos enviamos -1 o proyecto en especifico --}}
                     <li class="dash-item {{ Request::route()->getName() == 'my_projects' ? 'active' : '' }}">
                         <a href="{{ route('my_projects', $currentWorkspace->slug) }}" class="dash-link menu-element">
@@ -695,7 +706,8 @@
                 <li class="dash-item  {{ Request::route()->getName() == 'workspace.settings' ? ' active' : '' }}">
                     <a href="{{ route('workspace.settings', $currentWorkspace->slug) }}"
                         class="dash-link menu-element "><span class="dash-micon"><i
-                                data-feather="settings"></i></span><span class="dash-mtext">{{ __('Settings') }}</span>
+                                data-feather="settings"></i></span><span
+                            class="dash-mtext">{{ __('Settings') }}</span>
                     </a>
                 </li>
             @endif

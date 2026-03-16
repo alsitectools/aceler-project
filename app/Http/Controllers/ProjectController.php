@@ -147,6 +147,168 @@ class ProjectController extends Controller
         return $hours + ($minutes / 60);
     }
 
+    private function formatSecondsAsHoursMinutes(int $totalSeconds): string
+    {
+        $hours = intdiv($totalSeconds, 3600);
+        $minutes = intdiv($totalSeconds % 3600, 60);
+
+        return sprintf('%02d:%02d', $hours, $minutes);
+    }
+
+    private function buildMySummaryChartData($projectSummaries, string $totalImputedTime, string $rangeLabel): array
+    {
+        $projects = $projectSummaries->map(function ($summary) {
+            return [
+                'name' => $summary->name,
+                'short_name' => Str::limit($summary->name, 18),
+                'hours' => (float) $summary->decimal_total_time,
+                'formatted_time' => $summary->formatted_total_time,
+                'project_url' => $summary->project_url,
+            ];
+        })->values();
+
+        return [
+            'projects' => $projects,
+            'maxHours' => round((float) $projects->max('hours'), 2),
+            'totalTime' => $totalImputedTime,
+            'rangeLabel' => $rangeLabel,
+        ];
+    }
+
+    private function resolveMySummaryDateRange(Request $request): array
+    {
+        $today = Carbon::today();
+        $rangeType = $request->input('range_type', 'preset');
+        $preset = $request->input('preset', 'last_month');
+        $startDateInput = $request->input('start_date');
+        $endDateInput = $request->input('end_date');
+
+        $startDate = null;
+        $endDate = null;
+        $appliedLabel = __('Last month');
+
+        if (
+            $rangeType === 'custom'
+            && is_string($startDateInput)
+            && is_string($endDateInput)
+            && preg_match('/^\d{4}-\d{2}-\d{2}$/', $startDateInput)
+            && preg_match('/^\d{4}-\d{2}-\d{2}$/', $endDateInput)
+        ) {
+            $parsedStartDate = Carbon::createFromFormat('Y-m-d', $startDateInput)->startOfDay();
+            $parsedEndDate = Carbon::createFromFormat('Y-m-d', $endDateInput)->endOfDay();
+
+            if ($parsedStartDate->gt($parsedEndDate)) {
+                [$parsedStartDate, $parsedEndDate] = [$parsedEndDate->copy()->startOfDay(), $parsedStartDate->copy()->endOfDay()];
+            }
+
+            $startDate = $parsedStartDate;
+            $endDate = $parsedEndDate;
+            $appliedLabel = __('Custom range');
+        } else {
+            $rangeType = 'preset';
+
+            switch ($preset) {
+                case 'last_month':
+                    $startDate = $today->copy()->subDays(29)->startOfDay();
+                    $endDate = $today->copy()->endOfDay();
+                    $appliedLabel = __('Last month');
+                    break;
+                case 'last_quarter':
+                    $startDate = $today->copy()->subDays(89)->startOfDay();
+                    $endDate = $today->copy()->endOfDay();
+                    $appliedLabel = __('Last quarter');
+                    break;
+                case 'last_year':
+                    $startDate = $today->copy()->subDays(364)->startOfDay();
+                    $endDate = $today->copy()->endOfDay();
+                    $appliedLabel = __('Last year');
+                    break;
+                case 'last_week':
+                    $preset = 'last_week';
+                    $startDate = $today->copy()->subDays(6)->startOfDay();
+                    $endDate = $today->copy()->endOfDay();
+                    $appliedLabel = __('Last week');
+                    break;
+                default:
+                    $preset = 'last_month';
+                    $startDate = $today->copy()->subDays(29)->startOfDay();
+                    $endDate = $today->copy()->endOfDay();
+                    $appliedLabel = __('Last month');
+                    break;
+            }
+        }
+
+        return [
+            'rangeType' => $rangeType,
+            'preset' => $preset,
+            'startDateInput' => $startDate->toDateString(),
+            'endDateInput' => $endDate->toDateString(),
+            'startDate' => $startDate,
+            'endDate' => $endDate,
+            'appliedLabel' => $appliedLabel,
+        ];
+    }
+
+    private function resolveMyDayDateRange(Request $request): array
+    {
+        $rangeType = $request->input('my_day_range_type', 'preset');
+        $preset = $request->input('my_day_preset', 'this_week');
+        $startDateInput = $request->input('my_day_start_date');
+        $endDateInput = $request->input('my_day_end_date');
+
+        $today = Carbon::today();
+        $startDate = $today->copy()->startOfWeek(Carbon::MONDAY);
+        $endDate = $today->copy()->endOfWeek(Carbon::SUNDAY);
+
+        if ($rangeType === 'custom' && $startDateInput && $endDateInput) {
+            $parsedStart = Carbon::parse($startDateInput)->startOfDay();
+            $parsedEnd = Carbon::parse($endDateInput)->endOfDay();
+
+            if ($parsedStart->lte($parsedEnd)) {
+                $startDate = $parsedStart;
+                $endDate = $parsedEnd;
+            } else {
+                $startDate = $parsedEnd->copy()->startOfDay();
+                $endDate = $parsedStart->copy()->endOfDay();
+            }
+        } else {
+            $rangeType = 'preset';
+
+            switch ($preset) {
+                case 'all':
+                    $startDate = null;
+                    $endDate = null;
+                    break;
+                case 'today':
+                    $startDate = $today->copy()->startOfDay();
+                    $endDate = $today->copy()->endOfDay();
+                    break;
+                case 'this_month':
+                    $startDate = $today->copy()->startOfMonth();
+                    $endDate = $today->copy()->endOfMonth();
+                    break;
+                case 'this_week':
+                    $startDate = $today->copy()->startOfWeek(Carbon::MONDAY);
+                    $endDate = $today->copy()->endOfWeek(Carbon::SUNDAY);
+                    break;
+                default:
+                    $preset = 'this_week';
+                    $startDate = $today->copy()->startOfWeek(Carbon::MONDAY);
+                    $endDate = $today->copy()->endOfWeek(Carbon::SUNDAY);
+                    break;
+            }
+        }
+
+        return [
+            'rangeType' => $rangeType,
+            'preset' => $preset,
+            'startDateInput' => $rangeType === 'custom' ? $startDateInput : null,
+            'endDateInput' => $rangeType === 'custom' ? $endDateInput : null,
+            'startDate' => $startDate,
+            'endDate' => $endDate,
+        ];
+    }
+
     private function getIntensiveHoursByDate(?string $rangeIntensiveWorkday): array
     {
         if (empty($rangeIntensiveWorkday)) {
@@ -1643,6 +1805,195 @@ class ProjectController extends Controller
         return view(
             'projects.my_projects',
             compact('currentWorkspace', 'projects', 'project_type')
+        );
+    }
+
+    public function mySummary(Request $request)
+    {
+        $user = Auth::user();
+        $currentWorkspace = Workspace::find($user->currant_workspace);
+        $dateRange = $this->resolveMySummaryDateRange($request);
+        $myDayDateRange = $this->resolveMyDayDateRange($request);
+
+        $projectSummaries = Timesheet::query()
+            ->join('projects', 'timesheets.project_id', '=', 'projects.id')
+            ->leftJoin('workspaces', 'projects.workspace', '=', 'workspaces.id')
+            ->leftJoin('project_types', 'projects.type', '=', 'project_types.id')
+            ->where('timesheets.created_by', $user->id)
+            ->whereBetween('timesheets.date', [
+                $dateRange['startDate']->toDateString(),
+                $dateRange['endDate']->toDateString(),
+            ])
+            ->select(
+                'projects.id',
+                'projects.name',
+                'projects.type',
+                'projects.workspace as workspace_id',
+                'workspaces.name as workspace_name',
+                'workspaces.slug as workspace_slug',
+                'project_types.name as project_type_name',
+                DB::raw('SUM(TIME_TO_SEC(timesheets.time)) as total_seconds')
+            )
+            ->groupBy(
+                'projects.id',
+                'projects.name',
+                'projects.type',
+                'projects.workspace',
+                'workspaces.name',
+                'workspaces.slug',
+                'project_types.name'
+            )
+            ->orderByDesc('total_seconds')
+            ->get()
+            ->map(function ($summary) {
+                $totalSeconds = (int) $summary->total_seconds;
+                $summary->formatted_total_time = $this->formatSecondsAsHoursMinutes($totalSeconds);
+                $summary->decimal_total_time = round($totalSeconds / 3600, 2);
+                $summary->project_url = $summary->workspace_slug
+                    ? route('projects.show', [$summary->workspace_slug, $summary->id])
+                    : null;
+
+                return $summary;
+            });
+
+        $myDayStatus = (int) $request->input('my_day_status', 2);
+
+        $myDayMilestones = Milestone::query()
+            ->with([
+                'project:id,name,workspace',
+                'project.workspaceData:id,name,slug',
+                'tasks' => function ($query) use ($user) {
+                    $query->select('id', 'milestone_id', 'project_id', 'type_id', 'assign_to', 'estimated_date')
+                        ->with([
+                            'type:id,name',
+                            'customTask:id,id_task,name',
+                        ])
+                        ->where(function ($taskQuery) use ($user) {
+                            $taskQuery->where('assign_to', (string) $user->id)
+                                ->orWhereRaw('FIND_IN_SET(?, assign_to)', [(string) $user->id]);
+                        })
+                        ->orderByRaw('estimated_date IS NULL')
+                        ->orderBy('estimated_date');
+                },
+            ])
+            ->where('status', $myDayStatus)
+            ->whereHas('project');
+
+        if ($myDayStatus === 1) {
+            $myDayMilestones->where('milestone_assigned_to_user', $user->id);
+        } else {
+            $myDayMilestones->where(function ($query) use ($user) {
+                $query->where('milestone_assigned_to_user', $user->id)
+                    ->orWhereHas('tasks', function ($taskQuery) use ($user) {
+                        $taskQuery->where('assign_to', (string) $user->id)
+                            ->orWhereRaw('FIND_IN_SET(?, assign_to)', [(string) $user->id]);
+                    });
+            });
+        }
+
+        if ($myDayDateRange['preset'] !== 'all') {
+            $myDayMilestones
+                ->whereNotNull('planned_end_date')
+                ->where('planned_end_date', '!=', '0000-00-00')
+                ->whereDate('planned_end_date', '>=', $myDayDateRange['startDate']->toDateString())
+                ->whereDate('planned_end_date', '<=', $myDayDateRange['endDate']->toDateString());
+        }
+
+        $myDayMilestones = $myDayMilestones
+            ->orderByRaw('planned_end_date IS NULL')
+            ->orderBy('planned_end_date')
+            ->get();
+
+        $requestersById = User::query()
+            ->whereIn('id', $myDayMilestones->pluck('assign_to')->filter()->unique())
+            ->get(['id', 'name'])
+            ->keyBy('id');
+
+        $myDayMilestones->transform(function ($milestone) use ($requestersById) {
+            $workspace = optional($milestone->project)->workspaceData;
+
+            $milestone->requested_by_name = optional($requestersById->get($milestone->assign_to))->name;
+            $milestone->workspace_name = optional($workspace)->name;
+            $milestone->workspace_slug = optional($workspace)->slug;
+            $milestone->project_name = optional($milestone->project)->name;
+            $milestone->board_url = $milestone->workspace_slug && $milestone->project_id
+                ? route('projects.milestone.board', [$milestone->workspace_slug, $milestone->project_id])
+                : null;
+
+            return $milestone;
+        });
+
+        $userScore = round((float) PuntuacionTarea::query()
+            ->whereIn('id_tarea', function ($query) use ($user, $dateRange) {
+                $query->select('timesheets.task_id')
+                    ->from('timesheets')
+                    ->where('timesheets.created_by', $user->id)
+                    ->whereNotNull('timesheets.task_id')
+                    ->whereBetween('timesheets.date', [
+                        $dateRange['startDate']->toDateString(),
+                        $dateRange['endDate']->toDateString(),
+                    ])
+                    ->distinct();
+            })
+            ->sum('cantidad_puntaje'), 2);
+
+        $totalImputedTime = $this->formatSecondsAsHoursMinutes((int) $projectSummaries->sum('total_seconds'));
+        $selectedFilters = [
+            'range_type' => $dateRange['rangeType'],
+            'preset' => $dateRange['preset'],
+            'start_date' => $dateRange['startDateInput'],
+            'end_date' => $dateRange['endDateInput'],
+        ];
+        $myDaySelectedFilters = [
+            'status' => $myDayStatus,
+            'range_type' => $myDayDateRange['rangeType'],
+            'preset' => $myDayDateRange['preset'],
+            'start_date' => $myDayDateRange['startDateInput'],
+            'end_date' => $myDayDateRange['endDateInput'],
+        ];
+        $chartData = $this->buildMySummaryChartData(
+            $projectSummaries,
+            $totalImputedTime,
+            $dateRange['appliedLabel']
+        );
+
+        if ($request->ajax()) {
+            return response()->json([
+                'scoreHtml' => view('projects.partials.my_summary_score', compact(
+                    'userScore',
+                    'selectedFilters',
+                    'dateRange'
+                ))->render(),
+                'myDayHtml' => view('projects.partials.my_summary_day', compact(
+                    'currentWorkspace',
+                    'myDayMilestones',
+                    'myDaySelectedFilters'
+                ))->render(),
+                'contentHtml' => view('projects.partials.my_summary_content', compact(
+                    'currentWorkspace',
+                    'projectSummaries',
+                    'userScore',
+                    'totalImputedTime',
+                    'selectedFilters',
+                    'dateRange'
+                ))->render(),
+                'chartData' => $chartData,
+            ]);
+        }
+
+        return view(
+            'projects.my_summary',
+            compact(
+                'currentWorkspace',
+                'myDayMilestones',
+                'myDaySelectedFilters',
+                'projectSummaries',
+                'userScore',
+                'totalImputedTime',
+                'chartData',
+                'selectedFilters',
+                'dateRange'
+            )
         );
     }
 
