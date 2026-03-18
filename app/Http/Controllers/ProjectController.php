@@ -2403,6 +2403,13 @@ class ProjectController extends Controller
     }
 
 
+    private function syncMilestoneTaskEndDates(Milestone $milestone, ?string $endDate): void
+    {
+        $milestone->tasks()->update([
+            'end_date' => $endDate,
+        ]);
+    }
+
     public function clearFinalizationDate($slug, $milestoneID)
     {
         $milestone = Milestone::find($milestoneID);
@@ -4345,6 +4352,104 @@ class ProjectController extends Controller
 
         return redirect()->back()->with('success', __('Milestone Updated Successfully!'));
     }
+
+    private function getTaskDisplayName(?Task $task): string
+    {
+        if (!$task) {
+            return __('N/A');
+        }
+
+        $taskTypeName = optional($task->type)->name;
+        $isCustomType = strtolower(trim((string) $taskTypeName)) === 'custom';
+
+        if ($isCustomType) {
+            return optional($task->customTask)->name ?: __('Custom');
+        }
+
+        return $taskTypeName ?: __('N/A');
+    }
+
+
+    private function formatSecondsToHoursMinutes(?int $totalSeconds): string
+    {
+        $seconds = max(0, (int) $totalSeconds);
+        $hours = intdiv($seconds, 3600);
+        $minutes = intdiv($seconds % 3600, 60);
+
+        return sprintf('%02d:%02d', $hours, $minutes);
+    }
+    
+    private function buildLoggedTaskDetailsForPeriod(int $userId, Carbon $startDate, Carbon $endDate): array
+    {
+        $loggedTaskRows = Timesheet::query()
+            ->select(
+                'timesheets.project_id',
+                'timesheets.task_id',
+                'projects.name as project_name',
+                DB::raw('SUM(TIME_TO_SEC(timesheets.time)) as total_seconds')
+            )
+            ->join('tasks', 'tasks.id', '=', 'timesheets.task_id')
+            ->join('milestones', 'milestones.id', '=', 'tasks.milestone_id')
+            ->leftJoin('projects', 'projects.id', '=', 'timesheets.project_id')
+            ->where('timesheets.created_by', $userId)
+            ->whereNotNull('timesheets.task_id')
+            ->whereRaw('TIME_TO_SEC(timesheets.time) > 0')
+            ->whereDate('timesheets.date', '>=', $startDate->toDateString())
+            ->whereDate('timesheets.date', '<=', $endDate->toDateString())
+            ->groupBy('timesheets.project_id', 'timesheets.task_id', 'projects.name')
+            ->get();
+
+        $taskIds = $loggedTaskRows->pluck('task_id')->filter()->unique()->values();
+
+        $tasksById = Task::with([
+            'project:id,name',
+            'milestone:id,title,project_id',
+            'type:id,name',
+            'customTask:id,id_task,name',
+        ])
+            ->whereIn('id', $taskIds)
+            ->get()
+            ->keyBy('id');
+
+        $loggedTasks = [];
+        foreach ($loggedTaskRows as $loggedTaskRow) {
+            $taskModel = $tasksById->get((int) $loggedTaskRow->task_id);
+            if (!$taskModel || !$taskModel->milestone) {
+                continue;
+            }
+
+            $projectName = $taskModel && optional($taskModel->project)->name
+                ? optional($taskModel->project)->name
+                : ($loggedTaskRow->project_name ?: __('N/A'));
+
+            $loggedTasks[] = [
+                'name' => $this->getTaskDisplayName($taskModel),
+                'project' => $projectName,
+                'milestone' => $taskModel && optional($taskModel->milestone)->title
+                    ? optional($taskModel->milestone)->title
+                    : __('N/A'),
+                'hours' => $this->formatSecondsToHoursMinutes((int) ($loggedTaskRow->total_seconds ?? 0)),
+            ];
+        }
+
+        usort($loggedTasks, function ($leftTask, $rightTask) {
+            $left = [
+                Str::lower((string) ($leftTask['project'] ?? '')),
+                Str::lower((string) ($leftTask['name'] ?? '')),
+                Str::lower((string) ($leftTask['milestone'] ?? '')),
+            ];
+            $right = [
+                Str::lower((string) ($rightTask['project'] ?? '')),
+                Str::lower((string) ($rightTask['name'] ?? '')),
+                Str::lower((string) ($rightTask['milestone'] ?? '')),
+            ];
+
+            return $left <=> $right;
+        });
+
+        return $loggedTasks;
+    }
+
 
     public function myTasks()
     {
