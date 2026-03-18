@@ -497,293 +497,236 @@
     }
 </style>
 <style>
-    #orderFiltersModal .modal-dialog {
-        max-width: 980px;
+    .project-order-table-shell {
+        border-radius: 14px;
+        padding: 10px;
+        max-height: 41vh;
+        overflow: auto;
     }
 
-    #orderFiltersModal .modal-content {
-        border: none;
-        border-radius: 20px;
-        box-shadow: 0 24px 80px rgba(0, 0, 0, 0.10), 0 2px 6px rgba(0, 0, 0, 0.03);
-        overflow: visible;
-    }
-
-    #orderFiltersModal .modal-header {
-        padding: 24px 28px 16px;
-        border-bottom: 1px solid #bfbfbf;
-    }
-
-    #orderFiltersModal .modal-body {
-        padding: 18px 28px 24px;
-        overflow: visible;
-    }
-
-    .orderFiltersGrid {
-        display: grid;
-        grid-template-columns: repeat(3, minmax(0, 1fr));
-        gap: 0 20px;
-    }
-
-    .orderFiltersGrid.orderFiltersGrid--with-stage-phase {
-        grid-template-columns: repeat(4, minmax(0, 1fr));
-    }
-
-    .orderFilterBlock {
-        border: 1px solid #c0c0c0;
-        background: #fafafa;
-        border-radius: 10px;
-        margin-bottom: 10px;
-        padding: 2px 15px;
-    }
-
-    .orderFilterHeader {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        cursor: pointer;
-        user-select: none;
-        padding: 10px 0;
-    }
-
-    .orderFilterLabel {
-        font-size: 11px;
-        font-weight: 700;
-        color: black;
+    .project-order-table thead th {
+        position: sticky;
+        top: 0;
+        z-index: 1;
+        background: #fff3f6;
+        color: #6f1830;
+        font-size: 12px;
         text-transform: uppercase;
-        letter-spacing: 0.5px;
-        margin: 0;
+        letter-spacing: .06em;
+        border: 0;
+        white-space: nowrap;
+        padding: 12px 14px;
+        vertical-align: middle;
     }
 
-    .orderFilterChevron {
-        font-size: 1rem;
-        color: #111;
-        transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
-    }
-
-    .orderFilterBlock.open .orderFilterChevron {
-        transform: rotate(180deg);
-    }
-
-    .orderFilterContent {
-        display: block;
-        max-height: 0;
-        opacity: 0;
-        overflow: hidden;
-        transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease, margin 0.3s ease, padding 0.3s ease;
-        margin: 0;
-        padding: 0;
-    }
-
-    .orderFilterBlock.open .orderFilterContent {
-        max-height: 520px;
-        opacity: 1;
-        overflow: visible;
-        margin: 0 0 8px;
-        padding: 0 0 4px;
-    }
-
-    .orderAutocompleteWrap {
-        position: relative;
-    }
-
-    .orderFilterInputWrap {
-        display: flex;
-        gap: 10px;
-        align-items: center;
-    }
-
-    #orderFiltersModal .form-control,
-    #orderFiltersModal .form-select {
-        border: 1px solid #c8c5c5;
-        background: #ffffff;
-        border-radius: 10px;
-        font-size: 13px;
-        font-weight: 500;
-        padding: 10px 14px;
-        color: #333;
-        transition: background 0.25s ease, box-shadow 0.25s ease;
-    }
-
-    #orderFiltersModal .form-control:focus,
-    #orderFiltersModal .form-select:focus {
-        background: #fff;
-        box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.08);
-        outline: none;
-    }
-
-    #orderFiltersModal .form-control::placeholder {
-        color: #bbb;
-        font-weight: 400;
-    }
-
-    #orderFiltersModal #ofDateField {
-        cursor: pointer;
-    }
-
-    .orderSuggestions {
-        position: absolute;
-        top: calc(100% + 6px);
-        left: 0;
-        right: 0;
-        max-height: 200px;
-        overflow-y: auto;
-        background: #fff;
-        border: 1px solid #dee2e6;
-        border-radius: 8px;
-        z-index: 2000;
-        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.10);
-        display: none;
-    }
-
-    .orderSuggestions.visible {
-        display: block;
-    }
-
-    .orderSuggestionItem {
-        padding: 10px 14px;
-        font-size: 13px;
-        cursor: pointer;
-        border-bottom: 1px solid #f5f5f5;
-    }
-
-    .orderSuggestionItem:last-child {
-        border-bottom: none;
-    }
-
-    .orderSuggestionItem:hover {
-        background: #f8f8f8;
-    }
-
-    .orderSelectedList {
-        margin-top: 8px;
-        display: flex;
-        flex-wrap: wrap;
-        gap: 6px;
-    }
-
-    .orderSelectedTag {
-        background: #fff;
-        border: 1px solid #e0e0e0;
-        border-radius: 20px;
-        padding: 4px 12px;
-        font-size: 11px;
-        font-weight: 600;
-        color: #666;
+    .project-order-th-content {
         display: inline-flex;
         align-items: center;
-        gap: 6px;
+        gap: 8px;
     }
 
-    .orderSelectedTag button {
-        border: none;
-        background: transparent;
-        color: #888;
-        line-height: 1;
-        padding: 0;
-        font-size: 13px;
-    }
-
-    .orderCheckList {
-        display: flex;
-        flex-direction: column;
-        gap: 4px;
-    }
-
-    .orderCheckItem {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        font-size: 13px;
-        font-weight: 500;
-        color: #444;
-        padding: 8px 10px;
+    .project-order-filter-btn {
+        width: 24px;
+        height: 24px;
+        border: 1px solid transparent;
         border-radius: 8px;
-    }
-
-    .orderCheckItem:hover {
-        background-color: #f5f5f5;
-    }
-
-    .orderCheckItem input[type='checkbox'] {
-        accent-color: #AA182C;
-        cursor: pointer;
-    }
-
-    .orderDateRangeRow {
-        display: grid;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 10px;
-    }
-
-    .orderDateLabel {
-        font-size: 10px;
-        font-weight: 700;
-        color: #aaa;
-        text-transform: uppercase;
-        letter-spacing: 1px;
-        margin: 0 0 6px;
-    }
-
-    .orderFiltersActions {
-        display: flex;
-        justify-content: flex-end;
-        gap: 10px;
-        padding-top: 10px;
-    }
-
-    #ofAddNameBtn,
-    #ofAddRequestedBtn,
-    #ofAddAssignedBtn,
-    #ofAddDateBtn {
-        width: 32px;
-        height: 32px;
-        min-width: 32px;
-        min-height: 32px;
-        padding: 0;
+        background: transparent;
+        color: #8f6a73;
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        border-radius: 10px;
-        border: none;
-        background: #AA182C;
+        transition: all .18s ease;
+        padding: 0;
+    }
+
+    .project-order-filter-btn:hover {
+        background: #ffe8ee;
+        border-color: #efc6d1;
+        color: #7b1528;
+    }
+
+    .project-order-filter-btn.is-active {
+        background: #b6122e;
+        border-color: #b6122e;
         color: #fff;
-        transition: background 0.2s ease, transform 0.15s ease;
     }
 
-    #ofAddNameBtn:hover,
-    #ofAddRequestedBtn:hover,
-    #ofAddAssignedBtn:hover,
-    #ofAddDateBtn:hover {
-        background: #8f1525;
-        transform: scale(1.05);
+    .project-order-filter-icon {
+        width: 14px;
+        height: 14px;
+        fill: currentColor;
+        pointer-events: none;
     }
 
-    #ofAddNameBtn i,
-    #ofAddRequestedBtn i,
-    #ofAddAssignedBtn i,
-    #ofAddDateBtn i {
-        font-size: 11px;
+    .project-order-header-tools {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
     }
 
-    .orderActiveFiltersBar {
-        margin-top: 12px;
-        padding: 10px;
-        border: 1px solid #e9ecef;
+    .project-order-column-toggle-btn {
+        min-height: 36px;
+        border: 1px solid #efc6d1;
         border-radius: 10px;
-        background: #f8f9fa;
-    }
-
-    .orderActiveFiltersTitle {
+        background: linear-gradient(180deg, #fff 0%, #fff7f9 100%);
+        color: #6f1830;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        transition: all .18s ease;
+        padding: 0 12px;
         font-size: 12px;
         font-weight: 700;
-        color: #495057;
-        margin: 0 0 8px;
+        letter-spacing: .02em;
     }
 
-    .orderActiveFiltersList {
+    .project-order-column-toggle-btn:hover {
+        border-color: #b6122e;
+        background: #fff0f4;
+        color: #7b1528;
+        transform: translateY(-1px);
+    }
+
+    .project-order-column-toggle-btn:focus-visible {
+        outline: 0;
+        border-color: #b6122e;
+        box-shadow: 0 0 0 3px rgba(182, 18, 46, 0.15);
+    }
+
+    .project-order-column-toggle-btn.is-active {
+        border-color: #b6122e;
+        background: #b6122e;
+        color: #fff;
+        box-shadow: 0 2px 8px rgba(182, 18, 46, 0.22);
+    }
+
+    .project-order-column-toggle-icon {
+        width: 15px;
+        height: 15px;
+        fill: currentColor;
+    }
+
+    .project-order-column-toggle-count {
+        font-size: 11px;
+        color: #975363;
+    }
+
+    .project-order-column-toggle-btn.is-active .project-order-column-toggle-count {
+        color: rgba(255, 255, 255, 0.88);
+    }
+
+    .project-order-filter-menu,
+    .project-order-column-menu {
+        position: fixed;
+        z-index: 1200;
+        width: 260px;
+        max-width: calc(100vw - 24px);
+        background: #fff;
+        border: 1px solid #efc6d1;
+        border-radius: 14px;
+        box-shadow: 0 18px 40px rgba(64, 24, 33, 0.16);
+        padding: 14px;
+    }
+
+    .project-order-filter-menu-header {
         display: flex;
-        flex-wrap: wrap;
-        gap: 6px;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        margin-bottom: 10px;
+    }
+
+    .project-order-filter-menu-title,
+    .project-order-column-menu-title {
+        margin: 0;
+        font-size: 13px;
+        font-weight: 700;
+        color: #4a1421;
+    }
+
+    .project-order-filter-link {
+        border: 0;
+        background: transparent;
+        color: #aa182c;
+        font-size: 12px;
+        font-weight: 700;
+        padding: 0;
+    }
+
+    .project-order-filter-menu-actions {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 10px;
+    }
+
+    .project-order-filter-search {
+        width: 100%;
+        border: 1px solid #efc6d1;
+        border-radius: 10px;
+        padding: 8px 10px;
+        font-size: 13px;
+        margin-bottom: 10px;
+    }
+
+    .project-order-filter-search:focus {
+        outline: 0;
+        border-color: #b6122e;
+        box-shadow: 0 0 0 3px rgba(182, 18, 46, 0.12);
+    }
+
+    .project-order-filter-options {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        max-height: 280px;
+        overflow: auto;
+    }
+
+    .project-order-filter-option {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 13px;
+        color: #4d4d4d;
+        padding: 8px 10px;
+        border-radius: 8px;
+        cursor: pointer;
+    }
+
+    .project-order-filter-option:hover {
+        background: #fff5f7;
+    }
+
+    .project-order-filter-option input[type='checkbox'] {
+        accent-color: #aa182c;
+        cursor: pointer;
+    }
+
+    .project-order-filter-option span:first-of-type {
+        flex: 1;
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .project-order-filter-option-count {
+        color: #8b6b73;
+        font-size: 11px;
+        font-weight: 700;
+    }
+
+    .project-order-filtered-empty-state {
+        display: none;
+        text-align: center;
+        padding: 28px 16px 18px;
+        color: #7c5a63;
+    }
+
+    .project-order-filtered-empty-state.is-visible {
+        display: block;
     }
 
     .addmMilestoneButton {
@@ -929,6 +872,10 @@
     @media (max-width: 992px) {
         .files-body {
             padding: 14px !important;
+        }
+
+        .project-order-column-toggle-count {
+            display: none;
         }
     }
 
@@ -1201,17 +1148,27 @@
                                         <div>
                                             <h5 class="mb-0 d-flex align-items-center" style="gap: 8px;">
                                                 <span>{{ __('Order forms') }} ({{ count($project->milestones) }})</span>
-                                                <button type="button" class="btn btn-sm btn-primary"
-                                                    data-bs-toggle="modal" data-bs-target="#orderFiltersModal"
-                                                    title="{{ __('Filter') }}">
-                                                    <i class="fa-solid fa-filter"></i>
-                                                </button>
                                             </h5>
                                         </div>
                                         <div class="orderFormsHeaderActions">
+                                            <div class="project-order-header-tools">
+                                                <button type="button" id="orderFormsColumnsToggleBtn"
+                                                    class="project-order-column-toggle-btn"
+                                                    aria-label="{{ __('Show or hide table columns') }}"
+                                                    title="{{ __('Show or hide table columns') }}"
+                                                    aria-expanded="false">
+                                                    <svg class="project-order-column-toggle-icon" viewBox="0 0 16 16"
+                                                        aria-hidden="true">
+                                                        <path
+                                                            d="M8 3.2c3.3 0 5.8 2.3 6.9 4.8-1.1 2.5-3.6 4.8-6.9 4.8S2.2 10.5 1.1 8C2.2 5.5 4.7 3.2 8 3.2Zm0 1.2c-2.6 0-4.7 1.7-5.8 3.6 1.1 1.9 3.2 3.6 5.8 3.6s4.7-1.7 5.8-3.6c-1.1-1.9-3.2-3.6-5.8-3.6Zm0 1.4a2.2 2.2 0 1 1 0 4.4 2.2 2.2 0 0 1 0-4.4Zm0 1.2a1 1 0 1 0 0 2 1 1 0 0 0 0-2Z"></path>
+                                                    </svg>
+                                                    <span class="project-order-column-toggle-count"
+                                                        id="orderFormsColumnsToggleCount">0/0</span>
+                                                </button>
+                                            </div>
                                             @if ($project->type == 3 || $project->type == 5)
                                                 <a href="#" class="btn btn-primary" data-ajax-popup="true"
-                                                    data-size="md" title="{{ __('See stages') }}"
+                                                    data-size="md" title="{{ __('Edit Phases') }}"
                                                     data-url="{{ route('projects.stages.popup', [$currentWorkspace->slug, $project->id]) }}"
                                                     data-toggle="popover"><i class="fa-solid fa-layer-group me-2"></i>
                                                 </a>
@@ -1227,62 +1184,216 @@
                                     </div>
                                 </div>
                                 <div class="card-body">
-                                    <div class="table-responsive" style="max-height: 41vh;">
-                                        <table id="orderFormsTable" class="table table-bordered"
+                                    <div class="table-responsive project-order-table-shell">
+                                        <table id="orderFormsTable" class="table table-bordered project-order-table"
                                             style="text-align: center;">
                                             <thead>
-                                                {{-- <tr>
-                                                    <th>{{ __('Name') }}</th>
-                                                    <th>{{ __('Requested by') }}</th>
-                                                    <th>{{ __('Assigned to') }}</th>
-                                                    <th>{{ __('Status') }}</th> --}}
-
-
-                                                {{-- <th>{{ __('Created date') }}</th>
-                                                    <th>{{ __('Desired delivery date') }}</th>
-                                                    <th>{{ __('Expected delivery date') }}</th>
-                                                    <th>{{ __('Task started date') }}</th>
-                                                    <th>{{ __('Completion date') }}</th> --}}
-
-
-                                                {{-- <th>{{ __('Created') }}</th>
-                                                    <th>{{ __('Desired delivery') }}</th>
-                                                    <th>{{ __('Expected delivery') }}</th>
-                                                    <th>{{ __('Task started') }}</th>
-                                                    <th>{{ __('Completion') }}</th>
-
-                                                    <th>{{ __('Action') }}</th>
-                                                </tr> --}}
                                                 <tr>
                                                     @if ($project->type == 3 || $project->type == 5)
                                                         <th data-col-key="stage">
-                                                            {{ __('Stage') }}</th>
+                                                            <div class="project-order-th-content">
+                                                                <span>{{ __('Stage') }}</span>
+                                                                <button type="button" class="project-order-filter-btn"
+                                                                    data-filter-key="stage"
+                                                                    data-filter-label="{{ __('Stage') }}"
+                                                                    data-column-index="0"
+                                                                    aria-label="{{ __('Filter Stage') }}">
+                                                                    <svg class="project-order-filter-icon"
+                                                                        viewBox="0 0 16 16" aria-hidden="true">
+                                                                        <path
+                                                                            d="M2 3.25A1.25 1.25 0 0 1 3.25 2h9.5A1.25 1.25 0 0 1 14 3.25c0 .3-.11.6-.31.82L9.5 8.45v3.3a1 1 0 0 1-.55.9l-2 1A1 1 0 0 1 5.5 12.75V8.45L2.31 4.07A1.25 1.25 0 0 1 2 3.25Z"></path>
+                                                                    </svg>
+                                                                </button>
+                                                            </div>
+                                                        </th>
                                                         <th data-col-key="phase">
-                                                            {{ __('Phase') }}</th>
+                                                            <div class="project-order-th-content">
+                                                                <span>{{ __('Phase') }}</span>
+                                                                <button type="button" class="project-order-filter-btn"
+                                                                    data-filter-key="phase"
+                                                                    data-filter-label="{{ __('Phase') }}"
+                                                                    data-column-index="1"
+                                                                    aria-label="{{ __('Filter Phase') }}">
+                                                                    <svg class="project-order-filter-icon"
+                                                                        viewBox="0 0 16 16" aria-hidden="true">
+                                                                        <path
+                                                                            d="M2 3.25A1.25 1.25 0 0 1 3.25 2h9.5A1.25 1.25 0 0 1 14 3.25c0 .3-.11.6-.31.82L9.5 8.45v3.3a1 1 0 0 1-.55.9l-2 1A1 1 0 0 1 5.5 12.75V8.45L2.31 4.07A1.25 1.25 0 0 1 2 3.25Z"></path>
+                                                                    </svg>
+                                                                </button>
+                                                            </div>
+                                                        </th>
                                                     @endif
                                                     <th data-col-key="name">
-                                                        {{ __('Name') }}</th>
-                                                    <th data-col-key="requested_by">{{ __('Requested by') }}</th>
+                                                        <div class="project-order-th-content">
+                                                            <span>{{ __('Name') }}</span>
+                                                            <button type="button" class="project-order-filter-btn"
+                                                                data-filter-key="name"
+                                                                data-filter-label="{{ __('Name') }}"
+                                                                data-column-index="{{ $project->type == 3 || $project->type == 5 ? 2 : 0 }}"
+                                                                aria-label="{{ __('Filter Name') }}">
+                                                                <svg class="project-order-filter-icon"
+                                                                    viewBox="0 0 16 16" aria-hidden="true">
+                                                                    <path
+                                                                        d="M2 3.25A1.25 1.25 0 0 1 3.25 2h9.5A1.25 1.25 0 0 1 14 3.25c0 .3-.11.6-.31.82L9.5 8.45v3.3a1 1 0 0 1-.55.9l-2 1A1 1 0 0 1 5.5 12.75V8.45L2.31 4.07A1.25 1.25 0 0 1 2 3.25Z"></path>
+                                                                </svg>
+                                                            </button>
+                                                        </div>
+                                                    </th>
+                                                    <th data-col-key="requested_by">
+                                                        <div class="project-order-th-content">
+                                                            <span>{{ __('Requested by') }}</span>
+                                                            <button type="button" class="project-order-filter-btn"
+                                                                data-filter-key="requested_by"
+                                                                data-filter-label="{{ __('Requested by') }}"
+                                                                data-column-index="{{ $project->type == 3 || $project->type == 5 ? 3 : 1 }}"
+                                                                aria-label="{{ __('Filter Requested by') }}">
+                                                                <svg class="project-order-filter-icon"
+                                                                    viewBox="0 0 16 16" aria-hidden="true">
+                                                                    <path
+                                                                        d="M2 3.25A1.25 1.25 0 0 1 3.25 2h9.5A1.25 1.25 0 0 1 14 3.25c0 .3-.11.6-.31.82L9.5 8.45v3.3a1 1 0 0 1-.55.9l-2 1A1 1 0 0 1 5.5 12.75V8.45L2.31 4.07A1.25 1.25 0 0 1 2 3.25Z"></path>
+                                                                </svg>
+                                                            </button>
+                                                        </div>
+                                                    </th>
                                                     <th data-col-key="assigned_to">
-                                                        {{ __('Assigned to') }}</th>
+                                                        <div class="project-order-th-content">
+                                                            <span>{{ __('Assigned to') }}</span>
+                                                            <button type="button" class="project-order-filter-btn"
+                                                                data-filter-key="assigned_to"
+                                                                data-filter-label="{{ __('Assigned to') }}"
+                                                                data-column-index="{{ $project->type == 3 || $project->type == 5 ? 4 : 2 }}"
+                                                                aria-label="{{ __('Filter Assigned to') }}">
+                                                                <svg class="project-order-filter-icon"
+                                                                    viewBox="0 0 16 16" aria-hidden="true">
+                                                                    <path
+                                                                        d="M2 3.25A1.25 1.25 0 0 1 3.25 2h9.5A1.25 1.25 0 0 1 14 3.25c0 .3-.11.6-.31.82L9.5 8.45v3.3a1 1 0 0 1-.55.9l-2 1A1 1 0 0 1 5.5 12.75V8.45L2.31 4.07A1.25 1.25 0 0 1 2 3.25Z"></path>
+                                                                </svg>
+                                                            </button>
+                                                        </div>
+                                                    </th>
                                                     <th data-col-key="status">
-                                                        {{ __('Status') }}</th>
+                                                        <div class="project-order-th-content">
+                                                            <span>{{ __('Status') }}</span>
+                                                            <button type="button" class="project-order-filter-btn"
+                                                                data-filter-key="status"
+                                                                data-filter-label="{{ __('Status') }}"
+                                                                data-column-index="{{ $project->type == 3 || $project->type == 5 ? 5 : 3 }}"
+                                                                aria-label="{{ __('Filter Status') }}">
+                                                                <svg class="project-order-filter-icon"
+                                                                    viewBox="0 0 16 16" aria-hidden="true">
+                                                                    <path
+                                                                        d="M2 3.25A1.25 1.25 0 0 1 3.25 2h9.5A1.25 1.25 0 0 1 14 3.25c0 .3-.11.6-.31.82L9.5 8.45v3.3a1 1 0 0 1-.55.9l-2 1A1 1 0 0 1 5.5 12.75V8.45L2.31 4.07A1.25 1.25 0 0 1 2 3.25Z"></path>
+                                                                </svg>
+                                                            </button>
+                                                        </div>
+                                                    </th>
                                                     <th data-col-key="created">
-                                                        {{ __('Created') }}</th>
+                                                        <div class="project-order-th-content">
+                                                            <span>{{ __('Created') }}</span>
+                                                            <button type="button" class="project-order-filter-btn"
+                                                                data-filter-key="created"
+                                                                data-filter-label="{{ __('Created') }}"
+                                                                data-column-index="{{ $project->type == 3 || $project->type == 5 ? 6 : 4 }}"
+                                                                aria-label="{{ __('Filter Created') }}">
+                                                                <svg class="project-order-filter-icon"
+                                                                    viewBox="0 0 16 16" aria-hidden="true">
+                                                                    <path
+                                                                        d="M2 3.25A1.25 1.25 0 0 1 3.25 2h9.5A1.25 1.25 0 0 1 14 3.25c0 .3-.11.6-.31.82L9.5 8.45v3.3a1 1 0 0 1-.55.9l-2 1A1 1 0 0 1 5.5 12.75V8.45L2.31 4.07A1.25 1.25 0 0 1 2 3.25Z"></path>
+                                                                </svg>
+                                                            </button>
+                                                        </div>
+                                                    </th>
                                                     <th data-col-key="desired_delivery">
-                                                        {{ __('Desired delivery') }}
+                                                        <div class="project-order-th-content">
+                                                            <span>{{ __('Desired delivery') }}</span>
+                                                            <button type="button" class="project-order-filter-btn"
+                                                                data-filter-key="desired_delivery"
+                                                                data-filter-label="{{ __('Desired delivery') }}"
+                                                                data-column-index="{{ $project->type == 3 || $project->type == 5 ? 7 : 5 }}"
+                                                                aria-label="{{ __('Filter Desired delivery') }}">
+                                                                <svg class="project-order-filter-icon"
+                                                                    viewBox="0 0 16 16" aria-hidden="true">
+                                                                    <path
+                                                                        d="M2 3.25A1.25 1.25 0 0 1 3.25 2h9.5A1.25 1.25 0 0 1 14 3.25c0 .3-.11.6-.31.82L9.5 8.45v3.3a1 1 0 0 1-.55.9l-2 1A1 1 0 0 1 5.5 12.75V8.45L2.31 4.07A1.25 1.25 0 0 1 2 3.25Z"></path>
+                                                                </svg>
+                                                            </button>
+                                                        </div>
                                                     </th>
                                                     <th data-col-key="expected_delivery">
-                                                        {{ __('Expected delivery') }}
+                                                        <div class="project-order-th-content">
+                                                            <span>{{ __('Expected delivery') }}</span>
+                                                            <button type="button" class="project-order-filter-btn"
+                                                                data-filter-key="expected_delivery"
+                                                                data-filter-label="{{ __('Expected delivery') }}"
+                                                                data-column-index="{{ $project->type == 3 || $project->type == 5 ? 8 : 6 }}"
+                                                                aria-label="{{ __('Filter Expected delivery') }}">
+                                                                <svg class="project-order-filter-icon"
+                                                                    viewBox="0 0 16 16" aria-hidden="true">
+                                                                    <path
+                                                                        d="M2 3.25A1.25 1.25 0 0 1 3.25 2h9.5A1.25 1.25 0 0 1 14 3.25c0 .3-.11.6-.31.82L9.5 8.45v3.3a1 1 0 0 1-.55.9l-2 1A1 1 0 0 1 5.5 12.75V8.45L2.31 4.07A1.25 1.25 0 0 1 2 3.25Z"></path>
+                                                                </svg>
+                                                            </button>
+                                                        </div>
                                                     </th>
                                                     <th data-col-key="task_started">
-                                                        {{ __('Task started') }}</th>
+                                                        <div class="project-order-th-content">
+                                                            <span>{{ __('Task started') }}</span>
+                                                            <button type="button" class="project-order-filter-btn"
+                                                                data-filter-key="task_started"
+                                                                data-filter-label="{{ __('Task started') }}"
+                                                                data-column-index="{{ $project->type == 3 || $project->type == 5 ? 9 : 7 }}"
+                                                                aria-label="{{ __('Filter Task started') }}">
+                                                                <svg class="project-order-filter-icon"
+                                                                    viewBox="0 0 16 16" aria-hidden="true">
+                                                                    <path
+                                                                        d="M2 3.25A1.25 1.25 0 0 1 3.25 2h9.5A1.25 1.25 0 0 1 14 3.25c0 .3-.11.6-.31.82L9.5 8.45v3.3a1 1 0 0 1-.55.9l-2 1A1 1 0 0 1 5.5 12.75V8.45L2.31 4.07A1.25 1.25 0 0 1 2 3.25Z"></path>
+                                                                </svg>
+                                                            </button>
+                                                        </div>
+                                                    </th>
                                                     <th data-col-key="completion">
-                                                        {{ __('Completion') }}</th>
+                                                        <div class="project-order-th-content">
+                                                            <span>{{ __('Completion') }}</span>
+                                                            <button type="button" class="project-order-filter-btn"
+                                                                data-filter-key="completion"
+                                                                data-filter-label="{{ __('Completion') }}"
+                                                                data-column-index="{{ $project->type == 3 || $project->type == 5 ? 10 : 8 }}"
+                                                                aria-label="{{ __('Filter Completion') }}">
+                                                                <svg class="project-order-filter-icon"
+                                                                    viewBox="0 0 16 16" aria-hidden="true">
+                                                                    <path
+                                                                        d="M2 3.25A1.25 1.25 0 0 1 3.25 2h9.5A1.25 1.25 0 0 1 14 3.25c0 .3-.11.6-.31.82L9.5 8.45v3.3a1 1 0 0 1-.55.9l-2 1A1 1 0 0 1 5.5 12.75V8.45L2.31 4.07A1.25 1.25 0 0 1 2 3.25Z"></path>
+                                                                </svg>
+                                                            </button>
+                                                        </div>
+                                                    </th>
                                                     <th data-col-key="action">{{ __('Action') }}</th>
                                                 </tr>
                                             </thead>
                                             <tbody id="orderFormsTableBody">
+                                                @php
+                                                    $dateFilterLabel = static function ($date) {
+                                                        if (empty($date) || $date === '0000-00-00') {
+                                                            return __('N/A');
+                                                        }
+
+                                                        $parsedDate = \Carbon\Carbon::parse($date)->locale(app()->getLocale());
+
+                                                        if (str_starts_with(app()->getLocale(), 'es')) {
+                                                            return $parsedDate->translatedFormat('F \\d\\e Y');
+                                                        }
+
+                                                        return $parsedDate->translatedFormat('F Y');
+                                                    };
+
+                                                    $dateFilterSortValue = static function ($date) {
+                                                        if (empty($date) || $date === '0000-00-00') {
+                                                            return '';
+                                                        }
+
+                                                        return \Carbon\Carbon::parse($date)->format('Y-m');
+                                                    };
+                                                @endphp
                                                 @foreach ($project->milestones->sortByDesc('id') as $key => $milestone)
                                                     @php
                                                         $stageFilterValue = '';
@@ -1325,29 +1436,24 @@
                                                         data-task-started-date="{{ !empty($milestone->task_start_date) && $milestone->task_start_date !== '0000-00-00' ? \Carbon\Carbon::parse($milestone->task_start_date)->format('Y-m-d') : '' }}"
                                                         data-completion-date="{{ !empty($milestone->finalization_date) && $milestone->finalization_date !== '0000-00-00' ? \Carbon\Carbon::parse($milestone->finalization_date)->format('Y-m-d') : '' }}">
                                                         @if ($project->type == 3 || $project->type == 5)
-                                                            <td class="col-stage">
-                                                                @php
-                                                                    $phase = $milestone->phase;
-                                                                @endphp
-                                                                @if ($phase)
-                                                                    <span
-                                                                        style="font-weight: bold;">{{ __(\App\Models\MilestonePhases::translationKey($phase->phases)) }}</span>
+                                                            <td class="col-stage"
+                                                                data-filter-value="{{ $stageFilterValue !== '' ? $stageFilterValue : __('N/A') }}">
+                                                                @if (filled($stageFilterValue))
+                                                                    <span style="font-weight: bold;">{{ $stageFilterValue }}</span>
                                                                 @else
                                                                     <span class="text-muted">...</span>
                                                                 @endif
-                                                            <td class="col-phase">
-                                                                @php
-                                                                    $stageName = $milestone->resolved_stage_name;
-                                                                @endphp
-                                                                @if (filled($stageName))
-                                                                    <span
-                                                                        style="font-weight: bold;">{{ $stageName }}</span>
+                                                            <td class="col-phase"
+                                                                data-filter-value="{{ $phaseFilterValue !== '' ? $phaseFilterValue : __('N/A') }}">
+                                                                @if (filled($phaseFilterValue))
+                                                                    <span style="font-weight: bold;">{{ $phaseFilterValue }}</span>
                                                                 @else
                                                                     <span class="text-muted">...</span>
                                                                 @endif
                                                             </td>
                                                         @endif
-                                                        <td class="col-name"><a href="#"
+                                                        <td class="col-name"
+                                                            data-filter-value="{{ trim($milestone->title ?? '') !== '' ? trim($milestone->title) : __('N/A') }}"><a href="#"
                                                                 class="d-block font-weight-500 mb-0"
                                                                 data-ajax-popup="true"
                                                                 data-title="{{ __('Order form details') }}"
@@ -1356,14 +1462,16 @@
                                                                     {{ $milestone->title }} </h5>
                                                             </a>
                                                         </td>
-                                                        <td class="reqByImgContainer col-requested_by">
+                                                        <td class="reqByImgContainer col-requested_by"
+                                                            data-filter-value="{{ trim(optional($milestone->getRequestedBy())->name ?? '') !== '' ? trim(optional($milestone->getRequestedBy())->name) : __('N/A') }}">
                                                             @if ($milestone->getRequestedBy() != null)
                                                                 <img class="fix_img"
                                                                     title="{{ $milestone->getRequestedBy()->name }}"
                                                                     @if ($milestone->getRequestedBy()->avatar) src="{{ asset($milestone->getRequestedBy()->avatar) }}" @else avatar="{{ $milestone->getRequestedBy()->name }}" @endif>
                                                             @endif
                                                         </td>
-                                                        <td class="assignedToImgContainer col-assigned_to">
+                                                        <td class="assignedToImgContainer col-assigned_to"
+                                                            data-filter-value="{{ trim(optional($milestone->getAssignedToUser())->name ?? '') !== '' ? trim(optional($milestone->getAssignedToUser())->name) : __('N/A') }}">
                                                             @if ($milestone->getAssignedToUser() != null)
                                                                 <img class="fix_img"
                                                                     title="{{ $milestone->getAssignedToUser()->name }}"
@@ -1373,7 +1481,7 @@
                                                             @endif
                                                         </td>
 
-                                                        <td class="col-status">
+                                                        <td class="col-status" data-filter-value="{{ $statusText }}">
                                                             @if ($milestone->status == 3)
                                                                 <label
                                                                     class="badge bg-warning p-2 px-3 rounded">{{ __('For Review') }}</label>
@@ -1387,15 +1495,21 @@
                                                                 </label>
                                                             @endif
                                                         </td>
-                                                        <td class="col-created">
+                                                        <td class="col-created"
+                                                            data-filter-value="{{ $dateFilterLabel($milestone->start_date) }}"
+                                                            data-filter-sort-value="{{ $dateFilterSortValue($milestone->start_date) }}">
                                                             {{ $milestone->start_date ? Carbon::parse($milestone->start_date)->format('d-m-Y') : '...' }}
                                                         </td>
-                                                        <td class="col-desired_delivery">
+                                                        <td class="col-desired_delivery"
+                                                            data-filter-value="{{ $dateFilterLabel($milestone->end_date) }}"
+                                                            data-filter-sort-value="{{ $dateFilterSortValue($milestone->end_date) }}">
                                                             {{ $milestone->end_date ? Carbon::parse($milestone->end_date)->format('d-m-Y') : '...' }}
                                                         </td>
                                                         {{-- <td>{{ $milestone->planned_end_date ? Carbon::parse($milestone->planned_end_date)->format('d-m-Y') : '...' }}
                                                         </td> --}}
-                                                        <td class="col-expected_delivery">
+                                                        <td class="col-expected_delivery"
+                                                            data-filter-value="{{ $dateFilterLabel($milestone->planned_end_date) }}"
+                                                            data-filter-sort-value="{{ $dateFilterSortValue($milestone->planned_end_date) }}">
                                                             {{ $milestone->planned_end_date && $milestone->planned_end_date !== '0000-00-00'
                                                                 ? \Carbon\Carbon::parse($milestone->planned_end_date)->format('d-m-Y')
                                                                 : '...' }}
@@ -1437,7 +1551,9 @@
                                                                 $startColor = '#db8d33';
                                                             }
                                                         @endphp
-                                                        <td class="col-task_started" style="color: {{ $startColor }}">
+                                                        <td class="col-task_started" style="color: {{ $startColor }}"
+                                                            data-filter-value="{{ $dateFilterLabel($milestone->task_start_date) }}"
+                                                            data-filter-sort-value="{{ $taskStartDate ? $taskStartDate->format('Y-m') : '' }}">
                                                             {{ $taskStartDate ? $taskStartDate->format('d-m-Y') : '...' }}
                                                         </td>
 
@@ -1462,7 +1578,9 @@
                                                                 }
                                                             }
                                                         @endphp
-                                                        <td class="col-completion" style="color: {{ $completionColor }}">
+                                                        <td class="col-completion" style="color: {{ $completionColor }}"
+                                                            data-filter-value="{{ $dateFilterLabel($milestone->finalization_date) }}"
+                                                            data-filter-sort-value="{{ $completionDate ? $completionDate->format('Y-m') : '' }}">
                                                             {{ $completionDate ? $completionDate->format('d-m-Y') : '...' }}
                                                         </td>
 
@@ -1495,212 +1613,9 @@
                                                 @endforeach
                                             </tbody>
                                         </table>
-                                    </div>
-                                </div>
-
-                                <div class="modal fade" id="orderFiltersModal" tabindex="-1"
-                                    aria-labelledby="orderFiltersModalLabel" aria-hidden="true">
-                                    <div class="modal-dialog modal-dialog-centered">
-                                        <div class="modal-content">
-                                            <div class="modal-header">
-                                                <h5 class="modal-title" id="orderFiltersModalLabel">
-                                                    {{ __('Filter Order Forms') }}</h5>
-                                                <button type="button" class="btn-close" data-bs-dismiss="modal"
-                                                    aria-label="Close"></button>
-                                            </div>
-                                            <div class="modal-body">
-                                                <div
-                                                    class="orderFiltersGrid {{ $project->type == 3 || $project->type == 5 ? 'orderFiltersGrid--with-stage-phase' : '' }}">
-                                                    <div>
-                                                        <div class="orderFilterBlock open" data-filter-block>
-                                                            <div class="orderFilterHeader" data-filter-toggle>
-                                                                <p class="orderFilterLabel">{{ __('Name') }}</p>
-                                                                <i class="fa-solid fa-chevron-down orderFilterChevron"></i>
-                                                            </div>
-                                                            <div class="orderFilterContent">
-                                                                <div class="orderFilterInputWrap">
-                                                                    <div class="orderAutocompleteWrap w-100">
-                                                                        <input type="text" class="form-control"
-                                                                            id="ofNameInput"
-                                                                            placeholder="{{ __('Search name') }}"
-                                                                            autocomplete="off">
-                                                                        <div id="ofNameSuggestions"
-                                                                            class="orderSuggestions"></div>
-                                                                    </div>
-                                                                    <button type="button" class="btn btn-primary"
-                                                                        id="ofAddNameBtn"><i
-                                                                            class="fa-solid fa-check"></i></button>
-                                                                </div>
-                                                                <div id="ofNameTags" class="orderSelectedList"></div>
-                                                            </div>
-                                                        </div>
-
-                                                        <div class="orderFilterBlock" data-filter-block>
-                                                            <div class="orderFilterHeader" data-filter-toggle>
-                                                                <p class="orderFilterLabel">{{ __('Status') }}</p>
-                                                                <i class="fa-solid fa-chevron-down orderFilterChevron"></i>
-                                                            </div>
-                                                            <div class="orderFilterContent">
-                                                                <div id="ofStatusList" class="orderCheckList"></div>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-
-                                                    <div>
-                                                        <div class="orderFilterBlock open" data-filter-block>
-                                                            <div class="orderFilterHeader" data-filter-toggle>
-                                                                <p class="orderFilterLabel">{{ __('Requested by') }}</p>
-                                                                <i class="fa-solid fa-chevron-down orderFilterChevron"></i>
-                                                            </div>
-                                                            <div class="orderFilterContent">
-                                                                <div class="orderFilterInputWrap">
-                                                                    <div class="orderAutocompleteWrap w-100">
-                                                                        <input type="text" class="form-control"
-                                                                            id="ofRequestedInput"
-                                                                            placeholder="{{ __('Search requester') }}"
-                                                                            autocomplete="off">
-                                                                        <div id="ofRequestedSuggestions"
-                                                                            class="orderSuggestions"></div>
-                                                                    </div>
-                                                                    <button type="button" class="btn btn-primary"
-                                                                        id="ofAddRequestedBtn"><i
-                                                                            class="fa-solid fa-check"></i></button>
-                                                                </div>
-                                                                <div id="ofRequestedTags" class="orderSelectedList"></div>
-                                                            </div>
-                                                        </div>
-
-                                                        <div class="orderFilterBlock" data-filter-block>
-                                                            <div class="orderFilterHeader" data-filter-toggle>
-                                                                <p class="orderFilterLabel">{{ __('Date range') }}</p>
-                                                                <i class="fa-solid fa-chevron-down orderFilterChevron"></i>
-                                                            </div>
-                                                            <div class="orderFilterContent">
-                                                                <div class="orderFilterInputWrap mb-2">
-                                                                    <div class="w-100">
-                                                                        <p class="orderDateLabel">{{ __('Date field') }}
-                                                                        </p>
-                                                                        <select id="ofDateField"
-                                                                            class="form-select form-select-sm">
-                                                                            <option value="created">{{ __('Created') }}
-                                                                            </option>
-                                                                            <option value="desired_delivery">
-                                                                                {{ __('Desired delivery') }}</option>
-                                                                            <option value="expected_delivery">
-                                                                                {{ __('Expected delivery') }}</option>
-                                                                            <option value="task_started">
-                                                                                {{ __('Task started') }}
-                                                                            </option>
-                                                                            <option value="completion">
-                                                                                {{ __('Completion') }}
-                                                                            </option>
-                                                                        </select>
-                                                                    </div>
-                                                                    <button type="button" class="btn btn-primary mt-4"
-                                                                        id="ofAddDateBtn"><i
-                                                                            class="fa-solid fa-check"></i></button>
-                                                                </div>
-                                                                <div class="orderDateRangeRow">
-                                                                    <div>
-                                                                        <p class="orderDateLabel">{{ __('From') }}</p>
-                                                                        <input type="date" id="ofDateFrom"
-                                                                            class="form-control form-control-sm">
-                                                                    </div>
-                                                                    <div>
-                                                                        <p class="orderDateLabel">{{ __('To') }}</p>
-                                                                        <input type="date" id="ofDateTo"
-                                                                            class="form-control form-control-sm">
-                                                                    </div>
-                                                                </div>
-                                                                <div id="ofDateTags" class="orderSelectedList"></div>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-
-                                                    <div>
-                                                        <div class="orderFilterBlock open" data-filter-block>
-                                                            <div class="orderFilterHeader" data-filter-toggle>
-                                                                <p class="orderFilterLabel">{{ __('Assigned to') }}</p>
-                                                                <i class="fa-solid fa-chevron-down orderFilterChevron"></i>
-                                                            </div>
-                                                            <div class="orderFilterContent">
-                                                                <div class="orderFilterInputWrap">
-                                                                    <div class="orderAutocompleteWrap w-100">
-                                                                        <input type="text" class="form-control"
-                                                                            id="ofAssignedInput"
-                                                                            placeholder="{{ __('Search assignee') }}"
-                                                                            autocomplete="off">
-                                                                        <div id="ofAssignedSuggestions"
-                                                                            class="orderSuggestions"></div>
-                                                                    </div>
-                                                                    <button type="button" class="btn btn-primary"
-                                                                        id="ofAddAssignedBtn"><i
-                                                                            class="fa-solid fa-check"></i></button>
-                                                                </div>
-                                                                <div id="ofAssignedTags" class="orderSelectedList"></div>
-                                                                <div class="orderCheckList mt-2">
-                                                                    <label class="orderCheckItem mb-0">
-                                                                        <input type="checkbox"
-                                                                            id="ofAssignedNoneCheckbox">
-                                                                        <span>{{ __('None') }}</span>
-                                                                    </label>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-
-                                                        <div class="orderFilterBlock" data-filter-block>
-                                                            <div class="orderFilterHeader" data-filter-toggle>
-                                                                <p class="orderFilterLabel">{{ __('Table Visibility') }}
-                                                                </p>
-                                                                <i class="fa-solid fa-chevron-down orderFilterChevron"></i>
-                                                            </div>
-                                                            <div class="orderFilterContent">
-                                                                <div id="ofVisibilityList" class="orderCheckList"></div>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-
-                                                    @if ($project->type == 3 || $project->type == 5)
-                                                        <div>
-                                                            <div class="orderFilterBlock open" data-filter-block>
-                                                                <div class="orderFilterHeader" data-filter-toggle>
-                                                                    <p class="orderFilterLabel">{{ __('Stage') }}</p>
-                                                                    <i
-                                                                        class="fa-solid fa-chevron-down orderFilterChevron"></i>
-                                                                </div>
-                                                                <div class="orderFilterContent">
-                                                                    <div id="ofPhaseList" class="orderCheckList"></div>
-                                                                </div>
-                                                            </div>
-                                                            <div class="orderFilterBlock " data-filter-block>
-                                                                <div class="orderFilterHeader" data-filter-toggle>
-                                                                    <p class="orderFilterLabel">{{ __('Phase') }}</p>
-                                                                    <i
-                                                                        class="fa-solid fa-chevron-down orderFilterChevron"></i>
-                                                                </div>
-                                                                <div class="orderFilterContent">
-                                                                    <div id="ofStageList" class="orderCheckList"></div>
-                                                                </div>
-                                                            </div>
-
-
-
-                                                        </div>
-                                                    @endif
-                                                </div>
-
-                                                <div id="ofActiveFiltersBar" class="orderActiveFiltersBar d-none">
-                                                    <p class="orderActiveFiltersTitle">{{ __('Active filters') }}</p>
-                                                    <div id="ofActiveFiltersList" class="orderActiveFiltersList"></div>
-                                                </div>
-
-                                                <div class="orderFiltersActions">
-                                                    <button type="button" class="btn btn-primary"
-                                                        id="ofResetBtn">{{ __('Reset filters') }}</button>
-                                                    <button type="button" class="btn btn-primary"
-                                                        data-bs-dismiss="modal">{{ __('Close') }}</button>
-                                                </div>
-                                            </div>
+                                        <div id="orderFormsFilteredEmptyState" class="project-order-filtered-empty-state">
+                                            <h6 class="mb-2">{{ __('No order forms match the selected filters') }}</h6>
+                                            <p class="mb-0">{{ __('Adjust or clear filters to see more results.') }}</p>
                                         </div>
                                     </div>
                                 </div>
@@ -2517,719 +2432,456 @@
         document.addEventListener('DOMContentLoaded', function() {
             const table = document.getElementById('orderFormsTable');
             const tbody = document.getElementById('orderFormsTableBody');
-            if (!table || !tbody) {
+            const columnToggleButton = document.getElementById('orderFormsColumnsToggleBtn');
+            const filteredEmptyState = document.getElementById('orderFormsFilteredEmptyState');
+
+            if (!table || !tbody || !columnToggleButton || !filteredEmptyState) {
                 return;
             }
 
             const rows = Array.from(tbody.querySelectorAll('tr'));
-            const filterState = {
-                names: [],
-                stages: [],
-                phases: [],
-                requestedBy: [],
-                assignedTo: [],
-                assignedToNone: false,
-                statuses: [],
-                dateRanges: []
-            };
+            const headers = Array.from(table.querySelectorAll('thead th[data-col-key]'));
+            const filterButtons = Array.from(table.querySelectorAll('.project-order-filter-btn'));
+            const filterState = {};
+            const columnVisibilityState = new Map();
+            const filterMenu = document.createElement('div');
+            const columnMenu = document.createElement('div');
+            const naLabel = "{{ __('N/A') }}";
+            let activeFilterButton = null;
 
-            let dateRangeIdCounter = 0;
+            filterMenu.className = 'project-order-filter-menu';
+            filterMenu.hidden = true;
+            document.body.appendChild(filterMenu);
 
-            const visibilityState = {};
-            const allHeaders = Array.from(table.querySelectorAll('thead th[data-col-key]'));
-            allHeaders.forEach(header => {
-                visibilityState[header.dataset.colKey] = true;
-            });
+            columnMenu.className = 'project-order-column-menu';
+            columnMenu.hidden = true;
+            document.body.appendChild(columnMenu);
 
-            function normalize(text) {
-                return (text || '').toString().trim().toLowerCase();
+            function escapeHtml(value) {
+                return String(value || '')
+                    .replace(/&/g, '&amp;')
+                    .replace(/</g, '&lt;')
+                    .replace(/>/g, '&gt;')
+                    .replace(/"/g, '&quot;')
+                    .replace(/'/g, '&#039;');
             }
 
-            function uniqueDatasetValues(key) {
-                const values = new Set();
-                rows.forEach(row => {
-                    const rawValue = normalize(row.dataset[key]);
-                    if (rawValue) {
-                        values.add(rawValue);
-                    }
-                });
-                return Array.from(values).sort((a, b) => a.localeCompare(b, 'es', {
-                    sensitivity: 'base'
-                }));
+            function getCellValue(row, columnIndex) {
+                const meta = getCellFilterMeta(row, columnIndex);
+                return meta.value;
             }
 
-            function datasetValueCounts(key, visibleOnly = false) {
+            function getCellFilterMeta(row, columnIndex) {
+                const cell = row.children[columnIndex];
+                if (!cell) {
+                    return {
+                        value: naLabel,
+                        sortValue: ''
+                    };
+                }
+
+                const explicitValue = cell.getAttribute('data-filter-value');
+                if (explicitValue !== null) {
+                    const trimmedExplicitValue = explicitValue.replace(/\s+/g, ' ').trim();
+                    return {
+                        value: trimmedExplicitValue || naLabel,
+                        sortValue: cell.getAttribute('data-filter-sort-value') || ''
+                    };
+                }
+
+                const textValue = cell.textContent.replace(/\s+/g, ' ').trim();
+                return {
+                    value: textValue || naLabel,
+                    sortValue: textValue || ''
+                };
+            }
+
+            function getColumnOptions(filterKey, columnIndex) {
                 const counts = new Map();
-                const rowsToCount = visibleOnly ? rows.filter(row => row.style.display !== 'none') : rows;
 
-                rowsToCount.forEach(row => {
-                    const rawValue = normalize(row.dataset[key]);
-                    if (!rawValue) {
+                rows.forEach(function(row) {
+                    const meta = getCellFilterMeta(row, columnIndex);
+                    const existingOption = counts.get(meta.value);
+
+                    if (existingOption) {
+                        existingOption.count += 1;
                         return;
                     }
-                    counts.set(rawValue, (counts.get(rawValue) || 0) + 1);
+
+                    counts.set(meta.value, {
+                        count: 1,
+                        sortValue: meta.sortValue || meta.value
+                    });
                 });
 
                 return Array.from(counts.entries())
-                    .map(([value, count]) => ({
-                        value,
-                        count
-                    }))
-                    .sort((a, b) => a.value.localeCompare(b.value, 'es', {
-                        sensitivity: 'base'
-                    }));
-            }
-
-            function renderSuggestions(inputEl, containerEl, getValuesWithCount, onSelect) {
-                const query = normalize(inputEl.value);
-                const valuesWithCount = typeof getValuesWithCount === 'function' ? getValuesWithCount() :
-                    getValuesWithCount;
-                const filtered = valuesWithCount.filter(item => item.value.includes(query));
-                containerEl.innerHTML = '';
-
-                if (!filtered.length) {
-                    containerEl.classList.remove('visible');
-                    return;
-                }
-
-                filtered.forEach(itemData => {
-                    const item = document.createElement('div');
-                    item.className = 'orderSuggestionItem';
-                    item.textContent = `${itemData.value} (${itemData.count})`;
-                    item.addEventListener('click', function() {
-                        onSelect(itemData.value);
-                        containerEl.classList.remove('visible');
-                    });
-                    containerEl.appendChild(item);
-                });
-
-                containerEl.classList.add('visible');
-            }
-
-            function renderTags(containerId, values, onRemove) {
-                const container = document.getElementById(containerId);
-                container.innerHTML = '';
-
-                values.forEach(value => {
-                    const tag = document.createElement('span');
-                    tag.className = 'orderSelectedTag';
-                    tag.innerHTML = `<span>${value}</span><button type="button">×</button>`;
-                    tag.querySelector('button').addEventListener('click', function() {
-                        onRemove(value);
-                    });
-                    container.appendChild(tag);
-                });
-            }
-
-            function refreshStateTags(containerId, stateKey) {
-                renderTags(containerId, filterState[stateKey], (toRemove) => {
-                    filterState[stateKey] = filterState[stateKey].filter(item => item !== toRemove);
-                    refreshStateTags(containerId, stateKey);
-                    renderActiveFilterChips();
-                    applyFilters();
-                });
-            }
-
-            function parseDateSafe(value) {
-                if (!value) {
-                    return null;
-                }
-                const parsed = new Date(`${value}T00:00:00`);
-                return Number.isNaN(parsed.getTime()) ? null : parsed;
-            }
-
-            function getRowDateByField(row, field) {
-                const fieldMap = {
-                    created: 'createdDate',
-                    desired_delivery: 'desiredDate',
-                    expected_delivery: 'expectedDate',
-                    task_started: 'taskStartedDate',
-                    completion: 'completionDate'
-                };
-
-                return parseDateSafe(row.dataset[fieldMap[field]] || '');
-            }
-
-            function rowMatchesDate(row) {
-                if (!filterState.dateRanges.length) {
-                    return true;
-                }
-
-                return filterState.dateRanges.every((dateRange) => {
-                    const rowDate = getRowDateByField(row, dateRange.field);
-                    const fromDate = parseDateSafe(dateRange.from || '');
-                    const toDate = parseDateSafe(dateRange.to || '');
-
-                    if (!fromDate && !toDate) {
-                        return true;
-                    }
-
-                    if (!rowDate) {
-                        return false;
-                    }
-
-                    if (fromDate && rowDate < fromDate) {
-                        return false;
-                    }
-
-                    if (toDate && rowDate > toDate) {
-                        return false;
-                    }
-
-                    return true;
-                });
-            }
-
-            function getDateFieldLabel(field) {
-                const labels = {
-                    created: "{{ __('Created') }}",
-                    desired_delivery: "{{ __('Desired delivery') }}",
-                    expected_delivery: "{{ __('Expected delivery') }}",
-                    task_started: "{{ __('Task started') }}",
-                    completion: "{{ __('Completion') }}"
-                };
-
-                return labels[field] || field;
-            }
-
-            function formatDateForChip(value) {
-                if (!value) {
-                    return '...';
-                }
-
-                const parts = value.split('-');
-                if (parts.length !== 3) {
-                    return value;
-                }
-
-                return `${parts[2]}-${parts[1]}-${parts[0]}`;
-            }
-
-            function renderDateRangeTags() {
-                renderTags('ofDateTags', filterState.dateRanges.map((dateRange) => {
-                    const fromLabel = formatDateForChip(dateRange.from);
-                    const toLabel = formatDateForChip(dateRange.to);
-                    return `${getDateFieldLabel(dateRange.field)}: ${fromLabel} → ${toLabel}`;
-                }), (labelText) => {
-                    const found = filterState.dateRanges.find((dateRange) => {
-                        const fromLabel = formatDateForChip(dateRange.from);
-                        const toLabel = formatDateForChip(dateRange.to);
-                        return `${getDateFieldLabel(dateRange.field)}: ${fromLabel} → ${toLabel}` ===
-                            labelText;
-                    });
-
-                    if (found) {
-                        filterState.dateRanges = filterState.dateRanges.filter(item => item.id !== found
-                            .id);
-                        renderDateRangeTags();
-                        renderActiveFilterChips();
-                        applyFilters();
-                    }
-                });
-            }
-
-            function getVisibilityLabelByKey(key) {
-                const checkbox = document.querySelector(`.of-visibility-checkbox[data-key="${key}"]`);
-                if (!checkbox) {
-                    return key;
-                }
-
-                const label = checkbox.closest('label');
-                const textNode = label ? label.querySelector('span') : null;
-                return (textNode?.textContent || key).trim();
-            }
-
-            function recalculateAndUpdateCounts() {
-                // Actualizar Status checkboxes
-                const statusList = document.getElementById('ofStatusList');
-                if (statusList) {
-                    const statusCounts = datasetValueCounts('status', true);
-                    const statusCountMap = new Map(statusCounts.map(item => [item.value, item.count]));
-
-                    statusList.querySelectorAll('.of-status-checkbox').forEach(checkbox => {
-                        const countSpan = checkbox.closest('label').querySelector('span');
-                        const value = normalize(checkbox.value);
-                        const count = statusCountMap.get(value) || 0;
-                        const labelText = checkbox.value;
-                        countSpan.textContent = `${labelText} (${count})`;
-                    });
-                }
-
-                // Actualizar Stage checkboxes
-                const stageList = document.getElementById('ofStageList');
-                if (stageList) {
-                    const stageCounts = datasetValueCounts('stage', true);
-                    const stageCountMap = new Map(stageCounts.map(item => [item.value, item.count]));
-
-                    stageList.querySelectorAll('.of-stage-checkbox').forEach(checkbox => {
-                        const countSpan = checkbox.closest('label').querySelector('span');
-                        const value = normalize(checkbox.value);
-                        const count = stageCountMap.get(value) || 0;
-                        const labelText = checkbox.value;
-                        countSpan.textContent = `${labelText} (${count})`;
-                    });
-                }
-
-                // Actualizar Phase checkboxes
-                const phaseList = document.getElementById('ofPhaseList');
-                if (phaseList) {
-                    const phaseCounts = datasetValueCounts('phase', true);
-                    const phaseCountMap = new Map(phaseCounts.map(item => [item.value, item.count]));
-
-                    phaseList.querySelectorAll('.of-phase-checkbox').forEach(checkbox => {
-                        const countSpan = checkbox.closest('label').querySelector('span');
-                        const value = normalize(checkbox.value);
-                        const count = phaseCountMap.get(value) || 0;
-                        const labelText = checkbox.value;
-                        countSpan.textContent = `${labelText} (${count})`;
-                    });
-                }
-            }
-
-            function renderActiveFilterChips() {
-                const bar = document.getElementById('ofActiveFiltersBar');
-                const list = document.getElementById('ofActiveFiltersList');
-                if (!bar || !list) {
-                    return;
-                }
-
-                const chips = [];
-
-                filterState.names.forEach(value => {
-                    chips.push({
-                        label: `{{ __('Name') }}: ${value}`,
-                        remove: () => {
-                            filterState.names = filterState.names.filter(v => v !== value);
-                            refreshStateTags('ofNameTags', 'names');
+                    .sort(function(left, right) {
+                        if (left[0] === naLabel) {
+                            return 1;
                         }
-                    });
-                });
 
-                filterState.stages.forEach(value => {
-                    chips.push({
-                        label: `{{ __('Stage') }}: ${value}`,
-                        remove: () => {
-                            filterState.stages = filterState.stages.filter(v => v !== value);
-                            document.querySelectorAll('.of-stage-checkbox').forEach(cb => {
-                                if (normalize(cb.value) === value) {
-                                    cb.checked = false;
-                                }
-                            });
+                        if (right[0] === naLabel) {
+                            return -1;
                         }
+
+                        return left[1].sortValue.localeCompare(right[1].sortValue, undefined, {
+                            numeric: true,
+                            sensitivity: 'base'
+                        });
+                    })
+                    .map(function(entry) {
+                        return {
+                            value: entry[0],
+                            count: entry[1].count
+                        };
                     });
+            }
+
+            function isColumnFiltered(filterKey) {
+                return filterState[filterKey] instanceof Set;
+            }
+
+            function updateFilterButtonStates() {
+                filterButtons.forEach(function(button) {
+                    button.classList.toggle('is-active', isColumnFiltered(button.dataset.filterKey));
                 });
-
-                filterState.phases.forEach(value => {
-                    chips.push({
-                        label: `{{ __('Phase') }}: ${value}`,
-                        remove: () => {
-                            filterState.phases = filterState.phases.filter(v => v !== value);
-                            document.querySelectorAll('.of-phase-checkbox').forEach(cb => {
-                                if (normalize(cb.value) === value) {
-                                    cb.checked = false;
-                                }
-                            });
-                        }
-                    });
-                });
-
-                filterState.requestedBy.forEach(value => {
-                    chips.push({
-                        label: `{{ __('Requested by') }}: ${value}`,
-                        remove: () => {
-                            filterState.requestedBy = filterState.requestedBy.filter(v => v !==
-                                value);
-                            refreshStateTags('ofRequestedTags', 'requestedBy');
-                        }
-                    });
-                });
-
-                filterState.assignedTo.forEach(value => {
-                    chips.push({
-                        label: `{{ __('Assigned to') }}: ${value}`,
-                        remove: () => {
-                            filterState.assignedTo = filterState.assignedTo.filter(v => v !==
-                                value);
-                            refreshStateTags('ofAssignedTags', 'assignedTo');
-                        }
-                    });
-                });
-
-                if (filterState.assignedToNone) {
-                    chips.push({
-                        label: `{{ __('Assigned to') }}: {{ __('Nobody') }}`,
-                        remove: () => {
-                            filterState.assignedToNone = false;
-                            const assignedNoneCheckbox = document.getElementById(
-                                'ofAssignedNoneCheckbox');
-                            if (assignedNoneCheckbox) {
-                                assignedNoneCheckbox.checked = false;
-                            }
-                        }
-                    });
-                }
-
-                filterState.statuses.forEach(value => {
-                    chips.push({
-                        label: `{{ __('Status') }}: ${value}`,
-                        remove: () => {
-                            filterState.statuses = filterState.statuses.filter(v => v !==
-                                value);
-                            document.querySelectorAll('.of-status-checkbox').forEach(cb => {
-                                if (normalize(cb.value) === value) {
-                                    cb.checked = false;
-                                }
-                            });
-                        }
-                    });
-                });
-
-                filterState.dateRanges.forEach(dateRange => {
-                    const fromLabel = formatDateForChip(dateRange.from);
-                    const toLabel = formatDateForChip(dateRange.to);
-                    chips.push({
-                        label: `${getDateFieldLabel(dateRange.field)}: ${fromLabel} → ${toLabel}`,
-                        remove: () => {
-                            filterState.dateRanges = filterState.dateRanges.filter(item => item
-                                .id !== dateRange.id);
-                            renderDateRangeTags();
-                        }
-                    });
-                });
-
-                Object.entries(visibilityState).forEach(([key, isVisible]) => {
-                    if (isVisible !== false) {
-                        return;
-                    }
-
-                    chips.push({
-                        label: `{{ __('Hide') }} ${getVisibilityLabelByKey(key)}`,
-                        remove: () => {
-                            visibilityState[key] = true;
-                            const checkbox = document.querySelector(
-                                `.of-visibility-checkbox[data-key="${key}"]`);
-                            if (checkbox) {
-                                checkbox.checked = true;
-                            }
-                            applyVisibility();
-                        }
-                    });
-                });
-
-                list.innerHTML = '';
-
-                if (!chips.length) {
-                    bar.classList.add('d-none');
-                    return;
-                }
-
-                chips.forEach(chip => {
-                    const chipNode = document.createElement('span');
-                    chipNode.className = 'orderSelectedTag';
-                    chipNode.innerHTML = `<span>${chip.label}</span><button type="button">×</button>`;
-                    chipNode.querySelector('button').addEventListener('click', function() {
-                        chip.remove();
-                        renderActiveFilterChips();
-                        applyFilters();
-                    });
-                    list.appendChild(chipNode);
-                });
-
-                bar.classList.remove('d-none');
             }
 
             function applyFilters() {
-                rows.forEach(row => {
-                    const name = normalize(row.dataset.name);
-                    const stage = normalize(row.dataset.stage);
-                    const phase = normalize(row.dataset.phase);
-                    const requestedBy = normalize(row.dataset.requestedBy);
-                    const assignedTo = normalize(row.dataset.assignedTo);
-                    const status = normalize(row.dataset.status);
+                let visibleRows = 0;
 
-                    const matchName = !filterState.names.length || filterState.names.some(value => name
-                        .includes(normalize(value)));
-                    const matchStage = !filterState.stages.length || filterState.stages.includes(stage);
-                    const matchPhase = !filterState.phases.length || filterState.phases.includes(phase);
-                    const matchRequested = !filterState.requestedBy.length || filterState.requestedBy
-                        .includes(requestedBy);
-                    const matchAssignedValues = filterState.assignedTo.includes(assignedTo);
-                    const matchAssignedNone = filterState.assignedToNone && !assignedTo;
-                    const matchAssigned = (!filterState.assignedTo.length && !filterState
-                            .assignedToNone) ||
-                        matchAssignedValues || matchAssignedNone;
-                    const matchStatus = !filterState.statuses.length || filterState.statuses.includes(
-                        status);
-                    const matchDate = rowMatchesDate(row);
+                rows.forEach(function(row) {
+                    const isVisible = filterButtons.every(function(button) {
+                        const filterKey = button.dataset.filterKey;
+                        const activeValues = filterState[filterKey];
 
-                    row.style.display = matchName && matchStage && matchPhase && matchRequested &&
-                        matchAssigned &&
-                        matchStatus &&
-                        matchDate ? '' : 'none';
+                        if (!(activeValues instanceof Set)) {
+                            return true;
+                        }
+
+                        return activeValues.has(getCellValue(row, Number(button.dataset.columnIndex)));
+                    });
+
+                    row.style.display = isVisible ? '' : 'none';
+                    if (isVisible) {
+                        visibleRows++;
+                    }
                 });
 
-                recalculateAndUpdateCounts();
+                filteredEmptyState.classList.toggle('is-visible', visibleRows === 0);
+                updateFilterButtonStates();
             }
 
-            function applyVisibility() {
-                allHeaders.forEach((header, index) => {
-                    const key = header.dataset.colKey;
-                    const visible = visibilityState[key] !== false;
-                    header.style.display = visible ? '' : 'none';
-                    rows.forEach(row => {
-                        const cell = row.children[index];
-                        if (cell) {
-                            cell.style.display = visible ? '' : 'none';
+            function closeFilterMenu() {
+                filterMenu.hidden = true;
+                activeFilterButton = null;
+            }
+
+            function closeColumnMenu() {
+                columnMenu.hidden = true;
+                columnToggleButton.classList.remove('is-active');
+                columnToggleButton.setAttribute('aria-expanded', 'false');
+            }
+
+            function positionMenu(menu, button) {
+                const rect = button.getBoundingClientRect();
+                const menuWidth = 260;
+                const viewportWidth = window.innerWidth;
+                const left = Math.max(12, Math.min(rect.right - menuWidth, viewportWidth - menuWidth - 12));
+
+                menu.style.top = (rect.bottom + 8) + 'px';
+                menu.style.left = left + 'px';
+            }
+
+            function getHeaderLabelByIndex(index) {
+                const header = headers[index];
+                if (!header) {
+                    return '';
+                }
+
+                const label = header.querySelector('.project-order-th-content span');
+                return (label ? label.textContent : header.textContent).replace(/\s+/g, ' ').trim();
+            }
+
+            function updateColumnToggleSummary() {
+                const visibleCount = headers.reduce(function(total, _, columnIndex) {
+                    return total + (columnVisibilityState.get(columnIndex) !== false ? 1 : 0);
+                }, 0);
+                const totalCount = headers.length;
+                const toggleCount = document.getElementById('orderFormsColumnsToggleCount');
+
+                if (toggleCount) {
+                    toggleCount.textContent = visibleCount + '/' + totalCount;
+                }
+            }
+
+            function applyColumnVisibility() {
+                headers.forEach(function(header, columnIndex) {
+                    const isVisible = columnVisibilityState.get(columnIndex) !== false;
+                    header.style.display = isVisible ? '' : 'none';
+                });
+
+                rows.forEach(function(row) {
+                    headers.forEach(function(_, columnIndex) {
+                        const cell = row.children[columnIndex];
+                        if (!cell) {
+                            return;
                         }
+
+                        const isVisible = columnVisibilityState.get(columnIndex) !== false;
+                        cell.style.display = isVisible ? '' : 'none';
                     });
                 });
+
+                updateColumnToggleSummary();
             }
 
-            function setupAutocomplete({
-                inputId,
-                suggestionsId,
-                addBtnId,
-                getSourceValues,
-                stateKey,
-                tagsId
-            }) {
-                const input = document.getElementById(inputId);
-                const suggestions = document.getElementById(suggestionsId);
-                const addBtn = document.getElementById(addBtnId);
+            function renderColumnMenu() {
+                columnMenu.innerHTML = [
+                    '<div class="project-order-filter-menu-header">',
+                    '<h6 class="project-order-column-menu-title">{{ __('Visible columns') }}</h6>',
+                    '<button type="button" class="project-order-filter-link" data-column-close="1">{{ __('Close') }}</button>',
+                    '</div>',
+                    '<div class="project-order-filter-menu-actions">',
+                    '<button type="button" class="project-order-filter-link" data-column-reset="1">{{ __('Hide all') }}</button>',
+                    '<button type="button" class="project-order-filter-link" data-column-select-all="1">{{ __('Show all') }}</button>',
+                    '</div>',
+                    '<div class="project-order-filter-options">',
+                    headers.map(function(_, columnIndex) {
+                        const label = getHeaderLabelByIndex(columnIndex);
+                        const isChecked = columnVisibilityState.get(columnIndex) !== false;
 
-                function addValue(value) {
-                    const normalized = normalize(value);
-                    if (!normalized) {
+                        return [
+                            '<label class="project-order-filter-option" data-column-option="1">',
+                            '<input type="checkbox" data-column-index="' + columnIndex + '" ' + (isChecked ? 'checked' : '') + '>',
+                            '<span>' + escapeHtml(label) + '</span>',
+                            '</label>'
+                        ].join('');
+                    }).join(''),
+                    '</div>'
+                ].join('');
+
+                positionMenu(columnMenu, columnToggleButton);
+                columnToggleButton.classList.add('is-active');
+                columnToggleButton.setAttribute('aria-expanded', 'true');
+                columnMenu.hidden = false;
+            }
+
+            function renderFilterMenu(button) {
+                const filterKey = button.dataset.filterKey;
+                const filterLabel = button.dataset.filterLabel;
+                const columnIndex = Number(button.dataset.columnIndex);
+                const options = getColumnOptions(filterKey, columnIndex);
+                const activeValues = filterState[filterKey];
+
+                filterMenu.innerHTML = [
+                    '<div class="project-order-filter-menu-header">',
+                    '<h6 class="project-order-filter-menu-title">' + escapeHtml(filterLabel) + '</h6>',
+                    '<button type="button" class="project-order-filter-link" data-filter-close="1">{{ __('Close') }}</button>',
+                    '</div>',
+                    '<div class="project-order-filter-menu-actions">',
+                    '<button type="button" class="project-order-filter-link" data-filter-reset="1">{{ __('Clear') }}</button>',
+                    '<button type="button" class="project-order-filter-link" data-filter-select-all="1">{{ __('Select all') }}</button>',
+                    '</div>',
+                    '<input type="search" class="project-order-filter-search" placeholder="{{ __('Search') }}..." />',
+                    '<div class="project-order-filter-options">',
+                    options.map(function(option) {
+                        const isChecked = !(activeValues instanceof Set) || activeValues.has(option.value);
+
+                        return [
+                            '<label class="project-order-filter-option" data-filter-option="1">',
+                            '<input type="checkbox" value="' + escapeHtml(option.value) + '" ' + (isChecked ? 'checked' : '') + '>',
+                            '<span>' + escapeHtml(option.value) + '</span>',
+                            '<span class="project-order-filter-option-count">' + option.count + '</span>',
+                            '</label>'
+                        ].join('');
+                    }).join(''),
+                    '</div>'
+                ].join('');
+
+                filterMenu.dataset.filterKey = filterKey;
+                filterMenu.dataset.columnIndex = String(columnIndex);
+                filterMenu.hidden = false;
+                activeFilterButton = button;
+                positionMenu(filterMenu, button);
+            }
+
+            function syncFilterStateFromMenu(filterKey, columnIndex) {
+                const options = getColumnOptions(filterKey, columnIndex);
+                const checkedValues = Array.from(filterMenu.querySelectorAll('input[type="checkbox"]:checked')).map(
+                    function(input) {
+                        return input.value;
+                    }
+                );
+
+                if (checkedValues.length === options.length) {
+                    filterState[filterKey] = null;
+                } else {
+                    filterState[filterKey] = new Set(checkedValues);
+                }
+
+                applyFilters();
+            }
+
+            filterButtons.forEach(function(button) {
+                filterState[button.dataset.filterKey] = null;
+
+                button.addEventListener('click', function(event) {
+                    event.stopPropagation();
+
+                    if (activeFilterButton === button && !filterMenu.hidden) {
+                        closeFilterMenu();
                         return;
                     }
-                    if (!filterState[stateKey].includes(normalized)) {
-                        filterState[stateKey].push(normalized);
-                    }
-                    input.value = '';
-                    refreshStateTags(tagsId, stateKey);
-                    renderActiveFilterChips();
-                    applyFilters();
-                }
 
-                input.addEventListener('input', function() {
-                    renderSuggestions(input, suggestions, getSourceValues, addValue);
+                    renderFilterMenu(button);
                 });
-
-                input.addEventListener('focus', function() {
-                    renderSuggestions(input, suggestions, getSourceValues, addValue);
-                });
-
-                input.addEventListener('click', function() {
-                    renderSuggestions(input, suggestions, getSourceValues, addValue);
-                });
-
-                addBtn.addEventListener('click', function() {
-                    addValue(input.value);
-                    suggestions.classList.remove('visible');
-                });
-
-                input.addEventListener('keydown', function(event) {
-                    if (event.key === 'Enter') {
-                        event.preventDefault();
-                        addValue(input.value);
-                        suggestions.classList.remove('visible');
-                    }
-                });
-
-                document.addEventListener('click', function(event) {
-                    if (!suggestions.contains(event.target) && event.target !== input) {
-                        suggestions.classList.remove('visible');
-                    }
-                });
-            }
-
-            const statusList = document.getElementById('ofStatusList');
-            datasetValueCounts('status').forEach((statusItem) => {
-                const label = document.createElement('label');
-                label.className = 'orderCheckItem';
-                label.innerHTML =
-                    `<input type="checkbox" class="of-status-checkbox" value="${statusItem.value}"><span>${statusItem.value} (${statusItem.count})</span>`;
-                statusList.appendChild(label);
             });
 
-            statusList.addEventListener('change', function() {
-                filterState.statuses = Array.from(statusList.querySelectorAll(
-                    '.of-status-checkbox:checked')).map(cb => normalize(cb.value));
-                renderActiveFilterChips();
-                applyFilters();
+            headers.forEach(function(_, columnIndex) {
+                columnVisibilityState.set(columnIndex, true);
             });
 
-            const stageList = document.getElementById('ofStageList');
-            if (stageList) {
-                datasetValueCounts('stage').forEach((stageItem) => {
-                    const label = document.createElement('label');
-                    label.className = 'orderCheckItem';
-                    label.innerHTML =
-                        `<input type="checkbox" class="of-stage-checkbox" value="${stageItem.value}"><span>${stageItem.value} (${stageItem.count})</span>`;
-                    stageList.appendChild(label);
-                });
+            columnToggleButton.addEventListener('click', function(event) {
+                event.stopPropagation();
 
-                stageList.addEventListener('change', function() {
-                    filterState.stages = Array.from(stageList.querySelectorAll(
-                        '.of-stage-checkbox:checked')).map(cb => normalize(cb.value));
-                    renderActiveFilterChips();
-                    applyFilters();
-                });
-            }
-
-            const phaseList = document.getElementById('ofPhaseList');
-            if (phaseList) {
-                datasetValueCounts('phase').forEach((phaseItem) => {
-                    const label = document.createElement('label');
-                    label.className = 'orderCheckItem';
-                    label.innerHTML =
-                        `<input type="checkbox" class="of-phase-checkbox" value="${phaseItem.value}"><span>${phaseItem.value} (${phaseItem.count})</span>`;
-                    phaseList.appendChild(label);
-                });
-
-                phaseList.addEventListener('change', function() {
-                    filterState.phases = Array.from(phaseList.querySelectorAll(
-                        '.of-phase-checkbox:checked')).map(cb => normalize(cb.value));
-                    renderActiveFilterChips();
-                    applyFilters();
-                });
-            }
-
-            const assignedNoneCheckbox = document.getElementById('ofAssignedNoneCheckbox');
-            if (assignedNoneCheckbox) {
-                assignedNoneCheckbox.addEventListener('change', function() {
-                    filterState.assignedToNone = assignedNoneCheckbox.checked;
-                    renderActiveFilterChips();
-                    applyFilters();
-                });
-            }
-
-            const visibilityList = document.getElementById('ofVisibilityList');
-            allHeaders.forEach(header => {
-                const key = header.dataset.colKey;
-                const labelText = (header.textContent || '').replace('⮝', '').replace('⮟', '').trim();
-                const label = document.createElement('label');
-                label.className = 'orderCheckItem';
-                label.innerHTML =
-                    `<input type="checkbox" class="of-visibility-checkbox" data-key="${key}" checked><span>${labelText}</span>`;
-                visibilityList.appendChild(label);
-            });
-
-            visibilityList.addEventListener('change', function() {
-                const checks = visibilityList.querySelectorAll('.of-visibility-checkbox');
-                checks.forEach(check => {
-                    visibilityState[check.dataset.key] = check.checked;
-                });
-                applyVisibility();
-                renderActiveFilterChips();
-            });
-
-            setupAutocomplete({
-                inputId: 'ofNameInput',
-                suggestionsId: 'ofNameSuggestions',
-                addBtnId: 'ofAddNameBtn',
-                getSourceValues: () => datasetValueCounts('name', true),
-                stateKey: 'names',
-                tagsId: 'ofNameTags'
-            });
-
-            setupAutocomplete({
-                inputId: 'ofRequestedInput',
-                suggestionsId: 'ofRequestedSuggestions',
-                addBtnId: 'ofAddRequestedBtn',
-                getSourceValues: () => datasetValueCounts('requestedBy', true),
-                stateKey: 'requestedBy',
-                tagsId: 'ofRequestedTags'
-            });
-
-            setupAutocomplete({
-                inputId: 'ofAssignedInput',
-                suggestionsId: 'ofAssignedSuggestions',
-                addBtnId: 'ofAddAssignedBtn',
-                getSourceValues: () => datasetValueCounts('assignedTo', true),
-                stateKey: 'assignedTo',
-                tagsId: 'ofAssignedTags'
-            });
-
-            document.getElementById('ofAddDateBtn').addEventListener('click', function() {
-                const field = document.getElementById('ofDateField').value;
-                const from = document.getElementById('ofDateFrom').value;
-                const to = document.getElementById('ofDateTo').value;
-
-                if (!from && !to) {
+                if (!columnMenu.hidden) {
+                    closeColumnMenu();
                     return;
                 }
 
-                const exists = filterState.dateRanges.some(item => item.field === field && item.from ===
-                    from && item.to === to);
-                if (exists) {
+                renderColumnMenu();
+            });
+
+            filterMenu.addEventListener('click', function(event) {
+                const resetButton = event.target.closest('[data-filter-reset]');
+                const selectAllButton = event.target.closest('[data-filter-select-all]');
+                const closeButton = event.target.closest('[data-filter-close]');
+
+                if (closeButton) {
+                    closeFilterMenu();
                     return;
                 }
 
-                filterState.dateRanges.push({
-                    id: ++dateRangeIdCounter,
-                    field,
-                    from,
-                    to
-                });
-
-                document.getElementById('ofDateFrom').value = '';
-                document.getElementById('ofDateTo').value = '';
-
-                renderDateRangeTags();
-                renderActiveFilterChips();
-                applyFilters();
-            });
-
-            document.getElementById('ofResetBtn').addEventListener('click', function() {
-                filterState.names = [];
-                filterState.stages = [];
-                filterState.phases = [];
-                filterState.requestedBy = [];
-                filterState.assignedTo = [];
-                filterState.assignedToNone = false;
-                filterState.statuses = [];
-                filterState.dateRanges = [];
-
-                document.getElementById('ofNameInput').value = '';
-                document.getElementById('ofRequestedInput').value = '';
-                document.getElementById('ofAssignedInput').value = '';
-                document.getElementById('ofDateField').value = 'created';
-                document.getElementById('ofDateFrom').value = '';
-                document.getElementById('ofDateTo').value = '';
-
-                if (assignedNoneCheckbox) {
-                    assignedNoneCheckbox.checked = false;
+                if (!resetButton && !selectAllButton) {
+                    return;
                 }
 
-                document.querySelectorAll('.of-status-checkbox').forEach(cb => cb.checked = false);
-                document.querySelectorAll('.of-stage-checkbox').forEach(cb => cb.checked = false);
-                document.querySelectorAll('.of-phase-checkbox').forEach(cb => cb.checked = false);
-                document.querySelectorAll('.of-visibility-checkbox').forEach(cb => {
-                    cb.checked = true;
-                    visibilityState[cb.dataset.key] = true;
+                const checkboxes = Array.from(filterMenu.querySelectorAll('input[type="checkbox"]'));
+                if (resetButton) {
+                    checkboxes.forEach(function(checkbox) {
+                        checkbox.checked = false;
+                    });
+
+                    filterState[filterMenu.dataset.filterKey] = new Set();
+                    applyFilters();
+                    return;
+                }
+
+                checkboxes.forEach(function(checkbox) {
+                    checkbox.checked = true;
                 });
 
-                renderTags('ofNameTags', [], () => {});
-                renderTags('ofRequestedTags', [], () => {});
-                renderTags('ofAssignedTags', [], () => {});
-                renderTags('ofDateTags', [], () => {});
-
-                renderActiveFilterChips();
-                applyVisibility();
+                filterState[filterMenu.dataset.filterKey] = null;
                 applyFilters();
-                recalculateAndUpdateCounts();
             });
 
-            document.querySelectorAll('#orderFiltersModal [data-filter-toggle]').forEach(toggle => {
-                toggle.addEventListener('click', function() {
-                    const block = this.closest('[data-filter-block]');
-                    block.classList.toggle('open');
+            filterMenu.addEventListener('change', function(event) {
+                if (!event.target.matches('input[type="checkbox"]')) {
+                    return;
+                }
+
+                syncFilterStateFromMenu(filterMenu.dataset.filterKey, Number(filterMenu.dataset.columnIndex));
+            });
+
+            filterMenu.addEventListener('input', function(event) {
+                if (!event.target.matches('.project-order-filter-search')) {
+                    return;
+                }
+
+                const query = event.target.value.trim().toLowerCase();
+                Array.from(filterMenu.querySelectorAll('[data-filter-option]')).forEach(function(option) {
+                    const optionText = option.textContent.toLowerCase();
+                    option.style.display = optionText.includes(query) ? '' : 'none';
                 });
             });
 
-            applyVisibility();
-            renderActiveFilterChips();
+            columnMenu.addEventListener('click', function(event) {
+                const closeButton = event.target.closest('[data-column-close]');
+                const resetButton = event.target.closest('[data-column-reset]');
+                const selectAllButton = event.target.closest('[data-column-select-all]');
+
+                if (closeButton) {
+                    closeColumnMenu();
+                    return;
+                }
+
+                if (resetButton) {
+                    headers.forEach(function(_, columnIndex) {
+                        columnVisibilityState.set(columnIndex, false);
+                    });
+                    applyColumnVisibility();
+                    renderColumnMenu();
+                    return;
+                }
+
+                if (selectAllButton) {
+                    headers.forEach(function(_, columnIndex) {
+                        columnVisibilityState.set(columnIndex, true);
+                    });
+                    applyColumnVisibility();
+                    renderColumnMenu();
+                }
+            });
+
+            columnMenu.addEventListener('change', function(event) {
+                if (!event.target.matches('input[type="checkbox"][data-column-index]')) {
+                    return;
+                }
+
+                const columnIndex = Number(event.target.dataset.columnIndex);
+                columnVisibilityState.set(columnIndex, event.target.checked);
+                applyColumnVisibility();
+            });
+
+            document.addEventListener('click', function(event) {
+                if (!filterMenu.hidden && !filterMenu.contains(event.target) && !event.target.closest('.project-order-filter-btn')) {
+                    closeFilterMenu();
+                }
+
+                if (!columnMenu.hidden && !columnMenu.contains(event.target) && !event.target.closest('#orderFormsColumnsToggleBtn')) {
+                    closeColumnMenu();
+                }
+            });
+
+            document.addEventListener('keydown', function(event) {
+                if (event.key === 'Escape') {
+                    closeFilterMenu();
+                    closeColumnMenu();
+                }
+            });
+
+            window.addEventListener('resize', function() {
+                if (activeFilterButton && !filterMenu.hidden) {
+                    positionMenu(filterMenu, activeFilterButton);
+                }
+
+                if (!columnMenu.hidden) {
+                    positionMenu(columnMenu, columnToggleButton);
+                }
+            });
+
+            window.addEventListener('scroll', function() {
+                if (activeFilterButton && !filterMenu.hidden) {
+                    positionMenu(filterMenu, activeFilterButton);
+                }
+
+                if (!columnMenu.hidden) {
+                    positionMenu(columnMenu, columnToggleButton);
+                }
+            }, true);
+
+            applyColumnVisibility();
             applyFilters();
         });
     </script>

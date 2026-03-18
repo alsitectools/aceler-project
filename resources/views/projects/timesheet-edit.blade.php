@@ -4,6 +4,7 @@
         ['slug' => $currentWorkspace->slug, 'timesheet_id' => $timesheet->id, 'project_id' => $project_id],
     ],
     'method' => 'POST',
+    'id' => 'project_timesheet_edit_form',
 ]) }}
 <div class="modal-body">
     <input type="hidden" name="project_id" value="{{ $parseArray['project_id'] }}">
@@ -27,9 +28,10 @@
         <div class="form-group">
             <label class="col-form-label">{{ __('Date') }}</label>
             <input type="date" class="form-control form-control-light date" placeholder="{{ __('Date') }}"
-                value="{{ $timesheet->date }}" disabled>
-            <input type="hidden" id="date" name="date" value="{{ $timesheet->date }}"
-                class="form-control form-control-light date">
+                value="{{ $timesheet->date }}" name="date" max="{{ \Carbon\Carbon::now()->format('Y-m-d') }}">
+            <small id="holiday-date-alert" class="text-danger d-none mt-1 d-block">
+                {{ __('You cannot log hours on a holiday.') }}
+            </small>
         </div>
     </div>
     <div class="row">
@@ -74,7 +76,7 @@
     <div class="row">
         <div class="text-end">
             <button type="button" class="btn btn-light" data-bs-dismiss="modal">{{ __('Close') }}</button>
-            <input type="submit" value="{{ __('Save Changes') }}" class="btn  btn-primary me-5">
+            <input type="submit" value="{{ __('Save Changes') }}" class="btn  btn-primary me-5" id="timesheet-save-btn">
 
         </div>
 
@@ -83,20 +85,61 @@
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
     $(document).ready(function() {
-        console.log("Script cargado en la vista timesheet-edit");
-
-        // Elementos
         const totalTimeDisplay = $('.display-total-time span');
         const timeHourSelect = $('select[name="time_hour"]');
         const timeMinuteSelect = $('select[name="time_minute"]');
-        const dateInput = $('input[name="date"]'); // Aunque en esta vista está disabled
-        const expectedHourByDate = Number(@json($expectedHour ?? 0));
+        const dateInput = $('input[name="date"][type="date"]');
+        const saveButton = $('#timesheet-save-btn');
+        const holidayAlert = $('#holiday-date-alert');
+        const holidayCheckUrl = "{{ route('timesheet.check.holiday', $currentWorkspace->slug) }}";
+        let expectedHourByDate = Number(@json($expectedHour ?? 0));
+        let isCurrentDateHoliday = false;
+        let lastValidatedDate = null;
 
-        const timesheet = @json($timesheetEdit);
+        function applyHolidayUiState(isHoliday) {
+            isCurrentDateHoliday = !!isHoliday;
+            holidayAlert.toggleClass('d-none', !isCurrentDateHoliday);
+            saveButton.prop('disabled', isCurrentDateHoliday);
+        }
 
-        console.log(timesheet['time']);
+        function validateHolidayDate() {
+            const selectedDate = (dateInput.val() || '').trim();
 
-        // Función para actualizar el Total Time (solo con los nuevos valores seleccionados)
+            if (!selectedDate) {
+                lastValidatedDate = null;
+                applyHolidayUiState(false);
+                return $.Deferred().resolve(true).promise();
+            }
+
+            return $.ajax({
+                url: holidayCheckUrl,
+                method: 'POST',
+                dataType: 'json',
+                data: {
+                    _token: '{{ csrf_token() }}',
+                    date: selectedDate
+                }
+            }).then(function(response) {
+                lastValidatedDate = selectedDate;
+                applyHolidayUiState(!!response?.is_holiday);
+                return !isCurrentDateHoliday;
+            }).catch(function() {
+                lastValidatedDate = null;
+                applyHolidayUiState(false);
+                return true;
+            });
+        }
+
+        function renderChargedTime(hour, minute, dayColor) {
+            $('.display-total-time').css('background-color', dayColor);
+            totalTimeDisplay.html(`
+            <span>
+                {{ __('Hours charged') }}: ${Number(hour || 0).toString().padStart(1, '0')} {{ __('Hours') }} 
+                ${Number(minute || 0).toString().padStart(2, '0')} {{ __('Minutes') }}
+            </span>
+        `);
+        }
+
         function updateTotalTime() {
             const selectedHour = parseInt(timeHourSelect.val()) || 0;
             const selectedMinute = parseInt(timeMinuteSelect.val()) || 0;
@@ -113,48 +156,73 @@
                 dayColor = '#b2e2f2'; // Azul (horas extras)
             }
 
-            $('.display-total-time').css('background-color', dayColor);
-            totalTimeDisplay.html(`
-            <span>
-                {{ __('Hours charged') }}: ${selectedHour.toString().padStart(1, '0')} {{ __('Hours') }} 
-                ${selectedMinute.toString().padStart(2, '0')} {{ __('Minutes') }}
-            </span>
-        `);
+            renderChargedTime(selectedHour, selectedMinute, dayColor);
         }
 
-        // Escuchar cambios en los selects de horas y minutos
         timeHourSelect.on('change', updateTotalTime);
         timeMinuteSelect.on('change', updateTotalTime);
 
-        // Si en algún momento se habilita el input de fecha, se puede actualizar vía AJAX
         dateInput.on('change', function() {
             const selectedDate = $(this).val();
-            console.log("Fecha seleccionada:", selectedDate);
 
-            $.ajax({
-                url: '{{ route('getTotalTime') }}',
-                method: 'POST',
-                dataType: 'json',
-                data: {
-                    _token: '{{ csrf_token() }}',
-                    project_id: "{{ $parseArray['project_id'] }}",
-                    task_id: "{{ $parseArray['task_id'] }}",
-                    selected_date: selectedDate,
-                    user_id: "{{ Auth::id() }}"
-                },
-                success: function(data) {
-                    console.log("Success: Response received", data);
-                    totalTimeDisplay.text(
-                        `Hours charged: ${data.totaltaskhour} Hours ${data.totaltaskminute.toString().padStart(1, '0')} Minutes`
-                    );
-                    $('.display-total-time').css('background-color', data.dayColor);
-                },
-                error: function(xhr, status, error) {
-                    console.error("AJAX Error:", error);
-                    console.error("Detalles del error:", xhr.responseText);
+            if (!selectedDate) {
+                return;
+            }
+
+            validateHolidayDate().then(function(canLogHours) {
+                if (!canLogHours) {
+                    return;
                 }
+
+                $.ajax({
+                    url: '{{ route('getTotalTime') }}',
+                    method: 'POST',
+                    dataType: 'json',
+                    data: {
+                        _token: '{{ csrf_token() }}',
+                        project_id: "{{ $parseArray['project_id'] }}",
+                        task_id: "{{ $parseArray['task_id'] }}",
+                        selected_date: selectedDate,
+                        user_id: "{{ Auth::id() }}"
+                    },
+                    success: function(data) {
+                        expectedHourByDate = Number(data.expectedHour || 0);
+                        renderChargedTime(data.totaltaskhour, data.totaltaskminute, data.dayColor);
+                    },
+                    error: function(xhr, status, error) {
+                        console.error('AJAX Error:', error);
+                        console.error('Detalles del error:', xhr.responseText);
+                    }
+                });
             });
         });
+
+        $('#project_timesheet_edit_form').on('submit', function(event) {
+            const selectedDate = (dateInput.val() || '').trim();
+
+            if (selectedDate && lastValidatedDate === selectedDate) {
+                if (isCurrentDateHoliday) {
+                    event.preventDefault();
+                }
+
+                return;
+            }
+
+            event.preventDefault();
+            const form = this;
+
+            validateHolidayDate().then(function(canLogHours) {
+                if (!canLogHours) {
+                    return;
+                }
+
+                $('#project_timesheet_edit_form').off('submit');
+                form.submit();
+            });
+        });
+
+        updateTotalTime();
+        validateHolidayDate();
     });
 </script>
 

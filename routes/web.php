@@ -1068,3 +1068,6 @@ Route::post('/{slug}/milestone/{id}/delete-puntuaciones', [ProjectController::cl
 //EXPORT PROJECTS TO AXAPTA
 Route::post('/projects/export-axapta', [ProjectController::class, 'exportProjectsToAxapta'])
   ->name('projects.export.axapta');
+
+//MY TASKS VIEW
+Route::get('/my-tasks', [ProjectController::class, 'myTasks'])->name('projects.my_tasks');

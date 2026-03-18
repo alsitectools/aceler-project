@@ -2413,6 +2413,7 @@ class ProjectController extends Controller
 
         $milestone->finalization_date = null;
         $milestone->save();
+        $this->syncMilestoneTaskEndDates($milestone, null);
 
         // ✅ Recalcular estado del proyecto
         if ($milestone->project) {
@@ -2921,6 +2922,7 @@ class ProjectController extends Controller
                 if ($milestone->status == 4) {
                     $milestone->finalization_date = date('Y-m-d');
                     $milestone->save();
+                    $this->syncMilestoneTaskEndDates($milestone, $milestone->finalization_date);
 
                     $project = Project::find($milestone->project_id);
                     if (isset($project)) {
@@ -2984,6 +2986,12 @@ class ProjectController extends Controller
             $task = Milestone::find($request->id);
             $task->status = $request->new_status;
             $task->save();
+
+            if ((int) $task->status === 4) {
+                $task->finalization_date = date('Y-m-d');
+                $task->save();
+                $this->syncMilestoneTaskEndDates($task, $task->finalization_date);
+            }
 
             $name = $user->name;
             $id = $user->id;
@@ -4338,6 +4346,222 @@ class ProjectController extends Controller
         return redirect()->back()->with('success', __('Milestone Updated Successfully!'));
     }
 
+    public function myTasks()
+    {
+        $user = Auth::user();
+        $now = Carbon::now();
+        $currentWorkspace = Workspace::find($user->currant_workspace);
+
+        $tasks = Task::with([
+            'project:id,name,workspace,type',
+            'milestone:id,title,project_id',
+            'milestone.phase:id,id_milestone,phases',
+            'milestone.stage:id,id_milestone,stages,milestone_stage_project_id',
+            'milestone.stage.stageProject:id,name',
+            'type:id,name',
+            'customTask:id,id_task,name',
+        ])
+            ->leftJoin('projects', 'projects.id', '=', 'tasks.project_id')
+            ->select('tasks.*')
+            ->where(function ($query) use ($user) {
+                $query->whereRaw("find_in_set(?, assign_to)", [(string) $user->id])
+                    ->orWhere('assign_to', (string) $user->id);
+            })
+            ->orderByRaw("CASE WHEN projects.name IS NULL OR TRIM(projects.name) = '' THEN 1 ELSE 0 END")
+            ->orderBy('projects.name')
+            ->orderBy('tasks.estimated_date')
+            ->orderByDesc('tasks.id')
+            ->get();
+
+        $latestTimesheetsByTask = Timesheet::query()
+            ->select('id', 'task_id', 'project_id', 'date')
+            ->where('created_by', $user->id)
+            ->whereIn('task_id', $tasks->pluck('id')->filter()->all())
+            ->orderByDesc('date')
+            ->orderByDesc('id')
+            ->get()
+            ->unique('task_id')
+            ->keyBy('task_id');
+
+        $today = Carbon::today()->toDateString();
+
+        $tasks->transform(function ($task) use ($currentWorkspace, $latestTimesheetsByTask, $today) {
+            $editableTimesheet = $latestTimesheetsByTask->get($task->id);
+
+            $task->timesheet_edit_url = null;
+            $task->timesheet_edit_date = null;
+            $task->timesheet_action_mode = null;
+            $task->timesheet_action_title = null;
+
+            if (!$currentWorkspace || !$task->project_id) {
+                return $task;
+            }
+
+            if ($editableTimesheet) {
+                $task->timesheet_edit_url = route('project.timesheet.edit', [
+                    'slug' => $currentWorkspace->slug,
+                    'timesheet_id' => $editableTimesheet->id,
+                    'project_id' => $editableTimesheet->project_id ?: $task->project_id,
+                ]);
+                $task->timesheet_edit_date = $editableTimesheet->date;
+                $task->timesheet_action_mode = 'edit';
+                $task->timesheet_action_title = __('Edit Timesheet');
+            } else {
+                $task->timesheet_edit_url = route('project.timesheet.create', [
+                    'slug' => $currentWorkspace->slug,
+                    'project_id' => $task->project_id,
+                ]);
+                $task->timesheet_edit_date = $today;
+                $task->timesheet_action_mode = 'create';
+                $task->timesheet_action_title = __('Create Timesheet');
+            }
+
+            return $task;
+        });
+
+        $loggedTaskPeriods = [
+            'weekly' => [
+                'label' => __('Logged this week'),
+                'start' => $now->copy()->startOfWeek(),
+                'end' => $now->copy(),
+            ],
+            'thirty_days' => [
+                'label' => __('Logged in 30 days'),
+                'start' => $now->copy()->subDays(30),
+                'end' => $now->copy(),
+            ],
+        ];
+
+        $loggedTaskDetailsByRange = [];
+        foreach ($loggedTaskPeriods as $periodKey => $periodConfig) {
+            $loggedTasksForPeriod = $this->buildLoggedTaskDetailsForPeriod(
+                $user->id,
+                $periodConfig['start'],
+                $periodConfig['end']
+            );
+
+            $loggedTaskDetailsByRange[$periodKey] = [
+                'label' => $periodConfig['label'],
+                'range_label' => $periodConfig['start']->format('d/m/Y') . ' - ' . $periodConfig['end']->format('d/m/Y'),
+                'tasks' => $loggedTasksForPeriod,
+                'count' => count($loggedTasksForPeriod),
+            ];
+        }
+
+        $loggedTasksThisWeekCount = $loggedTaskDetailsByRange['weekly']['count'] ?? 0;
+        $loggedTasksLastThirtyDaysCount = $loggedTaskDetailsByRange['thirty_days']['count'] ?? 0;
+
+        $periods = [
+            'weekly' => $now->copy()->subWeek(),
+            'monthly' => $now->copy()->subMonth(),
+            'quarterly' => $now->copy()->subMonths(3),
+            'yearly' => $now->copy()->subYear(),
+        ];
+
+        $diagramDataByPeriod = [];
+        foreach ($periods as $periodKey => $startDate) {
+            $periodTasks = Task::with([
+                'milestone:id,title',
+                'type:id,name',
+                'customTask:id,id_task,name',
+            ])
+                ->leftJoin('projects', 'projects.id', '=', 'tasks.project_id')
+                ->select('tasks.*', 'projects.name as project_name')
+                ->whereNotNull('tasks.project_id')
+                ->where(function ($query) use ($user) {
+                    $query->whereRaw("find_in_set(?, assign_to)", [(string) $user->id])
+                        ->orWhere('assign_to', (string) $user->id);
+                })
+                ->whereDate('tasks.created_at', '>=', $startDate->toDateString())
+                ->orderByDesc('tasks.created_at')
+                ->get()
+                ->values();
+
+            $projectCounters = [];
+            $tasksByProject = [];
+            foreach ($periodTasks as $taskModel) {
+                $projectId = (int) $taskModel->project_id;
+                if ($projectId <= 0) {
+                    continue;
+                }
+
+                if (!isset($projectCounters[$projectId])) {
+                    $projectCounters[$projectId] = [
+                        'project_id' => $projectId,
+                        'project_name' => $taskModel->project_name ?: __('N/A'),
+                        'tasks_done' => 0,
+                    ];
+                }
+
+                $projectCounters[$projectId]['tasks_done']++;
+
+                $createdAt = $taskModel->created_at ? Carbon::parse($taskModel->created_at) : null;
+                $taskTypeName = optional($taskModel->type)->name;
+                $isCustomType = strtolower(trim((string) $taskTypeName)) === 'custom';
+                $displayTypeName = $isCustomType
+                    ? (optional($taskModel->customTask)->name ?: __('Custom'))
+                    : ($taskTypeName ?: __('N/A'));
+
+                $tasksByProject[$projectId][] = [
+                    'name' => $displayTypeName,
+                    'milestone' => optional($taskModel->milestone)->title ?: __('N/A'),
+                    'start_date' => $taskModel->start_date ? Carbon::parse($taskModel->start_date)->format('d/m/Y') : __('N/A'),
+                    'estimated_date' => $taskModel->estimated_date ? Carbon::parse($taskModel->estimated_date)->format('d/m/Y') : __('N/A'),
+                    'finalization_date' => $taskModel->end_date
+                        ? Carbon::parse($taskModel->end_date)->format('d/m/Y')
+                        : __('N/A'),
+                    'sort_timestamp' => $createdAt ? $createdAt->getTimestamp() : 0,
+                ];
+            }
+
+            $diagramRows = collect($projectCounters)
+                ->sort(function ($a, $b) {
+                    $tasksCompare = (int) ($b['tasks_done'] ?? 0) <=> (int) ($a['tasks_done'] ?? 0);
+                    if ($tasksCompare !== 0) {
+                        return $tasksCompare;
+                    }
+
+                    return strcmp((string) ($a['project_name'] ?? ''), (string) ($b['project_name'] ?? ''));
+                })
+                ->values();
+
+            foreach ($tasksByProject as $projectId => $projectTasks) {
+                usort($projectTasks, function ($a, $b) {
+                    return (int) ($b['sort_timestamp'] ?? 0) <=> (int) ($a['sort_timestamp'] ?? 0);
+                });
+
+                $tasksByProject[$projectId] = array_map(function ($taskItem) {
+                    unset($taskItem['sort_timestamp']);
+                    return $taskItem;
+                }, $projectTasks);
+            }
+
+            $tasksSeries = $diagramRows->pluck('tasks_done')->map(fn($value) => (int) ($value ?? 0))->toArray();
+            $totalTasks = array_sum($tasksSeries);
+
+            $diagramDataByPeriod[$periodKey] = [
+                'project_ids' => $diagramRows->pluck('project_id')->map(fn($id) => (int) $id)->toArray(),
+                'labels' => $diagramRows->pluck('project_name')->toArray(),
+                'series' => $tasksSeries,
+                'project_tasks' => $tasksByProject,
+                'unit' => 'tasks',
+                'total_formatted' => (string) $totalTasks,
+                'range_label' => $startDate->format('d/m/Y') . ' - ' . $now->format('d/m/Y'),
+            ];
+        }
+
+        $defaultDiagramPeriod = 'weekly';
+
+        return view('projects.my_tasks', compact(
+            'currentWorkspace',
+            'tasks',
+            'loggedTaskDetailsByRange',
+            'diagramDataByPeriod',
+            'defaultDiagramPeriod',
+            'loggedTasksThisWeekCount',
+            'loggedTasksLastThirtyDaysCount'
+        ));
+    }
 
     public function milestoneDestroy($slug, $milestoneID)
     {
@@ -4345,6 +4569,12 @@ class ProjectController extends Controller
             DB::transaction(function () use ($milestoneID) {
                 $milestone = Milestone::findOrFail($milestoneID);
                 $project = Project::findOrFail($milestone->project_id);
+
+                $taskIds = $milestone->tasks()->pluck('id');
+
+                if ($taskIds->isNotEmpty()) {
+                    Timesheet::whereIn('task_id', $taskIds)->delete();
+                }
 
                 $milestone->tasks()->delete();
 
@@ -4846,6 +5076,7 @@ class ProjectController extends Controller
             'totaltaskhour' => $totaltaskhour,
             'totaltaskminute' => $totaltaskminute,
             'dayColor'        => $dayColor,
+            'expectedHour' => $expectedHour,
             'is_edit' => $timesheetEdit ? true : false,
             'timesheet' => $timesheetEdit ? $timesheetEdit : null,
         ]);
@@ -6139,15 +6370,15 @@ class ProjectController extends Controller
 
     public function projectTimesheetCreate(Request $request, $slug, $project_id)
     {
-        $fromTimesheet = true;
+        $fromTimesheet = !$request->boolean('from_my_tasks') && $request->filled('date');
         $parseArray = [];
         $objUser = Auth::user();
         $currentWorkspace = Utility::getWorkspaceBySlug($slug);
 
         $project_id = $request->input('project_id');
         $task_id = $request->input('task_id');
-        $selected_date = $request->input('date');
-        $user_id = $request->input('user_id');
+        $selected_date = $request->input('date') ?: Carbon::today()->toDateString();
+        $user_id = $request->input('user_id') ?: $objUser->id;
         $project = Project::find($project_id);
 
 
@@ -6188,27 +6419,10 @@ class ProjectController extends Controller
         list($totaltaskhour, $totaltaskminute) = explode(':', $totaltasktime);
         // Obtener horario esperado según el día de la semana
         $timeTable = UserTimetable::where('user_id', $objUser->id)->first();
-        $dayOfWeek = strtolower(date('l')); // Día en inglés (ej: "monday")
+        $expectedHour = $this->getExpectedHoursByDate($timeTable, $selected_date);
 
-        $expectedHour = 0;
-        if ($timeTable && isset($timeTable->$dayOfWeek)) {
-            $expectedTime = explode(':', $timeTable->$dayOfWeek);
-            $expectedHour = (int) $expectedTime[0]; // Solo horas
-        }
-
-        // Convertir horas trabajadas a decimal
-        $workedHoursFormatted = $totaltaskhour + ($totaltaskminute / 60);
-        $dayColor = '';
-        // Determinar el color según la comparación
-        if ($workedHoursFormatted == 0) {
-            $dayColor = '#e06c71'; // Rojo (sin horas)
-        } elseif ($workedHoursFormatted < $expectedHour) {
-            $dayColor = '#fcf75e'; // Amarillo (horas parciales)
-        } elseif ($workedHoursFormatted == $expectedHour) {
-            $dayColor = '#89e186'; // Verde (horas completas)
-        } elseif ($workedHoursFormatted > $expectedHour) {
-            $dayColor = '#b2e2f2'; // Azul (horas extras)
-        }
+        $workedHoursFormatted = ((int) $totaltaskhour) + (((int) $totaltaskminute) / 60);
+        $dayColor = $this->resolveDayColor($workedHoursFormatted, $expectedHour);
         $taskCreationDate = $task->created_at->format('Y-m-d');
         $parseArray = [
             'project_id' => $project->id,
@@ -6267,13 +6481,14 @@ class ProjectController extends Controller
 
         $currentWorkspace = Utility::getWorkspaceBySlug($slug);
         $project = Project::find($project_id);
-        $task = Task::find($request->task_id);
-        $milestone = Milestone::find($task->milestone_id);
+        $timesheet = Timesheet::find($timesheet_id);
+        $task_id = $request->has('task_id') ? $request->task_id : ($timesheet->task_id ?? null);
+        $task = $task_id ? Task::find($task_id) : null;
+        $milestone = $task ? Milestone::find($task->milestone_id) : null;
 
-        $task_id = $request->has('task_id') ? $request->task_id : null;
         $user_id = $request->has('date') ? $request->user_id : null;
         $created_by = $user_id != null ? $user_id : $objUser->id;
-        $selected_date = $request->has('date') ? $request->date : null;
+        $selected_date = $request->has('date') ? $request->date : ($timesheet->date ?? null);
         $project_view = '';
 
         if ($request->has('project_view')) {
@@ -6287,8 +6502,6 @@ class ProjectController extends Controller
                 '=',
                 $objUser->id
             )->where('projects.workspace', '=', $currentWorkspace->id);
-
-        $timesheet = Timesheet::find($timesheet_id);
 
         if ($timesheet) {
             $project = $projects->where('projects.id', '=', $project_id)->pluck('projects.name', 'projects.id')->all();
@@ -6367,15 +6580,24 @@ class ProjectController extends Controller
                 ]
             );
 
+            try {
+                $selectedDate = Carbon::parse($request->date)->toDateString();
+            } catch (\Throwable $e) {
+                return redirect()->back()->withInput()->with('error', __('Invalid date selected.'));
+            }
+
+            if ($this->isUserHolidayDate((int) Auth::id(), $selectedDate)) {
+                return redirect()->back()->withInput()->with('error', __('You cannot log hours on a holiday.'));
+            }
+
             $hour = $request->time_hour;
             $minute = $request->time_minute;
-
-            $time = ($hour != '' ? ($hour < 10 ? '0' + $hour : $hour) : '00') . ':' . ($minute != '' ? ($minute < 10 ? '0' + $minute : $minute) : '00');
+            $time = sprintf('%02d:%02d:00', (int) $hour, (int) $minute);
 
             $timesheet = Timesheet::find($timesheet_id);
             $timesheet->project_id = $request->project_id;
             $timesheet->task_id = $request->task_id;
-            $timesheet->date = $request->date;
+            $timesheet->date = $selectedDate;
             $timesheet->time = $time;
             $timesheet->save();
 

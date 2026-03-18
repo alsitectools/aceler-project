@@ -143,7 +143,7 @@
     "Checkout": "Verificar",
     "Choose file here": "Elija el archivo aqu\u00ed",
     "City": "Ciudad",
-    "Clear": "Claro",
+    "Clear": "Limpiar",
     "Clear Cache": "Limpiar cache",
     "Click to Add Timesheet": "Haga clic para agregar parte de horas",
     "Click to copy invoice link": "Haga clic para copiar el enlace de la factura",
@@ -1392,5 +1392,7 @@
     "My tasks in this milestone": "Mis tareas en este encargo",
     "score from last month": "puntuación del último mes",
     "Total hours": "Horas totales",
-    "There are no imputed hours for the selected range": "No hay datos disponibles para el gráfico"
+    "There are no imputed hours for the selected range": "No hay datos disponibles para el gráfico",
+    "My Tasks": "Mis tareas",
+    "Edit Phases": "Editar fases"
 }
