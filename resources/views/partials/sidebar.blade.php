@@ -631,10 +631,19 @@
                             <span class="dash-mtext">{{ __('My Milestones') }}</span>
                         </a>
                     </li>
+                    <li class="dash-item ">
+                        <a href="{{ route('projects.my_tasks') }}" class="dash-link menu-element">
+                            <span class="dash-micon"
+                                style="position: relative; display: inline-flex; align-items: center; justify-content: center; overflow:hidden;">
+                                <i class="fas fa-tasks"></i>
+                            </span>
+                            <span class="dash-mtext">{{ __('My Tasks') }}</span>
+                        </a>
+                    </li>
                     <li class="dash-item  {{ Request::route()->getName() == 'timesheet.index' ? 'active' : '' }}">
                         <a href="{{ route('timesheet.index', $currentWorkspace->slug) }}"
                             class="dash-link  menu-element">
-                            <span class="dash-micon"><i class="fas fa-tasks"></i></span><span
+                            <span class="dash-micon"><i class="fa-solid fa-clock"></i></span><span
                                 class="dash-mtext">{{ __('My Timesheet') }}</span></a>
                     </li>
                     <li class="dash-item  {{ Request::route()->getName() == 'calender.index' ? 'active' : '' }}">

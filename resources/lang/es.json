@@ -143,7 +143,7 @@
     "Checkout": "Verificar",
     "Choose file here": "Elija el archivo aqu\u00ed",
     "City": "Ciudad",
-    "Clear": "Claro",
+    "Clear": "Limpiar",
     "Clear Cache": "Limpiar cache",
     "Click to Add Timesheet": "Haga clic para agregar parte de horas",
     "Click to copy invoice link": "Haga clic para copiar el enlace de la factura",
@@ -1365,5 +1365,7 @@
     "Table Visibility": "Visibilidad de la tabla",
     "Creation date": "Fecha de creación",
     "Upload Files": "Subir archivos",
-    "stages": "etapas"
+    "stages": "etapas",
+    "My Tasks": "Mis tareas",
+    "Edit Phases": "Editar fases"
 }
