@@ -834,6 +834,13 @@
         padding-top: 4px;
     }
 
+    .files-section .files-scroll-area {
+        max-height: clamp(320px, 52vh, 460px);
+        overflow-y: auto;
+        overflow-x: hidden;
+        padding-right: 4px;
+    }
+
     .files-section .custom-file-container {
         gap: 8px;
     }
@@ -1155,12 +1162,12 @@
                                                 <button type="button" id="orderFormsColumnsToggleBtn"
                                                     class="project-order-column-toggle-btn"
                                                     aria-label="{{ __('Show or hide table columns') }}"
-                                                    title="{{ __('Show or hide table columns') }}"
-                                                    aria-expanded="false">
+                                                    title="{{ __('Show or hide table columns') }}" aria-expanded="false">
                                                     <svg class="project-order-column-toggle-icon" viewBox="0 0 16 16"
                                                         aria-hidden="true">
                                                         <path
-                                                            d="M8 3.2c3.3 0 5.8 2.3 6.9 4.8-1.1 2.5-3.6 4.8-6.9 4.8S2.2 10.5 1.1 8C2.2 5.5 4.7 3.2 8 3.2Zm0 1.2c-2.6 0-4.7 1.7-5.8 3.6 1.1 1.9 3.2 3.6 5.8 3.6s4.7-1.7 5.8-3.6c-1.1-1.9-3.2-3.6-5.8-3.6Zm0 1.4a2.2 2.2 0 1 1 0 4.4 2.2 2.2 0 0 1 0-4.4Zm0 1.2a1 1 0 1 0 0 2 1 1 0 0 0 0-2Z"></path>
+                                                            d="M8 3.2c3.3 0 5.8 2.3 6.9 4.8-1.1 2.5-3.6 4.8-6.9 4.8S2.2 10.5 1.1 8C2.2 5.5 4.7 3.2 8 3.2Zm0 1.2c-2.6 0-4.7 1.7-5.8 3.6 1.1 1.9 3.2 3.6 5.8 3.6s4.7-1.7 5.8-3.6c-1.1-1.9-3.2-3.6-5.8-3.6Zm0 1.4a2.2 2.2 0 1 1 0 4.4 2.2 2.2 0 0 1 0-4.4Zm0 1.2a1 1 0 1 0 0 2 1 1 0 0 0 0-2Z">
+                                                        </path>
                                                     </svg>
                                                     <span class="project-order-column-toggle-count"
                                                         id="orderFormsColumnsToggleCount">0/0</span>
@@ -1201,7 +1208,8 @@
                                                                     <svg class="project-order-filter-icon"
                                                                         viewBox="0 0 16 16" aria-hidden="true">
                                                                         <path
-                                                                            d="M2 3.25A1.25 1.25 0 0 1 3.25 2h9.5A1.25 1.25 0 0 1 14 3.25c0 .3-.11.6-.31.82L9.5 8.45v3.3a1 1 0 0 1-.55.9l-2 1A1 1 0 0 1 5.5 12.75V8.45L2.31 4.07A1.25 1.25 0 0 1 2 3.25Z"></path>
+                                                                            d="M2 3.25A1.25 1.25 0 0 1 3.25 2h9.5A1.25 1.25 0 0 1 14 3.25c0 .3-.11.6-.31.82L9.5 8.45v3.3a1 1 0 0 1-.55.9l-2 1A1 1 0 0 1 5.5 12.75V8.45L2.31 4.07A1.25 1.25 0 0 1 2 3.25Z">
+                                                                        </path>
                                                                     </svg>
                                                                 </button>
                                                             </div>
@@ -1217,7 +1225,8 @@
                                                                     <svg class="project-order-filter-icon"
                                                                         viewBox="0 0 16 16" aria-hidden="true">
                                                                         <path
-                                                                            d="M2 3.25A1.25 1.25 0 0 1 3.25 2h9.5A1.25 1.25 0 0 1 14 3.25c0 .3-.11.6-.31.82L9.5 8.45v3.3a1 1 0 0 1-.55.9l-2 1A1 1 0 0 1 5.5 12.75V8.45L2.31 4.07A1.25 1.25 0 0 1 2 3.25Z"></path>
+                                                                            d="M2 3.25A1.25 1.25 0 0 1 3.25 2h9.5A1.25 1.25 0 0 1 14 3.25c0 .3-.11.6-.31.82L9.5 8.45v3.3a1 1 0 0 1-.55.9l-2 1A1 1 0 0 1 5.5 12.75V8.45L2.31 4.07A1.25 1.25 0 0 1 2 3.25Z">
+                                                                        </path>
                                                                     </svg>
                                                                 </button>
                                                             </div>
@@ -1231,10 +1240,11 @@
                                                                 data-filter-label="{{ __('Name') }}"
                                                                 data-column-index="{{ $project->type == 3 || $project->type == 5 ? 2 : 0 }}"
                                                                 aria-label="{{ __('Filter Name') }}">
-                                                                <svg class="project-order-filter-icon"
-                                                                    viewBox="0 0 16 16" aria-hidden="true">
+                                                                <svg class="project-order-filter-icon" viewBox="0 0 16 16"
+                                                                    aria-hidden="true">
                                                                     <path
-                                                                        d="M2 3.25A1.25 1.25 0 0 1 3.25 2h9.5A1.25 1.25 0 0 1 14 3.25c0 .3-.11.6-.31.82L9.5 8.45v3.3a1 1 0 0 1-.55.9l-2 1A1 1 0 0 1 5.5 12.75V8.45L2.31 4.07A1.25 1.25 0 0 1 2 3.25Z"></path>
+                                                                        d="M2 3.25A1.25 1.25 0 0 1 3.25 2h9.5A1.25 1.25 0 0 1 14 3.25c0 .3-.11.6-.31.82L9.5 8.45v3.3a1 1 0 0 1-.55.9l-2 1A1 1 0 0 1 5.5 12.75V8.45L2.31 4.07A1.25 1.25 0 0 1 2 3.25Z">
+                                                                    </path>
                                                                 </svg>
                                                             </button>
                                                         </div>
@@ -1247,10 +1257,11 @@
                                                                 data-filter-label="{{ __('Requested by') }}"
                                                                 data-column-index="{{ $project->type == 3 || $project->type == 5 ? 3 : 1 }}"
                                                                 aria-label="{{ __('Filter Requested by') }}">
-                                                                <svg class="project-order-filter-icon"
-                                                                    viewBox="0 0 16 16" aria-hidden="true">
+                                                                <svg class="project-order-filter-icon" viewBox="0 0 16 16"
+                                                                    aria-hidden="true">
                                                                     <path
-                                                                        d="M2 3.25A1.25 1.25 0 0 1 3.25 2h9.5A1.25 1.25 0 0 1 14 3.25c0 .3-.11.6-.31.82L9.5 8.45v3.3a1 1 0 0 1-.55.9l-2 1A1 1 0 0 1 5.5 12.75V8.45L2.31 4.07A1.25 1.25 0 0 1 2 3.25Z"></path>
+                                                                        d="M2 3.25A1.25 1.25 0 0 1 3.25 2h9.5A1.25 1.25 0 0 1 14 3.25c0 .3-.11.6-.31.82L9.5 8.45v3.3a1 1 0 0 1-.55.9l-2 1A1 1 0 0 1 5.5 12.75V8.45L2.31 4.07A1.25 1.25 0 0 1 2 3.25Z">
+                                                                    </path>
                                                                 </svg>
                                                             </button>
                                                         </div>
@@ -1263,10 +1274,11 @@
                                                                 data-filter-label="{{ __('Assigned to') }}"
                                                                 data-column-index="{{ $project->type == 3 || $project->type == 5 ? 4 : 2 }}"
                                                                 aria-label="{{ __('Filter Assigned to') }}">
-                                                                <svg class="project-order-filter-icon"
-                                                                    viewBox="0 0 16 16" aria-hidden="true">
+                                                                <svg class="project-order-filter-icon" viewBox="0 0 16 16"
+                                                                    aria-hidden="true">
                                                                     <path
-                                                                        d="M2 3.25A1.25 1.25 0 0 1 3.25 2h9.5A1.25 1.25 0 0 1 14 3.25c0 .3-.11.6-.31.82L9.5 8.45v3.3a1 1 0 0 1-.55.9l-2 1A1 1 0 0 1 5.5 12.75V8.45L2.31 4.07A1.25 1.25 0 0 1 2 3.25Z"></path>
+                                                                        d="M2 3.25A1.25 1.25 0 0 1 3.25 2h9.5A1.25 1.25 0 0 1 14 3.25c0 .3-.11.6-.31.82L9.5 8.45v3.3a1 1 0 0 1-.55.9l-2 1A1 1 0 0 1 5.5 12.75V8.45L2.31 4.07A1.25 1.25 0 0 1 2 3.25Z">
+                                                                    </path>
                                                                 </svg>
                                                             </button>
                                                         </div>
@@ -1279,10 +1291,11 @@
                                                                 data-filter-label="{{ __('Status') }}"
                                                                 data-column-index="{{ $project->type == 3 || $project->type == 5 ? 5 : 3 }}"
                                                                 aria-label="{{ __('Filter Status') }}">
-                                                                <svg class="project-order-filter-icon"
-                                                                    viewBox="0 0 16 16" aria-hidden="true">
+                                                                <svg class="project-order-filter-icon" viewBox="0 0 16 16"
+                                                                    aria-hidden="true">
                                                                     <path
-                                                                        d="M2 3.25A1.25 1.25 0 0 1 3.25 2h9.5A1.25 1.25 0 0 1 14 3.25c0 .3-.11.6-.31.82L9.5 8.45v3.3a1 1 0 0 1-.55.9l-2 1A1 1 0 0 1 5.5 12.75V8.45L2.31 4.07A1.25 1.25 0 0 1 2 3.25Z"></path>
+                                                                        d="M2 3.25A1.25 1.25 0 0 1 3.25 2h9.5A1.25 1.25 0 0 1 14 3.25c0 .3-.11.6-.31.82L9.5 8.45v3.3a1 1 0 0 1-.55.9l-2 1A1 1 0 0 1 5.5 12.75V8.45L2.31 4.07A1.25 1.25 0 0 1 2 3.25Z">
+                                                                    </path>
                                                                 </svg>
                                                             </button>
                                                         </div>
@@ -1295,10 +1308,11 @@
                                                                 data-filter-label="{{ __('Created') }}"
                                                                 data-column-index="{{ $project->type == 3 || $project->type == 5 ? 6 : 4 }}"
                                                                 aria-label="{{ __('Filter Created') }}">
-                                                                <svg class="project-order-filter-icon"
-                                                                    viewBox="0 0 16 16" aria-hidden="true">
+                                                                <svg class="project-order-filter-icon" viewBox="0 0 16 16"
+                                                                    aria-hidden="true">
                                                                     <path
-                                                                        d="M2 3.25A1.25 1.25 0 0 1 3.25 2h9.5A1.25 1.25 0 0 1 14 3.25c0 .3-.11.6-.31.82L9.5 8.45v3.3a1 1 0 0 1-.55.9l-2 1A1 1 0 0 1 5.5 12.75V8.45L2.31 4.07A1.25 1.25 0 0 1 2 3.25Z"></path>
+                                                                        d="M2 3.25A1.25 1.25 0 0 1 3.25 2h9.5A1.25 1.25 0 0 1 14 3.25c0 .3-.11.6-.31.82L9.5 8.45v3.3a1 1 0 0 1-.55.9l-2 1A1 1 0 0 1 5.5 12.75V8.45L2.31 4.07A1.25 1.25 0 0 1 2 3.25Z">
+                                                                    </path>
                                                                 </svg>
                                                             </button>
                                                         </div>
@@ -1311,10 +1325,11 @@
                                                                 data-filter-label="{{ __('Desired delivery') }}"
                                                                 data-column-index="{{ $project->type == 3 || $project->type == 5 ? 7 : 5 }}"
                                                                 aria-label="{{ __('Filter Desired delivery') }}">
-                                                                <svg class="project-order-filter-icon"
-                                                                    viewBox="0 0 16 16" aria-hidden="true">
+                                                                <svg class="project-order-filter-icon" viewBox="0 0 16 16"
+                                                                    aria-hidden="true">
                                                                     <path
-                                                                        d="M2 3.25A1.25 1.25 0 0 1 3.25 2h9.5A1.25 1.25 0 0 1 14 3.25c0 .3-.11.6-.31.82L9.5 8.45v3.3a1 1 0 0 1-.55.9l-2 1A1 1 0 0 1 5.5 12.75V8.45L2.31 4.07A1.25 1.25 0 0 1 2 3.25Z"></path>
+                                                                        d="M2 3.25A1.25 1.25 0 0 1 3.25 2h9.5A1.25 1.25 0 0 1 14 3.25c0 .3-.11.6-.31.82L9.5 8.45v3.3a1 1 0 0 1-.55.9l-2 1A1 1 0 0 1 5.5 12.75V8.45L2.31 4.07A1.25 1.25 0 0 1 2 3.25Z">
+                                                                    </path>
                                                                 </svg>
                                                             </button>
                                                         </div>
@@ -1327,10 +1342,11 @@
                                                                 data-filter-label="{{ __('Expected delivery') }}"
                                                                 data-column-index="{{ $project->type == 3 || $project->type == 5 ? 8 : 6 }}"
                                                                 aria-label="{{ __('Filter Expected delivery') }}">
-                                                                <svg class="project-order-filter-icon"
-                                                                    viewBox="0 0 16 16" aria-hidden="true">
+                                                                <svg class="project-order-filter-icon" viewBox="0 0 16 16"
+                                                                    aria-hidden="true">
                                                                     <path
-                                                                        d="M2 3.25A1.25 1.25 0 0 1 3.25 2h9.5A1.25 1.25 0 0 1 14 3.25c0 .3-.11.6-.31.82L9.5 8.45v3.3a1 1 0 0 1-.55.9l-2 1A1 1 0 0 1 5.5 12.75V8.45L2.31 4.07A1.25 1.25 0 0 1 2 3.25Z"></path>
+                                                                        d="M2 3.25A1.25 1.25 0 0 1 3.25 2h9.5A1.25 1.25 0 0 1 14 3.25c0 .3-.11.6-.31.82L9.5 8.45v3.3a1 1 0 0 1-.55.9l-2 1A1 1 0 0 1 5.5 12.75V8.45L2.31 4.07A1.25 1.25 0 0 1 2 3.25Z">
+                                                                    </path>
                                                                 </svg>
                                                             </button>
                                                         </div>
@@ -1343,10 +1359,11 @@
                                                                 data-filter-label="{{ __('Task started') }}"
                                                                 data-column-index="{{ $project->type == 3 || $project->type == 5 ? 9 : 7 }}"
                                                                 aria-label="{{ __('Filter Task started') }}">
-                                                                <svg class="project-order-filter-icon"
-                                                                    viewBox="0 0 16 16" aria-hidden="true">
+                                                                <svg class="project-order-filter-icon" viewBox="0 0 16 16"
+                                                                    aria-hidden="true">
                                                                     <path
-                                                                        d="M2 3.25A1.25 1.25 0 0 1 3.25 2h9.5A1.25 1.25 0 0 1 14 3.25c0 .3-.11.6-.31.82L9.5 8.45v3.3a1 1 0 0 1-.55.9l-2 1A1 1 0 0 1 5.5 12.75V8.45L2.31 4.07A1.25 1.25 0 0 1 2 3.25Z"></path>
+                                                                        d="M2 3.25A1.25 1.25 0 0 1 3.25 2h9.5A1.25 1.25 0 0 1 14 3.25c0 .3-.11.6-.31.82L9.5 8.45v3.3a1 1 0 0 1-.55.9l-2 1A1 1 0 0 1 5.5 12.75V8.45L2.31 4.07A1.25 1.25 0 0 1 2 3.25Z">
+                                                                    </path>
                                                                 </svg>
                                                             </button>
                                                         </div>
@@ -1359,10 +1376,11 @@
                                                                 data-filter-label="{{ __('Completion') }}"
                                                                 data-column-index="{{ $project->type == 3 || $project->type == 5 ? 10 : 8 }}"
                                                                 aria-label="{{ __('Filter Completion') }}">
-                                                                <svg class="project-order-filter-icon"
-                                                                    viewBox="0 0 16 16" aria-hidden="true">
+                                                                <svg class="project-order-filter-icon" viewBox="0 0 16 16"
+                                                                    aria-hidden="true">
                                                                     <path
-                                                                        d="M2 3.25A1.25 1.25 0 0 1 3.25 2h9.5A1.25 1.25 0 0 1 14 3.25c0 .3-.11.6-.31.82L9.5 8.45v3.3a1 1 0 0 1-.55.9l-2 1A1 1 0 0 1 5.5 12.75V8.45L2.31 4.07A1.25 1.25 0 0 1 2 3.25Z"></path>
+                                                                        d="M2 3.25A1.25 1.25 0 0 1 3.25 2h9.5A1.25 1.25 0 0 1 14 3.25c0 .3-.11.6-.31.82L9.5 8.45v3.3a1 1 0 0 1-.55.9l-2 1A1 1 0 0 1 5.5 12.75V8.45L2.31 4.07A1.25 1.25 0 0 1 2 3.25Z">
+                                                                    </path>
                                                                 </svg>
                                                             </button>
                                                         </div>
@@ -1377,7 +1395,9 @@
                                                             return __('N/A');
                                                         }
 
-                                                        $parsedDate = \Carbon\Carbon::parse($date)->locale(app()->getLocale());
+                                                        $parsedDate = \Carbon\Carbon::parse($date)->locale(
+                                                            app()->getLocale(),
+                                                        );
 
                                                         if (str_starts_with(app()->getLocale(), 'es')) {
                                                             return $parsedDate->translatedFormat('F \\d\\e Y');
@@ -1439,22 +1459,24 @@
                                                             <td class="col-stage"
                                                                 data-filter-value="{{ $stageFilterValue !== '' ? $stageFilterValue : __('N/A') }}">
                                                                 @if (filled($stageFilterValue))
-                                                                    <span style="font-weight: bold;">{{ $stageFilterValue }}</span>
+                                                                    <span
+                                                                        style="font-weight: bold;">{{ $stageFilterValue }}</span>
                                                                 @else
                                                                     <span class="text-muted">...</span>
                                                                 @endif
                                                             <td class="col-phase"
                                                                 data-filter-value="{{ $phaseFilterValue !== '' ? $phaseFilterValue : __('N/A') }}">
                                                                 @if (filled($phaseFilterValue))
-                                                                    <span style="font-weight: bold;">{{ $phaseFilterValue }}</span>
+                                                                    <span
+                                                                        style="font-weight: bold;">{{ $phaseFilterValue }}</span>
                                                                 @else
                                                                     <span class="text-muted">...</span>
                                                                 @endif
                                                             </td>
                                                         @endif
                                                         <td class="col-name"
-                                                            data-filter-value="{{ trim($milestone->title ?? '') !== '' ? trim($milestone->title) : __('N/A') }}"><a href="#"
-                                                                class="d-block font-weight-500 mb-0"
+                                                            data-filter-value="{{ trim($milestone->title ?? '') !== '' ? trim($milestone->title) : __('N/A') }}">
+                                                            <a href="#" class="d-block font-weight-500 mb-0"
                                                                 data-ajax-popup="true"
                                                                 data-title="{{ __('Order form details') }}"
                                                                 data-url="{{ route('projects.milestone.show', [$currentWorkspace->slug, $milestone->id]) }}">
@@ -1615,7 +1637,8 @@
                                         </table>
                                         <div id="orderFormsFilteredEmptyState" class="project-order-filtered-empty-state">
                                             <h6 class="mb-2">{{ __('No order forms match the selected filters') }}</h6>
-                                            <p class="mb-0">{{ __('Adjust or clear filters to see more results.') }}</p>
+                                            <p class="mb-0">{{ __('Adjust or clear filters to see more results.') }}
+                                            </p>
                                         </div>
                                     </div>
                                 </div>
@@ -1973,7 +1996,7 @@
                                                     class="fa-regular fa-folder-open d-inline me-2 fa-xl folder-toggle-icon"></i>
                                                 <h5>{{ __('Project files') }}</h5>
                                             </div>
-                                            <div class="custom-file-container files-grid folder-toggle-target"
+                                            <div class="custom-file-container files-grid folder-toggle-target files-scroll-area"
                                                 id="project-files-content">
                                                 @if (!empty($projectFiles) && count($projectFiles) > 0)
                                                     @foreach ($projectFiles as $file)
@@ -2029,7 +2052,8 @@
                                                     class="fa-regular fa-folder-open d-inline me-2 fa-xl folder-toggle-icon"></i>
                                                 <h6>{{ __('Milestone files') }}</h6>
                                             </div>
-                                            <div class="folder-toggle-target" id="milestone-files-content">
+                                            <div class="folder-toggle-target files-scroll-area"
+                                                id="milestone-files-content">
                                                 <!-- Sección de archivos de Milestones -->
                                                 @if (!empty($milestoneFiles) && count($milestoneFiles) > 0)
                                                     @foreach ($milestoneFiles as $milestone)
@@ -2559,7 +2583,8 @@
                             return true;
                         }
 
-                        return activeValues.has(getCellValue(row, Number(button.dataset.columnIndex)));
+                        return activeValues.has(getCellValue(row, Number(button.dataset
+                            .columnIndex)));
                     });
 
                     row.style.display = isVisible ? '' : 'none';
@@ -2653,7 +2678,8 @@
 
                         return [
                             '<label class="project-order-filter-option" data-column-option="1">',
-                            '<input type="checkbox" data-column-index="' + columnIndex + '" ' + (isChecked ? 'checked' : '') + '>',
+                            '<input type="checkbox" data-column-index="' + columnIndex + '" ' + (
+                                isChecked ? 'checked' : '') + '>',
                             '<span>' + escapeHtml(label) + '</span>',
                             '</label>'
                         ].join('');
@@ -2690,9 +2716,11 @@
 
                         return [
                             '<label class="project-order-filter-option" data-filter-option="1">',
-                            '<input type="checkbox" value="' + escapeHtml(option.value) + '" ' + (isChecked ? 'checked' : '') + '>',
+                            '<input type="checkbox" value="' + escapeHtml(option.value) + '" ' + (
+                                isChecked ? 'checked' : '') + '>',
                             '<span>' + escapeHtml(option.value) + '</span>',
-                            '<span class="project-order-filter-option-count">' + option.count + '</span>',
+                            '<span class="project-order-filter-option-count">' + option.count +
+                            '</span>',
                             '</label>'
                         ].join('');
                     }).join(''),
@@ -2791,7 +2819,8 @@
                     return;
                 }
 
-                syncFilterStateFromMenu(filterMenu.dataset.filterKey, Number(filterMenu.dataset.columnIndex));
+                syncFilterStateFromMenu(filterMenu.dataset.filterKey, Number(filterMenu.dataset
+                    .columnIndex));
             });
 
             filterMenu.addEventListener('input', function(event) {
@@ -2845,11 +2874,13 @@
             });
 
             document.addEventListener('click', function(event) {
-                if (!filterMenu.hidden && !filterMenu.contains(event.target) && !event.target.closest('.project-order-filter-btn')) {
+                if (!filterMenu.hidden && !filterMenu.contains(event.target) && !event.target.closest(
+                        '.project-order-filter-btn')) {
                     closeFilterMenu();
                 }
 
-                if (!columnMenu.hidden && !columnMenu.contains(event.target) && !event.target.closest('#orderFormsColumnsToggleBtn')) {
+                if (!columnMenu.hidden && !columnMenu.contains(event.target) && !event.target.closest(
+                        '#orderFormsColumnsToggleBtn')) {
                     closeColumnMenu();
                 }
             });
