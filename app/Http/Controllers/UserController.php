@@ -529,45 +529,98 @@ class UserController extends Controller
         $userId = Auth::id();
         $inputs = $request->input();
 
-        $event = $inputs['eventId'];
-
-        // Determinar el tipo de evento a eliminar
-        $splitEvent = explode('_', $event); // Separar el tipo de evento y la fecha
-
-        $typeEvent = "";
-
-        if ($splitEvent[0] == "holiday") {
-            $typeEvent = "range_holidays";
-        } else {
-            $typeEvent = "range_intensive_workday";
+        $event = $inputs['eventId'] ?? null;
+        if (empty($event)) {
+            return response()->json(['success' => false, 'message' => 'Invalid event id.'], 422);
         }
 
-        $dateToRemove = $splitEvent[1];  // La fecha que queremos eliminar
+        $eventParts = explode('_', $event, 2);
+        if (count($eventParts) < 2) {
+            return response()->json(['success' => false, 'message' => 'Invalid event format.'], 422);
+        }
 
-        // Obtener el contenido JSON de la columna correspondiente
-        $jsonField = DB::table('user_timetable')
+        [$eventType, $dateToRemove] = $eventParts;
+
+        $timetable = DB::table('user_timetable')
             ->where('user_id', $userId)
-            ->value($typeEvent);
+            ->select('range_holidays', 'range_intensive_workday')
+            ->first();
 
-        // Decodificar JSON a un array PHP
-        $jsonArray = json_decode($jsonField, true);
+        if (!$timetable) {
+            return response()->json(['success' => false, 'message' => 'Timetable not found.'], 404);
+        }
 
-        // Buscar la posición del valor a eliminar
-        if (($key = array_search($dateToRemove, $jsonArray)) !== false) {
-            // Construcción de la ruta JSON para JSON_REMOVE (por índice)
-            $jsonPath = '$[' . $key . ']';
+        if ($eventType === 'holiday') {
+            $holidays = !empty($timetable->range_holidays)
+                ? json_decode($timetable->range_holidays, true)
+                : [];
 
-            // Ejecutar la consulta para eliminar el valor específico usando JSON_REMOVE
+            if (!is_array($holidays)) {
+                $holidays = [];
+            }
+
+            $filteredHolidays = array_values(array_filter($holidays, function ($date) use ($dateToRemove) {
+                return $date !== $dateToRemove;
+            }));
+
+            if (count($filteredHolidays) === count($holidays)) {
+                return response()->json(['success' => false, 'message' => 'Date not found in holidays.']);
+            }
+
             DB::table('user_timetable')
                 ->where('user_id', $userId)
                 ->update([
-                    $typeEvent => DB::raw("JSON_REMOVE($typeEvent, '$jsonPath')")
+                    'range_holidays' => json_encode($filteredHolidays)
                 ]);
 
-            return response()->json(['success' => true, 'message' => 'Date removed successfully.']);
+            return response()->json(['success' => true, 'message' => 'Holiday removed successfully.']);
         }
 
-        return response()->json(['success' => false, 'message' => 'Date not found in JSON field.']);
+        if ($eventType === 'intensive') {
+            $intensiveWorkdays = !empty($timetable->range_intensive_workday)
+                ? json_decode($timetable->range_intensive_workday, true)
+                : [];
+
+            if (!is_array($intensiveWorkdays)) {
+                $intensiveWorkdays = [];
+            }
+
+            $removed = false;
+
+            foreach ($intensiveWorkdays as $hours => $dates) {
+                if (!is_array($dates)) {
+                    continue;
+                }
+
+                $filteredDates = array_values(array_filter($dates, function ($date) use ($dateToRemove) {
+                    return $date !== $dateToRemove;
+                }));
+
+                if (count($filteredDates) !== count($dates)) {
+                    $removed = true;
+                }
+
+                if (empty($filteredDates)) {
+                    unset($intensiveWorkdays[$hours]);
+                } else {
+                    $intensiveWorkdays[$hours] = $filteredDates;
+                }
+            }
+
+            if (!$removed) {
+                return response()->json(['success' => false, 'message' => 'Date not found in intensive workdays.']);
+            }
+
+            DB::table('user_timetable')
+                ->where('user_id', $userId)
+                ->update([
+                    'range_intensive_workday' => json_encode($intensiveWorkdays)
+                ]);
+
+            return response()->json(['success' => true, 'message' => 'Intensive workday removed successfully.']);
+        }
+
+        return response()->json(['success' => false, 'message' => 'Unsupported event type.'], 422);
     }
 
 

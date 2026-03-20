@@ -26,6 +26,8 @@ use App\Models\Mail\SendWorkspaceInvication;
 use App\Models\Mail\ShareProjectToClient;
 use App\Models\Milestone;
 use App\Models\MilestonePhases;
+use App\Models\MilestoneStageProject;
+use App\Models\MilestoneStages;
 use App\Models\CustomTasks;
 use App\Models\Project;
 use App\Models\ProjectType;
@@ -53,6 +55,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\Rule;
 // use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 use Jenssegers\Date\Date;
@@ -63,6 +66,9 @@ use SendGrid\Mail\Mail;
 use Illuminate\Support\Facades\View;
 
 use Illuminate\Support\Facades\Response;
+use App\Helpers\AxaptaExportHelper;
+use App\Models\ExportBatch;
+use App\Models\ExportLedgerLine;
 
 class ProjectController extends Controller
 {
@@ -98,6 +104,313 @@ class ProjectController extends Controller
             ->get(['id', 'name']);
 
         return response()->json($projects);
+    }
+
+    /**
+     * Sanitiza una cadena para ser usada como nombre de DIRECTORIO.
+     * Reemplaza espacios y caracteres especiales con guiones bajos.
+     *
+     * @param string $string Cadena a sanitizar
+     * @return string Cadena sanitizada
+     */
+    private function sanitizePath($string)
+    {
+        // Reemplaza espacios por guiones bajos
+        $string = str_replace(' ', '_', $string);
+        // Reemplaza cualquier carácter que NO sea alfanumérico, guion bajo, guion medio o punto por guion bajo
+        return preg_replace('/[^A-Za-z0-9_\-\.]/', '_', $string);
+    }
+
+    /**
+     * Normaliza un nombre de archivo SIN cambiar caracteres legibles (á, ñ, espacios, etc.).
+     * Solo evita que vengan segmentos de ruta (/, \\) o bytes nulos.
+     */
+    private function cleanFileName(string $fileName): string
+    {
+        $fileName = str_replace("\0", '', $fileName);
+        // Unificar separadores por seguridad y extraer el basename
+        $fileName = str_replace('\\', '/', $fileName);
+        $fileName = basename($fileName);
+        return trim($fileName);
+    }
+
+    private function parseTimeToDecimal(?string $time): float
+    {
+        if (empty($time)) {
+            return 0.0;
+        }
+
+        $parts = explode(':', $time);
+        $hours = (int) ($parts[0] ?? 0);
+        $minutes = (int) ($parts[1] ?? 0);
+
+        return $hours + ($minutes / 60);
+    }
+
+    private function formatSecondsAsHoursMinutes(int $totalSeconds): string
+    {
+        $hours = intdiv($totalSeconds, 3600);
+        $minutes = intdiv($totalSeconds % 3600, 60);
+
+        return sprintf('%02d:%02d', $hours, $minutes);
+    }
+
+    private function buildMySummaryChartData($projectSummaries, string $totalImputedTime, string $rangeLabel): array
+    {
+        $projects = $projectSummaries->map(function ($summary) {
+            return [
+                'name' => $summary->name,
+                'short_name' => Str::limit($summary->name, 18),
+                'hours' => (float) $summary->decimal_total_time,
+                'formatted_time' => $summary->formatted_total_time,
+                'project_url' => $summary->project_url,
+            ];
+        })->values();
+
+        return [
+            'projects' => $projects,
+            'maxHours' => round((float) $projects->max('hours'), 2),
+            'totalTime' => $totalImputedTime,
+            'rangeLabel' => $rangeLabel,
+        ];
+    }
+
+    private function resolveMySummaryDateRange(Request $request): array
+    {
+        $today = Carbon::today();
+        $rangeType = $request->input('range_type', 'preset');
+        $preset = $request->input('preset', 'last_month');
+        $startDateInput = $request->input('start_date');
+        $endDateInput = $request->input('end_date');
+
+        $startDate = null;
+        $endDate = null;
+        $appliedLabel = __('Last month');
+
+        if (
+            $rangeType === 'custom'
+            && is_string($startDateInput)
+            && is_string($endDateInput)
+            && preg_match('/^\d{4}-\d{2}-\d{2}$/', $startDateInput)
+            && preg_match('/^\d{4}-\d{2}-\d{2}$/', $endDateInput)
+        ) {
+            $parsedStartDate = Carbon::createFromFormat('Y-m-d', $startDateInput)->startOfDay();
+            $parsedEndDate = Carbon::createFromFormat('Y-m-d', $endDateInput)->endOfDay();
+
+            if ($parsedStartDate->gt($parsedEndDate)) {
+                [$parsedStartDate, $parsedEndDate] = [$parsedEndDate->copy()->startOfDay(), $parsedStartDate->copy()->endOfDay()];
+            }
+
+            $startDate = $parsedStartDate;
+            $endDate = $parsedEndDate;
+            $appliedLabel = __('Custom range');
+        } else {
+            $rangeType = 'preset';
+
+            switch ($preset) {
+                case 'last_month':
+                    $startDate = $today->copy()->subDays(29)->startOfDay();
+                    $endDate = $today->copy()->endOfDay();
+                    $appliedLabel = __('Last month');
+                    break;
+                case 'last_quarter':
+                    $startDate = $today->copy()->subDays(89)->startOfDay();
+                    $endDate = $today->copy()->endOfDay();
+                    $appliedLabel = __('Last quarter');
+                    break;
+                case 'last_year':
+                    $startDate = $today->copy()->subDays(364)->startOfDay();
+                    $endDate = $today->copy()->endOfDay();
+                    $appliedLabel = __('Last year');
+                    break;
+                case 'last_week':
+                    $preset = 'last_week';
+                    $startDate = $today->copy()->subDays(6)->startOfDay();
+                    $endDate = $today->copy()->endOfDay();
+                    $appliedLabel = __('Last week');
+                    break;
+                default:
+                    $preset = 'last_month';
+                    $startDate = $today->copy()->subDays(29)->startOfDay();
+                    $endDate = $today->copy()->endOfDay();
+                    $appliedLabel = __('Last month');
+                    break;
+            }
+        }
+
+        return [
+            'rangeType' => $rangeType,
+            'preset' => $preset,
+            'startDateInput' => $startDate->toDateString(),
+            'endDateInput' => $endDate->toDateString(),
+            'startDate' => $startDate,
+            'endDate' => $endDate,
+            'appliedLabel' => $appliedLabel,
+        ];
+    }
+
+    private function resolveMyDayDateRange(Request $request): array
+    {
+        $rangeType = $request->input('my_day_range_type', 'preset');
+        $preset = $request->input('my_day_preset', 'this_week');
+        $startDateInput = $request->input('my_day_start_date');
+        $endDateInput = $request->input('my_day_end_date');
+
+        $today = Carbon::today();
+        $startDate = $today->copy()->startOfWeek(Carbon::MONDAY);
+        $endDate = $today->copy()->endOfWeek(Carbon::SUNDAY);
+
+        if ($rangeType === 'custom' && $startDateInput && $endDateInput) {
+            $parsedStart = Carbon::parse($startDateInput)->startOfDay();
+            $parsedEnd = Carbon::parse($endDateInput)->endOfDay();
+
+            if ($parsedStart->lte($parsedEnd)) {
+                $startDate = $parsedStart;
+                $endDate = $parsedEnd;
+            } else {
+                $startDate = $parsedEnd->copy()->startOfDay();
+                $endDate = $parsedStart->copy()->endOfDay();
+            }
+        } else {
+            $rangeType = 'preset';
+
+            switch ($preset) {
+                case 'all':
+                    $startDate = null;
+                    $endDate = null;
+                    break;
+                case 'today':
+                    $startDate = $today->copy()->startOfDay();
+                    $endDate = $today->copy()->endOfDay();
+                    break;
+                case 'this_month':
+                    $startDate = $today->copy()->startOfMonth();
+                    $endDate = $today->copy()->endOfMonth();
+                    break;
+                case 'this_week':
+                    $startDate = $today->copy()->startOfWeek(Carbon::MONDAY);
+                    $endDate = $today->copy()->endOfWeek(Carbon::SUNDAY);
+                    break;
+                default:
+                    $preset = 'this_week';
+                    $startDate = $today->copy()->startOfWeek(Carbon::MONDAY);
+                    $endDate = $today->copy()->endOfWeek(Carbon::SUNDAY);
+                    break;
+            }
+        }
+
+        return [
+            'rangeType' => $rangeType,
+            'preset' => $preset,
+            'startDateInput' => $rangeType === 'custom' ? $startDateInput : null,
+            'endDateInput' => $rangeType === 'custom' ? $endDateInput : null,
+            'startDate' => $startDate,
+            'endDate' => $endDate,
+        ];
+    }
+
+    private function getIntensiveHoursByDate(?string $rangeIntensiveWorkday): array
+    {
+        if (empty($rangeIntensiveWorkday)) {
+            return [];
+        }
+
+        $decodedIntensive = json_decode($rangeIntensiveWorkday, true);
+        if (!is_array($decodedIntensive)) {
+            return [];
+        }
+
+        $intensiveHoursByDate = [];
+
+        foreach ($decodedIntensive as $hours => $dates) {
+            if (!is_array($dates)) {
+                continue;
+            }
+
+            foreach ($dates as $date) {
+                if (empty($date)) {
+                    continue;
+                }
+
+                $intensiveHoursByDate[$date] = $hours;
+            }
+        }
+
+        return $intensiveHoursByDate;
+    }
+
+    private function getExpectedHoursByDate(?UserTimetable $timeTable, ?string $date): float
+    {
+        if (!$timeTable || empty($date)) {
+            return 0.0;
+        }
+
+        $targetDate = Carbon::parse($date)->toDateString();
+        $intensiveHoursByDate = $this->getIntensiveHoursByDate($timeTable->range_intensive_workday ?? null);
+
+        if (isset($intensiveHoursByDate[$targetDate])) {
+            return $this->parseTimeToDecimal($intensiveHoursByDate[$targetDate]);
+        }
+
+        $dayOfWeek = strtolower(Carbon::parse($targetDate)->format('l'));
+        return $this->parseTimeToDecimal($timeTable->$dayOfWeek ?? '00:00');
+    }
+
+    private function resolveDayColor(float $workedHours, float $expectedHour): string
+    {
+        if ($workedHours == 0) {
+            return '#e06c71';
+        }
+
+        if ($workedHours < $expectedHour) {
+            return '#fcf75e';
+        }
+
+        if ($workedHours == $expectedHour) {
+            return '#89e186';
+        }
+
+        return '#b2e2f2';
+    }
+
+    private function getUserHolidayDates(int $userId): array
+    {
+        $timeTable = UserTimetable::where('user_id', $userId)->first();
+
+        if (!$timeTable || empty($timeTable->range_holidays)) {
+            return [];
+        }
+
+        $decodedHolidays = json_decode($timeTable->range_holidays, true);
+        if (!is_array($decodedHolidays)) {
+            return [];
+        }
+
+        $holidayDates = [];
+        foreach (array_values($decodedHolidays) as $holidayDate) {
+            if (empty($holidayDate)) {
+                continue;
+            }
+
+            try {
+                $holidayDates[] = Carbon::parse($holidayDate)->toDateString();
+            } catch (\Throwable $e) {
+                continue;
+            }
+        }
+
+        return array_values(array_unique($holidayDates));
+    }
+
+    private function isUserHolidayDate(int $userId, string $date): bool
+    {
+        try {
+            $normalizedDate = Carbon::parse($date)->toDateString();
+        } catch (\Throwable $e) {
+            return false;
+        }
+
+        return in_array($normalizedDate, $this->getUserHolidayDates($userId), true);
     }
 
     /**
@@ -490,6 +803,291 @@ class ProjectController extends Controller
         return redirect()->back()->with('success', __('Permission Updated Successfully!'));
     }
 
+    private function getProjectsPhasesAndStages($project)
+    {
+        if ($project->type == 3 || $project->type === 5) {
+            $project->load(['milestones.phase', 'milestones.stage.stageProject']);
+        } else {
+            $project->load('milestones');
+        }
+        return $project;
+    }
+    public function exportProjectsToAxapta()
+    {
+        //el campo puntos en axapta no pilla las horas y lo pilla en hDecimal
+        //el export no debe ser por suma del total, sino por dia, es decir, cada dia imputado tendra unas puntuaciones, cada linea es un dia imputado
+        \Log::info("=== EXPORT AXAPTA - DELTA MODE ===");
+
+        // Obtener todos los proyectos de tipo = 1
+        $projects = Project::where('type', 1)->get();
+
+        if ($projects->isEmpty()) {
+            \Log::warning("No hay proyectos de tipo 1");
+            return response()->json(['error' => 'No projects found'], 404);
+        }
+
+        $fileContent = '';
+        $fieldWidths = [
+            'regId' => 10,
+            'fecha' => 10,
+            'empresa' => 20,
+            'delegacion' => 20,
+            'empleado' => 20,
+            'masterobrasid' => 20,
+            'obra' => 20,
+            'descripcion' => 50,
+            'op' => 10,
+            'horas' => 10,
+            'ref' => 14,
+            'linea' => 10,
+            'hrDecimal' => 10,
+            'puntos' => 10,
+        ];
+
+        // Contador global para regId
+        $regId = 0;
+        // Almacenar líneas a exportar
+        $linesToExport = [];
+        // Almacenar registros para ledger
+        $ledgerRecords = [];
+
+        // Agregar encabezado
+        $headerLine = '';
+        $headerLine .= str_pad('RegId', $fieldWidths['regId']);
+        $headerLine .= str_pad('fecha', $fieldWidths['fecha']);
+        $headerLine .= str_pad('Empresa', $fieldWidths['empresa']);
+        $headerLine .= str_pad('delegacion', $fieldWidths['delegacion']);
+        $headerLine .= str_pad('Empleado', $fieldWidths['empleado']);
+        $headerLine .= str_pad('Masterobrasid', $fieldWidths['masterobrasid']);
+        $headerLine .= str_pad('Obra', $fieldWidths['obra']);
+        $headerLine .= str_pad('Descripcion', $fieldWidths['descripcion']);
+        $headerLine .= str_pad('Op', $fieldWidths['op']);
+        $headerLine .= str_pad('Horas', $fieldWidths['horas']);
+        $headerLine .= str_pad('Ref', $fieldWidths['ref']);
+        $headerLine .= str_pad('Linea', $fieldWidths['linea']);
+        $headerLine .= str_pad('HrDecimal', $fieldWidths['hrDecimal']);
+        $headerLine .= str_pad('Puntos', $fieldWidths['puntos']);
+
+        $fileContent .= $headerLine . PHP_EOL;
+
+        // Procesar cada proyecto
+        foreach ($projects as $project) {
+            \Log::info("Procesando proyecto: {$project->id} - {$project->name}");
+
+            // Obtener datos del proyecto
+            $projectData = AxaptaExportHelper::getProjectExportData($project);
+
+            // Obtener milestones
+            $milestones = Milestone::where('project_id', $project->id)->get();
+            \Log::info("  Milestones encontrados: " . $milestones->count());
+
+            // Procesar cambios (deltas) en datos actuales
+            foreach ($milestones as $milestone) {
+                \Log::info("  Procesando milestone: {$milestone->id} - {$milestone->title}");
+
+                // Obtener todas las tareas y sus timesheets
+                $tasks = Task::where('milestone_id', $milestone->id)->get();
+
+                // Obtener usuarios únicos en esta milestone
+                $uniqueUsers = Timesheet::whereIn('task_id', $tasks->pluck('id'))
+                    ->select('created_by')
+                    ->distinct()
+                    ->pluck('created_by');
+
+                foreach ($uniqueUsers as $userId) {
+                    $user = User::find($userId);
+                    if (!$user) continue;
+
+                    $employeeNumber = $user->number_employee ?? '0';
+                    \Log::info("    Procesando usuario: {$userId} - {$employeeNumber}");
+
+                    // Calcular estado deseado (actual)
+                    $desired = AxaptaExportHelper::calculateDesiredState($project->id, $milestone->id, $userId);
+                    \Log::info("      Desired - Horas: {$desired->hours_decimal}, Puntos: {$desired->puntos}, HrDecimal: {$desired->hr_decimal}");
+
+                    // Calcular estado exportado (histórico)
+                    $exported = AxaptaExportHelper::calculateExportedState($project->id, $milestone->id, $user);
+                    \Log::info("      Exported - Horas: {$exported->hours_decimal}, Puntos: {$exported->puntos}, HrDecimal: {$exported->hr_decimal}");
+
+                    // Calcular delta
+                    $delta = AxaptaExportHelper::calculateDelta($desired, $exported);
+                    \Log::info("      Delta - Horas: {$delta->hours_decimal}, Puntos: {$delta->puntos}, HrDecimal: {$delta->hr_decimal}");
+
+                    // Si hay delta, generar líneas
+                    if (AxaptaExportHelper::hasDelta($delta)) {
+                        $this->generateExportLines(
+                            $project,
+                            $milestone,
+                            $user,
+                            $delta,
+                            $projectData,
+                            $fieldWidths,
+                            $regId,
+                            $linesToExport,
+                            $ledgerRecords
+                        );
+                    }
+                }
+            }
+
+            // Detectar registros borrados
+            $deletedRecords = AxaptaExportHelper::detectDeletedRecords($project->id);
+            \Log::info("  Registros borrados detectados: " . count($deletedRecords));
+
+            foreach ($deletedRecords as $deleted) {
+                \Log::info("  Generando reversión para milestone borrada: {$deleted['milestone_id']} - {$deleted['reason']}");
+
+                // Obtener el último estado exportado
+                $exported = ExportLedgerLine::where('project_id', $deleted['project_id'])
+                    ->where('milestone_id', $deleted['milestone_id'])
+                    ->where('employee_number', $deleted['employee_number'])
+                    ->get();
+
+                if ($exported->isNotEmpty()) {
+                    $totalHours = $exported->sum('hours_decimal');
+                    $totalPuntos = $exported->sum('puntos');
+                    $totalHrDecimal = $exported->sum('hr_decimal');
+
+                    // Generar delta negativo
+                    $negativeDelta = (object)[
+                        'hours_decimal' => -$totalHours,
+                        'puntos' => -$totalPuntos,
+                        'hr_decimal' => -$totalHrDecimal
+                    ];
+
+                    $user = User::where('number_employee', $deleted['employee_number'])->first();
+                    if ($user) {
+                        $milestone = Milestone::find($deleted['milestone_id']);
+                        $this->generateExportLines(
+                            $project,
+                            $milestone ?? (object)['id' => $deleted['milestone_id'], 'title' => 'DELETED'],
+                            $user,
+                            $negativeDelta,
+                            $projectData,
+                            $fieldWidths,
+                            $regId,
+                            $linesToExport,
+                            $ledgerRecords,
+                            $deleted['reason']
+                        );
+                    }
+                }
+            }
+        }
+
+        // Si no hay líneas, retornar advertencia
+        if (empty($linesToExport)) {
+            \Log::info("No hay cambios para exportar - todos los proyectos están al día");
+            return response()->json(['message' => 'Todos los proyectos están al día de la exportación'], 200);
+        }
+
+        // Agregar líneas al contenido del archivo
+        foreach ($linesToExport as $line) {
+            $fileContent .= $line . PHP_EOL;
+        }
+
+        \Log::info("Contenido final: " . strlen($fileContent) . " caracteres");
+
+        // Crear batch de exportación
+        $batch = ExportBatch::create([
+            'file_name' => "Exp_TiemposAX_" . now()->format('Y-m-d-H-i-s') . ".fil",
+            'created_by' => Auth::id(),
+            'created_at' => now()
+        ]);
+
+        // Insertar registros en ledger
+        foreach ($ledgerRecords as $record) {
+            $record['batch_id'] = $batch->id;
+            ExportLedgerLine::create($record);
+        }
+
+        \Log::info("Batch creado: {$batch->id}, Registros in ledger: " . count($ledgerRecords));
+
+        // Generar nombre del archivo
+        $fileName = $batch->file_name;
+
+        // Retornar el contenido en base64 para descarga
+        return response()->json([
+            'success' => true,
+            'fileName' => $fileName,
+            'fileContent' => base64_encode($fileContent),
+            'batchId' => $batch->id,
+            'linesExported' => count($ledgerRecords)
+        ]);
+    }
+
+    /**
+     * Genera las líneas de exportación (considerando división de horas)
+     */
+    private function generateExportLines(
+        $project,
+        $milestone,
+        $user,
+        $delta,
+        $projectData,
+        $fieldWidths,
+        &$regId,
+        &$linesToExport,
+        &$ledgerRecords,
+        $reason = null
+    ) {
+        // Dividir horas si es necesario
+        $splitLines = AxaptaExportHelper::splitHoursIfNeeded(
+            $delta->hours_decimal,
+            $delta->puntos,
+            $delta->hr_decimal
+        );
+
+        $fecha = date('Ymd'); // YYYYMMDD
+        $op = '210'; // siempre 210
+        $lineNumberInMilestone = 0;
+
+        foreach ($splitLines as $splitLine) {
+            $lineNumberInMilestone++;
+            $regId++;
+
+            // Convertir horas decimales a formato HH:MM:SS
+            $horasFormatted = AxaptaExportHelper::decimalToTimeFormat($splitLine->hours_decimal);
+
+            // Preparar línea con ancho fijo
+            $line = '';
+            $line .= str_pad($regId, $fieldWidths['regId']);
+            $line .= str_pad($fecha, $fieldWidths['fecha']);
+            $line .= str_pad($projectData->empresa, $fieldWidths['empresa']);
+            $line .= str_pad($projectData->delegacion, $fieldWidths['delegacion']);
+            $line .= str_pad($user->number_employee ?? '0', $fieldWidths['empleado']);
+            $line .= str_pad($projectData->masterobrasid, $fieldWidths['masterobrasid']);
+            $line .= str_pad('', $fieldWidths['obra']); // obra vacío
+            $line .= str_pad('', $fieldWidths['descripcion']); // descripcion vacío
+            $line .= str_pad($op, $fieldWidths['op']);
+            $line .= str_pad($horasFormatted, $fieldWidths['horas']);
+            $line .= str_pad($projectData->ref, $fieldWidths['ref']);
+            $line .= str_pad($lineNumberInMilestone, $fieldWidths['linea']);
+            $line .= str_pad(number_format($splitLine->hr_decimal, 2, '.', ''), $fieldWidths['hrDecimal']);
+            $line .= str_pad(number_format($splitLine->puntos, 2, '.', ''), $fieldWidths['puntos']);
+
+            $linesToExport[] = $line;
+
+            // Registrar en ledger
+            $ledgerRecords[] = [
+                'project_id' => $project->id,
+                'milestone_id' => $milestone->id,
+                'employee_number' => $user->number_employee ?? '0',
+                'empresa' => $projectData->empresa,
+                'delegacion' => $projectData->delegacion,
+                'masterobrasid' => $projectData->masterobrasid,
+                'ref' => $projectData->ref,
+                'op' => $op,
+                'hours_decimal' => $splitLine->hours_decimal,
+                'puntos' => $splitLine->puntos,
+                'hr_decimal' => $splitLine->hr_decimal,
+                'created_at' => now()
+            ];
+
+            \Log::info("      Línea generada {$regId} - Horas: {$splitLine->hours_decimal}, Puntos: {$splitLine->puntos}, HrDecimal: {$splitLine->hr_decimal}");
+        }
+    }
+
     // FUNCION QUE SE LLAMA AL ESTAR DENTRO DE UN PROYECTO
     public function show($slug, $projectID)
     {
@@ -499,18 +1097,11 @@ class ProjectController extends Controller
         $projectQuery = Project::where('workspace', $currentWorkspace->id)
             ->where('id', $projectID)
             ->with('activities.user');
-        
+
         $project = $projectQuery->first();
 
         if (!$project) {
             return redirect()->back()->with('error', __("Project Not Found."));
-        }
-
-        // ✅ Si el proyecto es tipo 3, cargar también las phases de los milestones
-        if ($project->type == 3) {
-            $project->load(['milestones.phase']);
-        } else {
-            $project->load('milestones');
         }
 
         // ✅ VERIFICAR SI EL USUARIO ESTÁ REGISTRADO EN ESTE WORKSPACE
@@ -543,6 +1134,8 @@ class ProjectController extends Controller
                 ->first();
 
             if ($project) {
+                $this->getProjectsPhasesAndStages($project);
+
                 $chartData = $this->getProjectChart([
                     'workspace_id' => $currentWorkspace->id,
                     'project_id' => $projectID,
@@ -554,7 +1147,7 @@ class ProjectController extends Controller
                 $storage = \Storage::disk('local');
 
                 // Obtener archivos del proyecto
-                $projectFolder = 'project_files' . '/' . strtr($project->name, [" " => "_"]);
+                $projectFolder = 'project_files' . '/' . $this->sanitizePath($project->name);
                 // $projectFiles = $storage->files($projectFolder);
                 $projectFiles = ProjectFile::where('project_id', '=', $projectID)->get();
 
@@ -564,12 +1157,12 @@ class ProjectController extends Controller
                 $milestonesQuery = Milestone::where('project_id', '=', $projectID)
                     ->whereHas('files') // Filtra milestones que tienen archivos
                     ->with(['files']);
-                
+
                 // Si el proyecto es tipo 3, cargar también las phases
                 if ($project->type == 3) {
                     $milestonesQuery->with(['phases']);
                 }
-                
+
                 $milestones = $milestonesQuery
                     ->select('id', 'title')
                     ->get(); // Obtiene una colección de objetos Eloquent
@@ -769,24 +1362,50 @@ class ProjectController extends Controller
             ], 404);
         }
 
-        $projectName = strtr($project->name, [' ' => '_']);
-        $milestoneName = isset($inputs['milestoneTitle']) ? strtr($inputs['milestoneTitle'], [' ' => '_']) : null;
+        $projectName = $this->sanitizePath($project->name);
+        $milestoneName = isset($inputs['milestoneTitle']) ? $this->sanitizePath($inputs['milestoneTitle']) : null;
+
+        if (!isset($inputs['fileName'])) {
+            return response()->json([
+                'success' => false,
+                'message' => 'File name is required.'
+            ], 400);
+        }
+
+        // ✅ NO sanitizar el nombre del archivo (mantener caracteres originales)
+        $requestedFileName = $this->cleanFileName($inputs['fileName']);
 
         $filePath = '';
 
         if ($milestoneName !== null) {
-            $filePath = 'project_files/' . $projectName . '/' . $milestoneName . '/' . $inputs['fileName'];
+            // Buscar primero por el nombre tal cual (sin sanitizar)
+            $filePath = 'project_files/' . $projectName . '/' . $milestoneName . '/' . $requestedFileName;
+
+            // Fallback: compatibilidad con archivos antiguos sanitizados
+            if (!Storage::disk('local')->exists($filePath)) {
+                $legacySanitized = $this->sanitizePath($requestedFileName);
+                $filePath = 'project_files/' . $projectName . '/' . $milestoneName . '/' . $legacySanitized;
+            }
         } else {
-            $filePath = 'project_files/' . $projectName . '/' . $inputs['fileName'];
+            // Buscar primero por el nombre tal cual (sin sanitizar)
+            $filePath = 'project_files/' . $projectName . '/' . $requestedFileName;
+
+            // Fallback: compatibilidad con archivos antiguos sanitizados
+            if (!Storage::disk('local')->exists($filePath)) {
+                $legacySanitized = $this->sanitizePath($requestedFileName);
+                $filePath = 'project_files/' . $projectName . '/' . $legacySanitized;
+            }
         }
 
         if (!Storage::disk('local')->exists($filePath)) {
+            \Log::error("File verification failed. Inputs: " . json_encode($inputs) . " | Checked Path: " . $filePath);
             return response()->json([
                 'success' => false,
                 'message' => 'File not found.'
             ], 404);
         }
-        $url = asset('storage/' . $filePath);
+        $encodedPath = implode('/', array_map('rawurlencode', explode('/', $filePath)));
+        $url = asset('storage/' . $encodedPath);
 
         return response()->json([
             'success' => true,
@@ -801,8 +1420,8 @@ class ProjectController extends Controller
 
         // Obtener el proyecto usando el ID
         $project = Project::findOrFail($inputs['idProject']);
-        $projectName = strtr($project->name, [' ' => '_']);
-        $milestoneName = strtr($inputs['milestoneTitle'], [' ' => '_']);
+        $projectName = $this->sanitizePath($project->name);
+        $milestoneName = $this->sanitizePath($inputs['milestoneTitle']);
 
         // check if it's a milestone file or a project file
         $filePath = '';
@@ -1058,7 +1677,7 @@ class ProjectController extends Controller
         try {
             DB::transaction(function () use ($projectID, $project) {
 
-                $projectFolder = str_replace(' ', '_', $project->name);
+                $projectFolder = $this->sanitizePath($project->name);
 
                 //** Funciones que eliminan los ficheros del sistema teniendo en cuenta que no esta conectado al sharePoint */
 
@@ -1066,7 +1685,7 @@ class ProjectController extends Controller
                 $milestones = Milestone::where('project_id', $projectID)->get();
                 foreach ($milestones as $milestone) {
                     foreach ($milestone->files as $file) {
-                        $milestoneFolder = str_replace(' ', '_', $milestone->title);
+                        $milestoneFolder = $this->sanitizePath($milestone->title);
                         $dir = 'project_files/' . $projectFolder . '/' . $milestoneFolder;
 
                         if (Storage::exists($dir)) {
@@ -1080,7 +1699,7 @@ class ProjectController extends Controller
 
                 $projectFiles = ProjectFile::where('project_id', $projectID)->get();
                 foreach ($projectFiles as $file) {
-                    $milestoneFolder = str_replace(' ', '_', $milestone->title);
+                    // $milestoneFolder = str_replace(' ', '_', $milestone->title); // Removed incorrect line if using projectFolder only next
 
                     $dir = 'project_files/' . $projectFolder;
                     if (Storage::exists($dir)) {
@@ -1189,6 +1808,195 @@ class ProjectController extends Controller
         );
     }
 
+    public function mySummary(Request $request)
+    {
+        $user = Auth::user();
+        $currentWorkspace = Workspace::find($user->currant_workspace);
+        $dateRange = $this->resolveMySummaryDateRange($request);
+        $myDayDateRange = $this->resolveMyDayDateRange($request);
+
+        $projectSummaries = Timesheet::query()
+            ->join('projects', 'timesheets.project_id', '=', 'projects.id')
+            ->leftJoin('workspaces', 'projects.workspace', '=', 'workspaces.id')
+            ->leftJoin('project_types', 'projects.type', '=', 'project_types.id')
+            ->where('timesheets.created_by', $user->id)
+            ->whereBetween('timesheets.date', [
+                $dateRange['startDate']->toDateString(),
+                $dateRange['endDate']->toDateString(),
+            ])
+            ->select(
+                'projects.id',
+                'projects.name',
+                'projects.type',
+                'projects.workspace as workspace_id',
+                'workspaces.name as workspace_name',
+                'workspaces.slug as workspace_slug',
+                'project_types.name as project_type_name',
+                DB::raw('SUM(TIME_TO_SEC(timesheets.time)) as total_seconds')
+            )
+            ->groupBy(
+                'projects.id',
+                'projects.name',
+                'projects.type',
+                'projects.workspace',
+                'workspaces.name',
+                'workspaces.slug',
+                'project_types.name'
+            )
+            ->orderByDesc('total_seconds')
+            ->get()
+            ->map(function ($summary) {
+                $totalSeconds = (int) $summary->total_seconds;
+                $summary->formatted_total_time = $this->formatSecondsAsHoursMinutes($totalSeconds);
+                $summary->decimal_total_time = round($totalSeconds / 3600, 2);
+                $summary->project_url = $summary->workspace_slug
+                    ? route('projects.show', [$summary->workspace_slug, $summary->id])
+                    : null;
+
+                return $summary;
+            });
+
+        $myDayStatus = (int) $request->input('my_day_status', 2);
+
+        $myDayMilestones = Milestone::query()
+            ->with([
+                'project:id,name,workspace',
+                'project.workspaceData:id,name,slug',
+                'tasks' => function ($query) use ($user) {
+                    $query->select('id', 'milestone_id', 'project_id', 'type_id', 'assign_to', 'estimated_date')
+                        ->with([
+                            'type:id,name',
+                            'customTask:id,id_task,name',
+                        ])
+                        ->where(function ($taskQuery) use ($user) {
+                            $taskQuery->where('assign_to', (string) $user->id)
+                                ->orWhereRaw('FIND_IN_SET(?, assign_to)', [(string) $user->id]);
+                        })
+                        ->orderByRaw('estimated_date IS NULL')
+                        ->orderBy('estimated_date');
+                },
+            ])
+            ->where('status', $myDayStatus)
+            ->whereHas('project');
+
+        if ($myDayStatus === 1) {
+            $myDayMilestones->where('milestone_assigned_to_user', $user->id);
+        } else {
+            $myDayMilestones->where(function ($query) use ($user) {
+                $query->where('milestone_assigned_to_user', $user->id)
+                    ->orWhereHas('tasks', function ($taskQuery) use ($user) {
+                        $taskQuery->where('assign_to', (string) $user->id)
+                            ->orWhereRaw('FIND_IN_SET(?, assign_to)', [(string) $user->id]);
+                    });
+            });
+        }
+
+        if ($myDayDateRange['preset'] !== 'all') {
+            $myDayMilestones
+                ->whereNotNull('planned_end_date')
+                ->where('planned_end_date', '!=', '0000-00-00')
+                ->whereDate('planned_end_date', '>=', $myDayDateRange['startDate']->toDateString())
+                ->whereDate('planned_end_date', '<=', $myDayDateRange['endDate']->toDateString());
+        }
+
+        $myDayMilestones = $myDayMilestones
+            ->orderByRaw('planned_end_date IS NULL')
+            ->orderBy('planned_end_date')
+            ->get();
+
+        $requestersById = User::query()
+            ->whereIn('id', $myDayMilestones->pluck('assign_to')->filter()->unique())
+            ->get(['id', 'name'])
+            ->keyBy('id');
+
+        $myDayMilestones->transform(function ($milestone) use ($requestersById) {
+            $workspace = optional($milestone->project)->workspaceData;
+
+            $milestone->requested_by_name = optional($requestersById->get($milestone->assign_to))->name;
+            $milestone->workspace_name = optional($workspace)->name;
+            $milestone->workspace_slug = optional($workspace)->slug;
+            $milestone->project_name = optional($milestone->project)->name;
+            $milestone->board_url = $milestone->workspace_slug && $milestone->project_id
+                ? route('projects.milestone.board', [$milestone->workspace_slug, $milestone->project_id])
+                : null;
+
+            return $milestone;
+        });
+
+        $userScore = round((float) PuntuacionTarea::query()
+            ->whereIn('id_tarea', function ($query) use ($user, $dateRange) {
+                $query->select('timesheets.task_id')
+                    ->from('timesheets')
+                    ->where('timesheets.created_by', $user->id)
+                    ->whereNotNull('timesheets.task_id')
+                    ->whereBetween('timesheets.date', [
+                        $dateRange['startDate']->toDateString(),
+                        $dateRange['endDate']->toDateString(),
+                    ])
+                    ->distinct();
+            })
+            ->sum('cantidad_puntaje'), 2);
+
+        $totalImputedTime = $this->formatSecondsAsHoursMinutes((int) $projectSummaries->sum('total_seconds'));
+        $selectedFilters = [
+            'range_type' => $dateRange['rangeType'],
+            'preset' => $dateRange['preset'],
+            'start_date' => $dateRange['startDateInput'],
+            'end_date' => $dateRange['endDateInput'],
+        ];
+        $myDaySelectedFilters = [
+            'status' => $myDayStatus,
+            'range_type' => $myDayDateRange['rangeType'],
+            'preset' => $myDayDateRange['preset'],
+            'start_date' => $myDayDateRange['startDateInput'],
+            'end_date' => $myDayDateRange['endDateInput'],
+        ];
+        $chartData = $this->buildMySummaryChartData(
+            $projectSummaries,
+            $totalImputedTime,
+            $dateRange['appliedLabel']
+        );
+
+        if ($request->ajax()) {
+            return response()->json([
+                'scoreHtml' => view('projects.partials.my_summary_score', compact(
+                    'userScore',
+                    'selectedFilters',
+                    'dateRange'
+                ))->render(),
+                'myDayHtml' => view('projects.partials.my_summary_day', compact(
+                    'currentWorkspace',
+                    'myDayMilestones',
+                    'myDaySelectedFilters'
+                ))->render(),
+                'contentHtml' => view('projects.partials.my_summary_content', compact(
+                    'currentWorkspace',
+                    'projectSummaries',
+                    'userScore',
+                    'totalImputedTime',
+                    'selectedFilters',
+                    'dateRange'
+                ))->render(),
+                'chartData' => $chartData,
+            ]);
+        }
+
+        return view(
+            'projects.my_summary',
+            compact(
+                'currentWorkspace',
+                'myDayMilestones',
+                'myDaySelectedFilters',
+                'projectSummaries',
+                'userScore',
+                'totalImputedTime',
+                'chartData',
+                'selectedFilters',
+                'dateRange'
+            )
+        );
+    }
+
     public function milestoneBoard($slug, $id)
     {
         $currentWorkspace = Utility::getWorkspaceBySlug($slug);
@@ -1206,8 +2014,8 @@ class ProjectController extends Controller
             $objUser = Auth::user();
 
             // 🔹 Milestones visibles para el usuario
-            $allmilestones = Milestone::whereHas('project', function ($q) use ($objUser) {
-                $q->where('workspace', $objUser->currant_workspace);
+            $allmilestones = Milestone::whereHas('project', function ($q) use ($currentWorkspace) {
+                $q->where('workspace', $currentWorkspace->id);
             })
                 ->where(function ($q) use ($objUser) {
                     $q->where('assign_to', $objUser->id)
@@ -1227,6 +2035,8 @@ class ProjectController extends Controller
 
                 ->orderBy('created_at', 'desc')
                 ->get();
+
+            // dd($allmilestones->pluck('title'));
 
             // 🔹 TODOS los milestones del workspace (para "ver todos")
             $workspaceProjectsIds = Project::where('workspace', $currentWorkspace->id)
@@ -1416,13 +2226,32 @@ class ProjectController extends Controller
             ];
         })->filter()->values()->toArray();
 
-
-        // Si es proyecto tipo 3, cargar las phases
+        // Si es proyecto tipo 3 o 5, cargar las phases y el stage actual
         $phases = [];
-        if ($project->type == 3) {
+        $stage = null;
+        if (in_array((int) $project->type, [3, 5], true)) {
             $phases = MilestonePhases::where('id_milestone', $milestone->id)
                 ->pluck('phases')
                 ->toArray();
+
+            $currentStageRecord = MilestoneStages::where('id_milestone', $milestone->id)
+                ->orderByDesc('id')
+                ->first(['stages', 'milestone_stage_project_id']);
+
+            if ($currentStageRecord) {
+                if (!empty($currentStageRecord->milestone_stage_project_id)) {
+                    $stage = MilestoneStageProject::where('project_id', $project->id)
+                        ->where('id', $currentStageRecord->milestone_stage_project_id)
+                        ->value('name');
+                }
+
+                if (empty($stage) && !empty($currentStageRecord->stages)) {
+                    $stage = MilestoneStageProject::where('project_id', $project->id)
+                        ->where('name', trim((string) $currentStageRecord->stages))
+                        ->value('name')
+                        ?? trim((string) $currentStageRecord->stages);
+                }
+            }
         }
 
         return [
@@ -1433,6 +2262,7 @@ class ProjectController extends Controller
             'title'         => $milestone->title,
             'start_date'    => $milestone->start_date,
             'end_date'      => $milestone->end_date,
+            'planned_end_date' => $milestone->planned_end_date,
             'finalization_date' => $milestone->finalization_date,
             'assign_to'     => $milestone->assign_to,
             'daysleft'      => round((strtotime($milestone->end_date) - strtotime(date('Y-m-d'))) / 86400),
@@ -1448,6 +2278,7 @@ class ProjectController extends Controller
             'asiggned_user_data'         => User::find($milestone->milestone_assigned_to_user),
             'is_waiting' => $milestone->is_waiting,
             'phases' => $phases,
+            'stage' => $stage,
         ];
         //\Log::info($milestone);
     }
@@ -1572,6 +2403,13 @@ class ProjectController extends Controller
     }
 
 
+    private function syncMilestoneTaskEndDates(Milestone $milestone, ?string $endDate): void
+    {
+        $milestone->tasks()->update([
+            'end_date' => $endDate,
+        ]);
+    }
+
     public function clearFinalizationDate($slug, $milestoneID)
     {
         $milestone = Milestone::find($milestoneID);
@@ -1582,6 +2420,7 @@ class ProjectController extends Controller
 
         $milestone->finalization_date = null;
         $milestone->save();
+        $this->syncMilestoneTaskEndDates($milestone, null);
 
         // ✅ Recalcular estado del proyecto
         if ($milestone->project) {
@@ -1614,7 +2453,7 @@ class ProjectController extends Controller
     {
         $currentWorkspace = Utility::getWorkspaceBySlug($slug);
         $milestone = Milestone::findOrFail($id);
-        $systemOptions = System::all();
+        $systemOptions = System::orderBy('name_system', 'asc')->get();
         // Retorna una vista parcial (para el popup)
         return view('projects.milestoneReview', compact('milestone', 'currentWorkspace', 'systemOptions'));
     }
@@ -1625,15 +2464,14 @@ class ProjectController extends Controller
         $milestone = \App\Models\Milestone::with('project')->findOrFail($milestoneId);
         $project = $milestone->project;
 
-        $originalName = $file->getClientOriginalName();
-        $originalName = str_replace(' ', '_', $originalName);
+        $originalName = $this->cleanFileName($file->getClientOriginalName());
 
         $extension = $file->getClientOriginalExtension();
         $fileSize = round($file->getSize() / 1024, 2) . ' KB';
         $uniqueName = $milestone->id . '_' . time() . '_' . uniqid() . '_rf_' . $originalName;
 
-        $projectFolder = str_replace(' ', '_', $project->name);
-        $milestoneFolder = str_replace(' ', '_', $milestone->title);
+        $projectFolder = $this->sanitizePath($project->name);
+        $milestoneFolder = $this->sanitizePath($milestone->title);
 
         $dir = storage_path('project_files/' . $projectFolder . '/' . $milestoneFolder);
 
@@ -1704,168 +2542,168 @@ class ProjectController extends Controller
 
 
     public function milestoneReviewSubmit(Request $request, $slug, $id)
-{
-    try {
-        $milestoneId = $request->input('milestone_id', $id);
+    {
+        try {
+            $milestoneId = $request->input('milestone_id', $id);
 
-        if (!$milestoneId || !is_numeric($milestoneId)) {
-            return redirect()->back()->with('error', 'Falta el ID del milestone.');
-        }
+            if (!$milestoneId || !is_numeric($milestoneId)) {
+                return redirect()->back()->with('error', 'Falta el ID del milestone.');
+            }
 
-        $milestone = Milestone::with('tasks')->find($milestoneId);
-        if (!$milestone) {
-            return redirect()->back()->with('error', 'Milestone no encontrado.');
-        }
+            $milestone = Milestone::with('tasks')->find($milestoneId);
+            if (!$milestone) {
+                return redirect()->back()->with('error', 'Milestone no encontrado.');
+            }
 
-        // ✅ Ahora vienen como array: review_files[]
-        $hasPdfs = $request->hasFile('review_files');
+            // ✅ Ahora vienen como array: review_files[]
+            $hasPdfs = $request->hasFile('review_files');
 
-        $systems = $request->input('systems', []);
-        if (empty($systems)) {
-            return redirect()->back()->with('error', 'Debes seleccionar al menos un sistema.');
-        }
+            $systems = $request->input('systems', []);
+            if (empty($systems)) {
+                return redirect()->back()->with('error', 'Debes seleccionar al menos un sistema.');
+            }
 
-        // ---------------------------------------
-        // ✅ Validación condicional
-        // ---------------------------------------
-        $rules = [
-            'systems'   => ['required', 'array', 'min:1'],
-            'systems.*' => ['string'],
-        ];
+            // ---------------------------------------
+            // ✅ Validación condicional
+            // ---------------------------------------
+            $rules = [
+                'systems'   => ['required', 'array', 'min:1'],
+                'systems.*' => ['string'],
+            ];
 
-        if ($hasPdfs) {
-            $rules = array_merge($rules, [
-                'review_files'    => ['required', 'array', 'min:1', 'max:5'],
-                'review_files.*'  => ['file', 'mimes:pdf', 'max:51200'], // 50MB por archivo
-                'num_plans'       => ['required', 'integer', 'min:1'],
-                'document_format' => ['required', 'in:dwg,pdf,papel'],
-                'detail_level'    => ['required', 'in:oferta,montaje,edificacion'],
+            if ($hasPdfs) {
+                $rules = array_merge($rules, [
+                    'review_files'    => ['required', 'array', 'min:1', 'max:5'],
+                    'review_files.*'  => ['file', 'mimes:pdf', 'max:51200'], // 50MB por archivo
+                    'num_plans'       => ['required', 'integer', 'min:1'],
+                    'document_format' => ['required', 'in:dwg,pdf,papel'],
+                    'detail_level'    => ['required', 'in:oferta,montaje,edificacion'],
+                ]);
+            }
+
+            $validator = Validator::make($request->all(), $rules, [
+                'review_files.max'    => 'Puedes subir como máximo 5 PDFs.',
+                'review_files.*.mimes' => 'Todos los archivos deben ser PDF.',
+                'review_files.*.max'  => 'Cada PDF no puede superar 50MB.',
+                'systems.required'    => 'Debes seleccionar al menos un sistema.',
+                'systems.min'         => 'Debes seleccionar al menos un sistema.',
             ]);
+
+            if ($validator->fails()) {
+                return redirect()->back()->withErrors($validator)->withInput();
+            }
+
+            // ---------------------------------------
+            // ✅ Subir PDFs (solo si existen)
+            // ---------------------------------------
+            if ($hasPdfs) {
+                $this->uploadMilestoneReviewFiles($request, $slug, $milestoneId);
+            }
+
+            // ---------------------------------------
+            // ✅ Inputs para cálculo:
+            // Normal: vienen del request
+            // Omit: defaults neutros para evitar 0
+            // ---------------------------------------
+            if ($hasPdfs) {
+                $numPlans       = (int) $request->input('num_plans');
+                $documentFormat = $request->input('document_format');
+                $detailLevel    = $request->input('detail_level');
+
+                $formatPoints = Puntuacion::where('nombre', $documentFormat)->value('valor') ?? 0;
+                $detailPoints = Puntuacion::where('nombre', $detailLevel)->value('valor') ?? 0;
+            } else {
+                // ✅ Defaults en modo omit
+                $numPlans     = 1;
+                $formatPoints = 0;
+                $detailPoints = 1;
+            }
+
+            // ---------------------------------------
+            // Calcular systemPoints (igual que antes)
+            // ---------------------------------------
+            $systemPoints = Puntuacion::whereIn('nombre', $systems)
+                ->get()
+                ->pluck('valor')
+                ->reduce(function ($carry, $item) {
+                    return $carry * $item;
+                }, 1);
+
+            if ($systemPoints > 2) $systemPoints = 2;
+
+            // ---------------------------------------
+            // Calcular tiempo estimado
+            // ---------------------------------------
+            $estimated_time = ($numPlans * $systemPoints * $detailPoints) + $formatPoints;
+
+            // ✅ guarda anti-0 para evitar división por 0 en calculatePoints
+            if ($estimated_time <= 0) {
+                $estimated_time = 1;
+            }
+
+            // ---------------------------------------
+            // Obtener horas imputadas desde Tarea Drawing
+            // ---------------------------------------
+            $drawingTask = $milestone->tasks()
+                ->whereHas('type', function ($q) {
+                    $q->where('name', 'Drawing');
+                })
+                ->first();
+
+            if (!$drawingTask) {
+                \Log::warning("No se encontró tarea tipo Drawing en el milestone {$milestone->id}");
+                $real_imputed_time = 0;
+            } else {
+                $real_imputed_time = $drawingTask->timesheets()
+                    ->selectRaw('SUM(TIME_TO_SEC(time)) as total_seconds')
+                    ->value('total_seconds');
+
+                $real_imputed_time = ($real_imputed_time ?? 0) / 3600;
+            }
+
+            // ---------------------------------------
+            // Puntos extras por tareas
+            // ---------------------------------------
+            $extraTaskPoints = TaskType::where('project_type', 1)
+                ->whereIn('id', $milestone->tasks()->pluck('type_id'))
+                ->sum('puntuacion');
+
+            // ---------------------------------------
+            // Calcular puntos
+            // ---------------------------------------
+            $allPoints = $this->calculatePoints($estimated_time, $real_imputed_time, $extraTaskPoints);
+
+            if ($allPoints['totalPoints'] === null) {
+                $allPoints['totalPoints'] = 0;
+            }
+
+            foreach ($milestone->tasks as $task) {
+                PuntuacionTarea::updateOrCreate(
+                    ['id_tarea' => $task->id],
+                    [
+                        'cantidad_puntaje' => $allPoints['totalPoints'],
+                        'user_id'          => $task->assign_to,
+                        'puntos_hora'      => $allPoints['pointsHour'],
+                    ]
+                );
+            }
+
+            ActivityLog::create([
+                'user_id'    => \Auth::user()->id,
+                'user_type'  => get_class(\Auth::user()),
+                'project_id' => $milestone->project_id,
+                'log_type'   => $hasPdfs ? 'has uploaded review files' : 'has omitted the review files',
+                'remark'     => json_encode([
+                    'milestoneTitle' => $milestone->title ?? 'Unnamed milestone',
+                ]),
+            ]);
+
+            return redirect()->back()->with('success', 'Revisión guardada correctamente.');
+        } catch (\Throwable $e) {
+            \Log::error("Error en milestoneReviewSubmit", ['error' => $e->getMessage()]);
+            return redirect()->back()->with('error', 'Ocurrió un error: ' . $e->getMessage());
         }
-
-        $validator = Validator::make($request->all(), $rules, [
-            'review_files.max'    => 'Puedes subir como máximo 5 PDFs.',
-            'review_files.*.mimes'=> 'Todos los archivos deben ser PDF.',
-            'review_files.*.max'  => 'Cada PDF no puede superar 50MB.',
-            'systems.required'    => 'Debes seleccionar al menos un sistema.',
-            'systems.min'         => 'Debes seleccionar al menos un sistema.',
-        ]);
-
-        if ($validator->fails()) {
-            return redirect()->back()->withErrors($validator)->withInput();
-        }
-
-        // ---------------------------------------
-        // ✅ Subir PDFs (solo si existen)
-        // ---------------------------------------
-        if ($hasPdfs) {
-            $this->uploadMilestoneReviewFiles($request, $slug, $milestoneId);
-        }
-
-        // ---------------------------------------
-        // ✅ Inputs para cálculo:
-        // Normal: vienen del request
-        // Omit: defaults neutros para evitar 0
-        // ---------------------------------------
-        if ($hasPdfs) {
-            $numPlans       = (int) $request->input('num_plans');
-            $documentFormat = $request->input('document_format');
-            $detailLevel    = $request->input('detail_level');
-
-            $formatPoints = Puntuacion::where('nombre', $documentFormat)->value('valor') ?? 0;
-            $detailPoints = Puntuacion::where('nombre', $detailLevel)->value('valor') ?? 0;
-        } else {
-            // ✅ Defaults en modo omit
-            $numPlans     = 1;
-            $formatPoints = 0;
-            $detailPoints = 1;
-        }
-
-        // ---------------------------------------
-        // Calcular systemPoints (igual que antes)
-        // ---------------------------------------
-        $systemPoints = Puntuacion::whereIn('nombre', $systems)
-            ->get()
-            ->pluck('valor')
-            ->reduce(function ($carry, $item) {
-                return $carry * $item;
-            }, 1);
-
-        if ($systemPoints > 2) $systemPoints = 2;
-
-        // ---------------------------------------
-        // Calcular tiempo estimado
-        // ---------------------------------------
-        $estimated_time = ($numPlans * $systemPoints * $detailPoints) + $formatPoints;
-
-        // ✅ guarda anti-0 para evitar división por 0 en calculatePoints
-        if ($estimated_time <= 0) {
-            $estimated_time = 1;
-        }
-
-        // ---------------------------------------
-        // Obtener horas imputadas desde Tarea Drawing
-        // ---------------------------------------
-        $drawingTask = $milestone->tasks()
-            ->whereHas('type', function ($q) {
-                $q->where('name', 'Drawing');
-            })
-            ->first();
-
-        if (!$drawingTask) {
-            \Log::warning("No se encontró tarea tipo Drawing en el milestone {$milestone->id}");
-            $real_imputed_time = 0;
-        } else {
-            $real_imputed_time = $drawingTask->timesheets()
-                ->selectRaw('SUM(TIME_TO_SEC(time)) as total_seconds')
-                ->value('total_seconds');
-
-            $real_imputed_time = ($real_imputed_time ?? 0) / 3600;
-        }
-
-        // ---------------------------------------
-        // Puntos extras por tareas
-        // ---------------------------------------
-        $extraTaskPoints = TaskType::where('project_type', 1)
-            ->whereIn('id', $milestone->tasks()->pluck('type_id'))
-            ->sum('puntuacion');
-
-        // ---------------------------------------
-        // Calcular puntos
-        // ---------------------------------------
-        $allPoints = $this->calculatePoints($estimated_time, $real_imputed_time, $extraTaskPoints);
-
-        if ($allPoints['totalPoints'] === null) {
-            $allPoints['totalPoints'] = 0;
-        }
-
-        foreach ($milestone->tasks as $task) {
-            PuntuacionTarea::updateOrCreate(
-                ['id_tarea' => $task->id],
-                [
-                    'cantidad_puntaje' => $allPoints['totalPoints'],
-                    'user_id'          => $task->assign_to,
-                    'puntos_hora'      => $allPoints['pointsHour'],
-                ]
-            );
-        }
-
-        ActivityLog::create([
-            'user_id'    => \Auth::user()->id,
-            'user_type'  => get_class(\Auth::user()),
-            'project_id' => $milestone->project_id,
-            'log_type'   => $hasPdfs ? 'has uploaded review files' : 'has omitted the review files',
-            'remark'     => json_encode([
-                'milestoneTitle' => $milestone->title ?? 'Unnamed milestone',
-            ]),
-        ]);
-
-        return redirect()->back()->with('success', 'Revisión guardada correctamente.');
-    } catch (\Throwable $e) {
-        \Log::error("Error en milestoneReviewSubmit", ['error' => $e->getMessage()]);
-        return redirect()->back()->with('error', 'Ocurrió un error: ' . $e->getMessage());
     }
-}
 
 
     public function deletePuntuaciones($slug, $milestoneId)
@@ -1902,6 +2740,7 @@ class ProjectController extends Controller
     public function taskCreate($slug)
     {
         $currentWorkspace = Utility::getWorkspaceBySlug($slug);
+
         $taskType = TaskType::select('id', 'name', 'project_type')->get()->map(function ($task) {
             return [
                 'id' => $task->id,
@@ -1909,10 +2748,25 @@ class ProjectController extends Controller
                 'name' => __($task->name)
             ];
         });
+
+        // Traer proyectos del workspace actual siempre
         $projects = Project::where('workspace', $currentWorkspace->id)->get();
+
+        // Si viene de my_milestone_board con un project_id, incluir su proyecto aunque sea de otro workspace
+        if (request()->get('fromMyMilestoneBoard') && request()->get('project_id')) {
+            $projectId = request()->get('project_id');
+            $otherProject = Project::find($projectId);
+
+            if ($otherProject && !$projects->contains('id', $projectId)) {
+                $projects = $projects->concat([$otherProject]);
+            }
+        }
+
         $milestones = Milestone::all();
 
-        return view('projects.taskCreate', compact('currentWorkspace', 'projects', 'taskType', 'milestones'));
+        $users = User::orderBy('name', 'asc')->get();
+
+        return view('projects.taskCreate', compact('currentWorkspace', 'projects', 'taskType', 'milestones', 'users'));
     }
 
     public function taskStore(Request $request, $slug)
@@ -1922,18 +2776,36 @@ class ProjectController extends Controller
             'milestone_id' => 'required',
             'type_id' => 'required',
             'estimated_date' => 'required',
+            'task_assign_override' => 'nullable|exists:users,id',
         ]);
 
         $currentWorkspace = Utility::getWorkspaceBySlug($slug);
         $user = Auth::user();
 
-        $project = Project::where('id', $request->project_id)
-            ->where('workspace', $currentWorkspace->id)
-            ->first();
+        // Si viene de my_milestone_board, permitir proyectos de otros workspaces
+        // Si no, validar que el proyecto pertenezca al workspace actual
+        if ($request->get('fromMyMilestoneBoard')) {
+            $project = Project::where('id', $request->project_id)->first();
+        } else {
+            $project = Project::where('id', $request->project_id)
+                ->where('workspace', $currentWorkspace->id)
+                ->first();
+        }
 
         if (!$project) {
             return redirect()->back()->with('error', 'Proyecto no encontrado o no pertenece al espacio de trabajo actual.');
         }
+
+        $selectedMilestone = Milestone::select('id', 'milestone_assigned_to_user')
+            ->find($request->milestone_id);
+
+        $canOverrideAssignee = in_array((int) $project->type, [3, 5], true)
+            && $selectedMilestone
+            && (int) ($selectedMilestone->milestone_assigned_to_user ?? 0) === (int) $user->id;
+
+        $assigneeId = ($canOverrideAssignee && !empty($request->task_assign_override))
+            ? (int) $request->task_assign_override
+            : (int) $user->id;
 
         // Detectar si el type_id seleccionado es el "Custom"
         $type = TaskType::find($request->type_id);
@@ -1951,7 +2823,7 @@ class ProjectController extends Controller
             // Para custom: evitar duplicado por milestone + usuario + nombre custom
             $existingTask = Task::where('milestone_id', $request->milestone_id)
                 ->where('type_id', $request->type_id)
-                ->where('assign_to', $user->id)
+                ->where('assign_to', $assigneeId)
                 ->whereHas('customTask', function ($q) use ($request) {
                     $q->whereRaw('LOWER(name) = ?', [strtolower(trim($request->custom_task_name))]);
                 })
@@ -1960,7 +2832,7 @@ class ProjectController extends Controller
             // Para no custom: tu regla actual
             $existingTask = Task::where('milestone_id', $request->milestone_id)
                 ->where('type_id', $request->type_id)
-                ->where('assign_to', $user->id)
+                ->where('assign_to', $assigneeId)
                 ->first();
         }
 
@@ -1975,7 +2847,7 @@ class ProjectController extends Controller
         $task->type_id = $request->type_id;
         $task->start_date = date('Y-m-d');
         $task->estimated_date = $request->estimated_date;
-        $task->assign_to = $user->id;
+        $task->assign_to = $assigneeId;
         $task->save();
 
         // Si es custom, crear el registro en custom_tasks
@@ -2057,6 +2929,7 @@ class ProjectController extends Controller
                 if ($milestone->status == 4) {
                     $milestone->finalization_date = date('Y-m-d');
                     $milestone->save();
+                    $this->syncMilestoneTaskEndDates($milestone, $milestone->finalization_date);
 
                     $project = Project::find($milestone->project_id);
                     if (isset($project)) {
@@ -2120,6 +2993,12 @@ class ProjectController extends Controller
             $task = Milestone::find($request->id);
             $task->status = $request->new_status;
             $task->save();
+
+            if ((int) $task->status === 4) {
+                $task->finalization_date = date('Y-m-d');
+                $task->save();
+                $this->syncMilestoneTaskEndDates($task, $task->finalization_date);
+            }
 
             $name = $user->name;
             $id = $user->id;
@@ -2189,50 +3068,154 @@ class ProjectController extends Controller
         $objUser = Auth::user();
         $currentWorkspace = Utility::getWorkspaceBySlug($slug);
 
-        // if ($objUser->getGuard() == 'client') {
-        //     $project = Project::select('projects.*')
-        //         ->where('projects.workspace', '=', $currentWorkspace->id)
-        //         ->where('projects.id', '=', $projectID)->first();
-        //     $projects = Project::select('projects.*')->join('client_projects', 'client_projects.project_id', '=', 'projects.id')
-        //         ->where('client_projects.client_id', '=', $objUser->id)
-        //         ->where('projects.workspace', '=', $currentWorkspace->id)->get();
-        // } else {
-        $project = Project::select('projects.*')->join('user_projects', 'user_projects.project_id', '=', 'projects.id')
+        if (!$currentWorkspace) {
+            abort(404);
+        }
+
+        $task = Task::find($taskId);
+
+        if (!$task || (int) $task->project_id !== (int) $projectID) {
+            abort(404);
+        }
+
+        $assignedUserIds = collect(explode(',', (string) $task->assign_to))
+            ->map(function ($value) {
+                return (int) trim($value);
+            })
+            ->filter()
+            ->values();
+
+        $project = Project::with('milestones')
+            ->where('workspace', '=', $currentWorkspace->id)
+            ->where('id', '=', $projectID)
+            ->first();
+
+        if (!$project) {
+            abort(404);
+        }
+
+        $hasProjectAccess = UserProject::where('project_id', $projectID)
+            ->where('user_id', $objUser->id)
+            ->exists();
+
+        $isTaskAssignee = $assignedUserIds->contains((int) $objUser->id);
+
+        if (!$hasProjectAccess && !$isTaskAssignee) {
+            abort(403);
+        }
+
+        $projects = Project::select('projects.*')
+            ->join('user_projects', 'user_projects.project_id', '=', 'projects.id')
             ->where('user_projects.user_id', '=', $objUser->id)
             ->where('projects.workspace', '=', $currentWorkspace->id)
-            ->where('projects.id', '=', $projectID)->first();
-        $projects = Project::select('projects.*')->join('user_projects', 'user_projects.project_id', '=', 'projects.id')
-            ->where('user_projects.user_id', '=', $objUser->id)
-            ->where('projects.workspace', '=', $currentWorkspace->id)->get();
-        // }
-        $users = User::select('users.*')->join('user_projects', 'user_projects.user_id', '=', 'users.id')->where('project_id', '=', $projectID)->get();
-        $task = Task::find($taskId);
-        $task->assign_to = explode(",", $task->assign_to);
+            ->get();
 
-        return view('projects.taskEdit', compact('currentWorkspace', 'project', 'projects', 'users', 'task'));
+        if (!$projects->contains('id', $project->id)) {
+            $projects->push($project);
+        }
+
+        $users = User::select('users.*')
+            ->join('user_projects', 'user_projects.user_id', '=', 'users.id')
+            ->where('project_id', '=', $projectID)
+            ->distinct()
+            ->get();
+
+        if ($assignedUserIds->isNotEmpty()) {
+            $assignedUsers = User::whereIn('id', $assignedUserIds->all())->get();
+            $users = $users->merge($assignedUsers)->unique('id')->values();
+        }
+
+        $taskType = TaskType::select('id', 'name', 'project_type')->get()->map(function ($taskTypeItem) {
+            return [
+                'id' => $taskTypeItem->id,
+                'project_type' => $taskTypeItem->project_type,
+                'name' => __($taskTypeItem->name),
+            ];
+        });
+
+        $task->assign_to = $assignedUserIds->map(function ($id) {
+            return (string) $id;
+        })->all();
+
+        return view('projects.taskEdit', compact('currentWorkspace', 'project', 'projects', 'users', 'task', 'taskType'));
     }
 
     public function taskUpdate(Request $request, $slug, $projectID, $taskID)
     {
-
         $objUser = Auth::user();
         $currentWorkspace = Utility::getWorkspaceBySlug($slug);
 
-        $project = Project::select('projects.*')->join('user_projects', 'user_projects.project_id', '=', 'projects.id')
-            ->where('user_projects.user_id', '=', $objUser->id)
-            ->where('projects.workspace', '=', $currentWorkspace->id)
-            ->where('projects.id', '=', $request->project_id)->first();
+        if (!$currentWorkspace) {
+            return redirect()->back()->with('error', __('Workspace not found.'));
+        }
 
-        if ($project) {
-            $post = $request->all();
-            $post['assign_to'] = implode(",", $request->assign_to);
-            $task = Task::find($taskID);
-            $task->update($post);
+        $request->validate([
+            'project_id' => 'required|integer',
+            'milestone_id' => 'required',
+            'type_id' => 'required|integer',
+            'assign_to' => 'required|array|min:1',
+            'assign_to.*' => 'required|integer|exists:users,id',
+            'start_date' => 'nullable|date',
+            'estimated_date' => 'required|date',
+            'end_date' => 'nullable|date',
+            'custom_task_name' => 'nullable|string|max:255',
+        ]);
 
-            return redirect()->back()->with('success', __('Task Updated Successfully!'));
-        } else {
+        $task = Task::find($taskID);
+
+        if (!$task || (int) $task->project_id !== (int) $projectID) {
+            return redirect()->back()->with('error', __('Task not found.'));
+        }
+
+        $project = Project::where('workspace', '=', $currentWorkspace->id)
+            ->where('id', '=', $request->project_id)
+            ->first();
+
+        if (!$project) {
+            return redirect()->back()->with('error', __('Project not found.'));
+        }
+
+        $assignedUserIds = collect(explode(',', (string) $task->assign_to))
+            ->map(function ($value) {
+                return (int) trim($value);
+            })
+            ->filter();
+
+        $hasProjectAccess = UserProject::where('project_id', $projectID)
+            ->where('user_id', $objUser->id)
+            ->exists();
+
+        $isTaskAssignee = $assignedUserIds->contains((int) $objUser->id);
+
+        if (!$hasProjectAccess && !$isTaskAssignee) {
             return redirect()->back()->with('error', __("You can't Edit Task!"));
         }
+
+        $post = [
+            'project_id' => (int) $request->project_id,
+            'milestone_id' => $request->milestone_id,
+            'type_id' => (int) $request->type_id,
+            'assign_to' => implode(',', $request->assign_to),
+            'start_date' => $request->filled('start_date') ? Carbon::parse($request->start_date)->format('Y-m-d H:i:s') : null,
+            'estimated_date' => Carbon::parse($request->estimated_date)->format('Y-m-d H:i:s'),
+            'end_date' => $request->filled('end_date')
+                ? Carbon::parse($request->end_date)->format('Y-m-d H:i:s')
+                : Carbon::parse($request->estimated_date)->format('Y-m-d H:i:s'),
+        ];
+
+        $task->update($post);
+
+        $type = TaskType::find($request->type_id);
+        $isCustom = $type && strtolower(trim((string) $type->name)) === 'custom';
+
+        if ($isCustom && $request->filled('custom_task_name')) {
+            CustomTasks::updateOrCreate(
+                ['id_task' => $task->id],
+                ['name' => trim((string) $request->custom_task_name)]
+            );
+        }
+
+        return redirect()->back()->with('success', __('Task Updated Successfully!'));
     }
 
     public function taskDestroy($slug, $projectID, $taskID)
@@ -2475,11 +3458,17 @@ class ProjectController extends Controller
             ->unique(); // Obtener solo IDs únicos
 
         // Comprobar si todas las tareas tienen al menos una entrada en timesheets
-        $allExist = $taskIds->diff($tasksWithTimesheets)->isEmpty();
+        // Además, debe existir al menos una tarea para permitir el paso a review
+        $hasTasks = $taskIds->isNotEmpty();
+        $allExist = $hasTasks && $taskIds->diff($tasksWithTimesheets)->isEmpty();
 
+        \Log::info('Tiene tareas asociadas: ' . ($hasTasks ? 'Sí' : 'No'));
         \Log::info('Todas las tareas tienen al menos una entrada en timesheets: ' . ($allExist ? 'Sí' : 'No'));
 
-        return response()->json(['all_exist' => $allExist]);
+        return response()->json([
+            'all_exist' => $allExist,
+            'has_tasks' => $hasTasks,
+        ]);
     }
 
     public function downloadCsv($project_id)
@@ -2616,24 +3605,58 @@ class ProjectController extends Controller
         ]);
     }
     public function getProjectsJson($slug, $search = null)
-{
-    $query = Project::query()
-        ->select(['id', 'name', 'ref_mo', 'type'])
-        ->with(['typeRel:id,name']);
+    {
+        $currentWorkspace = Utility::getWorkspaceBySlug($slug);
+        $query = Project::query()
+            ->select(['id', 'name', 'ref_mo', 'type'])
+            ->with(['typeRel:id,name'])
+            ->where('workspace', '=', $currentWorkspace->id);
 
-    if ($search) {
-        $query->where(function ($query) use ($search) {
-            $query->where('ref_mo', 'LIKE', "%{$search}%")
-                  ->orWhere('name', 'LIKE', "%{$search}%");
+        if ($search) {
+            $query->where(function ($query) use ($search) {
+                $query->where('ref_mo', 'LIKE', "%{$search}%")
+                    ->orWhere('name', 'LIKE', "%{$search}%");
+            });
+        }
+
+        $objProject = $query->paginate(25);
+
+        try {
+            $phaseOptions = $this->getEnumValues('milestone_phases', 'phases');
+        } catch (\Throwable $e) {
+            $phaseOptions = MilestonePhases::PHASES;
+        }
+
+        $objProject->getCollection()->transform(function ($project) use ($phaseOptions) {
+            if (in_array((int) $project->type, [3, 5], true)) {
+                $this->ensureProjectDefaultStages($project);
+            }
+
+            $project->is_phase_project = in_array((int) $project->type, [3, 5], true);
+            $project->phases = $project->is_phase_project ? array_values($phaseOptions) : [];
+
+            return $project;
         });
+
+        $projectIds = collect($objProject->items())->pluck('id')->toArray();
+        $stagesByProject = MilestoneStageProject::whereIn('project_id', $projectIds)
+            ->orderBy('name', 'asc')
+            ->get(['project_id', 'name'])
+            ->groupBy('project_id')
+            ->map(function ($stages) {
+                return $stages->pluck('name')->values()->toArray();
+            });
+
+        $objProject->getCollection()->transform(function ($project) use ($stagesByProject) {
+            $project->stages = $stagesByProject->get($project->id, []);
+
+            return $project;
+        });
+
+        return response()->json([
+            'projects' => $objProject,
+        ]);
     }
-
-    $objProject = $query->paginate(25);
-
-    return response()->json([
-        'projects' => $objProject,
-    ]);
-}
 
     public function getSalesJson($slug, $search = null)
     {
@@ -2672,13 +3695,52 @@ class ProjectController extends Controller
             ->toArray();
     }
 
+    private function getDefaultMilestoneStages()
+    {
+        try {
+            $stages = $this->getEnumValues('milestone_stages', 'stages');
+
+            return collect($stages)
+                ->map(fn($stage) => trim($stage))
+                ->filter()
+                ->values()
+                ->toArray();
+        } catch (\Throwable $e) {
+            return MilestoneStages::STAGES;
+        }
+    }
+
+    private function ensureProjectDefaultStages($project)
+    {
+        if (!$project || !in_array((int) $project->type, [3, 5], true)) {
+            return;
+        }
+
+        $exists = MilestoneStageProject::where('project_id', $project->id)->exists();
+        if ($exists) {
+            return;
+        }
+
+        foreach ($this->getDefaultMilestoneStages() as $stageName) {
+            MilestoneStageProject::firstOrCreate([
+                'project_id' => $project->id,
+                'name' => $stageName,
+            ]);
+        }
+    }
+
     public function milestone($slug, $projectID)
     {
         $currentWorkspace = Utility::getWorkspaceBySlug($slug);
         $project_type = ProjectType::select('id', 'name')->get();
         $users = User::orderBy('name', 'asc')->get();
 
-        $phases = $this->getEnumValues('milestone_phases', 'phases');
+        try {
+            $phases = $this->getEnumValues('milestone_phases', 'phases');
+        } catch (\Throwable $e) {
+            $phases = MilestonePhases::PHASES;
+        }
+        $stagesProject = [];
 
         if ($projectID == -1) {
             $project_id = -1;
@@ -2691,8 +3753,103 @@ class ProjectController extends Controller
         } else {
             $project_id = $projectID;
             $project = Project::find($projectID);
-            return view('projects.milestone', compact('currentWorkspace', 'project', 'project_id', 'project_type', 'users', 'phases'));
+            if ($project && in_array((int) $project->type, [3, 5], true)) {
+                $this->ensureProjectDefaultStages($project);
+
+                $stagesProject = MilestoneStageProject::where('project_id', $project->id)
+                    ->orderBy('name', 'asc')
+                    ->pluck('name')
+                    ->toArray();
+            }
+
+            return view('projects.milestone', compact('currentWorkspace', 'project', 'project_id', 'project_type', 'users', 'phases', 'stagesProject'));
         }
+    }
+
+    public function stagesPopup($slug, $projectID)
+    {
+        $currentWorkspace = Utility::getWorkspaceBySlug($slug);
+        $project = Project::findOrFail($projectID);
+
+        $this->ensureProjectDefaultStages($project);
+
+        $stages = MilestoneStageProject::where('project_id', $project->id)
+            ->orderBy('name', 'asc')
+            ->get();
+
+        return view('projects.stages_popup', compact('currentWorkspace', 'project', 'stages'));
+    }
+
+    public function stagesStore($slug, $projectID, Request $request)
+    {
+        $project = Project::findOrFail($projectID);
+
+        $validated = $request->validate([
+            'name' => [
+                'required',
+                'string',
+                'max:255',
+                Rule::unique('milestone_stages_project', 'name')->where(function ($query) use ($project) {
+                    return $query->where('project_id', $project->id);
+                }),
+            ],
+        ]);
+
+        MilestoneStageProject::create([
+            'project_id' => $project->id,
+            'name' => trim($validated['name']),
+        ]);
+
+        return redirect()->back()->with('success', __('Stage created successfully.'));
+    }
+
+    public function stagesUpdate($slug, $projectID, $stageID, Request $request)
+    {
+        $project = Project::findOrFail($projectID);
+        $stage = MilestoneStageProject::where('project_id', $project->id)->findOrFail($stageID);
+
+        $validated = $request->validate([
+            'name' => [
+                'required',
+                'string',
+                'max:255',
+                Rule::unique('milestone_stages_project', 'name')
+                    ->where(function ($query) use ($project) {
+                        return $query->where('project_id', $project->id);
+                    })
+                    ->ignore($stage->id),
+            ],
+        ]);
+
+        $stage->update([
+            'name' => trim($validated['name']),
+        ]);
+
+        MilestoneStages::whereHas('milestone', function ($query) use ($project) {
+            $query->where('project_id', $project->id);
+        })->where('stages', $stage->getOriginal('name'))->update([
+            'stages' => trim($validated['name']),
+        ]);
+
+        return redirect()->back()->with('success', __('Stage updated successfully.'));
+    }
+
+    public function stagesDestroy($slug, $projectID, $stageID)
+    {
+        $project = Project::findOrFail($projectID);
+        $stage = MilestoneStageProject::where('project_id', $project->id)->findOrFail($stageID);
+
+        $isStageInUse = MilestoneStages::whereHas('milestone', function ($query) use ($project) {
+            $query->where('project_id', $project->id);
+        })->where('stages', $stage->name)->exists();
+
+        if ($isStageInUse) {
+            return redirect()->back()->with('error', __('This stage is being used in one or more order forms.'));
+        }
+
+        $stage->delete();
+
+        return redirect()->back()->with('success', __('Stage deleted successfully.'));
     }
 
     public function milestoneStore($slug, $projectID, Request $request)
@@ -2737,10 +3894,20 @@ class ProjectController extends Controller
             'files' => 'nullable|array',
         ];
 
-        // ✅ Si el proyecto es tipo 3, phase es obligatoria
-        if ((int)$project->type === 3) {
+        // ✅ Si el proyecto es tipo 3 o 5, phase es obligatoria
+        if (in_array((int) $project->type, [3, 5], true)) {
             $rules['phase'] = 'required|in:Planificación,Diseño,Implementación,Documentación,Validación funcional,Explotación comercial';
             // 👆 cambia por los valores reales del enum de milestone_phases.phases
+        }
+
+        if (in_array((int) $project->type, [3, 5], true)) {
+            $this->ensureProjectDefaultStages($project);
+
+            $availableStages = MilestoneStageProject::where('project_id', $project->id)
+                ->pluck('name')
+                ->toArray();
+
+            $rules['stage'] = ['nullable', Rule::in($availableStages)];
         }
 
 
@@ -2790,11 +3957,26 @@ class ProjectController extends Controller
         $milestone->priority = $request->priority === '' ? null : $request->priority;
         $milestone->save();
 
-        // ✅ Guardar fase solo para proyectos tipo 3
-        if ((int)$project->type === 3) {
+        // ✅ Guardar fase para proyectos tipo 3 o 5
+        if (in_array((int) $project->type, [3, 5], true)) {
             \App\Models\MilestonePhases::updateOrCreate(
                 ['id_milestone' => $milestone->id],
                 ['phases' => $request->phase]
+            );
+        }
+
+        if (in_array((int) $project->type, [3, 5], true) && !empty($request->stage)) {
+            $selectedStageName = trim((string) $request->stage);
+            $selectedStageId = MilestoneStageProject::where('project_id', $project->id)
+                ->where('name', $selectedStageName)
+                ->value('id');
+
+            MilestoneStages::updateOrCreate(
+                ['id_milestone' => $milestone->id],
+                [
+                    'stages' => $selectedStageName,
+                    'milestone_stage_project_id' => $selectedStageId,
+                ]
             );
         }
 
@@ -2804,8 +3986,8 @@ class ProjectController extends Controller
 
         // Subida de archivos
         if ($request->hasFile('files')) {
-            $projectFolder = str_replace(' ', '_', $project->name);
-            $milestoneFolder = str_replace(' ', '_', $milestone->title);
+            $projectFolder = $this->sanitizePath($project->name);
+            $milestoneFolder = $this->sanitizePath($milestone->title);
             $dir = 'project_files/' . $projectFolder . '/' . $milestoneFolder;
 
             if (!file_exists(storage_path($dir))) {
@@ -2819,9 +4001,7 @@ class ProjectController extends Controller
 
             foreach ($request->file('files') as $file) {
                 if ($file->isValid()) {
-                    $originalName = $file->getClientOriginalName();
-                    // Reemplazar espacios con guiones bajos
-                    $originalName = str_replace(' ', '_', $originalName);
+                    $originalName = $this->cleanFileName($file->getClientOriginalName());
 
                     // Generar nombre único si ya existe
                     $uniqueDisplayName = $this->generateUniqueFileName($originalName, $existingFileNames);
@@ -2983,27 +4163,61 @@ class ProjectController extends Controller
     {
         $currentWorkspace = Utility::getWorkspaceBySlug($slug);
         $milestone = Milestone::find($milestoneID);
-        
+
         // Cargar el proyecto para determinar si es tipo 3
         $project = null;
         $phases = [];
         $currentPhase = null;
-        
+        $stagesProject = [];
+        $currentStage = null;
+
         if ($milestone) {
             $project = $milestone->project;
-            
-            // Si es proyecto tipo 3, cargar las phases disponibles y la phase actual del milestone
-            if ($project && $project->type == 3) {
-                // Cargar todas las phases disponibles (del modelo MilestonePhases)
-                $phases = MilestonePhases::PHASES;
-                
+
+            // Si es proyecto tipo 3 o 5, cargar las phases disponibles y la phase actual del milestone
+            if ($project && in_array((int) $project->type, [3, 5], true)) {
+                try {
+                    $phases = $this->getEnumValues('milestone_phases', 'phases');
+                } catch (\Throwable $e) {
+                    $phases = MilestonePhases::PHASES;
+                }
+
                 // Cargar la phase actual del milestone
-                $currentPhaseObj = MilestonePhases::where('id_milestone', $milestone->id)->first();
-                $currentPhase = $currentPhaseObj ? $currentPhaseObj->phases : null;
+                $currentPhase = MilestonePhases::where('id_milestone', $milestone->id)
+                    ->orderByDesc('id')
+                    ->value('phases');
+            }
+
+            if ($project && in_array((int) $project->type, [3, 5], true)) {
+                $this->ensureProjectDefaultStages($project);
+
+                $stagesProject = MilestoneStageProject::where('project_id', $project->id)
+                    ->orderBy('name', 'asc')
+                    ->pluck('name')
+                    ->toArray();
+
+                $currentStageRecord = MilestoneStages::where('id_milestone', $milestone->id)
+                    ->orderByDesc('id')
+                    ->first(['stages', 'milestone_stage_project_id']);
+
+                if ($currentStageRecord) {
+                    if (!empty($currentStageRecord->milestone_stage_project_id)) {
+                        $currentStage = MilestoneStageProject::where('project_id', $project->id)
+                            ->where('id', $currentStageRecord->milestone_stage_project_id)
+                            ->value('name');
+                    }
+
+                    if (empty($currentStage) && !empty($currentStageRecord->stages)) {
+                        $currentStage = MilestoneStageProject::where('project_id', $project->id)
+                            ->where('name', trim((string) $currentStageRecord->stages))
+                            ->value('name')
+                            ?? trim((string) $currentStageRecord->stages);
+                    }
+                }
             }
         }
 
-        return view('projects.milestoneEdit', compact('currentWorkspace', 'milestone', 'project', 'phases', 'currentPhase'));
+        return view('projects.milestoneEdit', compact('currentWorkspace', 'milestone', 'project', 'phases', 'currentPhase', 'stagesProject', 'currentStage'));
     }
 
     public function milestoneDestroyFile(Request $request)
@@ -3012,11 +4226,11 @@ class ProjectController extends Controller
         \Log::info(['request' => $request->all(), 'inputs' => $inputs]);
         // Obtener el proyecto usando el ID
         $project = Project::findOrFail($inputs['idProject']);
-        $projectName = strtr($project->name, [' ' => '_']);
+        $projectName = $this->sanitizePath($project->name);
 
         // Obtener el milestone
         $milestone = Milestone::findOrFail($inputs['milestoneId']);
-        $milestoneName = strtr($milestone->title, [' ' => '_']);
+        $milestoneName = $this->sanitizePath($milestone->title);
 
         // Directorio donde se almacenan los archivos del milestone
         $milestoneFolder = 'project_files/' . $projectName . '/' . $milestoneName;
@@ -3121,12 +4335,31 @@ class ProjectController extends Controller
         if ($request->has('phase') && !empty($request->phase)) {
             // Eliminar la phase anterior si existe
             MilestonePhases::where('id_milestone', $milestone->id)->delete();
-            
+
             // Crear la nueva phase
             MilestonePhases::create([
                 'id_milestone' => $milestone->id,
                 'phases' => $request->phase,
             ]);
+        }
+
+        if ($request->has('stage')) {
+            if (!empty($request->stage)) {
+                $selectedStageName = trim((string) $request->stage);
+                $selectedStageId = MilestoneStageProject::where('project_id', $milestone->project_id)
+                    ->where('name', $selectedStageName)
+                    ->value('id');
+
+                MilestoneStages::updateOrCreate(
+                    ['id_milestone' => $milestone->id],
+                    [
+                        'stages' => $selectedStageName,
+                        'milestone_stage_project_id' => $selectedStageId,
+                    ]
+                );
+            } else {
+                MilestoneStages::where('id_milestone', $milestone->id)->delete();
+            }
         }
 
         $project = Project::where('id', $milestone->project_id)->first();
@@ -3139,8 +4372,8 @@ class ProjectController extends Controller
         $failedFiles = [];
 
         if ($request->hasFile('new_files')) {
-            $projectFolder = str_replace(' ', '_', $project->name);
-            $milestoneFolder = str_replace(' ', '_', $milestone->title);
+            $projectFolder = $this->sanitizePath($project->name);
+            $milestoneFolder = $this->sanitizePath($milestone->title);
             $dir = 'project_files/' . $projectFolder . '/' . $milestoneFolder;
             $MAX_FILE_SIZE = 52428800; // 50MB en bytes
 
@@ -3172,8 +4405,7 @@ class ProjectController extends Controller
                 }
 
                 $originalFileName = $file->getClientOriginalName();
-                // ✅ Reemplazar espacios con guiones bajos
-                $originalFileName = str_replace(' ', '_', $originalFileName);
+                $originalFileName = $this->cleanFileName($originalFileName);
 
                 // Generar nombre único si ya existe
                 $uniqueDisplayName = $this->generateUniqueFileName($originalFileName, $existingFileNames);
@@ -3248,6 +4480,331 @@ class ProjectController extends Controller
         return redirect()->back()->with('success', __('Milestone Updated Successfully!'));
     }
 
+    private function getTaskDisplayName(?Task $task): string
+    {
+        if (!$task) {
+            return __('N/A');
+        }
+
+        $taskTypeName = optional($task->type)->name;
+        $isCustomType = strtolower(trim((string) $taskTypeName)) === 'custom';
+
+        if ($isCustomType) {
+            return optional($task->customTask)->name ?: __('Custom');
+        }
+
+        return $taskTypeName ?: __('N/A');
+    }
+
+
+    private function formatSecondsToHoursMinutes(?int $totalSeconds): string
+    {
+        $seconds = max(0, (int) $totalSeconds);
+        $hours = intdiv($seconds, 3600);
+        $minutes = intdiv($seconds % 3600, 60);
+
+        return sprintf('%02d:%02d', $hours, $minutes);
+    }
+    
+    private function buildLoggedTaskDetailsForPeriod(int $userId, Carbon $startDate, Carbon $endDate): array
+    {
+        $loggedTaskRows = Timesheet::query()
+            ->select(
+                'timesheets.project_id',
+                'timesheets.task_id',
+                'projects.name as project_name',
+                DB::raw('SUM(TIME_TO_SEC(timesheets.time)) as total_seconds')
+            )
+            ->join('tasks', 'tasks.id', '=', 'timesheets.task_id')
+            ->join('milestones', 'milestones.id', '=', 'tasks.milestone_id')
+            ->leftJoin('projects', 'projects.id', '=', 'timesheets.project_id')
+            ->where('timesheets.created_by', $userId)
+            ->whereNotNull('timesheets.task_id')
+            ->whereRaw('TIME_TO_SEC(timesheets.time) > 0')
+            ->whereDate('timesheets.date', '>=', $startDate->toDateString())
+            ->whereDate('timesheets.date', '<=', $endDate->toDateString())
+            ->groupBy('timesheets.project_id', 'timesheets.task_id', 'projects.name')
+            ->get();
+
+        $taskIds = $loggedTaskRows->pluck('task_id')->filter()->unique()->values();
+
+        $tasksById = Task::with([
+            'project:id,name',
+            'milestone:id,title,project_id',
+            'type:id,name',
+            'customTask:id,id_task,name',
+        ])
+            ->whereIn('id', $taskIds)
+            ->get()
+            ->keyBy('id');
+
+        $loggedTasks = [];
+        foreach ($loggedTaskRows as $loggedTaskRow) {
+            $taskModel = $tasksById->get((int) $loggedTaskRow->task_id);
+            if (!$taskModel || !$taskModel->milestone) {
+                continue;
+            }
+
+            $projectName = $taskModel && optional($taskModel->project)->name
+                ? optional($taskModel->project)->name
+                : ($loggedTaskRow->project_name ?: __('N/A'));
+
+            $loggedTasks[] = [
+                'name' => $this->getTaskDisplayName($taskModel),
+                'project' => $projectName,
+                'milestone' => $taskModel && optional($taskModel->milestone)->title
+                    ? optional($taskModel->milestone)->title
+                    : __('N/A'),
+                'hours' => $this->formatSecondsToHoursMinutes((int) ($loggedTaskRow->total_seconds ?? 0)),
+            ];
+        }
+
+        usort($loggedTasks, function ($leftTask, $rightTask) {
+            $left = [
+                Str::lower((string) ($leftTask['project'] ?? '')),
+                Str::lower((string) ($leftTask['name'] ?? '')),
+                Str::lower((string) ($leftTask['milestone'] ?? '')),
+            ];
+            $right = [
+                Str::lower((string) ($rightTask['project'] ?? '')),
+                Str::lower((string) ($rightTask['name'] ?? '')),
+                Str::lower((string) ($rightTask['milestone'] ?? '')),
+            ];
+
+            return $left <=> $right;
+        });
+
+        return $loggedTasks;
+    }
+
+
+    public function myTasks()
+    {
+        $user = Auth::user();
+        $now = Carbon::now();
+        $currentWorkspace = Workspace::find($user->currant_workspace);
+
+        $tasksQuery = Task::with([
+            'project:id,name,workspace,type',
+            'milestone:id,title,project_id',
+            'milestone.phase:id,id_milestone,phases',
+            'milestone.stage:id,id_milestone,stages,milestone_stage_project_id',
+            'milestone.stage.stageProject:id,name',
+            'type:id,name',
+            'customTask:id,id_task,name',
+        ])
+            ->leftJoin('projects', 'projects.id', '=', 'tasks.project_id')
+            ->select('tasks.*')
+            ->where(function ($query) use ($user) {
+                $query->whereRaw("find_in_set(?, assign_to)", [(string) $user->id])
+                    ->orWhere('assign_to', (string) $user->id);
+            })
+            ->whereHas('milestone', function ($query) {
+                $query->whereNotIn('status', [3, 4]);
+            })
+            ->orderByRaw("CASE WHEN projects.name IS NULL OR TRIM(projects.name) = '' THEN 1 ELSE 0 END")
+            ->orderBy('projects.name')
+            ->orderBy('tasks.estimated_date')
+            ->orderByDesc('tasks.id');
+
+        $tasks = $tasksQuery->get();
+
+        $workspaceSlugsById = Workspace::whereIn(
+            'id',
+            $tasks->pluck('project.workspace')->filter()->unique()->values()->all()
+        )->pluck('slug', 'id');
+
+        $latestTimesheetsByTask = Timesheet::query()
+            ->select('id', 'task_id', 'project_id', 'date')
+            ->where('created_by', $user->id)
+            ->whereIn('task_id', $tasks->pluck('id')->filter()->all())
+            ->orderByDesc('date')
+            ->orderByDesc('id')
+            ->get()
+            ->unique('task_id')
+            ->keyBy('task_id');
+
+        $today = Carbon::today()->toDateString();
+
+        $tasks->transform(function ($task) use ($workspaceSlugsById, $latestTimesheetsByTask, $today) {
+            $task->timesheet_edit_url = null;
+            $task->timesheet_edit_date = null;
+            $task->timesheet_action_mode = null;
+            $task->timesheet_action_title = null;
+
+            $workspaceId = optional($task->project)->workspace;
+            $workspaceSlug = $workspaceId ? $workspaceSlugsById->get($workspaceId) : null;
+            $editableTimesheet = $latestTimesheetsByTask->get($task->id);
+
+            if (!$workspaceSlug || !$task->project_id) {
+                return $task;
+            }
+
+            if ($editableTimesheet) {
+                $task->timesheet_edit_url = route('project.timesheet.edit', [
+                    'slug' => $workspaceSlug,
+                    'timesheet_id' => $editableTimesheet->id,
+                    'project_id' => $editableTimesheet->project_id ?: $task->project_id,
+                ]);
+                $task->timesheet_edit_date = $editableTimesheet->date;
+                $task->timesheet_action_mode = 'edit';
+                $task->timesheet_action_title = __('Edit Timesheet');
+            } else {
+                $task->timesheet_edit_url = route('project.timesheet.create', [
+                    'slug' => $workspaceSlug,
+                    'project_id' => $task->project_id,
+                ]);
+                $task->timesheet_edit_date = $today;
+                $task->timesheet_action_mode = 'create';
+                $task->timesheet_action_title = __('Create Timesheet');
+            }
+
+            return $task;
+        });
+
+        $loggedTaskPeriods = [
+            'weekly' => [
+                'label' => __('Logged this week'),
+                'start' => $now->copy()->startOfWeek(),
+                'end' => $now->copy(),
+            ],
+            'thirty_days' => [
+                'label' => __('Logged in 30 days'),
+                'start' => $now->copy()->subDays(30),
+                'end' => $now->copy(),
+            ],
+        ];
+
+        $loggedTaskDetailsByRange = [];
+        foreach ($loggedTaskPeriods as $periodKey => $periodConfig) {
+            $loggedTasksForPeriod = $this->buildLoggedTaskDetailsForPeriod(
+                $user->id,
+                $periodConfig['start'],
+                $periodConfig['end']
+            );
+
+            $loggedTaskDetailsByRange[$periodKey] = [
+                'label' => $periodConfig['label'],
+                'range_label' => $periodConfig['start']->format('d/m/Y') . ' - ' . $periodConfig['end']->format('d/m/Y'),
+                'tasks' => $loggedTasksForPeriod,
+                'count' => count($loggedTasksForPeriod),
+            ];
+        }
+
+        $loggedTasksThisWeekCount = $loggedTaskDetailsByRange['weekly']['count'] ?? 0;
+        $loggedTasksLastThirtyDaysCount = $loggedTaskDetailsByRange['thirty_days']['count'] ?? 0;
+
+        $periods = [
+            'weekly' => $now->copy()->subWeek(),
+            'monthly' => $now->copy()->subMonth(),
+            'quarterly' => $now->copy()->subMonths(3),
+            'yearly' => $now->copy()->subYear(),
+        ];
+
+        $diagramDataByPeriod = [];
+        foreach ($periods as $periodKey => $startDate) {
+            $periodTasks = Task::with([
+                'milestone:id,title',
+                'type:id,name',
+                'customTask:id,id_task,name',
+            ])
+                ->leftJoin('projects', 'projects.id', '=', 'tasks.project_id')
+                ->select('tasks.*', 'projects.name as project_name')
+                ->whereNotNull('tasks.project_id')
+                ->where(function ($query) use ($user) {
+                    $query->whereRaw("find_in_set(?, assign_to)", [(string) $user->id])
+                        ->orWhere('assign_to', (string) $user->id);
+                })
+                ->whereDate('tasks.created_at', '>=', $startDate->toDateString())
+                ->orderByDesc('tasks.created_at')
+                ->get()
+                ->values();
+
+            $projectCounters = [];
+            $tasksByProject = [];
+            foreach ($periodTasks as $taskModel) {
+                $projectId = (int) $taskModel->project_id;
+                if ($projectId <= 0) {
+                    continue;
+                }
+
+                if (!isset($projectCounters[$projectId])) {
+                    $projectCounters[$projectId] = [
+                        'project_id' => $projectId,
+                        'project_name' => $taskModel->project_name ?: __('N/A'),
+                        'tasks_done' => 0,
+                    ];
+                }
+
+                $projectCounters[$projectId]['tasks_done']++;
+
+                $createdAt = $taskModel->created_at ? Carbon::parse($taskModel->created_at) : null;
+                $taskTypeName = optional($taskModel->type)->name;
+                $isCustomType = strtolower(trim((string) $taskTypeName)) === 'custom';
+                $displayTypeName = $isCustomType
+                    ? (optional($taskModel->customTask)->name ?: __('Custom'))
+                    : ($taskTypeName ?: __('N/A'));
+
+                $tasksByProject[$projectId][] = [
+                    'name' => $displayTypeName,
+                    'milestone' => optional($taskModel->milestone)->title ?: __('N/A'),
+                    'start_date' => $taskModel->start_date ? Carbon::parse($taskModel->start_date)->format('d/m/Y') : __('N/A'),
+                    'estimated_date' => $taskModel->estimated_date ? Carbon::parse($taskModel->estimated_date)->format('d/m/Y') : __('N/A'),
+                    'finalization_date' => $taskModel->end_date
+                        ? Carbon::parse($taskModel->end_date)->format('d/m/Y')
+                        : __('N/A'),
+                    'sort_timestamp' => $createdAt ? $createdAt->getTimestamp() : 0,
+                ];
+            }
+
+            $diagramRows = collect($projectCounters)
+                ->sort(function ($a, $b) {
+                    $tasksCompare = (int) ($b['tasks_done'] ?? 0) <=> (int) ($a['tasks_done'] ?? 0);
+                    if ($tasksCompare !== 0) {
+                        return $tasksCompare;
+                    }
+
+                    return strcmp((string) ($a['project_name'] ?? ''), (string) ($b['project_name'] ?? ''));
+                })
+                ->values();
+
+            foreach ($tasksByProject as $projectId => $projectTasks) {
+                usort($projectTasks, function ($a, $b) {
+                    return (int) ($b['sort_timestamp'] ?? 0) <=> (int) ($a['sort_timestamp'] ?? 0);
+                });
+
+                $tasksByProject[$projectId] = array_map(function ($taskItem) {
+                    unset($taskItem['sort_timestamp']);
+                    return $taskItem;
+                }, $projectTasks);
+            }
+
+            $tasksSeries = $diagramRows->pluck('tasks_done')->map(fn($value) => (int) ($value ?? 0))->toArray();
+            $totalTasks = array_sum($tasksSeries);
+
+            $diagramDataByPeriod[$periodKey] = [
+                'project_ids' => $diagramRows->pluck('project_id')->map(fn($id) => (int) $id)->toArray(),
+                'labels' => $diagramRows->pluck('project_name')->toArray(),
+                'series' => $tasksSeries,
+                'project_tasks' => $tasksByProject,
+                'unit' => 'tasks',
+                'total_formatted' => (string) $totalTasks,
+                'range_label' => $startDate->format('d/m/Y') . ' - ' . $now->format('d/m/Y'),
+            ];
+        }
+
+        $defaultDiagramPeriod = 'weekly';
+
+        return view('projects.my_tasks', compact(
+            'currentWorkspace',
+            'tasks',
+            'loggedTaskDetailsByRange',
+            'diagramDataByPeriod',
+            'defaultDiagramPeriod',
+            'loggedTasksThisWeekCount',
+            'loggedTasksLastThirtyDaysCount'
+        ));
+    }
 
     public function milestoneDestroy($slug, $milestoneID)
     {
@@ -3256,17 +4813,28 @@ class ProjectController extends Controller
                 $milestone = Milestone::findOrFail($milestoneID);
                 $project = Project::findOrFail($milestone->project_id);
 
+                $taskIds = $milestone->tasks()->pluck('id');
+
+                if ($taskIds->isNotEmpty()) {
+                    Timesheet::whereIn('task_id', $taskIds)->delete();
+                }
+
                 $milestone->tasks()->delete();
 
-                $milestoneFolder = str_replace(' ', '_', $milestone->title);
-                $projectFolder = str_replace(' ', '_', $project->name);
+                $milestoneFolder = $this->sanitizePath($milestone->title);
+                $projectFolder = $this->sanitizePath($project->name);
                 $dir = "project_files/{$projectFolder}/{$milestoneFolder}";
 
-                if (Storage::exists($dir)) {
-                    if (!Storage::deleteDirectory($dir)) {
-                        return redirect()->back()->with('error', __('Error deleting milestone files.'));
+                try {
+                    if (Storage::exists($dir)) {
+                        if (!Storage::deleteDirectory($dir)) {
+                            return redirect()->back()->with('error', __('Error deleting milestone files.'));
+                        }
                     }
+                } catch (\Exception $e) {
                 }
+
+                MilestoneStages::where('id_milestone', $milestone->id)->delete();
 
                 $milestone->delete();
                 $project->updateProjectStatus();
@@ -3290,7 +4858,7 @@ class ProjectController extends Controller
     public function milestoneShow($slug, $milestoneID)
     {
         $currentWorkspace = Utility::getWorkspaceBySlug($slug);
-        $milestone = Milestone::find($milestoneID);
+        $milestone = Milestone::with(['phase', 'stage.stageProject'])->find($milestoneID);
         $project = Project::find($milestone->project_id);
         $project_name = $project->name;
         $salesManager = User::find($milestone->assign_to);
@@ -3301,7 +4869,7 @@ class ProjectController extends Controller
             ->select('id', 'name', 'file', 'extension')
             ->get();
 
-
+        \Log::debug("MILESTONE", ['milestone' => $milestone]);
         return view('projects.milestoneShow', compact('currentWorkspace', 'milestone', 'salesManager', 'assignedToUser', 'project', 'milestoneFiles', 'delegation_name'));
     }
 
@@ -3372,19 +4940,18 @@ class ProjectController extends Controller
         ]);
 
         $file = $request->file('file');
-        // ✅ Reemplazar espacios con guiones bajos
-        $file_name = str_replace(' ', '_', $file->getClientOriginalName());
+        // ✅ Mantener el nombre original del archivo (sin sanitizar)
+        $file_name = $this->cleanFileName($file->getClientOriginalName());
         $extension = $file->getClientOriginalExtension();
 
         $existingNames = ProjectFile::where('project_id', $project->id)
             ->pluck('file_name')
-            ->map(fn($name) => str_replace(' ', '_', $name))
             ->toArray();
         $uniqueFileName = $this->generateUniqueFileName($file_name, $existingNames);
 
         $newName = $project->id . "_" . md5(time()) . "_" . $uniqueFileName;
 
-        $projectFolder = str_replace(' ', '_', $project->name);
+        $projectFolder = $this->sanitizePath($project->name);
 
         $dir = 'project_files/' . $projectFolder;
 
@@ -3456,7 +5023,7 @@ class ProjectController extends Controller
         if ($file) {
 
             $logo = Utility::get_file('project_files/');
-            $project_name = str_replace(' ', '_', $project->name);
+            $project_name = $this->sanitizePath($project->name);
             $settings = Utility::getAdminPaymentSettings();
             try {
                 if ($settings['storage_setting'] == 'local') {
@@ -3517,6 +5084,7 @@ class ProjectController extends Controller
 
         if ($currentWorkspace) {
 
+            $userTasks = Task::where('assign_to', $objUser->id)->get();
             if ($currentWorkspace->permissio == 'Owner') {
                 $timesheets = Timesheet::select('timesheets.*')
                     ->join('projects', 'projects.id', '=', 'timesheets.project_id')
@@ -3532,7 +5100,7 @@ class ProjectController extends Controller
                     ->whereRaw("find_in_set('" . $objUser->id . "',tasks.assign_to)")->get();
             }
 
-            return view('projects.timesheet', compact('currentWorkspace', 'timesheets', 'project_id'));
+            return view('projects.timesheet', compact('currentWorkspace', 'timesheets', 'project_id', 'userTasks'));
         } else {
             return redirect()->back()->with('error', __('Workspace Not Found.'));
         }
@@ -3600,20 +5168,60 @@ class ProjectController extends Controller
             return redirect()->back()->with('error', $validator->errors()->first());
         }
 
-        $project = Project::where('id', $request->project_id)
-            ->where('workspace', $currentWorkspace->id)
-            ->first();
-
-        if (!$project) {
-            return redirect()->back()->with('error', 'Proyecto no encontrado o no pertenece al espacio de trabajo actual.');
+        try {
+            $selectedDate = Carbon::parse($request->date)->toDateString();
+        } catch (\Throwable $e) {
+            return redirect()->back()->withInput()->with('error', __('Invalid date selected.'));
         }
 
+        if ($this->isUserHolidayDate($user->id, $selectedDate)) {
+            return redirect()->back()->withInput()->with('error', __('You cannot log hours on a holiday.'));
+        }
+
+        $request->merge(['date' => $selectedDate]);
+
+        // Verificar que el proyecto exista
+        $project = Project::find($request->project_id);
+
+        if (!$project) {
+            return redirect()->back()->with('error', 'Proyecto no encontrado.');
+        }
+
+        // Verificar que la tarea exista y esté en el proyecto
         $task = Task::where('id', $request->task_id)
             ->where('project_id', $request->project_id)
             ->first();
 
         if (!$task) {
-            return redirect()->back()->with('error', 'Tarea no encontrada o no pertenece al proyecto actual.');
+            return redirect()->back()->with('error', 'Tarea no encontrada o no pertenece al proyecto.');
+        }
+
+        // Verificar que el usuario tenga acceso a la tarea
+        // Puede ser porque la tarea está asignada a él, o porque está en el proyecto (user_projects), o es admin
+        $hasAccess = false;
+
+        // 1. Si la tarea está asignada al usuario
+        if ($task->assign_to == $user->id) {
+            $hasAccess = true;
+        }
+
+        // 2. Si el usuario está en user_projects del proyecto
+        if (!$hasAccess) {
+            $userProject = UserProject::where('user_id', $user->id)
+                ->where('project_id', $project->id)
+                ->first();
+            if ($userProject) {
+                $hasAccess = true;
+            }
+        }
+
+        // 3. Si el usuario es admin o es el creador del proyecto
+        if (!$hasAccess && ($user->type == 'admin' || $user->type == 'owner' || $project->created_by == $user->id)) {
+            $hasAccess = true;
+        }
+
+        if (!$hasAccess) {
+            return redirect()->back()->with('error', 'No tienes acceso a esta tarea.');
         }
 
         $timesheetEdit = Timesheet::where('project_id', $project->id)
@@ -3691,29 +5299,11 @@ class ProjectController extends Controller
         $totaltaskhour = $totalhourstimes[0] ?? '00';
         $totaltaskminute = $totalhourstimes[1] ?? '00';
 
-        // Obtener horario esperado según el día de la semana
         $timeTable = UserTimetable::where('user_id', $user_id)->first();
-        $dayOfWeek = strtolower(date('l')); // Día en inglés (ej: "monday")
+        $expectedHour = $this->getExpectedHoursByDate($timeTable, $selected_date);
 
-        $expectedHour = 0;
-        if ($timeTable && isset($timeTable->$dayOfWeek)) {
-            $expectedTime = explode(':', $timeTable->$dayOfWeek);
-            $expectedHour = (int) $expectedTime[0]; // Solo horas
-        }
-
-        // Convertir horas trabajadas a decimal
-        $workedHoursFormatted = $totaltaskhour + ($totaltaskminute / 60);
-        $dayColor = '';
-        // Determinar el color según la comparación
-        if ($workedHoursFormatted == 0) {
-            $dayColor = '#e06c71'; // Rojo (sin horas)
-        } elseif ($workedHoursFormatted < $expectedHour) {
-            $dayColor = '#fcf75e'; // Amarillo (horas parciales)
-        } elseif ($workedHoursFormatted == $expectedHour) {
-            $dayColor = '#89e186'; // Verde (horas completas)
-        } elseif ($workedHoursFormatted > $expectedHour) {
-            $dayColor = '#b2e2f2'; // Azul (horas extras)
-        }
+        $workedHoursFormatted = ((int) $totaltaskhour) + (((int) $totaltaskminute) / 60);
+        $dayColor = $this->resolveDayColor($workedHoursFormatted, $expectedHour);
 
         if (!$task) {
             return response()->json(['error' => 'Task not found'], 404);
@@ -3729,8 +5319,36 @@ class ProjectController extends Controller
             'totaltaskhour' => $totaltaskhour,
             'totaltaskminute' => $totaltaskminute,
             'dayColor'        => $dayColor,
+            'expectedHour' => $expectedHour,
             'is_edit' => $timesheetEdit ? true : false,
             'timesheet' => $timesheetEdit ? $timesheetEdit : null,
+        ]);
+    }
+
+    public function checkHolidayDate($slug, Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'date' => 'required|date',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => __('Invalid date selected.'),
+                'is_holiday' => false,
+            ], 422);
+        }
+
+        $selectedDate = Carbon::parse($request->input('date'))->toDateString();
+        $isHoliday = $this->isUserHolidayDate((int) Auth::id(), $selectedDate);
+
+        return response()->json([
+            'success' => true,
+            'date' => $selectedDate,
+            'is_holiday' => $isHoliday,
+            'message' => $isHoliday
+                ? __('You cannot log hours on a holiday.')
+                : null,
         ]);
     }
 
@@ -3819,6 +5437,17 @@ class ProjectController extends Controller
             $dayColor = '#b2e2f2'; // Azul (horas extras)
         }
 
+        $holidayDates = $this->getUserHolidayDates($objUser->id);
+        $isHolidayDate = false;
+
+        if (!empty($selected_date)) {
+            try {
+                $isHolidayDate = in_array(Carbon::parse($selected_date)->toDateString(), $holidayDates, true);
+            } catch (\Throwable $e) {
+                $isHolidayDate = false;
+            }
+        }
+
         $parseArray = [
             'project_id' => $project->id,
             'project_name' => $project_name,
@@ -3832,7 +5461,7 @@ class ProjectController extends Controller
             'taskCreationDate' => $taskCreationDate,
         ];
 
-        return view('projects.timesheet-create', compact('currentWorkspace', 'parseArray', 'fromTimesheet', 'dayColor', 'timeTable', 'timesheetEdit'));
+        return view('projects.timesheet-create', compact('currentWorkspace', 'parseArray', 'fromTimesheet', 'dayColor', 'timeTable', 'timesheetEdit', 'holidayDates', 'isHolidayDate'));
     }
 
     public function timesheetUpdate($slug, $timesheetID, Request $request)
@@ -4836,6 +6465,7 @@ class ProjectController extends Controller
         $project_id = $request->project_id;
         $currentWorkspace = Utility::getWorkspaceBySlug($slug);
         $objUser = Auth::user();
+        $showAllWorkspaces = $request->get('all') === 'true';
 
         $user_id = $objUser->id;
 
@@ -4856,8 +6486,12 @@ class ProjectController extends Controller
                     ->join('timesheets', 'timesheets.task_id', '=', 'tasks.id')
                     ->join('milestones', 'tasks.milestone_id', '=', 'milestones.id')
                     ->join('projects', 'milestones.project_id', '=', 'projects.id')
-                    ->where('projects.workspace', '=', $currentWorkspace->id)
                     ->where('tasks.assign_to', '=', $user_id);
+
+                // Filtrar por workspace actual o todos los workspaces
+                if (!$showAllWorkspaces) {
+                    $timesheets->where('projects.workspace', '=', $currentWorkspace->id);
+                }
             } else {
                 //--------------------- Los timesheets de todos en un proyecto  -------------------//
                 $timesheets = Task::select(
@@ -4901,7 +6535,7 @@ class ProjectController extends Controller
                     'task_id'
                 ])->toArray();
             }
-            $results = Project::getProjectAssignedTimesheetHTML($currentWorkspace, $timesheets, $days, $project_id);
+            $results = Project::getProjectAssignedTimesheetHTML($currentWorkspace, $timesheets, $days, $project_id, false, $showAllWorkspaces);
             $returnHTML = $results['htmlContent'];         // HTML generado
             $totalrecords = $results['totalrecords']; // Total de registros
             if ($project_id != '-1') {
@@ -4979,15 +6613,21 @@ class ProjectController extends Controller
 
     public function projectTimesheetCreate(Request $request, $slug, $project_id)
     {
-        $fromTimesheet = true;
+        $fromTimesheet = !$request->boolean('from_my_tasks') && $request->filled('date');
+        $isFromMyTasks = $request->boolean('from_my_tasks');
         $parseArray = [];
         $objUser = Auth::user();
         $currentWorkspace = Utility::getWorkspaceBySlug($slug);
 
-        $project_id = $request->input('project_id');
         $task_id = $request->input('task_id');
-        $selected_date = $request->input('date');
-        $user_id = $request->input('user_id');
+        $selected_date = $request->input('date') ?: Carbon::today()->toDateString();
+        $user_id = $request->input('user_id') ?: $objUser->id;
+        $project_id = $request->input('project_id') ?: $project_id;
+
+        if (!$project_id && $task_id) {
+            $project_id = Task::where('id', $task_id)->value('project_id');
+        }
+
         $project = Project::find($project_id);
 
 
@@ -5028,27 +6668,10 @@ class ProjectController extends Controller
         list($totaltaskhour, $totaltaskminute) = explode(':', $totaltasktime);
         // Obtener horario esperado según el día de la semana
         $timeTable = UserTimetable::where('user_id', $objUser->id)->first();
-        $dayOfWeek = strtolower(date('l')); // Día en inglés (ej: "monday")
+        $expectedHour = $this->getExpectedHoursByDate($timeTable, $selected_date);
 
-        $expectedHour = 0;
-        if ($timeTable && isset($timeTable->$dayOfWeek)) {
-            $expectedTime = explode(':', $timeTable->$dayOfWeek);
-            $expectedHour = (int) $expectedTime[0]; // Solo horas
-        }
-
-        // Convertir horas trabajadas a decimal
-        $workedHoursFormatted = $totaltaskhour + ($totaltaskminute / 60);
-        $dayColor = '';
-        // Determinar el color según la comparación
-        if ($workedHoursFormatted == 0) {
-            $dayColor = '#e06c71'; // Rojo (sin horas)
-        } elseif ($workedHoursFormatted < $expectedHour) {
-            $dayColor = '#fcf75e'; // Amarillo (horas parciales)
-        } elseif ($workedHoursFormatted == $expectedHour) {
-            $dayColor = '#89e186'; // Verde (horas completas)
-        } elseif ($workedHoursFormatted > $expectedHour) {
-            $dayColor = '#b2e2f2'; // Azul (horas extras)
-        }
+        $workedHoursFormatted = ((int) $totaltaskhour) + (((int) $totaltaskminute) / 60);
+        $dayColor = $this->resolveDayColor($workedHoursFormatted, $expectedHour);
         $taskCreationDate = $task->created_at->format('Y-m-d');
         $parseArray = [
             'project_id' => $project->id,
@@ -5063,7 +6686,7 @@ class ProjectController extends Controller
             'taskCreationDate' => $taskCreationDate,
         ];
 
-        return view('projects.timesheet-create', compact('currentWorkspace', 'parseArray', 'fromTimesheet', 'dayColor', 'timeTable'));
+        return view('projects.timesheet-create', compact('currentWorkspace', 'parseArray', 'fromTimesheet', 'dayColor', 'timeTable', 'isFromMyTasks'));
     }
 
     public function projectTimesheetStore(Request $request, $slug, $project_id)
@@ -5104,16 +6727,18 @@ class ProjectController extends Controller
     {
 
         $objUser = Auth::user();
+        $isFromMyTasks = $request->boolean('from_my_tasks');
 
         $currentWorkspace = Utility::getWorkspaceBySlug($slug);
         $project = Project::find($project_id);
-        $task = Task::find($request->task_id);
-        $milestone = Milestone::find($task->milestone_id);
+        $timesheet = Timesheet::find($timesheet_id);
+        $task_id = $request->has('task_id') ? $request->task_id : ($timesheet->task_id ?? null);
+        $task = $task_id ? Task::find($task_id) : null;
+        $milestone = $task ? Milestone::find($task->milestone_id) : null;
 
-        $task_id = $request->has('task_id') ? $request->task_id : null;
         $user_id = $request->has('date') ? $request->user_id : null;
         $created_by = $user_id != null ? $user_id : $objUser->id;
-        $selected_date = $request->has('date') ? $request->date : null;
+        $selected_date = $request->has('date') ? $request->date : ($timesheet->date ?? null);
         $project_view = '';
 
         if ($request->has('project_view')) {
@@ -5127,8 +6752,6 @@ class ProjectController extends Controller
                 '=',
                 $objUser->id
             )->where('projects.workspace', '=', $currentWorkspace->id);
-
-        $timesheet = Timesheet::find($timesheet_id);
 
         if ($timesheet) {
             $project = $projects->where('projects.id', '=', $project_id)->pluck('projects.name', 'projects.id')->all();
@@ -5164,26 +6787,11 @@ class ProjectController extends Controller
                 $time = explode(':', $timesheet->time);
 
                 $timeTable = UserTimetable::where('user_id', $objUser->id)->first();
-                $dayOfWeek = strtolower(date('l'));
+                $targetDate = $selected_date ?: ($timesheet->date ?? null);
+                $expectedHour = $this->getExpectedHoursByDate($timeTable, $targetDate);
 
-                $expectedHour = 0;
-                if ($timeTable && isset($timeTable->$dayOfWeek)) {
-                    $expectedTime = explode(':', $timeTable->$dayOfWeek);
-                    $expectedHour = (int) $expectedTime[0];
-                }
-
-                $workedHoursFormatted = $totaltaskhour + ($totaltaskminute / 60);
-                $dayColor = '';
-
-                if ($workedHoursFormatted == 0) {
-                    $dayColor = '#e06c71'; // Rojo (sin horas)
-                } elseif ($workedHoursFormatted < $expectedHour) {
-                    $dayColor = '#fcf75e'; // Amarillo (horas parciales)
-                } elseif ($workedHoursFormatted == $expectedHour) {
-                    $dayColor = '#89e186'; // Verde (horas completas)
-                } elseif ($workedHoursFormatted > $expectedHour) {
-                    $dayColor = '#b2e2f2'; // Azul (horas extras)
-                }
+                $workedHoursFormatted = ((int) $totaltaskhour) + (((int) $totaltaskminute) / 60);
+                $dayColor = $this->resolveDayColor($workedHoursFormatted, $expectedHour);
                 $parseArray = [
                     'project_id' => $project_id,
                     'project_name' => $project_name,
@@ -5200,7 +6808,7 @@ class ProjectController extends Controller
                 $user = Auth::user();
                 $timesheetEdit = Timesheet::find($timesheet_id);
 
-                return view('projects.timesheet-edit', compact('timesheet', 'currentWorkspace', 'parseArray', 'project_id', 'dayColor', 'timeTable', 'timesheetEdit'));
+                return view('projects.timesheet-edit', compact('timesheet', 'currentWorkspace', 'parseArray', 'project_id', 'dayColor', 'timeTable', 'timesheetEdit', 'expectedHour', 'isFromMyTasks'));
             }
         }
     }
@@ -5222,15 +6830,24 @@ class ProjectController extends Controller
                 ]
             );
 
+            try {
+                $selectedDate = Carbon::parse($request->date)->toDateString();
+            } catch (\Throwable $e) {
+                return redirect()->back()->withInput()->with('error', __('Invalid date selected.'));
+            }
+
+            if ($this->isUserHolidayDate((int) Auth::id(), $selectedDate)) {
+                return redirect()->back()->withInput()->with('error', __('You cannot log hours on a holiday.'));
+            }
+
             $hour = $request->time_hour;
             $minute = $request->time_minute;
-
-            $time = ($hour != '' ? ($hour < 10 ? '0' + $hour : $hour) : '00') . ':' . ($minute != '' ? ($minute < 10 ? '0' + $minute : $minute) : '00');
+            $time = sprintf('%02d:%02d:00', (int) $hour, (int) $minute);
 
             $timesheet = Timesheet::find($timesheet_id);
             $timesheet->project_id = $request->project_id;
             $timesheet->task_id = $request->task_id;
-            $timesheet->date = $request->date;
+            $timesheet->date = $selectedDate;
             $timesheet->time = $time;
             $timesheet->save();
 

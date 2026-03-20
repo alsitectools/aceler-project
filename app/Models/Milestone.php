@@ -38,8 +38,9 @@ class Milestone extends Model
 
     function showMilestonetasks()
     {
-        return Task::join('task_types', 'task_types.id', 'tasks.type_id')
-            ->where('tasks.milestone_id', $this->id)->pluck('task_types.name');
+        return Task::with(['type', 'user', 'timesheets'])
+            ->where('tasks.milestone_id', $this->id)
+            ->get();
     }
 
     public function project()
@@ -105,7 +106,7 @@ class Milestone extends Model
         return $this->hasMany(MilestoneFile::class);
     }
 
-    // una milestone puede tener fase si el proyecto es type 3
+    // una milestone puede tener fase si el proyecto es type 3/5
     public function phase()
     {
         return $this->hasOne(MilestonePhases::class, 'id_milestone', 'id');
@@ -116,5 +117,44 @@ class Milestone extends Model
     {
         return $this->hasMany(MilestonePhases::class, 'id_milestone', 'id');
     }
+
+    // una milestone puede tener fase si el proyecto es type 3/5
+    public function stage()
+    {
+        return $this->hasOne(MilestoneStages::class, 'id_milestone', 'id');
+    }
+
+    // Relación con múltiples fases (hasMany)
+    public function stages()
+    {
+        return $this->hasMany(MilestoneStages::class, 'id_milestone', 'id');
+    }
+
+    public function getResolvedStageNameAttribute(): ?string
+    {
+        $stage = $this->relationLoaded('stage')
+            ? $this->stage
+            : $this->stage()->with('stageProject')->first();
+
+        if (!$stage) {
+            return null;
+        }
+
+        $stageName = trim((string) ($stage->stages ?? ''));
+        if ($stageName !== '') {
+            return $stageName;
+        }
+
+        if (empty($stage->milestone_stage_project_id)) {
+            return null;
+        }
+
+        if ($stage->relationLoaded('stageProject')) {
+            return optional($stage->stageProject)->name;
+        }
+
+        return MilestoneStageProject::where('id', $stage->milestone_stage_project_id)->value('name');
+    }
+
 
 }

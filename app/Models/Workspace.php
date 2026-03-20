@@ -14,7 +14,8 @@ class Workspace extends Model
         'currency',
         'interval_time',
         'country',
-        'is_active'
+        'is_active',
+        'delegation_id'
     ];
 
     public static function create($data)
@@ -64,6 +65,11 @@ class Workspace extends Model
         }
 
         return $workspace;
+    }
+
+    public function delegation()
+    {
+        return $this->belongsTo('App\Models\Delegation', 'delegation_id', 'id');
     }
 
     public function creater()

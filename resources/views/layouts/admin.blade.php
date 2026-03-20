@@ -1,8 +1,7 @@
 <!DOCTYPE html>
 @php
-    // dd($currentWorkspace);
     $logo = \App\Models\Utility::get_file('logo/');
-    if (Auth::user()->type == 'admin') {
+    if (Auth::user()->type == 'admin' || empty($currentWorkspace?->id)) {
         $setting = App\Models\Utility::getAdminPaymentSettings();
         $color = 'theme-5';
         $dark_mode = $setting['cust_darklayout'];

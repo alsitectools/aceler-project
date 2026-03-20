@@ -131,8 +131,9 @@ class UsersTableSeeder extends Seeder
     private $typeProjectname = [
         'Jobsite',
         'Innovation',
-        'Product development',
-        'Office'
+        'I+D Project',
+        'Office',
+        'I+D Development'
     ];
 
     private $nameTasks = [

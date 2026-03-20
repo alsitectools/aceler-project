@@ -13,40 +13,6 @@
     <link rel="stylesheet" href="{{ asset('assets/css/milestoneboard.css') }}">
 </head>
 <style>
-    .showAllMilestonesIcon {
-        width: 24px;
-        transition: filter 0.2s;
-    }
-
-    .showAllMilestonesIcon.enabled {
-        filter: grayscale(0);
-    }
-
-    .showAllMilestonesIcon.disabled {
-        filter: grayscale(1);
-    }
-
-
-    .showCompletedProjectGroup {
-        display: flex;
-        gap: 17px;
-    }
-
-    .showCompletedProjects {
-        width: 20px;
-        height: 20px;
-        margin-top: -6px;
-    }
-
-    .showCompletedProjects:hover {
-        cursor: pointer;
-
-    }
-
-    .showCompletedProjectsUnabled {
-        filter: grayscale(1);
-    }
-
     .modifiedWidth {
         width: 99.9%;
     }
@@ -66,19 +32,11 @@
         font-size: 12px !important;
     }
 
-    .hideUnasignedTasks {
-        margin-top: -6px;
-        width: 24px;
-    }
-
-    .hideUnasignedTasks:hover {
-        cursor: pointer;
-
-    }
-
     .toastNegation {
         z-index: 30;
         position: absolute;
+        top: 100px;
+        bottom: auto;
         right: 10px;
         display: flex;
         text-align: center;
@@ -221,6 +179,15 @@
         font-weight: 600;
         color: black;
     }
+
+    .lastBreadCrumb {
+        /* background-color: #AA182C !important; */
+        /* width: 80%; */
+        max-width: 700px;
+        overflow: hidden;
+        text-wrap: nowrap;
+        text-overflow: ellipsis;
+    }
 </style>
 @section('links')
     @if (isset($project_id) && $project_id != -1)
@@ -228,7 +195,7 @@
         <li class="breadcrumb-item"><a href="{{ route('projects.index', $currentWorkspace->slug) }}">{{ __('Projects') }}</a>
         </li>
 
-        <li class="breadcrumb-item"><a
+        <li class="breadcrumb-item lastBreadCrumb"><a
                 href="{{ route('projects.show', [$currentWorkspace->slug, $project_id]) }}">{{ $project_name }}</a></li>
     @else
         <li class="breadcrumb-item"><a href="{{ route('home') }}">{{ __('Home') }}</a></li>
@@ -287,6 +254,7 @@
             </div>
         </div>
         @if (isset($currentWorkspace) && $currentWorkspace)
+            @include('projects.partials.milestone_filter_popUp', ['filtersPopupMode' => 'standard'])
             <div class="col-sm-auto" style="margin-right: 20px;">
                 <button style="width: 100%" type="button" class="btn btn-primary addMilestone" data-ajax-popup="true"
                     data-title="{{ __('Check Workloads') }}"
@@ -308,6 +276,7 @@
         @endif
     </div>
 @endsection
+
 @section('content')
     <div class="row modifiedWidth">
         <div class="col-sm-12">
@@ -317,27 +286,7 @@
                     <div class="col-3 pe-1" id="{{ 'milestone-list-' . str_replace(' ', '_', $status->id) }}">
                         <div class="card card-list">
                             <div class="card-header">
-                                <div class="float-end showCompletedProjectGroup">
-
-                                    @if ($status->name === 'Done')
-                                        @if ($project_id == -1)
-                                            <img id="toggleCompletedProjectsIcon"
-                                                src="{{ asset('assets/img/clipboard-check-solid.svg') }}"
-                                                alt="show completed projects" title="{{ __('Show Completed Projects') }}"
-                                                class="showCompletedProjects showCompletedProjectsUnabled" />
-                                        @endif
-                                    @endif
-                                    @if ($status->name === 'To Do')
-                                        <img id="hideUnassignedMilstoneIcon"
-                                            src="{{ asset('assets/img/address-card-regular.svg') }}"
-                                            alt="show completed projects" title="{{ __('Hide Unasigned Order Forms') }}"
-                                            class="hideUnasignedTasks" />
-                                        <img id="toggleAllMilestonesIcon"
-                                            src="{{ asset('assets/img/users-solid-full.svg') }}"
-                                            title="{{ __('Show All Workspace Milestones') }}"
-                                            class="showAllMilestonesIcon"
-                                            style="width:24px; cursor:pointer; margin-left:10px;margin-bottom: 5px;" />
-                                    @endif
+                                <div class="float-end">
                                     <button class="btn-submit btn btn-md btn-primary btn-icon px-1 py-0 "
                                         style="height: 19.7px;">
                                         <span class="badge badge-secondary rounded-pill count">
@@ -406,6 +355,8 @@
         </div>
     </div>
 @endsection
+
+@include('projects.file_preview')
 
 @push('css-page')
     <link rel="stylesheet" href="{{ asset('assets/custom/css/dropzone.min.css') }}">
@@ -705,13 +656,13 @@
                                     $('#asignMilestoneForm').attr('data-from-status-change', 'true');
 
                                     // Guardar contexto para revertir si se cierra sin guardar
-$('#' + modalId).data('assign-flow', true);
-$('#' + modalId).data('assign-saved', false);
-$('#' + modalId).data('milestone-id', cardId);
-$('#' + modalId).data('previous-status', oldStatus);
-$('#' + modalId).data('previous-container', source);
-$('#' + modalId).data('original-index', a(el).data('originalIndex'));
-$('#' + modalId).data('moved-el-id', cardId); // por si quieres asegurar
+                                    $('#' + modalId).data('assign-flow', true);
+                                    $('#' + modalId).data('assign-saved', false);
+                                    $('#' + modalId).data('milestone-id', cardId);
+                                    $('#' + modalId).data('previous-status', oldStatus);
+                                    $('#' + modalId).data('previous-container', source);
+                                    $('#' + modalId).data('original-index', a(el).data('originalIndex'));
+                                    $('#' + modalId).data('moved-el-id', cardId); // por si quieres asegurar
 
                                     modal.show();
 
@@ -887,6 +838,46 @@ $('#' + modalId).data('moved-el-id', cardId); // por si quieres asegurar
                                 success: function(data) {
                                     if (data.all_exist) {
                                         console.log('Todas las tareas tienen timesheets.');
+
+                                        console.log("lo ha solicitado:");
+                                        console.log(milestoneRequBy)
+                                        console.log('Generando notificacion de milestone completado');
+                                        console.log('Titulo: ' +
+                                            milestoneTitle)
+                                        let msg = milestoneTitle + ' en el proyecto ' + projectName;
+                                        let ntipe = 5;
+                                        if (msg) {
+                                            //AQUI FALTA MILESTONEID
+                                            fetch("{{ route('notifications.add') }}", {
+                                                    method: "POST",
+                                                    headers: {
+                                                        "Content-Type": "application/json",
+                                                        "X-CSRF-TOKEN": "{{ csrf_token() }}"
+                                                    },
+                                                    body: JSON.stringify({
+                                                        workspace_id: {{ $currentWorkspace->id }},
+                                                        msg: msg,
+                                                        ntipe: ntipe,
+                                                        milestoneAssignedTo: milestoneRequBy,
+                                                        milestone_id: milestonetId,
+                                                    })
+                                                })
+                                                .then(response => response.json())
+                                                .then(data => {
+                                                    if (data.success) {
+                                                        let notificationList = document.querySelector('.limited');
+                                                        let newNotification = document.createElement('div');
+                                                        newNotification.classList.add('notificationSTL');
+                                                        newNotification.innerHTML = `
+                <span class="textRepo">${data.data.msg}</span>
+                <span class="textRepo">${data.data.type}</span>
+                <button type="button" class="btn-close repoIcon" aria-label="Close"></button>
+            `;
+                                                        notificationList.prepend(newNotification);
+                                                    }
+                                                })
+                                                .catch(error => console.error("Error al agregar notificación:", error));
+                                        }
                                         ///// CHECK IF THE MILESTONE HAS A DRAWING TASK /////
                                         // ✅ Verificar si el milestone tiene tareas con type_id = 1 antes de mostrar el popup
                                         $.ajax({
@@ -999,6 +990,10 @@ $('#' + modalId).data('moved-el-id', cardId); // por si quieres asegurar
                                                     updateTaskCount(newContainer);
                                                 }
 
+                                                const toastMessage = data.has_tasks ?
+                                                    "{{ __('Todas las tareas tienen que tener horas imputadas') }}" :
+                                                    "{{ __('No se puede mover un encargo sin tareas') }}";
+
                                                 // Crear el toast dinámicamente
                                                 const toastHTML = `
                         <div aria-live="polite" aria-atomic="true"
@@ -1006,7 +1001,7 @@ $('#' + modalId).data('moved-el-id', cardId); // por si quieres asegurar
                              role="alert" id="successToast" data-bs-autohide="true" data-bs-delay="2000">
                             <div class="d-flex">
                                 <div class="toast-body">
-                                    {{ __('Todas las tareas tienen que tener horas inputadas') }}
+                                    ${toastMessage}
                                 </div>
                             </div>
                         </div>
@@ -1015,19 +1010,27 @@ $('#' + modalId).data('moved-el-id', cardId); // por si quieres asegurar
                                                 // Buscar el elemento con data-title="Hoja de encargo" y añadir el toast encima
                                                 const targetElement = document.querySelector(
                                                     '[data-title="Hoja de encargo"]');
+                                                const existingToast = document.getElementById(
+                                                    'successToast');
+                                                if (existingToast) {
+                                                    existingToast.remove();
+                                                }
+
                                                 if (targetElement) {
                                                     // Inserta el toast justo antes del targetElement
                                                     $(targetElement).before(toastHTML);
+                                                } else {
+                                                    // Fallback: insertar al final del body si no hay target
+                                                    document.body.insertAdjacentHTML('beforeend',
+                                                        toastHTML);
+                                                }
 
-                                                    // Inicializa y muestra el toast con Bootstrap
-                                                    const toastElement = document.getElementById(
-                                                        'successToast');
+                                                // Inicializa y muestra el toast con Bootstrap
+                                                const toastElement = document.getElementById(
+                                                    'successToast');
+                                                if (toastElement) {
                                                     const toast = new bootstrap.Toast(toastElement);
                                                     toast.show();
-                                                } else {
-                                                    console.warn(
-                                                        'No se encontró el elemento con data-title="Hoja de encargo".'
-                                                    );
                                                 }
                                             },
                                             error: function(xhr, status, error) {
@@ -1047,45 +1050,6 @@ $('#' + modalId).data('moved-el-id', cardId); // por si quieres asegurar
 
 
 
-
-                            console.log("lo ha solicitado:");
-                            console.log(milestoneRequBy)
-                            console.log('Generando notificacion de milestone completado');
-                            console.log('Titulo: ' +
-                                milestoneTitle)
-                            let msg = milestoneTitle + ' en el proyecto ' + projectName;
-                            let ntipe = 5;
-                            if (!msg) return;
-                            //AQUI FALTA MILESTONEID
-                            fetch("{{ route('notifications.add') }}", {
-                                    method: "POST",
-                                    headers: {
-                                        "Content-Type": "application/json",
-                                        "X-CSRF-TOKEN": "{{ csrf_token() }}"
-                                    },
-                                    body: JSON.stringify({
-                                        workspace_id: {{ $currentWorkspace->id }},
-                                        msg: msg,
-                                        ntipe: ntipe,
-                                        milestoneAssignedTo: milestoneRequBy,
-                                        milestone_id: milestonetId,
-                                    })
-                                })
-                                .then(response => response.json())
-                                .then(data => {
-                                    if (data.success) {
-                                        let notificationList = document.querySelector('.limited');
-                                        let newNotification = document.createElement('div');
-                                        newNotification.classList.add('notificationSTL');
-                                        newNotification.innerHTML = `
-                <span class="textRepo">${data.data.msg}</span>
-                <span class="textRepo">${data.data.type}</span>
-                <button type="button" class="btn-close repoIcon" aria-label="Close"></button>
-            `;
-                                        notificationList.prepend(newNotification);
-                                    }
-                                })
-                                .catch(error => console.error("Error al agregar notificación:", error));
 
                             /////////////FINAL status 2 a 3///////////////////////////
 
@@ -1186,149 +1150,151 @@ $('#' + modalId).data('moved-el-id', cardId); // por si quieres asegurar
                 }(window.jQuery);
             </script>
 
-           <script>
-document.addEventListener('DOMContentLoaded', function() {
-    const modalEl = document.getElementById('commonModal');
-    if (!modalEl) return;
+            <script>
+                document.addEventListener('DOMContentLoaded', function() {
+                    const modalEl = document.getElementById('commonModal');
+                    if (!modalEl) return;
 
-    // Se ejecuta cuando el modal se cierra (por cancelar o por la X)
-    modalEl.addEventListener('hidden.bs.modal', function() {
+                    // Se ejecuta cuando el modal se cierra (por cancelar o por la X)
+                    modalEl.addEventListener('hidden.bs.modal', function() {
 
-        // ============================
-        // ✅ PASO 2: revertir si ASSIGN se canceló (1->2)
-        // ============================
-        const isAssignFlow = $(this).data('assign-flow') === true;
-        const assignSaved  = $(this).data('assign-saved') === true;
+                        // ============================
+                        // ✅ PASO 2: revertir si ASSIGN se canceló (1->2)
+                        // ============================
+                        const isAssignFlow = $(this).data('assign-flow') === true;
+                        const assignSaved = $(this).data('assign-saved') === true;
 
-        if (isAssignFlow && !assignSaved) {
+                        if (isAssignFlow && !assignSaved) {
 
-            const milestoneId     = $(this).data('milestone-id');
-            const previousStatus  = $(this).data('previous-status');      // debería ser 1
-            const previousContainer = $(this).data('previous-container'); // source
-            const originalIndex   = $(this).data('original-index');       // índice original
+                            const milestoneId = $(this).data('milestone-id');
+                            const previousStatus = $(this).data('previous-status'); // debería ser 1
+                            const previousContainer = $(this).data('previous-container'); // source
+                            const originalIndex = $(this).data('original-index'); // índice original
 
-            // Limpiar flags de assign (para que no se repita)
-            $(this).removeData('assign-flow');
-            $(this).removeData('assign-saved');
+                            // Limpiar flags de assign (para que no se repita)
+                            $(this).removeData('assign-flow');
+                            $(this).removeData('assign-saved');
 
-            console.log(`↩️ ASSIGN cancelado. Revirtiendo milestone ${milestoneId} al estado ${previousStatus}`);
+                            console.log(
+                                `↩️ ASSIGN cancelado. Revirtiendo milestone ${milestoneId} al estado ${previousStatus}`
+                            );
 
-            // Revertir DOM a la posición original
-            const $milestoneCard = $(`.card[id='${milestoneId}']`);
-            const $origin = $(previousContainer);
+                            // Revertir DOM a la posición original
+                            const $milestoneCard = $(`.card[id='${milestoneId}']`);
+                            const $origin = $(previousContainer);
 
-            if ($milestoneCard.length && $origin.length) {
+                            if ($milestoneCard.length && $origin.length) {
 
-                // insertar en la misma posición si existe
-                const $cards = $origin.children('.card');
+                                // insertar en la misma posición si existe
+                                const $cards = $origin.children('.card');
 
-                $milestoneCard.detach();
+                                $milestoneCard.detach();
 
-                if ($cards.length > 0 && originalIndex != null && originalIndex < $cards.length) {
-                    $milestoneCard.insertBefore($cards.eq(originalIndex));
-                } else {
-                    $origin.append($milestoneCard);
-                }
+                                if ($cards.length > 0 && originalIndex != null && originalIndex < $cards.length) {
+                                    $milestoneCard.insertBefore($cards.eq(originalIndex));
+                                } else {
+                                    $origin.append($milestoneCard);
+                                }
 
-                $milestoneCard.attr('data-status', previousStatus);
+                                $milestoneCard.attr('data-status', previousStatus);
 
-                // actualizar contadores
-                updateTaskCount(previousContainer);
-                const targetContainer = document.querySelector(`.kanban-box[data-status='2']`);
-                if (targetContainer) updateTaskCount(targetContainer);
-            }
+                                // actualizar contadores
+                                updateTaskCount(previousContainer);
+                                const targetContainer = document.querySelector(`.kanban-box[data-status='2']`);
+                                if (targetContainer) updateTaskCount(targetContainer);
+                            }
 
-            // Revertir en backend a status 1
-            $.ajax({
-                url: '{{ route('milestone.update.order', [$currentWorkspace->slug, $project_id]) }}',
-                type: 'POST',
-                data: {
-                    id: milestoneId,
-                    sort: [],
-                    new_status: previousStatus, // 1
-                    old_status: 2,              // intentó ir a 2
-                    project_id: $milestoneCard.data('project-id')
-                },
-                complete: function() {
-                    // nada; no recargamos aquí para evitar parpadeos
-                }
-            });
+                            // Revertir en backend a status 1
+                            $.ajax({
+                                url: '{{ route('milestone.update.order', [$currentWorkspace->slug, $project_id]) }}',
+                                type: 'POST',
+                                data: {
+                                    id: milestoneId,
+                                    sort: [],
+                                    new_status: previousStatus, // 1
+                                    old_status: 2, // intentó ir a 2
+                                    project_id: $milestoneCard.data('project-id')
+                                },
+                                complete: function() {
+                                    // nada; no recargamos aquí para evitar parpadeos
+                                }
+                            });
 
-            // ✅ Limpieza visual del modal (igual que ya hacías)
-            const $modalDialog = $(this).find('.modal-dialog');
-            $modalDialog.attr('class', 'modal-dialog').removeAttr('style');
-            $(this).find('.modal-content').removeAttr('style');
-            $(this).find('.dropdown-menu').removeAttr('style');
-            $(this).find('.modal-title').empty();
-            $(this).find('.body').empty();
+                            // ✅ Limpieza visual del modal (igual que ya hacías)
+                            const $modalDialog = $(this).find('.modal-dialog');
+                            $modalDialog.attr('class', 'modal-dialog').removeAttr('style');
+                            $(this).find('.modal-content').removeAttr('style');
+                            $(this).find('.dropdown-menu').removeAttr('style');
+                            $(this).find('.modal-title').empty();
+                            $(this).find('.body').empty();
 
-            // 🔴 MUY IMPORTANTE: salir para que NO ejecute el revert de otros flujos
-            return;
-        }
+                            // 🔴 MUY IMPORTANTE: salir para que NO ejecute el revert de otros flujos
+                            return;
+                        }
 
-        // ============================
-        // ✅ TU LÓGICA EXISTENTE (revert por cancelación del popup de review, etc.)
-        // ============================
-        const milestoneId = $(this).data('milestone-id');
-        const previousStatus = $(this).data('previous-status');
-        const previousContainer = $(this).data('previous-container');
+                        // ============================
+                        // ✅ TU LÓGICA EXISTENTE (revert por cancelación del popup de review, etc.)
+                        // ============================
+                        const milestoneId = $(this).data('milestone-id');
+                        const previousStatus = $(this).data('previous-status');
+                        const previousContainer = $(this).data('previous-container');
 
-        // Limpiamos los datos guardados
-        $(this).removeData('milestone-id');
-        $(this).removeData('previous-status');
-        $(this).removeData('previous-container');
+                        // Limpiamos los datos guardados
+                        $(this).removeData('milestone-id');
+                        $(this).removeData('previous-status');
+                        $(this).removeData('previous-container');
 
-        // ✅ Limpiar todas las clases de tamaño del modal y restablecer a la base
-        const $modalDialog = $(this).find('.modal-dialog');
-        $modalDialog.attr('class', 'modal-dialog').removeAttr('style');
+                        // ✅ Limpiar todas las clases de tamaño del modal y restablecer a la base
+                        const $modalDialog = $(this).find('.modal-dialog');
+                        $modalDialog.attr('class', 'modal-dialog').removeAttr('style');
 
-        // ✅ Limpiar estilos inline del modal-content
-        $(this).find('.modal-content').removeAttr('style');
+                        // ✅ Limpiar estilos inline del modal-content
+                        $(this).find('.modal-content').removeAttr('style');
 
-        // ✅ Remover estilos inline específicos del dropdown
-        $(this).find('.dropdown-menu').removeAttr('style');
+                        // ✅ Remover estilos inline específicos del dropdown
+                        $(this).find('.dropdown-menu').removeAttr('style');
 
-        // ✅ Limpiar el título del modal
-        $(this).find('.modal-title').empty();
+                        // ✅ Limpiar el título del modal
+                        $(this).find('.modal-title').empty();
 
-        // ✅ Limpiar el contenido del modal body después de cerrar
-        $(this).find('.body').empty();
+                        // ✅ Limpiar el contenido del modal body después de cerrar
+                        $(this).find('.body').empty();
 
-        // Si no hay datos guardados, no hacemos nada
-        if (!milestoneId || !previousStatus) return;
+                        // Si no hay datos guardados, no hacemos nada
+                        if (!milestoneId || !previousStatus) return;
 
-        console.log(`🔄 Revirtiendo milestone ${milestoneId} al estado ${previousStatus}`);
+                        console.log(`🔄 Revirtiendo milestone ${milestoneId} al estado ${previousStatus}`);
 
-        // Buscamos la tarjeta del milestone y la movemos al contenedor anterior
-        const $milestoneCard = $(`.card[id='${milestoneId}']`);
-        const $oldContainer = $(`.kanban-box[data-status='${previousStatus}']`);
+                        // Buscamos la tarjeta del milestone y la movemos al contenedor anterior
+                        const $milestoneCard = $(`.card[id='${milestoneId}']`);
+                        const $oldContainer = $(`.kanban-box[data-status='${previousStatus}']`);
 
-        if ($milestoneCard.length && $oldContainer.length) {
-            $oldContainer.append($milestoneCard);
-            $milestoneCard.attr('data-status', previousStatus);
-        }
+                        if ($milestoneCard.length && $oldContainer.length) {
+                            $oldContainer.append($milestoneCard);
+                            $milestoneCard.attr('data-status', previousStatus);
+                        }
 
-        // ✅ Actualizamos en el servidor el cambio de vuelta
-        $.ajax({
-            url: '{{ route('milestone.update.order', [$currentWorkspace->slug, $project_id]) }}',
-            type: 'POST',
-            data: {
-                id: milestoneId,
-                sort: [], // no importa el orden en este caso
-                new_status: previousStatus,
-                old_status: 3,
-                project_id: $milestoneCard.data('project-id')
-            },
-            success: function() {
-                console.log(`✅ Milestone ${milestoneId} revertido correctamente`);
-            },
-            error: function(err) {
-                console.error('❌ Error al revertir milestone:', err);
-            }
-        });
-    });
-});
-</script>
+                        // ✅ Actualizamos en el servidor el cambio de vuelta
+                        $.ajax({
+                            url: '{{ route('milestone.update.order', [$currentWorkspace->slug, $project_id]) }}',
+                            type: 'POST',
+                            data: {
+                                id: milestoneId,
+                                sort: [], // no importa el orden en este caso
+                                new_status: previousStatus,
+                                old_status: 3,
+                                project_id: $milestoneCard.data('project-id')
+                            },
+                            success: function() {
+                                console.log(`✅ Milestone ${milestoneId} revertido correctamente`);
+                            },
+                            error: function(err) {
+                                console.error('❌ Error al revertir milestone:', err);
+                            }
+                        });
+                    });
+                });
+            </script>
 
             <script>
                 // Limpieza del modal-container cuando se cierra
@@ -1339,8 +1305,11 @@ document.addEventListener('DOMContentLoaded', function() {
                             const $modal = $(this);
                             // ✅ Resetear clases del modal-dialog
                             $modal.find('.modal-dialog').attr('class', 'modal-dialog').removeAttr('style');
-                            // ✅ Limpiar estilos inline del modal-content
-                            $modal.find('.modal-content').removeAttr('style').empty();
+                            // ✅ Limpiar estilos inline del modal-content y restaurar los por defecto (800px)
+                            $modal.find('.modal-content').css({
+                                'text-align': 'left',
+                                'width': '800px'
+                            }).empty();
                         });
                     }
                 });
@@ -1384,102 +1353,6 @@ document.addEventListener('DOMContentLoaded', function() {
                     });
                 });
             </script>
-            @if ($project_id == -1)
-                <!-- Script encargado de mostrar/ocultar los proyectos completado -->
-                <script>
-                    document.addEventListener('DOMContentLoaded', function() {
-                        let showCompleted = false; // Variable global para rastrear la visibilidad de proyectos completados
-
-                        // Inicializa: Oculta grupos de milestones cuyo TODOS elementos tengan status 4
-                        initializeCompletedProjects();
-
-                        // Configura el listener para el toggle
-                        const toggleIcon = document.getElementById('toggleCompletedProjectsIcon');
-                        if (toggleIcon) {
-                            toggleIcon.addEventListener('click', function() {
-                                showCompleted = !showCompleted;
-                                toggleCompletedProjects(showCompleted);
-                                this.classList.toggle('showCompletedProjectsUnabled', !showCompleted);
-                                this.title = showCompleted ? "{{ __('Hide Completed Projects') }}" :
-                                    "{{ __('Show Completed Projects') }}";
-                            });
-                        }
-
-                        function initializeCompletedProjects() {
-                            const milestones = document.querySelectorAll('.card[data-project-id]');
-                            const projectMap = new Map();
-
-                            milestones.forEach(milestone => {
-                                const projectId = milestone.dataset.projectId;
-                                if (!projectMap.has(projectId)) {
-                                    projectMap.set(projectId, []);
-                                }
-                                projectMap.get(projectId).push(milestone);
-                            });
-
-                            projectMap.forEach((milestones, projectId) => {
-                                const allInStatus4 = milestones.every(m => parseInt(m.dataset.status) === 4);
-                                if (allInStatus4) {
-                                    milestones.forEach(m => m.style.display = 'none');
-                                }
-                            });
-                        }
-
-                        function toggleCompletedProjects(shouldShow) {
-                            const milestones = document.querySelectorAll('.card[data-project-id]');
-                            const projectMap = new Map();
-
-                            milestones.forEach(milestone => {
-                                const projectId = milestone.dataset.projectId;
-                                if (!projectMap.has(projectId)) {
-                                    projectMap.set(projectId, []);
-                                }
-                                projectMap.get(projectId).push(milestone);
-                            });
-
-                            projectMap.forEach((milestones, projectId) => {
-                                const allInStatus4 = milestones.every(m => parseInt(m.dataset.status) === 4);
-                                milestones.forEach(m => {
-                                    m.style.display = (allInStatus4 && !shouldShow) ? 'none' : 'block';
-                                    m.style.border = (allInStatus4 && shouldShow) ? '3px solid #15b500' :
-                                        'none';
-                                });
-                            });
-                        }
-
-                        function checkAndUpdateProjectVisibility(el) {
-                            const projectId = el.dataset.projectId;
-                            const projectMilestones = document.querySelectorAll(`.card[data-project-id='${projectId}']`);
-                            const allInStatus4 = Array.from(projectMilestones).every(m => parseInt(m.dataset.status) === 4);
-
-                            if (allInStatus4 && !showCompleted) {
-                                projectMilestones.forEach(m => m.style.display = 'none');
-                            }
-                        }
-
-                        // Agrega un MutationObserver para detectar cambios en data-status y actualizar dinámicamente
-                        function observeMilestoneStatusChanges() {
-                            const milestoneCards = document.querySelectorAll('.card[data-project-id]');
-                            milestoneCards.forEach(card => {
-                                const observer = new MutationObserver(mutations => {
-                                    mutations.forEach(mutation => {
-                                        if (mutation.type === 'attributes' && mutation.attributeName ===
-                                            'data-status') {
-                                            checkAndUpdateProjectVisibility(card);
-                                        }
-                                    });
-                                });
-                                observer.observe(card, {
-                                    attributes: true,
-                                    attributeFilter: ['data-status']
-                                });
-                            });
-                        }
-
-                        observeMilestoneStatusChanges();
-                    });
-                </script>
-            @endif
             <!-- Script encargado de la acción de "Add Task on Timesheet" al hacer clic en una tarea (se desactiva si el milestone está en status 4) -->
             <script>
                 // Espera a que el DOM esté completamente cargado
@@ -1527,7 +1400,10 @@ document.addEventListener('DOMContentLoaded', function() {
                                             modalDialog.className = 'modal-dialog';
                                             modalDialog.removeAttribute('style');
                                         }
-                                        $('#modal-container .modal-content').html(data);
+                                        $('#modal-container .modal-content').html(data).css({
+                                            'text-align': 'left',
+                                            'width': '800px'
+                                        });
                                         var myModal = bootstrap.Modal.getOrCreateInstance(
                                             modalEl);
                                         myModal.show();
@@ -1547,92 +1423,6 @@ document.addEventListener('DOMContentLoaded', function() {
                             task.style.cursor = 'not-allowed';
                         }
                     });
-                });
-            </script>
-            <!-- Script encargado de mostrar/ocultar las opciones cuando el estado del proyecto esta en 4 (en Hecho) -->
-            <script>
-                document.addEventListener('DOMContentLoaded', function() {
-                    const hideUnassignedIcon = document.getElementById('hideUnassignedMilstoneIcon');
-                    const toggleAllIcon = document.getElementById('toggleAllMilestonesIcon');
-
-                    // Estado de los filtros
-                    let hideUnassigned = false; // true => ocultar no asignadas
-                    let showAll = false; // true => ver todas, false => ver solo las mías
-                    const currentUserId = "{{ Auth::id() }}";
-
-                    if (toggleAllIcon) {
-                        toggleAllIcon.classList.add('disabled');
-                    }
-
-                    function applyMilestoneFilters() {
-                        const allMilestones = document.querySelectorAll('.card[data-project-id]');
-
-                        allMilestones.forEach(card => {
-                            const assignedUser = card.dataset.assignTo;
-                            const createdBy = card.dataset.createdBy;
-                            const requestedBy = card.dataset.requestedBy;
-                            const hasMyTasks = card.dataset.hasMyTasks === '1';
-                            const isUnassigned = card.classList.contains('notAsignedMilestone');
-
-                            let visible = true;
-
-                            // 🟢 FILTRO: solo mis milestones
-                            if (!showAll) {
-
-                                const isMine =
-                                    assignedUser == currentUserId ||
-                                    createdBy == currentUserId ||
-                                    requestedBy == currentUserId ||
-                                    hasMyTasks ||
-                                    (isUnassigned && createdBy == currentUserId);
-
-                                if (!isMine) {
-                                    visible = false;
-                                }
-                            }
-
-                            // 🔴 FILTRO: ocultar no asignadas
-                            if (hideUnassigned && isUnassigned) {
-                                visible = false;
-                            }
-
-                            card.style.display = visible ? '' : 'none';
-                        });
-                    }
-
-
-
-                    // Click en "ocultar hojas no asignadas"
-                    if (hideUnassignedIcon) {
-                        hideUnassignedIcon.addEventListener('click', function() {
-                            hideUnassigned = !hideUnassigned;
-
-                            this.style.filter = hideUnassigned ? 'grayscale(1)' : 'none';
-                            this.title = hideUnassigned ?
-                                "{{ __('Show Unassigned Order Forms') }}" :
-                                "{{ __('Hide Unasigned Order Forms') }}";
-
-                            applyMilestoneFilters();
-                        });
-                    }
-
-                    // Click en "todas las milestones del workspace"
-                    if (toggleAllIcon) {
-                        toggleAllIcon.addEventListener('click', function() {
-                            showAll = !showAll;
-
-                            this.classList.toggle('disabled', !showAll);
-                            this.classList.toggle('enabled', showAll);
-                            this.title = showAll ?
-                                "{{ __('Hide other users milestones') }}" :
-                                "{{ __('Show all workspace milestones') }}";
-
-                            applyMilestoneFilters();
-                        });
-                    }
-
-                    // Si quieres, puedes aplicar filtros iniciales al cargar:
-                    // applyMilestoneFilters();
                 });
             </script>
             <!-- Script encargado de mostrar/ocultar la leyenda de colores -->

@@ -16,6 +16,18 @@
         background-color: #aa182c;
     }
 
+
+    .employeeAndHoursOnTask {
+        margin-left: 24px;
+        font-size: 0.9em;
+        color: #666;
+        margin-top: 4px;
+    }
+
+    .minDivHeight {
+        min-height: 57px;
+    }
+
     .buttonFiles:hover,
     .buttonFiles:focus,
     .buttonFiles:active {
@@ -32,15 +44,35 @@
                         style="display: flex; justify-content: space-between; align-items: center;">
                         <legend class="custom-legend">{{ __('Name') }}:</legend>
                         <h2 class="ps-2" style="font-size: 24px;">{{ $milestone->title }}</h2>
-                        @if ($milestone->status == 3)
-                            <label class="statusBadge bg-warning ">{{ __('For Review') }}</label>
-                        @elseif ($milestone->status == 4)
-                            <label class="bg-success statusBadge">{{ __('Finished') }}</label>
-                        @else
-                            <label class="statusBadge {{ $milestone->status == 1 ? 'bg-info' : 'bg-secondary' }}">
-                                {{ $milestone->status == 1 ? __('To Do') : __('Ongoing') }}
-                            </label>
-                        @endif
+                        <div class="d-flex align-items-center gap-2">
+                            @php
+                                $phaseName = optional($milestone->phase)->phases;
+                                $stageName = $milestone->resolved_stage_name;
+                            @endphp
+
+                            @if (filled($phaseName))
+                                <label class="statusBadge " style="background-color: #493d3f !important;"
+                                    title="{{ __('Stage') }}">{{ $phaseName }}</label>
+                            @endif
+
+                            @if (filled($stageName))
+                                <label class="statusBadge " style="background-color: #9E9E9E !important;"
+                                    title="{{ __('Phase') }}">{{ $stageName }}</label>
+                            @endif
+
+                            @if ($milestone->status == 3)
+                                <label class="statusBadge bg-warning "
+                                    title="{{ __('Status') }}">{{ __('For Review') }}</label>
+                            @elseif ($milestone->status == 4)
+                                <label class="bg-success statusBadge"
+                                    title="{{ __('Status') }}">{{ __('Finished') }}</label>
+                            @else
+                                <label class="statusBadge {{ $milestone->status == 1 ? 'bg-info' : 'bg-secondary' }}"
+                                    title="{{ __('Status') }}">
+                                    {{ $milestone->status == 1 ? __('To Do') : __('Ongoing') }}
+                                </label>
+                            @endif
+                        </div>
                     </fieldset>
                 </div>
             </div>
@@ -92,28 +124,59 @@
             </div>
 
             <div class="row">
-                <div class="form-group col-md-8">
-                    <fieldset class="custom-fieldset ctr">
+                <div class="form-group col-md-12">
+                    <fieldset class="custom-fieldset ctr minDivHeight">
                         <legend class="custom-legend">{{ __('Description') }}:</legend>
-                        <div class="pt-2 ps-2" style="white-space: pre-wrap; word-wrap: break-word;">{{ $milestone->summary }}</div>
+                        <div class="pt-2 ps-2" style="white-space: pre-wrap; word-wrap: break-word;">
+                            {{ $milestone->summary }}</div>
                     </fieldset>
                 </div>
-                {{-- {test} --}}
+            </div>
+            <div class="row">
                 <div class="form-group col-md-4">
-                    <fieldset class="custom-fieldset ctr">
-                        <legend class="custom-legend">{{ __('Expected delivery date') }}:</legend>
-                        <h5 class="ps-2 pt-2"> {{ $milestone->planned_end_date }}:</h5>
+                    <fieldset class="custom-fieldset ctr minDivHeight">
+                        <legend class="custom-legend">{{ __('Desired delivery date') }}:</legend>
+                        <h5 class="ps-2 pt-2"> {{ $milestone->end_date }}</h5>
                     </fieldset>
                 </div>
 
-                {{-- endTest --}}
+                <div class="form-group col-md-4">
+                    <fieldset class="custom-fieldset ctr minDivHeight">
+                        <legend class="custom-legend">{{ __('Expected delivery date') }}:</legend>
+                        @if (empty($milestone->planned_end_date) || $milestone->planned_end_date === '0000-00-00')
+                            <p class="ps-2 m-1 text-muted">
+                                {{ __('There is no estimated delivery date.') }}
+                            </p>
+                        @else
+                            <h5 class="ps-2 pt-2">
+                                {{ $milestone->planned_end_date }}
+                            </h5>
+                        @endif
+                    </fieldset>
+                </div>
+                <div class="form-group col-md-4">
+                    <fieldset class="custom-fieldset ctr minDivHeight">
+                        <legend class="custom-legend">{{ __('Finished date') }}:</legend>
+
+                        @if (empty($milestone->finalization_date) || $milestone->finalization_date === '0000-00-00')
+                            <p class="ps-2 m-1 text-muted">
+                                {{ __('There is no finalization date.') }}
+                            </p>
+                        @else
+                            <h5 class="ps-2 pt-2">
+                                {{ $milestone->finalization_date }}
+                            </h5>
+                        @endif
+                    </fieldset>
+                </div>
             </div>
+
             <div class="row">
                 <div class="form-group col-md-4">
                     <fieldset class="custom-fieldset ctr">
                         <legend class="custom-legend">{{ __('Tasks') }}:</legend>
                         <div class="mt-3" id="taskListContainer">
-                            @if (!empty($milestone->showMilestonetasks() && count($milestone->showMilestonetasks()) > 0))
+                            @if (!empty($milestone->showMilestonetasks()) && count($milestone->showMilestonetasks()) > 0)
                                 @foreach ($milestone->showMilestonetasks() as $task)
                                     <div class="taskList p-target mb-2 col-sm-12 marginText">
                                         @php
@@ -125,7 +188,18 @@
                                                     '"></i>'
                                                 : '<i class="ms-2 me-2 fa-solid fa-hourglass-start fa-xs text-' .
                                                     $dateClass .
-                                                '"></i>'; @endphp {!! $icon !!} {{ __($task->task_name ?? $task) }}
+                                                    '"></i>';
+                                            $taskName = $task->customTask?->name ?? ($task->type?->name ?? 'Task');
+                                            $taskUser = $task->user?->name ?? 'Unassigned';
+                                            $taskHours = $task->getTotalLoggedHours();
+                                        @endphp
+                                        {!! $icon !!}
+                                        <span><strong>{{ __($taskName) }}</strong></span>
+                                        <br>
+                                        <span class="employeeAndHoursOnTask">
+                                            <strong>{{ $taskUser }}</strong> :
+                                            <strong>{{ $taskHours }}h</strong>
+                                        </span>
                                     </div>
                                 @endforeach
                             @else
@@ -138,14 +212,15 @@
                 <div class="form-group col-md-8">
                     <fieldset class="custom-fieldset ctr pb-2">
                         <legend class="custom-legend">{{ __('Files') }}:</legend>
-                        <div class="custom-file-container mt-3">
+                        <div class="@if (count($milestoneFiles) > 0) custom-file-container mt-3 @else mt-3 @endif">
                             @if (!empty($milestoneFiles) && count($milestoneFiles) > 0)
                                 @foreach ($milestoneFiles as $file)
-                                    <div class="custom-file">
+                                    <div class="custom-file" style="cursor: pointer;"
+                                        onclick="previewFile({{ $project->id }}, '{{ $milestone->title }}', '{{ $file->file }}', '{{ $file->extension }}')">
                                         <img src="{{ asset('assets/iconFilesTypes/' . $file->extension . '.png') }}"
                                             alt="{{ $file->extension }} icon" class="styleIconFiles">
                                         <p class="file-name">{{ $file->name }}</p>
-                                        <a onclick="downloadFile({{ $project->id }}, '{{ $milestone->title }}', '{{ $file->file }}')"
+                                        <a onclick="event.stopPropagation(); downloadFile({{ $project->id }}, '{{ $milestone->title }}', '{{ $file->file }}')"
                                             class="buttonFiles btn btn-sm">
                                             <i class="ti ti-download" style="color:white"></i>
                                         </a>
@@ -174,7 +249,7 @@
                             <div class="page-search">
                                 <p class="text-muted mt-3">
                                     {{ __("It's looking like you may have taken a wrong turn. Don't worry... it happens to
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    the best of us. Here's a little tip that might help you get back on track.") }}
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        the best of us. Here's a little tip that might help you get back on track.") }}
                                 </p>
                                 <div class="mt-3">
                                     <a class="btn-return-home badge-blue" href="{{ route('home') }}"><i

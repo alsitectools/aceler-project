@@ -93,10 +93,10 @@
                                 @if (isset($project_id) && $project_id == -1)
                                     <div id="project">
                                         <label class="col-form-label">{{ __('Search project') }}
-                                            <label class="text-muted iftheordoesnotexist">
+                                            <span class="text-muted iftheordoesnotexist">
                                                 <i class="bi bi-info-circle me-2"
                                                     style="color: #FFD43B;"></i>{{ __('If the project does not exist, create a new project.') }}
-                                            </label>
+                                            </span>
                                         </label>
                                         <input type="text" class="form-control" id="searchProject"
                                             placeholder="{{ __('Name or reference M.O') }}" autocomplete="off">
@@ -112,22 +112,34 @@
                                 @endif
                             </div>
                         </div>
-                        <div class="col-md-6">
-                            @if (isset($project_id) && $project_id == -1)
-                                <div class="form-group">
-                                    <label class="col-form-label">{{ __('MO') }}</label>
+                        @php
+                            $isPhaseProject = isset($project) && in_array((int) $project->type, [3, 5], true);
+                        @endphp
+                        <div class="col-md-6" id="phase-wrapper" style="{{ $isPhaseProject ? '' : 'display:none;' }}">
+                            <div class="form-group">
+                                <label class="col-form-label">{{ __('Stage') }}</label>
+                                <select class="form-control form-control-light" name="phase" id="phase">
+                                    <option value="">{{ __('Choose one') }}</option>
+                                    @foreach ($phases as $phase)
+                                        <option value="{{ $phase }}">{{ __($phase) }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6" id="mo-wrapper" style="{{ $isPhaseProject ? 'display:none;' : '' }}">
+                            <div class="form-group">
+                                <label class="col-form-label">{{ __('MO') }}</label>
+                                @if (isset($project_id) && $project_id == -1)
                                     <input type="text" class="form-control form-control-light" id="milestone_mo"
                                         placeholder="{{ __('MO') }}" name="ref_mo" required readonly>
-                                </div>
-                            @else
-                                <div class="form-group">
-                                    <label class="col-form-label">{{ __('MO') }}</label>
+                                @else
                                     <input type="text" class="form-control form-control-light"
                                         placeholder="{{ $project->ref_mo }}" disabled>
                                     <input type="text" name="ref_mo" value="{{ $project->ref_mo }}"
                                         style="display: none;">
-                                </div>
-                            @endif
+                                @endif
+                            </div>
                         </div>
 
                         {{-- Inicio apartado asignado a --}}
@@ -180,14 +192,14 @@
                         <input class="form-check-input" type="checkbox" role="switch" id="toggleFormSwitch">
                         <label class="form-check-label"
                             for="toggleFormSwitch">{{ __('Only in case it is necessary to to
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        carry out a project with a visa.') }}</label>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                carry out a project with a visa.') }}</label>
                     </div>
                     <div id="additionalForm" class="collapse mt-3">
                         <div class="card card-body">
                             <div class="mb-3">
                                 <label for="input1"
                                     class="form-label">{{ __('Name of the company that will install the
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                system') }}:</label>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        system') }}:</label>
                                 <input type="text" class="form-control" name="company" id="company"
                                     placeholder="Ingrese valor">
                             </div>
@@ -210,8 +222,8 @@
                             </div>
                             <p class="mb-3">
                                 <b>{{ __('Note: In order to carry out the project it is necessary to send the quotation of
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                the formwork and falsework system, and the complete assembly drawings and geometrical
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                definition of the structure.') }}
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                the formwork and falsework system, and the complete assembly drawings and geometrical
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                definition of the structure.') }}
                                 </b>
                             </p>
                         </div>
@@ -251,20 +263,26 @@
                             $typeId = isset($project) ? (int) $project->type : null;
                             $typeName = isset($project) ? $project->typeRel->name ?? '' : '';
                             $showPhase =
-                                $typeId === 3 || in_array($typeName, ['Product development', 'Desarrollo de producto']);
+                                $typeId === 3 ||
+                                in_array($typeName, ['I+D Project', 'Proyecto I+D']) ||
+                                $typeId === 5 ||
+                                in_array($typeName, ['I+D Development', 'Desarrollo I+D']);
+                            $showStage = $showPhase;
                         @endphp
 
-                        <div class="col-md-6" id="phase-wrapper" style="{{ $showPhase ? '' : 'display:none;' }}">
+                        <div class="col-md-6" id="stage-wrapper" style="{{ $showStage ? '' : 'display:none;' }}">
                             <div class="form-group">
                                 <label class="form-label">{{ __('Phase') }}</label>
-                                <select class="form-control form-control-light" name="phase" id="phase">
+                                <select class="form-control form-control-light" name="stage" id="stage">
                                     <option value="">{{ __('Choose one') }}</option>
-                                    @foreach ($phases as $phase)
-                                        <option value="{{ $phase }}">{{ __($phase) }}</option>
+                                    @foreach ($stagesProject ?? [] as $stageName)
+                                        <option value="{{ $stageName }}">{{ __($stageName) }}</option>
                                     @endforeach
                                 </select>
                             </div>
                         </div>
+
+
 
 
                     </div>
@@ -375,7 +393,7 @@
                         <div class="page-search">
                             <p class="text-muted mt-3">
                                 {{ __("It's looking like you may have taken a wrong turn. Don't worry... it happens to the
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            best of us. Here's a little tip that might help you get back on track.") }}
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            best of us. Here's a little tip that might help you get back on track.") }}
                             </p>
                             <div class="mt-3">
                                 <a class="btn-return-home badge-blue" href="{{ route('home') }}">
@@ -573,6 +591,7 @@
 @if (isset($projects))
     <script>
         const projects = @json($projects);
+        const milestonePhaseOptions = @json($phases ?? \App\Models\MilestonePhases::PHASES);
         const currentWorkspaceSlug = '{{ $currentWorkspace->slug }}';
         const searchMoUrl = "{{ route('search-mo-json', '__slug') }}".replace('__slug', currentWorkspaceSlug);
         const searchClipoUrl = "{{ route('search-clipo-json', '__slug') }}".replace('__slug', currentWorkspaceSlug);
@@ -652,8 +671,11 @@
         typeName = (typeName || '').trim().toLowerCase();
 
         return typeId === 3 ||
-            typeName === 'product development' ||
-            typeName === 'desarrollo de producto';
+            typeName === 'i+d project' ||
+            typeName === 'proyecto i+d' ||
+            typeId === 5 ||
+            typeName === 'i+d development' ||
+            typeName === 'desarrollo i+d';
     }
 
     function togglePhaseWrapper(show) {
@@ -1205,7 +1227,7 @@
 
             if (!requestedById || !_localInputMatchesAnyOption(typedName)) {
                 if (searchInput) searchInput.classList.add('is-invalid');
-                validationErrors.push('Debs seleccionar un usuario existente en "Requested by"');
+                validationErrors.push('Debes seleccionar un usuario existente en "Requested by"');
             } else {
                 if (searchInput) searchInput.classList.remove('is-invalid');
             }

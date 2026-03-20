@@ -206,7 +206,7 @@
         margin: 2px 0px 8px 0px;
         font-size: 13px;
         max-width: 100%;
-        white-space: nowrap;
+        /* white-space: nowrap; */
         overflow: hidden;
         text-overflow: ellipsis;
     }
@@ -216,6 +216,77 @@
         color: #AA182C;
         font-weight: 600;
         margin-top: 4px;
+    }
+
+    .calendar-day-add-btn {
+        margin-left: 6px;
+        width: 18px;
+        height: 18px;
+        border: 1px solid #AA182C;
+        border-radius: 20%;
+        background: #fff;
+        color: #AA182C;
+        font-size: 12px;
+        font-weight: 700;
+        line-height: 1;
+        cursor: pointer;
+        padding: 0;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .calendar-day-add-btn:hover {
+        background: #AA182C;
+        color: #fff;
+    }
+
+    .calendar-day-add-btn:disabled,
+    .calendar-day-add-btn.calendar-day-add-btn-disabled {
+        opacity: 0.4;
+        cursor: not-allowed;
+        background: #f1f1f1;
+        color: #9e9e9e;
+        border-color: #c9c9c9;
+    }
+
+    #calendar:not(.calendar-edit-mode) .calendar-day-add-btn {
+        display: none;
+    }
+
+    .calendar-edit-toggle {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-right: 12px;
+    }
+
+    .calendar-edit-toggle .form-check-input {
+        cursor: pointer;
+    }
+
+    .calendar-edit-toggle label {
+        margin-bottom: 0;
+        font-size: 13px;
+        color: #495057;
+        cursor: pointer;
+    }
+
+    .special-day-hour-wrapper {
+        margin-top: 12px;
+    }
+
+    .calendar-multi-select-btn {
+        margin-right: 8px;
+    }
+
+    .calendar-multi-select-btn.hidden {
+        display: none;
+    }
+
+    .fc-daygrid-day.calendar-multi-selected {
+        box-shadow: inset 0 0 0 2px #AA182C;
+        background: rgba(170, 24, 44, 0.08);
     }
 
     @media (max-width: 576px) {
@@ -315,11 +386,23 @@
             <div class="card">
                 <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
                     <h5>{{ __('Calendar') }}</h5>
-                    <select id="workspace-select" class="form-select"
-                        style="width: auto; display: inline-block; font-size: 0.9rem; padding: 0.25rem 2.5rem 0.25rem 0.75rem; cursor: pointer; font-weight: 500;">
-                        <option value="current" selected>{{ __('Current Workspace') }}</option>
-                        <option value="all">{{ __('All Workspaces') }}</option>
-                    </select>
+                    <div style="display: flex; align-items: center;">
+                        <button type="button" id="multi-special-day-btn"
+                            class="styleAdjust btn btn-sm btn-outline-primary calendar-multi-select-btn hidden">
+                            {{ __('Multi-day selection') }}
+                        </button>
+
+                        <div class="form-check form-switch calendar-edit-toggle">
+                            <input class="form-check-input" type="checkbox" role="switch" id="calendar-edit-mode-toggle">
+                            <label class="form-check-label" for="calendar-edit-mode-toggle">{{ __('Edit mode') }}</label>
+                        </div>
+
+                        <select id="workspace-select" class="form-select"
+                            style="width: auto; display: inline-block; font-size: 0.9rem; padding: 0.25rem 2.5rem 0.25rem 0.75rem; cursor: pointer; font-weight: 500;">
+                            <option value="current" selected>{{ __('Current Workspace') }}</option>
+                            <option value="all">{{ __('All Workspaces') }}</option>
+                        </select>
+                    </div>
                 </div>
                 <div class="card-body">
                     <div id="calendar" class="calendar"></div>
@@ -342,12 +425,64 @@
             </div>
         </div>
     </div>
+
+    <div class="modal fade" id="specialDayModal" tabindex="-1" aria-labelledby="specialDayModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="specialDayModalLabel">{{ __('Set special day') }}</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p style="margin-bottom: 10px; font-size: 14px; color: #666;">
+                        {{ __('Date') }}: <strong id="special-day-selected-date"></strong>
+                    </p>
+
+                    <div class="form-check mb-2">
+                        <input class="form-check-input" type="radio" name="specialDayType" id="special-day-type-holiday"
+                            value="holiday" checked>
+                        <label class="form-check-label" for="special-day-type-holiday">
+                            {{ __('Holiday') }}
+                        </label>
+                    </div>
+
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="specialDayType" id="special-day-type-intensive"
+                            value="intensive_work">
+                        <label class="form-check-label" for="special-day-type-intensive">
+                            {{ __('Intensive workday') }}
+                        </label>
+                    </div>
+
+                    <div class="special-day-hour-wrapper" id="special-day-hour-wrapper" style="display: none;">
+                        <label for="special-day-intensive-hours" class="form-label">{{ __('Hours') }}</label>
+                        <input type="time" class="form-control" id="special-day-intensive-hours" value="08:00">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">{{ __('Cancel') }}</button>
+                    <button type="button" class="btn btn-primary" id="save-special-day-btn">{{ __('Save') }}</button>
+                </div>
+            </div>
+        </div>
+    </div>
 @endsection
 
 @push('scripts')
     <script>
         let calendar;
         const currentWorkspaceId = "{{ $currentWorkspace->id }}";
+        let selectedSpecialDate = null;
+        let selectedSpecialDates = [];
+        let isCalendarEditMode = false;
+        let isMultiSelectMode = false;
+        let multiSelectedDates = new Set();
+        let imputedDatesState = new Set();
+        let nonWorkingDatesState = new Set();
+        let specialDaysState = {
+            holidayRange: [],
+            intensiveWorkRange: {}
+        };
 
         $(document).ready(function() {
 
@@ -361,6 +496,27 @@
             $(window).resize(function() {
                 adjustLayout();
             });
+
+            $('input[name="specialDayType"]').on('change', function() {
+                const isIntensive = $(this).val() === 'intensive_work';
+                $('#special-day-hour-wrapper').toggle(isIntensive);
+            });
+
+            $('#save-special-day-btn').on('click', function() {
+                saveSpecialDay();
+            });
+
+            $('#calendar-edit-mode-toggle').on('change', function() {
+                isCalendarEditMode = $(this).is(':checked');
+                updateCalendarEditModeUI();
+            });
+
+            $('#multi-special-day-btn').on('click', function() {
+                handleMultiSelectButtonClick();
+            });
+
+            updateCalendarEditModeUI();
+            updateMultiSelectButtonUI();
         });
 
         //adjusting to laptop view
@@ -378,6 +534,107 @@
             let g = parseInt(hex.substring(2, 4), 16);
             let b = parseInt(hex.substring(4, 6), 16);
             return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+        }
+
+        function hasImputedHours(hours) {
+            if (!hours) {
+                return false;
+            }
+
+            const [hourPart, minutePart] = String(hours).split(':');
+            const parsedHours = Number(hourPart) || 0;
+            const parsedMinutes = Number(minutePart) || 0;
+
+            return parsedHours > 0 || parsedMinutes > 0;
+        }
+
+        function parseIsoDateToUtc(dateValue) {
+            return new Date(`${dateValue}T00:00:00Z`);
+        }
+
+        function formatUtcDateToIso(dateObj) {
+            return dateObj.toISOString().split('T')[0];
+        }
+
+        function resolveCalendarRange(colorData, specialColorData) {
+            const today = new Date();
+            const todayUtc = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate()));
+            const dates = [];
+
+            if (Array.isArray(colorData)) {
+                colorData.forEach((item) => {
+                    if (item?.date) {
+                        dates.push(item.date);
+                    }
+                });
+            }
+
+            if (Array.isArray(specialColorData?.holidayRange)) {
+                specialColorData.holidayRange.forEach((date) => {
+                    if (date) {
+                        dates.push(date);
+                    }
+                });
+            }
+
+            if (specialColorData?.intensiveWorkRange && typeof specialColorData.intensiveWorkRange === 'object') {
+                Object.values(specialColorData.intensiveWorkRange).forEach((rangeDates) => {
+                    if (!Array.isArray(rangeDates)) {
+                        return;
+                    }
+
+                    rangeDates.forEach((date) => {
+                        if (date) {
+                            dates.push(date);
+                        }
+                    });
+                });
+            }
+
+            if (!dates.length) {
+                const firstDay = new Date(Date.UTC(todayUtc.getUTCFullYear(), todayUtc.getUTCMonth(), 1));
+                const lastDay = new Date(Date.UTC(todayUtc.getUTCFullYear(), todayUtc.getUTCMonth() + 1, 0));
+                return {
+                    minDate: formatUtcDateToIso(firstDay),
+                    maxDate: formatUtcDateToIso(lastDay)
+                };
+            }
+
+            const sortedDates = [...dates].sort();
+            return {
+                minDate: sortedDates[0],
+                maxDate: sortedDates[sortedDates.length - 1]
+            };
+        }
+
+        function buildZeroHourColorData(expectedHours, minDate, maxDate) {
+            if (!expectedHours || !minDate || !maxDate) {
+                return [];
+            }
+
+            const startDate = parseIsoDateToUtc(minDate);
+            const endDate = parseIsoDateToUtc(maxDate);
+            const generatedData = [];
+
+            for (let date = new Date(startDate); date <= endDate; date.setUTCDate(date.getUTCDate() + 1)) {
+                const dayOfWeek = date.toLocaleDateString('en-US', {
+                    weekday: 'long',
+                    timeZone: 'UTC'
+                }).toLowerCase();
+
+                if (expectedHours[dayOfWeek] === null || expectedHours[dayOfWeek] === undefined) {
+                    continue;
+                }
+
+                generatedData.push({
+                    dayOfWeek: dayOfWeek.charAt(0).toUpperCase() + dayOfWeek.slice(1),
+                    date: formatUtcDateToIso(date),
+                    hours: '00:00',
+                    color: '#e06c71'
+                });
+            }
+
+            return generatedData;
         }
 
         function getCalendarInfo() {
@@ -399,30 +656,41 @@
 
                     const opacity = 0.4;
                     let allEvents = [];
+                    const expectedHours = data?.expectedHours && typeof data.expectedHours === 'object' ? data
+                        .expectedHours : null;
+                    const sourceColorData = Array.isArray(data?.colorData) ? data.colorData : [];
 
-                    if (data && data.colorData && Array.isArray(data.colorData) && data.expectedHours) {
-                        const nonWorkingDays = Object.keys(data.expectedHours).filter(day => data.expectedHours[
+                    specialDaysState = {
+                        holidayRange: data?.specialColorData?.holidayRange && Array.isArray(data.specialColorData
+                            .holidayRange) ? [...data.specialColorData.holidayRange] : [],
+                        intensiveWorkRange: data?.specialColorData?.intensiveWorkRange && typeof data
+                            .specialColorData.intensiveWorkRange === 'object' ? {
+                                ...data.specialColorData.intensiveWorkRange
+                            } : {}
+                    };
+
+                    const calendarRange = resolveCalendarRange(sourceColorData, specialDaysState);
+                    const effectiveColorData = sourceColorData.length ? sourceColorData : buildZeroHourColorData(
+                        expectedHours,
+                        calendarRange.minDate,
+                        calendarRange.maxDate
+                    );
+
+                    imputedDatesState = new Set(Array.isArray(effectiveColorData) ? effectiveColorData
+                        .filter(item => hasImputedHours(item.hours))
+                        .map(item => item.date) : []);
+
+                    if (expectedHours) {
+                        const nonWorkingDays = Object.keys(expectedHours).filter(day => expectedHours[
                             day] === null);
 
                         const nonWorkingEvents = [];
+                        const nonWorkingDateValues = [];
 
-                        // Determinar el rango de fechas a partir de colorData
-                        let minDate = null;
-                        let maxDate = null;
-
-                        data.colorData.forEach(item => {
-                            if (!minDate || item.date < minDate) {
-                                minDate = item.date;
-                            }
-                            if (!maxDate || item.date > maxDate) {
-                                maxDate = item.date;
-                            }
-                        });
-
-                        // Si hay colorData, generar non-working days para ese rango
-                        if (minDate && maxDate) {
-                            const startDate = new Date(minDate + 'T00:00:00Z');
-                            const endDate = new Date(maxDate + 'T00:00:00Z');
+                        // Generar non-working days en el rango efectivo del calendario.
+                        if (calendarRange.minDate && calendarRange.maxDate) {
+                            const startDate = parseIsoDateToUtc(calendarRange.minDate);
+                            const endDate = parseIsoDateToUtc(calendarRange.maxDate);
 
                             for (let date = new Date(startDate); date <= endDate; date.setUTCDate(date
                                     .getUTCDate() + 1)) {
@@ -431,9 +699,11 @@
                                     timeZone: 'UTC'
                                 }).toLowerCase();
                                 if (nonWorkingDays.includes(dayOfWeek)) {
+                                    const nonWorkingDate = formatUtcDateToIso(date);
+                                    nonWorkingDateValues.push(nonWorkingDate);
                                     nonWorkingEvents.push({
-                                        title: 'Non-working day',
-                                        start: date.toISOString().split('T')[0],
+                                        title: '{{ __('Non-working day') }}',
+                                        start: nonWorkingDate,
                                         backgroundColor: hexToRgba("#d3d3d3", opacity),
                                         borderColor: '#d3d3d3',
                                         textColor: 'black',
@@ -443,7 +713,7 @@
                             }
                         }
 
-                        let events = data.colorData
+                        let events = effectiveColorData
                             .filter(item => {
                                 if (data.specialColorData?.holidayRange && Array.isArray(data
                                         .specialColorData.holidayRange) && data.specialColorData
@@ -498,7 +768,10 @@
                         }
 
                         allEvents = [...events, ...nonWorkingEvents];
+                        nonWorkingDatesState = new Set(nonWorkingDateValues);
                     } else {
+                        imputedDatesState = new Set();
+                        nonWorkingDatesState = new Set();
                         console.warn("No valid data found. Loading empty calendar.");
                     }
 
@@ -519,6 +792,7 @@
             if (calendar) {
                 calendar.removeAllEvents();
                 calendar.addEventSource(events);
+                refreshSpecialDayButtonsState();
                 document.getElementById('loader-overlay').style.display = 'none';
                 return;
             }
@@ -537,6 +811,11 @@
                 },
                 events: events,
                 dateClick: function(info) {
+                    if (isMultiSelectMode) {
+                        toggleDateInMultiSelection(info.dateStr);
+                        return;
+                    }
+
                     // Al hacer clic en un día, obtener las tareas
                     const selectedDate = info.dateStr;
 
@@ -549,6 +828,39 @@
                     info.dayEl.classList.add('fc-day-today');
 
                     loadTasksByDate(selectedDate);
+                },
+                dayCellDidMount: function(arg) {
+                    const dateNumber = arg.el.querySelector('.fc-daygrid-day-number');
+                    if (!dateNumber || dateNumber.querySelector('.calendar-day-add-btn')) {
+                        return;
+                    }
+
+                    const addBtn = document.createElement('button');
+                    addBtn.type = 'button';
+                    addBtn.className = 'calendar-day-add-btn';
+                    addBtn.textContent = '+';
+                    addBtn.setAttribute('aria-label', '{{ __('Add special day') }}');
+                    addBtn.setAttribute('title', '{{ __('Add special day') }}');
+
+                    addBtn.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        e.stopPropagation();
+
+                        if (!isCalendarEditMode) {
+                            return;
+                        }
+
+                        const clickedDate = arg.el.getAttribute('data-date');
+
+                        if (isDateBlockedForSpecialDay(clickedDate)) {
+                            return;
+                        }
+
+                        selectedSpecialDates = [];
+                        openSpecialDayModal(clickedDate);
+                    });
+
+                    dateNumber.appendChild(addBtn);
                 },
                 eventClick: function(info) {
                     if (info.event.extendedProps.type === 'holiday' || info.event.extendedProps.type ===
@@ -593,6 +905,9 @@
             });
 
             calendar.render();
+            updateCalendarEditModeUI();
+            refreshSpecialDayButtonsState();
+            refreshMultiSelectedDayCells();
             window.dispatchEvent(new Event('resize'));
             //reactivar scroll
             document.body.style.overflow = 'auto';
@@ -618,6 +933,262 @@
                     new Date().toISOString().split('T')[0];
                 loadTasksByDate(selectedDate);
             });
+        }
+
+        function updateCalendarEditModeUI() {
+            const calendarEl = document.getElementById('calendar');
+            if (!calendarEl) {
+                return;
+            }
+
+            const multiSelectButton = $('#multi-special-day-btn');
+
+            if (isCalendarEditMode) {
+                calendarEl.classList.add('calendar-edit-mode');
+                multiSelectButton.removeClass('hidden');
+            } else {
+                calendarEl.classList.remove('calendar-edit-mode');
+                multiSelectButton.addClass('hidden');
+                exitMultiSelectMode();
+            }
+
+            refreshSpecialDayButtonsState();
+        }
+
+        function getAllSpecialDates() {
+            const holidays = Array.isArray(specialDaysState.holidayRange) ? specialDaysState.holidayRange : [];
+            const intensiveRanges = specialDaysState.intensiveWorkRange && typeof specialDaysState.intensiveWorkRange ===
+                'object' ? specialDaysState.intensiveWorkRange : {};
+
+            const intensiveDates = Object.values(intensiveRanges)
+                .flatMap((dates) => Array.isArray(dates) ? dates : []);
+
+            return new Set([...holidays, ...intensiveDates]);
+        }
+
+        function isDateSpecialDay(date) {
+            if (!date) {
+                return false;
+            }
+
+            return getAllSpecialDates().has(date);
+        }
+
+        function isDateWithImputedHours(date) {
+            if (!date) {
+                return false;
+            }
+
+            return imputedDatesState.has(date);
+        }
+
+        function isDateNonWorking(date) {
+            if (!date) {
+                return false;
+            }
+
+            return nonWorkingDatesState.has(date);
+        }
+
+        function isDateBlockedForSpecialDay(date) {
+            return isDateSpecialDay(date) || isDateWithImputedHours(date) || isDateNonWorking(date);
+        }
+
+        function refreshSpecialDayButtonsState() {
+            const specialDates = getAllSpecialDates();
+
+            document.querySelectorAll('.fc-daygrid-day').forEach((dayCell) => {
+                const date = dayCell.getAttribute('data-date');
+                const addBtn = dayCell.querySelector('.calendar-day-add-btn');
+
+                if (!addBtn) {
+                    return;
+                }
+
+                const isSpecial = specialDates.has(date);
+                const hasImputed = isDateWithImputedHours(date);
+                const isNonWorking = isDateNonWorking(date);
+                const isBlocked = isSpecial || hasImputed || isNonWorking;
+                addBtn.disabled = isBlocked;
+
+                if (isSpecial) {
+                    addBtn.classList.add('calendar-day-add-btn-disabled');
+                    addBtn.setAttribute('title', '{{ __('Special day already exists for this date') }}');
+                } else if (hasImputed) {
+                    addBtn.classList.add('calendar-day-add-btn-disabled');
+                    addBtn.setAttribute('title', '{{ __('This date has imputed hours and cannot be set as special day') }}');
+                } else if (isNonWorking) {
+                    addBtn.classList.add('calendar-day-add-btn-disabled');
+                    addBtn.setAttribute('title', '{{ __('This date is a non-working day and cannot be set as special day') }}');
+                } else {
+                    addBtn.classList.remove('calendar-day-add-btn-disabled');
+                    addBtn.setAttribute('title', '{{ __('Add special day') }}');
+                }
+            });
+        }
+
+        function openSpecialDayModal(date) {
+            if (date) {
+                selectedSpecialDates = [];
+            }
+
+            selectedSpecialDate = date;
+            const hasMultiDates = Array.isArray(selectedSpecialDates) && selectedSpecialDates.length > 0;
+
+            if (hasMultiDates) {
+                $('#special-day-selected-date').text(`${selectedSpecialDates.length} {{ __('days selected') }}`);
+            } else {
+                $('#special-day-selected-date').text(date || '');
+            }
+
+            $('#special-day-type-holiday').prop('checked', true).trigger('change');
+            $('#special-day-intensive-hours').val('08:00');
+            $('#specialDayModal').modal('show');
+        }
+
+        function saveSpecialDay() {
+            const targetDates = (Array.isArray(selectedSpecialDates) && selectedSpecialDates.length > 0) ?
+                selectedSpecialDates : (selectedSpecialDate ? [selectedSpecialDate] : []);
+
+            if (!targetDates.length) {
+                return;
+            }
+
+            const validTargetDates = targetDates.filter((date) => !isDateBlockedForSpecialDay(date));
+
+            if (!validTargetDates.length) {
+                alert("{{ __('All selected dates are blocked because they already have a special day, imputed hours, or are non-working days.') }}");
+                return;
+            }
+
+            const selectedType = $('input[name="specialDayType"]:checked').val();
+            const intensiveHours = $('#special-day-intensive-hours').val();
+            const postUrl = '<?php echo url('user/specialUpdate-timetable'); ?>';
+
+            let payload = {};
+
+            if (selectedType === 'holiday') {
+                const mergedHolidays = Array.from(new Set([...(specialDaysState.holidayRange || []),
+                    ...validTargetDates
+                ]));
+
+                payload = {
+                    rangeDate: JSON.stringify(mergedHolidays)
+                };
+            } else {
+                if (!intensiveHours) {
+                    alert("{{ __('Please select hours for intensive workday.') }}");
+                    return;
+                }
+
+                const existingDates = Array.isArray(specialDaysState.intensiveWorkRange?.[intensiveHours]) ?
+                    specialDaysState.intensiveWorkRange[intensiveHours] : [];
+
+                const mergedIntensiveDates = Array.from(new Set([...existingDates, ...validTargetDates]));
+
+                payload = {
+                    rangeDate: JSON.stringify(mergedIntensiveDates),
+                    intensiveWorkday: intensiveHours
+                };
+            }
+
+            $.ajax({
+                type: 'POST',
+                url: postUrl,
+                data: {
+                    rangeAndInput: JSON.stringify(payload)
+                },
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                },
+                success: function() {
+                    $('#specialDayModal').modal('hide');
+                    exitMultiSelectMode();
+                    selectedSpecialDate = null;
+                    selectedSpecialDates = [];
+                    getCalendarInfo();
+                    loadTasksByDate(validTargetDates[0]);
+                },
+                error: function(xhr) {
+                    alert("{{ __('An error occurred while saving the special day.') }}");
+                    console.error(xhr.responseText);
+                }
+            });
+        }
+
+        function handleMultiSelectButtonClick() {
+            if (!isMultiSelectMode) {
+                isMultiSelectMode = true;
+                selectedSpecialDate = null;
+                selectedSpecialDates = [];
+                multiSelectedDates = new Set();
+                updateMultiSelectButtonUI();
+                refreshMultiSelectedDayCells();
+                return;
+            }
+
+            if (multiSelectedDates.size === 0) {
+                exitMultiSelectMode();
+                return;
+            }
+
+            selectedSpecialDate = null;
+            selectedSpecialDates = Array.from(multiSelectedDates);
+            openSpecialDayModal(null);
+        }
+
+        function toggleDateInMultiSelection(date) {
+            if (!date || isDateBlockedForSpecialDay(date)) {
+                return;
+            }
+
+            if (multiSelectedDates.has(date)) {
+                multiSelectedDates.delete(date);
+            } else {
+                multiSelectedDates.add(date);
+            }
+
+            updateMultiSelectButtonUI();
+            refreshMultiSelectedDayCells();
+        }
+
+        function refreshMultiSelectedDayCells() {
+            document.querySelectorAll('.fc-daygrid-day').forEach((dayCell) => {
+                const date = dayCell.getAttribute('data-date');
+                if (!date) {
+                    return;
+                }
+
+                if (isMultiSelectMode && multiSelectedDates.has(date)) {
+                    dayCell.classList.add('calendar-multi-selected');
+                } else {
+                    dayCell.classList.remove('calendar-multi-selected');
+                }
+            });
+        }
+
+        function updateMultiSelectButtonUI() {
+            const button = $('#multi-special-day-btn');
+            if (!button.length) {
+                return;
+            }
+
+            if (!isMultiSelectMode) {
+                button.removeClass('btn-primary').addClass('btn-outline-primary');
+                button.text("{{ __('Multi-day selection') }}");
+                return;
+            }
+
+            button.removeClass('btn-outline-primary').addClass('btn-primary');
+            button.text(`{{ __('Apply selection') }} (${multiSelectedDates.size})`);
+        }
+
+        function exitMultiSelectMode() {
+            isMultiSelectMode = false;
+            multiSelectedDates = new Set();
+            selectedSpecialDates = [];
+            updateMultiSelectButtonUI();
+            refreshMultiSelectedDayCells();
         }
 
         function loadTasksByDate(date) {
@@ -652,11 +1223,15 @@
                     const taskList = $('#task-list');
                     taskList.empty();
 
-                    if (response.tasks && response.tasks.length > 0) {
+                    // Filtrar tareas con totalTime diferente de 00:00
+                    const filteredTasks = response.tasks ? response.tasks.filter(task => task.totalTime !==
+                        '00:00') : [];
+
+                    if (filteredTasks.length > 0) {
                         // Agrupar tareas por proyecto (y workspace si aplica)
                         const projectsMap = {};
 
-                        response.tasks.forEach(function(task) {
+                        filteredTasks.forEach(function(task) {
                             // Crear clave única combinando proyecto y workspace para evitar mezclar si hay nombres repetidos
                             const key = mode === 'all' ? `${task.projectName}__${task.workspaceName}` :
                                 task.projectName;

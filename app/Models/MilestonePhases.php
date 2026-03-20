@@ -7,16 +7,16 @@ use Illuminate\Support\Facades\DB;
 
 class MilestonePhases extends Model
 {
-    protected $table = 'milestone_phases'; 
+    protected $table = 'milestone_phases';
 
     protected $fillable = [
         'id_milestone',
         'phases'
     ];
-   
-    public $timestamps = false; 
 
-     public function milestone()
+    public $timestamps = false;
+
+    public function milestone()
     {
         return $this->belongsTo(Milestone::class, 'id_milestone');
     }
@@ -30,4 +30,18 @@ class MilestonePhases extends Model
         'Validación funcional',
         'Explotación comercial'
     ];
+
+    public const PHASE_TRANSLATION_KEYS = [
+        'Planificación' => 'Planning',
+        'Diseño' => 'Design',
+        'Implementación' => 'Implementation',
+        'Documentación' => 'Documentation',
+        'Validación funcional' => 'Functional validation',
+        'Explotación comercial' => 'Commercial exploitation',
+    ];
+
+    public static function translationKey(?string $phase): string
+    {
+        return self::PHASE_TRANSLATION_KEYS[$phase] ?? ($phase ?? '');
+    }
 }

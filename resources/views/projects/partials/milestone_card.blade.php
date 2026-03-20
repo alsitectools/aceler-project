@@ -12,12 +12,25 @@
         height: 55%;
         border-radius: 6px;
         align-content: center;
-        background-color: rgb(25 24 24 / 52%);
+        background-color: #493d3f;
         font-size: 12.5px;
         display: inline-block;
         color: white;
         padding: 6px;
         font-weight: 600;
+    }
+
+    .stageDiv {
+        min-width: 60%;
+        border-radius: 6px;
+        align-content: center;
+        background-color: rgb(25 24 24 / 35%);
+        font-size: 12px;
+        display: inline-block;
+        color: white;
+        padding: 5px 8px;
+        font-weight: 600;
+        margin-top: 4px;
     }
 
     .centerPhaseLabel {
@@ -26,17 +39,51 @@
         align-content: center;
         display: flex;
     }
+
+    .dateDiv {
+        flex: 1 1 0%;
+        min-width: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .fatherDateDivAlign {
+        display: flex;
+        justify-content: space-around;
+        align-items: flex-start;
+        align-content: center;
+        width: 100%;
+        gap: 5px;
+    }
+
+    .adjustTextCalendar {
+        white-space: nowrap;
+    }
 </style>
+
+{{-- aqui esta el dedeo --}}
+{{-- @dump($milestone) --}}
+
 <div class="card 
         {{ empty($milestone['assined_to_user']) ? 'notAsignedMilestone' : '' }} 
         {{ !empty($milestone['is_waiting']) && $milestone['is_waiting'] == 1 ? 'waitingMilestone' : '' }}
         {{ $extraClass ?? '' }}"
     id="{{ $milestone['id'] }}" data-status="{{ $status->id }}" data-project-id="{{ $milestone['project_id'] }}"
     data-project-name="{{ $milestone['project_name'] ?? '' }}"
+    data-project-type="{{ strtolower($milestone['project_type'] ?? '') }}"
+    data-project-type-label="{{ __($milestone['project_type'] ?? '') }}"
     data-assign-to="{{ $milestone['asiggned_user_data']->id ?? '' }}" data-is-waiting="{{ $milestone['is_waiting'] }}"
-    data-milestone-title="{{ $milestone['title'] }}" style="{{ $inlineStyle ?? '' }}"
-    data-created-by="{{ $milestone['created_by'] ?? '' }}" data-requested-by="{{ $milestone['assign_to'] ?? '' }}"
+    data-priority="{{ strtolower($milestone['priority'] ?? '') }}" data-milestone-title="{{ $milestone['title'] }}"
+    style="{{ $inlineStyle ?? '' }}" data-created-by="{{ $milestone['created_by'] ?? '' }}"
+    data-requested-by="{{ $milestone['assign_to'] ?? '' }}"
+    data-requested-by-name="{{ $milestone['sales']->name ?? '' }}"
+    data-assign-to-name="{{ $milestone['asiggned_user_data']->name ?? '' }}"
     data-has-my-tasks="{{ $milestone['has_my_tasks'] ?? 0 }}"
+    data-desired-delivery-date="{{ $milestone['end_date'] ?? '' }}"
+    data-planned-delivery-date="{{ $milestone['planned_end_date'] ?? '' }}"
+    data-completed-date="{{ $milestone['finalization_date'] ?? '' }}"
+    data-workspace-name="{{ $milestone['workspace_name'] ?? '' }}"
     data-workspace-slug="{{ $milestone['workspace_slug'] ?? $currentWorkspace->slug }}">
 
 
@@ -53,13 +100,20 @@
                     {{ $milestone['title'] }}
                 </b>
 
-                {{-- Mostrar Phase si es proyecto tipo 3 --}}
-                @if ($milestone['project_type_id'] == 3 && !empty($milestone['phases']))
+                {{-- Mostrar Phase si es proyecto tipo 3 o 5 --}}
+                @if (in_array((int) $milestone['project_type_id'], [3, 5], true) && !empty($milestone['phases']))
                     <div class="centerPhaseLabel" style="margin-top: 5px;">
                         @foreach ($milestone['phases'] as $phase)
-                            <span class="phasesDiv">{{ $phase }}</span>
+                            <span
+                                class="phasesDiv">{{ __(\App\Models\MilestonePhases::translationKey($phase)) }}</span>
                         @endforeach
                     </div>
+
+                    @if (!empty($milestone['stage']))
+                        <div class="centerPhaseLabel">
+                            <span class="stageDiv">{{ $milestone['stage'] }}</span>
+                        </div>
+                    @endif
                 @endif
             </div>
 
@@ -77,10 +131,13 @@
                              avatar="{{ $milestone['sales']->name }}" @endif>
 
                     {{-- Avatar del usuario asignado --}}
-                    @if (isset($milestone['asiggned_user_data']) && $milestone['asiggned_user_data']->avatar)
-                        <img alt="image" class="user-groupTasks tooltipCus" style="margin-top:-10px;"
-                            src="{{ asset($milestone['asiggned_user_data']->avatar) }}"
-                            title="{{ __('Assigned to') }} {{ $milestone['asiggned_user_data']->name }}">
+                    @if (isset($milestone['asiggned_user_data']))
+                        <img alt="image" class="user-groupTasks tooltipCus"
+                            title="{{ __('Assigned to') }} {{ $milestone['asiggned_user_data']->name }}"
+                            style="margin-top:-10px;"
+                            @if ($milestone['asiggned_user_data']->avatar) src="{{ asset($milestone['asiggned_user_data']->avatar) }}"
+                             @else
+                                 avatar="{{ $milestone['asiggned_user_data']->name }}" @endif>
                     @endif
                 </a>
             </div>
@@ -136,17 +193,32 @@
                             </a>
 
                             {{-- Crear Task --}}
-                            <a href="#" class="dropdown-item" data-ajax-popup="true"
-                                data-title="{{ __('Add Task') }}"
-                                data-url="{{ route('tasks.create', [
-                                    $currentWorkspace->slug,
-                                    'project_id' => $milestone['project_id'],
-                                    'milestoneTitle' => $milestone['title'],
-                                    'milestone_id' => $milestone['id'],
-                                ]) }}">
-                                <i class="fas fa-tasks"></i>
-                                {{ __('Add Task') }}
-                            </a>
+                            @if ($status->id != 1)
+                                @php
+                                    $isMyMilestoneBoardUrl = strpos(request()->url(), 'my-milestone-board') !== false;
+                                    $taskCreateRoute = $isMyMilestoneBoardUrl
+                                        ? route('my_milestone.tasks.create', $currentWorkspace->slug)
+                                        : route('tasks.create', $currentWorkspace->slug);
+
+                                    // Agregar parámetros a la ruta
+                                    $taskCreateRoute .=
+                                        '?project_id=' .
+                                        $milestone['project_id'] .
+                                        '&projectName=' .
+                                        urlencode($milestone['project_name'] ?? '') .
+                                        '&milestoneTitle=' .
+                                        urlencode($milestone['title']) .
+                                        '&milestone_id=' .
+                                        $milestone['id'] .
+                                        '&fromMyMilestoneBoard=' .
+                                        ($isMyMilestoneBoardUrl ? 1 : 0);
+                                @endphp
+                                <a href="#" class="dropdown-item" data-ajax-popup="true"
+                                    data-title="{{ __('Add Task') }}" data-url="{{ $taskCreateRoute }}">
+                                    <i class="fas fa-tasks"></i>
+                                    {{ __('Add Task') }}
+                                </a>
+                            @endif
 
                             {{-- Pausar --}}
                             <a href="#" class="dropdown-item"
@@ -257,35 +329,105 @@
                             </div>
                         </div>
 
-                        {{-- Fecha deseada --}}
-                        <div class="col-6 text-center tooltipCus" data-title="{{ __('Desired delivery date') }}">
+                        {{-- finalization_date (fecha finalización) --}}
+                        {{-- planned_end_date (fecha prevista) --}}
 
-                            @php
-                                if ($milestone['finalization_date'] == null) {
-                                    $currentDate = new DateTime();
-                                    $estimatedDate = new DateTime($milestone['end_date']);
-                                    $isOverdue = $currentDate > $estimatedDate;
-                                } else {
-                                    $estimatedDate = new DateTime($milestone['end_date']);
-                                    $finalDate = new DateTime($milestone['finalization_date']);
-                                    $isOverdue = $finalDate > $estimatedDate;
-                                }
-                                $statusNumber = (int) $status->id;
+                        <div class="fatherDateDivAlign">
+                            {{-- Fecha deseada --}}
+                            <div class="dateDiv text-center tooltipCus"
+                                data-title="{{ __('Desired delivery date') }}">
 
-                                if ($statusNumber <= 2) {
-                                    $iconColor = $isOverdue ? '#db8d33' : 'black';
-                                } else {
-                                    $iconColor = $isOverdue ? 'red' : '#53b446';
-                                }
-                            @endphp
+                                @php
+                                    if ($milestone['finalization_date'] == null) {
+                                        $currentDate = new DateTime();
+                                        $estimatedDate = new DateTime($milestone['end_date']);
+                                        $isOverdue = $currentDate > $estimatedDate;
+                                    } else {
+                                        $estimatedDate = new DateTime($milestone['end_date']);
+                                        $finalDate = new DateTime($milestone['finalization_date']);
+                                        $isOverdue = $finalDate > $estimatedDate;
+                                    }
+                                    $statusNumber = (int) $status->id;
 
-                            <i class="fa-solid fa-calendar-check fa-2xl m-1 calendarAlert"
-                                style="color:{{ $iconColor }};"></i>
+                                    if ($statusNumber <= 2) {
+                                        $iconColor = $isOverdue ? '#db8d33' : 'black';
+                                    } else {
+                                        $iconColor = $isOverdue ? 'red' : '#53b446';
+                                    }
+                                @endphp
 
-                            <div class="adjustTextCalendar">
-                                <b style="font-size:12px;">
-                                    {{ \App\Models\Utility::dateFormat($milestone['end_date']) }}
-                                </b>
+                                <i class="fa-solid fa-calendar-check fa-2xl m-1 calendarAlert"
+                                    style="color:{{ $iconColor }};"></i>
+
+                                <div class="adjustTextCalendar">
+                                    <b style="font-size:12px;">
+                                        {{ \App\Models\Utility::dateFormat($milestone['end_date']) }}
+                                    </b>
+                                </div>
+                            </div>
+                            {{-- Fecha prevista --}}
+                            <div class="dateDiv text-center tooltipCus"
+                                data-title="{{ __('Planned delivery date') }}">
+                                @if ($milestone['planned_end_date'] != null && $milestone['planned_end_date'] != '0000-00-00')
+                                    @php
+                                        if ($milestone['finalization_date'] == null) {
+                                            $currentDate = new DateTime();
+                                            $estimatedDate = new DateTime($milestone['planned_end_date']);
+                                            $isOverdue = $currentDate > $estimatedDate;
+                                        } else {
+                                            $estimatedDate = new DateTime($milestone['planned_end_date']);
+                                            $finalDate = new DateTime($milestone['finalization_date']);
+                                            $isOverdue = $finalDate > $estimatedDate;
+                                        }
+                                        $statusNumber = (int) $status->id;
+
+                                        if ($statusNumber <= 2) {
+                                            $iconColor = $isOverdue ? '#db8d33' : 'black';
+                                        } else {
+                                            $iconColor = $isOverdue ? 'red' : '#53b446';
+                                        }
+                                    @endphp
+
+                                    <i class="fa-solid fa-calendar-check fa-2xl m-1 calendarAlert"
+                                        style="color:{{ $iconColor }};"></i>
+
+                                    <div class="adjustTextCalendar">
+                                        <b style="font-size:12px;">
+                                            {{ \App\Models\Utility::dateFormat($milestone['planned_end_date']) }}
+                                        </b>
+                                    </div>
+                                @else
+                                    <i class="fa-solid fa-calendar-check fa-2xl m-1 calendarAlert"
+                                        style="color:lightgrey"></i>
+                                @endif
+                            </div>
+                            {{-- Fecha completada --}}
+                            <div class="dateDiv text-center tooltipCus" data-title="{{ __('Completed date') }}">
+                                @if ($milestone['finalization_date'] != null && $milestone['finalization_date'] != '0000-00-00')
+                                    @php
+                                        $estimatedDate = new DateTime($milestone['planned_end_date']);
+                                        $requestedDate = new DateTime($milestone['end_date']);
+                                        $completedDate = new DateTime($milestone['finalization_date']);
+
+                                        if ($estimatedDate < $completedDate && $requestedDate < $completedDate) {
+                                            $iconColor = $isOverdue ? '#db8d33' : 'black';
+                                        } else {
+                                            $iconColor = $isOverdue ? 'red' : '#53b446';
+                                        }
+                                    @endphp
+
+                                    <i class="fa-solid fa-calendar-check fa-2xl m-1 calendarAlert"
+                                        style="color:{{ $iconColor }};"></i>
+
+                                    <div class="adjustTextCalendar">
+                                        <b style="font-size:12px;">
+                                            {{ \App\Models\Utility::dateFormat($milestone['finalization_date']) }}
+                                        </b>
+                                    </div>
+                                @else
+                                    <i class="fa-solid fa-calendar-check fa-2xl m-1 calendarAlert"
+                                        style="color:lightgrey"></i>
+                                @endif
                             </div>
                         </div>
                     </div>
@@ -364,7 +506,8 @@
                 </div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-dismiss="modal">{{ __('Cancel') }}</button>
+                <button type="button" class="btn btn-secondary"
+                    data-bs-dismiss="modal">{{ __('Cancel') }}</button>
                 <button type="button" class="btn btn-primary"
                     onclick="submitPauseMilestone()">{{ __('Pause') }}</button>
             </div>

@@ -45,6 +45,15 @@
     .dropzone.dragover .dz-message {
         opacity: 0.5;
     }
+
+    .fixingRowMargin {
+        margin-right: 0 !important;
+        padding-right: 0 !important;
+    }
+
+    .paddingRight0 {
+        padding-right: 0 !important;
+    }
 </style>
 
 @if ($milestone && $currentWorkspace)
@@ -54,28 +63,42 @@
         <div class="modal-body">
             <!-- Información general del hito -->
             <div class="row">
-                <div class="col-md-12">
-                    <div class="form-group">
+                <div class="@if($project && in_array((int) $project->type, [3, 5], true)) fixingRowMargin row @else col-md-12 @endif">
+                    <div class=" @if($project && in_array((int) $project->type, [3, 5], true)) paddingRight0 col-md-6 @endif">
                         <label for="milestone-title" class="col-form-label">{{ __('Milestone Title') }}</label>
                         <input type="text" class="form-control form-control-light" id="milestone-title"
                             placeholder="{{ __('Enter Title') }}" value="{{ $milestone->title }}" name="title"
                             required>
                     </div>
+                    @if ($project && in_array((int) $project->type, [3, 5], true))
+                        <div class="paddingRight0 col-md-6">
+                            <label for="phase" class="col-form-label">{{ __('Stage') }}</label>
+                            <select class="form-control form-control-light" id="phase" name="phase">
+                                <option value="">{{ __('Select a stage') }}</option>
+                                @foreach ($phases as $phase)
+                                    <option value="{{ $phase }}"
+                                        {{ trim((string) $currentPhase) === trim((string) $phase) ? 'selected' : '' }}>
+                                        {{ $phase }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+                    @endif
                 </div>
-                <div class="row">
-                    <div class="form-group col-md-6">
+                <div class="fixingRowMargin row">
+                    <div class="paddingRight0  col-md-6">
                         <label for="start_date" class="col-form-label">{{ __('Created date') }}</label>
                         <input type="date" class="form-control form-control-light date" id="start_date"
                             name="start_date" value="{{ $milestone->start_date }}" disabled>
                     </div>
-                    <div class="form-group col-md-6">
+                    <div class="paddingRight0  col-md-6">
                         <label for="end_date" class="col-form-label">{{ __('Desired delivery date') }}</label>
                         <input onclick="this.showPicker()" type="date" class="form-control form-control-light date"
                             id="end_date" name="end_date" value="{{ $milestone->end_date }}" required>
                     </div>
                 </div>
-                <div class="row">
-                    <div class="form-group col-md-6">
+                <div class="fixingRowMargin row">
+                    <div class=" paddingRight0  col-md-6">
                         <label for="priority" class="col-form-label">{{ __('Priority') }}</label>
                         <select class="form-control form-control-light" id="priority" name="priority">
                             <option value="">{{ __('Not defined') }}</option>
@@ -88,16 +111,18 @@
                         </select>
                     </div>
 
-                    {{-- Phase field para proyectos tipo 3 --}}
-                    @if ($project && $project->type == 3)
-                        <div class="form-group col-md-6">
-                            <label for="phase" class="col-form-label">{{ __('Phase') }}</label>
-                            <select class="form-control form-control-light" id="phase" name="phase">
+
+
+                    {{-- Phase field para proyectos tipo 3 y 5 --}}
+                    @if ($project && in_array((int) $project->type, [3, 5], true))
+                        <div class="paddingRight0  col-md-6">
+                            <label for="stage" class="col-form-label">{{ __('Phase') }}</label>
+                            <select class="form-control form-control-light" id="stage" name="stage">
                                 <option value="">{{ __('Select a phase') }}</option>
-                                @foreach ($phases as $phase)
-                                    <option value="{{ $phase }}"
-                                        {{ $currentPhase === $phase ? 'selected' : '' }}>
-                                        {{ $phase }}
+                                @foreach ($stagesProject as $stageName)
+                                    <option value="{{ $stageName }}"
+                                        {{ trim((string) $currentStage) === trim((string) $stageName) ? 'selected' : '' }}>
+                                        {{ $stageName }}
                                     </option>
                                 @endforeach
                             </select>
@@ -108,13 +133,13 @@
                 <input type="hidden" name="assign_to" value="{{ $milestone->assign_to }}">
                 <input type="hidden" name="milestone_assigned_to_user"
                     value="{{ $milestone->milestone_assigned_to_user }}">
-                <div class="form-group col-md-12">
+                <div class=" col-md-12">
                     <label for="task-summary" class="col-form-label">{{ __('Description') }}</label>
                     <textarea class="form-control form-control-light" id="task-summary" rows="3" name="summary">{{ $milestone->summary }}</textarea>
                 </div>
             </div>
             <!-- Archivos adjuntos existentes -->
-            <div class="form-group col-md-12">
+            <div class=" col-md-12">
                 <label class="form-label">
                     <strong>{{ __('Upload files') }}</strong>
                 </label>
@@ -143,10 +168,12 @@
                             @endphp
                             <div class="fileMilestoneEdit exist d-flex align-items-center mt-2 custom-file"
                                 data-file-id="{{ $file->id }}">
-                                <img src="{{ asset($iconPath) }}" alt="{{ $extension }} icon"
-                                    style="width: 20px; height: 25px;">
-                                <div class="file-name ms-2">{{ $file->name }} <small
-                                        class="text-muted">({{ $file->file_size }})</small></div>
+                                <div class="d-flex align-items-center flex-grow-1" style="cursor: pointer;"
+                                    onclick="previewFile({{ $milestone->project_id }}, '{{ $milestone->title }}', '{{ $file->file }}', '{{ $extension }}')">
+                                    <img src="{{ asset($iconPath) }}" alt="{{ $extension }} icon"
+                                        style="width: 20px; height: 25px;">
+                                    <div class="file-name ms-2">{{ $file->name }} </div>
+                                </div>
                                 <a class="buttonFiles btn btn-sm"
                                     onclick="deleteFile({{ $milestone->project_id }}, '{{ $milestone->id }}', '{{ $file->id }}')">
                                     <i class="fa-solid fa-trash-alt"
@@ -541,6 +568,7 @@
         document.addEventListener('DOMContentLoaded', function() {
             const form = document.querySelector('form[method="post"]');
             if (form) {
+                const submitButton = form.querySelector('input[type="submit"], button[type="submit"]');
                 // Usar propiedad del formulario para evitar conflictos globales
                 form._isSubmitting = false;
 
@@ -553,6 +581,9 @@
                     // SIEMPRE prevenir submit tradicional y usar AJAX
                     e.preventDefault();
                     form._isSubmitting = true;
+                    if (submitButton) {
+                        submitButton.disabled = true;
+                    }
 
                     const hasFiles = filesArrayMilestone && filesArrayMilestone.length > 0;
                     const formData = new FormData(this);
@@ -601,12 +632,18 @@
                             } else {
                                 showToast('Error al guardar cambios', 'danger');
                                 form._isSubmitting = false;
+                                if (submitButton) {
+                                    submitButton.disabled = false;
+                                }
                             }
                         })
                         .catch(error => {
                             console.error('Error:', error);
                             showToast('Error al enviar formulario', 'danger');
                             form._isSubmitting = false;
+                            if (submitButton) {
+                                submitButton.disabled = false;
+                            }
                         });
                 });
             }

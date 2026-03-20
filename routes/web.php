@@ -11,6 +11,7 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\SettingsController;
 use App\Http\Controllers\StripePaymentController;
 use App\Http\Controllers\ProjectController;
+use App\Http\Controllers\ViewerController;
 use App\Http\Controllers\WorkspaceController;
 use App\Http\Controllers\Auth\RegisteredUserController;
 use App\Http\Controllers\Auth\VerifyEmailController;
@@ -618,6 +619,7 @@ Route::get('/projects/{slug}/search-project/{search?}', [ProjectController::clas
 Route::get('/projects/{slug}/search-sales/{search?}', [ProjectController::class, 'getSalesJson'])->name('search-sales-json')->middleware(['auth', 'XSS']);
 //My projects
 Route::get('/projects/myProjects', [ProjectController::class, 'getAllParticipatingProjects'])->name('my_projects')->middleware(['auth', 'XSS']);
+Route::get('/projects/my-summary', [ProjectController::class, 'mySummary'])->name('my_summary')->middleware(['auth', 'XSS']);
 
 // Route::get('/search-mo/{search?}', [ProjectController::class, 'getMoJson'])->name('search-mo-json');
 Route::get('/{slug}/projects', [ProjectController::class, 'index'])->name('projects.index')->middleware(['auth', 'XSS']);
@@ -648,6 +650,10 @@ Route::delete('/{slug}/projects/{id}/client/{uid}', [ProjectController::class, '
 Route::post('/{slug}/projects/share/{id}', [ProjectController::class, 'share'])->name('projects.share')->middleware(['auth', 'XSS']);
 Route::post('/{slug}/projects/invite/{id}/update', [ProjectController::class, 'invite'])->name('projects.invite.update')->middleware(['auth', 'XSS']);
 Route::get('/{slug}/projects/milestone/{id}', [ProjectController::class, 'milestone'])->name('projects.milestone')->middleware(['auth', 'XSS']);
+Route::get('/{slug}/projects/{id}/stages-popup', [ProjectController::class, 'stagesPopup'])->name('projects.stages.popup')->middleware(['auth', 'XSS']);
+Route::post('/{slug}/projects/{id}/stages', [ProjectController::class, 'stagesStore'])->name('projects.stages.store')->middleware(['auth', 'XSS']);
+Route::post('/{slug}/projects/{id}/stages/{stageId}/update', [ProjectController::class, 'stagesUpdate'])->name('projects.stages.update')->middleware(['auth', 'XSS']);
+Route::delete('/{slug}/projects/{id}/stages/{stageId}', [ProjectController::class, 'stagesDestroy'])->name('projects.stages.destroy')->middleware(['auth', 'XSS']);
 Route::post('/{slug}/projects/milestone/{id}/store', [ProjectController::class, 'milestoneStore'])->name('projects.milestone.store')->middleware(['auth', 'XSS']);
 Route::get('/{slug}/projects/milestone/{id}/show', [ProjectController::class, 'milestoneShow'])->name('projects.milestone.show')->middleware(['auth', 'XSS']);
 Route::get('/{slug}/projects/milestone/{id}/edit', [ProjectController::class, 'milestoneEdit'])->name('projects.milestone.edit')->middleware(['auth', 'XSS']);
@@ -710,6 +716,7 @@ Route::get('/{slug}/timesheet', [ProjectController::class, 'timesheet'])->name('
 // Route::get('/{slug}/timesheet/{id}', [ProjectController::class, 'timesheet'])->name('timesheet.index')->middleware(['auth', 'XSS']);
 Route::get('/{slug}/timesheet/create', [ProjectController::class, 'timesheetCreate'])->name('timesheet.create')->middleware(['auth', 'XSS']);
 Route::post('/{slug}/timesheet/store', [ProjectController::class, 'timesheetStore'])->name('timesheet.store')->middleware(['auth', 'XSS']);
+Route::post('/{slug}/timesheet/check-holiday-date', [ProjectController::class, 'checkHolidayDate'])->name('timesheet.check.holiday')->middleware(['auth', 'XSS']);
 // Route::get('/{slug}/timesheet/{id}/edit', [ProjectController::class, 'timesheetEdit'])->name('timesheet.edit')->middleware(['auth', 'XSS']);
 Route::post('/{slug}/timesheet/{id}/update', [ProjectController::class, 'timesheetUpdate'])->name('timesheet.update')->middleware(['auth', 'XSS']);
 Route::delete('/{slug}/timesheet/{id}', [ProjectController::class, 'timesheetDestroy'])->name('timesheet.destroy')->middleware(['auth', 'XSS']);
@@ -1038,6 +1045,7 @@ Route::get('/get-tasks-by-date', [CalenderController::class, 'getTasksByDate'])-
 
 //Download project files
 Route::post('/projects/download-file', [ProjectController::class, 'downloadFile'])->name('project.downloadFile');
+Route::post('/projects/archive-list', [ViewerController::class, 'getArchiveFiles'])->name('project.archiveList');
 //Delete project files
 Route::delete('/projects/delete-file', [ProjectController::class, 'deleteFile'])->name('project.deleteFile');
 Route::get('/home/tutorial/{slug}', [HomeController::class, 'showTutorial'])->name('home.showTutorial');
@@ -1056,3 +1064,10 @@ Route::post('/{slug}/milestone/{id}/review', [ProjectController::class, 'milesto
 //DELETE MILESTONE PUNTUATION
 Route::post('/{slug}/milestone/{id}/delete-puntuaciones', [ProjectController::class, 'deletePuntuaciones'])
   ->name('projects.milestone.deletePuntuaciones');
+
+//EXPORT PROJECTS TO AXAPTA
+Route::post('/projects/export-axapta', [ProjectController::class, 'exportProjectsToAxapta'])
+  ->name('projects.export.axapta');
+
+//MY TASKS VIEW
+Route::get('/my-tasks', [ProjectController::class, 'myTasks'])->name('projects.my_tasks');

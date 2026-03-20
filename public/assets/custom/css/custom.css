@@ -822,6 +822,7 @@ span.invite-warning {
     align-items: center;
     justify-content: center;
     float: left;
+    padding:5px;
 }
 
 .timeline-one-side .timeline-block span.timeline-step i {
