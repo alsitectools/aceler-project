@@ -548,6 +548,95 @@
             return parsedHours > 0 || parsedMinutes > 0;
         }
 
+        function parseIsoDateToUtc(dateValue) {
+            return new Date(`${dateValue}T00:00:00Z`);
+        }
+
+        function formatUtcDateToIso(dateObj) {
+            return dateObj.toISOString().split('T')[0];
+        }
+
+        function resolveCalendarRange(colorData, specialColorData) {
+            const today = new Date();
+            const todayUtc = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate()));
+            const dates = [];
+
+            if (Array.isArray(colorData)) {
+                colorData.forEach((item) => {
+                    if (item?.date) {
+                        dates.push(item.date);
+                    }
+                });
+            }
+
+            if (Array.isArray(specialColorData?.holidayRange)) {
+                specialColorData.holidayRange.forEach((date) => {
+                    if (date) {
+                        dates.push(date);
+                    }
+                });
+            }
+
+            if (specialColorData?.intensiveWorkRange && typeof specialColorData.intensiveWorkRange === 'object') {
+                Object.values(specialColorData.intensiveWorkRange).forEach((rangeDates) => {
+                    if (!Array.isArray(rangeDates)) {
+                        return;
+                    }
+
+                    rangeDates.forEach((date) => {
+                        if (date) {
+                            dates.push(date);
+                        }
+                    });
+                });
+            }
+
+            if (!dates.length) {
+                const firstDay = new Date(Date.UTC(todayUtc.getUTCFullYear(), todayUtc.getUTCMonth(), 1));
+                const lastDay = new Date(Date.UTC(todayUtc.getUTCFullYear(), todayUtc.getUTCMonth() + 1, 0));
+                return {
+                    minDate: formatUtcDateToIso(firstDay),
+                    maxDate: formatUtcDateToIso(lastDay)
+                };
+            }
+
+            const sortedDates = [...dates].sort();
+            return {
+                minDate: sortedDates[0],
+                maxDate: sortedDates[sortedDates.length - 1]
+            };
+        }
+
+        function buildZeroHourColorData(expectedHours, minDate, maxDate) {
+            if (!expectedHours || !minDate || !maxDate) {
+                return [];
+            }
+
+            const startDate = parseIsoDateToUtc(minDate);
+            const endDate = parseIsoDateToUtc(maxDate);
+            const generatedData = [];
+
+            for (let date = new Date(startDate); date <= endDate; date.setUTCDate(date.getUTCDate() + 1)) {
+                const dayOfWeek = date.toLocaleDateString('en-US', {
+                    weekday: 'long',
+                    timeZone: 'UTC'
+                }).toLowerCase();
+
+                if (expectedHours[dayOfWeek] === null || expectedHours[dayOfWeek] === undefined) {
+                    continue;
+                }
+
+                generatedData.push({
+                    dayOfWeek: dayOfWeek.charAt(0).toUpperCase() + dayOfWeek.slice(1),
+                    date: formatUtcDateToIso(date),
+                    hours: '00:00',
+                    color: '#e06c71'
+                });
+            }
+
+            return generatedData;
+        }
+
         function getCalendarInfo() {
             const operationUrl = '<?php echo url('get-timesheetCalendar'); ?>';
             const mode = $('#workspace-select').val() || 'current';
@@ -567,6 +656,10 @@
 
                     const opacity = 0.4;
                     let allEvents = [];
+                    const expectedHours = data?.expectedHours && typeof data.expectedHours === 'object' ? data
+                        .expectedHours : null;
+                    const sourceColorData = Array.isArray(data?.colorData) ? data.colorData : [];
+
                     specialDaysState = {
                         holidayRange: data?.specialColorData?.holidayRange && Array.isArray(data.specialColorData
                             .holidayRange) ? [...data.specialColorData.holidayRange] : [],
@@ -576,34 +669,28 @@
                             } : {}
                     };
 
-                    imputedDatesState = new Set(Array.isArray(data?.colorData) ? data.colorData
+                    const calendarRange = resolveCalendarRange(sourceColorData, specialDaysState);
+                    const effectiveColorData = sourceColorData.length ? sourceColorData : buildZeroHourColorData(
+                        expectedHours,
+                        calendarRange.minDate,
+                        calendarRange.maxDate
+                    );
+
+                    imputedDatesState = new Set(Array.isArray(effectiveColorData) ? effectiveColorData
                         .filter(item => hasImputedHours(item.hours))
                         .map(item => item.date) : []);
 
-                    if (data && data.colorData && Array.isArray(data.colorData) && data.expectedHours) {
-                        const nonWorkingDays = Object.keys(data.expectedHours).filter(day => data.expectedHours[
+                    if (expectedHours) {
+                        const nonWorkingDays = Object.keys(expectedHours).filter(day => expectedHours[
                             day] === null);
 
                         const nonWorkingEvents = [];
                         const nonWorkingDateValues = [];
 
-                        // Determinar el rango de fechas a partir de colorData
-                        let minDate = null;
-                        let maxDate = null;
-
-                        data.colorData.forEach(item => {
-                            if (!minDate || item.date < minDate) {
-                                minDate = item.date;
-                            }
-                            if (!maxDate || item.date > maxDate) {
-                                maxDate = item.date;
-                            }
-                        });
-
-                        // Si hay colorData, generar non-working days para ese rango
-                        if (minDate && maxDate) {
-                            const startDate = new Date(minDate + 'T00:00:00Z');
-                            const endDate = new Date(maxDate + 'T00:00:00Z');
+                        // Generar non-working days en el rango efectivo del calendario.
+                        if (calendarRange.minDate && calendarRange.maxDate) {
+                            const startDate = parseIsoDateToUtc(calendarRange.minDate);
+                            const endDate = parseIsoDateToUtc(calendarRange.maxDate);
 
                             for (let date = new Date(startDate); date <= endDate; date.setUTCDate(date
                                     .getUTCDate() + 1)) {
@@ -612,7 +699,7 @@
                                     timeZone: 'UTC'
                                 }).toLowerCase();
                                 if (nonWorkingDays.includes(dayOfWeek)) {
-                                    const nonWorkingDate = date.toISOString().split('T')[0];
+                                    const nonWorkingDate = formatUtcDateToIso(date);
                                     nonWorkingDateValues.push(nonWorkingDate);
                                     nonWorkingEvents.push({
                                         title: '{{ __('Non-working day') }}',
@@ -626,7 +713,7 @@
                             }
                         }
 
-                        let events = data.colorData
+                        let events = effectiveColorData
                             .filter(item => {
                                 if (data.specialColorData?.holidayRange && Array.isArray(data
                                         .specialColorData.holidayRange) && data.specialColorData

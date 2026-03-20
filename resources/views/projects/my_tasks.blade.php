@@ -650,6 +650,10 @@
             min-height: 320px;
         }
 
+        .my-tasks-chart-wrap canvas.is-interactive {
+            cursor: pointer;
+        }
+
         .my-tasks-visual-header {
             display: flex;
             justify-content: space-between;
@@ -1619,7 +1623,7 @@
                     data: {
                         task_id: taskId,
                         date: date,
-                        from_my_tasks: mode === 'create' ? 1 : 0,
+                        from_my_tasks: 1,
                     },
                     success: function(html) {
                         $modal.find('.body').html(html);
@@ -1904,11 +1908,13 @@
 
                 if (!labels.length) {
                     chartCanvas.style.display = 'none';
+                    chartCanvas.classList.remove('is-interactive');
                     chartEmptyState.classList.add('is-visible');
                     return;
                 }
 
                 chartCanvas.style.display = 'block';
+                chartCanvas.classList.remove('is-interactive');
                 chartEmptyState.classList.remove('is-visible');
 
                 const ctx = chartCanvas.getContext('2d');
@@ -1938,6 +1944,10 @@
                         indexAxis: 'x',
                         maintainAspectRatio: false,
                         responsive: true,
+                        onHover: function(event, elements) {
+                            const hasActiveBar = Array.isArray(elements) && elements.length > 0;
+                            chartCanvas.classList.toggle('is-interactive', hasActiveBar);
+                        },
                         onClick: function(event, elements) {
                             if (!elements || !elements.length) {
                                 return;

@@ -3068,50 +3068,154 @@ class ProjectController extends Controller
         $objUser = Auth::user();
         $currentWorkspace = Utility::getWorkspaceBySlug($slug);
 
-        // if ($objUser->getGuard() == 'client') {
-        //     $project = Project::select('projects.*')
-        //         ->where('projects.workspace', '=', $currentWorkspace->id)
-        //         ->where('projects.id', '=', $projectID)->first();
-        //     $projects = Project::select('projects.*')->join('client_projects', 'client_projects.project_id', '=', 'projects.id')
-        //         ->where('client_projects.client_id', '=', $objUser->id)
-        //         ->where('projects.workspace', '=', $currentWorkspace->id)->get();
-        // } else {
-        $project = Project::select('projects.*')->join('user_projects', 'user_projects.project_id', '=', 'projects.id')
+        if (!$currentWorkspace) {
+            abort(404);
+        }
+
+        $task = Task::find($taskId);
+
+        if (!$task || (int) $task->project_id !== (int) $projectID) {
+            abort(404);
+        }
+
+        $assignedUserIds = collect(explode(',', (string) $task->assign_to))
+            ->map(function ($value) {
+                return (int) trim($value);
+            })
+            ->filter()
+            ->values();
+
+        $project = Project::with('milestones')
+            ->where('workspace', '=', $currentWorkspace->id)
+            ->where('id', '=', $projectID)
+            ->first();
+
+        if (!$project) {
+            abort(404);
+        }
+
+        $hasProjectAccess = UserProject::where('project_id', $projectID)
+            ->where('user_id', $objUser->id)
+            ->exists();
+
+        $isTaskAssignee = $assignedUserIds->contains((int) $objUser->id);
+
+        if (!$hasProjectAccess && !$isTaskAssignee) {
+            abort(403);
+        }
+
+        $projects = Project::select('projects.*')
+            ->join('user_projects', 'user_projects.project_id', '=', 'projects.id')
             ->where('user_projects.user_id', '=', $objUser->id)
             ->where('projects.workspace', '=', $currentWorkspace->id)
-            ->where('projects.id', '=', $projectID)->first();
-        $projects = Project::select('projects.*')->join('user_projects', 'user_projects.project_id', '=', 'projects.id')
-            ->where('user_projects.user_id', '=', $objUser->id)
-            ->where('projects.workspace', '=', $currentWorkspace->id)->get();
-        // }
-        $users = User::select('users.*')->join('user_projects', 'user_projects.user_id', '=', 'users.id')->where('project_id', '=', $projectID)->get();
-        $task = Task::find($taskId);
-        $task->assign_to = explode(",", $task->assign_to);
+            ->get();
 
-        return view('projects.taskEdit', compact('currentWorkspace', 'project', 'projects', 'users', 'task'));
+        if (!$projects->contains('id', $project->id)) {
+            $projects->push($project);
+        }
+
+        $users = User::select('users.*')
+            ->join('user_projects', 'user_projects.user_id', '=', 'users.id')
+            ->where('project_id', '=', $projectID)
+            ->distinct()
+            ->get();
+
+        if ($assignedUserIds->isNotEmpty()) {
+            $assignedUsers = User::whereIn('id', $assignedUserIds->all())->get();
+            $users = $users->merge($assignedUsers)->unique('id')->values();
+        }
+
+        $taskType = TaskType::select('id', 'name', 'project_type')->get()->map(function ($taskTypeItem) {
+            return [
+                'id' => $taskTypeItem->id,
+                'project_type' => $taskTypeItem->project_type,
+                'name' => __($taskTypeItem->name),
+            ];
+        });
+
+        $task->assign_to = $assignedUserIds->map(function ($id) {
+            return (string) $id;
+        })->all();
+
+        return view('projects.taskEdit', compact('currentWorkspace', 'project', 'projects', 'users', 'task', 'taskType'));
     }
 
     public function taskUpdate(Request $request, $slug, $projectID, $taskID)
     {
-
         $objUser = Auth::user();
         $currentWorkspace = Utility::getWorkspaceBySlug($slug);
 
-        $project = Project::select('projects.*')->join('user_projects', 'user_projects.project_id', '=', 'projects.id')
-            ->where('user_projects.user_id', '=', $objUser->id)
-            ->where('projects.workspace', '=', $currentWorkspace->id)
-            ->where('projects.id', '=', $request->project_id)->first();
+        if (!$currentWorkspace) {
+            return redirect()->back()->with('error', __('Workspace not found.'));
+        }
 
-        if ($project) {
-            $post = $request->all();
-            $post['assign_to'] = implode(",", $request->assign_to);
-            $task = Task::find($taskID);
-            $task->update($post);
+        $request->validate([
+            'project_id' => 'required|integer',
+            'milestone_id' => 'required',
+            'type_id' => 'required|integer',
+            'assign_to' => 'required|array|min:1',
+            'assign_to.*' => 'required|integer|exists:users,id',
+            'start_date' => 'nullable|date',
+            'estimated_date' => 'required|date',
+            'end_date' => 'nullable|date',
+            'custom_task_name' => 'nullable|string|max:255',
+        ]);
 
-            return redirect()->back()->with('success', __('Task Updated Successfully!'));
-        } else {
+        $task = Task::find($taskID);
+
+        if (!$task || (int) $task->project_id !== (int) $projectID) {
+            return redirect()->back()->with('error', __('Task not found.'));
+        }
+
+        $project = Project::where('workspace', '=', $currentWorkspace->id)
+            ->where('id', '=', $request->project_id)
+            ->first();
+
+        if (!$project) {
+            return redirect()->back()->with('error', __('Project not found.'));
+        }
+
+        $assignedUserIds = collect(explode(',', (string) $task->assign_to))
+            ->map(function ($value) {
+                return (int) trim($value);
+            })
+            ->filter();
+
+        $hasProjectAccess = UserProject::where('project_id', $projectID)
+            ->where('user_id', $objUser->id)
+            ->exists();
+
+        $isTaskAssignee = $assignedUserIds->contains((int) $objUser->id);
+
+        if (!$hasProjectAccess && !$isTaskAssignee) {
             return redirect()->back()->with('error', __("You can't Edit Task!"));
         }
+
+        $post = [
+            'project_id' => (int) $request->project_id,
+            'milestone_id' => $request->milestone_id,
+            'type_id' => (int) $request->type_id,
+            'assign_to' => implode(',', $request->assign_to),
+            'start_date' => $request->filled('start_date') ? Carbon::parse($request->start_date)->format('Y-m-d H:i:s') : null,
+            'estimated_date' => Carbon::parse($request->estimated_date)->format('Y-m-d H:i:s'),
+            'end_date' => $request->filled('end_date')
+                ? Carbon::parse($request->end_date)->format('Y-m-d H:i:s')
+                : Carbon::parse($request->estimated_date)->format('Y-m-d H:i:s'),
+        ];
+
+        $task->update($post);
+
+        $type = TaskType::find($request->type_id);
+        $isCustom = $type && strtolower(trim((string) $type->name)) === 'custom';
+
+        if ($isCustom && $request->filled('custom_task_name')) {
+            CustomTasks::updateOrCreate(
+                ['id_task' => $task->id],
+                ['name' => trim((string) $request->custom_task_name)]
+            );
+        }
+
+        return redirect()->back()->with('success', __('Task Updated Successfully!'));
     }
 
     public function taskDestroy($slug, $projectID, $taskID)
@@ -4457,7 +4561,7 @@ class ProjectController extends Controller
         $now = Carbon::now();
         $currentWorkspace = Workspace::find($user->currant_workspace);
 
-        $tasks = Task::with([
+        $tasksQuery = Task::with([
             'project:id,name,workspace,type',
             'milestone:id,title,project_id',
             'milestone.phase:id,id_milestone,phases',
@@ -4472,11 +4576,20 @@ class ProjectController extends Controller
                 $query->whereRaw("find_in_set(?, assign_to)", [(string) $user->id])
                     ->orWhere('assign_to', (string) $user->id);
             })
+            ->whereHas('milestone', function ($query) {
+                $query->whereNotIn('status', [3, 4]);
+            })
             ->orderByRaw("CASE WHEN projects.name IS NULL OR TRIM(projects.name) = '' THEN 1 ELSE 0 END")
             ->orderBy('projects.name')
             ->orderBy('tasks.estimated_date')
-            ->orderByDesc('tasks.id')
-            ->get();
+            ->orderByDesc('tasks.id');
+
+        $tasks = $tasksQuery->get();
+
+        $workspaceSlugsById = Workspace::whereIn(
+            'id',
+            $tasks->pluck('project.workspace')->filter()->unique()->values()->all()
+        )->pluck('slug', 'id');
 
         $latestTimesheetsByTask = Timesheet::query()
             ->select('id', 'task_id', 'project_id', 'date')
@@ -4490,21 +4603,23 @@ class ProjectController extends Controller
 
         $today = Carbon::today()->toDateString();
 
-        $tasks->transform(function ($task) use ($currentWorkspace, $latestTimesheetsByTask, $today) {
-            $editableTimesheet = $latestTimesheetsByTask->get($task->id);
-
+        $tasks->transform(function ($task) use ($workspaceSlugsById, $latestTimesheetsByTask, $today) {
             $task->timesheet_edit_url = null;
             $task->timesheet_edit_date = null;
             $task->timesheet_action_mode = null;
             $task->timesheet_action_title = null;
 
-            if (!$currentWorkspace || !$task->project_id) {
+            $workspaceId = optional($task->project)->workspace;
+            $workspaceSlug = $workspaceId ? $workspaceSlugsById->get($workspaceId) : null;
+            $editableTimesheet = $latestTimesheetsByTask->get($task->id);
+
+            if (!$workspaceSlug || !$task->project_id) {
                 return $task;
             }
 
             if ($editableTimesheet) {
                 $task->timesheet_edit_url = route('project.timesheet.edit', [
-                    'slug' => $currentWorkspace->slug,
+                    'slug' => $workspaceSlug,
                     'timesheet_id' => $editableTimesheet->id,
                     'project_id' => $editableTimesheet->project_id ?: $task->project_id,
                 ]);
@@ -4513,7 +4628,7 @@ class ProjectController extends Controller
                 $task->timesheet_action_title = __('Edit Timesheet');
             } else {
                 $task->timesheet_edit_url = route('project.timesheet.create', [
-                    'slug' => $currentWorkspace->slug,
+                    'slug' => $workspaceSlug,
                     'project_id' => $task->project_id,
                 ]);
                 $task->timesheet_edit_date = $today;
@@ -6476,14 +6591,20 @@ class ProjectController extends Controller
     public function projectTimesheetCreate(Request $request, $slug, $project_id)
     {
         $fromTimesheet = !$request->boolean('from_my_tasks') && $request->filled('date');
+        $isFromMyTasks = $request->boolean('from_my_tasks');
         $parseArray = [];
         $objUser = Auth::user();
         $currentWorkspace = Utility::getWorkspaceBySlug($slug);
 
-        $project_id = $request->input('project_id');
         $task_id = $request->input('task_id');
         $selected_date = $request->input('date') ?: Carbon::today()->toDateString();
         $user_id = $request->input('user_id') ?: $objUser->id;
+        $project_id = $request->input('project_id') ?: $project_id;
+
+        if (!$project_id && $task_id) {
+            $project_id = Task::where('id', $task_id)->value('project_id');
+        }
+
         $project = Project::find($project_id);
 
 
@@ -6542,7 +6663,7 @@ class ProjectController extends Controller
             'taskCreationDate' => $taskCreationDate,
         ];
 
-        return view('projects.timesheet-create', compact('currentWorkspace', 'parseArray', 'fromTimesheet', 'dayColor', 'timeTable'));
+        return view('projects.timesheet-create', compact('currentWorkspace', 'parseArray', 'fromTimesheet', 'dayColor', 'timeTable', 'isFromMyTasks'));
     }
 
     public function projectTimesheetStore(Request $request, $slug, $project_id)
@@ -6583,6 +6704,7 @@ class ProjectController extends Controller
     {
 
         $objUser = Auth::user();
+        $isFromMyTasks = $request->boolean('from_my_tasks');
 
         $currentWorkspace = Utility::getWorkspaceBySlug($slug);
         $project = Project::find($project_id);
@@ -6663,7 +6785,7 @@ class ProjectController extends Controller
                 $user = Auth::user();
                 $timesheetEdit = Timesheet::find($timesheet_id);
 
-                return view('projects.timesheet-edit', compact('timesheet', 'currentWorkspace', 'parseArray', 'project_id', 'dayColor', 'timeTable', 'timesheetEdit', 'expectedHour'));
+                return view('projects.timesheet-edit', compact('timesheet', 'currentWorkspace', 'parseArray', 'project_id', 'dayColor', 'timeTable', 'timesheetEdit', 'expectedHour', 'isFromMyTasks'));
             }
         }
     }

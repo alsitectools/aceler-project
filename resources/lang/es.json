@@ -1394,5 +1394,10 @@
     "Total hours": "Horas totales",
     "There are no imputed hours for the selected range": "No hay datos disponibles para el gráfico",
     "My Tasks": "Mis tareas",
-    "Edit Phases": "Editar fases"
+    "Edit Phases": "Editar fases",
+    "My Summary": "Mi resumen",
+    "Table view": "Vista en tabla",
+    "Diagram view": "Vista en diagrama",
+    "Task Overview": "Resumen de tareas",
+    "Quick view of your assigned work and upcoming delivery dates.": "Vista rápida de tu trabajo asignado y próximas fechas de entrega."
 }

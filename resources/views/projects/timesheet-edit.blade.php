@@ -72,15 +72,12 @@
     </div>
 </div>
 
-<div>
-    <div class="row">
-        <div class="text-end">
-            <button type="button" class="btn btn-light" data-bs-dismiss="modal">{{ __('Close') }}</button>
-            <input type="submit" value="{{ __('Save Changes') }}" class="btn  btn-primary me-5" id="timesheet-save-btn">
-
-        </div>
-
-    </div>
+<div class="modal-footer">
+    <button type="button" class="btn btn-dark" style="position: absolute; left:18px;" id="delete-task-btn">
+        {{ __('Delete task') }}
+    </button>
+    <button type="button" class="btn btn-light" data-bs-dismiss="modal">{{ __('Close') }}</button>
+    <input type="submit" value="{{ __('Save Changes') }}" class="btn btn-primary" id="timesheet-save-btn">
 </div>
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
@@ -223,6 +220,26 @@
 
         updateTotalTime();
         validateHolidayDate();
+    });
+</script>
+
+<script>
+    $('#delete-task-btn').on('click', function() {
+        $.ajax({
+            url: '{{ route('client.tasks.destroy', ['slug' => $currentWorkspace->slug, 'id' => $parseArray['project_id'], 'tid' => $parseArray['task_id']]) }}',
+            method: 'POST',
+            data: {
+                _method: 'DELETE',
+                _token: '{{ csrf_token() }}',
+            },
+            success: function() {
+                location.reload();
+            },
+            error: function(xhr) {
+                alert('Error deleting task');
+                console.error(xhr.responseText);
+            }
+        });
     });
 </script>
 
