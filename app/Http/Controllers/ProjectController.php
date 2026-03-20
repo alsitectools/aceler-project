@@ -3487,9 +3487,11 @@ class ProjectController extends Controller
     }
     public function getProjectsJson($slug, $search = null)
     {
+        $currentWorkspace = Utility::getWorkspaceBySlug($slug);
         $query = Project::query()
             ->select(['id', 'name', 'ref_mo', 'type'])
-            ->with(['typeRel:id,name']);
+            ->with(['typeRel:id,name'])
+            ->where('workspace', '=', $currentWorkspace->id);
 
         if ($search) {
             $query->where(function ($query) use ($search) {
@@ -3499,6 +3501,23 @@ class ProjectController extends Controller
         }
 
         $objProject = $query->paginate(25);
+
+        try {
+            $phaseOptions = $this->getEnumValues('milestone_phases', 'phases');
+        } catch (\Throwable $e) {
+            $phaseOptions = MilestonePhases::PHASES;
+        }
+
+        $objProject->getCollection()->transform(function ($project) use ($phaseOptions) {
+            if (in_array((int) $project->type, [3, 5], true)) {
+                $this->ensureProjectDefaultStages($project);
+            }
+
+            $project->is_phase_project = in_array((int) $project->type, [3, 5], true);
+            $project->phases = $project->is_phase_project ? array_values($phaseOptions) : [];
+
+            return $project;
+        });
 
         $projectIds = collect($objProject->items())->pluck('id')->toArray();
         $stagesByProject = MilestoneStageProject::whereIn('project_id', $projectIds)
@@ -3597,7 +3616,11 @@ class ProjectController extends Controller
         $project_type = ProjectType::select('id', 'name')->get();
         $users = User::orderBy('name', 'asc')->get();
 
-        $phases = $this->getEnumValues('milestone_phases', 'phases');
+        try {
+            $phases = $this->getEnumValues('milestone_phases', 'phases');
+        } catch (\Throwable $e) {
+            $phases = MilestonePhases::PHASES;
+        }
         $stagesProject = [];
 
         if ($projectID == -1) {
