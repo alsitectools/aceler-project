@@ -1213,7 +1213,7 @@
     "Statistics": "Estadisticas",
     "You have an order form pending for review: ": "Tienes un encargo pendiente de revision:",
     "Unassign": "Desasignar",
-    "My Order Forms": "Tablón de encargos",
+    "My Order Forms": "Mis hojas de encargo",
     "Hours charged": "Horas imputadas",
     "Project not found": "Proyecto no encontrado",
     "Milestone not found": "Hoja de encargo no encontrada",
@@ -1399,5 +1399,6 @@
     "Table view": "Vista en tabla",
     "Diagram view": "Vista en diagrama",
     "Task Overview": "Resumen de tareas",
-    "Quick view of your assigned work and upcoming delivery dates.": "Vista rápida de tu trabajo asignado y próximas fechas de entrega."
+    "Quick view of your assigned work and upcoming delivery dates.": "Vista rápida de tu trabajo asignado y próximas fechas de entrega.",
+    "Order Forms": "Hojas de encargo"
 }

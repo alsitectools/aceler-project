@@ -647,6 +647,8 @@
                             <span class="dash-micon"
                                 style="position: relative; display: inline-flex; align-items: center; justify-content: center; overflow:hidden;">
                                 <i class="fas fa-tasks"></i>
+                                <i class="fa-solid fa-user user-badge-sub"
+                                    style="position: absolute; bottom: -2px; right: -1px; font-size: 15px; color: #525a69; background: #fcf9f9; border-radius: 50%; padding: 2px;"></i>
                             </span>
                             <span class="dash-mtext">{{ __('My Tasks') }}</span>
                         </a>
@@ -654,14 +656,12 @@
                     <li class="dash-item  {{ Request::route()->getName() == 'timesheet.index' ? 'active' : '' }}">
                         <a href="{{ route('timesheet.index', $currentWorkspace->slug) }}"
                             class="dash-link  menu-element">
-                            <span class="dash-micon"><i class="fa-solid fa-clock"></i></span><span
-                                class="dash-mtext">{{ __('My Timesheet') }}</span></a>
-                        <span class="dash-micon"
-                            style="position: relative; display: inline-flex; align-items: center; justify-content: center; overflow:hidden;">
-                            <i class="fas fa-tasks"></i>
-                            <i class="fa-solid fa-user user-badge-sub"
-                                style="position: absolute; bottom: -2px; right: -1px; font-size: 15px; color: #525a69; background: #fcf9f9; border-radius: 50%; padding: 2px;"></i>
-                        </span><span class="dash-mtext">{{ __('My Timesheet') }}</span></a>
+                            <span class="dash-micon"
+                                style="position: relative; display: inline-flex; align-items: center; justify-content: center; overflow:hidden;">
+                                <i class="fa-solid fa-clock"></i>
+                                <i class="fa-solid fa-user user-badge-sub"
+                                    style="position: absolute; bottom: -2px; right: -1px; font-size: 15px; color: #525a69; background: #fcf9f9; border-radius: 50%; padding: 2px;"></i>
+                            </span><span class="dash-mtext">{{ __('My Timesheet') }}</span></a>
                     </li>
                     <li class="dash-item  {{ Request::route()->getName() == 'calender.index' ? 'active' : '' }}">
                         <a href="{{ route('calender.google.calendar', $currentWorkspace->slug) }}"
