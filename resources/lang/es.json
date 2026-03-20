@@ -1091,7 +1091,7 @@
     "Search project": "Buscar proyecto",
     "Desired delivery date": "Fecha de entrega deseada",
     "Order form": "Hoja de encargo",
-    "Order forms": "Hojas de encargo",
+    "Order forms": "Encargos",
     "New order form": "Nueva hoja de encargo",
     "Note: In order to carry out the project it is necessary to send the quotation of the formwork and falsework system, and the complete assembly drawings and geometrical definition of the structure.": "Nota: Para poder realizar el proyecto es necesario enviar el presupuesto del sistema de cimbra y encofrado, y los planos completos de montaje y definición geométrica de la estructura.",
     "Name of the company that will install the system": "Nombre de la empresa que realizará el montaje del sistema",
@@ -1213,7 +1213,7 @@
     "Statistics": "Estadisticas",
     "You have an order form pending for review: ": "Tienes un encargo pendiente de revision:",
     "Unassign": "Desasignar",
-    "My Order Forms": "Mis hojas de encargo",
+    "My Order Forms": "Mis encargos",
     "Hours charged": "Horas imputadas",
     "Project not found": "Proyecto no encontrado",
     "Milestone not found": "Hoja de encargo no encontrada",
@@ -1400,5 +1400,5 @@
     "Diagram view": "Vista en diagrama",
     "Task Overview": "Resumen de tareas",
     "Quick view of your assigned work and upcoming delivery dates.": "Vista rápida de tu trabajo asignado y próximas fechas de entrega.",
-    "Order Forms": "Hojas de encargo"
+    "Order Forms": "Encargos"
 }

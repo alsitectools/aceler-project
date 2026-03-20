@@ -5,7 +5,7 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="filePreviewModalLabel">{{ __('File Preview') }}</h5>
-                <div class="ms-auto d-flex align-items-center">
+                <div class="file-preview-header-actions">
                     <a id="filePreviewDownloadBtn" href="#" class="btn btn-sm btn-primary me-2" target="_blank"
                         style="display: none;" title="Descargar">
                         <i class="fa fa-download"></i>
@@ -27,6 +27,29 @@
 
     .modal-backdrop.file-preview-backdrop {
         z-index: 1990;
+    }
+
+    #filePreviewModal .modal-header {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        flex-wrap: nowrap;
+    }
+
+    #filePreviewModal .modal-title {
+        flex: 1 1 auto;
+        min-width: 0;
+        margin-bottom: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    #filePreviewModal .file-preview-header-actions {
+        flex: 0 0 auto;
+        display: flex;
+        align-items: center;
+        margin-left: auto;
     }
 
     .txtPreviewContent {
@@ -57,6 +80,20 @@
         background: #AA182C;
         border-radius: 4px;
         height: 10px;
+    }
+
+    @media (max-width: 576px) {
+        #filePreviewModal .modal-header {
+            gap: 8px;
+        }
+
+        #filePreviewModal .modal-title {
+            font-size: 0.95rem;
+        }
+
+        #filePreviewModal .file-preview-header-actions .btn {
+            padding-inline: 0.5rem;
+        }
     }
 </style>
 
@@ -269,15 +306,15 @@
                                 const typeDisplay = f.is_dir ? 'Carpeta' : escapeHtml(f.name.split('.').pop().toUpperCase());
                                 const safeName = escapeHtml(f.name);
                                 return `
-                                                                                                                                                                                                                            <tr class="archive-item" data-name="${safeName.toLowerCase()}">
-                                                                                                                                                                                                                                <td class="text-break">
-                                                                                                                                                                                                                                    <i class="${icon} me-2" style="width: 20px; text-align: center;"></i>
-                                                                                                                                                                                                                                    ${safeName}
-                                                                                                                                                                                                                                </td>
-                                                                                                                                                                                                                                <td class="text-end text-nowrap">${sizeDisplay}</td>
-                                                                                                                                                                                                                                <td class="text-end text-nowrap"><small class="badge bg-secondary opacity-50">${typeDisplay}</small></td>
-                                                                                                                                                                                                                            </tr>
-                                                                                                                                                                                                                        `;
+                                                                                                                                                                                                                                <tr class="archive-item" data-name="${safeName.toLowerCase()}">
+                                                                                                                                                                                                                                    <td class="text-break">
+                                                                                                                                                                                                                                        <i class="${icon} me-2" style="width: 20px; text-align: center;"></i>
+                                                                                                                                                                                                                                        ${safeName}
+                                                                                                                                                                                                                                    </td>
+                                                                                                                                                                                                                                    <td class="text-end text-nowrap">${sizeDisplay}</td>
+                                                                                                                                                                                                                                    <td class="text-end text-nowrap"><small class="badge bg-secondary opacity-50">${typeDisplay}</small></td>
+                                                                                                                                                                                                                                </tr>
+                                                                                                                                                                                                                            `;
                             }).join('')}
                         </tbody>
                     </table>
@@ -362,7 +399,11 @@
                     <p class="mt-3 fw-bold fs-3" style="color: #aa182c;">{{ __('Algo ha salido mal') }}</p>
                 </div>
             `;
-            document.getElementById('filePreviewModalLabel').innerText = title;
+            const modalLabel = document.getElementById('filePreviewModalLabel');
+            if (modalLabel) {
+                modalLabel.innerText = title;
+                modalLabel.title = title;
+            }
             showPreviewModal();
         }
 
@@ -758,7 +799,11 @@
                 modalBody.appendChild(element);
             }
 
-            document.getElementById('filePreviewModalLabel').innerText = title;
+            const modalLabel = document.getElementById('filePreviewModalLabel');
+            if (modalLabel) {
+                modalLabel.innerText = title;
+                modalLabel.title = title;
+            }
 
             showPreviewModal();
         }
