@@ -140,20 +140,19 @@ class Milestone extends Model
             return null;
         }
 
+        if (!empty($stage->milestone_stage_project_id)) {
+            $stageProjectName = $stage->relationLoaded('stageProject')
+                ? optional($stage->stageProject)->name
+                : MilestoneStageProject::where('id', $stage->milestone_stage_project_id)->value('name');
+
+            if (!empty($stageProjectName)) {
+                return trim((string) $stageProjectName);
+            }
+        }
+
         $stageName = trim((string) ($stage->stages ?? ''));
-        if ($stageName !== '') {
-            return $stageName;
-        }
 
-        if (empty($stage->milestone_stage_project_id)) {
-            return null;
-        }
-
-        if ($stage->relationLoaded('stageProject')) {
-            return optional($stage->stageProject)->name;
-        }
-
-        return MilestoneStageProject::where('id', $stage->milestone_stage_project_id)->value('name');
+        return $stageName !== '' ? $stageName : null;
     }
 
 

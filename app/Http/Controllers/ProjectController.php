@@ -3807,6 +3807,7 @@ class ProjectController extends Controller
     {
         $project = Project::findOrFail($projectID);
         $stage = MilestoneStageProject::where('project_id', $project->id)->findOrFail($stageID);
+        $previousStageName = trim((string) $stage->name);
 
         $validated = $request->validate([
             'name' => [
@@ -3821,14 +3822,23 @@ class ProjectController extends Controller
             ],
         ]);
 
+        $updatedStageName = trim((string) $validated['name']);
+
         $stage->update([
-            'name' => trim($validated['name']),
+            'name' => $updatedStageName,
         ]);
 
         MilestoneStages::whereHas('milestone', function ($query) use ($project) {
             $query->where('project_id', $project->id);
-        })->where('stages', $stage->getOriginal('name'))->update([
-            'stages' => trim($validated['name']),
+        })->where(function ($query) use ($stage, $previousStageName) {
+            $query->where('milestone_stage_project_id', $stage->id);
+
+            if ($previousStageName !== '') {
+                $query->orWhere('stages', $previousStageName);
+            }
+        })->update([
+            'stages' => $updatedStageName,
+            'milestone_stage_project_id' => $stage->id,
         ]);
 
         return redirect()->back()->with('success', __('Stage updated successfully.'));

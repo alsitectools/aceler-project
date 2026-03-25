@@ -1400,5 +1400,8 @@
     "Diagram view": "Vista en diagrama",
     "Task Overview": "Resumen de tareas",
     "Quick view of your assigned work and upcoming delivery dates.": "Vista rápida de tu trabajo asignado y próximas fechas de entrega.",
-    "Order Forms": "Encargos"
+    "Order Forms": "Encargos",
+     "New phase" : "Nueva fase",
+    "Enter phase name" : "Introduce el nombre de la fase",
+    "phases": "fases"
 }

@@ -1197,14 +1197,14 @@
                                             <thead>
                                                 <tr>
                                                     @if ($project->type == 3 || $project->type == 5)
-                                                        <th data-col-key="stage">
+                                                        <th data-col-key="phase">
                                                             <div class="project-order-th-content">
                                                                 <span>{{ __('Stage') }}</span>
                                                                 <button type="button" class="project-order-filter-btn"
-                                                                    data-filter-key="stage"
-                                                                    data-filter-label="{{ __('Stage') }}"
+                                                                    data-filter-key="phase"
+                                                                    data-filter-label="{{ __('Phase') }}"
                                                                     data-column-index="0"
-                                                                    aria-label="{{ __('Filter Stage') }}">
+                                                                    aria-label="{{ __('Filter Phase') }}">
                                                                     <svg class="project-order-filter-icon"
                                                                         viewBox="0 0 16 16" aria-hidden="true">
                                                                         <path
@@ -1214,14 +1214,14 @@
                                                                 </button>
                                                             </div>
                                                         </th>
-                                                        <th data-col-key="phase">
+                                                        <th data-col-key="stage">
                                                             <div class="project-order-th-content">
                                                                 <span>{{ __('Phase') }}</span>
                                                                 <button type="button" class="project-order-filter-btn"
-                                                                    data-filter-key="phase"
-                                                                    data-filter-label="{{ __('Phase') }}"
+                                                                    data-filter-key="stage"
+                                                                    data-filter-label="{{ __('Stage') }}"
                                                                     data-column-index="1"
-                                                                    aria-label="{{ __('Filter Phase') }}">
+                                                                    aria-label="{{ __('Filter Stage') }}">
                                                                     <svg class="project-order-filter-icon"
                                                                         viewBox="0 0 16 16" aria-hidden="true">
                                                                         <path
@@ -1416,13 +1416,10 @@
                                                 @endphp
                                                 @foreach ($project->milestones->sortByDesc('id') as $key => $milestone)
                                                     @php
-                                                        $stageFilterValue = '';
                                                         $phaseFilterValue = '';
+                                                        $stageFilterValue = '';
 
                                                         if ($project->type == 3 || $project->type == 5) {
-                                                            $stageFilterValue = trim(
-                                                                (string) ($milestone->resolved_stage_name ?? ''),
-                                                            );
                                                             $phaseModel = $milestone->phase;
                                                             if ($phaseModel) {
                                                                 $phaseFilterValue = trim(
@@ -1433,6 +1430,10 @@
                                                                     ),
                                                                 );
                                                             }
+
+                                                            $stageFilterValue = trim(
+                                                                (string) ($milestone->resolved_stage_name ?? ''),
+                                                            );
                                                         }
 
                                                         $statusText =
@@ -1456,19 +1457,20 @@
                                                         data-task-started-date="{{ !empty($milestone->task_start_date) && $milestone->task_start_date !== '0000-00-00' ? \Carbon\Carbon::parse($milestone->task_start_date)->format('Y-m-d') : '' }}"
                                                         data-completion-date="{{ !empty($milestone->finalization_date) && $milestone->finalization_date !== '0000-00-00' ? \Carbon\Carbon::parse($milestone->finalization_date)->format('Y-m-d') : '' }}">
                                                         @if ($project->type == 3 || $project->type == 5)
-                                                            <td class="col-stage"
-                                                                data-filter-value="{{ $stageFilterValue !== '' ? $stageFilterValue : __('N/A') }}">
-                                                                @if (filled($stageFilterValue))
-                                                                    <span
-                                                                        style="font-weight: bold;">{{ $stageFilterValue }}</span>
-                                                                @else
-                                                                    <span class="text-muted">...</span>
-                                                                @endif
                                                             <td class="col-phase"
                                                                 data-filter-value="{{ $phaseFilterValue !== '' ? $phaseFilterValue : __('N/A') }}">
                                                                 @if (filled($phaseFilterValue))
                                                                     <span
                                                                         style="font-weight: bold;">{{ $phaseFilterValue }}</span>
+                                                                @else
+                                                                    <span class="text-muted">...</span>
+                                                                @endif
+                                                            </td>
+                                                            <td class="col-stage"
+                                                                data-filter-value="{{ $stageFilterValue !== '' ? $stageFilterValue : __('N/A') }}">
+                                                                @if (filled($stageFilterValue))
+                                                                    <span
+                                                                        style="font-weight: bold;">{{ $stageFilterValue }}</span>
                                                                 @else
                                                                     <span class="text-muted">...</span>
                                                                 @endif

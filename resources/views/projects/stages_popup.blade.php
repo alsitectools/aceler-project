@@ -34,10 +34,10 @@
     <form method="POST" action="{{ route('projects.stages.store', [$currentWorkspace->slug, $project->id]) }}"
         class="mb-3 p-3 border rounded-3">
         @csrf
-        <label for="new-stage-name" class="form-label mb-2 fw-semibold">{{ __('New stage') }}</label>
+        <label for="new-stage-name" class="form-label mb-2 fw-semibold">{{ __('New phase') }}</label>
         <div class="input-group input-group-lg">
             <input id="new-stage-name" type="text" name="name" class="fontSize14px form-control"
-                placeholder="{{ __('Enter stage name') }}" autocomplete="off" autofocus required>
+                placeholder="{{ __('Enter phase name') }}" autocomplete="off" autofocus required>
             <button type="submit" class="fontSize14px btn btn-primary px-4">{{ __('Add') }}</button>
         </div>
     </form>
@@ -49,7 +49,7 @@
                     <div class="d-flex align-items-center justify-content-between gap-2 mb-2">
                         <div class="d-flex align-items-center gap-2">
                             <span class="badge bg-light text-dark border">#{{ $loop->iteration }}</span>
-                            <small class="text-muted">{{ __('Stage') }}</small>
+                            <small class="text-muted">{{ __('Phase') }}</small>
                         </div>
                     </div>
 
@@ -59,7 +59,7 @@
                             class="d-flex align-items-center gap-2 w-100">
                             @csrf
                             <label for="stage-name-{{ $stage->id }}"
-                                class="visually-hidden">{{ __('Stage name') }}</label>
+                                class="visually-hidden">{{ __('Phase name') }}</label>
                             <input id="stage-name-{{ $stage->id }}" type="text" name="name"
                                 class="form-control" value="{{ $stage->name }}" required>
                             <button type="submit"
@@ -68,7 +68,7 @@
 
                         <form method="POST"
                             action="{{ route('projects.stages.destroy', [$currentWorkspace->slug, $project->id, $stage->id]) }}"
-                            onsubmit="return confirm('{{ __('Delete stage') }}: {{ addslashes($stage->name) }}?');">
+                            onsubmit="return confirm('{{ __('Delete phase') }}: {{ addslashes($stage->name) }}?');">
                             @csrf
                             @method('DELETE')
                             <button type="submit" class="btn btn-danger text-nowrap"
@@ -112,7 +112,7 @@
 
         const badge = document.createElement('span');
         badge.className = 'marginLeft57 badge bg-primary rounded-pill px-3 py-2 me-2 stages-count-badge';
-        badge.textContent = '{{ $stages->count() }} ' + @json(__('stages'));
+        badge.textContent = '{{ $stages->count() }} ' + @json(__('phases'));
         header.insertBefore(badge, closeButton);
 
         const clearBadgeOnClose = function() {
