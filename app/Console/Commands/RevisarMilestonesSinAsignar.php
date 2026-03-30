@@ -3,10 +3,9 @@
 namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
-use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\View;
 use App\Models\Milestone;
-use App\Mail\MilestoneSinAsignarMail;
 use Carbon\Carbon;
 
 class RevisarMilestonesSinAsignar extends Command
@@ -50,9 +49,30 @@ class RevisarMilestonesSinAsignar extends Command
 
             Log::info("[milestones:revisar] Usuarios encontrados en proyecto {$projectId}: {$usuarios->count()}");
 
+            $emailSubject = 'Hay un encargo sin asignar en uno de tus proyectos en Aceler Project';
+
             foreach ($usuarios as $user) {
                 Log::info("[milestones:revisar]   -> Enviando correo a {$user->email} (ID {$user->id})");
-                Mail::to($user->email)->send(new MilestoneSinAsignarMail($milestone, $user));
+
+                $htmlContent = View::make('emails.milestone_sin_asignar', [
+                    'milestone' => $milestone,
+                    'user' => $user,
+                ])->render();
+
+                $email = new \SendGrid\Mail\Mail();
+                $email->setFrom(config('services.sendgrid.from_email'), config('services.sendgrid.from_name'));
+                $email->setSubject($emailSubject);
+                $email->addTo($user->email);
+                $email->addContent("text/html", $htmlContent);
+
+                $sendgrid = new \SendGrid(config('services.sendgrid.api_key'));
+
+                try {
+                    $response = $sendgrid->send($email);
+                    Log::info("[milestones:revisar]   -> SendGrid Response Status: {$response->statusCode()}");
+                } catch (\Exception $e) {
+                    Log::error("[milestones:revisar]   -> Error al enviar correo a {$user->email}: {$e->getMessage()}");
+                }
             }
 
             $milestone->update(['reminder_mail_is_send' => true]);
