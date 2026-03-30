@@ -4505,7 +4505,7 @@ class ProjectController extends Controller
 
         return sprintf('%02d:%02d', $hours, $minutes);
     }
-    
+
     private function buildLoggedTaskDetailsForPeriod(int $userId, Carbon $startDate, Carbon $endDate): array
     {
         $loggedTaskRows = Timesheet::query()
@@ -5788,6 +5788,8 @@ class ProjectController extends Controller
     {
         \Log::info('Enviando correo a: ' . $toEmail . ' con tipo de notificación: ' . $notificationType . ' y mensaje: ' . $message);
 
+        $emailSubject = 'Notificación en project Alsina';
+
 
         if ($notificationType == '2') {
             preg_match('/^(.*?) en (.*)$/', $message, $matches);
@@ -5801,6 +5803,8 @@ class ProjectController extends Controller
             }
             \Log::info('Datos extraídos para el correo de creación de milestone:' . $notificationType . ' - Encargo: ' . $encargo . ', Proyecto: ' . $proyecto .  ', Prioridad: ' . $priority . ', Estado: ' . $status . ', Slug: ' . $slug . ', Workspace: ' . $workspace);
 
+            $emailSubject = 'Se ha creado un nuevo hito o fase en tu proyecto en project Alsina';
+
             $htmlContent = View::make('emailTemplates.templateMilestone', [
                 'notificationType' => $notificationType,
                 'message' => $message,
@@ -5810,6 +5814,7 @@ class ProjectController extends Controller
                 'status' => $status,
                 'slug' => $slug,
                 'workspace' => $workspace,
+                'emailSubject' => $emailSubject,
             ])->render();
         } else if ($notificationType == '5') {
 
@@ -5825,6 +5830,8 @@ class ProjectController extends Controller
 
             \Log::info('Datos extraídos para el correo del pending review:' . $notificationType . ' - Encargo: ' . $encargo . ', Proyecto: ' . $proyecto .  ', Prioridad: ' . $priority . ', Estado: ' . $status . ', Slug: ' . $slug . ', Workspace: ' . $workspace);
 
+            $emailSubject = 'Una hoja de encargo está pendiente de revisión en project Alsina';
+
             $htmlContent = View::make('emailTemplates.templatePendingReview', [
                 'notificationType' => $notificationType,
                 'message' => $message,
@@ -5834,6 +5841,7 @@ class ProjectController extends Controller
                 'status' => $status,
                 'slug' => $slug,
                 'workspace' => $workspace,
+                'emailSubject' => $emailSubject,
             ])->render();
         } else if ($notificationType == '4') {
             // Extraer los datos desde el mensaje
@@ -5852,6 +5860,9 @@ class ProjectController extends Controller
             }
 
             \Log::info('Datos extraídos para el correo:' . $notificationType . ' - Encargo: ' . $encargo . ', Proyecto: ' . $proyecto . ', Fecha: ' . $fecha . ', Prioridad: ' . $priority . ', Estado: ' . $status . ', Slug: ' . $slug . ', Workspace: ' . $workspace);
+
+            $emailSubject = 'Te han asignado una nueva hoja de encargo en project Alsina';
+
             $htmlContent = View::make('emailTemplates.templateAssignedToUser', [
                 'notificationType' => $notificationType,
                 'message' => $message,
@@ -5862,6 +5873,7 @@ class ProjectController extends Controller
                 'status' => $status,
                 'slug' => $slug,
                 'workspace' => $workspace,
+                'emailSubject' => $emailSubject,
             ])->render();
         } else {
             return;
@@ -5870,7 +5882,7 @@ class ProjectController extends Controller
 
         $email = new \SendGrid\Mail\Mail();
         $email->setFrom(config('services.sendgrid.from_email'), config('services.sendgrid.from_name'));
-        $email->setSubject('¡Tienes novedades en project Alsina!');
+        $email->setSubject($emailSubject);
         $email->addTo($toEmail);
 
         // Contenido HTML
@@ -5941,12 +5953,13 @@ class ProjectController extends Controller
             'priority' => $milestone->priority,
             'status' => $milestone->status,
             'slug' => $workspace->slug,
-            'workspace' => $workspace->name
+            'workspace' => $workspace->name,
+            'emailSubject' => 'Se ha asignado una hoja de encargo a un miembro de tu equipo en project Alsina'
         ])->render();
 
         $email = new \SendGrid\Mail\Mail();
         $email->setFrom(config('services.sendgrid.from_email'), config('services.sendgrid.from_name'));
-        $email->setSubject('¡Tienes novedades en project Alsina!');
+        $email->setSubject('Se ha asignado una hoja de encargo a un miembro de tu equipo en project Alsina');
         $email->addTo($requesterEmail);
 
         // Contenido HTML
