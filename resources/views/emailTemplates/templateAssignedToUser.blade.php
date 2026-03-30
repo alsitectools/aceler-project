@@ -3,13 +3,14 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>Aceler Project Notification</title>
+    <title>{{ $emailSubject ?? 'Notificación en Aceler Project' }}</title>
 </head>
 
 <body style="font-family: Arial, Helvetica, sans-serif; color:#333; line-height:1.6">
 
     <!-- ===== ESPAÑOL ===== -->
-    <div style="background-color:#f8f8f8; padding:15px; border-left:4px solid #AA182C; margin-bottom:20px; border-radius:4px;">
+    <div
+        style="background-color:#f8f8f8; padding:15px; border-left:4px solid #AA182C; margin-bottom:20px; border-radius:4px;">
         <p style="margin:0; font-size:14px; color:#666;">
             <strong>ℹ️ Notificación:</strong> Te han asignado una nueva hoja de encargo
         </p>
@@ -58,7 +59,8 @@
     <hr style="margin:30px 0;">
 
     <!-- ===== ENGLISH ===== -->
-    <div style="background-color:#f8f8f8; padding:15px; border-left:4px solid #AA182C; margin-bottom:20px; border-radius:4px;">
+    <div
+        style="background-color:#f8f8f8; padding:15px; border-left:4px solid #AA182C; margin-bottom:20px; border-radius:4px;">
         <p style="margin:0; font-size:14px; color:#666;">
             <strong>ℹ️ Notification:</strong> You have been assigned a new work order
         </p>

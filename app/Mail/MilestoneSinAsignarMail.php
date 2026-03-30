@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Mail;
 
 use Illuminate\Bus\Queueable;
@@ -22,7 +23,7 @@ class MilestoneSinAsignarMail extends Mailable
 
     public function build()
     {
-        return $this->subject('Milestone sin asignar en tu workspace')
+        return $this->subject('Hay un encargo sin asignar en uno de tus proyectos en Aceler Project')
             ->view('emails.milestone_sin_asignar');
     }
 }
