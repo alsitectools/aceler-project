@@ -503,7 +503,7 @@
         </div>
     </div>
 </header>
-<script>
+{{-- <script>
     document.getElementById('addNotificationBtn').addEventListener('click', function() {
         let msg = prompt("Escribe tu notificación:");
         let ntipe = 4
@@ -538,7 +538,7 @@
             })
             .catch(error => console.error("Error al agregar notificación:", error));
     });
-</script>
+</script> --}}
 <script>
     // Asocia el evento click a cada botón de cierre dentro de las notificaciones
     document.querySelectorAll('.notificationSTL .btn-close').forEach(function(button) {

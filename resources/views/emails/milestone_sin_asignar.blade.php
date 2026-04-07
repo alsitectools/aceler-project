@@ -32,7 +32,7 @@
         🔼 <strong>Prioridad:</strong>
         <span style="padding:4px 8px; background:#f2f2f2; border-radius:4px;">
             @if ($milestone->priority == null || $milestone->priority == '')
-                Sin prioridad.
+                Sin prioridad
             @else
                 {{ ucfirst($milestone->priority) }}
             @endif
@@ -80,14 +80,13 @@
     <p style="font-size:15px;">
         📝 <strong>Order:</strong> {{ ucfirst($milestone->title) }}
     </p>
-
     <p style="font-size:15px;">
         🔼 <strong>Priority:</strong>
         <span style="padding:4px 8px; background:#f2f2f2; border-radius:4px;">
             @if ($milestone->priority == null || $milestone->priority == '')
-                No priority.
+                No priority
             @else
-                {{ ucfirst($milestone->priority) }}
+                {{ ['alta' => 'High', 'media' => 'Medium', 'baja' => 'Low'][strtolower($milestone->priority)] ?? ucfirst($milestone->priority) }}
             @endif
         </span>
     </p>

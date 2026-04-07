@@ -36,7 +36,7 @@
         🔼 <strong>Prioridad:</strong>
         <span style="padding:4px 8px; background:#f2f2f2; border-radius:4px;">
             @if ($priority == null || $priority == '')
-                Sin prioridad.
+                Sin prioridad
             @else
                 {{ ucfirst($priority) }}
             @endif
@@ -107,9 +107,9 @@
         🔼 <strong>Priority:</strong>
         <span style="padding:4px 8px; background:#f2f2f2; border-radius:4px;">
             @if ($priority == null || $priority == '')
-                No priority.
+                No priority
             @else
-                {{ ucfirst($priority) }}
+                {{ ['alta' => 'High', 'media' => 'Medium', 'baja' => 'Low'][strtolower($priority)] ?? ucfirst($priority) }}
             @endif
         </span>
     </p>
