@@ -66,11 +66,11 @@
         </div>
         @if ($project_id != '-1')
             <!-- <div class="col-auto">
-                                                                                                                                                                                    <a href="{{ route($client_keyword . 'projects.show', [$currentWorkspace->slug, $project_id]) }}"
-                                                                                                                                                                                        class="btn btn-sm btn-primary">
-                                                                                                                                                                                        <i class=" ti ti-arrow-back-up"></i>
-                                                                                                                                                                                    </a>
-                                                                                                                                                                                </div> -->
+                                                                                                                                                                                                                    <a href="{{ route($client_keyword . 'projects.show', [$currentWorkspace->slug, $project_id]) }}"
+                                                                                                                                                                                                                        class="btn btn-sm btn-primary">
+                                                                                                                                                                                                                        <i class=" ti ti-arrow-back-up"></i>
+                                                                                                                                                                                                                    </a>
+                                                                                                                                                                                                                </div> -->
         @endif
     </div>
 @endsection
@@ -413,7 +413,7 @@
             if (!modalElement) {
                 var modalHTML = `
                     <div class="modal fade" id="dayTotalModal" tabindex="-1" role="dialog" aria-labelledby="dayTotalModalLabel" aria-hidden="true">
-                        <div class="modal-dialog" role="document">
+                        <div class="modal-dialog modal-lg" role="document">
                             <div class="modal-content">
                                 <div class="modal-header">
                                     <h5 class="modal-title" id="dayTotalModalLabel"></h5>
@@ -444,21 +444,60 @@
             contentHTML += '<strong>' + hoursValue + '</strong>';
             contentHTML += '</div>';
 
-            // Listar las tareas
+            // Tabla de tareas
             if (tasksData && tasksData.length > 0) {
-                contentHTML += '<div class="tasks-list">';
-                tasksData.forEach(function(task, index) {
-                    contentHTML +=
-                        '<div class="task-item mb-2" style="padding: 8px; background-color: #f8f9fa; border-radius: 4px;">';
-                    contentHTML +=
-                        '<div class="task-name" style="font-weight: 500; margin-bottom: 4px;">• ' + (task
-                            .project_name || '') + ' - ' + task.task_name + ' - ' + task.hours + '</div>';
-                    contentHTML += '</div>';
+                contentHTML += '<div class="table-responsive">';
+                contentHTML +=
+                    '<table class="table table-bordered table-sm mb-0" style="table-layout:fixed;word-break:break-word;">';
+                contentHTML += '<thead style="background-color: #f8f9fa;">';
+                contentHTML += '<tr>';
+                contentHTML += '<th style="text-align:center;width:25%;">{{ __('Project') }}</th>';
+                contentHTML += '<th style="text-align:center;width:25%;">{{ __('Milestone') }}</th>';
+                contentHTML += '<th style="text-align:center;width:22%;">{{ __('Task') }}</th>';
+                contentHTML += '<th style="text-align:center;width:12%;">{{ __('Hours') }}</th>';
+                contentHTML += '<th style="text-align:center;width:16%;">{{ __('Status') }}</th>';
+                contentHTML += '</tr>';
+                contentHTML += '</thead>';
+                contentHTML += '<tbody>';
+                tasksData.forEach(function(task) {
+                    var statusBadge = '';
+                    switch (parseInt(task.milestone_status)) {
+                        case 2:
+                            statusBadge =
+                                '<span class="badge" style="background:#6c757d;color:#fff; padding: 7px; border-radius: 15px;">{{ __('In Progress') }}</span>';
+                            break;
+                        case 3:
+                            statusBadge =
+                                '<span class="badge" style="background:#ffa21d;color:#fff; padding: 7px; border-radius: 15px;">{{ __('Review') }}</span>';
+                            break;
+                        case 4:
+                            statusBadge =
+                                '<span class="badge" style="background:#6fd943;color:#fff; padding: 7px; border-radius: 15px;">{{ __('Done') }}</span>';
+                            break;
+                        default:
+                            statusBadge =
+                                '<span class="badge bg-secondary" style="padding: 7px; border-radius: 15px;">—</span>';
+                    }
+                    contentHTML += '<tr>';
+                    contentHTML += '<td style="overflow-wrap:break-word;white-space:normal;">' + (task
+                        .project_name || '') + '</td>';
+                    contentHTML += '<td style="overflow-wrap:break-word;white-space:normal;">' + (task
+                        .milestone_name || '') + '</td>';
+                    contentHTML += '<td style="overflow-wrap:break-word;white-space:normal;">' + (task
+                        .task_name || '') + '</td>';
+                    contentHTML += '<td style="text-align:center;white-space:nowrap;">' + task.hours +
+                        '</td>';
+                    contentHTML += '<td style="text-align:center;white-space:nowrap;">' + statusBadge +
+                        '</td>';
+                    contentHTML += '</tr>';
                 });
+                contentHTML += '</tbody>';
+                contentHTML += '</table>';
                 contentHTML += '</div>';
             } else {
                 if (isHoliday) {
-                    contentHTML += '<p class="text-muted">{{ __('This day is marked as holiday and cannot be edited') }}</p>';
+                    contentHTML +=
+                        '<p class="text-muted">{{ __('This day is marked as holiday and cannot be edited') }}</p>';
                 } else {
                     contentHTML += '<p class="text-muted">{{ __('No tasks recorded for this day') }}</p>';
                 }
