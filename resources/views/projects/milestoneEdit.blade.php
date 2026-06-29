@@ -117,7 +117,8 @@
                     @if ($project && in_array((int) $project->type, [3, 5], true))
                         <div class="paddingRight0  col-md-6">
                             <label for="stage" class="col-form-label">{{ __('Phase') }}</label>
-                            <select class="form-control form-control-light" id="stage" name="stage">
+                            <select class="form-control form-control-light" id="stage" name="stage"
+                                data-add-phase-label="{{ __('Add phase') }}">
                                 <option value="">{{ __('Select a phase') }}</option>
                                 @foreach ($stagesProject as $stageName)
                                     <option value="{{ $stageName }}"
@@ -125,7 +126,13 @@
                                         {{ $stageName }}
                                     </option>
                                 @endforeach
+                                <option value="add_phase">{{ __('Add phase') }}</option>
                             </select>
+                            <div id="new-stage-name-wrapper" class="mt-2" style="display: none;">
+                                <input type="text" name="new_stage_name" id="new_stage_name"
+                                    class="form-control form-control-light"
+                                    placeholder="{{ __('Enter phase name') }}" autocomplete="off">
+                            </div>
                         </div>
                     @endif
                 </div>
@@ -203,6 +210,46 @@
 @endif
 <script>
     var assetBasePath = "{{ asset('assets/iconFilesTypes') }}/";
+</script>
+
+<script>
+    (function() {
+        const stageSelect = document.getElementById('stage');
+        const newStageWrapper = document.getElementById('new-stage-name-wrapper');
+        const newStageInput = document.getElementById('new_stage_name');
+        const milestoneForm = stageSelect ? stageSelect.closest('form') : null;
+
+        if (!stageSelect || !newStageWrapper) {
+            return;
+        }
+
+        const toggleNewStageInput = function() {
+            const showInput = stageSelect.value === 'add_phase';
+            newStageWrapper.style.display = showInput ? '' : 'none';
+            if (!showInput && newStageInput) {
+                newStageInput.value = '';
+                newStageInput.classList.remove('is-invalid');
+            }
+        };
+
+        stageSelect.addEventListener('change', toggleNewStageInput);
+        toggleNewStageInput();
+
+        if (milestoneForm) {
+            milestoneForm.addEventListener('submit', function(e) {
+                if (stageSelect.value !== 'add_phase') {
+                    return;
+                }
+
+                const newStageName = (newStageInput?.value || '').trim();
+                if (!newStageName) {
+                    e.preventDefault();
+                    newStageInput?.classList.add('is-invalid');
+                    newStageInput?.focus();
+                }
+            });
+        }
+    })();
 </script>
 
 <script>

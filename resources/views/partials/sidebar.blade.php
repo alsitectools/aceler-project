@@ -608,6 +608,15 @@
                             <span class="dash-micon"><i class="fa-solid fa-file-lines"></i></span><span
                                 class="dash-mtext">{{ __('Order Forms') }}</span></a>
                     </li>
+                    {{-- <li class="dash-item {{ Request::route()->getName() == 'gantt.diagram' ? 'active' : '' }}">
+                        <a href="{{ route('gantt.diagram') }}" class="dash-link menu-element">
+                            <span class="dash-micon"
+                                style="position: relative; display: inline-flex; align-items: center; justify-content: center; overflow:hidden;">
+                                <i class="fa-solid fa-chart-gantt"></i>
+                            </span>
+                            <span class="dash-mtext">{{ __('Gantt Diagram') }}</span>
+                        </a>
+                    </li> --}}
                     <li class="dash-item {{ Request::route()->getName() == 'my_summary' ? 'active' : '' }}">
                         <a href="{{ route('my_summary') }}" class="dash-link menu-element">
                             <span class="dash-micon"
@@ -619,6 +628,7 @@
                             <span class="dash-mtext">{{ __('My Summary') }}</span>
                         </a>
                     </li>
+
                     {{-- si mostramos todos los proyectos enviamos -1 o proyecto en especifico --}}
                     <li class="dash-item {{ Request::route()->getName() == 'my_projects' ? 'active' : '' }}">
                         <a href="{{ route('my_projects', $currentWorkspace->slug) }}" class="dash-link menu-element">

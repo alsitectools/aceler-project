@@ -103,7 +103,7 @@ class Project extends Model
 
     public function updateProjectStatus()
     {
-        $this->loadMissing(['milestones:id,project_id,status,is_waiting']);
+        $this->loadMissing(['milestones:id,project_id,status']);
 
         // 1) Sin encargos => OnHold
         if ($this->milestones->isEmpty()) {
@@ -111,30 +111,16 @@ class Project extends Model
             return $this->save();
         }
 
-        // 2) Todos Done => Finished
+        // 2) Todos los encargos en Done(4) => Finished
         $allDone = $this->milestones->every(fn($m) => (int)$m->status === 4);
         if ($allDone) {
             $this->status = 'Finished';
             return $this->save();
         }
 
-        // Encargos NO terminados
-        $notDone = $this->milestones->filter(fn($m) => (int)$m->status !== 4);
-
-        // 3) Si los NO terminados están todos en ToDo(1) => OnHold
-        $allNotDoneAreTodo = $notDone->every(fn($m) => (int)$m->status === 1);
-        if ($allNotDoneAreTodo) {
-            $this->status = 'OnHold';
-            return $this->save();
-        }
-
-        // 4) Activo real = status 2/3 y NO en pausa
-        $hasActiveNotPaused = $notDone->contains(function ($m) {
-            return in_array((int)$m->status, [2, 3], true) && (int)$m->is_waiting === 0;
-        });
-
-        // 5) Si no hay activo real (porque están pausados) => OnHold
-        $this->status = $hasActiveNotPaused ? 'Ongoing' : 'OnHold';
+        // 3) Cualquier encargo en status 2, 3 o 4 (no todos 4) => Ongoing
+        $hasAdvanced = $this->milestones->contains(fn($m) => in_array((int)$m->status, [2, 3, 4], true));
+        $this->status = $hasAdvanced ? 'Ongoing' : 'OnHold';
 
         return $this->save();
     }

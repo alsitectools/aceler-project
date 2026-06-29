@@ -6,6 +6,7 @@ use App\Http\Controllers\HomeController;
 use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\ProjectReportController;
+use App\Http\Controllers\GanttDiagramController;
 use App\Http\Controllers\UserController;
 // use App\Http\Controllers\PlanController;
 use App\Http\Controllers\SettingsController;
@@ -620,6 +621,10 @@ Route::get('/projects/{slug}/search-sales/{search?}', [ProjectController::class,
 //My projects
 Route::get('/projects/myProjects', [ProjectController::class, 'getAllParticipatingProjects'])->name('my_projects')->middleware(['auth', 'XSS']);
 Route::get('/projects/my-summary', [ProjectController::class, 'mySummary'])->name('my_summary')->middleware(['auth', 'XSS']);
+
+// Gantt Diagram (global workspace view)
+Route::get('/gantt-diagram', [GanttDiagramController::class, 'index'])->name('gantt.diagram')->middleware(['auth', 'XSS']);
+Route::get('/gantt-diagram/data', [GanttDiagramController::class, 'getData'])->name('gantt.diagram.data')->middleware(['auth', 'XSS']);
 
 // Route::get('/search-mo/{search?}', [ProjectController::class, 'getMoJson'])->name('search-mo-json');
 Route::get('/{slug}/projects', [ProjectController::class, 'index'])->name('projects.index')->middleware(['auth', 'XSS']);

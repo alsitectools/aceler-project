@@ -198,8 +198,8 @@
                             <div class="form-group col-md-4">
                                 <fieldset class="custom-fieldset">
                                     <legend class="custom-legend">{{ __('Employee number') }}</legend>
-                                    <input type="number" class="custom-input" name="employee_number" 
-                                    placeholder="{{ __('Enter your employee number') }}" required>
+                                    <input type="number" class="custom-input" name="employee_number"
+                                        placeholder="{{ __('Enter your employee number') }}" required>
                                 </fieldset>
                             </div>
                         </div>
@@ -254,8 +254,8 @@
                                                         id="{{ strtolower($day) }}Checkbox">
                                                     <span class="slider round"></span>
                                                 </label>
-                                                <input id="{{ strtolower($day) }}Input" type="time" lang="es-ES" step="60"
-                                                    class="inputToggle">
+                                                <input id="{{ strtolower($day) }}Input" type="time"
+                                                    lang="es-ES" step="60" class="inputToggle">
                                             </div>
                                         @endforeach
                                     </div>
@@ -278,7 +278,8 @@
                         <button type="button" class="btn btn-primary mb-4 backButton"><i
                                 class="fa-solid fa-chevron-left"></i></button>
                         <input type="hidden" name="mail" value="{{ session('userProfile.mail') }}">
-                        <input type="hidden" name="userPrincipalName" value="{{ session('userProfile.userPrincipalName') }}">
+                        <input type="hidden" name="userPrincipalName"
+                            value="{{ session('userProfile.userPrincipalName') }}">
                         <input type="hidden" name="name" value="{{ session('userProfile.displayName') }}">
                         <input type="hidden" name="type" value="client">
                         <input type="hidden" name="jobTitle" value="{{ session('userProfile.jobTitle') }}">
@@ -291,7 +292,7 @@
                         <input type="hidden" name="photo_path" value="{{ session('userProfile.photo_path') }}">
 
                         <div class="row">
-                            <div class="form-group col-md-8">
+                            <div class="form-group col-md-4">
                                 <fieldset class="custom-fieldset disabled">
                                     <legend class="custom-legend">{{ __('Name') }}:</legend>
                                     <input type="text" class="custom-input"
@@ -303,6 +304,13 @@
                                     <legend class="custom-legend">{{ __('Department') }}</legend>
                                     <input type="text" class="custom-input"
                                         value="{{ session('userProfile.department') }}" readonly>
+                                </fieldset>
+                            </div>
+                            <div class="form-group col-md-4">
+                                <fieldset class="custom-fieldset">
+                                    <legend class="custom-legend">{{ __('Employee number') }}</legend>
+                                    <input type="number" class="custom-input" name="employee_number"
+                                        placeholder="{{ __('Enter your employee number') }}" required>
                                 </fieldset>
                             </div>
                         </div>

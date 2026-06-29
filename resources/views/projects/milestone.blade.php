@@ -273,12 +273,19 @@
                         <div class="col-md-6" id="stage-wrapper" style="{{ $showStage ? '' : 'display:none;' }}">
                             <div class="form-group">
                                 <label class="form-label">{{ __('Phase') }}</label>
-                                <select class="form-control form-control-light" name="stage" id="stage">
+                                <select class="form-control form-control-light" name="stage" id="stage"
+                                    data-add-phase-label="{{ __('Add phase') }}">
                                     <option value="">{{ __('Choose one') }}</option>
                                     @foreach ($stagesProject ?? [] as $stageName)
                                         <option value="{{ $stageName }}">{{ __($stageName) }}</option>
                                     @endforeach
+                                    <option value="add_phase">{{ __('Add phase') }}</option>
                                 </select>
+                                <div id="new-stage-name-wrapper" class="mt-2" style="display: none;">
+                                    <input type="text" name="new_stage_name" id="new_stage_name"
+                                        class="form-control form-control-light"
+                                        placeholder="{{ __('Enter phase name') }}" autocomplete="off">
+                                </div>
                             </div>
                         </div>
 
@@ -602,6 +609,38 @@
     {{-- staging y produccion 
  <script src="{{ asset('assets/js/create_project.js') }}"></script> --}}
 @endif
+
+<script>
+    (function() {
+        function initMilestoneStageAddPhaseToggle() {
+            const stageSelect = document.getElementById('stage');
+            const newStageWrapper = document.getElementById('new-stage-name-wrapper');
+            const newStageInput = document.getElementById('new_stage_name');
+
+            if (!stageSelect || !newStageWrapper) {
+                return;
+            }
+
+            const toggleNewStageInput = function() {
+                const showInput = stageSelect.value === 'add_phase';
+                newStageWrapper.style.display = showInput ? '' : 'none';
+                if (!showInput && newStageInput) {
+                    newStageInput.value = '';
+                    newStageInput.classList.remove('is-invalid');
+                }
+            };
+
+            stageSelect.removeEventListener('change', stageSelect._toggleNewStageHandler || function() {});
+            stageSelect._toggleNewStageHandler = toggleNewStageInput;
+            stageSelect.addEventListener('change', toggleNewStageInput);
+            toggleNewStageInput();
+        }
+
+        window.initMilestoneStageAddPhaseToggle = initMilestoneStageAddPhaseToggle;
+        document.addEventListener('DOMContentLoaded', initMilestoneStageAddPhaseToggle);
+        initMilestoneStageAddPhaseToggle();
+    })();
+</script>
 
 <!-- Código para el envío del formulario "Add New project" -->
 <script>
@@ -1243,6 +1282,26 @@
                     validationErrors.push('Debes seleccionar una fase');
                 } else {
                     phaseField.classList.remove('is-invalid');
+                }
+            }
+
+            // Validar Stage / nueva phase (solo si la sección está visible)
+            const stageWrapper = document.getElementById('stage-wrapper');
+            if (stageWrapper && stageWrapper.style.display !== 'none') {
+                const stageField = document.getElementById('stage');
+                const newStageNameField = document.getElementById('new_stage_name');
+                const stageValue = (stageField?.value || '').trim();
+
+                if (stageValue === 'add_phase') {
+                    const newStageName = (newStageNameField?.value || '').trim();
+                    if (!newStageName) {
+                        newStageNameField?.classList.add('is-invalid');
+                        validationErrors.push('{{ __('Please enter a phase name.') }}');
+                    } else {
+                        newStageNameField?.classList.remove('is-invalid');
+                    }
+                } else {
+                    newStageNameField?.classList.remove('is-invalid');
                 }
             }
 

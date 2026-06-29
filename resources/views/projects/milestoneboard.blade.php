@@ -341,7 +341,7 @@
                                             'currentWorkspace' => $currentWorkspace,
                                             'project_id' => $project_id,
                                             'extraClass' => 'other-user-milestone',
-                                            'inlineStyle' => 'display:none;',
+                                            'inlineStyle' => '',
                                             'ownerShip' => 'no',
                                         ])
                                     @endforeach

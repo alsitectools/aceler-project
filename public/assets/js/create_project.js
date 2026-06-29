@@ -116,6 +116,16 @@ $(document).ready(function () {
             option.textContent = stageName;
             stageSelect.appendChild(option);
         });
+
+        const addPhaseLabel = stageSelect.dataset.addPhaseLabel || 'Add phase';
+        const addPhaseOption = document.createElement('option');
+        addPhaseOption.value = 'add_phase';
+        addPhaseOption.textContent = addPhaseLabel;
+        stageSelect.appendChild(addPhaseOption);
+
+        if (typeof window.initMilestoneStageAddPhaseToggle === 'function') {
+            window.initMilestoneStageAddPhaseToggle();
+        }
     }
 
     function hideAllLists(exceptList) {

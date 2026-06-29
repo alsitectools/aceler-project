@@ -1401,7 +1401,12 @@
     "Task Overview": "Resumen de tareas",
     "Quick view of your assigned work and upcoming delivery dates.": "Vista rápida de tu trabajo asignado y próximas fechas de entrega.",
     "Order Forms": "Encargos",
-     "New phase" : "Nueva fase",
+    "New phase" : "Nueva fase",
+    "Add phase" : "Añadir fase",
+    "Please enter a phase name." : "Introduce el nombre de la fase.",
+    "Invalid phase selected." : "La fase seleccionada no es válida.",
     "Enter phase name" : "Introduce el nombre de la fase",
-    "phases": "fases"
+    "phases": "fases",
+    "Sort alphabetically": "Ordenar alfabéticamente",
+    "Study review": "Revisión de estudio"
 }

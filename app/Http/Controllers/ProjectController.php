@@ -3729,6 +3729,91 @@ class ProjectController extends Controller
         }
     }
 
+    private const MILESTONE_STAGE_ADD_OPTION = 'add_phase';
+
+    private function findOrCreateProjectStage(Project $project, string $name): string
+    {
+        $name = trim($name);
+
+        $existing = MilestoneStageProject::where('project_id', $project->id)
+            ->where('name', $name)
+            ->first();
+
+        if ($existing) {
+            return $existing->name;
+        }
+
+        MilestoneStageProject::create([
+            'project_id' => $project->id,
+            'name' => $name,
+        ]);
+
+        return $name;
+    }
+
+    private function resolveProjectStageFromRequest(Project $project, Request $request): ?string
+    {
+        $stage = trim((string) $request->input('stage', ''));
+
+        if ($stage === self::MILESTONE_STAGE_ADD_OPTION) {
+            $newName = trim((string) $request->input('new_stage_name', ''));
+
+            return $newName !== '' ? $this->findOrCreateProjectStage($project, $newName) : null;
+        }
+
+        return $stage !== '' ? $stage : null;
+    }
+
+    private function appendMilestoneStageValidation($validator, Project $project, Request $request): void
+    {
+        $validator->after(function ($validator) use ($project, $request) {
+            if (!in_array((int) $project->type, [3, 5], true)) {
+                return;
+            }
+
+            $stage = trim((string) $request->input('stage', ''));
+
+            if ($stage === self::MILESTONE_STAGE_ADD_OPTION) {
+                if (trim((string) $request->input('new_stage_name', '')) === '') {
+                    $validator->errors()->add('new_stage_name', __('Please enter a phase name.'));
+                }
+
+                return;
+            }
+
+            if ($stage === '') {
+                return;
+            }
+
+            $exists = MilestoneStageProject::where('project_id', $project->id)
+                ->where('name', $stage)
+                ->exists();
+
+            if (!$exists) {
+                $validator->errors()->add('stage', __('Invalid phase selected.'));
+            }
+        });
+    }
+
+    private function syncMilestoneStageForProject(Milestone $milestone, Project $project, ?string $selectedStageName): void
+    {
+        if ($selectedStageName === null || $selectedStageName === '') {
+            return;
+        }
+
+        $selectedStageId = MilestoneStageProject::where('project_id', $project->id)
+            ->where('name', $selectedStageName)
+            ->value('id');
+
+        MilestoneStages::updateOrCreate(
+            ['id_milestone' => $milestone->id],
+            [
+                'stages' => $selectedStageName,
+                'milestone_stage_project_id' => $selectedStageId,
+            ]
+        );
+    }
+
     public function milestone($slug, $projectID)
     {
         $currentWorkspace = Utility::getWorkspaceBySlug($slug);
@@ -3913,15 +3998,16 @@ class ProjectController extends Controller
         if (in_array((int) $project->type, [3, 5], true)) {
             $this->ensureProjectDefaultStages($project);
 
-            $availableStages = MilestoneStageProject::where('project_id', $project->id)
-                ->pluck('name')
-                ->toArray();
-
-            $rules['stage'] = ['nullable', Rule::in($availableStages)];
+            $rules['stage'] = 'nullable|string|max:255';
+            $rules['new_stage_name'] = 'nullable|string|max:255';
         }
 
 
         $validator = Validator::make($request->all(), $rules);
+
+        if (in_array((int) $project->type, [3, 5], true)) {
+            $this->appendMilestoneStageValidation($validator, $project, $request);
+        }
 
         if ($validator->fails()) {
             \Log::error('Validation failed for milestone creation', [
@@ -3975,19 +4061,9 @@ class ProjectController extends Controller
             );
         }
 
-        if (in_array((int) $project->type, [3, 5], true) && !empty($request->stage)) {
-            $selectedStageName = trim((string) $request->stage);
-            $selectedStageId = MilestoneStageProject::where('project_id', $project->id)
-                ->where('name', $selectedStageName)
-                ->value('id');
-
-            MilestoneStages::updateOrCreate(
-                ['id_milestone' => $milestone->id],
-                [
-                    'stages' => $selectedStageName,
-                    'milestone_stage_project_id' => $selectedStageId,
-                ]
-            );
+        if (in_array((int) $project->type, [3, 5], true)) {
+            $selectedStageName = $this->resolveProjectStageFromRequest($project, $request);
+            $this->syncMilestoneStageForProject($milestone, $project, $selectedStageName);
         }
 
         if (isset($project)) {
@@ -4291,13 +4367,31 @@ class ProjectController extends Controller
 
         $setting = Utility::getAdminPaymentSettings();
 
-        $request->validate([
-            'end_date' => 'required|date',
-        ]);
-
         $milestone = Milestone::find($milestoneID);
         if (!$milestone) {
             return redirect()->back()->with('error', 'Milestone not found');
+        }
+
+        $project = Project::find($milestone->project_id);
+
+        $rules = [
+            'end_date' => 'required|date',
+        ];
+
+        if ($project && in_array((int) $project->type, [3, 5], true)) {
+            $this->ensureProjectDefaultStages($project);
+            $rules['stage'] = 'nullable|string|max:255';
+            $rules['new_stage_name'] = 'nullable|string|max:255';
+        }
+
+        $validator = Validator::make($request->all(), $rules);
+
+        if ($project && in_array((int) $project->type, [3, 5], true)) {
+            $this->appendMilestoneStageValidation($validator, $project, $request);
+        }
+
+        if ($validator->fails()) {
+            return redirect()->back()->withErrors($validator)->withInput();
         }
 
         // Validar end_date: si es anterior a hoy, usar hoy
@@ -4353,26 +4447,20 @@ class ProjectController extends Controller
             ]);
         }
 
-        if ($request->has('stage')) {
-            if (!empty($request->stage)) {
-                $selectedStageName = trim((string) $request->stage);
-                $selectedStageId = MilestoneStageProject::where('project_id', $milestone->project_id)
-                    ->where('name', $selectedStageName)
-                    ->value('id');
+        if ($request->has('stage') && $project && in_array((int) $project->type, [3, 5], true)) {
+            $selectedStageName = $this->resolveProjectStageFromRequest($project, $request);
 
-                MilestoneStages::updateOrCreate(
-                    ['id_milestone' => $milestone->id],
-                    [
-                        'stages' => $selectedStageName,
-                        'milestone_stage_project_id' => $selectedStageId,
-                    ]
-                );
+            if ($selectedStageName) {
+                $this->syncMilestoneStageForProject($milestone, $project, $selectedStageName);
             } else {
                 MilestoneStages::where('id_milestone', $milestone->id)->delete();
             }
         }
 
-        $project = Project::where('id', $milestone->project_id)->first();
+        if (!$project) {
+            $project = Project::where('id', $milestone->project_id)->first();
+        }
+
         if (!$project) {
             return redirect()->back()->with('error', 'Project not found');
         }

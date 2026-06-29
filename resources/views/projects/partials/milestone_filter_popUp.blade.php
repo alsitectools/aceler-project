@@ -1112,12 +1112,12 @@
                                                 aria-label="{{ __('Workspace Milestones') }}">
                                                 <label class="filterBinaryOption" for="showAllMilestonesYes">
                                                     <input type="radio" id="showAllMilestonesYes"
-                                                        name="showAllMilestones" value="1">
+                                                        name="showAllMilestones" value="1" checked>
                                                     <span>{{ __('All') }}</span>
                                                 </label>
                                                 <label class="filterBinaryOption" for="showAllMilestonesNo">
                                                     <input type="radio" id="showAllMilestonesNo"
-                                                        name="showAllMilestones" value="0" checked>
+                                                        name="showAllMilestones" value="0">
                                                     <span>{{ __('Mine') }}</span>
                                                 </label>
                                             </div>
@@ -1300,7 +1300,7 @@
 
         const filtersState = {
             hideUnassigned: false,
-            showAll: hasShowAllFilter ? false : true,
+            showAll: true,
             showCompleted: hasCompletedFilter ? false : true,
             selectedPriorities: [],
             selectedProjectTypes: [],
@@ -1679,11 +1679,11 @@
                 });
             }
 
-            if (hasShowAllFilter && filtersState.showAll) {
+            if (hasShowAllFilter && !filtersState.showAll) {
                 chips.push({
                     type: 'showAll',
-                    value: '1',
-                    label: "{{ __('Workspace Milestones') }}",
+                    value: '0',
+                    label: "{{ __('Workspace Milestones') }}: {{ __('Mine') }}",
                 });
             }
 
@@ -2889,7 +2889,7 @@
 
         function hasAnyFilterApplied() {
             return filtersState.hideUnassigned ||
-                (hasShowAllFilter && filtersState.showAll) ||
+                (hasShowAllFilter && !filtersState.showAll) ||
                 filtersState.selectedPriorities.length > 0 ||
                 filtersState.selectedProjectTypes.length > 0 ||
                 filtersState.selectedProjects.length > 0 ||
@@ -2919,7 +2919,7 @@
 
         function resetAllMilestoneFilters() {
             filtersState.hideUnassigned = false;
-            filtersState.showAll = hasShowAllFilter ? false : true;
+            filtersState.showAll = true;
             filtersState.showCompleted = hasCompletedFilter ? false : true;
             filtersState.selectedPriorities = [];
             filtersState.selectedProjectTypes = [];
@@ -3570,7 +3570,7 @@
                     filtersState.hideUnassigned = false;
                     syncBinaryFiltersUi();
                 } else if (chipType === 'showAll') {
-                    filtersState.showAll = false;
+                    filtersState.showAll = true;
                     syncBinaryFiltersUi();
                 } else if (chipType === 'showCompleted') {
                     filtersState.showCompleted = false;

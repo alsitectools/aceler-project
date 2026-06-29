@@ -317,6 +317,42 @@
     .delegationName {
         background-color: #392c34 !important;
     }
+
+    #btnSortProjectsAlpha {
+        min-width: 52px;
+        height: 35px;
+        padding: 0.25rem 0.45rem;
+        background-color: #aa182c;
+        color: #ffffff;
+        justify-content: center;
+        white-space: nowrap;
+        line-height: 1;
+        gap: 0.5rem !important;
+    }
+
+    #btnSortProjectsAlpha .sort-direction-arrow {
+        width: 6px;
+        height: 6px;
+        border-right: 1.6px solid currentColor;
+        border-bottom: 1.6px solid currentColor;
+        transform: rotate(45deg);
+        transition: transform 0.2s ease-in-out;
+        margin-top: -1px;
+    }
+
+    #btnSortProjectsAlpha.active {
+        background-color: #aa182c !important;
+        border-color: #aa182c !important;
+        color: #FFFFFF !important;
+    }
+
+    #btnSortProjectsAlpha.active .sort-direction-arrow {
+        transform: rotate(-135deg);
+    }
+
+    #btnSortProjectsAlpha.active.sort-desc .sort-direction-arrow {
+        transform: rotate(45deg);
+    }
 </style>
 
 @section('multiple-action-button')
@@ -337,7 +373,7 @@
         </div>
     </div>
 
-    <div class="d-flex justify-content-end row1">
+    <div class="d-flex justify-content-end row1 align-items-center gap-2">
         @auth('web')
             <button type="button" class="btn btn-primary zoom createBut" data-ajax-popup="true"
                 data-title="{{ __('Create New Project') }}" data-url="{{ route('projects.create', $currentWorkspace->slug) }}">
@@ -365,25 +401,25 @@
                                     <g>
                                         <path class="gear-outer large"
                                             d="M145.6,134.6l10.6,5.3c3.5,2.1,4.6,5.1,3.1,9c-1.9,5.4-6.2,12.3-13.1,20.6c-2.7,3.1-5.8,3.6-9.4,1.6l-9.4-5.3 c-5,4.4-10.6,7.7-16.8,
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                10v10.6c0,1.7-0.6,3.2-1.9,4.7c-1.2,1.5-2.7,2.3-4.4,2.5c-7.9,1.5-15.8,1.5-23.7,0c-1.9-0.2-3.4-1-4.5-2.5 c-1.1-1.5-1.7-3-1.7-4.7v-10.6c-6.4-2.3-12.2-5.6-17.2-10l-9,5.3c-3.5,2.1-6.7,1.6-9.4-1.6c-6.7-8.1-11-15-13.1-20.6
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              c-1.5-3.9-0.4-7,3.1-9l10.3-5.3c-1.2-6.7-1.2-13.2,0-19.7l-10.3-5.3c-3.7-2.1-4.8-5.1-3.1-9C27.8,95,32.2,88.1,38.9,80 c2.5-3.1,5.6-3.6,
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              9.4-1.6l9,5c5.2-4.4,10.9-7.6,17.2-9.7V63.2c0-1.9,0.6-3.5,1.7-4.8c1.1-1.4,2.7-2.1,4.5-2.3 c7.9-1.5,15.8-1.5,23.7,0c0.9,0.2,1.5,0.4,2.3,0.8c0.8,0.4,1.4,1.1,2,1.7c0.6,0.6,1.1,1.4,1.4,2.2c0.3,0.8,0.5,1.7,0.5,2.5v10.6
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              c6.2,2.3,11.9,5.5,16.8,9.7l9.4-5c3.5-2.3,6.7-1.8,9.4,1.6c6.7,7.9,11,14.8,13.1,20.6c1.5,4,0.4,7-3.1,9l-10.6,5.3 C146.8,121.4,146.8,127.9,145.6,134.6z" />
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    10v10.6c0,1.7-0.6,3.2-1.9,4.7c-1.2,1.5-2.7,2.3-4.4,2.5c-7.9,1.5-15.8,1.5-23.7,0c-1.9-0.2-3.4-1-4.5-2.5 c-1.1-1.5-1.7-3-1.7-4.7v-10.6c-6.4-2.3-12.2-5.6-17.2-10l-9,5.3c-3.5,2.1-6.7,1.6-9.4-1.6c-6.7-8.1-11-15-13.1-20.6
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  c-1.5-3.9-0.4-7,3.1-9l10.3-5.3c-1.2-6.7-1.2-13.2,0-19.7l-10.3-5.3c-3.7-2.1-4.8-5.1-3.1-9C27.8,95,32.2,88.1,38.9,80 c2.5-3.1,5.6-3.6,
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  9.4-1.6l9,5c5.2-4.4,10.9-7.6,17.2-9.7V63.2c0-1.9,0.6-3.5,1.7-4.8c1.1-1.4,2.7-2.1,4.5-2.3 c7.9-1.5,15.8-1.5,23.7,0c0.9,0.2,1.5,0.4,2.3,0.8c0.8,0.4,1.4,1.1,2,1.7c0.6,0.6,1.1,1.4,1.4,2.2c0.3,0.8,0.5,1.7,0.5,2.5v10.6
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  c6.2,2.3,11.9,5.5,16.8,9.7l9.4-5c3.5-2.3,6.7-1.8,9.4,1.6c6.7,7.9,11,14.8,13.1,20.6c1.5,4,0.4,7-3.1,9l-10.6,5.3 C146.8,121.4,146.8,127.9,145.6,134.6z" />
                                         <circle class="gear-inner" cx="92.5" cy="124.8" r="23.1" />
                                         <path class="gear-outer small"
                                             d="M185.1,105l-2.5,4.4c-1,1.9-2.6,2.5-4.7,1.9c-3.7-1.5-7.1-3.4-10-5.9c-1.7-1.5-2-3.1-0.9-5l2.5-4.4
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            c-2.1-2.5-3.7-5.3-5-8.4h-5c-2.3,0-3.5-1.1-3.7-3.4c-0.8-3.7-0.8-7.6,0-11.5c0.2-2.1,1.5-3.1,3.7-3.1h5c1.2-3.1,2.9-5.9,5-8.4
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            l-2.5-4.7c-1-1.9-0.7-3.4,0.9-4.7c2.9-2.5,6.2-4.5,10-5.9c2.1-0.8,3.6-0.3,4.7,1.6l2.5,4.7c3.3-0.6,6.7-0.6,10,0l2.5-4.7
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      c1-1.9,2.6-2.4,4.7-1.6c3.7,1.2,7.1,3.2,10,5.9c1.7,1.2,2,2.8,0.9,4.7l-2.5,4.7c2.1,2.5,3.7,5.3,5,8.4h5c2.3,0,3.5,1,3.7,
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      3.1 c0.8,4,0.8,7.8,0,11.5c-0.2,2.3-1.5,3.4-3.7,3.4h-5c-1.2,3.1-2.9,5.9-5,8.4l2.5,4.4c1,2.1,0.7,3.7-0.9,5c-2.9,2.5-6.2,4.5-10,5.9
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       c-2.1,0.6-3.6,0-4.7-1.9L195,105C191.7,105.6,188.4,105.6,185.1,105z" />
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                c-2.1-2.5-3.7-5.3-5-8.4h-5c-2.3,0-3.5-1.1-3.7-3.4c-0.8-3.7-0.8-7.6,0-11.5c0.2-2.1,1.5-3.1,3.7-3.1h5c1.2-3.1,2.9-5.9,5-8.4
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                l-2.5-4.7c-1-1.9-0.7-3.4,0.9-4.7c2.9-2.5,6.2-4.5,10-5.9c2.1-0.8,3.6-0.3,4.7,1.6l2.5,4.7c3.3-0.6,6.7-0.6,10,0l2.5-4.7
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          c1-1.9,2.6-2.4,4.7-1.6c3.7,1.2,7.1,3.2,10,5.9c1.7,1.2,2,2.8,0.9,4.7l-2.5,4.7c2.1,2.5,3.7,5.3,5,8.4h5c2.3,0,3.5,1,3.7,
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          3.1 c0.8,4,0.8,7.8,0,11.5c-0.2,2.3-1.5,3.4-3.7,3.4h-5c-1.2,3.1-2.9,5.9-5,8.4l2.5,4.4c1,2.1,0.7,3.7-0.9,5c-2.9,2.5-6.2,4.5-10,5.9
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           c-2.1,0.6-3.6,0-4.7-1.9L195,105C191.7,105.6,188.4,105.6,185.1,105z" />
                                         <circle class="gear-inner" cx="190" cy="78.4" r="11.5" />
                                         <path class="gear-outer small"
                                             d="M185.1,198.2l-2.5,4.4c-1,1.9-2.6,2.5-4.7,1.9c-3.7-1.5-7.1-3.4-10-5.9c-1.7-1.5-2-3.1-0.9-5l2.5-4.4 c-2.1-2.5-3.7-5.3-5-8.4h-5c-2.3,0-3.5-1.1-3.7-3.4c-0.8-3.7-0.8-7.6,0-11.5c0.2-2.1,1.5-3.1,3.7-3.1h5c1.2-3.1,2.9-6,5-8.7
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         l-2.5-4.4c-1-1.9-0.7-3.5,0.9-5c2.9-2.5,6.2-4.4,10-5.6c2.1-0.8,3.6-0.3,4.7,1.6l2.5,4.7c3.3-0.6,6.7-0.6,10,0l2.5-4.7
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          c1-1.9,2.6-2.4,4.7-1.6c3.7,1.2,7.1,3.1,10,5.6c1.7,1.5,2,3.1,0.9,5l-2.5,4.4c2.1,2.7,3.7,5.6,5,8.7h5c2.3,0,3.5,1,3.7,3.1
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             c0.8,4,0.8,7.8,0,11.5c-0.2,2.3-1.5,3.4-3.7,3.4h-5c-1.2,3.1-2.9,5.9-5,8.4l2.5,4.4c1,1.9,0.7,3.5-0.9,5c-2.9,2.5-6.2,4.5-10,5.9
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                c-2.1,0.6-3.6,0-4.7-1.9l-2.5-4.4C191.7,198.8,188.4,198.8,185.1,198.2z" />
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             l-2.5-4.4c-1-1.9-0.7-3.5,0.9-5c2.9-2.5,6.2-4.4,10-5.6c2.1-0.8,3.6-0.3,4.7,1.6l2.5,4.7c3.3-0.6,6.7-0.6,10,0l2.5-4.7
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              c1-1.9,2.6-2.4,4.7-1.6c3.7,1.2,7.1,3.1,10,5.6c1.7,1.5,2,3.1,0.9,5l-2.5,4.4c2.1,2.7,3.7,5.6,5,8.7h5c2.3,0,3.5,1,3.7,3.1
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 c0.8,4,0.8,7.8,0,11.5c-0.2,2.3-1.5,3.4-3.7,3.4h-5c-1.2,3.1-2.9,5.9-5,8.4l2.5,4.4c1,1.9,0.7,3.5-0.9,5c-2.9,2.5-6.2,4.5-10,5.9
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    c-2.1,0.6-3.6,0-4.7-1.9l-2.5-4.4C191.7,198.8,188.4,198.8,185.1,198.2z" />
                                         <circle class="gear-inner" cx="190.1" cy="171.6" r="11.5" />
                                     </g>
                                 </svg>
@@ -405,6 +441,7 @@
                         @else
                             @foreach ($projects as $project)
                                 <div onclick="if (!event.target.closest('#deleteFormContainer')) { redirectToCurrentProject('{{ route('projects.show', [$currentWorkspace->slug, $project->id]) }}'); }"
+                                    data-project-name="{{ mb_strtolower($project->name) }}"
                                     class="hover card mb-3 zoom mt-0 ml-0 m-2 All {{ $project->status }} type-{{ $project->type }}">
                                     <div class="row ms-2">
                                         <div class="col-md-2 project-type text-center m-2">
@@ -541,8 +578,19 @@
                                     {{ __('Remember that the projects shown are those of your delegation/group.') }}
                                 </p>
                             </div>
-                            <button class="btn btn-sm btn-primary toggle-section buttonColapse"
-                                data-target="#filterSection-content">-</button>
+                            <div class="d-flex align-items-start gap-2">
+                                @if (isset($projects) && $projects && !$projects->isEmpty())
+                                    <button type="button" id="btnSortProjectsAlpha"
+                                        class="btn btn-sm d-flex align-items-center gap-1"
+                                        title="{{ __('Sort alphabetically') }}"
+                                        aria-label="{{ __('Sort alphabetically') }}">
+                                        <span class="sort-direction-arrow" aria-hidden="true"></span>
+                                        <span style="font-size:0.78rem; font-weight: 700;">AZ</span>
+                                    </button>
+                                @endif
+                                <button class="btn btn-sm btn-primary toggle-section buttonColapse"
+                                    data-target="#filterSection-content">-</button>
+                            </div>
                         </div>
                         <div class="card-body collapse-section" id="filterSection-content">
                             <div class="col-12 d-flex flex-column">
@@ -799,12 +847,32 @@
             }
 
             // Inicializar Isotope
+            var sortAlphaMode = 'none'; // none | asc | desc (after first click, toggles asc <-> desc)
             var $grid = $(".grid").isotope({
                 itemSelector: ".All",
                 percentPosition: true,
                 masonry: {
                     columnWidth: ".All"
+                },
+                getSortData: {
+                    name: '[data-project-name]'
                 }
+            });
+
+            $('#btnSortProjectsAlpha').on('click', function() {
+                var $btn = $(this);
+
+                if (sortAlphaMode === 'none' || sortAlphaMode === 'desc') {
+                    sortAlphaMode = 'asc';
+                    $grid.isotope({ sortBy: 'name', sortAscending: true });
+                    $btn.addClass('active').removeClass('sort-desc');
+                } else {
+                    sortAlphaMode = 'desc';
+                    $grid.isotope({ sortBy: 'name', sortAscending: false });
+                    $btn.addClass('active').addClass('sort-desc');
+                }
+
+                $grid.isotope('layout');
             });
 
             var filterStatus = '*';
