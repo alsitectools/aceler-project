@@ -1255,7 +1255,7 @@ class ProjectController extends Controller
                 //     $finalizationDate = $milestone->finalization_date ? Carbon::parse($milestone->finalization_date) : null;
 
                 //     // Calculate the difference in days
-                //     $deliveryTime = $finalizationDateDelivery->diffInDays($startDate); 
+                //     $deliveryTime = $finalizationDateDelivery->diffInDays($startDate);
                 //     // Store an arrays
                 //     $milestoneDelivery[] = $deliveryTime;
 
@@ -1269,7 +1269,7 @@ class ProjectController extends Controller
 
                 //         $delayTime = $finalizationDate->diffInDays($end_date);
                 //         $milestoneDelayTime[] = $delayTime;
-                //     }      
+                //     }
 
                 // }
                 // //Average for the statistics
@@ -1288,7 +1288,7 @@ class ProjectController extends Controller
                 );
 
 
-                //USUARIOS QUE HAN CREADO UNA HOJA DE ENCARGO    
+                //USUARIOS QUE HAN CREADO UNA HOJA DE ENCARGO
                 $milestoneCreators = \App\Models\User::select('users.*')
                     ->join('milestones', 'milestones.created_by', '=', 'users.id')
                     ->where('milestones.project_id', $projectID)
@@ -3682,9 +3682,9 @@ class ProjectController extends Controller
     private function getEnumValues($table, $column)
     {
         $type = DB::selectOne("
-        SELECT COLUMN_TYPE 
-        FROM information_schema.COLUMNS 
-        WHERE TABLE_NAME = ? 
+        SELECT COLUMN_TYPE
+        FROM information_schema.COLUMNS
+        WHERE TABLE_NAME = ?
           AND COLUMN_NAME = ?
     ", [$table, $column]);
 
@@ -4205,7 +4205,7 @@ MilestoneFile::create([
                     \Log::info('Archivo subido exitosamente', [
                         'original_name' => $file->getClientOriginalName(),
                         'stored_as' => $fileName,
-                        'size_kb' => round($file->getSize() / 1024, 2),
+                        'size_kb' => round(filesize($filePath) / 1024, 2),
                         'mime_type' => $realMimeType,
                         'extension' => $file->getClientOriginalExtension(),
                         'milestone_id' => $milestone->id,
@@ -6621,7 +6621,7 @@ MilestoneFile::create([
 
             if ($currentWorkspace->permission == 'Owner' ||  Auth::user()->type == 'user') {
                 $tmp['action'] = '
-                <a href="#" class="action-btn btn-info  btn btn-sm d-inline-flex align-items-center"  
+                <a href="#" class="action-btn btn-info  btn btn-sm d-inline-flex align-items-center"
                 data-toggle="popover"  title="' . __('Edit Task')
                     . '"  data-ajax-popup="true" data-size="lg" data-title="' . __('Edit Task') . '" data-url="' . route(
                         'tasks.edit',
@@ -6631,7 +6631,7 @@ MilestoneFile::create([
                             $task->id,
                         ]
                     ) . '"><i class="ti ti-pencil"></i></a>
-                <a href="#" class="action-btn btn-danger  btn btn-sm d-inline-flex align-items-center 
+                <a href="#" class="action-btn btn-danger  btn btn-sm d-inline-flex align-items-center
                 bs-pass-para" data-toggle="popover" title="'
                     . __('Delete')
                     . '" data-confirm="' . __('Are You Sure?')
@@ -6890,8 +6890,8 @@ MilestoneFile::create([
                 $returnHTML .= '<tr><td><span class="task-name ml-3">' . $name . '</span></td>';
 
                 foreach ($period as $key => $dateobj) {
-                    $returnHTML .= '<td><div role="button" class="form-control border-dark wid-120" data-ajax-timesheet-popup="true" 
-                    data-type="create" data-task-id="' . $task->id . '" data-date="' . $dateobj->format('Y-m-d') . '" 
+                    $returnHTML .= '<td><div role="button" class="form-control border-dark wid-120" data-ajax-timesheet-popup="true"
+                    data-type="create" data-task-id="' . $task->id . '" data-date="' . $dateobj->format('Y-m-d') . '"
                     data-url="' . route(
                         'project.timesheet.create',
                         [
