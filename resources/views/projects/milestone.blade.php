@@ -652,7 +652,7 @@
                 name: $('#projectname').val(),
                 ref_mo: $('#searchMo').val(),
                 clipo: $('#searchClipo').val(),
-                isReload: false
+                isReload: true
             };
             const slug = "{{ $currentWorkspace->slug }}";
             const url = "{{ route('project.milestone.store', ['slug' => 'slug']) }}";
@@ -666,20 +666,35 @@
                     'X-CSRF-TOKEN': '{{ csrf_token() }}'
                 },
                 success: function(response) {
-                    $('#projectname').val("");
-                    $('#searchMo').val("");
-                    $('#searchClipo').val("");
-                    let msg = '{{ __('Project Created Successfully!') }}';
-                    $('#toastMessage').text(msg);
-                    const toast = new bootstrap.Toast(document.getElementById(
-                        'successToast'), {
-                        delay: 2000
-                    });
-                    toast.show();
+                    if (response.project_id) {
+                        $('#projectname').val("");
+                        $('#searchMo').val("");
+                        $('#searchClipo').val("");
+                        let msg = '{{ __('Project Created Successfully!') }}';
+                        $('#toastMessage').text(msg);
+                        const toast = new bootstrap.Toast(document.getElementById(
+                            'successToast'), {
+                            delay: 2000
+                        });
+                        toast.show();
+                    } else {
+                        let errMsg = response.message || '{{ __('Error creating project.') }}';
+                        $('#toastMessage').text(errMsg);
+                        const toast = new bootstrap.Toast(document.getElementById(
+                            'successToast'), {
+                            delay: 2000
+                        });
+                        toast.show();
+                    }
                 },
                 error: function(xhr, status, error) {
-                    console.error('Error:', xhr.responseText);
-                    $('#toastMessage').text('An error occurred.');
+                    let errMsg = '{{ __('Error creating project.') }}';
+                    try {
+                        const resp = JSON.parse(xhr.responseText);
+                        if (resp.error) errMsg = resp.error;
+                        else if (resp.message) errMsg = resp.message;
+                    } catch(e) {}
+                    $('#toastMessage').text(errMsg);
                     const toast = new bootstrap.Toast(document.getElementById(
                         'successToast'), {
                         delay: 2000

@@ -787,12 +787,19 @@
                                         let notificationList = document.querySelector('.limited');
                                         let newNotification = document.createElement('div');
                                         newNotification.classList.add('notificationSTL');
-                                        newNotification.innerHTML = `
-                    <span class="textRepo">${data.data.msg}</span>
-                    <span class="textRepo">${data.data.type}</span>
-                    <button type="button" class="btn-close repoIcon" aria-label="Close"></button>
-                `;
-                                        notificationList.prepend(newNotification);
+                                        const span1 = document.createElement('span');
+                                        span1.className = 'textRepo';
+                                        span1.textContent = data.data.msg;
+                                        const span2 = document.createElement('span');
+                                        span2.className = 'textRepo';
+                                        span2.textContent = data.data.type;
+                                        const btn = document.createElement('button');
+                                        btn.type = 'button';
+                                        btn.className = 'btn-close repoIcon';
+                                        btn.setAttribute('aria-label', 'Close');
+                                        newNotification.appendChild(span1);
+                                        newNotification.appendChild(span2);
+                                        newNotification.appendChild(btn);
                                     }
                                 })
                                 .catch(error => console.error("Error al agregar notificación:", error));
@@ -868,11 +875,19 @@
                                                         let notificationList = document.querySelector('.limited');
                                                         let newNotification = document.createElement('div');
                                                         newNotification.classList.add('notificationSTL');
-                                                        newNotification.innerHTML = `
-                <span class="textRepo">${data.data.msg}</span>
-                <span class="textRepo">${data.data.type}</span>
-                <button type="button" class="btn-close repoIcon" aria-label="Close"></button>
-            `;
+                                                        const spanMsg = document.createElement('span');
+                                                        spanMsg.className = 'textRepo';
+                                                        spanMsg.textContent = data.data.msg;
+                                                        const spanType = document.createElement('span');
+                                                        spanType.className = 'textRepo';
+                                                        spanType.textContent = data.data.type;
+                                                        const btn = document.createElement('button');
+                                                        btn.type = 'button';
+                                                        btn.className = 'btn-close repoIcon';
+                                                        btn.setAttribute('aria-label', 'Close');
+                                                        newNotification.appendChild(spanMsg);
+                                                        newNotification.appendChild(spanType);
+                                                        newNotification.appendChild(btn);
                                                         notificationList.prepend(newNotification);
                                                     }
                                                 })

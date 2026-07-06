@@ -522,6 +522,16 @@ class ProjectController extends Controller
 
         // Datos del proyecto a crear
         $post = $request->all();
+        $name = strip_tags($request->name);
+        if (empty(trim($name))) {
+            if ($request->get('isReload', false)) {
+                return response()->json(['success' => false, 'message' => __('The project name is invalid.')], 422);
+            }
+            return redirect()->back()
+                ->with('error', __('The project name is invalid.'))
+                ->withInput();
+        }
+        $post['name'] = $name;
         $post['ref_mo'] = $request->ref_mo;
         $post['type'] = $request->project_type;
         $post['clipo'] = $clipo;
@@ -4036,9 +4046,19 @@ class ProjectController extends Controller
             : $inputEndDate->toDateString();
 
         // Crear el milestone
+        $title = strip_tags($request->title);
+        if (empty(trim($title))) {
+            if ($request->expectsJson() || $request->ajax()) {
+                return response()->json(['success' => false, 'error' => __('The milestone title is invalid.')], 422);
+            }
+            return redirect()->back()
+                ->with('error', __('The milestone title is invalid.'))
+                ->withInput();
+        }
+        DB::beginTransaction();
         $milestone = new Milestone();
         $milestone->project_id = $project->id;
-        $milestone->title = $request->title;
+        $milestone->title = $title;
         $milestone->assign_to = $request->assing_to;
         $milestone->start_date = date('Y-m-d');
         $milestone->company = $request->company ?? '';
@@ -4048,7 +4068,7 @@ class ProjectController extends Controller
         $milestone->milestone_assigned_to_user = $request->req_assing_to ?? '';
         $milestone->planned_end_date = $request->planned_end_date ?? '';
         $milestone->created_by = Auth::user()->id;
-        $milestone->end_date = $finalEndDate; // ✅ Fecha corregida aquí
+        $milestone->end_date = $finalEndDate;
         $milestone->summary = $request->description ?? '';
         $milestone->priority = $request->priority === '' ? null : $request->priority;
         $milestone->save();
@@ -4117,15 +4137,11 @@ class ProjectController extends Controller
                     ]);
 
                     // Opcional: mostrar mensaje al usuario (si es AJAX o deseas feedback inmediato)
-                    if ($request->ajax() || $request->expectsJson()) {
-                        return response()->json([
-                            'success' => false,
-                            'error' => 'Tipo de archivo no permitido: ' . $file->getClientOriginalName()
-                        ], 422);
-                    }
-
-                    // Continuar con el siguiente archivo (no interrumpir lote completo)
-                    continue;
+                    DB::rollBack();
+                    return response()->json([
+                        'success' => false,
+                        'error' => 'Tipo de archivo no permitido: ' . $file->getClientOriginalName()
+                    ], 422);
                 }
 
                 // ✅ VERIFICAR QUE LAS IMÁGENES SEAN REALES (PUNTO 6)
@@ -4140,14 +4156,11 @@ class ProjectController extends Controller
                             'ip' => request()->ip()
                         ]);
 
-                        if ($request->ajax() || $request->expectsJson()) {
-                            return response()->json([
-                                'success' => false,
-                                'error' => 'Archivo de imagen no válido o corrupto: ' . $file->getClientOriginalName()
-                            ], 422);
-                        }
-
-                        continue;
+                        DB::rollBack();
+                        return response()->json([
+                            'success' => false,
+                            'error' => 'Archivo de imagen no válido o corrupto: ' . $file->getClientOriginalName()
+                        ], 422);
                     }
                 }
 
@@ -4165,14 +4178,11 @@ class ProjectController extends Controller
                         'ip' => request()->ip()
                     ]);
 
-                    if ($request->ajax() || $request->expectsJson()) {
-                        return response()->json([
-                            'success' => false,
-                            'error' => 'Tipo de archivo no permitido por seguridad: ' . $file->getClientOriginalName()
-                        ], 422);
-                    }
-
-                    continue;
+                    DB::rollBack();
+                    return response()->json([
+                        'success' => false,
+                        'error' => 'Tipo de archivo no permitido por seguridad: ' . $file->getClientOriginalName()
+                    ], 422);
                 }
 
                 if ($file->isValid()) {
@@ -4217,6 +4227,7 @@ MilestoneFile::create([
                     $errorMsg = 'Uno o más archivos no son válidos.';
 
                     // Si es AJAX, devolver JSON
+                    DB::rollBack();
                     if ($request->expectsJson() || $request->ajax()) {
                         return response()->json([
                             'success' => false,
@@ -4253,6 +4264,7 @@ MilestoneFile::create([
         }
 
         // Siempre devolver JSON si es una solicitud AJAX o si viene del modal
+        DB::commit();
         if ($request->ajax() || $request->wantsJson() || $request->expectsJson()) {
             return response()->json([
                 'success' => true,
@@ -4261,6 +4273,7 @@ MilestoneFile::create([
             ]);
         }
 
+        DB::commit();
         return redirect()->back()->with('success', __('Milestone created successfully!'));
     }
 
@@ -4514,7 +4527,16 @@ MilestoneFile::create([
         ]);
 
         if (!empty($request->title)) {
-            $milestone->title = $request->title;
+            $title = strip_tags($request->title);
+            if (empty(trim($title))) {
+                if ($request->expectsJson() || $request->ajax()) {
+                    return response()->json(['success' => false, 'error' => __('The milestone title is invalid.')], 422);
+                }
+                return redirect()->back()
+                    ->with('error', __('The milestone title is invalid.'))
+                    ->withInput();
+            }
+            $milestone->title = $title;
         }
         $milestone->summary = $request->summary;
         // Solo actualizar milestone_assigned_to_user si viene con valor, de lo contrario mantener el actual
