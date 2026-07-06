@@ -85,7 +85,6 @@ Route::get('login/azure/callback', [AzureController::class, 'handleAzureCallback
 
 // Ruta protegida por autenticación
 Route::get('/home', [HomeController::class, 'index'])->middleware('auth')->name('home');
-Route::get('/register/azure', [AzureController::class, 'showRegistrationForm'])->name('register.azure');
 Route::post('/register/azure', [AzureController::class, 'registerUser'])->name('register.azure.post');
 
 
