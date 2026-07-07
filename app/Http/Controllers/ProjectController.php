@@ -4161,6 +4161,24 @@ class ProjectController extends Controller
                     }
                 }
 
+                // ✅ DETECTAR MACROS EN DOCUMENTOS .DOCX (PUNTO 11)
+                $ext = strtolower($file->getClientOriginalExtension());
+                if ($ext === 'docx') {
+                    $content = file_get_contents($file->getPathName(), false, null, 0, 1048576);
+                    if ($content !== false && strpos($content, 'vbaProject.bin') !== false) {
+                        \Log::warning('Documento rechazado - contiene macros', [
+                            'original_name' => $file->getClientOriginalName(),
+                            'user_id' => Auth::id(),
+                            'ip' => request()->ip()
+                        ]);
+                        DB::rollBack();
+                        return response()->json([
+                            'success' => false,
+                            'error' => 'El documento contiene macros: ' . $file->getClientOriginalName()
+                        ], 422);
+                    }
+                }
+
                 // ✅ VERIFICAR QUE LAS IMÁGENES SEAN REALES (PUNTO 6)
                 if (in_array($realMimeType, ['image/jpeg', 'image/png'], true)) {
                     $imageInfo = getimagesize($file->getPathName());
@@ -5236,6 +5254,26 @@ MilestoneFile::create([
                     ], 422);
                 }
                 return redirect()->back()->with('error', 'El PDF contiene JavaScript y no está permitido: ' . $file->getClientOriginalName());
+            }
+        }
+
+        # ✅ DETECTAR MACROS EN DOCUMENTOS .DOCX (fileUpload)
+        $ext = strtolower($file->getClientOriginalExtension());
+        if ($ext === 'docx') {
+            $content = file_get_contents($file->getPathName(), false, null, 0, 1048576);
+            if ($content !== false && strpos($content, 'vbaProject.bin') !== false) {
+                \Log::warning('Documento rechazado - contiene macros (fileUpload)', [
+                    'original_name' => $file->getClientOriginalName(),
+                    'user_id' => Auth::id(),
+                    'ip' => request()->ip()
+                ]);
+                if ($request->ajax() || $request->expectsJson()) {
+                    return response()->json([
+                        'success' => false,
+                        'error' => 'El documento contiene macros: ' . $file->getClientOriginalName()
+                    ], 422);
+                }
+                return redirect()->back()->with('error', 'El documento contiene macros: ' . $file->getClientOriginalName());
             }
         }
 
