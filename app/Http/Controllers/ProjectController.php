@@ -4179,6 +4179,23 @@ class ProjectController extends Controller
                     }
                 }
 
+                // ✅ DETECTAR MACROS EN DOCUMENTOS .DOC (Word 97-2003)
+                if ($ext === 'doc') {
+                    $content = file_get_contents($file->getPathName(), false, null, 0, 2097152);
+                    if ($content !== false && (strpos($content, '_VBA_PROJECT') !== false || strpos($content, "V\0B\0A\0") !== false)) {
+                        \Log::warning('Documento rechazado - contiene macros (.doc)', [
+                            'original_name' => $file->getClientOriginalName(),
+                            'user_id' => Auth::id(),
+                            'ip' => request()->ip()
+                        ]);
+                        DB::rollBack();
+                        return response()->json([
+                            'success' => false,
+                            'error' => 'El documento contiene macros: ' . $file->getClientOriginalName()
+                        ], 422);
+                    }
+                }
+
                 // ✅ VERIFICAR QUE LAS IMÁGENES SEAN REALES (PUNTO 6)
                 if (in_array($realMimeType, ['image/jpeg', 'image/png'], true)) {
                     $imageInfo = getimagesize($file->getPathName());
@@ -5263,6 +5280,25 @@ MilestoneFile::create([
             $content = file_get_contents($file->getPathName(), false, null, 0, 1048576);
             if ($content !== false && strpos($content, 'vbaProject.bin') !== false) {
                 \Log::warning('Documento rechazado - contiene macros (fileUpload)', [
+                    'original_name' => $file->getClientOriginalName(),
+                    'user_id' => Auth::id(),
+                    'ip' => request()->ip()
+                ]);
+                if ($request->ajax() || $request->expectsJson()) {
+                    return response()->json([
+                        'success' => false,
+                        'error' => 'El documento contiene macros: ' . $file->getClientOriginalName()
+                    ], 422);
+                }
+                return redirect()->back()->with('error', 'El documento contiene macros: ' . $file->getClientOriginalName());
+            }
+        }
+
+        # ✅ DETECTAR MACROS EN DOCUMENTOS .DOC (Word 97-2003) (fileUpload)
+        if ($ext === 'doc') {
+            $content = file_get_contents($file->getPathName(), false, null, 0, 2097152);
+            if ($content !== false && (strpos($content, '_VBA_PROJECT') !== false || strpos($content, "V\0B\0A\0") !== false)) {
+                \Log::warning('Documento rechazado - contiene macros (.doc) (fileUpload)', [
                     'original_name' => $file->getClientOriginalName(),
                     'user_id' => Auth::id(),
                     'ip' => request()->ip()
