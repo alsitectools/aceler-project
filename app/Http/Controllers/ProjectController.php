@@ -4116,6 +4116,7 @@ class ProjectController extends Controller
                     'image/jpeg',      // JPG
                     'image/png',       // PNG
                     'application/pdf', // PDF
+                    'text/plain',      // TXT
                     'application/msword',                           // .doc
                     'application/vnd.openxmlformats-officedocument.wordprocessingml.document', // .docx
                     'application/zip',  // .zip
@@ -5224,6 +5225,7 @@ MilestoneFile::create([
             'image/jpeg',      // JPG
             'image/png',       // PNG
             'application/pdf', // PDF
+            'text/plain',      // TXT
             'application/msword',                           // .doc
             'application/vnd.openxmlformats-officedocument.wordprocessingml.document', // .docx
             'application/zip',  // .zip
