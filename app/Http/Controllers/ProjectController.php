@@ -4161,30 +4161,6 @@ class ProjectController extends Controller
                     }
                 }
 
-                // ✅ DETECTAR MACROS EN DOCUMENTOS OFFICE (.docx)
-                if (in_array($realMimeType, [
-                    'application/msword',
-                    'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-                ], true)) {
-                    $zip = new ZipArchive();
-                    if ($zip->open($file->getPathName()) === true) {
-                        $hasMacro = $zip->locateName('word/vbaProject.bin') !== false;
-                        $zip->close();
-                        if ($hasMacro) {
-                            \Log::warning('Documento rechazado - contiene macros', [
-                                'original_name' => $file->getClientOriginalName(),
-                                'user_id' => Auth::id(),
-                                'ip' => request()->ip()
-                            ]);
-                            DB::rollBack();
-                            return response()->json([
-                                'success' => false,
-                                'error' => 'El documento contiene macros y no está permitido: ' . $file->getClientOriginalName()
-                            ], 422);
-                        }
-                    }
-                }
-
                 // ✅ VERIFICAR QUE LAS IMÁGENES SEAN REALES (PUNTO 6)
                 if (in_array($realMimeType, ['image/jpeg', 'image/png'], true)) {
                     $imageInfo = getimagesize($file->getPathName());
@@ -5260,32 +5236,6 @@ MilestoneFile::create([
                     ], 422);
                 }
                 return redirect()->back()->with('error', 'El PDF contiene JavaScript y no está permitido: ' . $file->getClientOriginalName());
-            }
-        }
-
-        # ✅ DETECTAR MACROS EN DOCUMENTOS OFFICE (.docx) (fileUpload)
-        if (in_array($realMimeType, [
-            'application/msword',
-            'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-        ], true)) {
-            $zip = new ZipArchive();
-            if ($zip->open($file->getPathName()) === true) {
-                $hasMacro = $zip->locateName('word/vbaProject.bin') !== false;
-                $zip->close();
-                if ($hasMacro) {
-                    \Log::warning('Documento rechazado - contiene macros (fileUpload)', [
-                        'original_name' => $file->getClientOriginalName(),
-                        'user_id' => Auth::id(),
-                        'ip' => request()->ip()
-                    ]);
-                    if ($request->ajax() || $request->expectsJson()) {
-                        return response()->json([
-                            'success' => false,
-                            'error' => 'El documento contiene macros y no está permitido: ' . $file->getClientOriginalName()
-                        ], 422);
-                    }
-                    return redirect()->back()->with('error', 'El documento contiene macros y no está permitido: ' . $file->getClientOriginalName());
-                }
             }
         }
 
