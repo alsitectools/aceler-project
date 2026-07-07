@@ -4144,6 +4144,23 @@ class ProjectController extends Controller
                     ], 422);
                 }
 
+                // ✅ DETECTAR JAVASCRIPT EN PDFS
+                if ($realMimeType === 'application/pdf') {
+                    $pdfContent = file_get_contents($file->getPathName());
+                    if (preg_match('/\/JavaScript\s*$|\/JS\s+\d+\s+\d+\s+R|\/S\s*\/JavaScript|\/OpenAction\s/', $pdfContent)) {
+                        \Log::warning('PDF rechazado - contiene JavaScript', [
+                            'original_name' => $file->getClientOriginalName(),
+                            'user_id' => Auth::id(),
+                            'ip' => request()->ip()
+                        ]);
+                        DB::rollBack();
+                        return response()->json([
+                            'success' => false,
+                            'error' => 'El PDF contiene JavaScript y no está permitido: ' . $file->getClientOriginalName()
+                        ], 422);
+                    }
+                }
+
                 // ✅ VERIFICAR QUE LAS IMÁGENES SEAN REALES (PUNTO 6)
                 if (in_array($realMimeType, ['image/jpeg', 'image/png'], true)) {
                     $imageInfo = getimagesize($file->getPathName());
@@ -5201,6 +5218,25 @@ MilestoneFile::create([
             }
 
             return redirect()->back()->with('error', 'Tipo de archivo no permitido: ' . $file->getClientOriginalName());
+        }
+
+        # ✅ DETECTAR JAVASCRIPT EN PDFS (fileUpload)
+        if ($realMimeType === 'application/pdf') {
+            $pdfContent = file_get_contents($file->getPathName());
+            if (preg_match('/\/JavaScript\s*$|\/JS\s+\d+\s+\d+\s+R|\/S\s*\/JavaScript|\/OpenAction\s/', $pdfContent)) {
+                \Log::warning('PDF rechazado - contiene JavaScript (fileUpload)', [
+                    'original_name' => $file->getClientOriginalName(),
+                    'user_id' => Auth::id(),
+                    'ip' => request()->ip()
+                ]);
+                if ($request->ajax() || $request->expectsJson()) {
+                    return response()->json([
+                        'success' => false,
+                        'error' => 'El PDF contiene JavaScript y no está permitido: ' . $file->getClientOriginalName()
+                    ], 422);
+                }
+                return redirect()->back()->with('error', 'El PDF contiene JavaScript y no está permitido: ' . $file->getClientOriginalName());
+            }
         }
 
         # ✅ VERIFICAR QUE LAS IMÁGENES SEAN REALES (PUNTO 6)
