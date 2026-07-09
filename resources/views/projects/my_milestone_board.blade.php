@@ -67,6 +67,7 @@
     }
 
     .fixedHeight {
+        min-height: 600px;
         max-height: 600px;
         overflow: hidden;
         overflow-y: auto;
