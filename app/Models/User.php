@@ -58,6 +58,19 @@ class User extends Authenticatable implements MustVerifyEmail
                 'email_verified_at' => 'datetime',
         ];
 
+        public function getAvatarAttribute($value)
+        {
+                if ($value && str_contains($value, '@')) {
+                        return route('avatar.serve', ['id' => $this->id], false);
+                }
+                return $value;
+        }
+
+        public function getRawAvatarAttribute()
+        {
+                return $this->attributes['avatar'];
+        }
+
         public function projects()
         {
                 // Projects en los que trabaja

@@ -139,7 +139,7 @@ class AzureController extends Controller
                     'type' => $data['type'],
                     'currant_workspace' => 1,
                     'lang' => app()->getLocale(),
-                    'avatar' => $data['photo_path'],
+                    'avatar' => null,
                     'email_verified_at' => now(),
                     'messenger_color' => '#2180f3',
                     'dark_mode' => 0,
@@ -190,6 +190,18 @@ class AzureController extends Controller
                 ]
             );
         }
+
+            if (!empty($data['photo_path'])) {
+                $ext = pathinfo(parse_url($data['photo_path'], PHP_URL_PATH), PATHINFO_EXTENSION);
+                $old = public_path('assets/users-avatar/' . $data['userPrincipalName'] . '.' . $ext);
+                $new = 'assets/users-avatar/' . $user->id . '.' . $ext;
+                if (file_exists($old)) {
+                    rename($old, public_path($new));
+                    $user->avatar = asset($new);
+                    $user->save();
+                }
+            }
+
             DB::commit();
             Auth::login($user, true);
             return redirect()->intended('/');
