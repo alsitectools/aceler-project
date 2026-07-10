@@ -27,7 +27,7 @@
                 <label for="assign_to" class="col-form-label">{{ __('Assign To')}}</label>
                 <select class="form-control select2" id="assign_to" name="assign_to" required>
                     @foreach($users as $u)
-                        <option value="{{$u->id}}">{{$u->name}} - {{$u->email}}</option>
+                        <option value="{{$u->id}}">{{$u->name}}</option>
                     @endforeach
                 </select>
             </div>

@@ -1030,7 +1030,7 @@ class UserController extends Controller
     {
         $project = Project::find($projectID);
 
-        return $project->users->toJSON();
+        return $project->users->makeHidden('email')->toJSON();
     }
 
     public function getProjectMilestoneJson($projectID)

@@ -49,7 +49,7 @@
                     <select class="multi-select" multiple="multiple" id="assign_to" name="assign_to[]" required>
                         @foreach ($users as $u)
                             <option @if (in_array($u->id, $task->assign_to)) selected @endif value="{{ $u->id }}">
-                                {{ $u->name }} - {{ $u->email }}</option>
+                                {{ $u->name }}</option>
                         @endforeach
                     </select>
                 </div>
@@ -157,7 +157,7 @@
                     data = JSON.parse(data);
                     $(data).each(function(i, d) {
                         $('select[name=assign_to]').append('<option value="' + d.id + '">' + d.name +
-                            ' - ' + d.email + '</option>');
+                            '</option>');
                     });
                 });
             $.get('@auth('web'){{ route('home') }}@endauth' +

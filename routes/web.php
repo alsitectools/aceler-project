@@ -89,6 +89,11 @@ Route::get('/register/azure', [AzureController::class, 'showRegistrationForm'])-
 Route::post('/register/azure', [AzureController::class, 'registerUser'])->name('register.azure.post');
 
 
+Route::get('/user/{id}/email', function ($id) {
+    $user = \App\Models\User::findOrFail($id);
+    return response()->json(['email' => $user->email]);
+})->middleware('auth')->name('user.email.reveal');
+
 Route::get('/avatar/{id}', function ($id) {
     $user = \App\Models\User::findOrFail($id);
     $originalUrl = $user->getRawAvatarAttribute();

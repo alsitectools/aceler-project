@@ -40,8 +40,11 @@
                                     avatar="{{ Auth::user()->name }}" 
                                 @endif
                                 alt="{{ Auth::user()->name }}"> -->
-                        <h4 class="mt-2">{{ $client->name }}</h4>
-                        <small>{{ $client->email }}</small>
+                        <div class="email-reveal-wrapper">
+                            <h4 class="mt-2">{{ $client->name }}</h4>
+                            <i class="bi bi-envelope-fill email-reveal-icon tooltipCus" data-title="{{ __('Mostrar correo') }}" data-user-id="{{ $client->id }}"></i>
+                            <small class="email-reveal-email"></small>
+                        </div>
                     </div>
                 </div>
             </div>

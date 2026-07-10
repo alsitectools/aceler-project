@@ -948,7 +948,75 @@
             show_toastr('{{ __('Error') }}', '{!! session('error') !!}', 'error');
         </script>
     @endif
-    <script></script>
+
+    <style>
+        .email-reveal-wrapper {
+            position: relative;
+        }
+        .email-reveal-icon {
+            cursor: pointer; font-size: 22px; color: #6c757d; transition: color 0.2s;
+            position: absolute;
+            top: 50%;
+            right: 8px;
+            transform: translateY(-50%);
+        }
+        .email-reveal-icon:hover {
+            color: #8f1425;
+            transform: translateY(-50%) scale(1.15);
+        }
+        .email-reveal-icon.tooltipCus::after {
+            content: attr(data-title);
+            visibility: hidden;
+            background-color: #333;
+            color: #fff;
+            font-size: 12px;
+            text-align: center;
+            border-radius: 6px;
+            padding: 6px 10px;
+            position: absolute;
+            z-index: 9999;
+            bottom: calc(100% + 6px);
+            right: 0;
+            opacity: 0;
+            transition: opacity 0.2s;
+            white-space: nowrap;
+            pointer-events: none;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+        }
+        .email-reveal-icon.tooltipCus:hover::after {
+            visibility: visible;
+            opacity: 1;
+        }
+        .email-reveal-email {
+            display: none; font-size: 1rem; color: #6c757d;
+            clear: both;
+        }
+    </style>
+    <script>
+        $(document).on('click', '.email-reveal-icon', function () {
+            var $icon = $(this);
+            var $wrapper = $icon.closest('.email-reveal-wrapper');
+            var $emailEl = $wrapper.find('.email-reveal-email');
+            if ($emailEl.is(':visible')) {
+                $icon.attr('data-title', 'Mostrar correo');
+                $emailEl.slideUp(200, function() {
+                    $(this).text('');
+                });
+                return;
+            }
+            if ($icon.data('loading')) return;
+            $icon.data('loading', true);
+
+            $.get('{{ url('/') }}/user/' + $icon.data('user-id') + '/email', function (res) {
+                $emailEl.text(res.email);
+                $emailEl.slideDown(200);
+                $icon.attr('data-title', 'Ocultar correo');
+                $icon.data('loading', false);
+            }).fail(function () {
+                $icon.data('loading', false);
+            });
+        });
+    </script>
     @include('partials.footer')
     @include('Chatify::layouts.footerLinks')
 </body>

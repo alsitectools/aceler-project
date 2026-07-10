@@ -10,7 +10,7 @@
                     $user_p = App\Models\UserProject::where('user_id','=', $user->id)->where('project_id','=', $project->id)->first();
                     @endphp
                     @if (!$user_p)
-                        <option value="{{$user->email}}">{{$user->name}} - {{$user->email}}</option>
+                        <option value="{{$user->email}}">{{$user->name}}</option>
                     @endif
                 @endif
             @endforeach
