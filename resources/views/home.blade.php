@@ -1078,10 +1078,8 @@
 
             for (let i = 0; i < items.length; i++) {
                 const name = items[i].getElementsByClassName('fullName')[0];
-                const email = items[i].getElementsByClassName('emailName')[0];
-                const emailPrefix = email.innerHTML.split('@')[0].toLowerCase();
-                if (filter === "" || name.innerHTML.toLowerCase().indexOf(filter) > -1 || emailPrefix.indexOf(filter) > -
-                    1) {
+                const txt = name ? name.textContent.toLowerCase() : '';
+                if (filter === "" || txt.indexOf(filter) > -1) {
                     items[i].style.display = "";
                 } else {
                     items[i].style.display = "none";
