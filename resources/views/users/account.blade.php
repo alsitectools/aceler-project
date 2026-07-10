@@ -947,7 +947,24 @@
                         const currentWorkspaceId = {{ (int) $currentWorkspace->id }};
 
                         if (selectedIds.length === 0) {
-                            selectedIds = [currentWorkspaceId];
+                            Swal.fire({
+                                icon: 'warning',
+                                title: 'No se puede eliminar',
+                                text: 'Debes tener al menos un espacio de trabajo asignado. Los cambios no se guardarán.',
+                                confirmButtonText: 'Entendido',
+                                confirmButtonColor: '#AA182C'
+                            }).then(() => {
+                                selectedWorkspaceIds = new Set(initialWorkspaceIds);
+                                chipsContainer.innerHTML = '';
+                                initialWorkspaceIds.forEach(id => {
+                                    const item = [...workspaceItems].find(w =>
+                                        parseInt(w.dataset.workspaceId) === id
+                                    );
+                                    if (item) createChip(id, item.textContent.trim());
+                                });
+                                renderWorkspaceList();
+                            });
+                            return;
                         }
 
                         const selectedIdSet = new Set(selectedIds);
@@ -985,11 +1002,32 @@
                                 await doAddWorkspace(workspaceId);
                             }
 
-                            for (const workspaceId of idsToRemove) {
-                                await doRemoveWorkspace(workspaceId);
+                            if (idsToRemove.length > 0) {
+                                const resp = await $.ajax({
+                                    url: '{{ route('leave-workspace-batch') }}',
+                                    type: 'POST',
+                                    data: { ids: idsToRemove },
+                                    beforeSend: function(xhr) {
+                                        xhr.setRequestHeader('X-CSRF-TOKEN', csrfToken);
+                                    }
+                                });
+                                if (resp.error) {
+                                    throw new Error(resp.error);
+                                }
                             }
                         } catch (error) {
                             console.error('Error saving selected workspaces:', error);
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Error',
+                                text: error.message || 'Ocurrió un error al guardar los cambios.',
+                                confirmButtonText: 'Entendido',
+                                confirmButtonColor: '#AA182C'
+                            });
+                            saveBtn.disabled = false;
+                            document.getElementById('saving-overlay').style.display = 'none';
+                            document.body.style.overflow = '';
+                            return;
                         } finally {
                             window.location.reload();
                         }

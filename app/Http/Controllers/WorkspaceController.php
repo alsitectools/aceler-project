@@ -147,6 +147,31 @@ class WorkspaceController extends Controller
         }
     }
 
+    public function leaveBatch(Request $request)
+    {
+        $ids = $request->input('ids', []);
+        if (empty($ids) || !is_array($ids)) {
+            return response()->json(['error' => 'No se proporcionaron IDs'], 400);
+        }
+
+        $objUser = Auth::user();
+        $count = UserWorkspace::where('user_id', $objUser->id)->count();
+
+        if ($count - count($ids) < 1) {
+            return response()->json(['error' => 'Debes tener al menos un espacio de trabajo asignado.'], 400);
+        }
+
+        UserWorkspace::where('user_id', $objUser->id)->whereIn('workspace_id', $ids)->delete();
+
+        $remaining = UserWorkspace::where('user_id', $objUser->id)->first();
+        if ($remaining && in_array($objUser->currant_workspace, $ids)) {
+            $objUser->currant_workspace = $remaining->workspace_id;
+            $objUser->save();
+        }
+
+        return response()->json(['success' => true]);
+    }
+
     public function destroy($workspaceID)
     {
         $objUser   = Auth::user();
