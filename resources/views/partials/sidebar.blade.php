@@ -559,7 +559,7 @@
                 @if ($userWorkspaces->isNotEmpty())
                     <div class="workspace-dropdown-container mt-2">
                         <button class="workspace-name-header" id="workspaceButton">
-                            <span id="workspaceName">{{ $currentWorkspace?->name ?? __('Select workspace') }}</span>
+                            <span id="workspaceName">{{ $currentWorkspace?->display_name ?? __('Select workspace') }}</span>
                             <i class="fa-solid fa-chevron-down workspace-dropdown-icon"></i>
                         </button>
                         <div class="workspace-dropdown" id="workspaceDropdown">
@@ -572,8 +572,9 @@
                                     <div class="workspace-item @if ($ws->workspace_id == $currentWorkspace->id) active @endif"
                                         data-workspace-id="{{ $ws->workspace_id }}"
                                         data-workspace-name="{{ $ws->name }}"
+                                        data-workspace-display-name="{{ \App\Models\Workspace::translateName($ws->name) }}"
                                         data-workspace-url="{{ route('change-workspace', $ws->workspace_id) }}">
-                                        {{ $ws->name }}
+                                        {{ \App\Models\Workspace::translateName($ws->name) }}
                                     </div>
                                 @empty
                                     <div style="padding: 12px 16px; color: #999; font-size: 13px;">
@@ -785,11 +786,11 @@
         // Cambiar workspace cuando se selecciona uno
         workspaceItems.forEach(item => {
             item.addEventListener('click', function() {
-                const workspaceName = this.getAttribute('data-workspace-name');
+                const workspaceDisplayName = this.getAttribute('data-workspace-display-name');
                 const workspaceUrl = this.getAttribute('data-workspace-url');
 
                 // Actualizar el nombre mostrado
-                document.getElementById('workspaceName').textContent = workspaceName;
+                document.getElementById('workspaceName').textContent = workspaceDisplayName;
 
                 // Cerrar el dropdown
                 workspaceDropdown.classList.remove('active');
@@ -808,14 +809,18 @@
         function filterWorkspaces(searchTerm) {
             const items = workspaceList.querySelectorAll('.workspace-item');
             items.forEach(item => {
-                const workspaceName = item.getAttribute('data-workspace-name');
-                if (!workspaceName) {
+                const originalName = item.getAttribute('data-workspace-name') || '';
+                const displayName = item.getAttribute('data-workspace-display-name') || '';
+
+                if (!originalName && !displayName) {
                     item.classList.add('hidden');
                     return;
                 }
 
-                const name = workspaceName.toLowerCase();
-                if (name.includes(searchTerm)) {
+                const matches = originalName.toLowerCase().includes(searchTerm) ||
+                                displayName.toLowerCase().includes(searchTerm);
+
+                if (matches) {
                     item.classList.remove('hidden');
                 } else {
                     item.classList.add('hidden');

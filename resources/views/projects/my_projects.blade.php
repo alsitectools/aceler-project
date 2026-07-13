@@ -482,7 +482,7 @@
                                                             {{-- Workspace name --}}
                                                             @if ($project->workspaceData)
                                                                 <span class="badge rounded-pill bg-dark p-2">
-                                                                    {{ $project->workspaceData->name }}
+                                                                     {{ $project->workspaceData->display_name }}
                                                                 </span>
                                                             @endif
 
@@ -638,9 +638,9 @@
                                     @foreach ($workspaces as $workspace)
                                         <button type="button" class="btn disp-btn zoom text-muted filterTypo"
                                             data-filter=".workspace-{{ $workspace->slug }}"
-                                            style="    background-color: #f6f6f6;">
-                                            <i class="fa-solid fa-layer-group"style="width: 18px; height: 18px;"></i>
-                                            {{ $workspace->name }}
+                                                                     style="    background-color: #f6f6f6;">
+                                                                     <i class="fa-solid fa-layer-group"style="width: 18px; height: 18px;"></i>
+                                                                     {{ $workspace->display_name }}
                                         </button>
                                     @endforeach
                                 </div>

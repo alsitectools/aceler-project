@@ -1055,7 +1055,7 @@
                                 <div class="projectDivSubtitle">
                                     <div title="{{ __('Workspace') }}" id="workspaceNameTitle">
                                         <i class="fa-regular fa-building"></i>
-                                        {{ $currentWorkspace->country }} / {{ $currentWorkspace->name }}
+                                        {{ $currentWorkspace->country }} / {{ $currentWorkspace->display_name }}
                                     </div>
                                     <div id="membersCountTitle" title="{{ __('Members') }}">
                                         <i class="fas fa-users"></i>

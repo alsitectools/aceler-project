@@ -43,6 +43,11 @@
             font-size: 16px;
         }
 
+        .swal-confirm-red {
+            background-color: #AA182C !important;
+            border-color: #AA182C !important;
+        }
+
         .workspace-search-wrapper .workspace-list {
             display: grid;
             grid-template-columns: repeat(5, 1fr);
@@ -302,7 +307,7 @@
                                             @foreach ($workspaces as $workspace)
                                                 @if (in_array($workspace->id, $anotherWorkspaces))
                                                     <div class="workspace-chip" data-workspace-id="{{ $workspace->id }}">
-                                                        {{ $workspace->name }}
+                                                        {{ $workspace->display_name }}
                                                         <span class="workspace-chip-close">✕</span>
                                                     </div>
                                                 @endif
@@ -312,9 +317,9 @@
                                             @foreach ($workspaces as $workspace)
                                                 <div class="workspace-item"
                                                     style="{{ in_array($workspace->id, $anotherWorkspaces) ? 'display:none;' : '' }}"
-                                                    data-name="{{ strtolower($workspace->name) }}"
+                                                    data-name="{{ strtolower($workspace->name) }}|{{ strtolower($workspace->display_name) }}"
                                                     data-workspace-id="{{ $workspace->id }}">
-                                                    {{ $workspace->name }}
+                                                    {{ $workspace->display_name }}
                                                 </div>
                                             @endforeach
                                         </div>
@@ -889,7 +894,7 @@
                         const workspaceId = parseInt(item.dataset.workspaceId);
                         const workspaceName = (item.dataset.name || item.textContent || '').trim()
                             .toLowerCase();
-                        const matchesFilter = workspaceName.includes(filter);
+                        const matchesFilter = workspaceName.split('|').some(n => n.includes(filter));
                         const isSelected = selectedWorkspaceIds.has(workspaceId);
 
                         item.style.display = !isSelected && matchesFilter ? '' : 'none';
@@ -949,10 +954,10 @@
                         if (selectedIds.length === 0) {
                             Swal.fire({
                                 icon: 'warning',
-                                title: 'No se puede eliminar',
-                                text: 'Debes tener al menos un espacio de trabajo asignado. Los cambios no se guardarán.',
-                                confirmButtonText: 'Entendido',
-                                confirmButtonColor: '#AA182C'
+                                title: '{{ __('Cannot delete') }}',
+                                text: '{{ __('You must have at least one workspace assigned. Changes will not be saved.') }}',
+                                confirmButtonText: '{{ __('Got it') }}',
+                                customClass: { confirmButton: 'swal-confirm-red' }
                             }).then(() => {
                                 selectedWorkspaceIds = new Set(initialWorkspaceIds);
                                 chipsContainer.innerHTML = '';
@@ -1019,10 +1024,10 @@
                             console.error('Error saving selected workspaces:', error);
                             Swal.fire({
                                 icon: 'error',
-                                title: 'Error',
-                                text: error.message || 'Ocurrió un error al guardar los cambios.',
-                                confirmButtonText: 'Entendido',
-                                confirmButtonColor: '#AA182C'
+                                title: '{{ __('Error') }}',
+                                text: error.message || '{{ __('An error occurred while saving.') }}',
+                                confirmButtonText: '{{ __('Got it') }}',
+                                customClass: { confirmButton: 'swal-confirm-red' }
                             });
                             saveBtn.disabled = false;
                             document.getElementById('saving-overlay').style.display = 'none';

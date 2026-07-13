@@ -1852,6 +1852,7 @@ class ProjectController extends Controller
                 $summary->project_url = $summary->workspace_slug
                     ? route('projects.show', [$summary->workspace_slug, $summary->id])
                     : null;
+                $summary->workspace_display_name = \App\Models\Workspace::translateName($summary->workspace_name);
 
                 return $summary;
             });
@@ -1914,6 +1915,7 @@ class ProjectController extends Controller
 
             $milestone->requested_by_name = optional($requestersById->get($milestone->assign_to))->name;
             $milestone->workspace_name = optional($workspace)->name;
+            $milestone->workspace_display_name = optional($workspace)->display_name;
             $milestone->workspace_slug = optional($workspace)->slug;
             $milestone->project_name = optional($milestone->project)->name;
             $milestone->board_url = $milestone->workspace_slug && $milestone->project_id
@@ -2272,6 +2274,7 @@ class ProjectController extends Controller
             'project_type_id' => $project->type,
             'project_ref'   => $project->ref_mo ? '- ' . $project->ref_mo : '',
             'workspace_name' => optional(Workspace::find($project->workspace))->name ?? 'N/A',
+            'workspace_display_name' => optional(Workspace::find($project->workspace))->display_name ?? 'N/A',
             'workspace_id'  => $project->workspace,
             'tasks'         => $taskData,
             'sales'         => User::find($milestone->assign_to),
@@ -2317,6 +2320,7 @@ class ProjectController extends Controller
 
                 $data['workspace_slug'] = $workspace->slug ?? null;
                 $data['workspace_name'] = $workspace->name ?? null;
+                $data['workspace_display_name'] = $workspace->display_name ?? null;
 
                 return $data;
             })->toArray();

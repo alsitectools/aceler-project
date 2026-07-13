@@ -1408,5 +1408,10 @@
     "Enter phase name" : "Introduce el nombre de la fase",
     "phases": "fases",
     "Sort alphabetically": "Ordenar alfabéticamente",
-    "Study review": "Revisión de estudio"
+    "Study review": "Revisión de estudio",
+    "Cannot delete": "No se puede eliminar",
+    "You must have at least one workspace assigned. Changes will not be saved.": "Debes tener al menos un espacio de trabajo asignado. Los cambios no se guardarán.",
+    "Got it": "Entendido",
+    "An error occurred while saving.": "Ocurrió un error al guardar los cambios.",
+    "Filter Milestone": "Filtrar encargo"
 }

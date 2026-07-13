@@ -121,7 +121,7 @@
                                             <td>{{__($trecker->name)}}</td>
                                              <td>{{__($trecker->project->name)}}</td>
                                              <td>{{__($trecker->project_task)}}</td>
-                                             <td>{{__($trecker->project->workspaceData->name)}}</td>
+                                             <td>{{__($trecker->project->workspaceData->display_name)}}</td>
                                              <td>{{__(date("H:i:s",strtotime($trecker->start_time)))}}</td>
                                              <td>{{__(date("H:i:s",strtotime($trecker->end_time)))}}</td>
                                              <td>{{__($total_name)}}</td>

@@ -44,7 +44,7 @@
     </p>
 
     <p style="font-size:15px;">
-        🗂️ <strong>Espacio de trabajo:</strong> {{ ucfirst($milestone->project->workspaceData->name ?? '') }}
+        🗂️ <strong>Espacio de trabajo:</strong> {{ ucfirst($milestone->project->workspaceData->display_name ?? '') }}
     </p>
 
 
@@ -96,7 +96,7 @@
     </p>
 
     <p style="font-size:15px;">
-        🗂️ <strong>Workspace:</strong> {{ ucfirst($milestone->project->workspaceData->name ?? '') }}
+        🗂️ <strong>Workspace:</strong> {{ ucfirst($milestone->project->workspaceData->display_name ?? '') }}
     </p>
 
 

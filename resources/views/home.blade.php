@@ -561,7 +561,7 @@
                 <div class="col-lg-12 col-md-12">
                     <!-- <div class="row"> -->
                     <div class="page-header-title">
-                        <h4 class="m-b-10">{{ __('Resume of') }} {{ $currentWorkspace->name }}</h4>
+                        <h4 class="m-b-10">{{ __('Resume of') }} {{ $currentWorkspace->display_name }}</h4>
                     </div>
                     <div class="summary">
                         <div class="tabs ctr">

@@ -323,7 +323,7 @@
                                 {{-- Workspace --}}
                                 @if (strpos(request()->url(), 'my-milestone-board') !== false)
                                     <small class="text-muted d-block mt-1" style="font-size:10px;">
-                                        <i class="fa-solid fa-layer-group"></i> {{ $milestone['workspace_name'] }}
+                                        <i class="fa-solid fa-layer-group"></i> {{ $milestone['workspace_display_name'] ?? $milestone['workspace_name'] ?? '' }}
                                     </small>
                                 @endif
                             </div>
