@@ -1408,5 +1408,7 @@
     "Enter phase name" : "Introduce el nombre de la fase",
     "phases": "fases",
     "Sort alphabetically": "Ordenar alfabéticamente",
+    "In <strong>Diagram View</strong>, tasks shown respect the task creation date.": "En <strong>Vista en diagramas</strong>, las tareas que se muestran respetan la fecha de creacion de la tarea.",
+    "<strong>N/A</strong> means there is no value for that field.": "<strong>N/A</strong> significa que no hay ningun valor para dicho campo.",
     "Study review": "Revisión de estudio"
 }
