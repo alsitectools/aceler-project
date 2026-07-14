@@ -1443,5 +1443,7 @@
     "No imputed hours found": "No se encontraron horas imputadas",
     "There are no time entries for the selected range.": "No hay registros de tiempo para el rango seleccionado.",
     "Toggle filters": "Alternar filtros",
-    "Summary view mode": "Modo de vista resumen"
+    "Summary view mode": "Modo de vista resumen",
+    "Finalization date": "Fecha de finalización",
+    "Select all": "Seleccionar todo"
 }

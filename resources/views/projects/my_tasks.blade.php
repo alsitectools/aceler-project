@@ -220,16 +220,22 @@
 
         .my-tasks-table-shell {
             border-radius: 14px;
-            padding: 10px;
             max-height: 350px;
             overflow-y: auto;
+            display: block;
+        }
+
+        .my-tasks-table thead {
+            position: sticky;
+            top: 0;
+            z-index: 3;
+            background: #fff3f6;
+            isolation: isolate;
+            contain: paint layout;
         }
 
         .my-tasks-table thead th {
-            position: sticky;
-            top: 0;
-            z-index: 1;
-            background: #fff3f6;
+            background: transparent;
             color: #6f1830;
             font-size: 12px;
             text-transform: uppercase;
@@ -494,6 +500,7 @@
         }
 
         .my-tasks-table {
+            width: 100%;
             border-collapse: separate;
             border-spacing: 0 10px;
             margin-bottom: 0;
@@ -506,19 +513,17 @@
             padding: 14px;
         }
 
-        .my-tasks-table tbody tr {
-            transition: transform .16s ease, box-shadow .16s ease;
-        }
-
         .my-tasks-table tbody tr[data-timesheet-edit-url] {
             cursor: pointer;
         }
 
         .my-tasks-table tbody tr[data-timesheet-edit-url]:hover {
                 border-color: #b6122e;
+        }
+
+        .my-tasks-table tbody tr[data-timesheet-edit-url]:hover td {
     background: #fff0f4;
     color: #7b1528;
-    transform: translateY(-1px);
         }
 
         .my-tasks-table tbody tr[data-timesheet-edit-url]:focus-visible td {
@@ -946,7 +951,7 @@
                                 <p class="text-muted mb-0">{{ __('You currently do not have assigned tasks.') }}</p>
                             </div>
                         @else
-                            <div class="table-responsive my-tasks-table-shell">
+                            <div class="my-tasks-table-shell">
                                 <table class="table align-middle my-tasks-table">
                                     <thead>
                                         <tr>
