@@ -1437,5 +1437,9 @@
     "You must have at least one workspace assigned. Changes will not be saved.": "Debes tener al menos un espacio de trabajo asignado. Los cambios no se guardarán.",
     "Got it": "Entendido",
     "An error occurred while saving.": "Ocurrió un error al guardar los cambios.",
-    "Filter Milestone": "Filtrar encargo"
+    "Filter Milestone": "Filtrar encargo",
+    "Review": "Revisión",
+    "No chart data available": "No hay datos del gráfico disponibles",
+    "No imputed hours found": "No se encontraron horas imputadas",
+    "There are no time entries for the selected range.": "No hay registros de tiempo para el rango seleccionado."
 }
