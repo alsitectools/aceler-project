@@ -144,6 +144,20 @@
         transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         pointer-events: none;
     }
+    .legend-close {
+        position: absolute;
+        top: 10px;
+        right: 14px;
+        background: none;
+        border: none;
+        font-size: 24px;
+        cursor: pointer;
+        color: #666;
+        line-height: 1;
+        padding: 0;
+        z-index: 4;
+        pointer-events: auto;
+    }
 
     .legend.visible {
         pointer-events: auto;
@@ -249,6 +263,7 @@
     <li class="breadcrumb-item">{{ __('My Order Forms Board') }}</li>
     <img class="legendIcon" src="{{ asset('assets/img/questionCircle.svg') }}" />
     <div class="legend">
+        <button type="button" class="legend-close" onclick="this.closest('.legend').style.opacity='0'; this.closest('.legend').style.pointerEvents='none';">&times;</button>
         <span class="lTitle">{{ __('Color legend') }}</span>
         <hr style="backgroundColor: #e0e1e1; width: 100%; height: 2px;">
         <div class="lEntry" style="border:2px solid #000000 ;height: 5rem !important; text-align: center; "
