@@ -1419,5 +1419,16 @@
     "No tasks for this project in the selected period": "No hay tareas para este proyecto en el período seleccionado",
     "Try another period to view other records.": "Prueba con otro período para ver otros registros.",
     "No logged tasks in this period": "No hay tareas registradas en este período",
-    "Register timesheets in this range to see the detail here.": "Registra horas en este rango para ver el detalle aquí."
+    "Register timesheets in this range to see the detail here.": "Registra horas en este rango para ver el detalle aquí.",
+    "No tasks assigned": "No hay tareas asignadas",
+    "No tasks match the selected filters": "Ninguna tarea coincide con los filtros seleccionados",
+    "Adjust or clear filters to see more results.": "Ajusta o limpia los filtros para ver más resultados.",
+    "No tasks created in this period": "No hay tareas creadas en este período",
+    "Try another period to view projects with recently created tasks.": "Prueba con otro período para ver proyectos con tareas creadas recientemente.",
+    "Assigned tasks": "Tareas asignadas",
+    "You currently do not have assigned tasks.": "Actualmente no tienes tareas asignadas.",
+    "Visible columns": "Columnas visibles",
+    "Hide all": "Ocultar todas",
+    "Show all": "Mostrar todas",
+    "Tasks By Project": "Tareas por proyecto"
 }
