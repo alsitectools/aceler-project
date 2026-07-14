@@ -1410,5 +1410,7 @@
     "Sort alphabetically": "Ordenar alfabéticamente",
     "In <strong>Diagram View</strong>, tasks shown respect the task creation date.": "En <strong>Vista en diagramas</strong>, las tareas que se muestran respetan la fecha de creacion de la tarea.",
     "<strong>N/A</strong> means there is no value for that field.": "<strong>N/A</strong> significa que no hay ningun valor para dicho campo.",
+    "No order forms yet": "Aún no hay encargos",
+    "Hidden order forms": "Hay encargos ocultos",
     "Study review": "Revisión de estudio"
 }

@@ -3010,6 +3010,14 @@
                 }
             });
 
+            document.querySelectorAll('.kanban-box.fixedHeight').forEach(column => {
+                const cards = column.querySelectorAll('.card[data-project-id]');
+                const hiddenMsg = column.querySelector('.filtered-empty-state');
+                if (!hiddenMsg) return;
+                const visibleCount = Array.from(cards).filter(c => c.style.display !== 'none').length;
+                hiddenMsg.style.display = (cards.length > 0 && visibleCount === 0) ? 'flex' : 'none';
+            });
+
             updatePriorityOptionCounts();
             renderProjectTypeCheckboxes();
             renderActiveFiltersChips();

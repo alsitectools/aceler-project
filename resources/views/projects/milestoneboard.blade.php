@@ -49,6 +49,7 @@
     .fixedHeight {
         min-height: 600px;
         max-height: 600px;
+        height: 600px;
         overflow: hidden;
         overflow-y: auto;
         scrollbar-color: #aa182c #ffff0000;
@@ -188,6 +189,28 @@
         overflow: hidden;
         text-wrap: nowrap;
         text-overflow: ellipsis;
+    }
+
+    .kanban-box .dash-micon {
+        margin-right: 0;
+        margin-bottom: 16px;
+        height: 80px;
+        width: 80px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 16px;
+    }
+    .kanban-box .dash-micon i {
+        font-size: 48px;
+        color: #adb5bd;
+    }
+    .empty-state-text {
+        font-size: 20px;
+        color: #d1d1d1;
+    }
+    .filtered-empty-state {
+        display: none;
     }
 </style>
 @section('links')
@@ -347,6 +370,26 @@
                                         ])
                                     @endforeach
                                 @endif
+
+                                @php
+                                    $msCount = (isset($milestones[$status->id]) ? count($milestones[$status->id]) : 0)
+                                             + (isset($milestonesUsers[$status->id]) ? count($milestonesUsers[$status->id]) : 0);
+                                @endphp
+                                @if ($msCount === 0)
+                                    <div class="noNotificationsContainer" style="margin-top: -20px;">
+                                        <span class="dash-micon">
+                                            <i class="fa-solid fa-file-lines"></i>
+                                        </span>
+                                        <small class="empty-state-text">{{ __('No order forms yet') }}</small>
+                                    </div>
+                                @endif
+
+                                <div class="noNotificationsContainer filtered-empty-state" style="margin-top: -20px;">
+                                    <span class="dash-micon">
+                                        <i class="fa-solid fa-eye-slash"></i>
+                                    </span>
+                                    <small class="empty-state-text">{{ __('Hidden order forms') }}</small>
+                                </div>
 
                             </div>
                         </div>
