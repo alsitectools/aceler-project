@@ -218,7 +218,7 @@
                                     @foreach ($workspaces as $workspace)
                                         <div class="option list-group-item list-group-item-action"
                                             data-id="{{ $workspace->id }}" style="padding: 8px; cursor: pointer;">
-                                            {{ $workspace->name }}
+                                            {{ $workspace->display_name }}
                                         </div>
                                     @endforeach
                                 </div>
@@ -327,7 +327,7 @@
                                     @foreach ($workspaces as $workspace)
                                         <div class="option list-group-item list-group-item-action"
                                             data-id="{{ $workspace->id }}" style="padding: 8px; cursor: pointer;">
-                                            {{ $workspace->name }}
+                                            {{ $workspace->display_name }}
                                         </div>
                                     @endforeach
                                 </div>

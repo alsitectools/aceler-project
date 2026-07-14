@@ -6,7 +6,7 @@
     <li class="breadcrumb-item">
         <a href="{{ route('home') }}">{{ __('Home') }}</a>
     </li>
-    <li class="breadcrumb-item"> {{ __('Projects') }} {{ $currentWorkspace->name }}</li>
+    <li class="breadcrumb-item"> {{ __('Projects') }} {{ $currentWorkspace->display_name }}</li>
 @endsection
 @php
 

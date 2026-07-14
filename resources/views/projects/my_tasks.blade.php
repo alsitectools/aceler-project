@@ -962,8 +962,8 @@
                                             </th>
                                             <th>
                                                 <div class="my-tasks-th-content">
-                                                    <span>{{ __('Encargo') }}</span>
-                                                    <button type="button" class="my-tasks-filter-btn" data-filter-key="milestone" data-filter-label="{{ __('Encargo') }}" data-column-index="1" aria-label="{{ __('Filter Encargo') }}">
+                                                    <span>{{ __('Milestone') }}</span>
+                                                    <button type="button" class="my-tasks-filter-btn" data-filter-key="milestone" data-filter-label="{{ __('Milestone') }}" data-column-index="1" aria-label="{{ __('Filter Milestone') }}">
                                                         <svg class="my-tasks-filter-icon" viewBox="0 0 16 16" aria-hidden="true">
                                                             <path d="M2 3.25A1.25 1.25 0 0 1 3.25 2h9.5A1.25 1.25 0 0 1 14 3.25c0 .3-.11.6-.31.82L9.5 8.45v3.3a1 1 0 0 1-.55.9l-2 1A1 1 0 0 1 5.5 12.75V8.45L2.31 4.07A1.25 1.25 0 0 1 2 3.25Z"></path>
                                                         </svg>
@@ -1853,7 +1853,7 @@
                         renderDisplayValue(task.project || naLabel, 'project-task-meta-value'),
                         '</div>',
                         '<div>',
-                        '<span class="project-task-meta-label">{{ __('Encargo') }}</span>',
+                        '<span class="project-task-meta-label">{{ __('Milestone') }}</span>',
                         renderDisplayValue(task.milestone || naLabel, 'project-task-meta-value'),
                         '</div>',
                         '<div>',

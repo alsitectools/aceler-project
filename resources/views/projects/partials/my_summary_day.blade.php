@@ -716,7 +716,7 @@
                             </span>
                             <div>
                                 <span class="my-day-meta-label">{{ __('Workspace') }}</span>
-                                <span class="my-day-meta-value">{{ $milestone->workspace_name }}</span>
+                                <span class="my-day-meta-value">{{ $milestone->workspace_display_name ?? $milestone->workspace_name }}</span>
                             </div>
                         </div>
                     @endif

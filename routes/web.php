@@ -605,6 +605,7 @@ Route::post('/workspace/{slug}/settings', [WorkspaceController::class, 'settings
 Route::post('/workspace', [WorkspaceController::class, 'store'])->name('add-workspace')->middleware(['auth', 'XSS']);
 Route::delete('/workspace/{id}', [WorkspaceController::class, 'destroy'])->name('delete-workspace')->middleware(['auth', 'XSS']);
 Route::delete('/workspace/leave/{id}', [WorkspaceController::class, 'leave'])->name('leave-workspace')->middleware(['auth', 'XSS']);
+Route::post('/workspace/leave-batch', [WorkspaceController::class, 'leaveBatch'])->name('leave-workspace-batch')->middleware(['auth', 'XSS']);
 Route::get('/workspace/{id}', [WorkspaceController::class, 'changeCurrentWorkspace'])->name('changeWorkspace')->middleware(['auth', 'XSS']);
 Route::get('/home/changeWorkspace/{id}', [WorkspaceController::class, 'changeWorkspace'])->name('change-workspace')->middleware(['auth', 'XSS']);
 //agregar workspace como currant_workspace

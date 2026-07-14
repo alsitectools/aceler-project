@@ -1432,5 +1432,10 @@
     "Show all": "Mostrar todas",
     "Tasks By Project": "Tareas por proyecto",
     "My Order Forms Board": "Mi tablón de encargos",
-    "In this section you will find only the job sheets assigned to you or created by you.": "En esta sección encontrarás solo los encargos asignados a ti o creados por ti."
+    "In this section you will find only the job sheets assigned to you or created by you.": "En esta sección encontrarás solo los encargos asignados a ti o creados por ti.",
+    "Cannot delete": "No se puede eliminar",
+    "You must have at least one workspace assigned. Changes will not be saved.": "Debes tener al menos un espacio de trabajo asignado. Los cambios no se guardarán.",
+    "Got it": "Entendido",
+    "An error occurred while saving.": "Ocurrió un error al guardar los cambios.",
+    "Filter Milestone": "Filtrar encargo"
 }

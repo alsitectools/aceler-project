@@ -271,7 +271,7 @@
 
                             @if ($isExternalWorkspace && $summary->workspace_name)
                                 <span class="my-summary-badge">
-                                    {{ $summary->workspace_name }}
+                                    {{ $summary->workspace_display_name ?? $summary->workspace_name }}
                                 </span>
                             @endif
                         </div>
@@ -305,7 +305,7 @@
 
                             @if ($isExternalWorkspace && $summary->workspace_name)
                                 <span class="my-summary-badge">
-                                    {{ $summary->workspace_name }}
+                                    {{ $summary->workspace_display_name ?? $summary->workspace_name }}
                                 </span>
                             @endif
                         </div>

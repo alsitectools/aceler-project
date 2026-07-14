@@ -45,7 +45,7 @@
                                 <button class="nav-link text-capitalize {{ $loop->index == 0 ? 'active' : '' }}"
                                     id="pills-{{ strtolower($workspace->id) }}-tab" data-bs-toggle="pill"
                                     data-bs-target="#pills-{{ strtolower($workspace->id) }}"
-                                    type="button">{{ $workspace->name }}</button>
+                                    type="button">{{ $workspace->display_name }}</button>
                             </li>
                         @endforeach
                     </ul>
