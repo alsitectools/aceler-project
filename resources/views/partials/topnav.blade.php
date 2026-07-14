@@ -61,6 +61,16 @@
     .noti-body {
         height: 600px;
         overflow: auto;
+        position: relative;
+    }
+
+    .noNotificationsContainer {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        text-align: center;
+        width: 100%;
     }
 
     .notificationSTL {

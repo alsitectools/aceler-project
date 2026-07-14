@@ -1394,6 +1394,9 @@
     "Total hours": "Horas totales",
     "There are no imputed hours for the selected range": "No hay datos disponibles para el gráfico",
     "My Tasks": "Mis tareas",
+    "Total assigned": "Total asignadas",
+    "Logged this week": "Registradas esta semana",
+    "Logged in 30 days": "Registradas en 30 días",
     "Edit Phases": "Editar fases",
     "My Summary": "Mi resumen",
     "Table view": "Vista en tabla",
@@ -1412,5 +1415,9 @@
     "<strong>N/A</strong> means there is no value for that field.": "<strong>N/A</strong> significa que no hay ningun valor para dicho campo.",
     "No order forms yet": "Aún no hay encargos",
     "Hidden order forms": "Hay encargos ocultos",
-    "Study review": "Revisión de estudio"
+    "Study review": "Revisión de estudio",
+    "No tasks for this project in the selected period": "No hay tareas para este proyecto en el período seleccionado",
+    "Try another period to view other records.": "Prueba con otro período para ver otros registros.",
+    "No logged tasks in this period": "No hay tareas registradas en este período",
+    "Register timesheets in this range to see the detail here.": "Registra horas en este rango para ver el detalle aquí."
 }
