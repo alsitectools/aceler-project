@@ -52,7 +52,7 @@
 
                             @if (filled($phaseName))
                                 <label class="statusBadge " style="background-color: #493d3f !important;"
-                                    title="{{ __('Stage') }}">{{ $phaseName }}</label>
+                                    title="{{ __('Stage') }}">{{ __(\App\Models\MilestonePhases::translationKey($phaseName)) }}</label>
                             @endif
 
                             @if (filled($stageName))

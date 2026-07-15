@@ -121,7 +121,7 @@
                                 <select class="form-control form-control-light" name="phase" id="phase">
                                     <option value="">{{ __('Choose one') }}</option>
                                     @foreach ($phases as $phase)
-                                        <option value="{{ $phase }}">{{ __($phase) }}</option>
+                                        <option value="{{ $phase }}">{{ __(\App\Models\MilestonePhases::translationKey($phase)) }}</option>
                                     @endforeach
                                 </select>
                             </div>
