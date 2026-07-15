@@ -267,6 +267,7 @@
             border: 1px solid #f0dde2;
             border-radius: 12px;
             background: #ffffff;
+            transition: all .18s ease;
         }
 
         .my-tasks-td {
@@ -289,6 +290,7 @@
         .my-tasks-body-row[data-timesheet-edit-url]:hover {
             border-color: #b6122e;
             background: #fff0f4;
+            transform: translateY(-1px);
         }
 
         [data-col="project"] { flex: 3; min-width: 250px; }
