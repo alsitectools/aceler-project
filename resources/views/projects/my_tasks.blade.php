@@ -1447,12 +1447,23 @@
             }
 
             function applyColumnVisibility() {
+                let anyHeaderVisible = false;
                 taskTableHeaders.forEach(function(header, columnIndex) {
                     const isVisible = columnVisibilityState.get(columnIndex) !== false;
                     header.style.display = isVisible ? '' : 'none';
+                    if (isVisible) {
+                        anyHeaderVisible = true;
+                    }
                 });
 
+                const headerRow = document.querySelector('.my-tasks-header-row');
+                if (headerRow) {
+                    headerRow.style.display = anyHeaderVisible ? '' : 'none';
+                }
+
+                let anyRowVisible = false;
                 taskTableRows.forEach(function(row) {
+                    let anyVisible = false;
                     taskTableHeaders.forEach(function(_, columnIndex) {
                         const cell = row.children[columnIndex];
                         if (!cell) {
@@ -1461,8 +1472,20 @@
 
                         const isVisible = columnVisibilityState.get(columnIndex) !== false;
                         cell.style.display = isVisible ? '' : 'none';
+                        if (isVisible) {
+                            anyVisible = true;
+                        }
                     });
+                    row.style.display = anyVisible ? '' : 'none';
+                    if (anyVisible) {
+                        anyRowVisible = true;
+                    }
                 });
+
+                const bodyRowsContainer = document.querySelector('.my-tasks-body-rows');
+                if (bodyRowsContainer) {
+                    bodyRowsContainer.style.display = anyRowVisible ? '' : 'none';
+                }
 
                 updateColumnToggleSummary();
             }
