@@ -238,14 +238,15 @@
             position: sticky;
             top: 0;
             z-index: 1;
-            background: #fff3f6;
-            border-bottom: 2px solid #d9b4bf;
+            background: #f8f9fd;
+            border-bottom: 2px solid #f8f9fd;
         }
 
         .my-tasks-th {
             display: block;
-            background: #fff3f6;
-            color: #6f1830;
+            background: transparent;
+            color: #000000;
+            font-weight: 700;
             font-size: 12px;
             text-transform: uppercase;
             letter-spacing: .06em;
@@ -297,7 +298,7 @@
         [data-col="phase"] { flex: 1.5; min-width: 180px; }
         [data-col="start_date"] { flex: 1.5; min-width: 150px; }
         [data-col="estimated_date"] { flex: 1.5; min-width: 150px; }
-        [data-col="finalization_date"] { flex: 1.5; min-width: 160px; }
+        [data-col="finalization_date"] { flex: 1.5; min-width: 210px; }
 
         .my-tasks-th-content {
             display: inline-flex;
