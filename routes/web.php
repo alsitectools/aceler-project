@@ -600,9 +600,9 @@ Route::delete('/delete-my-account', [UserController::class, 'deleteMyAccount'])-
 // Route::resource('coupons', CouponController::class)->middleware(['auth', 'XSS',]);
 
 // Lang
-Route::get('/admin/change_lang/{lang}', [WorkspaceController::class, 'changeLangAdmin'])->name('change_lang_admin')->middleware(['auth', 'XSS']);
-Route::get('/workspace/{slug}/change_lang/{lang}', [WorkspaceController::class, 'changeLangWorkspace'])->name('change_lang_workspace')->middleware(['auth', 'XSS']);
-Route::get('/workspace/{slug}/change_lang1/{lang}', [WorkspaceController::class, 'changeLangWorkspace1'])->name('change_lang_workspace1')->middleware(['auth:client', 'XSS']);
+Route::get('/admin/change_lang/{lang}', [WorkspaceController::class, 'changeLangAdmin'])->name('change_lang_admin')->middleware(['auth']);
+Route::get('/workspace/{slug}/change_lang/{lang}', [WorkspaceController::class, 'changeLangWorkspace'])->name('change_lang_workspace')->middleware(['auth']);
+Route::get('/workspace/{slug}/change_lang1/{lang}', [WorkspaceController::class, 'changeLangWorkspace1'])->name('change_lang_workspace1')->middleware(['auth:client']);
 Route::get('/workspace/change_lang_copylink/{lang}', [WorkspaceController::class, 'changeLangcopylink'])->name('change_lang_copylink')->middleware(['XSS']);
 
 Route::post('{slug}/company-email-settings', [WorkspaceController::class, 'conpanyEmailSettingStore'])->name('company.email.settings.store')->middleware(['auth', 'XSS']);
