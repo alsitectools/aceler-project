@@ -226,18 +226,7 @@ class WorkspaceController extends Controller
 
     public function changeLangAdmin($lang)
     {
-        // if (Auth::user()->type == 'admin' && app('App\Http\Controllers\SettingsController')->setEnvironmentValue(['DEFAULT_ADMIN_LANG' => $lang])) {
-
-        //     Artisan::call('config:cache');
-        //     Artisan::call('config:clear');
-
-        //     return redirect()->back()->with('success', __('Language Change Successfully!'));
-        // } else {
-        //     return redirect()->back()->with('error', __('Something is wrong'));
-        // }
-        $user = \Auth::user();
-        $user->lang = $lang;
-        $user->save();
+        session()->put('locale', $lang);
         app()->setLocale($lang);
         return redirect()->back()->with('success', __('Language Change Successfully!'));
     }
@@ -252,19 +241,13 @@ class WorkspaceController extends Controller
 
     public function changeLangWorkspace1($workspaceID, $lang)
     {
-
-        $user = \Auth::user();
-        $user->lang = $lang;
-        $user->save();
+        session()->put('locale', $lang);
         app()->setLocale($lang);
         return redirect()->back()->with('success', __('Language Change Successfully!'));
     }
     public function changeLangWorkspace($workspaceID, $lang)
     {
-
-        $user = \Auth::user();
-        $user->lang = $lang;
-        $user->save();
+        session()->put('locale', $lang);
         app()->setLocale($lang);
 
         return redirect()->back()->with('success', __('Language Change Successfully!'));
