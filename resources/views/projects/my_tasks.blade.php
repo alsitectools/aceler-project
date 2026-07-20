@@ -219,98 +219,35 @@
         }
 
         .my-tasks-table-shell {
-            display: flex;
-            flex-direction: column;
-            border-radius: 0 0 14px 14px;
+            border-radius: 14px;
+            padding: 10px;
             max-height: 350px;
-            overflow: auto;
-            width: 100%;
+            overflow-y: auto;
         }
 
-        .my-tasks-table-inner {
-            width: fit-content;
-            min-width: 100%;
-        }
-
-        .my-tasks-header-row {
-            display: flex;
-            width: 100%;
+        .my-tasks-table thead th {
             position: sticky;
             top: 0;
             z-index: 1;
-            background: #f8f9fd;
-            border-bottom: 2px solid #f8f9fd;
-        }
-
-        .my-tasks-th {
-            display: block;
-            background: transparent;
-            color: #000000;
-            font-weight: 700;
+            background: #fff3f6;
+            color: #6f1830;
             font-size: 12px;
             text-transform: uppercase;
             letter-spacing: .06em;
-            white-space: nowrap;
-            padding: 10px 14px;
-        }
-
-        .my-tasks-body-rows {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            padding-top: 10px;
-            width: 100%;
-        }
-
-        .my-tasks-body-row {
-            display: flex;
-            border: 1px solid #f0dde2;
-            border-radius: 12px;
-            background: #ffffff;
-            transition: all .18s ease;
-        }
-
-        .my-tasks-td {
-            display: block;
-            padding: 14px;
             border: 0;
-            background: transparent;
-            overflow: hidden;
+            white-space: nowrap;
+            padding: 12px 14px;
         }
-
-        .my-tasks-body-row[data-timesheet-edit-url] {
-            cursor: pointer;
-        }
-
-        .my-tasks-body-row[data-timesheet-edit-url]:focus-visible .my-tasks-td {
-            outline: 0;
-            box-shadow: inset 0 0 0 2px rgba(182, 18, 46, 0.18);
-        }
-
-        .my-tasks-body-row[data-timesheet-edit-url]:hover {
-            border-color: #b6122e;
-            background: #fff0f4;
-            transform: translateY(-1px);
-        }
-
-        [data-col="project"] { flex: 3; min-width: 250px; }
-        [data-col="milestone"] { flex: 3; min-width: 250px; }
-        [data-col="task"] { flex: 2; min-width: 200px; }
-        [data-col="stage"] { flex: 1.5; min-width: 180px; }
-        [data-col="phase"] { flex: 1.5; min-width: 180px; }
-        [data-col="start_date"] { flex: 1.5; min-width: 150px; }
-        [data-col="estimated_date"] { flex: 1.5; min-width: 150px; }
-        [data-col="finalization_date"] { flex: 1.5; min-width: 210px; }
 
         .my-tasks-th-content {
             display: inline-flex;
             align-items: center;
-            gap: 4px;
+            gap: 8px;
         }
 
         .my-tasks-filter-btn {
-            width: 20px;
-            height: 20px;
+            width: 24px;
+            height: 24px;
             border: 1px solid transparent;
             border-radius: 8px;
             background: transparent;
@@ -556,6 +493,65 @@
             display: block;
         }
 
+        .my-tasks-table {
+            border-collapse: separate;
+            border-spacing: 0 10px;
+            margin-bottom: 0;
+        }
+
+        .my-tasks-table td {
+            vertical-align: middle;
+            border: 0;
+            background: #ffffff;
+            padding: 14px;
+        }
+
+        .my-tasks-table tbody tr {
+            transition: transform .16s ease, box-shadow .16s ease;
+        }
+
+        .my-tasks-table tbody tr[data-timesheet-edit-url] {
+            cursor: pointer;
+        }
+
+        .my-tasks-table tbody tr[data-timesheet-edit-url]:hover {
+                border-color: #b6122e;
+    background: #fff0f4;
+    color: #7b1528;
+    transform: translateY(-1px);
+        }
+
+        .my-tasks-table tbody tr[data-timesheet-edit-url]:focus-visible td {
+            outline: 0;
+            box-shadow: inset 0 0 0 2px rgba(182, 18, 46, 0.18);
+        }
+
+        .my-tasks-table tbody tr td:first-child {
+            border-top-left-radius: 12px;
+            border-bottom-left-radius: 12px;
+            border-left: 1px solid #f0dde2;
+            border-top: 1px solid #f0dde2;
+            border-bottom: 1px solid #f0dde2;
+        }
+
+        .my-tasks-table tbody tr td:not(:first-child):not(:last-child) {
+            border-top: 1px solid #f0dde2;
+            border-bottom: 1px solid #f0dde2;
+        }
+
+        .my-tasks-table tbody tr td:last-child {
+            border-top-right-radius: 12px;
+            border-bottom-right-radius: 12px;
+            border-right: 1px solid #f0dde2;
+            border-top: 1px solid #f0dde2;
+            border-bottom: 1px solid #f0dde2;
+        }
+
+        /* .my-tasks-table tbody tr:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 8px 18px rgba(74, 20, 33, 0.08);
+        } */
+
         .task-id-pill {
             display: inline-flex;
             align-items: center;
@@ -577,10 +573,18 @@
         .my-tasks-truncate-milestone,
         .my-tasks-truncate-task {
             display: block;
-            max-width: 100%;
+            max-width: 200px;
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
+        }
+
+        @media (max-width: 1400px) {
+            .my-tasks-truncate-project,
+            .my-tasks-truncate-milestone,
+            .my-tasks-truncate-task {
+                max-width: 180px;
+            }
         }
 
         .my-tasks-caption {
@@ -817,8 +821,12 @@
                 grid-template-columns: 1fr;
             }
 
-            .my-tasks-th,
-            .my-tasks-td {
+            .my-tasks-table {
+                border-spacing: 0 8px;
+            }
+
+            .my-tasks-table thead th,
+            .my-tasks-table td {
                 padding: 10px;
             }
 
@@ -878,8 +886,8 @@
                             <img class="my-tasks-help-icon" id="taskOverviewHelpIcon" src="{{ asset('assets/img/questionCircle.svg') }}"
                                 alt="{{ __('Task Overview info') }}" title="{{ __('Task Overview info') }}" />
                             <div class="my-tasks-help-popup" id="taskOverviewHelpPopup">
-                                <p>{!! __('In <strong>Diagram View</strong>, tasks shown respect the task creation date.') !!}</p>
-                                <p>{!! __('<strong>N/A</strong> means there is no value for that field.') !!}</p>
+                                <p>En <strong>Diagram View</strong>, las tareas que se muestran respetan la fecha de creacion de la tarea.</p>
+                                <p><strong>N/A</strong> significa que no hay ningun valor para dicho campo.</p>
                             </div>
                         </div>
                         <p>{{ __('Quick view of your assigned work and upcoming delivery dates.') }}</p>
@@ -931,210 +939,210 @@
                             </div>
                         </div>
 
-                        <div class="card-body" style="padding-top: 15px;">
+                        <div class="card-body">
                             @if ($taskCollection->isEmpty())
                             <div class="text-center py-4">
                                 <h6 class="mb-2">{{ __('No tasks assigned') }}</h6>
                                 <p class="text-muted mb-0">{{ __('You currently do not have assigned tasks.') }}</p>
                             </div>
                         @else
-                            <div class="my-tasks-table-shell">
-                                <div class="my-tasks-table-inner">
-                                    <div class="my-tasks-header-row">
-                                    <div class="my-tasks-th" data-col="project">
-                                        <div class="my-tasks-th-content">
-                                            <span>{{ __('Project') }}</span>
-                                            <button type="button" class="my-tasks-filter-btn" data-filter-key="project" data-filter-label="{{ __('Project') }}" data-column-index="0" aria-label="{{ __('Filter Project') }}">
-                                                <svg class="my-tasks-filter-icon" viewBox="0 0 16 16" aria-hidden="true">
-                                                    <path d="M2 3.25A1.25 1.25 0 0 1 3.25 2h9.5A1.25 1.25 0 0 1 14 3.25c0 .3-.11.6-.31.82L9.5 8.45v3.3a1 1 0 0 1-.55.9l-2 1A1 1 0 0 1 5.5 12.75V8.45L2.31 4.07A1.25 1.25 0 0 1 2 3.25Z"></path>
-                                                </svg>
-                                            </button>
-                                        </div>
-                                    </div>
-                                    <div class="my-tasks-th" data-col="milestone">
-                                        <div class="my-tasks-th-content">
-                                            <span>{{ __('Milestone') }}</span>
-                                            <button type="button" class="my-tasks-filter-btn" data-filter-key="milestone" data-filter-label="{{ __('Milestone') }}" data-column-index="1" aria-label="{{ __('Filter Milestone') }}">
-                                                <svg class="my-tasks-filter-icon" viewBox="0 0 16 16" aria-hidden="true">
-                                                    <path d="M2 3.25A1.25 1.25 0 0 1 3.25 2h9.5A1.25 1.25 0 0 1 14 3.25c0 .3-.11.6-.31.82L9.5 8.45v3.3a1 1 0 0 1-.55.9l-2 1A1 1 0 0 1 5.5 12.75V8.45L2.31 4.07A1.25 1.25 0 0 1 2 3.25Z"></path>
-                                                </svg>
-                                            </button>
-                                        </div>
-                                    </div>
-                                    @if ($showStageColumn)
-                                    <div class="my-tasks-th" data-col="stage">
-                                        <div class="my-tasks-th-content">
-                                            <span>{{ __('Stage') }}</span>
-                                            <button type="button" class="my-tasks-filter-btn" data-filter-key="stage" data-filter-label="{{ __('Stage') }}" data-column-index="{{ $stageColumnIndex }}" aria-label="{{ __('Filter Stage') }}">
-                                                <svg class="my-tasks-filter-icon" viewBox="0 0 16 16" aria-hidden="true">
-                                                    <path d="M2 3.25A1.25 1.25 0 0 1 3.25 2h9.5A1.25 1.25 0 0 1 14 3.25c0 .3-.11.6-.31.82L9.5 8.45v3.3a1 1 0 0 1-.55.9l-2 1A1 1 0 0 1 5.5 12.75V8.45L2.31 4.07A1.25 1.25 0 0 1 2 3.25Z"></path>
-                                                </svg>
-                                            </button>
-                                        </div>
-                                    </div>
-                                    @endif
-                                    @if ($showPhaseColumn)
-                                    <div class="my-tasks-th" data-col="phase">
-                                        <div class="my-tasks-th-content">
-                                            <span>{{ __('Phase') }}</span>
-                                            <button type="button" class="my-tasks-filter-btn" data-filter-key="phase" data-filter-label="{{ __('Phase') }}" data-column-index="{{ $phaseColumnIndex }}" aria-label="{{ __('Filter Phase') }}">
-                                                <svg class="my-tasks-filter-icon" viewBox="0 0 16 16" aria-hidden="true">
-                                                    <path d="M2 3.25A1.25 1.25 0 0 1 3.25 2h9.5A1.25 1.25 0 0 1 14 3.25c0 .3-.11.6-.31.82L9.5 8.45v3.3a1 1 0 0 1-.55.9l-2 1A1 1 0 0 1 5.5 12.75V8.45L2.31 4.07A1.25 1.25 0 0 1 2 3.25Z"></path>
-                                                </svg>
-                                            </button>
-                                        </div>
-                                    </div>
-                                    @endif
-                                    <div class="my-tasks-th" data-col="task">
-                                        <div class="my-tasks-th-content">
-                                            <span>{{ __('Task') }}</span>
-                                            <button type="button" class="my-tasks-filter-btn" data-filter-key="task" data-filter-label="{{ __('Task') }}" data-column-index="{{ $taskColumnIndex }}" aria-label="{{ __('Filter Task') }}">
-                                                <svg class="my-tasks-filter-icon" viewBox="0 0 16 16" aria-hidden="true">
-                                                    <path d="M2 3.25A1.25 1.25 0 0 1 3.25 2h9.5A1.25 1.25 0 0 1 14 3.25c0 .3-.11.6-.31.82L9.5 8.45v3.3a1 1 0 0 1-.55.9l-2 1A1 1 0 0 1 5.5 12.75V8.45L2.31 4.07A1.25 1.25 0 0 1 2 3.25Z"></path>
-                                                </svg>
-                                            </button>
-                                        </div>
-                                    </div>
-                                    <div class="my-tasks-th" data-col="start_date">
-                                        <div class="my-tasks-th-content">
-                                            <span>{{ __('Start date') }}</span>
-                                            <button type="button" class="my-tasks-filter-btn" data-filter-key="start_date" data-filter-label="{{ __('Start date') }}" data-column-index="{{ $startDateColumnIndex }}" aria-label="{{ __('Filter Start date') }}">
-                                                <svg class="my-tasks-filter-icon" viewBox="0 0 16 16" aria-hidden="true">
-                                                    <path d="M2 3.25A1.25 1.25 0 0 1 3.25 2h9.5A1.25 1.25 0 0 1 14 3.25c0 .3-.11.6-.31.82L9.5 8.45v3.3a1 1 0 0 1-.55.9l-2 1A1 1 0 0 1 5.5 12.75V8.45L2.31 4.07A1.25 1.25 0 0 1 2 3.25Z"></path>
-                                                </svg>
-                                            </button>
-                                        </div>
-                                    </div>
-                                    <div class="my-tasks-th" data-col="estimated_date">
-                                        <div class="my-tasks-th-content">
-                                            <span>{{ __('Estimated date') }}</span>
-                                            <button type="button" class="my-tasks-filter-btn" data-filter-key="estimated_date" data-filter-label="{{ __('Estimated date') }}" data-column-index="{{ $estimatedDateColumnIndex }}" aria-label="{{ __('Filter Estimated date') }}">
-                                                <svg class="my-tasks-filter-icon" viewBox="0 0 16 16" aria-hidden="true">
-                                                    <path d="M2 3.25A1.25 1.25 0 0 1 3.25 2h9.5A1.25 1.25 0 0 1 14 3.25c0 .3-.11.6-.31.82L9.5 8.45v3.3a1 1 0 0 1-.55.9l-2 1A1 1 0 0 1 5.5 12.75V8.45L2.31 4.07A1.25 1.25 0 0 1 2 3.25Z"></path>
-                                                </svg>
-                                            </button>
-                                        </div>
-                                    </div>
-                                    <div class="my-tasks-th" data-col="finalization_date">
-                                        <div class="my-tasks-th-content">
-                                            <span>{{ __('Finalization date') }}</span>
-                                            <button type="button" class="my-tasks-filter-btn" data-filter-key="finalization_date" data-filter-label="{{ __('Finalization date') }}" data-column-index="{{ $finalizationDateColumnIndex }}" aria-label="{{ __('Filter Finalization date') }}">
-                                                <svg class="my-tasks-filter-icon" viewBox="0 0 16 16" aria-hidden="true">
-                                                    <path d="M2 3.25A1.25 1.25 0 0 1 3.25 2h9.5A1.25 1.25 0 0 1 14 3.25c0 .3-.11.6-.31.82L9.5 8.45v3.3a1 1 0 0 1-.55.9l-2 1A1 1 0 0 1 5.5 12.75V8.45L2.31 4.07A1.25 1.25 0 0 1 2 3.25Z"></path>
-                                                </svg>
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div class="my-tasks-body-rows">
-                                    @foreach ($tasks as $task)
-                                        @php
-                                            $taskTypeName = optional($task->type)->name;
-                                            $isCustomType = strtolower(trim((string) $taskTypeName)) === 'custom';
-                                            $displayTypeName = $isCustomType
-                                                ? (optional($task->customTask)->name ?: __('Custom'))
-                                                : ($taskTypeName ?: __('N/A'));
-
-                                            $estimatedDate = !empty($task->estimated_date)
-                                                ? \Carbon\Carbon::parse($task->estimated_date)
-                                                : null;
-
-                                            $finalizationDate = !empty($task->end_date)
-                                                ? \Carbon\Carbon::parse($task->end_date)
-                                                : null;
-
-                                            $finalizationDateClass = 'task-date';
-                                            if ($estimatedDate && $finalizationDate) {
-                                                $finalizationDateClass .= $finalizationDate->lte($estimatedDate)
-                                                    ? ' on-time'
-                                                    : ' overdue';
-                                            }
-
-                                            $projectTypeId = (int) optional($task->project)->type;
-                                            $supportsStageAndPhase = in_array($projectTypeId, $projectTypesWithStageAndPhase, true);
-                                            $resolvedStageName = optional($task->milestone)->resolved_stage_name;
-                                            $stageName = $supportsStageAndPhase
-                                                ? ($resolvedStageName ?: __('N/A'))
-                                                : $notApplicableStagePhaseText;
-                                            $phaseValue = optional(optional($task->milestone)->phase)->phases;
-                                            $phaseName = $supportsStageAndPhase
-                                                ? ($phaseValue ? __(\App\Models\MilestonePhases::translationKey($phaseValue)) : __('N/A'))
-                                                : $notApplicableStagePhaseText;
-
-                                            $projectName = optional($task->project)->name ?: $naText;
-                                            $milestoneTitle = optional($task->milestone)->title ?: $naText;
-                                            $startDateText = $task->start_date ? \Carbon\Carbon::parse($task->start_date)->format('d/m/Y') : $naText;
-                                            $estimatedDateText = $task->estimated_date ? \Carbon\Carbon::parse($task->estimated_date)->format('d/m/Y') : $naText;
-                                            $finalizationDateText = $task->end_date ? \Carbon\Carbon::parse($task->end_date)->format('d/m/Y') : $naText;
-
-                                            $placeholderClass = 'my-tasks-placeholder';
-                                            $notRequiredClass = 'my-tasks-placeholder my-tasks-placeholder--not-required';
-
-                                            $projectClass = $projectName === $naText ? $placeholderClass : '';
-                                            $milestoneClass = $milestoneTitle === $naText ? $placeholderClass : '';
-                                            $taskTypeClass = $displayTypeName === $naText ? $placeholderClass : 'my-tasks-main';
-                                            $stageClass = $stageName === $notApplicableStagePhaseText
-                                                ? $notRequiredClass
-                                                : ($stageName === $naText ? $placeholderClass : 'my-tasks-main');
-                                            $phaseClass = $phaseName === $notApplicableStagePhaseText
-                                                ? $notRequiredClass
-                                                : ($phaseName === $naText ? $placeholderClass : 'my-tasks-main');
-                                            $startDateClass = $startDateText === $naText ? $placeholderClass : 'task-date';
-                                            $estimatedDateClass = $estimatedDateText === $naText ? $placeholderClass : 'task-date';
-                                            $finalizationRenderClass = $finalizationDateText === $naText ? $placeholderClass : $finalizationDateClass;
-                                            $hasTimesheetAction = !empty($task->timesheet_edit_url) && !empty($task->timesheet_edit_date);
-                                        @endphp
-                                        <div class="my-tasks-body-row"
-                                            @if ($hasTimesheetAction)
-                                                data-timesheet-edit-url="{{ $task->timesheet_edit_url }}"
-                                                data-timesheet-edit-date="{{ $task->timesheet_edit_date }}"
-                                                data-timesheet-task-id="{{ $task->id }}"
-                                                data-timesheet-mode="{{ $task->timesheet_action_mode }}"
-                                                data-timesheet-title="{{ $task->timesheet_action_title }}"
-                                                tabindex="0"
-                                                role="button"
-                                                aria-label="{{ $task->timesheet_action_title }}"
-                                            @endif
-                                        >
-                                            <div class="my-tasks-td" data-col="project">
-                                                <div class="my-tasks-main my-tasks-truncate-project {{ $projectClass }}" title="{{ $projectName }}">{{ $projectName }}</div>
-                                            </div>
-                                            <div class="my-tasks-td" data-col="milestone">
-                                                <div class="my-tasks-main my-tasks-truncate-milestone {{ $milestoneClass }}" title="{{ $milestoneTitle }}">{{ $milestoneTitle }}</div>
-                                            </div>
-                                            @if ($showStageColumn)
-                                                <div class="my-tasks-td" data-col="stage">
-                                                    <span class="{{ $stageClass }}">{{ $stageName }}</span>
+                            <div class="table-responsive my-tasks-table-shell">
+                                <table class="table align-middle my-tasks-table">
+                                    <thead>
+                                        <tr>
+                                            <th>
+                                                <div class="my-tasks-th-content">
+                                                    <span>{{ __('Project') }}</span>
+                                                    <button type="button" class="my-tasks-filter-btn" data-filter-key="project" data-filter-label="{{ __('Project') }}" data-column-index="0" aria-label="{{ __('Filter Project') }}">
+                                                        <svg class="my-tasks-filter-icon" viewBox="0 0 16 16" aria-hidden="true">
+                                                            <path d="M2 3.25A1.25 1.25 0 0 1 3.25 2h9.5A1.25 1.25 0 0 1 14 3.25c0 .3-.11.6-.31.82L9.5 8.45v3.3a1 1 0 0 1-.55.9l-2 1A1 1 0 0 1 5.5 12.75V8.45L2.31 4.07A1.25 1.25 0 0 1 2 3.25Z"></path>
+                                                        </svg>
+                                                    </button>
                                                 </div>
+                                            </th>
+                                            <th>
+                                                <div class="my-tasks-th-content">
+                                                    <span>{{ __('Milestone') }}</span>
+                                                    <button type="button" class="my-tasks-filter-btn" data-filter-key="milestone" data-filter-label="{{ __('Milestone') }}" data-column-index="1" aria-label="{{ __('Filter Milestone') }}">
+                                                        <svg class="my-tasks-filter-icon" viewBox="0 0 16 16" aria-hidden="true">
+                                                            <path d="M2 3.25A1.25 1.25 0 0 1 3.25 2h9.5A1.25 1.25 0 0 1 14 3.25c0 .3-.11.6-.31.82L9.5 8.45v3.3a1 1 0 0 1-.55.9l-2 1A1 1 0 0 1 5.5 12.75V8.45L2.31 4.07A1.25 1.25 0 0 1 2 3.25Z"></path>
+                                                        </svg>
+                                                    </button>
+                                                </div>
+                                            </th>
+                                            @if ($showStageColumn)
+                                            <th>
+                                                <div class="my-tasks-th-content">
+                                                    <span>{{ __('Stage') }}</span>
+                                                    <button type="button" class="my-tasks-filter-btn" data-filter-key="stage" data-filter-label="{{ __('Stage') }}" data-column-index="{{ $stageColumnIndex }}" aria-label="{{ __('Filter Stage') }}">
+                                                        <svg class="my-tasks-filter-icon" viewBox="0 0 16 16" aria-hidden="true">
+                                                            <path d="M2 3.25A1.25 1.25 0 0 1 3.25 2h9.5A1.25 1.25 0 0 1 14 3.25c0 .3-.11.6-.31.82L9.5 8.45v3.3a1 1 0 0 1-.55.9l-2 1A1 1 0 0 1 5.5 12.75V8.45L2.31 4.07A1.25 1.25 0 0 1 2 3.25Z"></path>
+                                                        </svg>
+                                                    </button>
+                                                </div>
+                                            </th>
                                             @endif
                                             @if ($showPhaseColumn)
-                                                <div class="my-tasks-td" data-col="phase">
-                                                    <span class="{{ $phaseClass }}">{{ $phaseName }}</span>
+                                            <th>
+                                                <div class="my-tasks-th-content">
+                                                    <span>{{ __('Phase') }}</span>
+                                                    <button type="button" class="my-tasks-filter-btn" data-filter-key="phase" data-filter-label="{{ __('Phase') }}" data-column-index="{{ $phaseColumnIndex }}" aria-label="{{ __('Filter Phase') }}">
+                                                        <svg class="my-tasks-filter-icon" viewBox="0 0 16 16" aria-hidden="true">
+                                                            <path d="M2 3.25A1.25 1.25 0 0 1 3.25 2h9.5A1.25 1.25 0 0 1 14 3.25c0 .3-.11.6-.31.82L9.5 8.45v3.3a1 1 0 0 1-.55.9l-2 1A1 1 0 0 1 5.5 12.75V8.45L2.31 4.07A1.25 1.25 0 0 1 2 3.25Z"></path>
+                                                        </svg>
+                                                    </button>
                                                 </div>
+                                            </th>
                                             @endif
-                                            <div class="my-tasks-td" data-col="task">
-                                                <div class="my-tasks-truncate-task" title="{{ $displayTypeName }}">
-                                                    <span class="{{ $taskTypeClass }}">{{ $displayTypeName }}</span>
+                                            <th>
+                                                <div class="my-tasks-th-content">
+                                                    <span>{{ __('Task') }}</span>
+                                                    <button type="button" class="my-tasks-filter-btn" data-filter-key="task" data-filter-label="{{ __('Task') }}" data-column-index="{{ $taskColumnIndex }}" aria-label="{{ __('Filter Task') }}">
+                                                        <svg class="my-tasks-filter-icon" viewBox="0 0 16 16" aria-hidden="true">
+                                                            <path d="M2 3.25A1.25 1.25 0 0 1 3.25 2h9.5A1.25 1.25 0 0 1 14 3.25c0 .3-.11.6-.31.82L9.5 8.45v3.3a1 1 0 0 1-.55.9l-2 1A1 1 0 0 1 5.5 12.75V8.45L2.31 4.07A1.25 1.25 0 0 1 2 3.25Z"></path>
+                                                        </svg>
+                                                    </button>
                                                 </div>
-                                            </div>
-                                            <div class="my-tasks-td" data-col="start_date">
-                                                <span class="{{ $startDateClass }}">{{ $startDateText }}</span>
-                                            </div>
-                                            <div class="my-tasks-td" data-col="estimated_date">
-                                                <span class="{{ $estimatedDateClass }}">{{ $estimatedDateText }}</span>
-                                            </div>
-                                            <div class="my-tasks-td" data-col="finalization_date">
-                                                <span class="{{ $finalizationRenderClass }}">{{ $finalizationDateText }}</span>
-                                            </div>
-                                        </div>
-                                    @endforeach
-                                </div>
+                                            </th>
+                                            <th>
+                                                <div class="my-tasks-th-content">
+                                                    <span>{{ __('Start date') }}</span>
+                                                    <button type="button" class="my-tasks-filter-btn" data-filter-key="start_date" data-filter-label="{{ __('Start date') }}" data-column-index="{{ $startDateColumnIndex }}" aria-label="{{ __('Filter Start date') }}">
+                                                        <svg class="my-tasks-filter-icon" viewBox="0 0 16 16" aria-hidden="true">
+                                                            <path d="M2 3.25A1.25 1.25 0 0 1 3.25 2h9.5A1.25 1.25 0 0 1 14 3.25c0 .3-.11.6-.31.82L9.5 8.45v3.3a1 1 0 0 1-.55.9l-2 1A1 1 0 0 1 5.5 12.75V8.45L2.31 4.07A1.25 1.25 0 0 1 2 3.25Z"></path>
+                                                        </svg>
+                                                    </button>
+                                                </div>
+                                            </th>
+                                            <th>
+                                                <div class="my-tasks-th-content">
+                                                    <span>{{ __('Estimated date') }}</span>
+                                                    <button type="button" class="my-tasks-filter-btn" data-filter-key="estimated_date" data-filter-label="{{ __('Estimated date') }}" data-column-index="{{ $estimatedDateColumnIndex }}" aria-label="{{ __('Filter Estimated date') }}">
+                                                        <svg class="my-tasks-filter-icon" viewBox="0 0 16 16" aria-hidden="true">
+                                                            <path d="M2 3.25A1.25 1.25 0 0 1 3.25 2h9.5A1.25 1.25 0 0 1 14 3.25c0 .3-.11.6-.31.82L9.5 8.45v3.3a1 1 0 0 1-.55.9l-2 1A1 1 0 0 1 5.5 12.75V8.45L2.31 4.07A1.25 1.25 0 0 1 2 3.25Z"></path>
+                                                        </svg>
+                                                    </button>
+                                                </div>
+                                            </th>
+                                            <th>
+                                                <div class="my-tasks-th-content">
+                                                    <span>{{ __('Finalization date') }}</span>
+                                                    <button type="button" class="my-tasks-filter-btn" data-filter-key="finalization_date" data-filter-label="{{ __('Finalization date') }}" data-column-index="{{ $finalizationDateColumnIndex }}" aria-label="{{ __('Filter Finalization date') }}">
+                                                        <svg class="my-tasks-filter-icon" viewBox="0 0 16 16" aria-hidden="true">
+                                                            <path d="M2 3.25A1.25 1.25 0 0 1 3.25 2h9.5A1.25 1.25 0 0 1 14 3.25c0 .3-.11.6-.31.82L9.5 8.45v3.3a1 1 0 0 1-.55.9l-2 1A1 1 0 0 1 5.5 12.75V8.45L2.31 4.07A1.25 1.25 0 0 1 2 3.25Z"></path>
+                                                        </svg>
+                                                    </button>
+                                                </div>
+                                            </th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach ($tasks as $task)
+                                            @php
+                                                $taskTypeName = optional($task->type)->name;
+                                                $isCustomType = strtolower(trim((string) $taskTypeName)) === 'custom';
+                                                $displayTypeName = $isCustomType
+                                                    ? (optional($task->customTask)->name ?: __('Custom'))
+                                                    : ($taskTypeName ?: __('N/A'));
 
+                                                $estimatedDate = !empty($task->estimated_date)
+                                                    ? \Carbon\Carbon::parse($task->estimated_date)
+                                                    : null;
+
+                                                $finalizationDate = !empty($task->end_date)
+                                                    ? \Carbon\Carbon::parse($task->end_date)
+                                                    : null;
+
+                                                $finalizationDateClass = 'task-date';
+                                                if ($estimatedDate && $finalizationDate) {
+                                                    $finalizationDateClass .= $finalizationDate->lte($estimatedDate)
+                                                        ? ' on-time'
+                                                        : ' overdue';
+                                                }
+
+                                                $projectTypeId = (int) optional($task->project)->type;
+                                                $supportsStageAndPhase = in_array($projectTypeId, $projectTypesWithStageAndPhase, true);
+                                                $resolvedStageName = optional($task->milestone)->resolved_stage_name;
+                                                $stageName = $supportsStageAndPhase
+                                                    ? ($resolvedStageName ?: __('N/A'))
+                                                    : $notApplicableStagePhaseText;
+                                                $phaseValue = optional(optional($task->milestone)->phase)->phases;
+                                                $phaseName = $supportsStageAndPhase
+                                                    ? ($phaseValue ? __(\App\Models\MilestonePhases::translationKey($phaseValue)) : __('N/A'))
+                                                    : $notApplicableStagePhaseText;
+
+                                                $projectName = optional($task->project)->name ?: $naText;
+                                                $milestoneTitle = optional($task->milestone)->title ?: $naText;
+                                                $startDateText = $task->start_date ? \Carbon\Carbon::parse($task->start_date)->format('d/m/Y') : $naText;
+                                                $estimatedDateText = $task->estimated_date ? \Carbon\Carbon::parse($task->estimated_date)->format('d/m/Y') : $naText;
+                                                $finalizationDateText = $task->end_date ? \Carbon\Carbon::parse($task->end_date)->format('d/m/Y') : $naText;
+
+                                                $placeholderClass = 'my-tasks-placeholder';
+                                                $notRequiredClass = 'my-tasks-placeholder my-tasks-placeholder--not-required';
+
+                                                $projectClass = $projectName === $naText ? $placeholderClass : '';
+                                                $milestoneClass = $milestoneTitle === $naText ? $placeholderClass : '';
+                                                $taskTypeClass = $displayTypeName === $naText ? $placeholderClass : 'my-tasks-main';
+                                                $stageClass = $stageName === $notApplicableStagePhaseText
+                                                    ? $notRequiredClass
+                                                    : ($stageName === $naText ? $placeholderClass : 'my-tasks-main');
+                                                $phaseClass = $phaseName === $notApplicableStagePhaseText
+                                                    ? $notRequiredClass
+                                                    : ($phaseName === $naText ? $placeholderClass : 'my-tasks-main');
+                                                $startDateClass = $startDateText === $naText ? $placeholderClass : 'task-date';
+                                                $estimatedDateClass = $estimatedDateText === $naText ? $placeholderClass : 'task-date';
+                                                $finalizationRenderClass = $finalizationDateText === $naText ? $placeholderClass : $finalizationDateClass;
+                                                $hasTimesheetAction = !empty($task->timesheet_edit_url) && !empty($task->timesheet_edit_date);
+                                            @endphp
+                                            <tr
+                                                @if ($hasTimesheetAction)
+                                                    data-timesheet-edit-url="{{ $task->timesheet_edit_url }}"
+                                                    data-timesheet-edit-date="{{ $task->timesheet_edit_date }}"
+                                                    data-timesheet-task-id="{{ $task->id }}"
+                                                    data-timesheet-mode="{{ $task->timesheet_action_mode }}"
+                                                    data-timesheet-title="{{ $task->timesheet_action_title }}"
+                                                    tabindex="0"
+                                                    role="button"
+                                                    aria-label="{{ $task->timesheet_action_title }}"
+                                                @endif
+                                            >
+                                                <td>
+                                                    <div class="my-tasks-main my-tasks-truncate-project {{ $projectClass }}" title="{{ $projectName }}">{{ $projectName }}</div>
+                                                </td>
+                                                <td>
+                                                    <div class="my-tasks-main my-tasks-truncate-milestone {{ $milestoneClass }}" title="{{ $milestoneTitle }}">{{ $milestoneTitle }}</div>
+                                                </td>
+                                                @if ($showStageColumn)
+                                                    <td>
+                                                        <span class="{{ $stageClass }}">{{ $stageName }}</span>
+                                                    </td>
+                                                @endif
+                                                @if ($showPhaseColumn)
+                                                    <td>
+                                                        <span class="{{ $phaseClass }}">{{ $phaseName }}</span>
+                                                    </td>
+                                                @endif
+                                                <td>
+                                                    <div class="my-tasks-truncate-task" title="{{ $displayTypeName }}">
+                                                        <span class="{{ $taskTypeClass }}">{{ $displayTypeName }}</span>
+                                                    </div>
+                                                </td>
+                                                <td>
+                                                    <span class="{{ $startDateClass }}">{{ $startDateText }}</span>
+                                                </td>
+                                                <td>
+                                                    <span class="{{ $estimatedDateClass }}">{{ $estimatedDateText }}</span>
+                                                </td>
+                                                <td>
+                                                    <span class="{{ $finalizationRenderClass }}">{{ $finalizationDateText }}</span>
+                                                </td>
+                                            </tr>
+                                        @endforeach
+                                    </tbody>
+                                </table>
                                 <div id="myTasksFilteredEmptyState" class="my-tasks-filtered-empty-state">
                                     <h6 class="mb-2">{{ __('No tasks match the selected filters') }}</h6>
                                     <p class="mb-0">{{ __('Adjust or clear filters to see more results.') }}</p>
-                                </div>
                                 </div>
                             </div>
                         @endif
@@ -1207,10 +1215,11 @@
             const projectTasksModalPeriod = document.getElementById('projectTasksModalPeriod');
             const projectTasksModalContent = document.getElementById('projectTasksModalContent');
             const columnToggleButton = document.getElementById('myTasksColumnsToggleBtn');
-            const taskTableHeaders = Array.from(document.querySelectorAll('.my-tasks-th'));
-            const taskTableRows = Array.from(document.querySelectorAll('.my-tasks-body-row'));
-            const timesheetTableRows = Array.from(document.querySelectorAll('.my-tasks-body-row[data-timesheet-edit-url]'));
-            const tableFilterButtons = Array.from(document.querySelectorAll('.my-tasks-filter-btn'));
+            const taskTable = document.querySelector('.my-tasks-table');
+            const taskTableRows = taskTable ? Array.from(taskTable.querySelectorAll('tbody tr')) : [];
+            const timesheetTableRows = taskTable ? Array.from(taskTable.querySelectorAll('tbody tr[data-timesheet-edit-url]')) : [];
+            const taskTableHeaders = taskTable ? Array.from(taskTable.querySelectorAll('thead th')) : [];
+            const tableFilterButtons = taskTable ? Array.from(taskTable.querySelectorAll('.my-tasks-filter-btn')) : [];
             const filteredEmptyState = document.getElementById('myTasksFilteredEmptyState');
             const projectTasksModal = (window.bootstrap && projectTasksModalElement)
                 ? new window.bootstrap.Modal(projectTasksModalElement)
@@ -1449,23 +1458,12 @@
             }
 
             function applyColumnVisibility() {
-                let anyHeaderVisible = false;
                 taskTableHeaders.forEach(function(header, columnIndex) {
                     const isVisible = columnVisibilityState.get(columnIndex) !== false;
                     header.style.display = isVisible ? '' : 'none';
-                    if (isVisible) {
-                        anyHeaderVisible = true;
-                    }
                 });
 
-                const headerRow = document.querySelector('.my-tasks-header-row');
-                if (headerRow) {
-                    headerRow.style.display = anyHeaderVisible ? '' : 'none';
-                }
-
-                let anyRowVisible = false;
                 taskTableRows.forEach(function(row) {
-                    let anyVisible = false;
                     taskTableHeaders.forEach(function(_, columnIndex) {
                         const cell = row.children[columnIndex];
                         if (!cell) {
@@ -1474,20 +1472,8 @@
 
                         const isVisible = columnVisibilityState.get(columnIndex) !== false;
                         cell.style.display = isVisible ? '' : 'none';
-                        if (isVisible) {
-                            anyVisible = true;
-                        }
                     });
-                    row.style.display = anyVisible ? '' : 'none';
-                    if (anyVisible) {
-                        anyRowVisible = true;
-                    }
                 });
-
-                const bodyRowsContainer = document.querySelector('.my-tasks-body-rows');
-                if (bodyRowsContainer) {
-                    bodyRowsContainer.style.display = anyRowVisible ? '' : 'none';
-                }
 
                 updateColumnToggleSummary();
             }
