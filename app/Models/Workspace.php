@@ -26,7 +26,7 @@ class Workspace extends Model
 
     public function getDisplayNameAttribute()
     {
-        $locale = app()->getLocale();
+        $locale = session('locale', app()->getLocale());
         if ($locale === 'es') {
             return $this->name;
         }
@@ -35,7 +35,7 @@ class Workspace extends Model
 
     public static function translateName($name, $locale = null)
     {
-        $locale = $locale ?? app()->getLocale();
+        $locale = $locale ?? session('locale', app()->getLocale());
         if ($locale === 'es') {
             return $name;
         }

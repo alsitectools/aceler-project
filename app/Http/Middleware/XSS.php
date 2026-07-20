@@ -23,7 +23,7 @@ class XSS
      */
     public function handle($request, Closure $next)
     {
-        if (\Auth::check() && !$request->hasCookie('LANGUAGE')) {
+        if (\Auth::check()) {
             \App::setLocale(\Auth::user()->lang);
 
             if (\Auth::user()->type == 'admin') {

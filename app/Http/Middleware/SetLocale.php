@@ -19,8 +19,6 @@ class SetLocale
     {
         if (Session::has('locale')) {
             App::setLocale(Session::get('locale'));
-        } elseif ($request->hasCookie('LANGUAGE')) {
-            App::setLocale($request->cookie('LANGUAGE'));
         }
 
         return $next($request);
