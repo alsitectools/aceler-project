@@ -205,12 +205,24 @@
 
 <style>
     .active-filters,
-    .status-filter,
-    .type-filter {
+    .status-filter {
         display: flex;
         padding: 2%;
         background-color: #f6f6f6;
         width: 100%;
+    }
+
+    .type-filter {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        padding: 2%;
+        background-color: #f6f6f6;
+        width: 100%;
+    }
+
+    .type-filter > div {
+        flex: 1;
     }
 
     .status-indicator {

@@ -936,6 +936,7 @@
             }
         })();
     </script>
+    <script src="{{ asset('assets/js/create_project.js') }}"></script>
     @stack('scripts')
     {{-- @stack('script-page') --}}
     @if (Session::has('success'))

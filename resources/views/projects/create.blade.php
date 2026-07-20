@@ -33,7 +33,7 @@
 </style>
 
 <!-- Formulario para crear un nuevo proyecto -->
-<form id="new-project-form" method="post" action="{{ route('projects.store', [$currentWorkspace->slug]) }}">
+<form id="new-project-form" method="post" action="{{ route('projects.store', [$currentWorkspace->slug]) }}" data-projects="{{ json_encode($projects) }}">
     @csrf
     <div class="modal-body">
         <div class="row">
@@ -96,13 +96,15 @@
 
 <!-- Pasando variables de Blade a JavaScript -->
 <script>
-    const projects = @json($projects);
     const currentWorkspaceSlug = '{{ $currentWorkspace->slug }}';
-    const searchMoUrl = "{{ route('search-mo-json', '__slug') }}".replace('__slug', currentWorkspaceSlug);
-    const searchClipoUrl = "{{ route('search-clipo-json', '__slug') }}".replace('__slug', currentWorkspaceSlug);
+    window.searchMoUrl = "{{ route('search-mo-json', '__slug') }}".replace('__slug', currentWorkspaceSlug);
+    window.searchClipoUrl = "{{ route('search-clipo-json', '__slug') }}".replace('__slug', currentWorkspaceSlug);
+    window.searchProjectsUrl = "{{ route('search-project-json', '__slug') }}".replace('__slug', currentWorkspaceSlug);
+    window.searchSalesManagerUrl = "{{ route('search-sales-json', '__slug') }}".replace('__slug', currentWorkspaceSlug);
+    if (typeof window.initCreateProjectSearch === 'function') {
+        window.initCreateProjectSearch();
+    }
 </script>
-<!-- Incluimos el archivo JS de create_project si es necesario -->
-<script src="{{ asset('assets/js/create_project.js') }}"></script>
 
 <!-- Función de notificación y manejo del submit -->
 <script>

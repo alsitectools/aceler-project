@@ -499,25 +499,90 @@
 <style>
     .project-order-table-shell {
         border-radius: 14px;
-        padding: 10px;
+        padding: 0 10px 10px;
         max-height: 41vh;
         overflow: auto;
+        width: 100%;
     }
 
-    .project-order-table thead th {
+    .project-order-table-inner {
+        width: fit-content;
+        min-width: 100%;
+    }
+
+    .project-order-header-row {
+        display: flex;
         position: sticky;
         top: 0;
-        z-index: 1;
-        background: #fff3f6;
-        color: #6f1830;
+        z-index: 2;
+        background: #f8f9fd;
+        border-bottom: 2px solid #f8f9fd;
+        min-width: fit-content;
+        width: 100%;
+        gap: 8px;
+    }
+
+    .project-order-th {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 16px 10px;
         font-size: 12px;
+        font-weight: 700;
         text-transform: uppercase;
         letter-spacing: .06em;
-        border: 0;
+        color: #000000;
         white-space: nowrap;
-        padding: 12px 14px;
-        vertical-align: middle;
+        flex-shrink: 0;
     }
+
+    .project-order-body-rows {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        padding-top: 12px;
+        width: 100%;
+    }
+
+    .project-order-body-row {
+        display: flex;
+        border: 1px solid #f0dde2;
+        border-radius: 12px;
+        background: #ffffff;
+        transition: all .18s ease;
+        gap: 8px;
+    }
+
+    .project-order-body-row:hover {
+        border-color: #b6122e;
+        background: #fff0f4;
+    }
+
+    .project-order-td {
+        padding: 12px 10px;
+        flex-shrink: 0;
+    }
+
+    .project-order-th[data-col-key="name"],
+    .project-order-td[data-col-key="name"] { flex: 3; min-width: 200px; }
+    .project-order-th[data-col-key="requested_by"],
+    .project-order-td[data-col-key="requested_by"] { flex: 1.5; min-width: 120px; padding-right: 39px; }
+    .project-order-th[data-col-key="assigned_to"],
+    .project-order-td[data-col-key="assigned_to"] { flex: 1.5; min-width: 120px; padding-right: 49px; }
+    .project-order-th[data-col-key="status"],
+    .project-order-td[data-col-key="status"] { flex: 1.5; min-width: 110px; padding-right: 59px; }
+    .project-order-th[data-col-key="created"],
+    .project-order-td[data-col-key="created"] { flex: 1.5; min-width: 120px; padding-right: 34px; }
+    .project-order-th[data-col-key="desired_delivery"],
+    .project-order-td[data-col-key="desired_delivery"] { flex: 1.5; min-width: 120px; padding-right: 44px; }
+    .project-order-th[data-col-key="expected_delivery"],
+    .project-order-td[data-col-key="expected_delivery"] { flex: 1.5; min-width: 120px; padding-right: 54px; }
+    .project-order-th[data-col-key="task_started"],
+    .project-order-td[data-col-key="task_started"] { flex: 1.5; min-width: 120px; padding-right: 64px; }
+    .project-order-th[data-col-key="completion"],
+    .project-order-td[data-col-key="completion"] { flex: 1.5; min-width: 120px; padding-right: 74px; }
+    .project-order-th[data-col-key="action"],
+    .project-order-td[data-col-key="action"] { flex: 0.8; min-width: 140px; display: flex; align-items: center; gap: 6px; }
 
     .project-order-th-content {
         display: inline-flex;
@@ -1191,452 +1256,363 @@
                                     </div>
                                 </div>
                                 <div class="card-body">
-                                    <div class="table-responsive project-order-table-shell">
-                                        <table id="orderFormsTable" class="table table-bordered project-order-table"
-                                            style="text-align: center;">
-                                            <thead>
-                                                <tr>
-                                                    @if ($project->type == 3 || $project->type == 5)
-                                                        <th data-col-key="phase">
-                                                            <div class="project-order-th-content">
-                                                                <span>{{ __('Stage') }}</span>
-                                                                <button type="button" class="project-order-filter-btn"
-                                                                    data-filter-key="phase"
-                                                                    data-filter-label="{{ __('Phase') }}"
-                                                                    data-column-index="0"
-                                                                    aria-label="{{ __('Filter Phase') }}">
-                                                                    <svg class="project-order-filter-icon"
-                                                                        viewBox="0 0 16 16" aria-hidden="true">
-                                                                        <path
-                                                                            d="M2 3.25A1.25 1.25 0 0 1 3.25 2h9.5A1.25 1.25 0 0 1 14 3.25c0 .3-.11.6-.31.82L9.5 8.45v3.3a1 1 0 0 1-.55.9l-2 1A1 1 0 0 1 5.5 12.75V8.45L2.31 4.07A1.25 1.25 0 0 1 2 3.25Z">
-                                                                        </path>
-                                                                    </svg>
-                                                                </button>
-                                                            </div>
-                                                        </th>
-                                                        <th data-col-key="stage">
-                                                            <div class="project-order-th-content">
-                                                                <span>{{ __('Phase') }}</span>
-                                                                <button type="button" class="project-order-filter-btn"
-                                                                    data-filter-key="stage"
-                                                                    data-filter-label="{{ __('Stage') }}"
-                                                                    data-column-index="1"
-                                                                    aria-label="{{ __('Filter Stage') }}">
-                                                                    <svg class="project-order-filter-icon"
-                                                                        viewBox="0 0 16 16" aria-hidden="true">
-                                                                        <path
-                                                                            d="M2 3.25A1.25 1.25 0 0 1 3.25 2h9.5A1.25 1.25 0 0 1 14 3.25c0 .3-.11.6-.31.82L9.5 8.45v3.3a1 1 0 0 1-.55.9l-2 1A1 1 0 0 1 5.5 12.75V8.45L2.31 4.07A1.25 1.25 0 0 1 2 3.25Z">
-                                                                        </path>
-                                                                    </svg>
-                                                                </button>
-                                                            </div>
-                                                        </th>
-                                                    @endif
-                                                    <th data-col-key="name">
-                                                        <div class="project-order-th-content">
-                                                            <span>{{ __('Name') }}</span>
-                                                            <button type="button" class="project-order-filter-btn"
-                                                                data-filter-key="name"
-                                                                data-filter-label="{{ __('Name') }}"
-                                                                data-column-index="{{ $project->type == 3 || $project->type == 5 ? 2 : 0 }}"
-                                                                aria-label="{{ __('Filter Name') }}">
-                                                                <svg class="project-order-filter-icon" viewBox="0 0 16 16"
-                                                                    aria-hidden="true">
-                                                                    <path
-                                                                        d="M2 3.25A1.25 1.25 0 0 1 3.25 2h9.5A1.25 1.25 0 0 1 14 3.25c0 .3-.11.6-.31.82L9.5 8.45v3.3a1 1 0 0 1-.55.9l-2 1A1 1 0 0 1 5.5 12.75V8.45L2.31 4.07A1.25 1.25 0 0 1 2 3.25Z">
-                                                                    </path>
-                                                                </svg>
-                                                            </button>
-                                                        </div>
-                                                    </th>
-                                                    <th data-col-key="requested_by">
-                                                        <div class="project-order-th-content">
-                                                            <span>{{ __('Requested by') }}</span>
-                                                            <button type="button" class="project-order-filter-btn"
-                                                                data-filter-key="requested_by"
-                                                                data-filter-label="{{ __('Requested by') }}"
-                                                                data-column-index="{{ $project->type == 3 || $project->type == 5 ? 3 : 1 }}"
-                                                                aria-label="{{ __('Filter Requested by') }}">
-                                                                <svg class="project-order-filter-icon" viewBox="0 0 16 16"
-                                                                    aria-hidden="true">
-                                                                    <path
-                                                                        d="M2 3.25A1.25 1.25 0 0 1 3.25 2h9.5A1.25 1.25 0 0 1 14 3.25c0 .3-.11.6-.31.82L9.5 8.45v3.3a1 1 0 0 1-.55.9l-2 1A1 1 0 0 1 5.5 12.75V8.45L2.31 4.07A1.25 1.25 0 0 1 2 3.25Z">
-                                                                    </path>
-                                                                </svg>
-                                                            </button>
-                                                        </div>
-                                                    </th>
-                                                    <th data-col-key="assigned_to">
-                                                        <div class="project-order-th-content">
-                                                            <span>{{ __('Assigned to') }}</span>
-                                                            <button type="button" class="project-order-filter-btn"
-                                                                data-filter-key="assigned_to"
-                                                                data-filter-label="{{ __('Assigned to') }}"
-                                                                data-column-index="{{ $project->type == 3 || $project->type == 5 ? 4 : 2 }}"
-                                                                aria-label="{{ __('Filter Assigned to') }}">
-                                                                <svg class="project-order-filter-icon" viewBox="0 0 16 16"
-                                                                    aria-hidden="true">
-                                                                    <path
-                                                                        d="M2 3.25A1.25 1.25 0 0 1 3.25 2h9.5A1.25 1.25 0 0 1 14 3.25c0 .3-.11.6-.31.82L9.5 8.45v3.3a1 1 0 0 1-.55.9l-2 1A1 1 0 0 1 5.5 12.75V8.45L2.31 4.07A1.25 1.25 0 0 1 2 3.25Z">
-                                                                    </path>
-                                                                </svg>
-                                                            </button>
-                                                        </div>
-                                                    </th>
-                                                    <th data-col-key="status">
-                                                        <div class="project-order-th-content">
-                                                            <span>{{ __('Status') }}</span>
-                                                            <button type="button" class="project-order-filter-btn"
-                                                                data-filter-key="status"
-                                                                data-filter-label="{{ __('Status') }}"
-                                                                data-column-index="{{ $project->type == 3 || $project->type == 5 ? 5 : 3 }}"
-                                                                aria-label="{{ __('Filter Status') }}">
-                                                                <svg class="project-order-filter-icon" viewBox="0 0 16 16"
-                                                                    aria-hidden="true">
-                                                                    <path
-                                                                        d="M2 3.25A1.25 1.25 0 0 1 3.25 2h9.5A1.25 1.25 0 0 1 14 3.25c0 .3-.11.6-.31.82L9.5 8.45v3.3a1 1 0 0 1-.55.9l-2 1A1 1 0 0 1 5.5 12.75V8.45L2.31 4.07A1.25 1.25 0 0 1 2 3.25Z">
-                                                                    </path>
-                                                                </svg>
-                                                            </button>
-                                                        </div>
-                                                    </th>
-                                                    <th data-col-key="created">
-                                                        <div class="project-order-th-content">
-                                                            <span>{{ __('Created') }}</span>
-                                                            <button type="button" class="project-order-filter-btn"
-                                                                data-filter-key="created"
-                                                                data-filter-label="{{ __('Created') }}"
-                                                                data-column-index="{{ $project->type == 3 || $project->type == 5 ? 6 : 4 }}"
-                                                                aria-label="{{ __('Filter Created') }}">
-                                                                <svg class="project-order-filter-icon" viewBox="0 0 16 16"
-                                                                    aria-hidden="true">
-                                                                    <path
-                                                                        d="M2 3.25A1.25 1.25 0 0 1 3.25 2h9.5A1.25 1.25 0 0 1 14 3.25c0 .3-.11.6-.31.82L9.5 8.45v3.3a1 1 0 0 1-.55.9l-2 1A1 1 0 0 1 5.5 12.75V8.45L2.31 4.07A1.25 1.25 0 0 1 2 3.25Z">
-                                                                    </path>
-                                                                </svg>
-                                                            </button>
-                                                        </div>
-                                                    </th>
-                                                    <th data-col-key="desired_delivery">
-                                                        <div class="project-order-th-content">
-                                                            <span>{{ __('Desired delivery') }}</span>
-                                                            <button type="button" class="project-order-filter-btn"
-                                                                data-filter-key="desired_delivery"
-                                                                data-filter-label="{{ __('Desired delivery') }}"
-                                                                data-column-index="{{ $project->type == 3 || $project->type == 5 ? 7 : 5 }}"
-                                                                aria-label="{{ __('Filter Desired delivery') }}">
-                                                                <svg class="project-order-filter-icon" viewBox="0 0 16 16"
-                                                                    aria-hidden="true">
-                                                                    <path
-                                                                        d="M2 3.25A1.25 1.25 0 0 1 3.25 2h9.5A1.25 1.25 0 0 1 14 3.25c0 .3-.11.6-.31.82L9.5 8.45v3.3a1 1 0 0 1-.55.9l-2 1A1 1 0 0 1 5.5 12.75V8.45L2.31 4.07A1.25 1.25 0 0 1 2 3.25Z">
-                                                                    </path>
-                                                                </svg>
-                                                            </button>
-                                                        </div>
-                                                    </th>
-                                                    <th data-col-key="expected_delivery">
-                                                        <div class="project-order-th-content">
-                                                            <span>{{ __('Expected delivery') }}</span>
-                                                            <button type="button" class="project-order-filter-btn"
-                                                                data-filter-key="expected_delivery"
-                                                                data-filter-label="{{ __('Expected delivery') }}"
-                                                                data-column-index="{{ $project->type == 3 || $project->type == 5 ? 8 : 6 }}"
-                                                                aria-label="{{ __('Filter Expected delivery') }}">
-                                                                <svg class="project-order-filter-icon" viewBox="0 0 16 16"
-                                                                    aria-hidden="true">
-                                                                    <path
-                                                                        d="M2 3.25A1.25 1.25 0 0 1 3.25 2h9.5A1.25 1.25 0 0 1 14 3.25c0 .3-.11.6-.31.82L9.5 8.45v3.3a1 1 0 0 1-.55.9l-2 1A1 1 0 0 1 5.5 12.75V8.45L2.31 4.07A1.25 1.25 0 0 1 2 3.25Z">
-                                                                    </path>
-                                                                </svg>
-                                                            </button>
-                                                        </div>
-                                                    </th>
-                                                    <th data-col-key="task_started">
-                                                        <div class="project-order-th-content">
-                                                            <span>{{ __('Task started') }}</span>
-                                                            <button type="button" class="project-order-filter-btn"
-                                                                data-filter-key="task_started"
-                                                                data-filter-label="{{ __('Task started') }}"
-                                                                data-column-index="{{ $project->type == 3 || $project->type == 5 ? 9 : 7 }}"
-                                                                aria-label="{{ __('Filter Task started') }}">
-                                                                <svg class="project-order-filter-icon" viewBox="0 0 16 16"
-                                                                    aria-hidden="true">
-                                                                    <path
-                                                                        d="M2 3.25A1.25 1.25 0 0 1 3.25 2h9.5A1.25 1.25 0 0 1 14 3.25c0 .3-.11.6-.31.82L9.5 8.45v3.3a1 1 0 0 1-.55.9l-2 1A1 1 0 0 1 5.5 12.75V8.45L2.31 4.07A1.25 1.25 0 0 1 2 3.25Z">
-                                                                    </path>
-                                                                </svg>
-                                                            </button>
-                                                        </div>
-                                                    </th>
-                                                    <th data-col-key="completion">
-                                                        <div class="project-order-th-content">
-                                                            <span>{{ __('Completion') }}</span>
-                                                            <button type="button" class="project-order-filter-btn"
-                                                                data-filter-key="completion"
-                                                                data-filter-label="{{ __('Completion') }}"
-                                                                data-column-index="{{ $project->type == 3 || $project->type == 5 ? 10 : 8 }}"
-                                                                aria-label="{{ __('Filter Completion') }}">
-                                                                <svg class="project-order-filter-icon" viewBox="0 0 16 16"
-                                                                    aria-hidden="true">
-                                                                    <path
-                                                                        d="M2 3.25A1.25 1.25 0 0 1 3.25 2h9.5A1.25 1.25 0 0 1 14 3.25c0 .3-.11.6-.31.82L9.5 8.45v3.3a1 1 0 0 1-.55.9l-2 1A1 1 0 0 1 5.5 12.75V8.45L2.31 4.07A1.25 1.25 0 0 1 2 3.25Z">
-                                                                    </path>
-                                                                </svg>
-                                                            </button>
-                                                        </div>
-                                                    </th>
-                                                    <th data-col-key="action">{{ __('Action') }}</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody id="orderFormsTableBody">
+                                    <div class="project-order-table-shell">
+                                        <div class="project-order-table-inner">
+                                        <div class="project-order-header-row">
+                                            <div class="project-order-th" data-col-key="name">
+                                                <div class="project-order-th-content">
+                                                    <span>{{ __('Name') }}</span>
+                                                    <button type="button" class="project-order-filter-btn"
+                                                        data-filter-key="name"
+                                                        data-filter-label="{{ __('Name') }}"
+                                                        data-column-index="0"
+                                                        aria-label="{{ __('Filter Name') }}">
+                                                        <svg class="project-order-filter-icon" viewBox="0 0 16 16"
+                                                            aria-hidden="true">
+                                                            <path
+                                                                d="M2 3.25A1.25 1.25 0 0 1 3.25 2h9.5A1.25 1.25 0 0 1 14 3.25c0 .3-.11.6-.31.82L9.5 8.45v3.3a1 1 0 0 1-.55.9l-2 1A1 1 0 0 1 5.5 12.75V8.45L2.31 4.07A1.25 1.25 0 0 1 2 3.25Z">
+                                                            </path>
+                                                        </svg>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                            <div class="project-order-th" data-col-key="requested_by">
+                                                <div class="project-order-th-content">
+                                                    <span>{{ __('Requested by') }}</span>
+                                                    <button type="button" class="project-order-filter-btn"
+                                                        data-filter-key="requested_by"
+                                                        data-filter-label="{{ __('Requested by') }}"
+                                                        data-column-index="1"
+                                                        aria-label="{{ __('Filter Requested by') }}">
+                                                        <svg class="project-order-filter-icon" viewBox="0 0 16 16"
+                                                            aria-hidden="true">
+                                                            <path
+                                                                d="M2 3.25A1.25 1.25 0 0 1 3.25 2h9.5A1.25 1.25 0 0 1 14 3.25c0 .3-.11.6-.31.82L9.5 8.45v3.3a1 1 0 0 1-.55.9l-2 1A1 1 0 0 1 5.5 12.75V8.45L2.31 4.07A1.25 1.25 0 0 1 2 3.25Z">
+                                                            </path>
+                                                        </svg>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                            <div class="project-order-th" data-col-key="assigned_to">
+                                                <div class="project-order-th-content">
+                                                    <span>{{ __('Assigned to') }}</span>
+                                                    <button type="button" class="project-order-filter-btn"
+                                                        data-filter-key="assigned_to"
+                                                        data-filter-label="{{ __('Assigned to') }}"
+                                                        data-column-index="2"
+                                                        aria-label="{{ __('Filter Assigned to') }}">
+                                                        <svg class="project-order-filter-icon" viewBox="0 0 16 16"
+                                                            aria-hidden="true">
+                                                            <path
+                                                                d="M2 3.25A1.25 1.25 0 0 1 3.25 2h9.5A1.25 1.25 0 0 1 14 3.25c0 .3-.11.6-.31.82L9.5 8.45v3.3a1 1 0 0 1-.55.9l-2 1A1 1 0 0 1 5.5 12.75V8.45L2.31 4.07A1.25 1.25 0 0 1 2 3.25Z">
+                                                            </path>
+                                                        </svg>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                            <div class="project-order-th" data-col-key="status">
+                                                <div class="project-order-th-content">
+                                                    <span>{{ __('Status') }}</span>
+                                                    <button type="button" class="project-order-filter-btn"
+                                                        data-filter-key="status"
+                                                        data-filter-label="{{ __('Status') }}"
+                                                        data-column-index="3"
+                                                        aria-label="{{ __('Filter Status') }}">
+                                                        <svg class="project-order-filter-icon" viewBox="0 0 16 16"
+                                                            aria-hidden="true">
+                                                            <path
+                                                                d="M2 3.25A1.25 1.25 0 0 1 3.25 2h9.5A1.25 1.25 0 0 1 14 3.25c0 .3-.11.6-.31.82L9.5 8.45v3.3a1 1 0 0 1-.55.9l-2 1A1 1 0 0 1 5.5 12.75V8.45L2.31 4.07A1.25 1.25 0 0 1 2 3.25Z">
+                                                            </path>
+                                                        </svg>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                            <div class="project-order-th" data-col-key="created">
+                                                <div class="project-order-th-content">
+                                                    <span>{{ __('Created') }}</span>
+                                                    <button type="button" class="project-order-filter-btn"
+                                                        data-filter-key="created"
+                                                        data-filter-label="{{ __('Created') }}"
+                                                        data-column-index="4"
+                                                        aria-label="{{ __('Filter Created') }}">
+                                                        <svg class="project-order-filter-icon" viewBox="0 0 16 16"
+                                                            aria-hidden="true">
+                                                            <path
+                                                                d="M2 3.25A1.25 1.25 0 0 1 3.25 2h9.5A1.25 1.25 0 0 1 14 3.25c0 .3-.11.6-.31.82L9.5 8.45v3.3a1 1 0 0 1-.55.9l-2 1A1 1 0 0 1 5.5 12.75V8.45L2.31 4.07A1.25 1.25 0 0 1 2 3.25Z">
+                                                            </path>
+                                                        </svg>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                            <div class="project-order-th" data-col-key="desired_delivery">
+                                                <div class="project-order-th-content">
+                                                    <span>{{ __('Desired delivery') }}</span>
+                                                    <button type="button" class="project-order-filter-btn"
+                                                        data-filter-key="desired_delivery"
+                                                        data-filter-label="{{ __('Desired delivery') }}"
+                                                        data-column-index="5"
+                                                        aria-label="{{ __('Filter Desired delivery') }}">
+                                                        <svg class="project-order-filter-icon" viewBox="0 0 16 16"
+                                                            aria-hidden="true">
+                                                            <path
+                                                                d="M2 3.25A1.25 1.25 0 0 1 3.25 2h9.5A1.25 1.25 0 0 1 14 3.25c0 .3-.11.6-.31.82L9.5 8.45v3.3a1 1 0 0 1-.55.9l-2 1A1 1 0 0 1 5.5 12.75V8.45L2.31 4.07A1.25 1.25 0 0 1 2 3.25Z">
+                                                            </path>
+                                                        </svg>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                            <div class="project-order-th" data-col-key="expected_delivery">
+                                                <div class="project-order-th-content">
+                                                    <span>{{ __('Expected delivery') }}</span>
+                                                    <button type="button" class="project-order-filter-btn"
+                                                        data-filter-key="expected_delivery"
+                                                        data-filter-label="{{ __('Expected delivery') }}"
+                                                        data-column-index="6"
+                                                        aria-label="{{ __('Filter Expected delivery') }}">
+                                                        <svg class="project-order-filter-icon" viewBox="0 0 16 16"
+                                                            aria-hidden="true">
+                                                            <path
+                                                                d="M2 3.25A1.25 1.25 0 0 1 3.25 2h9.5A1.25 1.25 0 0 1 14 3.25c0 .3-.11.6-.31.82L9.5 8.45v3.3a1 1 0 0 1-.55.9l-2 1A1 1 0 0 1 5.5 12.75V8.45L2.31 4.07A1.25 1.25 0 0 1 2 3.25Z">
+                                                            </path>
+                                                        </svg>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                            <div class="project-order-th" data-col-key="task_started">
+                                                <div class="project-order-th-content">
+                                                    <span>{{ __('Task started') }}</span>
+                                                    <button type="button" class="project-order-filter-btn"
+                                                        data-filter-key="task_started"
+                                                        data-filter-label="{{ __('Task started') }}"
+                                                        data-column-index="7"
+                                                        aria-label="{{ __('Filter Task started') }}">
+                                                        <svg class="project-order-filter-icon" viewBox="0 0 16 16"
+                                                            aria-hidden="true">
+                                                            <path
+                                                                d="M2 3.25A1.25 1.25 0 0 1 3.25 2h9.5A1.25 1.25 0 0 1 14 3.25c0 .3-.11.6-.31.82L9.5 8.45v3.3a1 1 0 0 1-.55.9l-2 1A1 1 0 0 1 5.5 12.75V8.45L2.31 4.07A1.25 1.25 0 0 1 2 3.25Z">
+                                                            </path>
+                                                        </svg>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                            <div class="project-order-th" data-col-key="completion">
+                                                <div class="project-order-th-content">
+                                                    <span>{{ __('Completion') }}</span>
+                                                    <button type="button" class="project-order-filter-btn"
+                                                        data-filter-key="completion"
+                                                        data-filter-label="{{ __('Completion') }}"
+                                                        data-column-index="8"
+                                                        aria-label="{{ __('Filter Completion') }}">
+                                                        <svg class="project-order-filter-icon" viewBox="0 0 16 16"
+                                                            aria-hidden="true">
+                                                            <path
+                                                                d="M2 3.25A1.25 1.25 0 0 1 3.25 2h9.5A1.25 1.25 0 0 1 14 3.25c0 .3-.11.6-.31.82L9.5 8.45v3.3a1 1 0 0 1-.55.9l-2 1A1 1 0 0 1 5.5 12.75V8.45L2.31 4.07A1.25 1.25 0 0 1 2 3.25Z">
+                                                            </path>
+                                                        </svg>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                            <div class="project-order-th" data-col-key="action">{{ __('Action') }}</div>
+                                        </div>
+
+                                        <div class="project-order-body-rows" id="orderFormsTableBody">
+                                            @php
+                                                $dateFilterLabel = static function ($date) {
+                                                    if (empty($date) || $date === '0000-00-00') {
+                                                        return __('N/A');
+                                                    }
+
+                                                    $parsedDate = \Carbon\Carbon::parse($date)->locale(
+                                                        app()->getLocale(),
+                                                    );
+
+                                                    if (str_starts_with(app()->getLocale(), 'es')) {
+                                                        return $parsedDate->translatedFormat('F \\d\\e Y');
+                                                    }
+
+                                                    return $parsedDate->translatedFormat('F Y');
+                                                };
+
+                                                $dateFilterSortValue = static function ($date) {
+                                                    if (empty($date) || $date === '0000-00-00') {
+                                                        return '';
+                                                    }
+
+                                                    return \Carbon\Carbon::parse($date)->format('Y-m');
+                                                };
+                                            @endphp
+                                            @foreach ($project->milestones->sortByDesc('id') as $key => $milestone)
                                                 @php
-                                                    $dateFilterLabel = static function ($date) {
-                                                        if (empty($date) || $date === '0000-00-00') {
-                                                            return __('N/A');
-                                                        }
-
-                                                        $parsedDate = \Carbon\Carbon::parse($date)->locale(
-                                                            app()->getLocale(),
-                                                        );
-
-                                                        if (str_starts_with(app()->getLocale(), 'es')) {
-                                                            return $parsedDate->translatedFormat('F \\d\\e Y');
-                                                        }
-
-                                                        return $parsedDate->translatedFormat('F Y');
-                                                    };
-
-                                                    $dateFilterSortValue = static function ($date) {
-                                                        if (empty($date) || $date === '0000-00-00') {
-                                                            return '';
-                                                        }
-
-                                                        return \Carbon\Carbon::parse($date)->format('Y-m');
-                                                    };
+                                                    $statusText =
+                                                        $milestone->status == 3
+                                                            ? __('For Review')
+                                                            : ($milestone->status == 4
+                                                                ? __('Finished')
+                                                                : ($milestone->status == 1
+                                                                    ? __('To Do')
+                                                                    : __('Ongoing')));
                                                 @endphp
-                                                @foreach ($project->milestones->sortByDesc('id') as $key => $milestone)
+                                                <div class="project-order-body-row"
+                                                    data-name="{{ mb_strtolower(trim($milestone->title ?? '')) }}"
+                                                    data-requested-by="{{ mb_strtolower(trim(optional($milestone->getRequestedBy())->name ?? '')) }}"
+                                                    data-assigned-to="{{ mb_strtolower(trim(optional($milestone->getAssignedToUser())->name ?? '')) }}"
+                                                    data-status="{{ mb_strtolower(trim($statusText)) }}"
+                                                    data-created-date="{{ !empty($milestone->start_date) && $milestone->start_date !== '0000-00-00' ? \Carbon\Carbon::parse($milestone->start_date)->format('Y-m-d') : '' }}"
+                                                    data-desired-date="{{ !empty($milestone->end_date) && $milestone->end_date !== '0000-00-00' ? \Carbon\Carbon::parse($milestone->end_date)->format('Y-m-d') : '' }}"
+                                                    data-expected-date="{{ !empty($milestone->planned_end_date) && $milestone->planned_end_date !== '0000-00-00' ? \Carbon\Carbon::parse($milestone->planned_end_date)->format('Y-m-d') : '' }}"
+                                                    data-task-started-date="{{ !empty($milestone->task_start_date) && $milestone->task_start_date !== '0000-00-00' ? \Carbon\Carbon::parse($milestone->task_start_date)->format('Y-m-d') : '' }}"
+                                                    data-completion-date="{{ !empty($milestone->finalization_date) && $milestone->finalization_date !== '0000-00-00' ? \Carbon\Carbon::parse($milestone->finalization_date)->format('Y-m-d') : '' }}">
+                                                    <div class="project-order-td" data-col-key="name"
+                                                        data-filter-value="{{ trim($milestone->title ?? '') !== '' ? trim($milestone->title) : __('N/A') }}">
+                                                        <a href="#" class="d-block font-weight-500 mb-0"
+                                                            data-ajax-popup="true"
+                                                            data-title="{{ __('Order form details') }}"
+                                                            data-url="{{ route('projects.milestone.show', [$currentWorkspace->slug, $milestone->id]) }}">
+                                                            <h5 class="m-0" title="{{ $milestone->title }}">
+                                                                {{ $milestone->title }} </h5>
+                                                        </a>
+                                                    </div>
+                                                    <div class="project-order-td" data-col-key="requested_by"
+                                                        data-filter-value="{{ trim(optional($milestone->getRequestedBy())->name ?? '') !== '' ? trim(optional($milestone->getRequestedBy())->name) : __('N/A') }}">
+                                                        @if ($milestone->getRequestedBy() != null)
+                                                            <img class="fix_img"
+                                                                title="{{ $milestone->getRequestedBy()->name }}"
+                                                                @if ($milestone->getRequestedBy()->avatar) src="{{ asset($milestone->getRequestedBy()->avatar) }}" @else avatar="{{ $milestone->getRequestedBy()->name }}" @endif>
+                                                        @endif
+                                                    </div>
+                                                    <div class="project-order-td" data-col-key="assigned_to"
+                                                        data-filter-value="{{ trim(optional($milestone->getAssignedToUser())->name ?? '') !== '' ? trim(optional($milestone->getAssignedToUser())->name) : __('N/A') }}">
+                                                        @if ($milestone->getAssignedToUser() != null)
+                                                            <img class="fix_img"
+                                                                title="{{ $milestone->getAssignedToUser()->name }}"
+                                                                @if ($milestone->getAssignedToUser()->avatar) src="{{ asset($milestone->getAssignedToUser()->avatar) }}" @else avatar="{{ $milestone->getAssignedToUser()->name }}" @endif>
+                                                        @else
+                                                            ...
+                                                        @endif
+                                                    </div>
+                                                    <div class="project-order-td" data-col-key="status"
+                                                        data-filter-value="{{ $statusText }}">
+                                                        @if ($milestone->status == 3)
+                                                            <label
+                                                                class="badge bg-warning p-2 px-3 rounded">{{ __('For Review') }}</label>
+                                                        @elseif ($milestone->status == 4)
+                                                            <label
+                                                                class="badge bg-success p-2 px-3 rounded">{{ __('Finished') }}</label>
+                                                        @else
+                                                            <label
+                                                                class="badge p-2 px-3 rounded {{ $milestone->status == 1 ? 'bg-info' : 'bg-secondary' }}">
+                                                                {{ $milestone->status == 1 ? __('To Do') : __('Ongoing') }}
+                                                            </label>
+                                                        @endif
+                                                    </div>
+                                                    <div class="project-order-td" data-col-key="created"
+                                                        data-filter-value="{{ $dateFilterLabel($milestone->start_date) }}"
+                                                        data-filter-sort-value="{{ $dateFilterSortValue($milestone->start_date) }}">
+                                                        {{ $milestone->start_date ? Carbon::parse($milestone->start_date)->format('d-m-Y') : '...' }}
+                                                    </div>
+                                                    <div class="project-order-td" data-col-key="desired_delivery"
+                                                        data-filter-value="{{ $dateFilterLabel($milestone->end_date) }}"
+                                                        data-filter-sort-value="{{ $dateFilterSortValue($milestone->end_date) }}">
+                                                        {{ $milestone->end_date ? Carbon::parse($milestone->end_date)->format('d-m-Y') : '...' }}
+                                                    </div>
+                                                    <div class="project-order-td" data-col-key="expected_delivery"
+                                                        data-filter-value="{{ $dateFilterLabel($milestone->planned_end_date) }}"
+                                                        data-filter-sort-value="{{ $dateFilterSortValue($milestone->planned_end_date) }}">
+                                                        {{ $milestone->planned_end_date && $milestone->planned_end_date !== '0000-00-00'
+                                                            ? \Carbon\Carbon::parse($milestone->planned_end_date)->format('d-m-Y')
+                                                            : '...' }}
+                                                    </div>
                                                     @php
-                                                        $phaseFilterValue = '';
-                                                        $stageFilterValue = '';
-
-                                                        if ($project->type == 3 || $project->type == 5) {
-                                                            $phaseModel = $milestone->phase;
-                                                            if ($phaseModel) {
-                                                                $phaseFilterValue = trim(
-                                                                    (string) __(
-                                                                        \App\Models\MilestonePhases::translationKey(
-                                                                            $phaseModel->phases,
-                                                                        ),
-                                                                    ),
-                                                                );
-                                                            }
-
-                                                            $stageFilterValue = trim(
-                                                                (string) ($milestone->resolved_stage_name ?? ''),
+                                                        $expectedDate = null;
+                                                        if (
+                                                            !empty($milestone->planned_end_date) &&
+                                                            $milestone->planned_end_date !== '0000-00-00'
+                                                        ) {
+                                                            $expectedDate = \Carbon\Carbon::parse(
+                                                                $milestone->planned_end_date,
+                                                            );
+                                                        } elseif (
+                                                            !empty($milestone->end_date) &&
+                                                            $milestone->end_date !== '0000-00-00'
+                                                        ) {
+                                                            $expectedDate = \Carbon\Carbon::parse(
+                                                                $milestone->end_date,
                                                             );
                                                         }
 
-                                                        $statusText =
-                                                            $milestone->status == 3
-                                                                ? __('For Review')
-                                                                : ($milestone->status == 4
-                                                                    ? __('Finished')
-                                                                    : ($milestone->status == 1
-                                                                        ? __('To Do')
-                                                                        : __('Ongoing')));
+                                                        $taskStartDate =
+                                                            !empty($milestone->task_start_date) &&
+                                                            $milestone->task_start_date !== '0000-00-00'
+                                                                ? \Carbon\Carbon::parse($milestone->task_start_date)
+                                                                : null;
+
+                                                        $startColor = '';
+                                                        if (
+                                                            $taskStartDate &&
+                                                            $expectedDate &&
+                                                            $taskStartDate->gt($expectedDate)
+                                                        ) {
+                                                            $startColor = '#db8d33';
+                                                        }
                                                     @endphp
-                                                    <tr data-name="{{ mb_strtolower(trim($milestone->title ?? '')) }}"
-                                                        data-stage="{{ mb_strtolower(trim($stageFilterValue ?? '')) }}"
-                                                        data-phase="{{ mb_strtolower(trim($phaseFilterValue ?? '')) }}"
-                                                        data-requested-by="{{ mb_strtolower(trim(optional($milestone->getRequestedBy())->name ?? '')) }}"
-                                                        data-assigned-to="{{ mb_strtolower(trim(optional($milestone->getAssignedToUser())->name ?? '')) }}"
-                                                        data-status="{{ mb_strtolower(trim($statusText)) }}"
-                                                        data-created-date="{{ !empty($milestone->start_date) && $milestone->start_date !== '0000-00-00' ? \Carbon\Carbon::parse($milestone->start_date)->format('Y-m-d') : '' }}"
-                                                        data-desired-date="{{ !empty($milestone->end_date) && $milestone->end_date !== '0000-00-00' ? \Carbon\Carbon::parse($milestone->end_date)->format('Y-m-d') : '' }}"
-                                                        data-expected-date="{{ !empty($milestone->planned_end_date) && $milestone->planned_end_date !== '0000-00-00' ? \Carbon\Carbon::parse($milestone->planned_end_date)->format('Y-m-d') : '' }}"
-                                                        data-task-started-date="{{ !empty($milestone->task_start_date) && $milestone->task_start_date !== '0000-00-00' ? \Carbon\Carbon::parse($milestone->task_start_date)->format('Y-m-d') : '' }}"
-                                                        data-completion-date="{{ !empty($milestone->finalization_date) && $milestone->finalization_date !== '0000-00-00' ? \Carbon\Carbon::parse($milestone->finalization_date)->format('Y-m-d') : '' }}">
-                                                        @if ($project->type == 3 || $project->type == 5)
-                                                            <td class="col-phase"
-                                                                data-filter-value="{{ $phaseFilterValue !== '' ? $phaseFilterValue : __('N/A') }}">
-                                                                @if (filled($phaseFilterValue))
-                                                                    <span
-                                                                        style="font-weight: bold;">{{ $phaseFilterValue }}</span>
-                                                                @else
-                                                                    <span class="text-muted">...</span>
-                                                                @endif
-                                                            </td>
-                                                            <td class="col-stage"
-                                                                data-filter-value="{{ $stageFilterValue !== '' ? $stageFilterValue : __('N/A') }}">
-                                                                @if (filled($stageFilterValue))
-                                                                    <span
-                                                                        style="font-weight: bold;">{{ $stageFilterValue }}</span>
-                                                                @else
-                                                                    <span class="text-muted">...</span>
-                                                                @endif
-                                                            </td>
-                                                        @endif
-                                                        <td class="col-name"
-                                                            data-filter-value="{{ trim($milestone->title ?? '') !== '' ? trim($milestone->title) : __('N/A') }}">
-                                                            <a href="#" class="d-block font-weight-500 mb-0"
-                                                                data-ajax-popup="true"
-                                                                data-title="{{ __('Order form details') }}"
-                                                                data-url="{{ route('projects.milestone.show', [$currentWorkspace->slug, $milestone->id]) }}">
-                                                                <h5 class="m-0" title="{{ $milestone->title }}">
-                                                                    {{ $milestone->title }} </h5>
-                                                            </a>
-                                                        </td>
-                                                        <td class="reqByImgContainer col-requested_by"
-                                                            data-filter-value="{{ trim(optional($milestone->getRequestedBy())->name ?? '') !== '' ? trim(optional($milestone->getRequestedBy())->name) : __('N/A') }}">
-                                                            @if ($milestone->getRequestedBy() != null)
-                                                                <img class="fix_img"
-                                                                    title="{{ $milestone->getRequestedBy()->name }}"
-                                                                    @if ($milestone->getRequestedBy()->avatar) src="{{ asset($milestone->getRequestedBy()->avatar) }}" @else avatar="{{ $milestone->getRequestedBy()->name }}" @endif>
-                                                            @endif
-                                                        </td>
-                                                        <td class="assignedToImgContainer col-assigned_to"
-                                                            data-filter-value="{{ trim(optional($milestone->getAssignedToUser())->name ?? '') !== '' ? trim(optional($milestone->getAssignedToUser())->name) : __('N/A') }}">
-                                                            @if ($milestone->getAssignedToUser() != null)
-                                                                <img class="fix_img"
-                                                                    title="{{ $milestone->getAssignedToUser()->name }}"
-                                                                    @if ($milestone->getAssignedToUser()->avatar) src="{{ asset($milestone->getAssignedToUser()->avatar) }}" @else avatar="{{ $milestone->getAssignedToUser()->name }}" @endif>
-                                                            @else
-                                                                ...
-                                                            @endif
-                                                        </td>
+                                                    <div class="project-order-td" data-col-key="task_started"
+                                                        style="color: {{ $startColor }}"
+                                                        data-filter-value="{{ $dateFilterLabel($milestone->task_start_date) }}"
+                                                        data-filter-sort-value="{{ $taskStartDate ? $taskStartDate->format('Y-m') : '' }}">
+                                                        {{ $taskStartDate ? $taskStartDate->format('d-m-Y') : '...' }}
+                                                    </div>
+                                                    @php
+                                                        $completionDate =
+                                                            !empty($milestone->finalization_date) &&
+                                                            $milestone->finalization_date !== '0000-00-00'
+                                                                ? \Carbon\Carbon::parse(
+                                                                    $milestone->finalization_date,
+                                                                )
+                                                                : null;
 
-                                                        <td class="col-status" data-filter-value="{{ $statusText }}">
-                                                            @if ($milestone->status == 3)
-                                                                <label
-                                                                    class="badge bg-warning p-2 px-3 rounded">{{ __('For Review') }}</label>
-                                                            @elseif ($milestone->status == 4)
-                                                                <label
-                                                                    class="badge bg-success p-2 px-3 rounded">{{ __('Finished') }}</label>
-                                                            @else
-                                                                <label
-                                                                    class="badge p-2 px-3 rounded {{ $milestone->status == 1 ? 'bg-info' : 'bg-secondary' }}">
-                                                                    {{ $milestone->status == 1 ? __('To Do') : __('Ongoing') }}
-                                                                </label>
-                                                            @endif
-                                                        </td>
-                                                        <td class="col-created"
-                                                            data-filter-value="{{ $dateFilterLabel($milestone->start_date) }}"
-                                                            data-filter-sort-value="{{ $dateFilterSortValue($milestone->start_date) }}">
-                                                            {{ $milestone->start_date ? Carbon::parse($milestone->start_date)->format('d-m-Y') : '...' }}
-                                                        </td>
-                                                        <td class="col-desired_delivery"
-                                                            data-filter-value="{{ $dateFilterLabel($milestone->end_date) }}"
-                                                            data-filter-sort-value="{{ $dateFilterSortValue($milestone->end_date) }}">
-                                                            {{ $milestone->end_date ? Carbon::parse($milestone->end_date)->format('d-m-Y') : '...' }}
-                                                        </td>
-                                                        {{-- <td>{{ $milestone->planned_end_date ? Carbon::parse($milestone->planned_end_date)->format('d-m-Y') : '...' }}
-                                                        </td> --}}
-                                                        <td class="col-expected_delivery"
-                                                            data-filter-value="{{ $dateFilterLabel($milestone->planned_end_date) }}"
-                                                            data-filter-sort-value="{{ $dateFilterSortValue($milestone->planned_end_date) }}">
-                                                            {{ $milestone->planned_end_date && $milestone->planned_end_date !== '0000-00-00'
-                                                                ? \Carbon\Carbon::parse($milestone->planned_end_date)->format('d-m-Y')
-                                                                : '...' }}
-                                                        </td>
-                                                        {{-- <td>{{ $milestone->planned_end_date }}</td> --}}
-                                                        {{-- Task started date con lógica de color --}}
-                                                        @php
-                                                            // Determinar fecha de referencia (prevista o deseada)
-                                                            $expectedDate = null;
-                                                            if (
-                                                                !empty($milestone->planned_end_date) &&
-                                                                $milestone->planned_end_date !== '0000-00-00'
-                                                            ) {
-                                                                $expectedDate = \Carbon\Carbon::parse(
-                                                                    $milestone->planned_end_date,
-                                                                );
-                                                            } elseif (
-                                                                !empty($milestone->end_date) &&
-                                                                $milestone->end_date !== '0000-00-00'
-                                                            ) {
-                                                                $expectedDate = \Carbon\Carbon::parse(
-                                                                    $milestone->end_date,
-                                                                );
+                                                        $completionColor = '';
+                                                        if ($completionDate && $expectedDate) {
+                                                            if ($completionDate->lte($expectedDate)) {
+                                                                $completionColor = '#53b446';
+                                                            } else {
+                                                                $completionColor = '#ff0000';
                                                             }
-
-                                                            $taskStartDate =
-                                                                !empty($milestone->task_start_date) &&
-                                                                $milestone->task_start_date !== '0000-00-00'
-                                                                    ? \Carbon\Carbon::parse($milestone->task_start_date)
-                                                                    : null;
-
-                                                            $startColor = '';
-                                                            if (
-                                                                $taskStartDate &&
-                                                                $expectedDate &&
-                                                                $taskStartDate->gt($expectedDate)
-                                                            ) {
-                                                                // Si la tarea comenzó después de la entrega prevista/deseada
-                                                                $startColor = '#db8d33';
-                                                            }
-                                                        @endphp
-                                                        <td class="col-task_started" style="color: {{ $startColor }}"
-                                                            data-filter-value="{{ $dateFilterLabel($milestone->task_start_date) }}"
-                                                            data-filter-sort-value="{{ $taskStartDate ? $taskStartDate->format('Y-m') : '' }}">
-                                                            {{ $taskStartDate ? $taskStartDate->format('d-m-Y') : '...' }}
-                                                        </td>
-
-                                                        {{-- Completion date con lógica de color --}}
-                                                        @php
-                                                            $completionDate =
-                                                                !empty($milestone->finalization_date) &&
-                                                                $milestone->finalization_date !== '0000-00-00'
-                                                                    ? \Carbon\Carbon::parse(
-                                                                        $milestone->finalization_date,
-                                                                    )
-                                                                    : null;
-
-                                                            $completionColor = '';
-                                                            if ($completionDate && $expectedDate) {
-                                                                if ($completionDate->lte($expectedDate)) {
-                                                                    // Completado a tiempo o antes → verde
-                                                                    $completionColor = '#53b446';
-                                                                } else {
-                                                                    // Completado después → rojo
-                                                                    $completionColor = '#ff0000';
-                                                                }
-                                                            }
-                                                        @endphp
-                                                        <td class="col-completion" style="color: {{ $completionColor }}"
-                                                            data-filter-value="{{ $dateFilterLabel($milestone->finalization_date) }}"
-                                                            data-filter-sort-value="{{ $completionDate ? $completionDate->format('Y-m') : '' }}">
-                                                            {{ $completionDate ? $completionDate->format('d-m-Y') : '...' }}
-                                                        </td>
-
-                                                        </td>
-                                                        <td class="text-right col-action">
-                                                            <div class="col-auto">
-                                                                <a href="#"
-                                                                    class="action-btn btn-info mx-1  btn btn-sm d-inline-flex align-items-center"
-                                                                    data-ajax-popup="true" data-size="lg"
-                                                                    data-toggle="popover" title="{{ __('Edit') }}"
-                                                                    data-title="{{ __('Edit Milestone') }}"
-                                                                    data-url="{{ route('projects.milestone.edit', [$currentWorkspace->slug, $milestone->id]) }}"><i
-                                                                        class="ti ti-edit"></i></a>
-                                                                <a href="#"
-                                                                    class="action-btn bg-danger mx-1  btn btn-sm d-inline-flex align-items-center bs-pass-para"
-                                                                    data-confirm="{{ __('Are You Sure?') }}"
-                                                                    data-toggle="popover" title="{{ __('Delete') }}"
-                                                                    data-text="{{ __('This action can not be undone. Do you want to continue?') }}"
-                                                                    data-confirm-yes="delete-form1-{{ $milestone->id }}"><i
-                                                                        class="ti ti-trash"></i></a>
-                                                                <form id="delete-form1-{{ $milestone->id }}"
-                                                                    action="{{ route('projects.milestone.destroy', [$currentWorkspace->slug, $milestone->id]) }}"
-                                                                    method="POST" style="display: none;">
-                                                                    @csrf
-                                                                    @method('DELETE')
-                                                                </form>
-                                                            </div>
-                                                        </td>
-                                                    </tr>
-                                                @endforeach
-                                            </tbody>
-                                        </table>
+                                                        }
+                                                    @endphp
+                                                    <div class="project-order-td" data-col-key="completion"
+                                                        style="color: {{ $completionColor }}"
+                                                        data-filter-value="{{ $dateFilterLabel($milestone->finalization_date) }}"
+                                                        data-filter-sort-value="{{ $completionDate ? $completionDate->format('Y-m') : '' }}">
+                                                        {{ $completionDate ? $completionDate->format('d-m-Y') : '...' }}
+                                                    </div>
+                                                    <div class="project-order-td" data-col-key="action">
+                                                        <div class="col-auto">
+                                                            <a href="#"
+                                                                class="action-btn btn-info mx-1  btn btn-sm d-inline-flex align-items-center"
+                                                                data-ajax-popup="true" data-size="lg"
+                                                                data-toggle="popover" title="{{ __('Edit') }}"
+                                                                data-title="{{ __('Edit Milestone') }}"
+                                                                data-url="{{ route('projects.milestone.edit', [$currentWorkspace->slug, $milestone->id]) }}"><i
+                                                                    class="ti ti-edit"></i></a>
+                                                            <a href="#"
+                                                                class="action-btn bg-danger mx-1  btn btn-sm d-inline-flex align-items-center bs-pass-para"
+                                                                data-confirm="{{ __('Are You Sure?') }}"
+                                                                data-toggle="popover" title="{{ __('Delete') }}"
+                                                                data-text="{{ __('This action can not be undone. Do you want to continue?') }}"
+                                                                data-confirm-yes="delete-form1-{{ $milestone->id }}"><i
+                                                                    class="ti ti-trash"></i></a>
+                                                            <form id="delete-form1-{{ $milestone->id }}"
+                                                                action="{{ route('projects.milestone.destroy', [$currentWorkspace->slug, $milestone->id]) }}"
+                                                                method="POST" style="display: none;">
+                                                                @csrf
+                                                                @method('DELETE')
+                                                            </form>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            @endforeach
+                                        </div>
+                                        </div>
                                         <div id="orderFormsFilteredEmptyState" class="project-order-filtered-empty-state">
                                             <h6 class="mb-2">{{ __('No order forms match the selected filters') }}</h6>
                                             <p class="mb-0">{{ __('Adjust or clear filters to see more results.') }}
@@ -2456,18 +2432,18 @@
     </script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            const table = document.getElementById('orderFormsTable');
+            const headerRow = document.querySelector('.project-order-header-row');
             const tbody = document.getElementById('orderFormsTableBody');
             const columnToggleButton = document.getElementById('orderFormsColumnsToggleBtn');
             const filteredEmptyState = document.getElementById('orderFormsFilteredEmptyState');
 
-            if (!table || !tbody || !columnToggleButton || !filteredEmptyState) {
+            if (!headerRow || !tbody || !columnToggleButton || !filteredEmptyState) {
                 return;
             }
 
-            const rows = Array.from(tbody.querySelectorAll('tr'));
-            const headers = Array.from(table.querySelectorAll('thead th[data-col-key]'));
-            const filterButtons = Array.from(table.querySelectorAll('.project-order-filter-btn'));
+            const rows = Array.from(tbody.querySelectorAll('.project-order-body-row'));
+            const headers = Array.from(headerRow.querySelectorAll('.project-order-th[data-col-key]'));
+            const filterButtons = Array.from(headerRow.querySelectorAll('.project-order-filter-btn'));
             const filterState = {};
             const columnVisibilityState = new Map();
             const filterMenu = document.createElement('div');

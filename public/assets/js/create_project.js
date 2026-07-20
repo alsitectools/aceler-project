@@ -1,6 +1,16 @@
-$(document).ready(function () {
+window.initCreateProjectSearch = function () {
     if (window.createProjectSearchCleanup) {
         window.createProjectSearchCleanup();
+    }
+
+    let projects = [];
+    try {
+        const form = document.getElementById('new-project-form');
+        if (form && form.dataset.projects) {
+            projects = JSON.parse(form.dataset.projects);
+        }
+    } catch (e) {
+        projects = [];
     }
 
     const projectInput = $('#searchProject');
@@ -129,7 +139,6 @@ $(document).ready(function () {
     }
 
     function hideAllLists(exceptList) {
-        // Oculta todas las listas excepto la especificada
         if (exceptList !== projectList) projectList.hide();
         if (exceptList !== refMoList) refMoList.hide();
         if (exceptList !== clipoList) clipoList.hide();
@@ -150,7 +159,6 @@ $(document).ready(function () {
         project_nameInput.prop('readonly', isJobsite);
     }
 
-    // Función de debounce
     const debounce = (func, delay) => {
         let timeout;
         return function (...args) {
@@ -159,7 +167,6 @@ $(document).ready(function () {
         };
     };
 
-    // Función de manejo de entrada
     const handleInputChange = debounce(function (input, list, url, noResultsMessage, type) {
         hideAllLists(list);
         searchQuery = input.val().trim();
@@ -177,21 +184,19 @@ $(document).ready(function () {
         fetchData(`${url}/${encodeURIComponent(searchQuery)}?page=${currentPage}`, list, data => data[type].data, noResultsMessage, type);
     }, 300);
 
-    // Manejadores de entrada para los campos de búsqueda
-    projectInput.off('.createProjectSearch').on('input.createProjectSearch', function () {
+    $(document).on('input.createProjectSearch', '#searchProject', function () {
         milestoneMoInput.val("");
         handleInputChange($(this), projectList, searchProjectsUrl, 'Sin resultados. El proyecto no ha sido creado.', 'projects');
     });
 
-    salesManagerInput.off('.createProjectSearch').on('input.createProjectSearch', function () {
-        if (salesManagerInput.val().trim() === "") {
+    $(document).on('input.createProjectSearch', '#searchSalesManager', function () {
+        if ($(this).val().trim() === "") {
             salesList.empty().hide();
             return;
         }
         handleInputChange($(this), salesList, searchSalesManagerUrl, 'Sin resultados encontrados', 'salesManagers');
     });
 
-    // Debounce más agresivo para M.O: 150ms en lugar de 300ms para búsqueda más rápida
     const handleMoInputChange = debounce(function () {
         clientInput.val("");
         project_nameInput.val("");
@@ -199,13 +204,13 @@ $(document).ready(function () {
         handleInputChange(refMoInput, refMoList, searchMoUrl, 'Sin resultados encontrados', 'mo');
     }, 150);
 
-    refMoInput.off('.createProjectSearch').on('input.createProjectSearch', handleMoInputChange);
+    $(document).on('input.createProjectSearch', '#searchMo', handleMoInputChange);
 
-    clientInput.off('.createProjectSearch').on('input.createProjectSearch', function () {
+    $(document).on('input.createProjectSearch', '#searchClipo', function () {
         handleInputChange($(this), clipoList, searchClipoUrl, 'Sin resultados encontrados', 'clients');
     });
 
-    $('#project_type').off('.createProjectSearch').on('change.createProjectSearch', function () {
+    $(document).on('change.createProjectSearch', '#project_type', function () {
         const isJobsite = $(this).find('option:selected').data('type') === 'Jobsite';
         resetInputs(isJobsite);
         $('#ref_mo, #clipo').toggle(isJobsite);
@@ -232,7 +237,6 @@ $(document).ready(function () {
         setTimeout(() => alertSpan.text(""), 5000);
     }
 
-
     function fetchData(url, list, itemProcessor, noResultsMessage, type = '') {
         if (currentRequest) {
             currentRequest.abort();
@@ -245,7 +249,6 @@ $(document).ready(function () {
             console.log('Tipo desconocido para el spinner:', type);
         }
 
-        // Realizar la solicitud AJAX
         currentRequest = $.ajax({
             url: url,
             method: 'GET',
@@ -283,12 +286,10 @@ $(document).ready(function () {
                     : (item.name);
                 return $('<a href="#" class="list-group-item list-group-item-action stylelist">')
                     .text(displayText.trim())
-                    .data('item', item)
-                    .on('click', handleListItemClick(item, list, type));
+                    .data('item', item);
             });
             list.append(listItems);
             currentPage++;
-            // Inicializar NiceScroll después de agregar los elementos a la lista
             list.niceScroll({
                 cursorcolor: "grey",
                 cursorwidth: "8px",
@@ -310,103 +311,6 @@ $(document).ready(function () {
         }
     }
 
-    function handleListItemClick(item, list, type) {
-        return function (e) {
-            e.preventDefault();
-
-            const additionalForm = document.getElementById('visado');
-            console.log('handlelistitemclick type::', type);
-            console.log('handlelistitemclick item::', item);
-            // Verifica si el proyecto ya existe cuando el tipo es 'mo'
-            if (type === 'mo') {
-                let existingProject = projects.find(project => project.ref_mo === item.ref_mo);
-                if (existingProject) {
-                    showAlert('El número de referencia ya existe.', type);
-                    resetSearchFields();
-                    return;
-                }
-                refMoInput.val(item.ref_mo);
-                project_nameInput.val(item.name);
-
-            } else if (type === 'clients') {
-                clientInput.val(item.name);
-
-                if (item.obras && item.obras.length > 0) {
-                    populateMoList(item.obras);
-                }
-
-            } else if (type === 'projects') {
-
-                $('#projectId').val(item.id);
-                projectInput.val(item.name);
-                const hasPhaseOptions = Array.isArray(item?.phases) && item.phases.length > 0;
-                const hasStageOptions = Array.isArray(item?.stages) && item.stages.length > 0;
-                const isPhaseProject = hasPhaseOptions || hasStageOptions || isProjectWithStagesAndPhases(item);
-                const phaseWrapper = document.getElementById('phase-wrapper');
-                const moWrapper = document.getElementById('mo-wrapper');
-                const phaseSelect = document.getElementById('phase');
-                const stageWrapper = document.getElementById('stage-wrapper');
-                const stageSelect = document.getElementById('stage');
-
-                if (!item.ref_mo) {
-
-                    milestoneMoInput.prop('disabled', true);
-                    milestoneMoInput.prop('required', false);
-                } else {
-                    milestoneMoInput.val('');
-                    milestoneMoInput.prop('disabled', false);
-                    milestoneMoInput.val(item.ref_mo).prop('readonly', true);
-                    additionalForm.style.display = 'block';
-                }
-
-                if (phaseWrapper) {
-                    phaseWrapper.style.display = isPhaseProject ? '' : 'none';
-                }
-
-                if (moWrapper) {
-                    moWrapper.style.display = isPhaseProject ? 'none' : 'block';
-                }
-
-                if (phaseSelect) {
-                    phaseSelect.required = isPhaseProject;
-                    if (isPhaseProject) {
-                        populatePhaseOptions(item.phases);
-                    } else {
-                        phaseSelect.innerHTML = '<option value="">Choose one</option>';
-                        phaseSelect.value = '';
-                    }
-                }
-
-                if (stageWrapper) {
-                    stageWrapper.style.display = isPhaseProject ? '' : 'none';
-                }
-
-                if (stageSelect) {
-                    if (isPhaseProject) {
-                        populateStageOptions(item.stages);
-                    } else {
-                        stageSelect.innerHTML = '<option value="">Choose one</option>';
-                    }
-                }
-
-                if (isPhaseProject) {
-                    milestoneMoInput.val('');
-                    milestoneMoInput.prop('required', false);
-                }
-            } else if (type === 'salesManagers') {
-                salesManagerInput.val(item.name);
-            }
-
-            list.empty().hide();
-
-            // Si el item contiene una lista de clientes, llamamos a `populateClientList`
-            if (item.clients && item.clients.length) {
-                populateClientList(item.clients);
-            }
-        };
-    }
-
-    // Función para mostrar la lista de obras en ref_mo_list
     function populateMoList(obras) {
         refMoList.empty().show();
 
@@ -414,20 +318,15 @@ $(document).ready(function () {
             return $('<a href="#" class="list-group-item list-group-item-action stylelist">')
                 .text(`${obra.ref_mo} - ${obra.name}`)
                 .data('item', obra)
-                .on('click', function (e) {
-                    e.preventDefault();
-                    refMoInput.val(obra.ref_mo);
-                    project_nameInput.val(obra.name);
-                    refMoList.empty().hide();
-                });
+                .data('populate', 'mo');
         });
 
         refMoList.append(obraItems);
     }
+
     function populateClientList(selectedClients) {
         clipoList.empty().show();
 
-        // Deduplicar clientes basándose en el nombre único
         const uniqueClientsMap = new Map();
         selectedClients.forEach(client => {
             if (!uniqueClientsMap.has(client.name)) {
@@ -440,19 +339,14 @@ $(document).ready(function () {
         const clientItems = uniqueClients.map(client => {
             return $('<a href="#" class="list-group-item list-group-item-action stylelist">')
                 .text(client.name)
-                .data('name', client.name)
-                .on('click', function (e) {
-                    e.preventDefault();
-                    clientInput.val(client.name);
-                    clipoList.empty().hide();
-                });
+                .data('item', client)
+                .data('populate', 'clients');
         });
         clipoList.append(clientItems);
     }
 
-    // Configurar el scroll infinito
     function setupInfiniteScroll(list, url, itemProcessor, noResultsMessage, type) {
-        list.off('.createProjectSearch').on('scroll.createProjectSearch', function () {
+        list.on('scroll.createProjectSearch', function () {
             const scrollTop = list[0].scrollTop;
             const scrollHeight = list[0].scrollHeight;
             const innerHeight = list.innerHeight();
@@ -469,22 +363,129 @@ $(document).ready(function () {
     setupInfiniteScroll(refMoList, searchMoUrl, data => data.mo.data, 'Sin proyectos encontrados', 'ref_mo');
     setupInfiniteScroll(clipoList, searchClipoUrl, data => data.clients.data, 'Sin clientes encontrados', 'clipo');
 
-    window.createProjectSearchCleanup = function () {
-        projectInput.off('.createProjectSearch');
-        projectList.off('.createProjectSearch');
-        refMoInput.off('.createProjectSearch');
-        refMoList.off('.createProjectSearch');
-        clientInput.off('.createProjectSearch');
-        clipoList.off('.createProjectSearch');
-        salesManagerInput.off('.createProjectSearch');
-        salesList.off('.createProjectSearch');
-        $('#project_type').off('.createProjectSearch');
+    $(document).on('click.createProjectSearch', '.list-group-item.stylelist', function (e) {
+        e.preventDefault();
+        const $this = $(this);
+        const item = $this.data('item');
+        const list = $this.closest('.list-group');
+        const additionalForm = document.getElementById('visado');
 
+        let type = '';
+        if (list.is('#ref_mo_list')) type = 'mo';
+        else if (list.is('#clipo_list')) type = 'clients';
+        else if (list.is('#projects_list')) type = 'projects';
+        else if (list.is('#sales_manager_list')) type = 'salesManagers';
+
+        const populate = $this.data('populate');
+
+        if (populate === 'mo') {
+            refMoInput.val(item.ref_mo);
+            project_nameInput.val(item.name);
+            refMoList.empty().hide();
+            return;
+        }
+
+        if (populate === 'clients') {
+            clientInput.val(item.name);
+            clipoList.empty().hide();
+            return;
+        }
+
+        console.log('handlelistitemclick type::', type);
+        console.log('handlelistitemclick item::', item);
+
+        if (type === 'mo') {
+            let existingProject = projects.find(project => project.ref_mo === item.ref_mo);
+            if (existingProject) {
+                showAlert('El número de referencia ya existe.', type);
+                resetSearchFields();
+                return;
+            }
+            refMoInput.val(item.ref_mo);
+            project_nameInput.val(item.name);
+
+        } else if (type === 'clients') {
+            clientInput.val(item.name);
+
+            if (item.obras && item.obras.length > 0) {
+                populateMoList(item.obras);
+            }
+
+        } else if (type === 'projects') {
+
+            $('#projectId').val(item.id);
+            projectInput.val(item.name);
+            const hasPhaseOptions = Array.isArray(item?.phases) && item.phases.length > 0;
+            const hasStageOptions = Array.isArray(item?.stages) && item.stages.length > 0;
+            const isPhaseProject = hasPhaseOptions || hasStageOptions || isProjectWithStagesAndPhases(item);
+            const phaseWrapper = document.getElementById('phase-wrapper');
+            const moWrapper = document.getElementById('mo-wrapper');
+            const phaseSelect = document.getElementById('phase');
+            const stageWrapper = document.getElementById('stage-wrapper');
+            const stageSelect = document.getElementById('stage');
+
+            if (!item.ref_mo) {
+
+                milestoneMoInput.prop('disabled', true);
+                milestoneMoInput.prop('required', false);
+            } else {
+                milestoneMoInput.val('');
+                milestoneMoInput.prop('disabled', false);
+                milestoneMoInput.val(item.ref_mo).prop('readonly', true);
+                additionalForm.style.display = 'block';
+            }
+
+            if (phaseWrapper) {
+                phaseWrapper.style.display = isPhaseProject ? '' : 'none';
+            }
+
+            if (moWrapper) {
+                moWrapper.style.display = isPhaseProject ? 'none' : 'block';
+            }
+
+            if (phaseSelect) {
+                phaseSelect.required = isPhaseProject;
+                if (isPhaseProject) {
+                    populatePhaseOptions(item.phases);
+                } else {
+                    phaseSelect.innerHTML = '<option value="">Choose one</option>';
+                    phaseSelect.value = '';
+                }
+            }
+
+            if (stageWrapper) {
+                stageWrapper.style.display = isPhaseProject ? '' : 'none';
+            }
+
+            if (stageSelect) {
+                if (isPhaseProject) {
+                    populateStageOptions(item.stages);
+                } else {
+                    stageSelect.innerHTML = '<option value="">Choose one</option>';
+                }
+            }
+
+            if (isPhaseProject) {
+                milestoneMoInput.val('');
+                milestoneMoInput.prop('required', false);
+            }
+        } else if (type === 'salesManagers') {
+            salesManagerInput.val(item.name);
+        }
+
+        list.empty().hide();
+
+        if (item.clients && item.clients.length) {
+            populateClientList(item.clients);
+        }
+    });
+
+    window.createProjectSearchCleanup = function () {
+        $(document).off('.createProjectSearch');
         if (currentRequest) {
             currentRequest.abort();
             currentRequest = null;
         }
-
         removeAllLoadingSpinners();
     };
-});
+};

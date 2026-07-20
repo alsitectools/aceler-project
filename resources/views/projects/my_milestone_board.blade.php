@@ -344,6 +344,20 @@
                                     </button>
                                 </div>
                                 <h4 class="mb-0">
+                                    @switch($status->id)
+                                        @case(1)
+                                            <i class="ti ti-clipboard-list me-1" style="color: #aa182c;"></i>
+                                            @break
+                                        @case(2)
+                                            <i class="ti ti-activity me-1" style="color: #aa182c;"></i>
+                                            @break
+                                        @case(3)
+                                            <i class="ti ti-eye me-1" style="color: #aa182c;"></i>
+                                            @break
+                                        @case(4)
+                                            <i class="ti ti-circle-check me-1" style="color: #aa182c;"></i>
+                                            @break
+                                    @endswitch
                                     {{ __($status->name) }}
                                 </h4>
                             </div>
