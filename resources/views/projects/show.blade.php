@@ -1719,15 +1719,18 @@
                                                 @else avatar="{{ $user->name }}" @endif>
                                                                 </a>
                                                                 <div class="px-2">
-                                                                    <h5 class="m-0">{{ $user->name }}</h5>
-                                                                    <small class="text-muted">
-                                                                        {{ $user->email }}
-                                                                        <span class="text-primary">
-                                                                            - {{ $user->milestones_count }}
-                                                                            {{ __('Order forms') }}
-                                                                        </span>
-                                                                    </small>
-                                                                </div>
+                                                                 <div class="email-reveal-wrapper">
+                                                                     <h5 class="m-0">{{ $user->name }}</h5>
+                                                                  <i class="bi bi-envelope-fill email-reveal-icon tooltipCus" data-title="{{ __('Mostrar correo') }}" data-user-id="{{ $user->id }}"></i>
+                                                                     <small class="email-reveal-email"></small>
+                                                                 </div>
+                                                                     <small class="text-muted">
+                                                                         <span class="text-primary">
+                                                                             {{ $user->milestones_count }}
+                                                                             {{ __('Order forms') }}
+                                                                         </span>
+                                                                     </small>
+                                                                 </div>
                                                             </div>
                                                         </div>
 
@@ -1793,15 +1796,17 @@
                                                 @else avatar="{{ $user->name }}" @endif>
                                                                 </a>
                                                                 <div class="px-2">
-                                                                    <h5 class="m-0">{{ $user->name }}</h5>
-                                                                    <small class="text-muted">
-                                                                        {{ $user->email }}
-                                                                        <span class="text-primary">
-                                                                            -
-                                                                            {{ $user->total_time ? substr($user->total_time, 0, 5) : '00:00' }}h
-                                                                        </span>
-                                                                    </small>
-                                                                </div>
+                                                                 <div class="email-reveal-wrapper">
+                                                                     <h5 class="m-0">{{ $user->name }}</h5>
+                                                                  <i class="bi bi-envelope-fill email-reveal-icon tooltipCus" data-title="{{ __('Mostrar correo') }}" data-user-id="{{ $user->id }}"></i>
+                                                                     <small class="email-reveal-email"></small>
+                                                                 </div>
+                                                                     <small class="text-muted">
+                                                                         <span class="text-primary">
+                                                                             {{ $user->total_time ? substr($user->total_time, 0, 5) : '00:00' }}h
+                                                                         </span>
+                                                                     </small>
+                                                                 </div>
                                                             </div>
                                                         </div>
                                                         {{-- Si quieres añadir acciones de admin como antes --}}

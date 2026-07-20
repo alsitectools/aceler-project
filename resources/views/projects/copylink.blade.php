@@ -270,10 +270,13 @@
                                                                                 alt="{{ Auth::user()->name }}"> -->
                                                         </a>
                                                         <div class="px-2">
-                                                            <h5 class="m-0">{{ $user->name }}</h5>
-                                                            <small class="text-muted">{{ $user->email }}<span
-                                                                    class="text-primary "> -
-                                                                    {{ (int) count($project->user_done_tasks($user->id)) }}/{{ (int) count($project->user_tasks($user->id)) }}</span></small>
+                                                            <div class="email-reveal-wrapper">
+                                                                <h5 class="m-0">{{ $user->name }}</h5>
+                                                                <i class="bi bi-envelope-fill email-reveal-icon tooltipCus" data-title="{{ __('Mostrar correo') }}" data-user-id="{{ $user->id }}"></i>
+                                                                <small class="email-reveal-email"></small>
+                                                            </div>
+                                                            <small class="text-muted"><span class="text-primary">
+                                                                     {{ (int) count($project->user_done_tasks($user->id)) }}/{{ (int) count($project->user_tasks($user->id)) }}</span></small>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -347,9 +350,12 @@
                                                                 @if ($client->avatar) src="{{ asset($logo . $client->avatar) }}" @else avatar="{{ $client->name }}" @endif>
                                                         </a>
                                                         <div class="px-2">
-                                                            <h5 class="m-0">{{ $client->name }}</h5>
-                                                            <small class="text-muted">{{ $client->email }}</small>
-                                                        </div>
+                                                            <div class="email-reveal-wrapper">
+                                                                <h5 class="m-0">{{ $client->name }}</h5>
+                                                                <i class="bi bi-envelope-fill email-reveal-icon tooltipCus" data-title="{{ __('Mostrar correo') }}" data-user-id="{{ $client->id }}"></i>
+                                                                <small class="email-reveal-email"></small>
+                                                            </div>
+                                                            </div>
                                                     </div>
                                                 </div>
                                                 {{-- <div class="col-sm-auto text-sm-end d-flex align-items-center">

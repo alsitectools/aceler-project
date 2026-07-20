@@ -57,7 +57,7 @@
             <select class="form-control select2" name="client_id" id="client_id">
                 <option value="">{{__('Select Client')}}</option>
                 @foreach($clients as $p)
-                    <option value="{{$p->id}}">{{$p->name}} - {{$p->email}}</option>
+                    <option value="{{$p->id}}">{{$p->name}}</option>
                 @endforeach
             </select>
         </div>

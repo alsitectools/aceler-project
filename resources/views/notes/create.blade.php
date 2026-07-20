@@ -57,7 +57,7 @@ else{
             <label for="assign_to" class="col-form-label">{{__('Assign to')}}</label>
             <select     id="assign_to"    name="assign_to[]" class="multi-select" data-toggle="select2" multiple="multiple" data-placeholder="{{ __('Select Users ...') }}"  >
                 @foreach($users as $u)
-                    <option value="{{$u->id}}">{{$u->name}} - {{$u->email}}</option>
+                    <option value="{{$u->id}}">{{$u->name}}</option>
                 @endforeach
             </select>
         </div>

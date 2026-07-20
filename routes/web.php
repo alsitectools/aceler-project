@@ -88,6 +88,25 @@ Route::get('/home', [HomeController::class, 'index'])->middleware('auth')->name(
 Route::post('/register/azure', [AzureController::class, 'registerUser'])->name('register.azure.post');
 
 
+Route::get('/user/{id}/email', function ($id) {
+    $user = \App\Models\User::findOrFail($id);
+    return response()->json(['email' => $user->email]);
+})->middleware('auth')->name('user.email.reveal');
+
+Route::get('/avatar/{id}', function ($id) {
+    $user = \App\Models\User::findOrFail($id);
+    $originalUrl = $user->getRawAvatarAttribute();
+    if (!$originalUrl) {
+        abort(404);
+    }
+    $relativePath = parse_url($originalUrl, PHP_URL_PATH);
+    $file = public_path(ltrim($relativePath, '/'));
+    if (!file_exists($file)) {
+        abort(404);
+    }
+    return response()->file($file);
+})->name('avatar.serve');
+
 //----------------------- FIN AZURE --------------------------------------//
 
 Route::get('/verify-email/{lang?}', [AuthenticatedSessionController::class, 'showVerifcation'])->name('verification.notice')->middleware('auth', 'XSS');

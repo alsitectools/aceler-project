@@ -724,8 +724,11 @@
                                                     @if ($comercial->avatar) src="{{ asset($comercial->avatar) }}" @else avatar="{{ $comercial->name }}" @endif>
                                             </div>
                                             <div class="textContent">
-                                                <span class="fullName">{{ $comercial->name }}</span>
-                                                <span class="emailName">{{ $comercial->email }}</span>
+                                                <div class="email-reveal-wrapper">
+                                                    <span class="fullName">{{ $comercial->name }}</span>
+                                                    <i class="bi bi-envelope-fill email-reveal-icon tooltipCus" data-title="{{ __('Mostrar correo') }}" data-user-id="{{ $comercial->id }}"></i>
+                                                    <div class="email-reveal-email"></div>
+                                                </div>
                                             </div>
                                         </div>
                                     @endforEach
@@ -750,8 +753,11 @@
                                                     @if ($technician->avatar) src="{{ asset($technician->avatar) }}" @else avatar="{{ $technician->name }}" @endif>
                                             </div>
                                             <div class="textContent">
-                                                <span class="fullName">{{ $technician->name }}</span>
-                                                <span class="emailName">{{ $technician->email }}</span>
+                                                <div class="email-reveal-wrapper">
+                                                    <span class="fullName">{{ $technician->name }}</span>
+                                                    <i class="bi bi-envelope-fill email-reveal-icon tooltipCus" data-title="{{ __('Mostrar correo') }}" data-user-id="{{ $technician->id }}"></i>
+                                                    <div class="email-reveal-email"></div>
+                                                </div>
                                             </div>
                                         </div>
                                     @endforEach
@@ -1072,10 +1078,8 @@
 
             for (let i = 0; i < items.length; i++) {
                 const name = items[i].getElementsByClassName('fullName')[0];
-                const email = items[i].getElementsByClassName('emailName')[0];
-                const emailPrefix = email.innerHTML.split('@')[0].toLowerCase();
-                if (filter === "" || name.innerHTML.toLowerCase().indexOf(filter) > -1 || emailPrefix.indexOf(filter) > -
-                    1) {
+                const txt = name ? name.textContent.toLowerCase() : '';
+                if (filter === "" || txt.indexOf(filter) > -1) {
                     items[i].style.display = "";
                 } else {
                     items[i].style.display = "none";
