@@ -522,16 +522,6 @@ class ProjectController extends Controller
 
         // Datos del proyecto a crear
         $post = $request->all();
-        $name = strip_tags($request->name);
-        if (empty(trim($name))) {
-            if ($request->get('isReload', false)) {
-                return response()->json(['success' => false, 'message' => __('The project name is invalid.')], 422);
-            }
-            return redirect()->back()
-                ->with('error', __('The project name is invalid.'))
-                ->withInput();
-        }
-        $post['name'] = $name;
         $post['ref_mo'] = $request->ref_mo;
         $post['type'] = $request->project_type;
         $post['clipo'] = $clipo;
@@ -1265,7 +1255,7 @@ class ProjectController extends Controller
                 //     $finalizationDate = $milestone->finalization_date ? Carbon::parse($milestone->finalization_date) : null;
 
                 //     // Calculate the difference in days
-                //     $deliveryTime = $finalizationDateDelivery->diffInDays($startDate);
+                //     $deliveryTime = $finalizationDateDelivery->diffInDays($startDate); 
                 //     // Store an arrays
                 //     $milestoneDelivery[] = $deliveryTime;
 
@@ -1279,7 +1269,7 @@ class ProjectController extends Controller
 
                 //         $delayTime = $finalizationDate->diffInDays($end_date);
                 //         $milestoneDelayTime[] = $delayTime;
-                //     }
+                //     }      
 
                 // }
                 // //Average for the statistics
@@ -1298,7 +1288,7 @@ class ProjectController extends Controller
                 );
 
 
-                //USUARIOS QUE HAN CREADO UNA HOJA DE ENCARGO
+                //USUARIOS QUE HAN CREADO UNA HOJA DE ENCARGO    
                 $milestoneCreators = \App\Models\User::select('users.*')
                     ->join('milestones', 'milestones.created_by', '=', 'users.id')
                     ->where('milestones.project_id', $projectID)
@@ -1862,7 +1852,6 @@ class ProjectController extends Controller
                 $summary->project_url = $summary->workspace_slug
                     ? route('projects.show', [$summary->workspace_slug, $summary->id])
                     : null;
-                $summary->workspace_display_name = \App\Models\Workspace::translateName($summary->workspace_name);
 
                 return $summary;
             });
@@ -1925,7 +1914,6 @@ class ProjectController extends Controller
 
             $milestone->requested_by_name = optional($requestersById->get($milestone->assign_to))->name;
             $milestone->workspace_name = optional($workspace)->name;
-            $milestone->workspace_display_name = optional($workspace)->display_name;
             $milestone->workspace_slug = optional($workspace)->slug;
             $milestone->project_name = optional($milestone->project)->name;
             $milestone->board_url = $milestone->workspace_slug && $milestone->project_id
@@ -2284,7 +2272,6 @@ class ProjectController extends Controller
             'project_type_id' => $project->type,
             'project_ref'   => $project->ref_mo ? '- ' . $project->ref_mo : '',
             'workspace_name' => optional(Workspace::find($project->workspace))->name ?? 'N/A',
-            'workspace_display_name' => optional(Workspace::find($project->workspace))->display_name ?? 'N/A',
             'workspace_id'  => $project->workspace,
             'tasks'         => $taskData,
             'sales'         => User::find($milestone->assign_to),
@@ -2330,7 +2317,6 @@ class ProjectController extends Controller
 
                 $data['workspace_slug'] = $workspace->slug ?? null;
                 $data['workspace_name'] = $workspace->name ?? null;
-                $data['workspace_display_name'] = $workspace->display_name ?? null;
 
                 return $data;
             })->toArray();
@@ -3696,9 +3682,9 @@ class ProjectController extends Controller
     private function getEnumValues($table, $column)
     {
         $type = DB::selectOne("
-        SELECT COLUMN_TYPE
-        FROM information_schema.COLUMNS
-        WHERE TABLE_NAME = ?
+        SELECT COLUMN_TYPE 
+        FROM information_schema.COLUMNS 
+        WHERE TABLE_NAME = ? 
           AND COLUMN_NAME = ?
     ", [$table, $column]);
 
@@ -4050,19 +4036,9 @@ class ProjectController extends Controller
             : $inputEndDate->toDateString();
 
         // Crear el milestone
-        $title = strip_tags($request->title);
-        if (empty(trim($title))) {
-            if ($request->expectsJson() || $request->ajax()) {
-                return response()->json(['success' => false, 'error' => __('The milestone title is invalid.')], 422);
-            }
-            return redirect()->back()
-                ->with('error', __('The milestone title is invalid.'))
-                ->withInput();
-        }
-        DB::beginTransaction();
         $milestone = new Milestone();
         $milestone->project_id = $project->id;
-        $milestone->title = $title;
+        $milestone->title = $request->title;
         $milestone->assign_to = $request->assing_to;
         $milestone->start_date = date('Y-m-d');
         $milestone->company = $request->company ?? '';
@@ -4072,7 +4048,7 @@ class ProjectController extends Controller
         $milestone->milestone_assigned_to_user = $request->req_assing_to ?? '';
         $milestone->planned_end_date = $request->planned_end_date ?? '';
         $milestone->created_by = Auth::user()->id;
-        $milestone->end_date = $finalEndDate;
+        $milestone->end_date = $finalEndDate; // ✅ Fecha corregida aquí
         $milestone->summary = $request->description ?? '';
         $milestone->priority = $request->priority === '' ? null : $request->priority;
         $milestone->save();
@@ -4120,7 +4096,6 @@ class ProjectController extends Controller
                     'image/jpeg',      // JPG
                     'image/png',       // PNG
                     'application/pdf', // PDF
-                    'text/plain',      // TXT
                     'application/msword',                           // .doc
                     'application/vnd.openxmlformats-officedocument.wordprocessingml.document', // .docx
                     'application/zip',  // .zip
@@ -4142,63 +4117,15 @@ class ProjectController extends Controller
                     ]);
 
                     // Opcional: mostrar mensaje al usuario (si es AJAX o deseas feedback inmediato)
-                    DB::rollBack();
-                    return response()->json([
-                        'success' => false,
-                        'error' => 'Tipo de archivo no permitido: ' . $file->getClientOriginalName()
-                    ], 422);
-                }
-
-                // ✅ DETECTAR JAVASCRIPT EN PDFS
-                if ($realMimeType === 'application/pdf') {
-                    $pdfContent = file_get_contents($file->getPathName());
-                    if (preg_match('/\/JavaScript\s*$|\/JS\s+\d+\s+\d+\s+R|\/S\s*\/JavaScript|\/OpenAction\s/', $pdfContent)) {
-                        \Log::warning('PDF rechazado - contiene JavaScript', [
-                            'original_name' => $file->getClientOriginalName(),
-                            'user_id' => Auth::id(),
-                            'ip' => request()->ip()
-                        ]);
-                        DB::rollBack();
+                    if ($request->ajax() || $request->expectsJson()) {
                         return response()->json([
                             'success' => false,
-                            'error' => 'El PDF contiene JavaScript y no está permitido: ' . $file->getClientOriginalName()
+                            'error' => 'Tipo de archivo no permitido: ' . $file->getClientOriginalName()
                         ], 422);
                     }
-                }
 
-                // ✅ DETECTAR MACROS EN DOCUMENTOS .DOCX (PUNTO 11)
-                $ext = strtolower($file->getClientOriginalExtension());
-                if ($ext === 'docx') {
-                    $content = file_get_contents($file->getPathName(), false, null, 0, 1048576);
-                    if ($content !== false && strpos($content, 'vbaProject.bin') !== false) {
-                        \Log::warning('Documento rechazado - contiene macros', [
-                            'original_name' => $file->getClientOriginalName(),
-                            'user_id' => Auth::id(),
-                            'ip' => request()->ip()
-                        ]);
-                        DB::rollBack();
-                        return response()->json([
-                            'success' => false,
-                            'error' => 'El documento contiene macros: ' . $file->getClientOriginalName()
-                        ], 422);
-                    }
-                }
-
-                // ✅ DETECTAR MACROS EN DOCUMENTOS .DOC (Word 97-2003)
-                if ($ext === 'doc') {
-                    $content = file_get_contents($file->getPathName(), false, null, 0, 2097152);
-                    if ($content !== false && (strpos($content, '_VBA_PROJECT') !== false || strpos($content, "V\0B\0A\0") !== false)) {
-                        \Log::warning('Documento rechazado - contiene macros (.doc)', [
-                            'original_name' => $file->getClientOriginalName(),
-                            'user_id' => Auth::id(),
-                            'ip' => request()->ip()
-                        ]);
-                        DB::rollBack();
-                        return response()->json([
-                            'success' => false,
-                            'error' => 'El documento contiene macros: ' . $file->getClientOriginalName()
-                        ], 422);
-                    }
+                    // Continuar con el siguiente archivo (no interrumpir lote completo)
+                    continue;
                 }
 
                 // ✅ VERIFICAR QUE LAS IMÁGENES SEAN REALES (PUNTO 6)
@@ -4213,11 +4140,14 @@ class ProjectController extends Controller
                             'ip' => request()->ip()
                         ]);
 
-                        DB::rollBack();
-                        return response()->json([
-                            'success' => false,
-                            'error' => 'Archivo de imagen no válido o corrupto: ' . $file->getClientOriginalName()
-                        ], 422);
+                        if ($request->ajax() || $request->expectsJson()) {
+                            return response()->json([
+                                'success' => false,
+                                'error' => 'Archivo de imagen no válido o corrupto: ' . $file->getClientOriginalName()
+                            ], 422);
+                        }
+
+                        continue;
                     }
                 }
 
@@ -4235,11 +4165,14 @@ class ProjectController extends Controller
                         'ip' => request()->ip()
                     ]);
 
-                    DB::rollBack();
-                    return response()->json([
-                        'success' => false,
-                        'error' => 'Tipo de archivo no permitido por seguridad: ' . $file->getClientOriginalName()
-                    ], 422);
+                    if ($request->ajax() || $request->expectsJson()) {
+                        return response()->json([
+                            'success' => false,
+                            'error' => 'Tipo de archivo no permitido por seguridad: ' . $file->getClientOriginalName()
+                        ], 422);
+                    }
+
+                    continue;
                 }
 
                 if ($file->isValid()) {
@@ -4272,7 +4205,7 @@ MilestoneFile::create([
                     \Log::info('Archivo subido exitosamente', [
                         'original_name' => $file->getClientOriginalName(),
                         'stored_as' => $fileName,
-                        'size_kb' => round(filesize($filePath) / 1024, 2),
+                        'size_kb' => round($file->getSize() / 1024, 2),
                         'mime_type' => $realMimeType,
                         'extension' => $file->getClientOriginalExtension(),
                         'milestone_id' => $milestone->id,
@@ -4284,7 +4217,6 @@ MilestoneFile::create([
                     $errorMsg = 'Uno o más archivos no son válidos.';
 
                     // Si es AJAX, devolver JSON
-                    DB::rollBack();
                     if ($request->expectsJson() || $request->ajax()) {
                         return response()->json([
                             'success' => false,
@@ -4321,7 +4253,6 @@ MilestoneFile::create([
         }
 
         // Siempre devolver JSON si es una solicitud AJAX o si viene del modal
-        DB::commit();
         if ($request->ajax() || $request->wantsJson() || $request->expectsJson()) {
             return response()->json([
                 'success' => true,
@@ -4330,7 +4261,6 @@ MilestoneFile::create([
             ]);
         }
 
-        DB::commit();
         return redirect()->back()->with('success', __('Milestone created successfully!'));
     }
 
@@ -4584,16 +4514,7 @@ MilestoneFile::create([
         ]);
 
         if (!empty($request->title)) {
-            $title = strip_tags($request->title);
-            if (empty(trim($title))) {
-                if ($request->expectsJson() || $request->ajax()) {
-                    return response()->json(['success' => false, 'error' => __('The milestone title is invalid.')], 422);
-                }
-                return redirect()->back()
-                    ->with('error', __('The milestone title is invalid.'))
-                    ->withInput();
-            }
-            $milestone->title = $title;
+            $milestone->title = $request->title;
         }
         $milestone->summary = $request->summary;
         // Solo actualizar milestone_assigned_to_user si viene con valor, de lo contrario mantener el actual
@@ -5219,153 +5140,6 @@ MilestoneFile::create([
         ]);
 
         $file = $request->file('file');
-        // ✅ VALIDACIÓN MIME REAL DEL SERVIDOR (PUNTO 1)
-        $finfo = finfo_open(FILEINFO_MIME_TYPE);
-        $realMimeType = finfo_file($finfo, $file->getPathName());
-        finfo_close($finfo);
-
-        # Definir tipos MIME permitidos (debe coincidir con lo que necesitas)
-        $allowedMimes = [
-            'image/jpeg',      // JPG
-            'image/png',       // PNG
-            'application/pdf', // PDF
-            'text/plain',      // TXT
-            'application/msword',                           // .doc
-            'application/vnd.openxmlformats-officedocument.wordprocessingml.document', // .docx
-            'application/zip',  // .zip
-            'application/x-rar-compressed',                 // .rar
-            'application/acad',         // .dwg (AutoCAD)
-            'application/autocad_dwg',  // .dwg
-            'application/dxf'           // .dxf
-        ];
-
-        # Rechazar si el MIME real no está en la lista permitida
-        if (!in_array($realMimeType, $allowedMimes, true)) {
-            # Registrar intento fallido
-            \Log::warning('Archivo rechazado por MIME type inválido (fileUpload)', [
-                'original_name' => $file->getClientOriginalName(),
-                'declared_mime' => $file->getMimeType(),
-                'real_mime' => $realMimeType,
-                'user_id' => Auth::id(),
-                'ip' => request()->ip()
-            ]);
-
-            # Mostrar mensaje al usuario
-            if ($request->ajax() || $request->expectsJson()) {
-                return response()->json([
-                    'success' => false,
-                    'error' => 'Tipo de archivo no permitido: ' . $file->getClientOriginalName()
-                ], 422);
-            }
-
-            return redirect()->back()->with('error', 'Tipo de archivo no permitido: ' . $file->getClientOriginalName());
-        }
-
-        # ✅ DETECTAR JAVASCRIPT EN PDFS (fileUpload)
-        if ($realMimeType === 'application/pdf') {
-            $pdfContent = file_get_contents($file->getPathName());
-            if (preg_match('/\/JavaScript\s*$|\/JS\s+\d+\s+\d+\s+R|\/S\s*\/JavaScript|\/OpenAction\s/', $pdfContent)) {
-                \Log::warning('PDF rechazado - contiene JavaScript (fileUpload)', [
-                    'original_name' => $file->getClientOriginalName(),
-                    'user_id' => Auth::id(),
-                    'ip' => request()->ip()
-                ]);
-                if ($request->ajax() || $request->expectsJson()) {
-                    return response()->json([
-                        'success' => false,
-                        'error' => 'El PDF contiene JavaScript y no está permitido: ' . $file->getClientOriginalName()
-                    ], 422);
-                }
-                return redirect()->back()->with('error', 'El PDF contiene JavaScript y no está permitido: ' . $file->getClientOriginalName());
-            }
-        }
-
-        # ✅ DETECTAR MACROS EN DOCUMENTOS .DOCX (fileUpload)
-        $ext = strtolower($file->getClientOriginalExtension());
-        if ($ext === 'docx') {
-            $content = file_get_contents($file->getPathName(), false, null, 0, 1048576);
-            if ($content !== false && strpos($content, 'vbaProject.bin') !== false) {
-                \Log::warning('Documento rechazado - contiene macros (fileUpload)', [
-                    'original_name' => $file->getClientOriginalName(),
-                    'user_id' => Auth::id(),
-                    'ip' => request()->ip()
-                ]);
-                if ($request->ajax() || $request->expectsJson()) {
-                    return response()->json([
-                        'success' => false,
-                        'error' => 'El documento contiene macros: ' . $file->getClientOriginalName()
-                    ], 422);
-                }
-                return redirect()->back()->with('error', 'El documento contiene macros: ' . $file->getClientOriginalName());
-            }
-        }
-
-        # ✅ DETECTAR MACROS EN DOCUMENTOS .DOC (Word 97-2003) (fileUpload)
-        if ($ext === 'doc') {
-            $content = file_get_contents($file->getPathName(), false, null, 0, 2097152);
-            if ($content !== false && (strpos($content, '_VBA_PROJECT') !== false || strpos($content, "V\0B\0A\0") !== false)) {
-                \Log::warning('Documento rechazado - contiene macros (.doc) (fileUpload)', [
-                    'original_name' => $file->getClientOriginalName(),
-                    'user_id' => Auth::id(),
-                    'ip' => request()->ip()
-                ]);
-                if ($request->ajax() || $request->expectsJson()) {
-                    return response()->json([
-                        'success' => false,
-                        'error' => 'El documento contiene macros: ' . $file->getClientOriginalName()
-                    ], 422);
-                }
-                return redirect()->back()->with('error', 'El documento contiene macros: ' . $file->getClientOriginalName());
-            }
-        }
-
-        # ✅ VERIFICAR QUE LAS IMÁGENES SEAN REALES (PUNTO 6)
-        if (in_array($realMimeType, ['image/jpeg', 'image/png'], true)) {
-            $imageInfo = getimagesize($file->getPathName());
-            if ($imageInfo === false) {
-                # No es una imagen válida
-                \Log::warning('Archivo rechazado - imagen no válida o corrupta (fileUpload)', [
-                    'original_name' => $file->getClientOriginalName(),
-                    'mime_type' => $realMimeType,
-                    'user_id' => Auth::id(),
-                    'ip' => request()->ip()
-                ]);
-
-                if ($request->ajax() || $request->expectsJson()) {
-                    return response()->json([
-                        'success' => false,
-                        'error' => 'Archivo de imagen no válido o corrupto: ' . $file->getClientOriginalName()
-                    ], 422);
-                }
-
-                return redirect()->back()->with('error', 'Archivo de imagen no válido o corrupto: ' . $file->getClientOriginalName());
-            }
-        }
-
-        # ✅ NO PERMITIR ARCHIVOS EJECUTABLES (PUNTO 7) - DEFENSA EN PROFUNDIDAD
-        $dangerousExtensions = ['php', 'php5', 'phtml', 'exe', 'bat', 'sh', 'js', 'jsp', 'asp', 'cgi'];
-        $originalExtension = strtolower($file->getClientOriginalExtension());
-
-        if (in_array($originalExtension, $dangerousExtensions, true)) {
-            # Rechazar inmediatamente: extensión peligrosa detectada
-            \Log::warning('Archivo rechazado - extensión peligrosa detectada (fileUpload)', [
-                'original_name' => $file->getClientOriginalName(),
-                'extension' => $originalExtension,
-                'mime_type' => $realMimeType,
-                'user_id' => Auth::id(),
-                'ip' => request()->ip()
-            ]);
-
-            if ($request->ajax() || $request->expectsJson()) {
-                return response()->json([
-                    'success' => false,
-                    'error' => 'Tipo de archivo no permitido por seguridad: ' . $file->getClientOriginalName()
-                ], 422);
-            }
-
-            return redirect()->back()->with('error', 'Tipo de archivo no permitido por seguridad: ' . $file->getClientOriginalName());
-        }
-
         // ✅ Mantener el nombre original del archivo (sin sanitizar)
         $file_name = $this->cleanFileName($file->getClientOriginalName());
         $extension = $file->getClientOriginalExtension();
@@ -6759,7 +6533,7 @@ MilestoneFile::create([
 
             if ($currentWorkspace->permission == 'Owner' ||  Auth::user()->type == 'user') {
                 $tmp['action'] = '
-                <a href="#" class="action-btn btn-info  btn btn-sm d-inline-flex align-items-center"
+                <a href="#" class="action-btn btn-info  btn btn-sm d-inline-flex align-items-center"  
                 data-toggle="popover"  title="' . __('Edit Task')
                     . '"  data-ajax-popup="true" data-size="lg" data-title="' . __('Edit Task') . '" data-url="' . route(
                         'tasks.edit',
@@ -6769,7 +6543,7 @@ MilestoneFile::create([
                             $task->id,
                         ]
                     ) . '"><i class="ti ti-pencil"></i></a>
-                <a href="#" class="action-btn btn-danger  btn btn-sm d-inline-flex align-items-center
+                <a href="#" class="action-btn btn-danger  btn btn-sm d-inline-flex align-items-center 
                 bs-pass-para" data-toggle="popover" title="'
                     . __('Delete')
                     . '" data-confirm="' . __('Are You Sure?')
@@ -7028,8 +6802,8 @@ MilestoneFile::create([
                 $returnHTML .= '<tr><td><span class="task-name ml-3">' . $name . '</span></td>';
 
                 foreach ($period as $key => $dateobj) {
-                    $returnHTML .= '<td><div role="button" class="form-control border-dark wid-120" data-ajax-timesheet-popup="true"
-                    data-type="create" data-task-id="' . $task->id . '" data-date="' . $dateobj->format('Y-m-d') . '"
+                    $returnHTML .= '<td><div role="button" class="form-control border-dark wid-120" data-ajax-timesheet-popup="true" 
+                    data-type="create" data-task-id="' . $task->id . '" data-date="' . $dateobj->format('Y-m-d') . '" 
                     data-url="' . route(
                         'project.timesheet.create',
                         [
