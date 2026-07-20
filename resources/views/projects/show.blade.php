@@ -565,10 +565,10 @@
 
     .project-order-th[data-col-key="name"],
     .project-order-td[data-col-key="name"] { flex: 3; min-width: 200px; }
-    .project-order-th[data-col-key="requested_by"],
-    .project-order-td[data-col-key="requested_by"] { flex: 1.5; min-width: 120px; padding-right: 39px; }
-    .project-order-th[data-col-key="assigned_to"],
-    .project-order-td[data-col-key="assigned_to"] { flex: 1.5; min-width: 120px; padding-right: 49px; }
+    .project-order-th[data-col-key="requested_by"] { flex: 1.5; min-width: 120px; padding-right: 39px; padding-left: 14px; }
+    .project-order-td[data-col-key="requested_by"] { flex: 1.5; min-width: 120px; padding-right: 39px; padding-left: 14px; text-align: center; }
+    .project-order-th[data-col-key="assigned_to"] { flex: 1.5; min-width: 120px; padding-right: 49px; padding-left: 14px; }
+    .project-order-td[data-col-key="assigned_to"] { flex: 1.5; min-width: 120px; padding-right: 49px; padding-left: 14px; text-align: center; }
     .project-order-th[data-col-key="status"],
     .project-order-td[data-col-key="status"] { flex: 1.5; min-width: 110px; padding-right: 59px; }
     .project-order-th[data-col-key="created"],
