@@ -227,6 +227,7 @@ class WorkspaceController extends Controller
     public function changeLangAdmin($lang)
     {
         session()->put('locale', $lang);
+        \Cookie::queue('LANGUAGE', $lang, 120);
         app()->setLocale($lang);
         return redirect()->back()->with('success', __('Language Change Successfully!'));
     }
@@ -242,12 +243,14 @@ class WorkspaceController extends Controller
     public function changeLangWorkspace1($workspaceID, $lang)
     {
         session()->put('locale', $lang);
+        \Cookie::queue('LANGUAGE', $lang, 120);
         app()->setLocale($lang);
         return redirect()->back()->with('success', __('Language Change Successfully!'));
     }
     public function changeLangWorkspace($workspaceID, $lang)
     {
         session()->put('locale', $lang);
+        \Cookie::queue('LANGUAGE', $lang, 120);
         app()->setLocale($lang);
 
         return redirect()->back()->with('success', __('Language Change Successfully!'));
