@@ -499,30 +499,120 @@
 <style>
     .project-order-table-shell {
         border-radius: 14px;
-        padding: 10px;
+        padding: 0 10px 10px;
         max-height: 41vh;
         overflow: auto;
+        width: 100%;
     }
 
-    .project-order-table thead th {
+    .project-order-table-inner {
+        width: fit-content;
+        min-width: 100%;
+    }
+
+    .project-order-header-row {
+        display: flex;
         position: sticky;
         top: 0;
-        z-index: 1;
-        background: #fff3f6;
-        color: #6f1830;
+        z-index: 2;
+        background: #f8f9fd;
+        border-bottom: 2px solid #f8f9fd;
+        min-width: fit-content;
+        width: 100%;
+        gap: 8px;
+    }
+
+    .project-order-th {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 16px 10px;
         font-size: 12px;
+        font-weight: 700;
         text-transform: uppercase;
         letter-spacing: .06em;
-        border: 0;
+        color: #000000;
         white-space: nowrap;
-        padding: 12px 14px;
-        vertical-align: middle;
+        flex-shrink: 0;
     }
+
+    .project-order-body-rows {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        padding-top: 12px;
+        width: 100%;
+    }
+
+    .project-order-body-row {
+        display: flex;
+        border: 1px solid #f0dde2;
+        border-radius: 12px;
+        background: #ffffff;
+        transition: all .18s ease;
+        gap: 8px;
+    }
+
+    .project-order-body-row:hover {
+        border-color: #b6122e;
+        background: #fff0f4;
+    }
+
+    .project-order-td {
+        padding: 12px 10px;
+        flex-shrink: 0;
+    }
+
+    .project-order-th[data-col-key="name"],
+    .project-order-td[data-col-key="name"] { flex: 3; min-width: 200px; overflow: hidden; padding-right: 24px; }
+    .project-order-td[data-col-key="name"] h5 {
+        max-width: 100%;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+    .project-order-th[data-col-key="requested_by"] { flex: 1.5; min-width: 120px; padding-right: 24px; justify-content: center; }
+    .project-order-td[data-col-key="requested_by"] { flex: 1.5; min-width: 120px; padding-right: 24px; text-align: center; }
+    .project-order-th[data-col-key="assigned_to"] { flex: 1.5; min-width: 120px; padding-left: 24px; justify-content: center; }
+    .project-order-td[data-col-key="assigned_to"] { flex: 1.5; min-width: 120px; padding-left: 24px; text-align: center; }
+    .project-order-th[data-col-key="status"],
+    .project-order-td[data-col-key="status"] { flex: 1.5; min-width: 110px; }
+    .project-order-th[data-col-key="created"],
+    .project-order-td[data-col-key="created"] { flex: 1.5; min-width: 120px; padding-right: 34px; justify-content: center; text-align: center; }
+    .project-order-th[data-col-key="desired_delivery"],
+    .project-order-td[data-col-key="desired_delivery"] { flex: 1.5; min-width: 120px; padding-right: 34px; justify-content: center; text-align: center; }
+    .project-order-th[data-col-key="expected_delivery"],
+    .project-order-td[data-col-key="expected_delivery"] { flex: 1.5; min-width: 120px; padding-right: 34px; justify-content: center; text-align: center; }
+    .project-order-th[data-col-key="task_started"],
+    .project-order-td[data-col-key="task_started"] { flex: 1.5; min-width: 120px; padding-right: 34px; justify-content: center; text-align: center; }
+    .project-order-th[data-col-key="completion"],
+    .project-order-td[data-col-key="completion"] { flex: 1.5; min-width: 120px; padding-right: 34px; justify-content: center; text-align: center; }
+    .project-order-th[data-col-key="action"],
+    .project-order-td[data-col-key="action"] { flex: 0.8; min-width: 140px; display: flex; align-items: center; gap: 6px; }
 
     .project-order-th-content {
         display: inline-flex;
         align-items: center;
         gap: 8px;
+    }
+
+    .project-order-th[data-col-key="created"],
+    .project-order-th[data-col-key="desired_delivery"],
+    .project-order-th[data-col-key="expected_delivery"],
+    .project-order-th[data-col-key="task_started"],
+    .project-order-th[data-col-key="completion"] {
+        position: relative;
+    }
+
+    .project-order-th[data-col-key="created"] .project-order-filter-btn,
+    .project-order-th[data-col-key="desired_delivery"] .project-order-filter-btn,
+    .project-order-th[data-col-key="expected_delivery"] .project-order-filter-btn,
+    .project-order-th[data-col-key="task_started"] .project-order-filter-btn,
+    .project-order-th[data-col-key="completion"] .project-order-filter-btn {
+        position: absolute;
+        right: 10px;
+        top: 50%;
+        transform: translateY(-50%);
     }
 
     .project-order-filter-btn {
@@ -2499,7 +2589,7 @@
 
             const rows = Array.from(tbody.querySelectorAll('.project-order-body-row'));
             const headers = Array.from(headerRow.querySelectorAll('.project-order-th[data-col-key]'));
-            const filterButtons = Array.from(document.querySelectorAll('.project-order-filter-btn'));
+            const filterButtons = Array.from(headerRow.querySelectorAll('.project-order-filter-btn'));
             const filterState = {};
             const columnVisibilityState = new Map();
             const filterMenu = document.createElement('div');
@@ -2967,6 +3057,25 @@
 
             applyColumnVisibility();
             applyFilters();
+
+            rows.forEach(function(row) {
+                row.addEventListener('click', function(event) {
+                    if (event.target.closest('button, a, input, label, form')) return;
+                    var url = row.getAttribute('data-url');
+                    var title = row.getAttribute('data-title');
+                    if (!url) return;
+                    $.ajax({
+                        url: url,
+                        cache: false,
+                        success: function(data) {
+                            $('#commonModal .body').html(data);
+                            $('#commonModal .modal-title').html(title);
+                            bootstrap.Modal.getOrCreateInstance(document.getElementById('commonModal')).show();
+                            commonLoader();
+                        }
+                    });
+                });
+            });
         });
     </script>
     <script>
