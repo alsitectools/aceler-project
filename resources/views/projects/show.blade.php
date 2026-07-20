@@ -564,23 +564,29 @@
     }
 
     .project-order-th[data-col-key="name"],
-    .project-order-td[data-col-key="name"] { flex: 3; min-width: 200px; }
-    .project-order-th[data-col-key="requested_by"] { flex: 1.5; min-width: 120px; padding-right: 39px; padding-left: 14px; }
-    .project-order-td[data-col-key="requested_by"] { flex: 1.5; min-width: 120px; padding-right: 39px; padding-left: 14px; text-align: center; }
-    .project-order-th[data-col-key="assigned_to"] { flex: 1.5; min-width: 120px; padding-right: 49px; padding-left: 14px; }
-    .project-order-td[data-col-key="assigned_to"] { flex: 1.5; min-width: 120px; padding-right: 49px; padding-left: 14px; text-align: center; }
+    .project-order-td[data-col-key="name"] { flex: 3; min-width: 200px; overflow: hidden; }
+    .project-order-td[data-col-key="name"] h5 {
+        max-width: 100%;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+    .project-order-th[data-col-key="requested_by"] { flex: 1.5; min-width: 120px; padding-right: 24px; }
+    .project-order-td[data-col-key="requested_by"] { flex: 1.5; min-width: 120px; padding-right: 24px; text-align: center; }
+    .project-order-th[data-col-key="assigned_to"] { flex: 1.5; min-width: 120px; padding-left: 24px; }
+    .project-order-td[data-col-key="assigned_to"] { flex: 1.5; min-width: 120px; padding-left: 24px; text-align: center; }
     .project-order-th[data-col-key="status"],
-    .project-order-td[data-col-key="status"] { flex: 1.5; min-width: 110px; padding-right: 59px; }
+    .project-order-td[data-col-key="status"] { flex: 1.5; min-width: 110px; }
     .project-order-th[data-col-key="created"],
-    .project-order-td[data-col-key="created"] { flex: 1.5; min-width: 120px; padding-right: 34px; }
+    .project-order-td[data-col-key="created"] { flex: 1.5; min-width: 120px; padding-right: 24px; justify-content: center; text-align: center; }
     .project-order-th[data-col-key="desired_delivery"],
-    .project-order-td[data-col-key="desired_delivery"] { flex: 1.5; min-width: 120px; padding-right: 44px; }
+    .project-order-td[data-col-key="desired_delivery"] { flex: 1.5; min-width: 120px; padding-right: 44px; justify-content: center; text-align: center; }
     .project-order-th[data-col-key="expected_delivery"],
-    .project-order-td[data-col-key="expected_delivery"] { flex: 1.5; min-width: 120px; padding-right: 54px; }
+    .project-order-td[data-col-key="expected_delivery"] { flex: 1.5; min-width: 120px; padding-right: 54px; justify-content: center; text-align: center; }
     .project-order-th[data-col-key="task_started"],
-    .project-order-td[data-col-key="task_started"] { flex: 1.5; min-width: 120px; padding-right: 64px; }
+    .project-order-td[data-col-key="task_started"] { flex: 1.5; min-width: 120px; padding-right: 34px; justify-content: center; text-align: center; }
     .project-order-th[data-col-key="completion"],
-    .project-order-td[data-col-key="completion"] { flex: 1.5; min-width: 120px; padding-right: 74px; }
+    .project-order-td[data-col-key="completion"] { flex: 1.5; min-width: 120px; padding-right: 34px; justify-content: center; text-align: center; }
     .project-order-th[data-col-key="action"],
     .project-order-td[data-col-key="action"] { flex: 0.8; min-width: 140px; display: flex; align-items: center; gap: 6px; }
 
@@ -588,6 +594,25 @@
         display: inline-flex;
         align-items: center;
         gap: 8px;
+    }
+
+    .project-order-th[data-col-key="created"],
+    .project-order-th[data-col-key="desired_delivery"],
+    .project-order-th[data-col-key="expected_delivery"],
+    .project-order-th[data-col-key="task_started"],
+    .project-order-th[data-col-key="completion"] {
+        position: relative;
+    }
+
+    .project-order-th[data-col-key="created"] .project-order-filter-btn,
+    .project-order-th[data-col-key="desired_delivery"] .project-order-filter-btn,
+    .project-order-th[data-col-key="expected_delivery"] .project-order-filter-btn,
+    .project-order-th[data-col-key="task_started"] .project-order-filter-btn,
+    .project-order-th[data-col-key="completion"] .project-order-filter-btn {
+        position: absolute;
+        right: 10px;
+        top: 50%;
+        transform: translateY(-50%);
     }
 
     .project-order-filter-btn {
@@ -1453,6 +1478,8 @@
                                                                     : __('Ongoing')));
                                                 @endphp
                                                 <div class="project-order-body-row"
+                                                    data-title="{{ __('Order form details') }}"
+                                                    data-url="{{ route('projects.milestone.show', [$currentWorkspace->slug, $milestone->id]) }}"
                                                     data-name="{{ mb_strtolower(trim($milestone->title ?? '')) }}"
                                                     data-requested-by="{{ mb_strtolower(trim(optional($milestone->getRequestedBy())->name ?? '')) }}"
                                                     data-assigned-to="{{ mb_strtolower(trim(optional($milestone->getAssignedToUser())->name ?? '')) }}"
@@ -1464,13 +1491,10 @@
                                                     data-completion-date="{{ !empty($milestone->finalization_date) && $milestone->finalization_date !== '0000-00-00' ? \Carbon\Carbon::parse($milestone->finalization_date)->format('Y-m-d') : '' }}">
                                                     <div class="project-order-td" data-col-key="name"
                                                         data-filter-value="{{ trim($milestone->title ?? '') !== '' ? trim($milestone->title) : __('N/A') }}">
-                                                        <a href="#" class="d-block font-weight-500 mb-0"
-                                                            data-ajax-popup="true"
-                                                            data-title="{{ __('Order form details') }}"
-                                                            data-url="{{ route('projects.milestone.show', [$currentWorkspace->slug, $milestone->id]) }}">
+                                                        <span class="d-block font-weight-500 mb-0">
                                                             <h5 class="m-0" title="{{ $milestone->title }}">
                                                                 {{ $milestone->title }} </h5>
-                                                        </a>
+                                                        </span>
                                                     </div>
                                                     <div class="project-order-td" data-col-key="requested_by"
                                                         data-filter-value="{{ trim(optional($milestone->getRequestedBy())->name ?? '') !== '' ? trim(optional($milestone->getRequestedBy())->name) : __('N/A') }}">
@@ -2892,6 +2916,25 @@
 
             applyColumnVisibility();
             applyFilters();
+
+            rows.forEach(function(row) {
+                row.addEventListener('click', function(event) {
+                    if (event.target.closest('button, a, input, label, form')) return;
+                    var url = row.getAttribute('data-url');
+                    var title = row.getAttribute('data-title');
+                    if (!url) return;
+                    $.ajax({
+                        url: url,
+                        cache: false,
+                        success: function(data) {
+                            $('#commonModal .body').html(data);
+                            $('#commonModal .modal-title').html(title);
+                            bootstrap.Modal.getOrCreateInstance(document.getElementById('commonModal')).show();
+                            commonLoader();
+                        }
+                    });
+                });
+            });
         });
     </script>
     <script>
