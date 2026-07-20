@@ -257,24 +257,6 @@ class AzureController extends Controller
                 );
             }
 
-            UserTimetable::updateOrCreate(
-                ['user_id' => $user->id],
-                [
-                    'monday' => $workday['monday'] ?? null,
-                    'tuesday' => $workday['tuesday'] ?? null,
-                    'wednesday' => $workday['wednesday'] ?? null,
-                    'thursday' => $workday['thursday'] ?? null,
-                    'friday' => $workday['friday'] ?? null,
-                    'saturday' => $workday['saturday'] ?? null,
-                    'sunday' => $workday['sunday'] ?? null,
-                    'range_holidays' => null,
-                    'range_intensive_workday' => null,
-                    'created_at' => now(),
-                    'updated_at' => now(),
-                ]
-            );
-        }
-
             if (!empty($data['photo_path'])) {
                 $ext = pathinfo(parse_url($data['photo_path'], PHP_URL_PATH), PATHINFO_EXTENSION);
                 $old = public_path('assets/users-avatar/' . $data['userPrincipalName'] . '.' . $ext);
