@@ -27,12 +27,18 @@ class Workspace extends Model
     public function getDisplayNameAttribute()
     {
         $locale = app()->getLocale();
+        if ($locale === 'es') {
+            return $this->name;
+        }
         return static::$nameTranslations[$locale][$this->name] ?? $this->name;
     }
 
     public static function translateName($name, $locale = null)
     {
         $locale = $locale ?? app()->getLocale();
+        if ($locale === 'es') {
+            return $name;
+        }
         return static::$nameTranslations[$locale][$name] ?? $name;
     }
 
