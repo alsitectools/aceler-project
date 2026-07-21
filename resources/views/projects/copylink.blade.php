@@ -259,22 +259,26 @@
                                         <li class="list-group-item px-0">
                                             <div class="row align-items-center justify-content-between">
                                                 <div class="col-sm-auto mb-3 mb-sm-0">
-                                                    <div class="d-flex align-items-center px-2">
-                                                        <a href="#" class=" text-start">
-                                                            <img class="fix_img"
-                                                                @if ($user->avatar) src="{{ asset($logo . $user->avatar) }}" @else avatar="{{ $user->name }}" @endif>
-                                                            <!-- <img class="theme-avtar"
-                                                                                @if (Auth::user()->avatar) src="{{ url('storage/app/public/' . Auth::user()->avatar) }}" 
-                                                                        @else 
-                                                                            avatar="{{ Auth::user()->name }}" @endif
-                                                                                alt="{{ Auth::user()->name }}"> -->
-                                                        </a>
-                                                        <div class="px-2">
-                                                            <div class="email-reveal-wrapper">
-                                                                <h5 class="m-0">{{ $user->name }}</h5>
-                                                                <i class="bi bi-envelope-fill email-reveal-icon tooltipCus" data-title="{{ __('Mostrar correo') }}" data-user-id="{{ $user->id }}"></i>
-                                                                <small class="email-reveal-email"></small>
-                                                            </div>
+                                                     <div class="d-flex align-items-start px-2">
+                                                         <div>
+                                                         <a href="#" class=" text-start">
+                                                             <img class="fix_img"
+                                                                 @if ($user->avatar) src="{{ asset($logo . $user->avatar) }}" @else avatar="{{ $user->name }}" @endif>
+                                                             <!-- <img class="theme-avtar"
+                                                                                 @if (Auth::user()->avatar) src="{{ url('storage/app/public/' . Auth::user()->avatar) }}" 
+                                                                         @else 
+                                                                             avatar="{{ Auth::user()->name }}" @endif
+                                                                                 alt="{{ Auth::user()->name }}"> -->
+                                                         </a>
+                                                         </div>
+                                                         <div class="px-2">
+                                                             <div class="email-reveal-wrapper">
+                                                                 <div class="d-flex align-items-center gap-2">
+                                                                     <h5 class="m-0">{{ $user->name }}</h5>
+                                                                     <i class="bi bi-envelope-fill email-reveal-icon tooltipCus" data-title="{{ __('Mostrar correo') }}" data-user-id="{{ $user->id }}"></i>
+                                                                 </div>
+                                                                 <small class="email-reveal-email"></small>
+                                                             </div>
                                                             <small class="text-muted"><span class="text-primary">
                                                                      {{ (int) count($project->user_done_tasks($user->id)) }}/{{ (int) count($project->user_tasks($user->id)) }}</span></small>
                                                         </div>
@@ -344,17 +348,21 @@
                                         <li class="list-group-item px-0">
                                             <div class="row align-items-center justify-content-between">
                                                 <div class="col-sm-auto mb-3 mb-sm-0">
-                                                    <div class="d-flex align-items-center px-2">
-                                                        <a href="#" class=" text-start">
-                                                            <img class="fix_img"
-                                                                @if ($client->avatar) src="{{ asset($logo . $client->avatar) }}" @else avatar="{{ $client->name }}" @endif>
-                                                        </a>
-                                                        <div class="px-2">
-                                                            <div class="email-reveal-wrapper">
-                                                                <h5 class="m-0">{{ $client->name }}</h5>
-                                                                <i class="bi bi-envelope-fill email-reveal-icon tooltipCus" data-title="{{ __('Mostrar correo') }}" data-user-id="{{ $client->id }}"></i>
-                                                                <small class="email-reveal-email"></small>
-                                                            </div>
+                                                     <div class="d-flex align-items-start px-2">
+                                                         <div>
+                                                         <a href="#" class=" text-start">
+                                                             <img class="fix_img"
+                                                                 @if ($client->avatar) src="{{ asset($logo . $client->avatar) }}" @else avatar="{{ $client->name }}" @endif>
+                                                         </a>
+                                                         </div>
+                                                         <div class="px-2">
+                                                             <div class="email-reveal-wrapper">
+                                                                 <div class="d-flex align-items-center gap-2">
+                                                                     <h5 class="m-0">{{ $client->name }}</h5>
+                                                                     <i class="bi bi-envelope-fill email-reveal-icon tooltipCus" data-title="{{ __('Mostrar correo') }}" data-user-id="{{ $client->id }}"></i>
+                                                                 </div>
+                                                                 <small class="email-reveal-email"></small>
+                                                             </div>
                                                             </div>
                                                     </div>
                                                 </div>

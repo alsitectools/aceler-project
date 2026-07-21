@@ -952,18 +952,15 @@
 
     <style>
         .email-reveal-wrapper {
-            position: relative;
+            display: flex;
+            flex-direction: column;
         }
         .email-reveal-icon {
-            cursor: pointer; font-size: 22px; color: #6c757d; transition: color 0.2s;
-            position: absolute;
-            top: 50%;
-            right: 8px;
-            transform: translateY(-50%);
+            cursor: pointer; font-size: 22px; color: #6c757d; transition: color 0.2s, transform 0.2s;
         }
         .email-reveal-icon:hover {
             color: #8f1425;
-            transform: translateY(-50%) scale(1.15);
+            transform: scale(1.15);
         }
         .email-reveal-icon.tooltipCus::after {
             content: attr(data-title);
