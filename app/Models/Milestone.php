@@ -78,7 +78,7 @@ class Milestone extends Model
 
     public function getRequestedBy()
     {
-        $requested_by = User::join('milestones', 'milestones.assign_to', '=', 'users.id')
+        $requested_by = User::select('users.*')->join('milestones', 'milestones.assign_to', '=', 'users.id')
             ->where('milestones.assign_to', $this->assign_to)
             ->first();
 
@@ -86,7 +86,7 @@ class Milestone extends Model
     }
     public function getAssignedToUser()
     {
-        $assigned_to_user = User::join('milestones', 'milestones.milestone_assigned_to_user', '=', 'users.id')
+        $assigned_to_user = User::select('users.*')->join('milestones', 'milestones.milestone_assigned_to_user', '=', 'users.id')
             ->where('milestones.milestone_assigned_to_user', $this->milestone_assigned_to_user)
             ->first();
 
