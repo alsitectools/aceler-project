@@ -551,6 +551,7 @@
         background: #ffffff;
         transition: all .18s ease;
         gap: 8px;
+        cursor: pointer;
     }
 
     .project-order-body-row:hover {
@@ -1170,6 +1171,7 @@
         background: #ffffff;
         transition: all .18s ease;
         gap: 8px;
+        cursor: pointer;
     }
 
     .project-order-body-row:hover {
@@ -1618,7 +1620,7 @@
                                                         @if ($milestone->getRequestedBy() != null)
                                                             <img class="fix_img"
                                                                 title="{{ $milestone->getRequestedBy()->name }}"
-                                                                @if ($milestone->getRequestedBy()->avatar) src="{{ asset($milestone->getRequestedBy()->avatar) }}" @else avatar="{{ $milestone->getRequestedBy()->name }}" @endif>
+                                                                 @if ($milestone->getRequestedBy()->avatar) src="{{ $milestone->getRequestedBy()->avatar }}" @else avatar="{{ $milestone->getRequestedBy()->name }}" @endif>
                                                         @endif
                                                     </div>
                                                     <div class="project-order-td" data-col-key="assigned_to"
@@ -1626,7 +1628,7 @@
                                                         @if ($milestone->getAssignedToUser() != null)
                                                             <img class="fix_img"
                                                                 title="{{ $milestone->getAssignedToUser()->name }}"
-                                                                @if ($milestone->getAssignedToUser()->avatar) src="{{ asset($milestone->getAssignedToUser()->avatar) }}" @else avatar="{{ $milestone->getAssignedToUser()->name }}" @endif>
+                                                                 @if ($milestone->getAssignedToUser()->avatar) src="{{ $milestone->getAssignedToUser()->avatar }}" @else avatar="{{ $milestone->getAssignedToUser()->name }}" @endif>
                                                         @else
                                                             ...
                                                         @endif
