@@ -557,6 +557,8 @@
     .project-order-body-row:hover {
         border-color: #b6122e;
         background: #fff0f4;
+        color: #7b1528;
+        transform: translateY(-1px);
     }
 
     .project-order-td {
@@ -564,8 +566,8 @@
         flex-shrink: 0;
     }
 
-    .project-order-th[data-col-key="name"],
-    .project-order-td[data-col-key="name"] { flex: 3; min-width: 200px; overflow: hidden; padding-right: 24px; }
+    .project-order-th[data-col-key="name"] { flex: 3; min-width: 200px; overflow: hidden; padding-right: 24px; }
+    .project-order-td[data-col-key="name"] { flex: 3; min-width: 200px; overflow: hidden; padding-right: 24px; display: flex; align-items: center; }
     .project-order-td[data-col-key="name"] h5 {
         max-width: 100%;
         overflow: hidden;
@@ -578,16 +580,16 @@
     .project-order-td[data-col-key="assigned_to"] { flex: 1.5; min-width: 120px; padding-left: 24px; text-align: center; }
     .project-order-th[data-col-key="status"],
     .project-order-td[data-col-key="status"] { flex: 1.5; min-width: 110px; }
-    .project-order-th[data-col-key="created"],
-    .project-order-td[data-col-key="created"] { flex: 1.5; min-width: 120px; padding-right: 34px; justify-content: center; text-align: center; }
-    .project-order-th[data-col-key="desired_delivery"],
-    .project-order-td[data-col-key="desired_delivery"] { flex: 1.5; min-width: 120px; padding-right: 34px; justify-content: center; text-align: center; }
-    .project-order-th[data-col-key="expected_delivery"],
-    .project-order-td[data-col-key="expected_delivery"] { flex: 1.5; min-width: 120px; padding-right: 34px; justify-content: center; text-align: center; }
-    .project-order-th[data-col-key="task_started"],
-    .project-order-td[data-col-key="task_started"] { flex: 1.5; min-width: 120px; padding-right: 34px; justify-content: center; text-align: center; }
-    .project-order-th[data-col-key="completion"],
-    .project-order-td[data-col-key="completion"] { flex: 1.5; min-width: 120px; padding-right: 34px; justify-content: center; text-align: center; }
+    .project-order-th[data-col-key="created"] { flex: 1.5; min-width: 120px; padding-right: 34px; justify-content: center; text-align: center; }
+    .project-order-td[data-col-key="created"] { flex: 1.5; min-width: 120px; padding-right: 34px; justify-content: center; text-align: center; display: flex; align-items: center; }
+    .project-order-th[data-col-key="desired_delivery"] { flex: 1.5; min-width: 120px; padding-right: 34px; justify-content: center; text-align: center; }
+    .project-order-td[data-col-key="desired_delivery"] { flex: 1.5; min-width: 120px; padding-right: 34px; justify-content: center; text-align: center; display: flex; align-items: center; }
+    .project-order-th[data-col-key="expected_delivery"] { flex: 1.5; min-width: 120px; padding-right: 34px; justify-content: center; text-align: center; }
+    .project-order-td[data-col-key="expected_delivery"] { flex: 1.5; min-width: 120px; padding-right: 34px; justify-content: center; text-align: center; display: flex; align-items: center; }
+    .project-order-th[data-col-key="task_started"] { flex: 1.5; min-width: 120px; padding-right: 34px; justify-content: center; text-align: center; }
+    .project-order-td[data-col-key="task_started"] { flex: 1.5; min-width: 120px; padding-right: 34px; justify-content: center; text-align: center; display: flex; align-items: center; }
+    .project-order-th[data-col-key="completion"] { flex: 1.5; min-width: 120px; padding-right: 34px; justify-content: center; text-align: center; }
+    .project-order-td[data-col-key="completion"] { flex: 1.5; min-width: 120px; padding-right: 34px; justify-content: center; text-align: center; display: flex; align-items: center; }
     .project-order-th[data-col-key="action"],
     .project-order-td[data-col-key="action"] { flex: 0.8; min-width: 140px; display: flex; align-items: center; gap: 6px; }
 
@@ -1177,6 +1179,8 @@
     .project-order-body-row:hover {
         border-color: #b6122e;
         background: #fff0f4;
+        color: #7b1528;
+        transform: translateY(-1px);
     }
 
     .project-order-td {
@@ -1184,8 +1188,8 @@
         flex-shrink: 0;
     }
 
-    .project-order-th[data-col-key="name"],
-    .project-order-td[data-col-key="name"] { flex: 3; min-width: 200px; overflow: hidden; padding-right: 24px; }
+    .project-order-th[data-col-key="name"] { flex: 3; min-width: 200px; overflow: hidden; padding-right: 24px; }
+    .project-order-td[data-col-key="name"] { flex: 3; min-width: 200px; overflow: hidden; padding-right: 24px; display: flex; align-items: center; }
     .project-order-td[data-col-key="name"] h5 {
         max-width: 100%;
         overflow: hidden;
@@ -1202,16 +1206,16 @@
     .project-order-th[data-col-key="status"],
     .project-order-td[data-col-key="status"] { flex: 1.5; min-width: 110px; }
 
-    .project-order-th[data-col-key="created"],
-    .project-order-td[data-col-key="created"] { flex: 1.5; min-width: 120px; padding-right: 34px; justify-content: center; text-align: center; }
-    .project-order-th[data-col-key="desired_delivery"],
-    .project-order-td[data-col-key="desired_delivery"] { flex: 1.5; min-width: 120px; padding-right: 34px; justify-content: center; text-align: center; }
-    .project-order-th[data-col-key="expected_delivery"],
-    .project-order-td[data-col-key="expected_delivery"] { flex: 1.5; min-width: 120px; padding-right: 34px; justify-content: center; text-align: center; }
-    .project-order-th[data-col-key="task_started"],
-    .project-order-td[data-col-key="task_started"] { flex: 1.5; min-width: 120px; padding-right: 34px; justify-content: center; text-align: center; }
-    .project-order-th[data-col-key="completion"],
-    .project-order-td[data-col-key="completion"] { flex: 1.5; min-width: 120px; padding-right: 34px; justify-content: center; text-align: center; }
+    .project-order-th[data-col-key="created"] { flex: 1.5; min-width: 120px; padding-right: 34px; justify-content: center; text-align: center; }
+    .project-order-td[data-col-key="created"] { flex: 1.5; min-width: 120px; padding-right: 34px; justify-content: center; text-align: center; display: flex; align-items: center; }
+    .project-order-th[data-col-key="desired_delivery"] { flex: 1.5; min-width: 120px; padding-right: 34px; justify-content: center; text-align: center; }
+    .project-order-td[data-col-key="desired_delivery"] { flex: 1.5; min-width: 120px; padding-right: 34px; justify-content: center; text-align: center; display: flex; align-items: center; }
+    .project-order-th[data-col-key="expected_delivery"] { flex: 1.5; min-width: 120px; padding-right: 34px; justify-content: center; text-align: center; }
+    .project-order-td[data-col-key="expected_delivery"] { flex: 1.5; min-width: 120px; padding-right: 34px; justify-content: center; text-align: center; display: flex; align-items: center; }
+    .project-order-th[data-col-key="task_started"] { flex: 1.5; min-width: 120px; padding-right: 34px; justify-content: center; text-align: center; }
+    .project-order-td[data-col-key="task_started"] { flex: 1.5; min-width: 120px; padding-right: 34px; justify-content: center; text-align: center; display: flex; align-items: center; }
+    .project-order-th[data-col-key="completion"] { flex: 1.5; min-width: 120px; padding-right: 34px; justify-content: center; text-align: center; }
+    .project-order-td[data-col-key="completion"] { flex: 1.5; min-width: 120px; padding-right: 34px; justify-content: center; text-align: center; display: flex; align-items: center; }
 
     .project-order-th[data-col-key="action"],
     .project-order-td[data-col-key="action"] { flex: 0.8; min-width: 140px; display: flex; align-items: center; gap: 6px; }
