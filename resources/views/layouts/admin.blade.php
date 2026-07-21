@@ -962,32 +962,22 @@
             color: #8f1425;
             transform: scale(1.15);
         }
-        .email-reveal-icon.tooltipCus::after {
-            content: attr(data-title);
-            visibility: hidden;
+        .email-reveal-email {
+            display: none; font-size: 1rem; color: #6c757d;
+            clear: both;
+        }
+        .email-reveal-floating-tooltip {
+            position: fixed;
+            z-index: 999999;
             background-color: #333;
             color: #fff;
             font-size: 12px;
             text-align: center;
             border-radius: 6px;
             padding: 6px 10px;
-            position: absolute;
-            z-index: 9999;
-            bottom: calc(100% + 6px);
-            right: 0;
-            opacity: 0;
-            transition: opacity 0.2s;
             white-space: nowrap;
             pointer-events: none;
             box-shadow: 0 2px 6px rgba(0,0,0,0.2);
-        }
-        .email-reveal-icon.tooltipCus:hover::after {
-            visibility: visible;
-            opacity: 1;
-        }
-        .email-reveal-email {
-            display: none; font-size: 1rem; color: #6c757d;
-            clear: both;
         }
     </style>
     <script>
@@ -1013,6 +1003,26 @@
             }).fail(function () {
                 $icon.data('loading', false);
             });
+        });
+
+        var emailTooltipTimer = null;
+        $(document).on('mouseenter', '.email-reveal-icon', function () {
+            clearTimeout(emailTooltipTimer);
+            $('.email-reveal-floating-tooltip').remove();
+            var $icon = $(this);
+            var text = $icon.attr('data-title');
+            if (!text) return;
+            var $tooltip = $('<div class="email-reveal-floating-tooltip">' + $('<span>').text(text).html() + '</div>');
+            $('body').append($tooltip);
+            var rect = this.getBoundingClientRect();
+            var top = rect.top - $tooltip.outerHeight() - 6;
+            var left = rect.left + (rect.width / 2) - ($tooltip.outerWidth() / 2);
+            $tooltip.css({ top: top + 'px', left: left + 'px' });
+        });
+        $(document).on('mouseleave', '.email-reveal-icon', function () {
+            emailTooltipTimer = setTimeout(function () {
+                $('.email-reveal-floating-tooltip').remove();
+            }, 150);
         });
     </script>
     @include('partials.footer')
