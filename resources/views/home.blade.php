@@ -727,7 +727,7 @@
                                                  <div class="email-reveal-wrapper">
                                                      <div class="d-flex align-items-center gap-2">
                                                          <span class="fullName">{{ $comercial->name }}</span>
-                                                         <i class="bi bi-envelope-fill email-reveal-icon tooltipCus" data-title="{{ __('Mostrar correo') }}" data-user-id="{{ $comercial->id }}"></i>
+                                                         <i class="bi bi-envelope-fill email-reveal-icon tooltipCus" data-title="{{ __('messages.Mostrar correo') }}" data-show-text="{{ __('messages.Mostrar correo') }}" data-hide-text="{{ __('messages.Ocultar correo') }}" data-user-id="{{ $comercial->id }}"></i>
                                                      </div>
                                                      <div class="email-reveal-email"></div>
                                                  </div>
@@ -758,7 +758,7 @@
                                                  <div class="email-reveal-wrapper">
                                                      <div class="d-flex align-items-center gap-2">
                                                          <span class="fullName">{{ $technician->name }}</span>
-                                                         <i class="bi bi-envelope-fill email-reveal-icon tooltipCus" data-title="{{ __('Mostrar correo') }}" data-user-id="{{ $technician->id }}"></i>
+                                                         <i class="bi bi-envelope-fill email-reveal-icon tooltipCus" data-title="{{ __('messages.Mostrar correo') }}" data-show-text="{{ __('messages.Mostrar correo') }}" data-hide-text="{{ __('messages.Ocultar correo') }}" data-user-id="{{ $technician->id }}"></i>
                                                      </div>
                                                      <div class="email-reveal-email"></div>
                                                  </div>

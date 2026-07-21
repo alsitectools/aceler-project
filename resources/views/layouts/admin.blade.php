@@ -986,7 +986,7 @@
             var $wrapper = $icon.closest('.email-reveal-wrapper');
             var $emailEl = $wrapper.find('.email-reveal-email');
             if ($emailEl.is(':visible')) {
-                $icon.attr('data-title', 'Mostrar correo');
+                $icon.attr('data-title', $icon.data('show-text'));
                 $emailEl.slideUp(200, function() {
                     $(this).text('');
                 });
@@ -998,7 +998,7 @@
             $.get('{{ url('/') }}/user/' + $icon.data('user-id') + '/email', function (res) {
                 $emailEl.text(res.email);
                 $emailEl.slideDown(200);
-                $icon.attr('data-title', 'Ocultar correo');
+                $icon.attr('data-title', $icon.data('hide-text'));
                 $icon.data('loading', false);
             }).fail(function () {
                 $icon.data('loading', false);

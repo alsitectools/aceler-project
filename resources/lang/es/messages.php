@@ -127,6 +127,6 @@ return [
     'Write_message'=>'Escribir comentario',
     'Submit'=> 'Enviar',
     'Milestone_Board'=> 'Tablón de encargos',
-    
-    
+    'Mostrar correo' => 'Mostrar correo',
+    'Ocultar correo' => 'Ocultar correo',
 ];

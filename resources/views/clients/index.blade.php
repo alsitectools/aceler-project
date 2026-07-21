@@ -43,7 +43,7 @@
                          <div class="email-reveal-wrapper">
                              <div class="d-flex align-items-center gap-2">
                                  <h4 class="mt-2">{{ $client->name }}</h4>
-                                 <i class="bi bi-envelope-fill email-reveal-icon tooltipCus" data-title="{{ __('Mostrar correo') }}" data-user-id="{{ $client->id }}"></i>
+                                 <i class="bi bi-envelope-fill email-reveal-icon tooltipCus" data-title="{{ __('messages.Mostrar correo') }}" data-show-text="{{ __('messages.Mostrar correo') }}" data-hide-text="{{ __('messages.Ocultar correo') }}" data-user-id="{{ $client->id }}"></i>
                              </div>
                              <small class="email-reveal-email"></small>
                          </div>
