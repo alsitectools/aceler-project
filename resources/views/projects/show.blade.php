@@ -403,9 +403,13 @@
         width: max-content;
     }
 
+
     .project-order-header-row {
        display: flex;
     position: sticky;
+    z-index: 2;
+        background: #f8f9fd;
+        border-bottom: 2px solid #f8f9fd;
     top: 0;
     width: max-content;
     min-width: 100%;
