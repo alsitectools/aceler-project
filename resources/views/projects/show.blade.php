@@ -401,6 +401,7 @@
         /* display: inline-block; */
         min-width: 100%;
         width: max-content;
+        zoom: 0.9;
     }
 
 
