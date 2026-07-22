@@ -460,16 +460,16 @@
         flex-shrink: 0;
     }
 
-    .project-order-th[data-col-key="name"] { flex: 3 0 180px; min-width: 150px; overflow: hidden; }
-    .project-order-td[data-col-key="name"] { flex: 3 0 180px; min-width: 150px; overflow: hidden; display: flex; align-items: center; }
+    .project-order-th[data-col-key="name"] { flex: 3; min-width: 150px; overflow: hidden; }
+    .project-order-td[data-col-key="name"] { flex: 3; min-width: 150px; overflow: hidden; display: flex; align-items: center; }
     .project-order-td[data-col-key="name"] h5 {
         max-width: 100%;
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
     }
-    .project-order-th[data-col-key="requested_by"] { flex: 1.5 0 100px; min-width: 85px; justify-content: center; }
-    .project-order-td[data-col-key="requested_by"] { flex: 1.5 0 100px; min-width: 85px; text-align: center; }
+    .project-order-th[data-col-key="requested_by"] { flex: 1.5; min-width: 85px; justify-content: center; }
+    .project-order-td[data-col-key="requested_by"] { flex: 1.5; min-width: 85px; text-align: center; }
     .project-order-th[data-col-key="assigned_to"] { flex: 1.5; min-width: 85px; justify-content: center; }
     .project-order-td[data-col-key="assigned_to"] { flex: 1.5; min-width: 85px; text-align: center; }
     .project-order-th[data-col-key="status"] { flex: 1.5; min-width: 95px; justify-content: center; text-align: center; }
