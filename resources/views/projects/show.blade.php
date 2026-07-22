@@ -404,7 +404,25 @@
         zoom: 0.9;
     }
 
+@media (max-width: 1920px) {
+    .project-order-table-inner { zoom: .90; }
+}
 
+@media (max-width: 1600px) {
+    .project-order-table-inner { zoom: .87; }
+}
+
+@media (max-width: 1440px) {
+    .project-order-table-inner { zoom: .82; }
+}
+
+@media (max-width: 1366px) {
+    .project-order-table-inner { zoom: .78; }
+}
+
+@media (max-width: 1280px) {
+    .project-order-table-inner { zoom: .74; }
+}
 
 
     .project-order-header-row {
