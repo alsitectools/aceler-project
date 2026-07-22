@@ -410,7 +410,7 @@
         z-index: 2;
         background: #f8f9fd;
         border-bottom: 2px solid #f8f9fd;
-        min-width: fit-content;
+        min-width: max-content;
         width: 100%;
         gap: 8px;
     }
