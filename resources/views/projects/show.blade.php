@@ -446,6 +446,8 @@
         transition: all .18s ease;
         gap: 8px;
         cursor: pointer;
+        width: max-content;
+        min-width: 100%;
     }
 
     .project-order-body-row:hover {
