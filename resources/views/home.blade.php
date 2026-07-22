@@ -206,11 +206,26 @@
         display: flex;
         align-items: center;
         justify-content: flex-start;
-        /* Ensure alignment */
         gap: 20px;
-        /* Add consistent spacing */
         padding: 16 15px;
-        /* Add padding for content separation */
+        position: relative;
+        padding-right: 32px;
+    }
+    .email-icon-fixed {
+        position: absolute;
+        /* top: 50%; */
+        right: 12px;
+        /* transform: translateY(-50%); */
+        font-size: 16px;
+        cursor: pointer;
+        color: #6c757d;
+        transition: color 0.2s, transform 0.2s;
+        line-height: 1;
+        z-index: 1;
+    }
+    .email-icon-fixed:hover {
+        color: #8f1425;
+        transform: scale(1.15);
     }
 
     .ppcontainer {
@@ -725,13 +740,17 @@
                                             </div>
                                             <div class="textContent">
                                                  <div class="email-reveal-wrapper">
-                                                     <div class="d-flex align-items-center gap-2">
-                                                         <span class="fullName">{{ $comercial->name }}</span>
-                                                         <i class="bi bi-envelope-fill email-reveal-icon tooltipCus" data-title="{{ __('messages.Mostrar correo') }}" data-show-text="{{ __('messages.Mostrar correo') }}" data-hide-text="{{ __('messages.Ocultar correo') }}" data-user-id="{{ $comercial->id }}"></i>
-                                                     </div>
-                                                     <div class="email-reveal-email"></div>
+                                                    <div class="d-flex align-items-center gap-2" style="justify-content: center">
+                                                        <span class="fullName">{{ $comercial->name }}</span>
+                                                    </div>
+                                                    <div class="email-reveal-email"></div>
                                                  </div>
                                             </div>
+                                            <i class="bi bi-envelope-fill email-reveal-icon tooltipCus email-icon-fixed"
+                                               data-title="{{ __('messages.Mostrar correo') }}"
+                                               data-show-text="{{ __('messages.Mostrar correo') }}"
+                                               data-hide-text="{{ __('messages.Ocultar correo') }}"
+                                               data-user-id="{{ $comercial->id }}"></i>
                                         </div>
                                     @endforEach
                                 </div>
@@ -756,13 +775,17 @@
                                             </div>
                                             <div class="textContent">
                                                  <div class="email-reveal-wrapper">
-                                                     <div class="d-flex align-items-center gap-2">
-                                                         <span class="fullName">{{ $technician->name }}</span>
-                                                         <i class="bi bi-envelope-fill email-reveal-icon tooltipCus" data-title="{{ __('messages.Mostrar correo') }}" data-show-text="{{ __('messages.Mostrar correo') }}" data-hide-text="{{ __('messages.Ocultar correo') }}" data-user-id="{{ $technician->id }}"></i>
-                                                     </div>
-                                                     <div class="email-reveal-email"></div>
+                                                    <div class="d-flex align-items-center gap-2" style="justify-content: center">
+                                                        <span class="fullName">{{ $technician->name }}</span>
+                                                    </div>
+                                                    <div class="email-reveal-email"></div>
                                                  </div>
                                             </div>
+                                            <i class="bi bi-envelope-fill email-reveal-icon tooltipCus email-icon-fixed"
+                                               data-title="{{ __('messages.Mostrar correo') }}"
+                                               data-show-text="{{ __('messages.Mostrar correo') }}"
+                                               data-hide-text="{{ __('messages.Ocultar correo') }}"
+                                               data-user-id="{{ $technician->id }}"></i>
                                         </div>
                                     @endforEach
 
@@ -822,7 +845,7 @@
         });
     </script>
     <script>
-        // all average data 
+        // all average data
         var averageTimes = @json($averageTimes);
         let selectedYear = document.getElementById('yearSelect').value;
         //updateChartData(averageTimes[selectedYear]); // Inicializa con el primer año

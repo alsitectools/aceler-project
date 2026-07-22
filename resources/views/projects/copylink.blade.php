@@ -265,8 +265,8 @@
                                                              <img class="fix_img"
                                                                  @if ($user->avatar) src="{{ asset($logo . $user->avatar) }}" @else avatar="{{ $user->name }}" @endif>
                                                              <!-- <img class="theme-avtar"
-                                                                                 @if (Auth::user()->avatar) src="{{ url('storage/app/public/' . Auth::user()->avatar) }}" 
-                                                                         @else 
+                                                                                 @if (Auth::user()->avatar) src="{{ url('storage/app/public/' . Auth::user()->avatar) }}"
+                                                                         @else
                                                                              avatar="{{ Auth::user()->name }}" @endif
                                                                                  alt="{{ Auth::user()->name }}"> -->
                                                          </a>

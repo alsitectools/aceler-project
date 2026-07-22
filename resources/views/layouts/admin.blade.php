@@ -956,7 +956,7 @@
             flex-direction: column;
         }
         .email-reveal-icon {
-            cursor: pointer; font-size: 22px; color: #6c757d; transition: color 0.2s, transform 0.2s;
+            cursor: pointer; font-size: 16px; color: #6c757d; transition: color 0.2s, transform 0.2s; padding-right:12px;
         }
         .email-reveal-icon:hover {
             color: #8f1425;
@@ -984,6 +984,9 @@
         $(document).on('click', '.email-reveal-icon', function () {
             var $icon = $(this);
             var $wrapper = $icon.closest('.email-reveal-wrapper');
+            if (!$wrapper.length) {
+                $wrapper = $icon.closest('.comercialAndTechnicians').find('.email-reveal-wrapper');
+            }
             var $emailEl = $wrapper.find('.email-reveal-email');
             if ($emailEl.is(':visible')) {
                 $icon.attr('data-title', $icon.data('show-text'));

@@ -327,7 +327,7 @@
                             <div class="card-header">
                                 <div class="float-end">
                                     <button class="btn-submit btn btn-md btn-primary btn-icon px-1 py-0 "
-                                        style="height: 19.7px;">
+                                        style="height: 19.7px; margin-top:2px">
                                         <span class="badge badge-secondary rounded-pill count">
                                             {{ isset($milestones[$status->id]) ? count($milestones[$status->id]) : 0 }}
                                         </span>
