@@ -401,8 +401,10 @@
         /* display: inline-block; */
         min-width: 100%;
         width: max-content;
-        zoom: 0.9;
+        /* zoom: 0.9; */
     }
+
+
 
 
     .project-order-header-row {
@@ -471,22 +473,22 @@
         text-overflow: ellipsis;
         white-space: nowrap;
     }
-    .project-order-th[data-col-key="requested_by"] { flex: 1.5; min-width: 85px; justify-content: center; }
-    .project-order-td[data-col-key="requested_by"] { flex: 1.5; min-width: 85px; text-align: center; }
-    .project-order-th[data-col-key="assigned_to"] { flex: 1.5; min-width: 85px; justify-content: center; }
-    .project-order-td[data-col-key="assigned_to"] { flex: 1.5; min-width: 85px; text-align: center; }
-    .project-order-th[data-col-key="status"] { flex: 1.5; min-width: 95px; justify-content: center; text-align: center; }
-    .project-order-td[data-col-key="status"] { flex: 1.5; min-width: 95px; text-align: center; }
-    .project-order-th[data-col-key="created"] { flex: 1.5; min-width: 85px; justify-content: center; text-align: center; }
-    .project-order-td[data-col-key="created"] { flex: 1.5; min-width: 85px; justify-content: center; text-align: center; display: flex; align-items: center; }
-    .project-order-th[data-col-key="desired_delivery"] { flex: 1.5; min-width: 85px; justify-content: center; text-align: center; }
-    .project-order-td[data-col-key="desired_delivery"] { flex: 1.5; min-width: 85px; justify-content: center; text-align: center; display: flex; align-items: center; }
-    .project-order-th[data-col-key="expected_delivery"] { flex: 1.5; min-width: 85px; justify-content: center; text-align: center; }
-    .project-order-td[data-col-key="expected_delivery"] { flex: 1.5; min-width: 85px; justify-content: center; text-align: center; display: flex; align-items: center; }
-    .project-order-th[data-col-key="task_started"] { flex: 1.5; min-width: 85px; justify-content: center; text-align: center; }
-    .project-order-td[data-col-key="task_started"] { flex: 1.5; min-width: 85px; justify-content: center; text-align: center; display: flex; align-items: center; }
-    .project-order-th[data-col-key="completion"] { flex: 1.5; min-width: 85px; justify-content: center; text-align: center; }
-    .project-order-td[data-col-key="completion"] { flex: 1.5; min-width: 85px; justify-content: center; text-align: center; display: flex; align-items: center; }
+    .project-order-th[data-col-key="requested_by"] { flex: 1.5; min-width: 70px; justify-content: center; }
+    .project-order-td[data-col-key="requested_by"] { flex: 1.5; min-width: 70px; text-align: center; }
+    .project-order-th[data-col-key="assigned_to"] { flex: 1.5; min-width: 70px; justify-content: center; }
+    .project-order-td[data-col-key="assigned_to"] { flex: 1.5; min-width: 70px; text-align: center; }
+    .project-order-th[data-col-key="status"] { flex: 1.5; min-width: 80px; justify-content: center; text-align: center; }
+    .project-order-td[data-col-key="status"] { flex: 1.5; min-width: 80px; text-align: center; }
+    .project-order-th[data-col-key="created"] { flex: 1.5; min-width: 75px; justify-content: center; text-align: center; }
+    .project-order-td[data-col-key="created"] { flex: 1.5; min-width: 75px; justify-content: center; text-align: center; display: flex; align-items: center; }
+    .project-order-th[data-col-key="desired_delivery"] { flex: 1.5; min-width: 75px; justify-content: center; text-align: center; }
+    .project-order-td[data-col-key="desired_delivery"] { flex: 1.5; min-width: 75px; justify-content: center; text-align: center; display: flex; align-items: center; }
+    .project-order-th[data-col-key="expected_delivery"] { flex: 1.5; min-width: 75px; justify-content: center; text-align: center; }
+    .project-order-td[data-col-key="expected_delivery"] { flex: 1.5; min-width: 75px; justify-content: center; text-align: center; display: flex; align-items: center; }
+    .project-order-th[data-col-key="task_started"] { flex: 1.5; min-width: 75px; justify-content: center; text-align: center; }
+    .project-order-td[data-col-key="task_started"] { flex: 1.5; min-width: 75px; justify-content: center; text-align: center; display: flex; align-items: center; }
+    .project-order-th[data-col-key="completion"] { flex: 1.5; min-width: 75px; justify-content: center; text-align: center; }
+    .project-order-td[data-col-key="completion"] { flex: 1.5; min-width: 75px; justify-content: center; text-align: center; display: flex; align-items: center; }
     .project-order-th[data-col-key="action"],
     .project-order-td[data-col-key="action"] { flex: 0.8; min-width: 95px; display: flex; align-items: center; justify-content: center; gap: 6px; }
 
