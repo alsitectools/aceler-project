@@ -409,15 +409,15 @@
 }
 
 @media (max-width: 1600px) {
-    .project-order-table-inner { zoom: .87; }
+    .project-order-table-inner { zoom: .85; }
 }
 
 @media (max-width: 1440px) {
-    .project-order-table-inner { zoom: .82; }
+    .project-order-table-inner { zoom: .80; }
 }
 
 @media (max-width: 1366px) {
-    .project-order-table-inner { zoom: .78; }
+    .project-order-table-inner { zoom: .75; }
 }
 
 @media (max-width: 1280px) {
