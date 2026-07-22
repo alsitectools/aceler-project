@@ -404,15 +404,12 @@
     }
 
     .project-order-header-row {
-        display: flex;
-        position: sticky;
-        top: 0;
-        z-index: 2;
-        background: #f8f9fd;
-        border-bottom: 2px solid #f8f9fd;
-        min-width: max-content;
-        width: 100%;
-        gap: 8px;
+       display: flex;
+    position: sticky;
+    top: 0;
+    width: max-content;
+    min-width: 100%;
+    gap: 8px;
     }
 
     .project-order-th {
