@@ -18,76 +18,26 @@
     $logo_project_files = \App\Models\Utility::get_file('project_files/');
 @endphp
 
+@section('multiple-action-button')
+    @if (isset($currentWorkspace) && $currentWorkspace->permission == 'Owner')
+        <div class="col-md-auto col-sm-4 pb-3">
+            <a href="#" class="btn btn-xs btn-primary btn-icon-only col-12" data-toggle="popover"
+                title="{{ trans('messages.Shared_Project_Settings') }}" data-ajax-popup="true" data-size="md"
+                data-title="{{ trans('messages.Shared_Project_Settings') }}"
+                data-url="{{ route('projects.copylink.setting.create', [$currentWorkspace->slug, $project->id]) }}"
+                data-toggle="tooltip" title="{{ __('Add Project') }}">
+                <i class="ti ti-settings"></i>
+            </a>
+        </div>
+    @endif
+@endsection
+
 <style type="text/css">
     .lastBreadCrumb {
-        /* background-color: #AA182C !important; */
-        /* width: 80%; */
         max-width: 700px;
         overflow: hidden;
         text-wrap: nowrap;
         text-overflow: ellipsis;
-    }
-
-    .fix_img {
-        width: 40px !important;
-        border-radius: 50%;
-    }
-
-    .buttonCenterText {
-        padding-top: 7px !important;
-    }
-
-    .min-h {
-        min-height: 180px;
-    }
-
-    .min-end {
-        min-height: 300px;
-    }
-
-    .projectTitleH3 {
-        text-align: center;
-        font-size: 28px;
-    }
-
-    .projectDivSubtitle {
-        display: flex;
-        justify-content: space-evenly;
-        align-items: center;
-        color: white;
-        margin-bottom: 10px;
-    }
-
-    .uploaded-files-container {
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 10px;
-        overflow-y: auto;
-        overflow-x: hidden;
-    }
-
-    .uploaded-file {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        padding: 5px;
-        border: 1px solid #ddd;
-        border-radius: 5px;
-        background-color: #f9f9f9;
-        min-width: 100px;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-        width: 95%
-    }
-
-    .uploaded-file p {
-        margin: 0;
-        font-size: 14px;
-        flex-grow: 1;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
     }
 
     .uploaded-file-buttons {
@@ -114,12 +64,7 @@
         border-color: #b9515f;
     }
 
-    .plusIcon {
-        margin-left: 10px;
-    }
-
     .fatherMilestoneDiv {
-        /* max-height: 140px; */
         overflow-y: auto;
         overflow-x: hidden;
         display: flex;
@@ -206,59 +151,6 @@
         transform: scale(1.08);
     }
 
-    @media (max-width: 1300px) {
-        .header_breadcrumb {
-            width: 100% !important;
-        }
-
-        .row1 {
-            display: flex;
-            flex-wrap: wrap;
-        }
-    }
-
-    @media screen and (max-width:1200px) and (min-width:1000px) {
-        .widthAdjustDiv {
-            width: 99% !important;
-        }
-
-        .widthAdjustMediumDiv {
-            width: 49%;
-        }
-
-        .uploaded-files-container {
-            gap: 5px;
-        }
-
-        .uploaded-file {
-            width: 92%;
-        }
-
-        .last_notification_text {
-            padding: 0 0 0 5px !important;
-        }
-
-        .last_notification_text p {
-            margin-right: 10px !important;
-            font-size: 9px !important;
-        }
-    }
-</style>
-@section('multiple-action-button')
-    @if (isset($currentWorkspace) && $currentWorkspace->permission == 'Owner')
-        <div class="col-md-auto col-sm-4 pb-3">
-            <a href="#" class="btn btn-xs btn-primary btn-icon-only col-12" data-toggle="popover"
-                title="{{ trans('messages.Shared_Project_Settings') }}" data-ajax-popup="true" data-size="md"
-                data-title="{{ trans('messages.Shared_Project_Settings') }}"
-                data-url="{{ route('projects.copylink.setting.create', [$currentWorkspace->slug, $project->id]) }}"
-                data-toggle="tooltip" title="{{ __('Add Project') }}">
-                <i class="ti ti-settings"></i>
-            </a>
-        </div>
-    @endif
-@endsection
-
-<style type="text/css">
     .reqByImgContainer {
         display: flex;
         justify-content: center;
@@ -506,11 +398,9 @@
     }
 
     .project-order-table-inner {
-        /* width: fit-content;
-        min-width: 100%; */
-          display: inline-block;
-    min-width: 100%;
-    width: max-content;
+        display: inline-block;
+        min-width: 100%;
+        width: max-content;
     }
 
     .project-order-header-row {
@@ -553,7 +443,7 @@
         border-radius: 12px;
         background: #ffffff;
         transition: all .18s ease;
-        gap: 3px;
+        gap: 8px;
         cursor: pointer;
     }
 
@@ -1104,124 +994,6 @@
     .projectSubnav--header .projectSubnavItem:focus-visible {
         outline-color: rgba(255, 255, 255, 0.45);
     }
-
-    /* Text ellipsis para columna Name cuando excede 30 caracteres */
-    .col-name h5 {
-        max-width: 350px;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-    }
-
-    .project-order-table-shell {
-        border-radius: 14px;
-        padding: 0 10px 10px;
-        max-height: 41vh;
-        overflow: auto;
-        width: 100%;
-    }
-
-    /* .project-order-table-inner {
-        width: fit-content;
-        min-width: 100%;
-    } */
-
-    .project-order-header-row {
-        display: flex;
-        position: sticky;
-        top: 0;
-        z-index: 2;
-        background: #f8f9fd;
-        border-bottom: 2px solid #f8f9fd;
-        min-width: fit-content;
-        width: 100%;
-        gap: 8px;
-    }
-
-    .project-order-th {
-        display: flex;
-        align-items: center;
-        gap: 3px;
-        padding: 16px 8px;
-        font-size: 12px;
-        font-weight: 700;
-        text-transform: uppercase;
-        letter-spacing: .06em;
-        color: #000000;
-        white-space: nowrap;
-        flex-shrink: 0;
-    }
-
-    .project-order-body-rows {
-        display: flex;
-        flex-direction: column;
-        gap: 8px;
-        padding-top: 12px;
-        width: 100%;
-    }
-
-    .project-order-body-row {
-        display: flex;
-        border: 1px solid #f0dde2;
-        border-radius: 12px;
-        background: #ffffff;
-        transition: all .18s ease;
-        gap: 8px;
-        cursor: pointer;
-    }
-
-    .project-order-body-row:hover {
-        border-color: #b6122e;
-        background: #fff0f4;
-        color: #7b1528;
-        transform: translateY(-1px);
-    }
-
-    .project-order-td {
-        padding: 12px 8px;
-        flex-shrink: 0;
-    }
-
-    .project-order-th[data-col-key="name"] { flex: 3; min-width: 150px; overflow: hidden; }
-    .project-order-td[data-col-key="name"] { flex: 3; min-width: 150px; overflow: hidden; display: flex; align-items: center; }
-    .project-order-td[data-col-key="name"] h5 {
-        max-width: 100%;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-    }
-
-    .project-order-th[data-col-key="requested_by"] { flex: 1.5; min-width: 85px; justify-content: center; }
-    .project-order-td[data-col-key="requested_by"] { flex: 1.5; min-width: 85px; text-align: center; }
-
-    .project-order-th[data-col-key="assigned_to"] { flex: 1.5; min-width: 85px; justify-content: center; }
-    .project-order-td[data-col-key="assigned_to"] { flex: 1.5; min-width: 85px; text-align: center; }
-
-    .project-order-th[data-col-key="status"] { flex: 1.5; min-width: 95px; justify-content: center; text-align: center; }
-    .project-order-td[data-col-key="status"] { flex: 1.5; min-width: 95px; text-align: center; }
-
-    .project-order-th[data-col-key="created"] { flex: 1.5; min-width: 85px; justify-content: center; text-align: center; }
-    .project-order-td[data-col-key="created"] { flex: 1.5; min-width: 85px; justify-content: center; text-align: center; display: flex; align-items: center; }
-    .project-order-th[data-col-key="desired_delivery"] { flex: 1.5; min-width: 85px; justify-content: center; text-align: center; }
-    .project-order-td[data-col-key="desired_delivery"] { flex: 1.5; min-width: 85px; justify-content: center; text-align: center; display: flex; align-items: center; }
-    .project-order-th[data-col-key="expected_delivery"] { flex: 1.5; min-width: 85px; justify-content: center; text-align: center; }
-    .project-order-td[data-col-key="expected_delivery"] { flex: 1.5; min-width: 85px; justify-content: center; text-align: center; display: flex; align-items: center; }
-    .project-order-th[data-col-key="task_started"] { flex: 1.5; min-width: 85px; justify-content: center; text-align: center; }
-    .project-order-td[data-col-key="task_started"] { flex: 1.5; min-width: 85px; justify-content: center; text-align: center; display: flex; align-items: center; }
-    .project-order-th[data-col-key="completion"] { flex: 1.5; min-width: 85px; justify-content: center; text-align: center; }
-    .project-order-td[data-col-key="completion"] { flex: 1.5; min-width: 85px; justify-content: center; text-align: center; display: flex; align-items: center; }
-
-    .project-order-th[data-col-key="action"],
-    .project-order-td[data-col-key="action"] { flex: 0.8; min-width: 95px; display: flex; align-items: center; justify-content: center; gap: 6px; }
-
-    .project-order-th[data-col-key="created"],
-    .project-order-th[data-col-key="desired_delivery"],
-    .project-order-th[data-col-key="expected_delivery"],
-    .project-order-th[data-col-key="task_started"],
-    .project-order-th[data-col-key="completion"] {
-        position: relative;
-    }
-
 
 </style>
 @section('content')
