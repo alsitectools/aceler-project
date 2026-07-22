@@ -405,19 +405,19 @@
     }
 
 @media (max-width: 1920px) {
-    .project-order-table-inner { zoom: .90; }
-}
-
-@media (max-width: 1600px) {
     .project-order-table-inner { zoom: .85; }
 }
 
-@media (max-width: 1440px) {
+@media (max-width: 1600px) {
     .project-order-table-inner { zoom: .80; }
 }
 
-@media (max-width: 1366px) {
+@media (max-width: 1440px) {
     .project-order-table-inner { zoom: .75; }
+}
+
+@media (max-width: 1366px) {
+    .project-order-table-inner { zoom: .70; }
 }
 
 @media (max-width: 1280px) {
