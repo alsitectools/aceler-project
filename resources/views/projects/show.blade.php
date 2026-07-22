@@ -506,8 +506,11 @@
     }
 
     .project-order-table-inner {
-        width: fit-content;
-        min-width: 100%;
+        /* width: fit-content;
+        min-width: 100%; */
+          display: inline-block;
+    min-width: 100%;
+    width: max-content;
     }
 
     .project-order-header-row {
@@ -1118,10 +1121,10 @@
         width: 100%;
     }
 
-    .project-order-table-inner {
+    /* .project-order-table-inner {
         width: fit-content;
         min-width: 100%;
-    }
+    } */
 
     .project-order-header-row {
         display: flex;
@@ -1163,7 +1166,7 @@
         border-radius: 12px;
         background: #ffffff;
         transition: all .18s ease;
-        gap: 3px;
+        gap: 8px;
         cursor: pointer;
     }
 
@@ -1794,7 +1797,7 @@
                                                                  <div>
                                                                  <a href="#" class=" text-start">
                                                                      <img class="fix_img"
-                                                                         @if ($user->avatar) src="{{ asset($user->avatar) }}" 
+                                                                         @if ($user->avatar) src="{{ asset($user->avatar) }}"
                                                  @else avatar="{{ $user->name }}" @endif>
                                                                  </a>
                                                                  </div>
@@ -2329,7 +2332,7 @@
                     @foreach ($chartData['stages'] as $id => $name)
                         {
                             name: "{{ __($name) }}",
-                            // data: 
+                            // data:
                             data: {!! json_encode($chartData[$id]) !!},
                         },
                     @endforeach
