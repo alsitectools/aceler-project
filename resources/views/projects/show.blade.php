@@ -398,22 +398,22 @@
     }
 
     .project-order-table-inner {
-        display: inline-block;
+        /* display: inline-block; */
         min-width: 100%;
         width: max-content;
     }
 
 
     .project-order-header-row {
-       display: flex;
-    position: sticky;
-    z-index: 2;
+        display: flex;
+        position: sticky;
+        z-index: 2;
         background: #f8f9fd;
         border-bottom: 2px solid #f8f9fd;
-    top: 0;
-    width: max-content;
-    min-width: 100%;
-    gap: 8px;
+        top: 0;
+        width: max-content;
+        min-width: 100%;
+        gap: 8px;
     }
 
     .project-order-th {
