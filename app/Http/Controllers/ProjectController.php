@@ -4772,7 +4772,7 @@ MilestoneFile::create([
             return optional($task->customTask)->name ?: __('Custom');
         }
 
-        return $taskTypeName ?: __('N/A');
+        return $taskTypeName ? __($taskTypeName) : __('N/A');
     }
 
 
@@ -5025,7 +5025,7 @@ MilestoneFile::create([
                     : ($taskTypeName ?: __('N/A'));
 
                 $tasksByProject[$projectId][] = [
-                    'name' => $displayTypeName,
+                    'name' => __($displayTypeName),
                     'milestone' => optional($taskModel->milestone)->title ?: __('N/A'),
                     'start_date' => $taskModel->start_date ? Carbon::parse($taskModel->start_date)->format('d/m/Y') : __('N/A'),
                     'estimated_date' => $taskModel->estimated_date ? Carbon::parse($taskModel->estimated_date)->format('d/m/Y') : __('N/A'),

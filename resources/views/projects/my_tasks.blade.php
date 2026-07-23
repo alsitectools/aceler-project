@@ -218,15 +218,19 @@
         }
 
         .my-tasks-card .card-body {
-            padding: 12px 0 36px;
+            padding: 12px 0 48px;
         }
 
         .my-tasks-table-shell {
             border-radius: 14px;
-            padding: 0 10px 4px;
+            padding: 0 36px 4px;
+            width: 100%;
+        }
+
+        .my-tasks-table-scroll {
             max-height: 350px;
             overflow: auto;
-            width: 100%;
+            scrollbar-gutter: stable;
         }
 
         .my-tasks-table-inner {
@@ -287,7 +291,7 @@
             display: flex;
             flex-direction: column;
             gap: 8px;
-            padding-top: 20px;
+            padding-top: 12px;
             width: 100%;
         }
 
@@ -982,6 +986,7 @@
                             </div>
                         @else
                             <div class="my-tasks-table-shell">
+                                <div class="my-tasks-table-scroll">
                                 <div class="my-tasks-table-inner">
                                     <div class="my-tasks-header-row">
                                         <div class="my-tasks-th" data-col-key="project">
@@ -1052,7 +1057,7 @@
                                                 $isCustomType = strtolower(trim((string) $taskTypeName)) === 'custom';
                                                 $displayTypeName = $isCustomType
                                                     ? (optional($task->customTask)->name ?: __('Custom'))
-                                                    : ($taskTypeName ?: __('N/A'));
+                                                    : ($taskTypeName ? __($taskTypeName) : __('N/A'));
 
                                                 $estimatedDate = !empty($task->estimated_date)
                                                     ? \Carbon\Carbon::parse($task->estimated_date)
@@ -1126,6 +1131,7 @@
                                     </div>
                                 </div>
                             </div>
+                        </div>
                         @endif
                         </div>
                     </div>
