@@ -886,8 +886,8 @@
                             <img class="my-tasks-help-icon" id="taskOverviewHelpIcon" src="{{ asset('assets/img/questionCircle.svg') }}"
                                 alt="{{ __('Task Overview info') }}" title="{{ __('Task Overview info') }}" />
                             <div class="my-tasks-help-popup" id="taskOverviewHelpPopup">
-                                <p>En <strong>Diagram View</strong>, las tareas que se muestran respetan la fecha de creacion de la tarea.</p>
-                                <p><strong>N/A</strong> significa que no hay ningun valor para dicho campo.</p>
+                                <p>{!! __('In <strong>Diagram View</strong>, the tasks shown respect the task\'s creation date.') !!}</p>
+                                <p>{!! __('<strong>N/A</strong> means there is no value for that field.') !!}</p>
                             </div>
                         </div>
                         <p>{{ __('Quick view of your assigned work and upcoming delivery dates.') }}</p>
