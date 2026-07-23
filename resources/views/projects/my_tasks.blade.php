@@ -846,34 +846,11 @@
         $taskCollection = $tasks ?? collect();
         $today = \Carbon\Carbon::today();
         $weekEnd = \Carbon\Carbon::today()->copy()->addDays(7);
-        $projectTypesWithStageAndPhase = [3, 5];
-        $notApplicableStagePhaseText = __('Not required');
         $naText = __('N/A');
-        $showStageColumn = $taskCollection->contains(function ($task) use ($projectTypesWithStageAndPhase, $notApplicableStagePhaseText, $naText) {
-            $supportsStageAndPhase = in_array((int) optional($task->project)->type, $projectTypesWithStageAndPhase, true);
-            $resolvedStageName = optional($task->milestone)->resolved_stage_name;
-            $stageName = $supportsStageAndPhase
-                ? ($resolvedStageName ?: $naText)
-                : $notApplicableStagePhaseText;
-
-            return $stageName !== $notApplicableStagePhaseText;
-        });
-        $showPhaseColumn = $taskCollection->contains(function ($task) use ($projectTypesWithStageAndPhase, $notApplicableStagePhaseText, $naText) {
-            $supportsStageAndPhase = in_array((int) optional($task->project)->type, $projectTypesWithStageAndPhase, true);
-            $phaseValue = optional(optional($task->milestone)->phase)->phases;
-            $phaseName = $supportsStageAndPhase
-                ? ($phaseValue ? __(\App\Models\MilestonePhases::translationKey($phaseValue)) : $naText)
-                : $notApplicableStagePhaseText;
-
-            return $phaseName !== $notApplicableStagePhaseText;
-        });
-        $visibleOptionalColumns = (int) $showStageColumn + (int) $showPhaseColumn;
-        $stageColumnIndex = $showStageColumn ? 2 : null;
-        $phaseColumnIndex = $showPhaseColumn ? 2 + ((int) $showStageColumn) : null;
-        $taskColumnIndex = 2 + $visibleOptionalColumns;
-        $startDateColumnIndex = 3 + $visibleOptionalColumns;
-        $estimatedDateColumnIndex = 4 + $visibleOptionalColumns;
-        $finalizationDateColumnIndex = 5 + $visibleOptionalColumns;
+        $taskColumnIndex = 2;
+        $startDateColumnIndex = 3;
+        $estimatedDateColumnIndex = 4;
+        $finalizationDateColumnIndex = 5;
     @endphp
 
     <section class="section">
@@ -970,30 +947,6 @@
                                                     </button>
                                                 </div>
                                             </th>
-                                            @if ($showStageColumn)
-                                            <th>
-                                                <div class="my-tasks-th-content">
-                                                    <span>{{ __('Stage') }}</span>
-                                                    <button type="button" class="my-tasks-filter-btn" data-filter-key="stage" data-filter-label="{{ __('Stage') }}" data-column-index="{{ $stageColumnIndex }}" aria-label="{{ __('Filter Stage') }}">
-                                                        <svg class="my-tasks-filter-icon" viewBox="0 0 16 16" aria-hidden="true">
-                                                            <path d="M2 3.25A1.25 1.25 0 0 1 3.25 2h9.5A1.25 1.25 0 0 1 14 3.25c0 .3-.11.6-.31.82L9.5 8.45v3.3a1 1 0 0 1-.55.9l-2 1A1 1 0 0 1 5.5 12.75V8.45L2.31 4.07A1.25 1.25 0 0 1 2 3.25Z"></path>
-                                                        </svg>
-                                                    </button>
-                                                </div>
-                                            </th>
-                                            @endif
-                                            @if ($showPhaseColumn)
-                                            <th>
-                                                <div class="my-tasks-th-content">
-                                                    <span>{{ __('Phase') }}</span>
-                                                    <button type="button" class="my-tasks-filter-btn" data-filter-key="phase" data-filter-label="{{ __('Phase') }}" data-column-index="{{ $phaseColumnIndex }}" aria-label="{{ __('Filter Phase') }}">
-                                                        <svg class="my-tasks-filter-icon" viewBox="0 0 16 16" aria-hidden="true">
-                                                            <path d="M2 3.25A1.25 1.25 0 0 1 3.25 2h9.5A1.25 1.25 0 0 1 14 3.25c0 .3-.11.6-.31.82L9.5 8.45v3.3a1 1 0 0 1-.55.9l-2 1A1 1 0 0 1 5.5 12.75V8.45L2.31 4.07A1.25 1.25 0 0 1 2 3.25Z"></path>
-                                                        </svg>
-                                                    </button>
-                                                </div>
-                                            </th>
-                                            @endif
                                             <th>
                                                 <div class="my-tasks-th-content">
                                                     <span>{{ __('Task') }}</span>
@@ -1060,17 +1013,6 @@
                                                         : ' overdue';
                                                 }
 
-                                                $projectTypeId = (int) optional($task->project)->type;
-                                                $supportsStageAndPhase = in_array($projectTypeId, $projectTypesWithStageAndPhase, true);
-                                                $resolvedStageName = optional($task->milestone)->resolved_stage_name;
-                                                $stageName = $supportsStageAndPhase
-                                                    ? ($resolvedStageName ?: __('N/A'))
-                                                    : $notApplicableStagePhaseText;
-                                                $phaseValue = optional(optional($task->milestone)->phase)->phases;
-                                                $phaseName = $supportsStageAndPhase
-                                                    ? ($phaseValue ? __(\App\Models\MilestonePhases::translationKey($phaseValue)) : __('N/A'))
-                                                    : $notApplicableStagePhaseText;
-
                                                 $projectName = optional($task->project)->name ?: $naText;
                                                 $milestoneTitle = optional($task->milestone)->title ?: $naText;
                                                 $startDateText = $task->start_date ? \Carbon\Carbon::parse($task->start_date)->format('d/m/Y') : $naText;
@@ -1078,17 +1020,10 @@
                                                 $finalizationDateText = $task->end_date ? \Carbon\Carbon::parse($task->end_date)->format('d/m/Y') : $naText;
 
                                                 $placeholderClass = 'my-tasks-placeholder';
-                                                $notRequiredClass = 'my-tasks-placeholder my-tasks-placeholder--not-required';
 
                                                 $projectClass = $projectName === $naText ? $placeholderClass : '';
                                                 $milestoneClass = $milestoneTitle === $naText ? $placeholderClass : '';
                                                 $taskTypeClass = $displayTypeName === $naText ? $placeholderClass : 'my-tasks-main';
-                                                $stageClass = $stageName === $notApplicableStagePhaseText
-                                                    ? $notRequiredClass
-                                                    : ($stageName === $naText ? $placeholderClass : 'my-tasks-main');
-                                                $phaseClass = $phaseName === $notApplicableStagePhaseText
-                                                    ? $notRequiredClass
-                                                    : ($phaseName === $naText ? $placeholderClass : 'my-tasks-main');
                                                 $startDateClass = $startDateText === $naText ? $placeholderClass : 'task-date';
                                                 $estimatedDateClass = $estimatedDateText === $naText ? $placeholderClass : 'task-date';
                                                 $finalizationRenderClass = $finalizationDateText === $naText ? $placeholderClass : $finalizationDateClass;
@@ -1112,16 +1047,6 @@
                                                 <td>
                                                     <div class="my-tasks-main my-tasks-truncate-milestone {{ $milestoneClass }}" title="{{ $milestoneTitle }}">{{ $milestoneTitle }}</div>
                                                 </td>
-                                                @if ($showStageColumn)
-                                                    <td>
-                                                        <span class="{{ $stageClass }}">{{ $stageName }}</span>
-                                                    </td>
-                                                @endif
-                                                @if ($showPhaseColumn)
-                                                    <td>
-                                                        <span class="{{ $phaseClass }}">{{ $phaseName }}</span>
-                                                    </td>
-                                                @endif
                                                 <td>
                                                     <div class="my-tasks-truncate-task" title="{{ $displayTypeName }}">
                                                         <span class="{{ $taskTypeClass }}">{{ $displayTypeName }}</span>
