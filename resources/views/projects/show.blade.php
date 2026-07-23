@@ -486,7 +486,6 @@
     .project-order-th[data-col-key="name"] { flex: 3; min-width: 150px; overflow: hidden; }
     .project-order-td[data-col-key="name"] { flex: 3; min-width: 150px; overflow: hidden; display: flex; align-items: center; }
     .project-order-td[data-col-key="name"] h5 {
-        max-width: 100%;
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
@@ -1019,6 +1018,9 @@
         outline-color: rgba(255, 255, 255, 0.45);
     }
 
+    .project-order-body-row:has(> [data-col-key]:first-child[style*="display: none"]) {
+        display: none !important;
+    }
 </style>
 @section('content')
     <div class="row">
@@ -1395,10 +1397,8 @@
                                                     data-completion-date="{{ !empty($milestone->finalization_date) && $milestone->finalization_date !== '0000-00-00' ? \Carbon\Carbon::parse($milestone->finalization_date)->format('Y-m-d') : '' }}">
                                                     <div class="project-order-td" data-col-key="name"
                                                         data-filter-value="{{ trim($milestone->title ?? '') !== '' ? trim($milestone->title) : __('N/A') }}">
-                                                        <span class="d-block font-weight-500 mb-0">
-                                                            <h5 class="m-0" title="{{ $milestone->title }}">
-                                                                {{ $milestone->title }} </h5>
-                                                        </span>
+                                                        <h5 class="m-0" title="{{ $milestone->title }}" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
+                                                            {{ $milestone->title }} </h5>
                                                     </div>
                                                     <div class="project-order-td" data-col-key="requested_by"
                                                         data-filter-value="{{ trim(optional($milestone->getRequestedBy())->name ?? '') !== '' ? trim(optional($milestone->getRequestedBy())->name) : __('N/A') }}">
@@ -2578,6 +2578,7 @@
                 });
 
                 updateColumnToggleSummary();
+                applyFilters();
             }
 
             function renderColumnMenu() {
