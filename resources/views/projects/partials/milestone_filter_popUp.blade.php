@@ -1317,6 +1317,37 @@
         window.milestoneBoardFilters = filtersState;
         window.milestoneBoardShowCompleted = filtersState.showCompleted;
 
+        window.addEventListener('beforeunload', function() {
+            localStorage.setItem('milestoneBoardFilters', JSON.stringify({
+                hideUnassigned: filtersState.hideUnassigned,
+                showAll: filtersState.showAll,
+                showCompleted: filtersState.showCompleted,
+                selectedPriorities: filtersState.selectedPriorities,
+                selectedProjectTypes: filtersState.selectedProjectTypes,
+                selectedProjects: filtersState.selectedProjects,
+                selectedWorkspaces: filtersState.selectedWorkspaces,
+                selectedRequestedBy: filtersState.selectedRequestedBy,
+                selectedAssignedTo: filtersState.selectedAssignedTo,
+                selectedAssignedToNone: filtersState.selectedAssignedToNone,
+                dateField: filtersState.dateField,
+                dateFrom: filtersState.dateFrom,
+                dateTo: filtersState.dateTo,
+            }));
+        });
+
+        var savedFilters = localStorage.getItem('milestoneBoardFilters');
+        if (savedFilters) {
+            try {
+                var parsed = JSON.parse(savedFilters);
+                Object.keys(parsed).forEach(function(key) {
+                    if (key in filtersState) {
+                        filtersState[key] = parsed[key];
+                    }
+                });
+            } catch(e) {}
+            localStorage.removeItem('milestoneBoardFilters');
+        }
+
         function syncBinaryFiltersUi() {
             if (hasCompletedFilter) {
                 showCompletedProjectsYes.checked = !!filtersState.showCompleted;
@@ -3680,6 +3711,11 @@
             assignedToNoneCheckbox.checked = !!filtersState.selectedAssignedToNone;
         }
         syncBinaryFiltersUi();
+        if (priorityFilterCheckboxes.length) {
+            priorityFilterCheckboxes.forEach(function(cb) {
+                cb.checked = filtersState.selectedPriorities.includes(cb.value);
+            });
+        }
         applyMilestoneFilters();
     });
 </script>
