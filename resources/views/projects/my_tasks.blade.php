@@ -337,17 +337,23 @@
         .my-tasks-th[data-col-key="milestone"],
         .my-tasks-td[data-col-key="milestone"] { flex: 3; min-width: 150px; overflow: hidden; display: flex; align-items: center; }
 
+        .my-tasks-th[data-col-key="stage"],
+        .my-tasks-td[data-col-key="stage"] { flex: 1.5; min-width: 95px; display: flex; align-items: center; }
+
+        .my-tasks-th[data-col-key="phase"],
+        .my-tasks-td[data-col-key="phase"] { flex: 1.5; min-width: 95px; display: flex; align-items: center; }
+
         .my-tasks-th[data-col-key="task"],
-        .my-tasks-td[data-col-key="task"] { flex: 3; min-width: 150px; overflow: hidden; display: flex; align-items: center; }
+        .my-tasks-td[data-col-key="task"] { flex: none; width: 100px; min-width: 100px; overflow: hidden; display: flex; align-items: center; }
 
         .my-tasks-th[data-col-key="start_date"],
-        .my-tasks-td[data-col-key="start_date"] { flex: 1.5; min-width: 95px; justify-content: center; text-align: center; display: flex; align-items: center; }
+        .my-tasks-td[data-col-key="start_date"] { flex: 1.5; min-width: 95px; display: flex; align-items: center; }
 
         .my-tasks-th[data-col-key="estimated_date"],
-        .my-tasks-td[data-col-key="estimated_date"] { flex: 1.5; min-width: 95px; justify-content: center; text-align: center; display: flex; align-items: center; }
+        .my-tasks-td[data-col-key="estimated_date"] { flex: 1.5; min-width: 95px; display: flex; align-items: center; }
 
         .my-tasks-th[data-col-key="finalization_date"],
-        .my-tasks-td[data-col-key="finalization_date"] { flex: 1.5; min-width: 95px; justify-content: center; text-align: center; display: flex; align-items: center; }
+        .my-tasks-td[data-col-key="finalization_date"] { flex: 1.5; min-width: 95px; display: flex; align-items: center; }
 
         .my-tasks-filter-btn {
             width: 24px;
@@ -634,7 +640,7 @@
         .my-tasks-truncate-milestone,
         .my-tasks-truncate-task {
             display: block;
-            max-width: 200px;
+            max-width: 100px;
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
@@ -644,7 +650,7 @@
             .my-tasks-truncate-project,
             .my-tasks-truncate-milestone,
             .my-tasks-truncate-task {
-                max-width: 180px;
+                max-width: 90px;
             }
         }
 
@@ -908,11 +914,34 @@
         $taskCollection = $tasks ?? collect();
         $today = \Carbon\Carbon::today();
         $weekEnd = \Carbon\Carbon::today()->copy()->addDays(7);
+        $projectTypesWithStageAndPhase = [3, 5];
+        $notApplicableStagePhaseText = __('Not required');
         $naText = __('N/A');
-        $taskColumnIndex = 2;
-        $startDateColumnIndex = 3;
-        $estimatedDateColumnIndex = 4;
-        $finalizationDateColumnIndex = 5;
+        $showStageColumn = $taskCollection->contains(function ($task) use ($projectTypesWithStageAndPhase, $notApplicableStagePhaseText, $naText) {
+            $supportsStageAndPhase = in_array((int) optional($task->project)->type, $projectTypesWithStageAndPhase, true);
+            $resolvedStageName = optional($task->milestone)->resolved_stage_name;
+            $stageName = $supportsStageAndPhase
+                ? ($resolvedStageName ?: $naText)
+                : $notApplicableStagePhaseText;
+
+            return $stageName !== $notApplicableStagePhaseText;
+        });
+        $showPhaseColumn = $taskCollection->contains(function ($task) use ($projectTypesWithStageAndPhase, $notApplicableStagePhaseText, $naText) {
+            $supportsStageAndPhase = in_array((int) optional($task->project)->type, $projectTypesWithStageAndPhase, true);
+            $phaseValue = optional(optional($task->milestone)->phase)->phases;
+            $phaseName = $supportsStageAndPhase
+                ? ($phaseValue ? __(\App\Models\MilestonePhases::translationKey($phaseValue)) : $naText)
+                : $notApplicableStagePhaseText;
+
+            return $phaseName !== $notApplicableStagePhaseText;
+        });
+        $visibleOptionalColumns = (int) $showStageColumn + (int) $showPhaseColumn;
+        $stageColumnIndex = $showStageColumn ? 2 : null;
+        $phaseColumnIndex = $showPhaseColumn ? 2 + ((int) $showStageColumn) : null;
+        $taskColumnIndex = 2 + $visibleOptionalColumns;
+        $startDateColumnIndex = 3 + $visibleOptionalColumns;
+        $estimatedDateColumnIndex = 4 + $visibleOptionalColumns;
+        $finalizationDateColumnIndex = 5 + $visibleOptionalColumns;
     @endphp
 
     <section class="section">
@@ -1009,6 +1038,30 @@
                                                 </button>
                                             </div>
                                         </div>
+                                        @if ($showStageColumn)
+                                        <div class="my-tasks-th" data-col-key="stage">
+                                            <div class="my-tasks-th-content">
+                                                <span>{{ __('Stage') }}</span>
+                                                <button type="button" class="my-tasks-filter-btn" data-filter-key="stage" data-filter-label="{{ __('Stage') }}" data-column-index="{{ $stageColumnIndex }}" aria-label="{{ __('Filter Stage') }}">
+                                                    <svg class="my-tasks-filter-icon" viewBox="0 0 16 16" aria-hidden="true">
+                                                        <path d="M2 3.25A1.25 1.25 0 0 1 3.25 2h9.5A1.25 1.25 0 0 1 14 3.25c0 .3-.11.6-.31.82L9.5 8.45v3.3a1 1 0 0 1-.55.9l-2 1A1 1 0 0 1 5.5 12.75V8.45L2.31 4.07A1.25 1.25 0 0 1 2 3.25Z"></path>
+                                                    </svg>
+                                                </button>
+                                            </div>
+                                        </div>
+                                        @endif
+                                        @if ($showPhaseColumn)
+                                        <div class="my-tasks-th" data-col-key="phase">
+                                            <div class="my-tasks-th-content">
+                                                <span>{{ __('Phase') }}</span>
+                                                <button type="button" class="my-tasks-filter-btn" data-filter-key="phase" data-filter-label="{{ __('Phase') }}" data-column-index="{{ $phaseColumnIndex }}" aria-label="{{ __('Filter Phase') }}">
+                                                    <svg class="my-tasks-filter-icon" viewBox="0 0 16 16" aria-hidden="true">
+                                                        <path d="M2 3.25A1.25 1.25 0 0 1 3.25 2h9.5A1.25 1.25 0 0 1 14 3.25c0 .3-.11.6-.31.82L9.5 8.45v3.3a1 1 0 0 1-.55.9l-2 1A1 1 0 0 1 5.5 12.75V8.45L2.31 4.07A1.25 1.25 0 0 1 2 3.25Z"></path>
+                                                    </svg>
+                                                </button>
+                                            </div>
+                                        </div>
+                                        @endif
                                         <div class="my-tasks-th" data-col-key="task">
                                             <div class="my-tasks-th-content">
                                                 <span>{{ __('Task') }}</span>
@@ -1082,9 +1135,27 @@
 
                                                 $placeholderClass = 'my-tasks-placeholder';
 
+                                                $projectTypeId = (int) optional($task->project)->type;
+                                                $supportsStageAndPhase = in_array($projectTypeId, $projectTypesWithStageAndPhase, true);
+                                                $resolvedStageName = optional($task->milestone)->resolved_stage_name;
+                                                $stageName = $supportsStageAndPhase
+                                                    ? ($resolvedStageName ?: __('N/A'))
+                                                    : $notApplicableStagePhaseText;
+                                                $phaseValue = optional(optional($task->milestone)->phase)->phases;
+                                                $phaseName = $supportsStageAndPhase
+                                                    ? ($phaseValue ? __(\App\Models\MilestonePhases::translationKey($phaseValue)) : __('N/A'))
+                                                    : $notApplicableStagePhaseText;
+
                                                 $projectClass = $projectName === $naText ? $placeholderClass : '';
                                                 $milestoneClass = $milestoneTitle === $naText ? $placeholderClass : '';
                                                 $taskTypeClass = $displayTypeName === $naText ? $placeholderClass : 'my-tasks-main';
+                                                $notRequiredClass = 'my-tasks-placeholder my-tasks-placeholder--not-required';
+                                                $stageClass = $stageName === $notApplicableStagePhaseText
+                                                    ? $notRequiredClass
+                                                    : ($stageName === $naText ? $placeholderClass : 'my-tasks-main');
+                                                $phaseClass = $phaseName === $notApplicableStagePhaseText
+                                                    ? $notRequiredClass
+                                                    : ($phaseName === $naText ? $placeholderClass : 'my-tasks-main');
                                                 $startDateClass = $startDateText === $naText ? $placeholderClass : 'task-date';
                                                 $estimatedDateClass = $estimatedDateText === $naText ? $placeholderClass : 'task-date';
                                                 $finalizationRenderClass = $finalizationDateText === $naText ? $placeholderClass : $finalizationDateClass;
@@ -1108,6 +1179,16 @@
                                                 <div class="my-tasks-td" data-col-key="milestone">
                                                     <div class="my-tasks-main my-tasks-truncate-milestone {{ $milestoneClass }}" title="{{ $milestoneTitle }}">{{ $milestoneTitle }}</div>
                                                 </div>
+                                                @if ($showStageColumn)
+                                                <div class="my-tasks-td" data-col-key="stage">
+                                                    <span class="{{ $stageClass }}">{{ $stageName }}</span>
+                                                </div>
+                                                @endif
+                                                @if ($showPhaseColumn)
+                                                <div class="my-tasks-td" data-col-key="phase">
+                                                    <span class="{{ $phaseClass }}">{{ $phaseName }}</span>
+                                                </div>
+                                                @endif
                                                 <div class="my-tasks-td" data-col-key="task">
                                                     <div class="my-tasks-truncate-task" title="{{ $displayTypeName }}">
                                                         <span class="{{ $taskTypeClass }}">{{ $displayTypeName }}</span>

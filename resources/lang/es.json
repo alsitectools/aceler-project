@@ -1447,5 +1447,8 @@
     "Finalization date": "Fecha de finalización",
     "Select all": "Seleccionar todo",
     "In <strong>Diagram View</strong>, the tasks shown respect the task's creation date.": "En <strong>Diagram View</strong>, las tareas que se muestran respetan la fecha de creacion de la tarea.",
-    "<strong>N/A</strong> means there is no value for that field.": "<strong>N/A</strong> significa que no hay ningun valor para dicho campo."
+    "<strong>N/A</strong> means there is no value for that field.": "<strong>N/A</strong> significa que no hay ningun valor para dicho campo.",
+    "Not required": "No requerido",
+    "Filter Stage": "Filtrar etapa",
+    "Filter Phase": "Filtrar fase"
 }
