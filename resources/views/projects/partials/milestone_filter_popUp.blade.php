@@ -3054,6 +3054,26 @@
             renderActiveFiltersChips();
 
             updateResetFiltersButtonVisibility();
+
+            document.querySelectorAll('.kanban-box.fixedHeight').forEach(function(container) {
+                var parentCardList = container.closest('.card-list');
+                if (!parentCardList) return;
+                var totalCount = 0;
+                var visibleCount = 0;
+                for (var i = 0; i < container.children.length; i++) {
+                    var child = container.children[i];
+                    if (child.classList && child.classList.contains('card')) {
+                        totalCount++;
+                        if (child.style.display !== 'none') visibleCount++;
+                    }
+                }
+                var badge = parentCardList.querySelector('.count');
+                if (badge) badge.textContent = visibleCount;
+                var emptyState = container.querySelector('.noNotificationsContainer');
+                if (emptyState) {
+                    emptyState.style.display = totalCount > 0 ? 'none' : '';
+                }
+            });
         }
 
         if (hasCompletedFilter) {

@@ -606,11 +606,15 @@
 
                     function updateTaskCount(container) {
                         var parentCardList = a(container).parents('.card-list');
-                        var count = a(container).children('.card').length;
-                        parentCardList.find('.count').text(count);
+                        var allCards = a(container).children('.card');
+                        var totalCount = allCards.length;
+                        var visibleCount = allCards.filter(function() {
+                            return a(this).css('display') !== 'none';
+                        }).length;
+                        parentCardList.find('.count').text(visibleCount);
                         var emptyState = a(container).find('.noNotificationsContainer').first();
                         if (emptyState.length) {
-                            if (count > 0) {
+                            if (totalCount > 0) {
                                 emptyState.hide();
                             } else {
                                 emptyState.show();
