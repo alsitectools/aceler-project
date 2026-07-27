@@ -388,14 +388,15 @@
                                     @endforeach
                                 @endif
 
-                                @if (!isset($milestones[$status->id]) || count($milestones[$status->id]) === 0)
-                                    <div class="noNotificationsContainer" style="margin-top: -20px;">
-                                        <span class="dash-micon">
-                                            <i class="fa-solid fa-file-lines"></i>
-                                        </span>
-                                        <small class="empty-state-text">{{ __('No order forms yet') }}</small>
-                                    </div>
-                                @endif
+                                @php
+                                    $msCountLocal = isset($milestones[$status->id]) ? count($milestones[$status->id]) : 0;
+                                @endphp
+                                <div class="noNotificationsContainer" style="margin-top: -20px; {{ $msCountLocal > 0 ? 'display: none;' : '' }}">
+                                    <span class="dash-micon">
+                                        <i class="fa-solid fa-file-lines"></i>
+                                    </span>
+                                    <small class="empty-state-text">{{ __('No order forms yet') }}</small>
+                                </div>
 
                                 <div class="noNotificationsContainer filtered-empty-state" style="margin-top: -20px;">
                                     <span class="dash-micon">
@@ -952,6 +953,7 @@
                                                     // Actualizar contadores de tareas
                                                     updateTaskCount(source);
                                                     updateTaskCount(newContainer);
+                                                    updateTaskCount(target);
                                                 }
 
                                                 const toastMessage = data.has_tasks ?
@@ -1101,6 +1103,14 @@
                         var parentCardList = a(container).parents('.card-list');
                         var count = a(container).children('.card').length;
                         parentCardList.find('.count').text(count);
+                        var emptyState = a(container).find('.noNotificationsContainer').first();
+                        if (emptyState.length) {
+                            if (count > 0) {
+                                emptyState.hide();
+                            } else {
+                                emptyState.show();
+                            }
+                        }
                     }
 
                     a.Dragula = new t;

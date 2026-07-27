@@ -404,14 +404,12 @@
                                     $msCount = (isset($milestones[$status->id]) ? count($milestones[$status->id]) : 0)
                                              + (isset($milestonesUsers[$status->id]) ? count($milestonesUsers[$status->id]) : 0);
                                 @endphp
-                                @if ($msCount === 0)
-                                    <div class="noNotificationsContainer" style="margin-top: -20px;">
-                                        <span class="dash-micon">
-                                            <i class="fa-solid fa-file-lines"></i>
-                                        </span>
-                                        <small class="empty-state-text">{{ __('No order forms yet') }}</small>
-                                    </div>
-                                @endif
+                                <div class="noNotificationsContainer" style="margin-top: -20px; {{ $msCount > 0 ? 'display: none;' : '' }}">
+                                    <span class="dash-micon">
+                                        <i class="fa-solid fa-file-lines"></i>
+                                    </span>
+                                    <small class="empty-state-text">{{ __('No order forms yet') }}</small>
+                                </div>
 
                                 <div class="noNotificationsContainer filtered-empty-state" style="margin-top: -20px;">
                                     <span class="dash-micon">
@@ -605,6 +603,20 @@
                                 .on('drop', handleDrop);
                         });
                     };
+
+                    function updateTaskCount(container) {
+                        var parentCardList = a(container).parents('.card-list');
+                        var count = a(container).children('.card').length;
+                        parentCardList.find('.count').text(count);
+                        var emptyState = a(container).find('.noNotificationsContainer').first();
+                        if (emptyState.length) {
+                            if (count > 0) {
+                                emptyState.hide();
+                            } else {
+                                emptyState.show();
+                            }
+                        }
+                    }
 
                     function handleDrop(el, target, source, sibling) {
                         // Obtenemos el nuevo orden de los elementos en el contenedor destino
@@ -1076,6 +1088,7 @@
                                                     // Actualizar contadores de tareas
                                                     updateTaskCount(source);
                                                     updateTaskCount(newContainer);
+                                                    updateTaskCount(target);
                                                 }
 
                                                 const toastMessage = data.has_tasks ?
@@ -1219,12 +1232,6 @@
                                 console.error('Error al actualizar el orden:', error);
                             }
                         });
-                    }
-
-                    function updateTaskCount(container) {
-                        var parentCardList = a(container).parents('.card-list');
-                        var count = a(container).children('.card').length;
-                        parentCardList.find('.count').text(count);
                     }
 
                     a.Dragula = new t;
