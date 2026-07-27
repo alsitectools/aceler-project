@@ -1115,6 +1115,15 @@
                                 emptyState.show();
                             }
                         }
+                        var status = a(container).data('status');
+                        if (status == 4 && totalCount != visibleCount) {
+                            console.warn('[COUNTER] Columna Hecho: total=' + totalCount + ' visible=' + visibleCount);
+                            allCards.each(function() {
+                                if (a(this).css('display') === 'none') {
+                                    console.warn('[COUNTER] Card oculta:', a(this).attr('id'), 'data-project-id:', a(this).data('project-id'));
+                                }
+                            });
+                        }
                     }
 
                     a.Dragula = new t;
@@ -1216,6 +1225,11 @@
                     document.addEventListener('DOMContentLoaded', function() {
                         let showCompleted = false; // Variable global para rastrear la visibilidad de proyectos completados
 
+                        // Sincronizar con el estado del filtro modal (si existe)
+                        if (window.milestoneBoardFilters) {
+                            showCompleted = window.milestoneBoardFilters.showCompleted;
+                        }
+
                         // Inicializa: Oculta grupos de milestones cuyo TODOS elementos tengan status 4
                         initializeCompletedProjects();
 
@@ -1225,6 +1239,10 @@
                             toggleIcon.addEventListener('click', function() {
                                 showCompleted = !showCompleted;
                                 toggleCompletedProjects(showCompleted);
+                                if (window.milestoneBoardFilters) {
+                                    window.milestoneBoardFilters.showCompleted = showCompleted;
+                                    if (window.applyMilestoneFilters) window.applyMilestoneFilters();
+                                }
                                 this.classList.toggle('showCompletedProjectsUnabled', !showCompleted);
                                 this.title = showCompleted ? "{{ __('Hide Completed Projects') }}" :
                                     "{{ __('Show Completed Projects') }}";
@@ -1232,6 +1250,7 @@
                         }
 
                         function initializeCompletedProjects() {
+                            if (window.milestoneBoardFilters && window.milestoneBoardFilters.showCompleted) return;
                             const milestones = document.querySelectorAll('.card[data-project-id]');
                             const projectMap = new Map();
 

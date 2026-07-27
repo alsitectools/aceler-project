@@ -620,6 +620,15 @@
                                 emptyState.show();
                             }
                         }
+                        var status = a(container).data('status');
+                        if (status == 4 && totalCount != visibleCount) {
+                            console.warn('[COUNTER] Columna Hecho: total=' + totalCount + ' visible=' + visibleCount);
+                            allCards.each(function() {
+                                if (a(this).css('display') === 'none') {
+                                    console.warn('[COUNTER] Card oculta:', a(this).attr('id'), 'data-project-id:', a(this).data('project-id'));
+                                }
+                            });
+                        }
                     }
 
                     function handleDrop(el, target, source, sibling) {

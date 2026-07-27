@@ -1316,6 +1316,7 @@
 
         window.milestoneBoardFilters = filtersState;
         window.milestoneBoardShowCompleted = filtersState.showCompleted;
+        window.applyMilestoneFilters = applyMilestoneFilters;
 
         window.addEventListener('beforeunload', function() {
             localStorage.setItem('milestoneBoardFilters', JSON.stringify({
@@ -2004,7 +2005,6 @@
             const assignedTo = normalizeRequestedBy(card.dataset.assignTo || '');
             const isUnassigned = card.classList.contains('notAsignedMilestone');
             const allInStatus4 = isCompletedProject(card, groupedByProject);
-
             if (!isMyBoardMode && !filtersState.showAll && !isMine(card)) {
                 return false;
             }
@@ -3054,6 +3054,19 @@
             renderActiveFiltersChips();
 
             updateResetFiltersButtonVisibility();
+
+            var status4Cards = document.querySelectorAll('.kanban-box.fixedHeight[data-status="4"]');
+            if (status4Cards.length) {
+                var visibleStatus4 = 0;
+                var totalStatus4 = 0;
+                for (var si = 0; si < status4Cards[0].children.length; si++) {
+                    var child = status4Cards[0].children[si];
+                    if (child.classList && child.classList.contains('card')) {
+                        totalStatus4++;
+                        if (child.style.display !== 'none') visibleStatus4++;
+                    }
+                }
+            }
 
             document.querySelectorAll('.kanban-box.fixedHeight').forEach(function(container) {
                 var parentCardList = container.closest('.card-list');
