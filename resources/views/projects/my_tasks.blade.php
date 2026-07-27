@@ -344,7 +344,7 @@
         .my-tasks-td[data-col-key="phase"] { flex: 1.5; min-width: 95px; display: flex; align-items: center; }
 
         .my-tasks-th[data-col-key="task"],
-        .my-tasks-td[data-col-key="task"] { flex: none; width: 100px; min-width: 100px; overflow: hidden; display: flex; align-items: center; }
+        .my-tasks-td[data-col-key="task"] { flex: none; width: 150px; min-width: 150px; overflow: hidden; display: flex; align-items: center; }
 
         .my-tasks-th[data-col-key="start_date"],
         .my-tasks-td[data-col-key="start_date"] { flex: 1.5; min-width: 95px; display: flex; align-items: center; }
@@ -637,10 +637,17 @@
         }
 
         .my-tasks-truncate-project,
-        .my-tasks-truncate-milestone,
+        .my-tasks-truncate-milestone {
+            display: block;
+            max-width: 250px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
         .my-tasks-truncate-task {
             display: block;
-            max-width: 100px;
+            max-width: 150px;
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
@@ -648,9 +655,11 @@
 
         @media (max-width: 1400px) {
             .my-tasks-truncate-project,
-            .my-tasks-truncate-milestone,
+            .my-tasks-truncate-milestone {
+                max-width: 150px;
+            }
             .my-tasks-truncate-task {
-                max-width: 90px;
+                max-width: 100px;
             }
         }
 
