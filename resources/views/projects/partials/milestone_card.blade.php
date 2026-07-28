@@ -192,38 +192,36 @@
     @php $taskCount = count($milestone['tasks'] ?? []); @endphp
     <div class="milestone-task-list" id="taskList-{{ $milestone['id'] }}">
         @if ($taskCount > 0)
-            @foreach ($milestone['tasks'] as $i => $task)
-                <div class="milestone-task tooltipCusTask {{ $i > 0 ? 'milestone-task-extra' : '' }}" role="button"
-                     data-task-id="{{ $task['id'] }}"
-                     data-task-name="{{ $task['display_name'] ?? $task['name'] }}"
-                     data-milestone-id="{{ $milestone['id'] }}"
-                     data-project-id="{{ $milestone['project_id'] }}"
-                     data-project-name="{{ $milestone['project_name'] }}"
-                     data-technician-name="{{ $task['technician']->id }}"
-                     data-url="{{ route('create.timesheet.from.orders', [$currentWorkspace->slug, $project_id]) }}"
-                     data-ajax-timesheet-popup="true">
-                    <i class="ms-2 me-2 fa-solid fa-hourglass-start fa-xs" style="color:black;"></i>
-                    {{ __($task['display_name'] ?? $task['name']) }}
-                    <div class="tooltipTaskContent">
-                        <strong>{{ $task['technician']->name }}</strong><br />
-                        <small>{{ __('Imputed hours') }}: {{ $task['logged_hours'] }}</small>
+            <div class="milestone-task-box">
+                @foreach ($milestone['tasks'] as $i => $task)
+                    <div class="milestone-task tooltipCusTask {{ $i > 1 ? 'milestone-task-extra' : '' }}" role="button"
+                         data-task-id="{{ $task['id'] }}"
+                         data-task-name="{{ $task['display_name'] ?? $task['name'] }}"
+                         data-milestone-id="{{ $milestone['id'] }}"
+                         data-project-id="{{ $milestone['project_id'] }}"
+                         data-project-name="{{ $milestone['project_name'] }}"
+                         data-technician-name="{{ $task['technician']->id }}"
+                         data-url="{{ route('create.timesheet.from.orders', [$currentWorkspace->slug, $project_id]) }}"
+                         data-ajax-timesheet-popup="true">
+                        <i class="ms-2 me-2 fa-solid fa-hourglass-start fa-xs" style="color:black;"></i>
+                        {{ __($task['display_name'] ?? $task['name']) }}
+                        <div class="tooltipTaskContent">
+                            <strong>{{ $task['technician']->name }}</strong><br />
+                            <small>{{ __('Imputed hours') }}: {{ $task['logged_hours'] }}</small>
+                        </div>
                     </div>
-                </div>
-            @endforeach
+                @endforeach
+                @if ($taskCount > 2)
+                    <span class="milestone-dropdown-toggle" data-target="taskList-{{ $milestone['id'] }}">&#9660;</span>
+                @endif
+            </div>
         @else
-            <div class="milestone-task-empty">{{ __('No tasks in progress') }}...</div>
+            <div class="empty-state">
+                <i class="fa-solid fa-clipboard-list icon"></i>
+                <span class="title">{{ __('No tasks in progress') }}...</span>
+            </div>
         @endif
     </div>
-
-    {{-- ================================== --}}
-    {{--  8. DROPDOWN / ACCORDION          --}}
-    {{-- ================================== --}}
-    @if ($taskCount > 1)
-        <div class="milestone-dropdown">
-            <button class="milestone-dropdown-button" type="button"
-                    data-target="taskList-{{ $milestone['id'] }}">&#9660;</button>
-        </div>
-    @endif
 
     {{-- ================================== --}}
     {{--  9. FOOTER AVATARS                --}}
@@ -388,13 +386,12 @@
         $('#pauseMilestoneModal').modal('hide');
     }
 
-    document.querySelectorAll('.milestone-dropdown-button').forEach(function(btn) {
-        btn.addEventListener('click', function() {
+    document.querySelectorAll('.milestone-dropdown-toggle').forEach(function(el) {
+        el.addEventListener('click', function() {
             var targetId = this.getAttribute('data-target');
             var taskList = document.getElementById(targetId);
             if (!taskList) return;
             var isOpen = taskList.classList.toggle('expanded');
-            this.classList.toggle('open', isOpen);
             this.innerHTML = isOpen ? '&#9650;' : '&#9660;';
         });
     });
