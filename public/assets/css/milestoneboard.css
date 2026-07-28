@@ -207,7 +207,7 @@
     border: 1px solid #e0e0e0;
     background: #fff;
     position: relative;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.12);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.18);
     transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 .milestone-card:hover {
@@ -247,13 +247,13 @@
     border-radius: 0 0 8px 8px;
 }
 .priority-low {
-    background: #008000fa;
+    background: #53b446e0;
 }
 .priority-medium {
     background: #ff8c00fa;
 }
 .priority-high {
-    background: #aa182c;
+    background: #ff0000a3;
 }
 
 /* ----- 2. PROJECT IMAGE ----- */
@@ -356,16 +356,22 @@
 }
 
 .calendar-badge {
-    display: inline-block;
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-width: 56px;
+    min-height: 40px;
     padding: 4px 10px;
     border-radius: 6px;
     font-size: 12px;
     font-weight: 600;
+    line-height: 1.2;
 }
 .calendar-badge.badge-default { background: #e0e0e0; color: #333; }
-.calendar-badge.badge-success { background: #53b446; color: #fff; }
+.calendar-badge.badge-success { background: #53b446e0; color: #fff; }
 .calendar-badge.badge-warning { background: #db8d33; color: #fff; }
-.calendar-badge.badge-danger  { background: red;     color: #fff; }
+.calendar-badge.badge-danger  { background: #ff0000a3;     color: #fff; }
 .calendar-badge.badge-na      { background: #e0e0e0; color: #999; }
 
 .calendar-badge .badge-day {
@@ -383,11 +389,13 @@
 /* ----- 7. TASK LIST ----- */
 .milestone-task-list {
     width: 100%;
-    margin-bottom: 12px;
+    margin-bottom: 20px;
     padding: 0 12px;
-    display: flex;
-    flex-direction: column;
+    /* display: flex; */
+    /* flex-direction: column; */
     align-items: center;
+    margin-top: 20px;
+
 }
 
 .milestone-task {

@@ -1450,5 +1450,8 @@
     "<strong>N/A</strong> means there is no value for that field.": "<strong>N/A</strong> significa que no hay ningun valor para dicho campo.",
     "Not required": "No requerido",
     "Filter Stage": "Filtrar etapa",
-    "Filter Phase": "Filtrar fase"
+    "Filter Phase": "Filtrar fase",
+    "Desired": "Deseado",
+    "Proposed": "Propuesto",
+    "Completed": "Completado"
 }
