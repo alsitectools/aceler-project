@@ -67,10 +67,11 @@
     {{-- ================================== --}}
     {{--  4. TITLE                         --}}
     {{-- ================================== --}}
-    <div class="milestone-title"
+    <div class="milestone-title milestone-title-tooltip"
          data-ajax-popup="true"
          data-title="{{ __('Order form details') }}"
-         data-url="{{ route('projects.milestone.show', [$currentWorkspace->slug, $milestone['id']]) }}">
+         data-url="{{ route('projects.milestone.show', [$currentWorkspace->slug, $milestone['id']]) }}"
+         data-tooltip-title="{{ __('Milestone') }}">
         {{ $milestone['title'] }}
     </div>
 
