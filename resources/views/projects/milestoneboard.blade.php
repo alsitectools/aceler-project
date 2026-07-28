@@ -411,7 +411,7 @@
                                     <small class="empty-state-text">{{ __('No order forms yet') }}</small>
                                 </div>
 
-                                <div class="noNotificationsContainer filtered-empty-state" style="margin-top: -20px;">
+                                <div class="noNotificationsContainer filtered-empty-state" style="margin-top: -20px; display: none;">
                                     <span class="dash-micon">
                                         <i class="fa-solid fa-eye-slash"></i>
                                     </span>
