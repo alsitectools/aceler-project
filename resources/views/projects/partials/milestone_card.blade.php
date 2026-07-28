@@ -385,13 +385,12 @@
         $('#pauseMilestoneModal').modal('hide');
     }
 
-    document.querySelectorAll('.milestone-dropdown-toggle').forEach(function(el) {
-        el.addEventListener('click', function() {
-            var targetId = this.getAttribute('data-target');
-            var taskList = document.getElementById(targetId);
-            if (!taskList) return;
-            taskList.classList.toggle('expanded');
-        });
+    document.addEventListener('click', function(e) {
+        var toggle = e.target.closest('.milestone-dropdown-toggle');
+        if (!toggle) return;
+        var taskList = document.getElementById(toggle.getAttribute('data-target'));
+        if (!taskList) return;
+        taskList.classList.toggle('expanded');
     });
 
     var activeTooltip = null;

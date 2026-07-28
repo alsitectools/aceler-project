@@ -416,7 +416,7 @@
         opacity .25s ease;
 }
 .milestone-task-list.expanded .milestone-task-inner {
-    max-height: 90px;
+    max-height: none;
     opacity: 1;
 }
 .milestone-task {
