@@ -1331,7 +1331,7 @@
                 document.addEventListener('DOMContentLoaded', function() {
 
                     // Selecciona todos los elementos con la clase .taskList
-                    const tasks = document.querySelectorAll('.taskList');
+                    const tasks = document.querySelectorAll('.milestone-task, .taskList');
 
                     tasks.forEach(task => {
                         // Verifica si el técnico asignado es el usuario actual

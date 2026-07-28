@@ -1983,16 +1983,6 @@
         }
 
         /**
-         * A project is considered completed when every visible milestone card in that project has status 4.
-         */
-        function isCompletedProject(card, groupedByProject) {
-            const projectId = card.dataset.projectId;
-            const projectMilestones = groupedByProject.get(projectId) || [];
-            return projectMilestones.length > 0 && projectMilestones.every(m =>
-                parseInt(m.dataset.status, 10) === 4);
-        }
-
-        /**
          * Central visibility predicate used by both count helpers and final board rendering.
          */
         function cardMatchesFilters(card, groupedByProject, criteria, ignoreFilter = '') {
@@ -2004,7 +1994,6 @@
             const requestedBy = normalizeRequestedBy(card.dataset.requestedBy || '');
             const assignedTo = normalizeRequestedBy(card.dataset.assignTo || '');
             const isUnassigned = card.classList.contains('notAsignedMilestone');
-            const allInStatus4 = isCompletedProject(card, groupedByProject);
             if (!isMyBoardMode && !filtersState.showAll && !isMine(card)) {
                 return false;
             }
@@ -2057,7 +2046,7 @@
                 return false;
             }
 
-            if (hasCompletedFilter && !filtersState.showCompleted && allInStatus4) {
+            if (hasCompletedFilter && !filtersState.showCompleted && card.dataset.status === '4') {
                 return false;
             }
 
@@ -3030,13 +3019,12 @@
             const criteria = getFilterCriteria();
 
             allMilestones.forEach(card => {
-                const allInStatus4 = isCompletedProject(card, groupedByProject);
                 const visible = cardMatchesFilters(card, groupedByProject, criteria);
 
                 card.style.display = visible ? '' : 'none';
 
                 if (hasCompletedFilter) {
-                    card.style.border = (filtersState.showCompleted && allInStatus4) ?
+                    card.style.border = (filtersState.showCompleted && card.dataset.status === '4') ?
                         '3px solid #15b500' : 'none';
                 }
             });
