@@ -42,26 +42,20 @@
 
 .tooltipTaskContent {
     visibility: hidden;
-    background: #FAFAFA;
-    color: #333;
-    text-align: center;
-    border-radius: 12px;
-    padding: 10px 14px;
-    position: absolute;
-    z-index: 999;
-    bottom: 100%;
-    left: 50%;
-    transform: translateX(-50%);
     opacity: 0;
-    transition: opacity 0.3s;
+    background: #333;
+    color: #fff;
+    text-align: center;
+    border-radius: 8px;
+    padding: 8px 12px;
+    position: fixed;
+    z-index: 99999;
     font-size: 12px;
-    margin-bottom: 6px;
-    border: 1px dashed #E5E7EB;
     white-space: nowrap;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    pointer-events: none;
+    transition: opacity 0.15s ease;
 }
-
-.tooltipCusTask:hover .tooltipTaskContent {
+.tooltipTaskContent.visible {
     visibility: visible;
     opacity: 1;
 }
@@ -411,6 +405,19 @@
     border: 1px solid #ececec;
     border-radius: 12px;
     text-align: center;
+    position: relative;
+}
+.milestone-task-inner {
+    overflow: hidden;
+    max-height: 52px;
+    opacity: .8;
+    transition:
+        max-height .35s ease,
+        opacity .25s ease;
+}
+.milestone-task-list.expanded .milestone-task-inner {
+    max-height: 90px;
+    opacity: 1;
 }
 .milestone-task {
     font-size: 12px;
@@ -427,9 +434,14 @@
     font-size: 12px;
     color: #999;
     line-height: 1;
+    display: inline-block;
+    transition: transform 1s ease;
 }
 .milestone-dropdown-toggle:hover {
     color: #666;
+}
+.milestone-task-list.expanded .milestone-dropdown-toggle {
+    transform: rotate(180deg);
 }
 
 .milestone-task .task-icon {
@@ -438,14 +450,6 @@
 }
 .milestone-task .fa-hourglass-start {
     flex-shrink: 0;
-}
-
-.milestone-task-extra {
-    display: none;
-}
-
-.milestone-task-list.expanded .milestone-task-extra {
-    display: flex;
 }
 
 .empty-state {
@@ -472,7 +476,7 @@
     font-size: 14px;
     font-weight: bold;
     color: #4B5563;
-    opacity: 0.5;
+    opacity: 0.3;
     font-style: italic;
 }
 

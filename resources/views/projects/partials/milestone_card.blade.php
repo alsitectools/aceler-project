@@ -192,25 +192,24 @@
     @php $taskCount = count($milestone['tasks'] ?? []); @endphp
     <div class="milestone-task-list" id="taskList-{{ $milestone['id'] }}">
         @if ($taskCount > 0)
-            <div class="milestone-task-box">
-                @foreach ($milestone['tasks'] as $i => $task)
-                    <div class="milestone-task tooltipCusTask {{ $i > 1 ? 'milestone-task-extra' : '' }}" role="button"
-                         data-task-id="{{ $task['id'] }}"
-                         data-task-name="{{ $task['display_name'] ?? $task['name'] }}"
-                         data-milestone-id="{{ $milestone['id'] }}"
-                         data-project-id="{{ $milestone['project_id'] }}"
-                         data-project-name="{{ $milestone['project_name'] }}"
-                         data-technician-name="{{ $task['technician']->id }}"
-                         data-url="{{ route('create.timesheet.from.orders', [$currentWorkspace->slug, $project_id]) }}"
-                         data-ajax-timesheet-popup="true">
-                        <i class="ms-2 me-2 fa-solid fa-hourglass-start fa-xs" style="color:black;"></i>
-                        {{ __($task['display_name'] ?? $task['name']) }}
-                        <div class="tooltipTaskContent">
-                            <strong>{{ $task['technician']->name }}</strong><br />
-                            <small>{{ __('Imputed hours') }}: {{ $task['logged_hours'] }}</small>
+            <div class="milestone-task-box" id="box-{{ $milestone['id'] }}">
+                <div class="milestone-task-inner">
+                    @foreach ($milestone['tasks'] as $i => $task)
+                        <div class="milestone-task tooltipCusTask {{ $i > 1 ? 'milestone-task-extra' : '' }}" role="button"
+                             data-task-id="{{ $task['id'] }}"
+                             data-task-name="{{ $task['display_name'] ?? $task['name'] }}"
+                             data-milestone-id="{{ $milestone['id'] }}"
+                             data-project-id="{{ $milestone['project_id'] }}"
+                             data-project-name="{{ $milestone['project_name'] }}"
+                             data-technician-name="{{ $task['technician']->id }}"
+                             data-url="{{ route('create.timesheet.from.orders', [$currentWorkspace->slug, $project_id]) }}"
+                             data-ajax-timesheet-popup="true"
+                             data-tooltip-content="{{ $task['technician']->name }} - {{ __('Imputed hours') }}: {{ $task['logged_hours'] }}">
+                            <i class="ms-2 me-2 fa-solid fa-hourglass-start fa-xs" style="color:black;"></i>
+                            {{ __($task['display_name'] ?? $task['name']) }}
                         </div>
-                    </div>
-                @endforeach
+                    @endforeach
+                </div>
                 @if ($taskCount > 2)
                     <span class="milestone-dropdown-toggle" data-target="taskList-{{ $milestone['id'] }}">&#9660;</span>
                 @endif
@@ -391,8 +390,31 @@
             var targetId = this.getAttribute('data-target');
             var taskList = document.getElementById(targetId);
             if (!taskList) return;
-            var isOpen = taskList.classList.toggle('expanded');
-            this.innerHTML = isOpen ? '&#9650;' : '&#9660;';
+            taskList.classList.toggle('expanded');
+        });
+    });
+
+    var activeTooltip = null;
+    document.querySelectorAll('.milestone-task[data-tooltip-content]').forEach(function(task) {
+        task.addEventListener('mouseenter', function() {
+            var content = this.getAttribute('data-tooltip-content');
+            if (!content) return;
+            if (activeTooltip) activeTooltip.remove();
+            activeTooltip = document.createElement('div');
+            activeTooltip.className = 'tooltipTaskContent visible';
+            activeTooltip.textContent = content;
+            document.body.appendChild(activeTooltip);
+            var rect = this.getBoundingClientRect();
+            var top = rect.top - activeTooltip.offsetHeight - 6;
+            var left = rect.left + (rect.width - activeTooltip.offsetWidth) / 2;
+            activeTooltip.style.top = Math.max(4, top) + 'px';
+            activeTooltip.style.left = Math.max(4, left) + 'px';
+        });
+        task.addEventListener('mouseleave', function() {
+            if (activeTooltip) {
+                activeTooltip.remove();
+                activeTooltip = null;
+            }
         });
     });
 </script>
