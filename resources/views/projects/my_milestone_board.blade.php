@@ -396,6 +396,7 @@
                                         <i class="fa-solid fa-file-lines"></i>
                                     </span>
                                     <small class="empty-state-text">{{ __('No order forms yet') }}</small>
+                                    <span style="font-size: 11px; color: #999; margin-top: 4px;">{{ __('Drag an order form here') }}</span>
                                 </div>
 
                                 <div class="noNotificationsContainer filtered-empty-state" style="margin-top: -20px; display: none;">
@@ -403,6 +404,7 @@
                                         <i class="fa-solid fa-eye-slash"></i>
                                     </span>
                                     <small class="empty-state-text">{{ __('Hidden order forms') }}</small>
+                                    <span style="font-size: 11px; color: #999; margin-top: 4px;">{{ __('Apply filters to view them') }}</span>
                                 </div>
 
                             </div>

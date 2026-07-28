@@ -1453,5 +1453,9 @@
     "Filter Phase": "Filtrar fase",
     "Desired": "Deseado",
     "Proposed": "Propuesto",
-    "Completed": "Completado"
+    "Completed": "Completado",
+    "Hidden order forms": "Encargos ocultos",
+    "Apply filters to view them": "Aplica los filtros para poder verlos",
+    "No order forms yet": "Aún no hay encargos",
+    "Drag an order form here": "Arrastra aquí un encargo"
 }
