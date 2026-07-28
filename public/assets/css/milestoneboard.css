@@ -326,7 +326,8 @@
     font-size: 12px;
     margin-bottom: 20px;
     display: flex;
-    gap: 14px;
+    column-gap: 14px;
+    row-gap: 4px;
     justify-content: center;
     flex-wrap: wrap;
     padding: 0 8px;
@@ -424,7 +425,7 @@
 }
 
 .milestone-task-box {
-    margin: 24px 20px 0;
+    margin: 0px 20px 0;
     padding: 24px 16px;
     min-height: 110px;
     display: flex;
@@ -482,7 +483,7 @@
 }
 
 .empty-state {
-    margin: 24px 20px 0;
+    margin: 0px 20px 0;
     padding: 24px 16px;
     min-height: 110px;
     display: flex;
