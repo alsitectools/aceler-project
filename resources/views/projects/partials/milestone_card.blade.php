@@ -67,7 +67,12 @@
     {{-- ================================== --}}
     {{--  4. TITLE                         --}}
     {{-- ================================== --}}
-    <div class="milestone-title">{{ $milestone['title'] }}</div>
+    <div class="milestone-title"
+         data-ajax-popup="true"
+         data-title="{{ __('Order form details') }}"
+         data-url="{{ route('projects.milestone.show', [$currentWorkspace->slug, $milestone['id']]) }}">
+        {{ $milestone['title'] }}
+    </div>
 
     {{-- ================================== --}}
     {{--  5. PHASE + STAGE                 --}}
