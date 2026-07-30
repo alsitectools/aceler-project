@@ -549,13 +549,26 @@
         z-index: 1;
     }
 
-    .summary-page.page-out {
+    .summary-page:first-child.page-out {
         opacity: 0;
         transform: translateX(-20%) scale(0.85);
         pointer-events: none;
     }
 
-    .summary-page.page-in-start {
+    .summary-page:last-child.page-out {
+        opacity: 0;
+        transform: translateX(20%) scale(0.85);
+        pointer-events: none;
+    }
+
+    .summary-page:first-child.page-in-start {
+        opacity: 0;
+        transform: translateX(-20%) scale(0.85);
+        transition: none;
+        pointer-events: none;
+    }
+
+    .summary-page:last-child.page-in-start {
         opacity: 0;
         transform: translateX(20%) scale(0.85);
         transition: none;
