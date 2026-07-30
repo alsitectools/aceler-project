@@ -1457,5 +1457,8 @@
     "Hidden order forms": "Encargos ocultos",
     "Apply filters to view them": "Aplica los filtros para poder verlos",
     "No order forms yet": "Aún no hay encargos",
-    "Drag an order form here": "Arrastra aquí un encargo"
+    "Drag an order form here": "Arrastra aquí un encargo",
+    "Under Review": "Por revisar",
+    "Paused": "En pausa",
+    "Global tasks": "Tareas globales"
 }

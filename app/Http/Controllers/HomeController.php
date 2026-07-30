@@ -250,6 +250,55 @@ class HomeController extends Controller
                 ->where('milestones.milestone_assigned_to_user', Auth::user()->id)
                 ->where('milestones.status', 3)
                 ->count();
+
+            $activeMilestones = Milestone::join('projects', 'projects.id', '=', 'milestones.project_id')
+                ->where('projects.workspace', $currentWorkspace->id)
+                ->whereIn('milestones.status', [1, 2])
+                ->where('milestones.is_waiting', 0)
+                ->where(function($q) {
+                    $q->whereNotNull('milestones.milestone_assigned_to_user')
+                      ->where('milestones.milestone_assigned_to_user', '!=', '');
+                })
+                ->count();
+
+            $totalMilestonesGlobal = Milestone::join('projects', 'projects.id', '=', 'milestones.project_id')
+                ->where('projects.workspace', $currentWorkspace->id)
+                ->count();
+
+            $reviewMilestones = Milestone::join('projects', 'projects.id', '=', 'milestones.project_id')
+                ->where('projects.workspace', $currentWorkspace->id)
+                ->where('milestones.status', 3)
+                ->count();
+
+            $unassignedMilestones = Milestone::join('projects', 'projects.id', '=', 'milestones.project_id')
+                ->where('projects.workspace', $currentWorkspace->id)
+                ->where(function($q) {
+                    $q->where('milestone_assigned_to_user', '')->orWhereNull('milestone_assigned_to_user');
+                })
+                ->count();
+
+            $finishedMilestones = Milestone::join('projects', 'projects.id', '=', 'milestones.project_id')
+                ->where('projects.workspace', $currentWorkspace->id)
+                ->where('milestones.status', 4)
+                ->count();
+
+            $pausedMilestones = Milestone::join('projects', 'projects.id', '=', 'milestones.project_id')
+                ->where('projects.workspace', $currentWorkspace->id)
+                ->where('milestones.is_waiting', 1)
+                ->count();
+
+            $totalTaskByType = Task::join('milestones', 'tasks.milestone_id', '=', 'milestones.id')
+                ->join('projects', 'milestones.project_id', '=', 'projects.id')
+                ->where('projects.workspace', $currentWorkspace->id)
+                ->where('milestones.status', '!=', 4)
+                ->where('milestones.is_waiting', '!=', 1)
+                ->join('project_types', 'projects.type', '=', 'project_types.id')
+                ->select('project_types.name', DB::raw('count(tasks.id) as count'))
+                ->groupBy('project_types.id', 'project_types.name')
+                ->pluck('count', 'name')
+                ->toArray();
+
+            $totalTask = array_sum($totalTaskByType);
             /*$totalProject = UserProject::join("projects", "projects.id", "=", "user_projects.project_id")
                 ->where("user_id", "=", $userObj->id)
                 ->where('projects.workspace', '=', $currentWorkspace->id)->count();*/
@@ -257,12 +306,6 @@ class HomeController extends Controller
             if ($currentWorkspace->permission == 'Owner' || $currentWorkspace->permission == 'Member') {
 
                 $totalBugs = UserProject::join("bug_reports", "bug_reports.project_id", "=", "user_projects.project_id")
-                    ->join("projects", "projects.id", "=", "user_projects.project_id")
-                    ->where("user_id", "=", $userObj->id)
-                    ->where('projects.workspace', '=', $currentWorkspace->id)->count();
-
-                //TASK FOR THE ACTUAL USER
-                $totalTask = UserProject::join("tasks", "tasks.project_id", "=", "user_projects.project_id")
                     ->join("projects", "projects.id", "=", "user_projects.project_id")
                     ->where("user_id", "=", $userObj->id)
                     ->where('projects.workspace', '=', $currentWorkspace->id)->count();
@@ -305,11 +348,6 @@ class HomeController extends Controller
                     ->where("user_id", "=", $userObj->id)
                     ->where('projects.workspace', '=', $currentWorkspace->id)
                     ->where('bug_reports.assign_to', '=', $userObj->id)->count();
-
-                $totalTask = UserProject::join("tasks", "tasks.project_id", "=", "user_projects.project_id")
-                    ->join("projects", "projects.id", "=", "user_projects.project_id")
-                    ->where("user_id", "=", $userObj->id)->where('projects.workspace', '=', $currentWorkspace->id)
-                    ->whereRaw("find_in_set('" . $userObj->id . "',tasks.assign_to)")->count();
 
                 $totalMilestones = UserProject::join("milestones", "milestones.project_id", "=", "user_projects.project_id")
                     ->join("projects", "projects.id", "=", "user_projects.project_id")
@@ -428,7 +466,14 @@ class HomeController extends Controller
                 'totalWorkspaceMilestones',
                 'notAssignedMilestones',
                 'assignedMilestones',
-                'forReviewMilestones'
+                'forReviewMilestones',
+                'activeMilestones',
+                'totalMilestonesGlobal',
+                'reviewMilestones',
+                'unassignedMilestones',
+                'finishedMilestones',
+                'pausedMilestones',
+                'totalTaskByType'
             ));
 
             // }

@@ -627,32 +627,40 @@
                             <div class="tabTexts">
                                 {{ __('Milestones') }}
                             </div>
-                            {{-- <div class="tabTexts tabNumCounter">
+                            <div class="tabTexts tabNumCounter">
                                 <span>
-                                    {{ $totalProject ?? 0 }}
+                                    {{ $totalMilestonesGlobal ?? 0 }}
                                 </span>
-
-                            </div> --}}
+                            </div>
                             <div class="statusContainer milestoneTab">
                                 <div class="status hold ctr mst">
-                                    {{-- Hojas de encargo asignados a ti  --}}
-                                    <span class="statusText">{{ __('Not assigned') }}</span>
+                                    <span class="statusText">{{ __('Unassigned') }}</span>
                                     <div class="statusNumContainer">
-                                        <span class="statusNum">{{ $notAssignedMilestones ?? 0 }}</span>
+                                        <span class="statusNum">{{ $unassignedMilestones ?? 0 }}</span>
                                     </div>
                                 </div>
                                 <div class="status progressstat ctr mst">
-                                    {{-- hojas de encargo asignadas a ti pendientes de revision (status 3) --}}
-                                    <span class="statusText">{{ __('Pending review') }}</span>
+                                    <span class="statusText">{{ __('Under Review') }}</span>
                                     <div class="statusNumContainer">
-                                        <span class="statusNum">{{ $forReviewMilestones ?? 0 }}</span>
+                                        <span class="statusNum">{{ $reviewMilestones ?? 0 }}</span>
                                     </div>
                                 </div>
                                 <div class="status ended ctr mst">
-                                    {{-- Hojas de encargo sin asignar  --}}
-                                    <span class="statusText">{{ __('Assigned to you') }}</span>
+                                    <span class="statusText">{{ __('Active') }}</span>
                                     <div class="statusNumContainer">
-                                        <span class="statusNum">{{ $assignedMilestones ?? 0 }}</span>
+                                        <span class="statusNum">{{ $activeMilestones ?? 0 }}</span>
+                                    </div>
+                                </div>
+                                <div class="status ended ctr mst">
+                                    <span class="statusText">{{ __('Finished') }}</span>
+                                    <div class="statusNumContainer">
+                                        <span class="statusNum">{{ $finishedMilestones ?? 0 }}</span>
+                                    </div>
+                                </div>
+                                <div class="status hold ctr mst">
+                                    <span class="statusText">{{ __('Paused') }}</span>
+                                    <div class="statusNumContainer">
+                                        <span class="statusNum">{{ $pausedMilestones ?? 0 }}</span>
                                     </div>
                                 </div>
 
@@ -666,13 +674,23 @@
 
                             </div>
                             <div class="tabTexts">
-                                {{ __('Your tasks') }}
+                                {{ __('Global tasks') }}
                             </div>
                             <div class="tabTexts tabNumCounter">
                                 <span>
                                     {{ $totalTask ?? 0 }}
                                 </span>
 
+                            </div>
+                            <div class="statusContainer">
+                                @foreach ($totalTaskByType ?? [] as $type => $count)
+                                    <div class="status ended ctr">
+                                        <span class="statusText">{{ __($type) }}</span>
+                                        <div class="statusNumContainer">
+                                            <span class="statusNum">{{ $count }}</span>
+                                        </div>
+                                    </div>
+                                @endforeach
                             </div>
                         </div>
                     </div>
