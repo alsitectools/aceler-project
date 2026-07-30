@@ -472,6 +472,128 @@
             margin-left: 7px;
         }
     }
+
+    /* Summary toggle track */
+    .summary-wrapper {
+        position: relative;
+        width: 100%;
+        height: 120px;
+        overflow: hidden;
+    }
+
+    .summary-toggle-bar {
+        display: flex;
+        justify-content: flex-end;
+        padding: 0 8px 8px 0;
+        margin-top: 4px;
+    }
+
+    .summary-toggle {
+        height: 32px;
+        border: none;
+        border-radius: 8px;
+        background: #fff;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        padding: 0 12px;
+        transition: background 0.2s, transform 0.2s;
+    }
+    .summary-toggle:hover {
+        background: #f8f9fa;
+        transform: scale(1.05);
+    }
+
+    .toggle-label {
+        font-size: 12px;
+        font-weight: 600;
+        color: #333;
+        white-space: nowrap;
+    }
+
+    .summary-toggle .toggle-icon {
+        color: #333;
+        transition: transform 0.3s;
+    }
+    .summary-wrapper.expanded .summary-toggle .toggle-icon {
+        transform: rotate(180deg);
+    }
+
+    .summary-track {
+        display: flex;
+        width: 200%;
+        height: 100%;
+        will-change: transform;
+    }
+
+    .summary-page {
+        width: 50%;
+        flex-shrink: 0;
+        display: flex;
+        align-items: stretch;
+        transform: translateX(0) scale(1);
+        opacity: 1;
+        transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+                    opacity 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+        will-change: transform, opacity;
+    }
+
+    .summary-page:first-child {
+        z-index: 2;
+    }
+
+    .summary-page:last-child {
+        z-index: 1;
+    }
+
+    .summary-page.page-out {
+        opacity: 0;
+        transform: translateX(-20%) scale(0.85);
+        pointer-events: none;
+    }
+
+    .summary-page.page-in-start {
+        opacity: 0;
+        transform: translateX(20%) scale(0.85);
+        transition: none;
+        pointer-events: none;
+    }
+
+    .summary-page .summary {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        justify-content: space-between;
+        align-items: stretch;
+        margin: 0;
+    }
+
+    .summary-wrapper.expanded .summary-track {
+        transform: translateX(-50%);
+    }
+
+    .empty-card {
+        background: #f8f9fa !important;
+        border: 2px dashed #dee2e6 !important;
+        border-radius: 15px !important;
+        box-shadow: 0 6px 30px rgba(182, 186, 203, 0.3) !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        height: 100% !important;
+    }
+    .empty-card-content {
+        text-align: center;
+        padding: 1rem;
+    }
+    .empty-label {
+        color: #6c757d;
+        font-weight: 500;
+        font-size: 14px;
+    }
 </style>
 
 @section('content')
@@ -578,119 +700,152 @@
                     <div class="page-header-title">
                         <h4 class="m-b-10">{{ __('Resume of') }} {{ $currentWorkspace->display_name }}</h4>
                     </div>
-                    <div class="summary">
-                        <div class="tabs ctr">
-                            <div class="tabIcon projectIcon">
-                                <img class="icons"
-                                    src="{{ asset('assets/custom/libs/@fontawesome/fontawesome-free/svgs/solid/project-diagram.svg') }}"
-                                    alt="logo" />
+                    <div class="summary-toggle-bar" id="summaryToggleBar">
+                        <button class="summary-toggle" id="summaryToggle" type="button" aria-label="Toggle">
+                            <span class="toggle-label" id="toggleLabel">{{ __('Global overview') }}</span>
+                            <svg class="toggle-icon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="15 18 9 12 15 6"></polyline>
+                            </svg>
+                        </button>
+                    </div>
+                    <div class="summary-wrapper" id="summaryWrapper">
+                        <div class="summary-track" id="summaryTrack">
+                            <div class="summary-page">
+                                <div class="summary">
+                                    <div class="tabs ctr">
+                                        <div class="tabIcon projectIcon">
+                                            <img class="icons"
+                                                src="{{ asset('assets/custom/libs/@fontawesome/fontawesome-free/svgs/solid/project-diagram.svg') }}"
+                                                alt="logo" />
 
-                            </div>
-                            <div class="tabTexts">
-                                {{ __('Projects') }}
-                            </div>
-                            <div class="tabTexts tabNumCounter">
-                                <span>
-                                    {{ $totalProject ?? 0 }}
-                                </span>
+                                        </div>
+                                        <div class="tabTexts">
+                                            {{ __('Projects') }}
+                                        </div>
+                                        <div class="tabTexts tabNumCounter">
+                                            <span>
+                                                {{ $totalProject ?? 0 }}
+                                            </span>
 
-                            </div>
-                            <div class="statusContainer">
-                                <div class="status hold ctr">
-                                    <span class="statusText">{{ __('OnHold') }}</span>
-                                    <div class="statusNumContainer">
-                                        <span class="statusNum">{{ $projectProcess['OnHold'] ?? 0 }}</span>
-                                    </div>
-                                </div>
-                                <div class="status progressstat ctr">
-                                    <span class="statusText">{{ __('Ongoing') }}</span>
-                                    <div class="statusNumContainer">
-                                        <span class="statusNum">{{ $projectProcess['Ongoing'] ?? 0 }}</span>
-                                    </div>
-                                </div>
-                                <div class="status ended ctr">
-                                    <span class="statusText">{{ __('Finished') }}</span>
-                                    <div class="statusNumContainer">
-                                        <span class="statusNum">{{ $projectProcess['Finished'] ?? 0 }}</span>
-                                    </div>
-                                </div>
+                                        </div>
+                                        <div class="statusContainer">
+                                            <div class="status hold ctr">
+                                                <span class="statusText">{{ __('OnHold') }}</span>
+                                                <div class="statusNumContainer">
+                                                    <span class="statusNum">{{ $projectProcess['OnHold'] ?? 0 }}</span>
+                                                </div>
+                                            </div>
+                                            <div class="status progressstat ctr">
+                                                <span class="statusText">{{ __('Ongoing') }}</span>
+                                                <div class="statusNumContainer">
+                                                    <span class="statusNum">{{ $projectProcess['Ongoing'] ?? 0 }}</span>
+                                                </div>
+                                            </div>
+                                            <div class="status ended ctr">
+                                                <span class="statusText">{{ __('Finished') }}</span>
+                                                <div class="statusNumContainer">
+                                                    <span class="statusNum">{{ $projectProcess['Finished'] ?? 0 }}</span>
+                                                </div>
+                                            </div>
 
-                            </div>
-                        </div>
-                        <div class="tabs ctr">
-                            <div class="tabIcon milestoneIcon">
-                                <img class="icons"
-                                    src="{{ asset('assets/custom/libs/@fontawesome/fontawesome-free/svgs/solid/file-alt.svg') }}"
-                                    alt="logo" />
-
-                            </div>
-                            <div class="tabTexts">
-                                {{ __('Milestones') }}
-                            </div>
-                            <div class="tabTexts tabNumCounter">
-                                <span>
-                                    {{ $totalMilestonesGlobal ?? 0 }}
-                                </span>
-                            </div>
-                            <div class="statusContainer milestoneTab">
-                                <div class="status hold ctr mst">
-                                    <span class="statusText">{{ __('Unassigned') }}</span>
-                                    <div class="statusNumContainer">
-                                        <span class="statusNum">{{ $unassignedMilestones ?? 0 }}</span>
-                                    </div>
-                                </div>
-                                <div class="status progressstat ctr mst">
-                                    <span class="statusText">{{ __('Under Review') }}</span>
-                                    <div class="statusNumContainer">
-                                        <span class="statusNum">{{ $reviewMilestones ?? 0 }}</span>
-                                    </div>
-                                </div>
-                                <div class="status ended ctr mst">
-                                    <span class="statusText">{{ __('Active') }}</span>
-                                    <div class="statusNumContainer">
-                                        <span class="statusNum">{{ $activeMilestones ?? 0 }}</span>
-                                    </div>
-                                </div>
-                                <div class="status ended ctr mst">
-                                    <span class="statusText">{{ __('Finished') }}</span>
-                                    <div class="statusNumContainer">
-                                        <span class="statusNum">{{ $finishedMilestones ?? 0 }}</span>
-                                    </div>
-                                </div>
-                                <div class="status hold ctr mst">
-                                    <span class="statusText">{{ __('Paused') }}</span>
-                                    <div class="statusNumContainer">
-                                        <span class="statusNum">{{ $pausedMilestones ?? 0 }}</span>
-                                    </div>
-                                </div>
-
-                            </div>
-                        </div>
-                        <div class="tabs ctr">
-                            <div class="tabIcon taskIcon">
-                                <img class="icons"
-                                    src="{{ asset('assets/custom/libs/@fontawesome/fontawesome-free/svgs/solid/tasks.svg') }}"
-                                    alt="logo" />
-
-                            </div>
-                            <div class="tabTexts">
-                                {{ __('Global tasks') }}
-                            </div>
-                            <div class="tabTexts tabNumCounter">
-                                <span>
-                                    {{ $totalTask ?? 0 }}
-                                </span>
-
-                            </div>
-                            <div class="statusContainer">
-                                @foreach ($totalTaskByType ?? [] as $type => $count)
-                                    <div class="status ended ctr">
-                                        <span class="statusText">{{ __($type) }}</span>
-                                        <div class="statusNumContainer">
-                                            <span class="statusNum">{{ $count }}</span>
                                         </div>
                                     </div>
-                                @endforeach
+                                    <div class="tabs ctr">
+                                        <div class="tabIcon milestoneIcon">
+                                            <img class="icons"
+                                                src="{{ asset('assets/custom/libs/@fontawesome/fontawesome-free/svgs/solid/file-alt.svg') }}"
+                                                alt="logo" />
+
+                                        </div>
+                                        <div class="tabTexts">
+                                            {{ __('Milestones') }}
+                                        </div>
+                                        <div class="tabTexts tabNumCounter">
+                                            <span>
+                                                {{ $totalMilestonesGlobal ?? 0 }}
+                                            </span>
+                                        </div>
+                                        <div class="statusContainer milestoneTab">
+                                            <div class="status hold ctr mst">
+                                                <span class="statusText">{{ __('Unassigned') }}</span>
+                                                <div class="statusNumContainer">
+                                                    <span class="statusNum">{{ $unassignedMilestones ?? 0 }}</span>
+                                                </div>
+                                            </div>
+                                            <div class="status progressstat ctr mst">
+                                                <span class="statusText">{{ __('Under Review') }}</span>
+                                                <div class="statusNumContainer">
+                                                    <span class="statusNum">{{ $reviewMilestones ?? 0 }}</span>
+                                                </div>
+                                            </div>
+                                            <div class="status ended ctr mst">
+                                                <span class="statusText">{{ __('Active') }}</span>
+                                                <div class="statusNumContainer">
+                                                    <span class="statusNum">{{ $activeMilestones ?? 0 }}</span>
+                                                </div>
+                                            </div>
+                                            <div class="status ended ctr mst">
+                                                <span class="statusText">{{ __('Finished') }}</span>
+                                                <div class="statusNumContainer">
+                                                    <span class="statusNum">{{ $finishedMilestones ?? 0 }}</span>
+                                                </div>
+                                            </div>
+                                            <div class="status hold ctr mst">
+                                                <span class="statusText">{{ __('Paused') }}</span>
+                                                <div class="statusNumContainer">
+                                                    <span class="statusNum">{{ $pausedMilestones ?? 0 }}</span>
+                                                </div>
+                                            </div>
+
+                                        </div>
+                                    </div>
+                                    <div class="tabs ctr">
+                                        <div class="tabIcon taskIcon">
+                                            <img class="icons"
+                                                src="{{ asset('assets/custom/libs/@fontawesome/fontawesome-free/svgs/solid/tasks.svg') }}"
+                                                alt="logo" />
+
+                                        </div>
+                                        <div class="tabTexts">
+                                            {{ __('Global tasks') }}
+                                        </div>
+                                        <div class="tabTexts tabNumCounter">
+                                            <span>
+                                                {{ $totalTask ?? 0 }}
+                                            </span>
+
+                                        </div>
+                                        <div class="statusContainer">
+                                            @foreach ($totalTaskByType ?? [] as $type => $count)
+                                                <div class="status ended ctr">
+                                                    <span class="statusText">{{ __($type) }}</span>
+                                                    <div class="statusNumContainer">
+                                                        <span class="statusNum">{{ $count }}</span>
+                                                    </div>
+                                                </div>
+                                            @endforeach
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="summary-page">
+                                <div class="summary">
+                                    <div class="tabs ctr empty-card" data-card="1">
+                                        <div class="empty-card-content">
+                                            <span class="empty-label">{{ __('My activity - Card 1') }}</span>
+                                        </div>
+                                    </div>
+                                    <div class="tabs ctr empty-card" data-card="2">
+                                        <div class="empty-card-content">
+                                            <span class="empty-label">{{ __('My activity - Card 2') }}</span>
+                                        </div>
+                                    </div>
+                                    <div class="tabs ctr empty-card" data-card="3">
+                                        <div class="empty-card-content">
+                                            <span class="empty-label">{{ __('My activity - Card 3') }}</span>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -1138,6 +1293,80 @@
 
         document.getElementById('filterTechnicians').addEventListener('input', function() {
             filterList('filterTechnicians', 'contentTec');
+        });
+    </script>
+    <script>
+        const sleep = ms => new Promise(r => setTimeout(r, ms));
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const wrapper = document.getElementById('summaryWrapper');
+            const toggle = document.getElementById('summaryToggle');
+            const label = document.getElementById('toggleLabel');
+            const track = document.getElementById('summaryTrack');
+            if (!wrapper || !toggle || !label || !track) return;
+
+            const workspaceId = '{{ $currentWorkspace->id ?? "default" }}';
+            const storageKey = 'summaryExpanded_' + workspaceId;
+            const isExpanded = localStorage.getItem(storageKey) === 'true';
+
+            const page1 = track.querySelector('.summary-page:first-child');
+            const page2 = track.querySelector('.summary-page:last-child');
+
+            // Set initial state instantly (no animation)
+            if (isExpanded) {
+                wrapper.classList.add('expanded');
+                track.style.transform = 'translateX(-50%)';
+                label.textContent = '{{ __("My activity") }}';
+            } else {
+                wrapper.classList.remove('expanded');
+                track.style.transform = 'translateX(0)';
+                label.textContent = '{{ __("Global overview") }}';
+            }
+            track.offsetHeight;
+
+            let animating = false;
+            toggle.addEventListener('click', async function() {
+                if (animating) return;
+                animating = true;
+
+                const expanding = !wrapper.classList.contains('expanded');
+
+                if (expanding) {
+                    page1.classList.remove('page-out', 'page-in-start');
+                    page1.classList.add('page-out');
+                    await sleep(350);
+
+                    page2.classList.remove('page-out', 'page-in-start');
+                    page2.classList.add('page-in-start');
+                    wrapper.classList.add('expanded');
+                    track.style.transform = 'translateX(-50%)';
+                    track.offsetHeight;
+
+                    page2.classList.remove('page-in-start');
+                    await sleep(350);
+
+                    label.textContent = '{{ __("My activity") }}';
+                    localStorage.setItem(storageKey, true);
+                } else {
+                    page2.classList.remove('page-out', 'page-in-start');
+                    page2.classList.add('page-out');
+                    await sleep(350);
+
+                    page1.classList.remove('page-out', 'page-in-start');
+                    page1.classList.add('page-in-start');
+                    wrapper.classList.remove('expanded');
+                    track.style.transform = 'translateX(0)';
+                    track.offsetHeight;
+
+                    page1.classList.remove('page-in-start');
+                    await sleep(350);
+
+                    label.textContent = '{{ __("Global overview") }}';
+                    localStorage.setItem(storageKey, false);
+                }
+
+                animating = false;
+            });
         });
     </script>
 @endpush
