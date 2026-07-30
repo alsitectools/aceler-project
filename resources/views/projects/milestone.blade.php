@@ -606,6 +606,11 @@
         const searchSalesManagerUrl = "{{ route('search-sales-json', '__slug') }}".replace('__slug', currentWorkspaceSlug);
     </script>
     <script src="{{ asset('assets/js/create_project.js') }}?v={{ time() }}"></script>
+    <script>
+        if (typeof window.initCreateProjectSearch === 'function') {
+            window.initCreateProjectSearch();
+        }
+    </script>
     {{-- staging y produccion 
  <script src="{{ asset('assets/js/create_project.js') }}"></script> --}}
 @endif
