@@ -477,7 +477,7 @@
     .summary-wrapper {
         position: relative;
         width: 100%;
-        height: 120px;
+        height: 200px;
         overflow: hidden;
     }
 
@@ -539,6 +539,7 @@
         transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1),
                     opacity 0.35s cubic-bezier(0.4, 0, 0.2, 1);
         will-change: transform, opacity;
+        margin-bottom: 20px;
     }
 
     .summary-page:first-child {
@@ -845,17 +846,57 @@
                                 <div class="summary">
                                     <div class="tabs ctr empty-card" data-card="1">
                                         <div class="empty-card-content">
-                                            <span class="empty-label">{{ __('My activity - Card 1') }}</span>
+                                            <div class="mi-actividad-card">
+                                                <h4>{{ __('Mis encargos asignados') }}: <span class="total-count">{{ ($myEnPlazoMilestones + $myFueraPlazoMilestones + $myEnRevisionMilestones + $myFinalizadosMilestones + $myEnPausaMilestones) ?? 0 }}</span></h4>
+                                                <div class="status-breakdown">
+                                                    <div class="status-item">
+                                                        <span class="status-label">{{ __('En plazo') }}</span>
+                                                        <span class="status-value">{{ $myEnPlazoMilestones ?? 0 }}</span>
+                                                    </div>
+                                                    <div class="status-item">
+                                                        <span class="status-label">{{ __('Fuera de plazo') }}</span>
+                                                        <span class="status-value">{{ $myFueraPlazoMilestones ?? 0 }}</span>
+                                                    </div>
+                                                    <div class="status-item">
+                                                        <span class="status-label">{{ __('En revisión') }}</span>
+                                                        <span class="status-value">{{ $myEnRevisionMilestones ?? 0 }}</span>
+                                                    </div>
+                                                    <div class="status-item">
+                                                        <span class="status-label">{{ __('Finalizados') }}</span>
+                                                        <span class="status-value">{{ $myFinalizadosMilestones ?? 0 }}</span>
+                                                    </div>
+                                                    <div class="status-item">
+                                                        <span class="status-label">{{ __('En pausa') }}</span>
+                                                        <span class="status-value">{{ $myEnPausaMilestones ?? 0 }}</span>
+                                                    </div>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
                                     <div class="tabs ctr empty-card" data-card="2">
                                         <div class="empty-card-content">
-                                            <span class="empty-label">{{ __('My activity - Card 2') }}</span>
+                                            <div class="mi-actividad-card">
+                                                <h4>{{ __('Prioridad de mis encargos') }}</h4>
+                                                <div class="status-breakdown">
+                                                    <div class="status-item">
+                                                        <span class="status-label">{{ __('Alta') }}</span>
+                                                        <span class="status-value">{{ $myAltaPriorityMilestones ?? 0 }}</span>
+                                                    </div>
+                                                    <div class="status-item">
+                                                        <span class="status-label">{{ __('Media') }}</span>
+                                                        <span class="status-value">{{ $myMediaPriorityMilestones ?? 0 }}</span>
+                                                    </div>
+                                                    <div class="status-item">
+                                                        <span class="status-label">{{ __('Baja') }}</span>
+                                                        <span class="status-value">{{ $myBajaPriorityMilestones ?? 0 }}</span>
+                                                    </div>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
                                     <div class="tabs ctr empty-card" data-card="3">
                                         <div class="empty-card-content">
-                                            <span class="empty-label">{{ __('My activity - Card 3') }}</span>
+                                            <span class="empty-label">{{ __('Mi actividad - Card 3') }}</span>
                                         </div>
                                     </div>
                                 </div>

@@ -287,6 +287,60 @@ class HomeController extends Controller
                 ->where('milestones.is_waiting', 1)
                 ->count();
 
+            // My activity - user's milestones by status
+            $myEnPlazoMilestones = Milestone::join('projects', 'projects.id', '=', 'milestones.project_id')
+                ->where('projects.workspace', $currentWorkspace->id)
+                ->whereRaw("FIND_IN_SET(?, milestones.milestone_assigned_to_user)", [$userObj->id])
+                ->whereIn('milestones.status', [1, 2])
+                ->where('milestones.is_waiting', 0)
+                ->where('milestones.end_date', '>=', now()->toDateString())
+                ->count();
+
+            $myFueraPlazoMilestones = Milestone::join('projects', 'projects.id', '=', 'milestones.project_id')
+                ->where('projects.workspace', $currentWorkspace->id)
+                ->whereRaw("FIND_IN_SET(?, milestones.milestone_assigned_to_user)", [$userObj->id])
+                ->whereIn('milestones.status', [1, 2])
+                ->where('milestones.is_waiting', 0)
+                ->where('milestones.end_date', '<', now()->toDateString())
+                ->count();
+
+            $myEnRevisionMilestones = Milestone::join('projects', 'projects.id', '=', 'milestones.project_id')
+                ->where('projects.workspace', $currentWorkspace->id)
+                ->whereRaw("FIND_IN_SET(?, milestones.milestone_assigned_to_user)", [$userObj->id])
+                ->where('milestones.status', 3)
+                ->count();
+
+            $myFinalizadosMilestones = Milestone::join('projects', 'projects.id', '=', 'milestones.project_id')
+                ->where('projects.workspace', $currentWorkspace->id)
+                ->whereRaw("FIND_IN_SET(?, milestones.milestone_assigned_to_user)", [$userObj->id])
+                ->where('milestones.status', 4)
+                ->count();
+
+            $myEnPausaMilestones = Milestone::join('projects', 'projects.id', '=', 'milestones.project_id')
+                ->where('projects.workspace', $currentWorkspace->id)
+                ->whereRaw("FIND_IN_SET(?, milestones.milestone_assigned_to_user)", [$userObj->id])
+                ->where('milestones.is_waiting', 1)
+                ->count();
+
+            // My activity - user's milestones by priority
+            $myAltaPriorityMilestones = Milestone::join('projects', 'projects.id', '=', 'milestones.project_id')
+                ->where('projects.workspace', $currentWorkspace->id)
+                ->whereRaw("FIND_IN_SET(?, milestones.milestone_assigned_to_user)", [$userObj->id])
+                ->where('milestones.priority', 'alta')
+                ->count();
+
+            $myMediaPriorityMilestones = Milestone::join('projects', 'projects.id', '=', 'milestones.project_id')
+                ->where('projects.workspace', $currentWorkspace->id)
+                ->whereRaw("FIND_IN_SET(?, milestones.milestone_assigned_to_user)", [$userObj->id])
+                ->where('milestones.priority', 'media')
+                ->count();
+
+            $myBajaPriorityMilestones = Milestone::join('projects', 'projects.id', '=', 'milestones.project_id')
+                ->where('projects.workspace', $currentWorkspace->id)
+                ->whereRaw("FIND_IN_SET(?, milestones.milestone_assigned_to_user)", [$userObj->id])
+                ->where('milestones.priority', 'baja')
+                ->count();
+
             $totalTaskByType = Task::join('milestones', 'tasks.milestone_id', '=', 'milestones.id')
                 ->join('projects', 'milestones.project_id', '=', 'projects.id')
                 ->where('projects.workspace', $currentWorkspace->id)
@@ -473,6 +527,14 @@ class HomeController extends Controller
                 'unassignedMilestones',
                 'finishedMilestones',
                 'pausedMilestones',
+                'myEnPlazoMilestones',
+                'myFueraPlazoMilestones',
+                'myEnRevisionMilestones',
+                'myFinalizadosMilestones',
+                'myEnPausaMilestones',
+                'myAltaPriorityMilestones',
+                'myMediaPriorityMilestones',
+                'myBajaPriorityMilestones',
                 'totalTaskByType'
             ));
 
