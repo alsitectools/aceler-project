@@ -652,7 +652,9 @@
         display: flex;
         align-items: center;
         gap: 8px;
-        transition: all 0.25s ease;
+        transition: background 1.3s cubic-bezier(0.4, 0, 0.2, 1),
+                    color 1.3s cubic-bezier(0.4, 0, 0.2, 1),
+                    box-shadow 1.3s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
     .view-segment:hover:not(.active) {
