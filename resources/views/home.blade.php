@@ -47,9 +47,153 @@
     .ctr {
         display: flex;
         align-items: center;
-
-
     }
+
+    /* ============================================================
+       Modern Summary Cards Layout
+       ============================================================ */
+    .tabs.ctr {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 24px;
+        align-items: start;
+        padding: 24px 28px;
+        background: #fff;
+        border-radius: 16px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.04), 0 4px 12px rgba(0,0,0,0.03);
+        border: 1px solid #e5e7eb;
+        height: 100%;
+        transition: box-shadow 0.2s ease;
+        min-width: 0;
+    }
+    .tabs.ctr:hover {
+        box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+    }
+
+    .card-header-inner {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 8px;
+        text-align: center;
+        min-width: 0;
+    }
+
+    .tabIcon {
+        margin-left: 0;
+        width: 48px;
+        height: 48px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+
+    .icons {
+        width: 28px;
+        height: 28px;
+        filter: invert(1);
+    }
+
+    .projectIcon { background-color: #8dd656; }
+    .milestoneIcon { background-color: rgb(174 154 247); }
+    .taskIcon { background-color: #72c8d4; }
+
+    .tabTexts {
+        margin-left: 0;
+        font-size: 20px;
+        font-weight: 700;
+        line-height: 1.2;
+        color: #111827;
+        text-align: center;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        max-width: 100%;
+    }
+
+    .tabNumCounter {
+        margin-left: 0;
+        margin-top: 8px;
+        width: auto;
+        min-width: 60px;
+        padding: 8px 16px;
+        border-radius: 10px;
+        background: #f3f4f6;
+        border: 1px solid #e5e7eb;
+        box-shadow: none;
+        font-size: 20px;
+        font-weight: 700;
+        color: #111827;
+        text-align: center;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+
+    .card-header-inner {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
+
+    .statusContainer {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        min-width: 180px;
+        width: 100%;
+    }
+
+    .stat-row {
+        display: grid;
+        grid-template-columns: auto 1fr auto;
+        column-gap: 12px;
+        align-items: center;
+        min-width: 0;
+        width: 100%;
+    }
+
+    .stat-dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        flex-shrink: 0;
+    }
+
+    .stat-label {
+        color: #111827;
+        font-weight: 500;
+        font-size: 14px;
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        text-align: left;
+        padding-right: 8px;
+    }
+
+.stat-value {
+        font-size: 14px;
+        font-weight: 600;
+        color: #6b7280;
+        background: #fff;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        padding: 2px 10px;
+        min-width: 44px;
+        text-align: right;
+        white-space: nowrap;
+    }
+
+.stat-dot--pending { background: #ef4444; }
+    .stat-dot--review { background: #9ca3af; }
+    .stat-dot--active { background: #22c55e; }
+    .stat-dot--info { background: #3b82f6; }
+    .stat-dot--warning { background: #f59e0b; }
 
     .titleTecAndCom {
         padding-left: 10px;
@@ -266,11 +410,11 @@
         display: flex;
         flex-direction: column;
         align-items: flex-start;
-        margin-left: 11%;
+        margin-left: 2%;
         height: 100%;
         width: 27%;
         justify-content: center;
-        gap: 8px;
+        gap: 0px;
 
     }
 
@@ -727,115 +871,112 @@
                             <div class="summary-page">
                                 <div class="summary">
                                     <div class="tabs ctr">
-                                        <div class="tabIcon projectIcon">
-                                            <img class="icons"
-                                                src="{{ asset('assets/custom/libs/@fontawesome/fontawesome-free/svgs/solid/project-diagram.svg') }}"
-                                                alt="logo" />
+                                        <div class="card-header-inner">
+                                            <div class="tabIcon projectIcon">
+                                                <img class="icons"
+                                                    src="{{ asset('assets/custom/libs/@fontawesome/fontawesome-free/svgs/solid/project-diagram.svg') }}"
+                                                    alt="logo" />
 
-                                        </div>
-                                        <div class="tabTexts">
-                                            {{ __('Projects') }}
-                                        </div>
-                                        <div class="tabTexts tabNumCounter">
-                                            <span>
-                                                {{ $totalProject ?? 0 }}
-                                            </span>
+                                            </div>
+                                            <div class="tabTexts">
+                                                {{ __('Projects') }}
+                                            </div>
+                                            <div class="tabTexts tabNumCounter">
+                                                <span>
+                                                    {{ $totalProject ?? 0 }}
+                                                </span>
 
+                                            </div>
                                         </div>
                                         <div class="statusContainer">
-                                            <div class="status hold ctr">
-                                                <span class="statusText">{{ __('OnHold') }}</span>
-                                                <div class="statusNumContainer">
-                                                    <span class="statusNum">{{ $projectProcess['OnHold'] ?? 0 }}</span>
-                                                </div>
+                                            <div class="stat-row">
+                                                <span class="stat-dot stat-dot--active"></span>
+                                                <span class="stat-label">{{ __('OnHold') }}</span>
+                                                <span class="stat-value">{{ $projectProcess['OnHold'] ?? 0 }}</span>
                                             </div>
-                                            <div class="status progressstat ctr">
-                                                <span class="statusText">{{ __('Ongoing') }}</span>
-                                                <div class="statusNumContainer">
-                                                    <span class="statusNum">{{ $projectProcess['Ongoing'] ?? 0 }}</span>
-                                                </div>
+                                            <div class="stat-row">
+                                                <span class="stat-dot stat-dot--active"></span>
+                                                <span class="stat-label">{{ __('Ongoing') }}</span>
+                                                <span class="stat-value">{{ $projectProcess['Ongoing'] ?? 0 }}</span>
                                             </div>
-                                            <div class="status ended ctr">
-                                                <span class="statusText">{{ __('Finished') }}</span>
-                                                <div class="statusNumContainer">
-                                                    <span class="statusNum">{{ $projectProcess['Finished'] ?? 0 }}</span>
-                                                </div>
+                                            <div class="stat-row">
+                                                <span class="stat-dot stat-dot--active"></span>
+                                                <span class="stat-label">{{ __('Finished') }}</span>
+                                                <span class="stat-value">{{ $projectProcess['Finished'] ?? 0 }}</span>
                                             </div>
 
                                         </div>
                                     </div>
                                     <div class="tabs ctr">
-                                        <div class="tabIcon milestoneIcon">
-                                            <img class="icons"
-                                                src="{{ asset('assets/custom/libs/@fontawesome/fontawesome-free/svgs/solid/file-alt.svg') }}"
-                                                alt="logo" />
+                                        <div class="card-header-inner">
+                                            <div class="tabIcon milestoneIcon">
+                                                <img class="icons"
+                                                    src="{{ asset('assets/custom/libs/@fontawesome/fontawesome-free/svgs/solid/file-alt.svg') }}"
+                                                    alt="logo" />
 
+                                            </div>
+                                            <div class="tabTexts">
+                                                {{ __('Milestones') }}
+                                            </div>
+                                            <div class="tabTexts tabNumCounter">
+                                                <span>
+                                                    {{ $totalMilestonesGlobal ?? 0 }}
+                                                </span>
+                                            </div>
                                         </div>
-                                        <div class="tabTexts">
-                                            {{ __('Milestones') }}
-                                        </div>
-                                        <div class="tabTexts tabNumCounter">
-                                            <span>
-                                                {{ $totalMilestonesGlobal ?? 0 }}
-                                            </span>
-                                        </div>
-                                        <div class="statusContainer milestoneTab">
-                                            <div class="status hold ctr mst">
-                                                <span class="statusText">{{ __('Unassigned') }}</span>
-                                                <div class="statusNumContainer">
-                                                    <span class="statusNum">{{ $unassignedMilestones ?? 0 }}</span>
-                                                </div>
+                                        <div class="statusContainer">
+                                            <div class="stat-row">
+                                                <span class="stat-dot stat-dot--info"></span>
+                                                <span class="stat-label">{{ __('Unassigned') }}</span>
+                                                <span class="stat-value">{{ $unassignedMilestones ?? 0 }}</span>
                                             </div>
-                                            <div class="status progressstat ctr mst">
-                                                <span class="statusText">{{ __('Under Review') }}</span>
-                                                <div class="statusNumContainer">
-                                                    <span class="statusNum">{{ $reviewMilestones ?? 0 }}</span>
-                                                </div>
+                                            <div class="stat-row">
+                                                <span class="stat-dot stat-dot--review"></span>
+                                                <span class="stat-label">{{ __('Under Review') }}</span>
+                                                <span class="stat-value">{{ $reviewMilestones ?? 0 }}</span>
                                             </div>
-                                            <div class="status ended ctr mst">
-                                                <span class="statusText">{{ __('Active') }}</span>
-                                                <div class="statusNumContainer">
-                                                    <span class="statusNum">{{ $activeMilestones ?? 0 }}</span>
-                                                </div>
+                                            <div class="stat-row">
+                                                <span class="stat-dot stat-dot--active"></span>
+                                                <span class="stat-label">{{ __('Active') }}</span>
+                                                <span class="stat-value">{{ $activeMilestones ?? 0 }}</span>
                                             </div>
-                                            <div class="status ended ctr mst">
-                                                <span class="statusText">{{ __('Finished') }}</span>
-                                                <div class="statusNumContainer">
-                                                    <span class="statusNum">{{ $finishedMilestones ?? 0 }}</span>
-                                                </div>
+                                            <div class="stat-row">
+                                                <span class="stat-dot stat-dot--active"></span>
+                                                <span class="stat-label">{{ __('Finished') }}</span>
+                                                <span class="stat-value">{{ $finishedMilestones ?? 0 }}</span>
                                             </div>
-                                            <div class="status hold ctr mst">
-                                                <span class="statusText">{{ __('Paused') }}</span>
-                                                <div class="statusNumContainer">
-                                                    <span class="statusNum">{{ $pausedMilestones ?? 0 }}</span>
-                                                </div>
+                                            <div class="stat-row">
+                                                <span class="stat-dot stat-dot--warning"></span>
+                                                <span class="stat-label">{{ __('Paused') }}</span>
+                                                <span class="stat-value">{{ $pausedMilestones ?? 0 }}</span>
                                             </div>
 
                                         </div>
                                     </div>
                                     <div class="tabs ctr">
-                                        <div class="tabIcon taskIcon">
-                                            <img class="icons"
-                                                src="{{ asset('assets/custom/libs/@fontawesome/fontawesome-free/svgs/solid/tasks.svg') }}"
-                                                alt="logo" />
+                                        <div class="card-header-inner">
+                                            <div class="tabIcon taskIcon">
+                                                <img class="icons"
+                                                    src="{{ asset('assets/custom/libs/@fontawesome/fontawesome-free/svgs/solid/tasks.svg') }}"
+                                                    alt="logo" />
 
-                                        </div>
-                                        <div class="tabTexts">
-                                            {{ __('Global tasks') }}
-                                        </div>
-                                        <div class="tabTexts tabNumCounter">
-                                            <span>
-                                                {{ $totalTask ?? 0 }}
-                                            </span>
+                                            </div>
+                                            <div class="tabTexts">
+                                                {{ __('Global tasks') }}
+                                            </div>
+                                            <div class="tabTexts tabNumCounter">
+                                                <span>
+                                                    {{ $totalTask ?? 0 }}
+                                                </span>
 
+                                            </div>
                                         </div>
                                         <div class="statusContainer">
                                             @foreach ($totalTaskByType ?? [] as $type => $count)
-                                                <div class="status ended ctr">
-                                                    <span class="statusText">{{ __($type) }}</span>
-                                                    <div class="statusNumContainer">
-                                                        <span class="statusNum">{{ $count }}</span>
-                                                    </div>
+                                                <div class="stat-row">
+                                                    <span class="stat-dot stat-dot--info"></span>
+                                                    <span class="stat-label">{{ __($type) }}</span>
+                                                    <span class="stat-value">{{ $count }}</span>
                                                 </div>
                                             @endforeach
                                         </div>
@@ -845,52 +986,82 @@
                             <div class="summary-page">
                                 <div class="summary">
                                     <div class="tabs ctr empty-card" data-card="1">
-                                        <div class="empty-card-content">
-                                            <div class="mi-actividad-card">
-                                                <h4>{{ __('Mis encargos asignados') }}: <span class="total-count">{{ ($myEnPlazoMilestones + $myFueraPlazoMilestones + $myEnRevisionMilestones + $myFinalizadosMilestones + $myEnPausaMilestones) ?? 0 }}</span></h4>
-                                                <div class="status-breakdown">
-                                                    <div class="status-item">
-                                                        <span class="status-label">{{ __('En plazo') }}</span>
-                                                        <span class="status-value">{{ $myEnPlazoMilestones ?? 0 }}</span>
-                                                    </div>
-                                                    <div class="status-item">
-                                                        <span class="status-label">{{ __('Fuera de plazo') }}</span>
-                                                        <span class="status-value">{{ $myFueraPlazoMilestones ?? 0 }}</span>
-                                                    </div>
-                                                    <div class="status-item">
-                                                        <span class="status-label">{{ __('En revisión') }}</span>
-                                                        <span class="status-value">{{ $myEnRevisionMilestones ?? 0 }}</span>
-                                                    </div>
-                                                    <div class="status-item">
-                                                        <span class="status-label">{{ __('Finalizados') }}</span>
-                                                        <span class="status-value">{{ $myFinalizadosMilestones ?? 0 }}</span>
-                                                    </div>
-                                                    <div class="status-item">
-                                                        <span class="status-label">{{ __('En pausa') }}</span>
-                                                        <span class="status-value">{{ $myEnPausaMilestones ?? 0 }}</span>
-                                                    </div>
-                                                </div>
+                                        <div class="card-header-inner">
+                                            <div class="tabIcon projectIcon">
+                                                <img class="icons"
+                                                    src="{{ asset('assets/custom/libs/@fontawesome/fontawesome-free/svgs/solid/project-diagram.svg') }}"
+                                                    alt="logo" />
+
+                                            </div>
+                                            <div class="tabTexts">
+                                                {{ __('Mis encargos asignados') }}
+                                            </div>
+                                            <div class="tabTexts tabNumCounter">
+                                                <span>
+                                                    {{ ($myEnPlazoMilestones + $myFueraPlazoMilestones + $myEnRevisionMilestones + $myFinalizadosMilestones + $myEnPausaMilestones) ?? 0 }}
+                                                </span>
+                                            </div>
+                                        </div>
+                                        <div class="statusContainer">
+                                            <div class="stat-row">
+                                                <span class="stat-dot stat-dot--active"></span>
+                                                <span class="stat-label">{{ __('En plazo') }}</span>
+                                                <span class="stat-value">{{ $myEnPlazoMilestones ?? 0 }}</span>
+                                            </div>
+                                            <div class="stat-row">
+                                                <span class="stat-dot stat-dot--pending"></span>
+                                                <span class="stat-label">{{ __('Fuera de plazo') }}</span>
+                                                <span class="stat-value">{{ $myFueraPlazoMilestones ?? 0 }}</span>
+                                            </div>
+                                            <div class="stat-row">
+                                                <span class="stat-dot stat-dot--review"></span>
+                                                <span class="stat-label">{{ __('En revisión') }}</span>
+                                                <span class="stat-value">{{ $myEnRevisionMilestones ?? 0 }}</span>
+                                            </div>
+                                            <div class="stat-row">
+                                                <span class="stat-dot stat-dot--active"></span>
+                                                <span class="stat-label">{{ __('Finalizados') }}</span>
+                                                <span class="stat-value">{{ $myFinalizadosMilestones ?? 0 }}</span>
+                                            </div>
+                                            <div class="stat-row">
+                                                <span class="stat-dot stat-dot--warning"></span>
+                                                <span class="stat-label">{{ __('En pausa') }}</span>
+                                                <span class="stat-value">{{ $myEnPausaMilestones ?? 0 }}</span>
                                             </div>
                                         </div>
                                     </div>
                                     <div class="tabs ctr empty-card" data-card="2">
-                                        <div class="empty-card-content">
-                                            <div class="mi-actividad-card">
-                                                <h4>{{ __('Prioridad de mis encargos') }}</h4>
-                                                <div class="status-breakdown">
-                                                    <div class="status-item">
-                                                        <span class="status-label">{{ __('Alta') }}</span>
-                                                        <span class="status-value">{{ $myAltaPriorityMilestones ?? 0 }}</span>
-                                                    </div>
-                                                    <div class="status-item">
-                                                        <span class="status-label">{{ __('Media') }}</span>
-                                                        <span class="status-value">{{ $myMediaPriorityMilestones ?? 0 }}</span>
-                                                    </div>
-                                                    <div class="status-item">
-                                                        <span class="status-label">{{ __('Baja') }}</span>
-                                                        <span class="status-value">{{ $myBajaPriorityMilestones ?? 0 }}</span>
-                                                    </div>
-                                                </div>
+                                        <div class="card-header-inner">
+                                            <div class="tabIcon milestoneIcon">
+                                                <img class="icons"
+                                                    src="{{ asset('assets/custom/libs/@fontawesome/fontawesome-free/svgs/solid/file-alt.svg') }}"
+                                                    alt="logo" />
+
+                                            </div>
+                                            <div class="tabTexts">
+                                                {{ __('Prioridad de mis encargos') }}
+                                            </div>
+                                            <div class="tabTexts tabNumCounter">
+                                                <span>
+                                                    {{ ($myAltaPriorityMilestones + $myMediaPriorityMilestones + $myBajaPriorityMilestones) ?? 0 }}
+                                                </span>
+                                            </div>
+                                        </div>
+                                        <div class="statusContainer">
+                                            <div class="stat-row">
+                                                <span class="stat-dot stat-dot--pending"></span>
+                                                <span class="stat-label">{{ __('Alta') }}</span>
+                                                <span class="stat-value">{{ $myAltaPriorityMilestones ?? 0 }}</span>
+                                            </div>
+                                            <div class="stat-row">
+                                                <span class="stat-dot stat-dot--warning"></span>
+                                                <span class="stat-label">{{ __('Media') }}</span>
+                                                <span class="stat-value">{{ $myMediaPriorityMilestones ?? 0 }}</span>
+                                            </div>
+                                            <div class="stat-row">
+                                                <span class="stat-dot stat-dot--info"></span>
+                                                <span class="stat-label">{{ __('Baja') }}</span>
+                                                <span class="stat-value">{{ $myBajaPriorityMilestones ?? 0 }}</span>
                                             </div>
                                         </div>
                                     </div>
