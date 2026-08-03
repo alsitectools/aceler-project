@@ -627,45 +627,46 @@
         overflow: hidden;
     }
 
-    .summary-toggle-bar {
-        display: flex;
-        justify-content: flex-end;
-        padding: 0 8px 8px 0;
+    .view-selector {
+        display: inline-flex;
+        padding: 4px;
+        background: #f4f5f7;
+        border-radius: 14px;
+        border: 1px solid #e5e7eb;
+        gap: 4px;
         margin-top: 4px;
+        float: right;
+        margin-bottom: 10px;
     }
 
-    .summary-toggle {
-        height: 32px;
+    .view-segment {
         border: none;
-        border-radius: 8px;
-        background: #fff;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+        background: transparent;
+        border-radius: 10px;
+        padding: 10px 18px;
+        height: 38px;
+        font-size: 13px;
+        font-weight: 600;
+        color: #5b6472;
         cursor: pointer;
         display: flex;
         align-items: center;
-        justify-content: center;
-        gap: 6px;
-        padding: 0 12px;
-        transition: background 0.2s, transform 0.2s;
-    }
-    .summary-toggle:hover {
-        background: #f8f9fa;
-        transform: scale(1.05);
+        gap: 8px;
+        transition: all 0.25s ease;
     }
 
-    .toggle-label {
-        font-size: 12px;
-        font-weight: 600;
-        color: #333;
-        white-space: nowrap;
+    .view-segment:hover:not(.active) {
+        background: #eceef3;
     }
 
-    .summary-toggle .toggle-icon {
-        color: #333;
-        transition: transform 0.3s;
+    .view-segment.active {
+        background: #AA182C;
+        color: white;
+        box-shadow: 0 4px 12px rgba(170, 24, 44, 0.25);
     }
-    .summary-wrapper.expanded .summary-toggle .toggle-icon {
-        transform: rotate(180deg);
+
+    .view-segment i {
+        font-size: 14px;
     }
 
     .summary-track {
@@ -860,12 +861,14 @@
                     <div class="page-header-title">
                         <h4 class="m-b-10">{{ __('Resume of') }} {{ $currentWorkspace->display_name }}</h4>
                     </div>
-                    <div class="summary-toggle-bar" id="summaryToggleBar">
-                        <button class="summary-toggle" id="summaryToggle" type="button" aria-label="Toggle">
-                            <span class="toggle-label" id="toggleLabel">{{ __('Global overview') }}</span>
-                            <svg class="toggle-icon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <polyline points="15 18 9 12 15 6"></polyline>
-                            </svg>
+                    <div class="view-selector" id="viewSelector">
+                        <button type="button" class="view-segment active" data-view="global">
+                            <i class="fas fa-chart-column"></i>
+                            <span>{{ __('Resumen global') }}</span>
+                        </button>
+                        <button type="button" class="view-segment" data-view="activity">
+                            <i class="fas fa-user"></i>
+                            <span>{{ 'Mi actividad' }}</span>
                         </button>
                     </div>
                     <div class="summary-wrapper" id="summaryWrapper">
@@ -1522,41 +1525,31 @@
             filterList('filterTechnicians', 'contentTec');
         });
     </script>
-    <script>
+<script>
         const sleep = ms => new Promise(r => setTimeout(r, ms));
 
         document.addEventListener('DOMContentLoaded', function() {
             const wrapper = document.getElementById('summaryWrapper');
-            const toggle = document.getElementById('summaryToggle');
-            const label = document.getElementById('toggleLabel');
             const track = document.getElementById('summaryTrack');
-            if (!wrapper || !toggle || !label || !track) return;
+            const viewSelector = document.getElementById('viewSelector');
+            if (!wrapper || !track) return;
 
             const workspaceId = '{{ $currentWorkspace->id ?? "default" }}';
-            const storageKey = 'summaryExpanded_' + workspaceId;
-            const isExpanded = localStorage.getItem(storageKey) === 'true';
+            const storageKey = 'summaryView_' + workspaceId;
 
             const page1 = track.querySelector('.summary-page:first-child');
             const page2 = track.querySelector('.summary-page:last-child');
+            const viewSegments = document.querySelectorAll('#viewSelector .view-segment');
 
-            // Set initial state instantly (no animation)
-            if (isExpanded) {
-                wrapper.classList.add('expanded');
-                track.style.transform = 'translateX(-50%)';
-                label.textContent = '{{ __("My activity") }}';
-            } else {
-                wrapper.classList.remove('expanded');
-                track.style.transform = 'translateX(0)';
-                label.textContent = '{{ __("Global overview") }}';
-            }
-            track.offsetHeight;
+            async function activateView(view) {
+                const currentView = localStorage.getItem(storageKey) || 'global';
+                if (view === currentView) return;
 
-            let animating = false;
-            toggle.addEventListener('click', async function() {
-                if (animating) return;
-                animating = true;
+                viewSegments.forEach(btn => {
+                    btn.classList.toggle('active', btn.dataset.view === view);
+                });
 
-                const expanding = !wrapper.classList.contains('expanded');
+                const expanding = view === 'activity';
 
                 if (expanding) {
                     page1.classList.remove('page-out', 'page-in-start');
@@ -1566,14 +1559,9 @@
                     page2.classList.remove('page-out', 'page-in-start');
                     page2.classList.add('page-in-start');
                     wrapper.classList.add('expanded');
-                    track.style.transform = 'translateX(-50%)';
                     track.offsetHeight;
-
                     page2.classList.remove('page-in-start');
                     await sleep(350);
-
-                    label.textContent = '{{ __("My activity") }}';
-                    localStorage.setItem(storageKey, true);
                 } else {
                     page2.classList.remove('page-out', 'page-in-start');
                     page2.classList.add('page-out');
@@ -1582,17 +1570,32 @@
                     page1.classList.remove('page-out', 'page-in-start');
                     page1.classList.add('page-in-start');
                     wrapper.classList.remove('expanded');
-                    track.style.transform = 'translateX(0)';
                     track.offsetHeight;
-
                     page1.classList.remove('page-in-start');
                     await sleep(350);
-
-                    label.textContent = '{{ __("Global overview") }}';
-                    localStorage.setItem(storageKey, false);
                 }
 
-                animating = false;
+                localStorage.setItem(storageKey, view);
+            }
+
+            // Initialize view
+            const savedView = localStorage.getItem(storageKey) || 'global';
+            viewSegments.forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.view === savedView);
+            });
+
+            if (savedView === 'activity') {
+                wrapper.classList.add('expanded');
+            } else {
+                wrapper.classList.remove('expanded');
+            }
+            track.offsetHeight;
+
+            // Segment click handlers
+            viewSegments.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    activateView(this.dataset.view);
+                });
             });
         });
     </script>
