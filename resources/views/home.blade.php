@@ -88,6 +88,7 @@
         align-items: center;
         justify-content: center;
         flex-shrink: 0;
+        background-color: #AA182C;
     }
 
     .icons {
@@ -96,9 +97,9 @@
         filter: invert(1);
     }
 
-    .projectIcon { background-color: #8dd656; }
-    .milestoneIcon { background-color: rgb(174 154 247); }
-    .taskIcon { background-color: #72c8d4; }
+    .projectIcon { background-color: #7229a9; }
+    .milestoneIcon { background-color: #819b08; }
+    .taskIcon { background-color: #8d372b; }
 
     .tabTexts {
         margin-left: 0;
@@ -189,11 +190,12 @@
         white-space: nowrap;
     }
 
-.stat-dot--pending { background: #ef4444; }
+.stat-dot--pending { background: #ff0000a3; }
     .stat-dot--review { background: #9ca3af; }
     .stat-dot--active { background: #22c55e; }
-    .stat-dot--info { background: #3b82f6; }
+    .stat-dot--info { background: #53b446e0; }
     .stat-dot--warning { background: #f59e0b; }
+    .stat-dot--info1 { background: #3b82f6; }
 
     .titleTecAndCom {
         padding-left: 10px;
@@ -219,7 +221,7 @@
     }
 
     .projectIcon {
-        background-color: #8dd656;
+        background-color: #a1cd80;
     }
 
     .milestoneIcon {
@@ -974,7 +976,7 @@
                                         <div class="statusContainer">
                                             @foreach ($totalTaskByType ?? [] as $type => $count)
                                                 <div class="stat-row">
-                                                    <span class="stat-dot stat-dot--info"></span>
+                                                    <span class="stat-dot stat-dot--info1"></span>
                                                     <span class="stat-label">{{ __($type) }}</span>
                                                     <span class="stat-value">{{ $count }}</span>
                                                 </div>
