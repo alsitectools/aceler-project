@@ -54,8 +54,8 @@
        ============================================================ */
     .tabs.ctr {
         display: grid;
-        grid-template-columns: 1fr auto;
-        gap: 24px;
+        grid-template-columns: auto 1fr;
+        gap: 10px;
         align-items: start;
         padding: 24px 28px;
         background: #fff;
@@ -163,6 +163,7 @@
         height: 10px;
         border-radius: 50%;
         flex-shrink: 0;
+        margin-left: 60px;
     }
 
     .stat-label {
@@ -236,7 +237,14 @@
         margin-left: 20px;
         font-size: 22px;
         font-weight: 800;
-        text-wrap: nowrap;
+        white-space: normal;
+        overflow-wrap: break-word;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        line-height: 1.2;
+        max-width: 100%;
+        overflow: hidden;
     }
 
     .tabNumCounter {
@@ -412,9 +420,8 @@
         display: flex;
         flex-direction: column;
         align-items: flex-start;
-        margin-left: 2%;
         height: 100%;
-        width: 27%;
+        width: 100%;
         justify-content: center;
         gap: 0px;
 
@@ -599,7 +606,7 @@
         }
 
         .statusContainer {
-            margin-left: 4%;
+            margin-left: 0;
         }
 
         .milestoneIcon {
@@ -756,6 +763,10 @@
         color: #6c757d;
         font-weight: 500;
         font-size: 14px;
+    }
+
+    .tabTexts--long {
+        font-size: 15px;
     }
 </style>
 
@@ -1592,6 +1603,12 @@
                 wrapper.classList.remove('expanded');
             }
             track.offsetHeight;
+
+            document.querySelectorAll('#summaryWrapper .card-header-inner > .tabTexts:not(.tabNumCounter)').forEach(el => {
+                if (el.textContent.trim().length > 14) {
+                    el.classList.add('tabTexts--long');
+                }
+            });
 
             // Segment click handlers
             viewSegments.forEach(btn => {
