@@ -73,72 +73,11 @@
     .card-header-inner {
         display: flex;
         flex-direction: column;
-        align-items: center;
-        gap: 8px;
-        text-align: center;
-        min-width: 0;
-    }
-
-    .tabIcon {
-        margin-left: 0;
-        width: 48px;
-        height: 48px;
-        border-radius: 12px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        flex-shrink: 0;
-        background-color: #AA182C;
-    }
-
-    .icons {
-        width: 28px;
-        height: 28px;
-        filter: invert(1);
-    }
-
-    .projectIcon { background-color: #7229a9; }
-    .milestoneIcon { background-color: #819b08; }
-    .taskIcon { background-color: #8d372b; }
-
-    .tabTexts {
-        margin-left: 0;
-        font-size: 20px;
-        font-weight: 700;
-        line-height: 1.2;
-        color: #111827;
-        text-align: center;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-        max-width: 100%;
-    }
-
-    .tabNumCounter {
-        margin-left: 0;
-        margin-top: 8px;
-        width: auto;
-        min-width: 60px;
-        padding: 8px 16px;
-        border-radius: 10px;
-        background: #f3f4f6;
-        border: 1px solid #e5e7eb;
-        box-shadow: none;
-        font-size: 20px;
-        font-weight: 700;
-        color: #111827;
-        text-align: center;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        flex-shrink: 0;
-    }
-
-    .card-header-inner {
-        display: flex;
-        flex-direction: column;
         align-items: flex-start;
+        justify-content: flex-start;
         gap: 8px;
+        min-width: 0;
+        margin-bottom: 18px;
     }
 
     .statusContainer {
@@ -204,9 +143,10 @@
     }
 
     .tabIcon {
-        margin-left: 30px;
-        width: 50px;
-        height: 50px;
+        margin-left: 0;
+        width: 38px;
+        height: 38px;
+        flex-shrink: 0;
         background-color: #AA182C;
         display: flex;
         justify-content: center;
@@ -216,8 +156,8 @@
     }
 
     .icons {
-        width: 35px;
-        height: 32px;
+        width: 22px;
+        height: 20px;
         filter: invert(1);
     }
 
@@ -234,28 +174,30 @@
     }
 
     .tabTexts {
-        margin-left: 20px;
-        font-size: 22px;
+        margin-left: 0;
+        font-size: 18px;
         font-weight: 800;
-        white-space: normal;
-        overflow-wrap: break-word;
-        display: -webkit-box;
-        -webkit-line-clamp: 2;
-        -webkit-box-orient: vertical;
+        color: #111827;
         line-height: 1.2;
-        max-width: 100%;
+        white-space: nowrap;
         overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 160px;
     }
 
     .tabNumCounter {
+        margin-left: 0;
+        margin-top: 8px;
         background-color: white;
         display: flex;
         align-items: center;
-        width: 40px;
-        height: 35px;
         justify-content: center;
+        width: 34px;
+        height: 30px;
+        font-size: 15px;
         border-radius: 7px;
         box-shadow: 2px 2px 5px 0px rgb(0 0 0 / 30%);
+        flex-shrink: 0;
     }
 
     .mst {
@@ -582,12 +524,11 @@
             border: 1px solid magenta;
         } */
         .tabIcon {
-            margin-left: 11px;
+            margin-left: 0;
         }
 
         .tabTexts {
-            font-size: 17px;
-
+            font-size: 16px;
         }
 
         .status {
@@ -766,7 +707,52 @@
     }
 
     .tabTexts--long {
-        font-size: 15px;
+        font-size: 14px;
+        line-height: 1.4;
+        margin-left: 0;
+        text-align: left;
+        white-space: normal;
+        overflow-wrap: break-word;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        max-width: 100%;
+    }
+
+    @media screen and (max-width: 999px) {
+        .tabs.ctr {
+            padding: 16px 16px;
+            gap: 8px;
+        }
+
+        .tabIcon {
+            margin-left: 0;
+            width: 34px;
+            height: 34px;
+        }
+
+        .icons {
+            width: 22px;
+            height: 20px;
+        }
+
+        .tabTexts {
+            margin-left: 0;
+            font-size: 15px;
+            max-width: 110px;
+        }
+
+        .tabTexts--long {
+            font-size: 13px;
+        }
+
+        .statusContainer {
+            min-width: 120px;
+        }
+
+        .stat-dot {
+            margin-left: 20px;
+        }
     }
 </style>
 
@@ -1605,7 +1591,7 @@
             track.offsetHeight;
 
             document.querySelectorAll('#summaryWrapper .card-header-inner > .tabTexts:not(.tabNumCounter)').forEach(el => {
-                if (el.textContent.trim().length > 14) {
+                if (el.scrollWidth > el.clientWidth) {
                     el.classList.add('tabTexts--long');
                 }
             });
