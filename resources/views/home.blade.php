@@ -195,10 +195,17 @@
         width: 34px;
         height: 30px;
         font-size: 15px;
+        color: #AA182C;
+        font-weight: 700;
+        border: 1px solid #AA182C;
         border-radius: 7px;
         box-shadow: 2px 2px 5px 0px rgb(0 0 0 / 30%);
         flex-shrink: 0;
     }
+
+    .projectIcon ~ .tabNumCounter { color: #a1cd80; border-color: #a1cd80; }
+    .milestoneIcon ~ .tabNumCounter { color: rgb(174 154 247); border-color: rgb(174 154 247); }
+    .taskIcon ~ .tabNumCounter { color: #72c8d4; border-color: #72c8d4; }
 
     .mst {
         width: 90% !important;
