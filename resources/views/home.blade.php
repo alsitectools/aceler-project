@@ -687,10 +687,10 @@
     }
 
     .empty-card {
-        background: #f8f9fa !important;
-        border: 2px dashed #dee2e6 !important;
-        border-radius: 15px !important;
-        box-shadow: 0 6px 30px rgba(182, 186, 203, 0.3) !important;
+        background: #fff !important;
+        border: 1px solid #e5e7eb !important;
+        border-radius: 16px !important;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.04), 0 4px 12px rgba(0,0,0,0.03) !important;
         display: flex !important;
         align-items: center !important;
         justify-content: center !important;
@@ -989,7 +989,7 @@
                             </div>
                             <div class="summary-page">
                                 <div class="summary">
-                                    <div class="tabs ctr empty-card" data-card="1">
+                                    <div class="tabs ctr" data-card="1">
                                         <div class="card-header-inner">
                                             <div class="tabIcon projectIcon">
                                                 <img class="icons"
@@ -1034,7 +1034,7 @@
                                             </div>
                                         </div>
                                     </div>
-                                    <div class="tabs ctr empty-card" data-card="2">
+                                    <div class="tabs ctr" data-card="2">
                                         <div class="card-header-inner">
                                             <div class="tabIcon milestoneIcon">
                                                 <img class="icons"
