@@ -60,7 +60,7 @@
         padding: 24px 28px;
         background: #fff;
         border-radius: 16px;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.04), 0 4px 12px rgba(0,0,0,0.03);
+        box-shadow: 0 2px 6px rgba(0,0,0,0.06), 0 8px 24px rgba(0,0,0,0.10);
         border: 1px solid #e5e7eb;
         height: 100%;
         transition: box-shadow 0.2s ease;
@@ -69,6 +69,9 @@
     .tabs.ctr:hover {
         box-shadow: 0 4px 20px rgba(0,0,0,0.06);
     }
+    .tabs.ctr:has(.projectIcon) { border-color: #a1cd80; }
+    .tabs.ctr:has(.milestoneIcon) { border-color: rgb(174 154 247); }
+    .tabs.ctr:has(.taskIcon) { border-color: #72c8d4; }
 
     .card-header-inner {
         display: flex;
@@ -78,6 +81,9 @@
         gap: 8px;
         min-width: 0;
         margin-bottom: 18px;
+        align-self: stretch;
+        padding-right: 24px;
+        border-right: 1px solid #e5e7eb;
     }
 
     .statusContainer {
@@ -122,7 +128,7 @@
         font-weight: 600;
         color: #6b7280;
         background: #fff;
-        border: 1px solid #e5e7eb;
+        /* border: 1px solid #e5e7eb; */
         border-radius: 8px;
         padding: 2px 10px;
         min-width: 44px;
