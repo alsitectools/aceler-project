@@ -80,9 +80,9 @@
         justify-content: flex-start;
         gap: 8px;
         min-width: 0;
-        margin-bottom: 18px;
+        margin-bottom: 0;
         align-self: stretch;
-        padding-right: 24px;
+        padding-right: 12px;
         border-right: 1px solid #e5e7eb;
     }
 
@@ -108,7 +108,7 @@
         height: 10px;
         border-radius: 50%;
         flex-shrink: 0;
-        margin-left: 60px;
+        margin-left: 0;
     }
 
     .stat-label {
@@ -576,7 +576,7 @@
         }
 
         .milestoneIcon {
-            margin-left: 7px;
+            margin-left: 0;
         }
     }
 
@@ -764,7 +764,7 @@
         }
 
         .stat-dot {
-            margin-left: 20px;
+            margin-left: 0;
         }
     }
 </style>
