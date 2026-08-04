@@ -55,7 +55,7 @@
     .tabs.ctr {
         display: grid;
         grid-template-columns: auto 1fr;
-        gap: 10px;
+        gap: 20px;
         align-items: start;
         padding: 24px 28px;
         background: #fff;
@@ -153,6 +153,7 @@
         width: 38px;
         height: 38px;
         flex-shrink: 0;
+        position: relative;
         background-color: #AA182C;
         display: flex;
         justify-content: center;
@@ -160,6 +161,25 @@
         border-radius: 10px;
         filter: drop-shadow(0px 1px 3px rgba(0, 0, 0, 0.2));
     }
+
+    .tabIcon-badge {
+        position: absolute;
+        bottom: 0;
+        right: 1px;
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 12px;
+        background: #AA182C;
+        color: #fff;
+    }
+
+    .projectIcon .tabIcon-badge { background: #a1cd80; }
+    .milestoneIcon .tabIcon-badge { background: rgb(174 154 247); }
+    .taskIcon .tabIcon-badge { background: #72c8d4; }
 
     .icons {
         width: 22px;
@@ -634,7 +654,7 @@
 
     .summary-track {
         display: flex;
-        width: 200%;
+        width: 199.9%;
         height: 100%;
         will-change: transform;
     }
@@ -769,6 +789,12 @@
         .tabNumCounter {
             width: 30px;
             height: 26px;
+        }
+
+        .tabIcon-badge {
+            width: 13px;
+            height: 13px;
+            font-size: 10px;
         }
 
         .statusContainer {
@@ -1018,9 +1044,9 @@
                                         <div class="card-header-inner">
                                             <div class="tabIcon projectIcon">
                                                 <img class="icons"
-                                                    src="{{ asset('assets/custom/libs/@fontawesome/fontawesome-free/svgs/solid/project-diagram.svg') }}"
+                                                    src="{{ asset('assets/custom/libs/@fontawesome/fontawesome-free/svgs/solid/clipboard-list.svg') }}"
                                                     alt="logo" />
-
+                                                <span class="tabIcon-badge"><i class="fas fa-user"></i></span>
                                             </div>
                                             <div class="tabTexts">
                                                 {{ __('Mis encargos asignados') }}
@@ -1063,9 +1089,9 @@
                                         <div class="card-header-inner">
                                             <div class="tabIcon milestoneIcon">
                                                 <img class="icons"
-                                                    src="{{ asset('assets/custom/libs/@fontawesome/fontawesome-free/svgs/solid/file-alt.svg') }}"
+                                                    src="{{ asset('assets/custom/libs/@fontawesome/fontawesome-free/svgs/solid/flag.svg') }}"
                                                     alt="logo" />
-
+                                                <span class="tabIcon-badge"><i class="fas fa-user"></i></span>
                                             </div>
                                             <div class="tabTexts">
                                                 {{ __('Prioridad de mis encargos') }}
