@@ -130,7 +130,7 @@
         background: #fff;
         /* border: 1px solid #e5e7eb; */
         border-radius: 8px;
-        padding: 2px 10px;
+        /* padding: 2px 10px; */
         min-width: 44px;
         text-align: right;
         white-space: nowrap;
@@ -723,6 +723,7 @@
         font-size: 14px;
         line-height: 1.4;
         margin-left: 0;
+        margin-right: -50px;
         text-align: left;
         white-space: normal;
         overflow-wrap: break-word;
@@ -735,7 +736,12 @@
     @media screen and (max-width: 999px) {
         .tabs.ctr {
             padding: 16px 16px;
-            gap: 8px;
+            gap: 6px;
+        }
+
+        .card-header-inner {
+            max-width: 55px;
+            padding-right: 4px;
         }
 
         .tabIcon {
@@ -751,12 +757,18 @@
 
         .tabTexts {
             margin-left: 0;
-            font-size: 15px;
-            max-width: 110px;
+            font-size: 13px;
+            max-width: 50px;
         }
 
         .tabTexts--long {
-            font-size: 13px;
+            font-size: 11px;
+            max-width: 50px;
+        }
+
+        .tabNumCounter {
+            width: 30px;
+            height: 26px;
         }
 
         .statusContainer {
