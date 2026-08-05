@@ -442,8 +442,8 @@
     max-height: 52px;
     opacity: .8;
     transition:
-        max-height .35s ease,
-        opacity .25s ease;
+        max-height .45s cubic-bezier(0.4, 0, 0.2, 1),
+        opacity .3s ease;
 }
 .milestone-task-list.expanded .milestone-task-inner {
     opacity: 1;
@@ -464,7 +464,7 @@
     color: #999;
     line-height: 1;
     display: inline-block;
-    transition: transform 1s ease;
+    transition: transform .45s cubic-bezier(0.4, 0, 0.2, 1);
 }
 .milestone-dropdown-toggle:hover {
     color: #666;

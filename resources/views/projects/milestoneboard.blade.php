@@ -593,6 +593,9 @@
                             // Inicializamos dragula y agregamos eventos 'drag' y 'drop'
                             dragula(containersArray, {
                                     moves: function(el, container, handle) {
+                                        if (handle && handle.closest && handle.closest('.milestone-dropdown-toggle')) {
+                                            return false;
+                                        }
                                         return el.classList.contains('card');
                                     }
                                 })

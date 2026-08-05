@@ -391,34 +391,19 @@
         $('#pauseMilestoneModal').modal('hide');
     }
 
-    document.addEventListener('click', function(e) {
-        var toggle = e.target.closest('.milestone-dropdown-toggle');
-        if (!toggle) return;
-        var taskList = document.getElementById(toggle.getAttribute('data-target'));
-        if (!taskList) return;
-        var inner = taskList.querySelector('.milestone-task-inner');
-        if (!inner) return;
-
-        var isExpanded = taskList.classList.contains('expanded');
-        if (isExpanded) {
-            inner.style.maxHeight = inner.scrollHeight + 'px';
-            requestAnimationFrame(function() {
-                inner.style.maxHeight = '52px';
-            });
-            taskList.classList.remove('expanded');
-        } else {
-            inner.style.maxHeight = '52px';
-            taskList.classList.add('expanded');
-            requestAnimationFrame(function() {
-                inner.style.maxHeight = inner.scrollHeight + 'px';
-            });
-            inner.addEventListener('transitionend', function handler(e) {
-                if (e.propertyName === 'max-height' && taskList.classList.contains('expanded')) {
-                    inner.style.maxHeight = 'none';
-                }
-                inner.removeEventListener('transitionend', handler);
-            });
-        }
+    document.querySelectorAll('.milestone-dropdown-toggle').forEach(function(toggle) {
+        if (toggle.getAttribute('data-bound') === '1') return;
+        toggle.setAttribute('data-bound', '1');
+        toggle.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            var taskList = document.getElementById(toggle.getAttribute('data-target'));
+            if (!taskList) return;
+            var inner = taskList.querySelector('.milestone-task-inner');
+            if (!inner) return;
+            var isExpanded = taskList.classList.toggle('expanded');
+            inner.style.maxHeight = isExpanded ? (inner.scrollHeight + 'px') : '52px';
+        });
     });
 
     var activeTooltip = null;
