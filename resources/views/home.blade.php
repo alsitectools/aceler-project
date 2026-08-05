@@ -143,6 +143,17 @@
     .stat-dot--warning { background: #f59e0b; }
     .stat-dot--info1 { background: #3b82f6; }
 
+    /* Activity card: Prioridad de mis encargos */
+    .stat-dot--sin-asignar { background: #a62330; }
+    .stat-dot--por-revisar { background: #DB8D33; }
+    .stat-dot--activo { background: #68bd5c; }
+    .stat-dot--en-pausa { background: #9ca3af; }
+
+    /* Global Projects card */
+    .stat-dot--en-espera { background: #FFA21D; }
+    .stat-dot--en-curso { background: #6C757D; }
+    .stat-dot--finalizado { background: #6FD943; }
+
     .titleTecAndCom {
         padding-left: 10px;
         font-size: 16px;
@@ -944,21 +955,21 @@
                                             </div>
                                         </div>
                                         <div class="statusContainer">
-                                            <div class="stat-row">
-                                                <span class="stat-dot stat-dot--active"></span>
-                                                <span class="stat-label">{{ __('OnHold') }}</span>
-                                                <span class="stat-value">{{ $projectProcess['OnHold'] ?? 0 }}</span>
-                                            </div>
-                                            <div class="stat-row">
-                                                <span class="stat-dot stat-dot--active"></span>
-                                                <span class="stat-label">{{ __('Ongoing') }}</span>
-                                                <span class="stat-value">{{ $projectProcess['Ongoing'] ?? 0 }}</span>
-                                            </div>
-                                            <div class="stat-row">
-                                                <span class="stat-dot stat-dot--active"></span>
-                                                <span class="stat-label">{{ __('Finished') }}</span>
-                                                <span class="stat-value">{{ $projectProcess['Finished'] ?? 0 }}</span>
-                                            </div>
+<div class="stat-row">
+                                            <span class="stat-dot stat-dot--en-curso"></span>
+                                            <span class="stat-label">{{ __('En curso') }}</span>
+                                            <span class="stat-value">{{ $projectProcess['Ongoing'] ?? 0 }}</span>
+                                        </div>
+                                        <div class="stat-row">
+                                            <span class="stat-dot stat-dot--en-espera"></span>
+                                            <span class="stat-label">{{ __('En espera') }}</span>
+                                            <span class="stat-value">{{ $projectProcess['OnHold'] ?? 0 }}</span>
+                                        </div>
+                                        <div class="stat-row">
+                                            <span class="stat-dot stat-dot--finalizado"></span>
+                                            <span class="stat-label">{{ __('Finished') }}</span>
+                                            <span class="stat-value">{{ $projectProcess['Finished'] ?? 0 }}</span>
+                                        </div>
 
                                         </div>
                                     </div>
@@ -981,27 +992,27 @@
                                         </div>
                                         <div class="statusContainer">
                                             <div class="stat-row">
-                                                <span class="stat-dot stat-dot--info"></span>
-                                                <span class="stat-label">{{ __('Unassigned') }}</span>
-                                                <span class="stat-value">{{ $unassignedMilestones ?? 0 }}</span>
-                                            </div>
-                                            <div class="stat-row">
-                                                <span class="stat-dot stat-dot--review"></span>
-                                                <span class="stat-label">{{ __('Under Review') }}</span>
-                                                <span class="stat-value">{{ $reviewMilestones ?? 0 }}</span>
-                                            </div>
-                                            <div class="stat-row">
-                                                <span class="stat-dot stat-dot--active"></span>
+                                                <span class="stat-dot stat-dot--activo"></span>
                                                 <span class="stat-label">{{ __('Active') }}</span>
                                                 <span class="stat-value">{{ $activeMilestones ?? 0 }}</span>
                                             </div>
                                             <div class="stat-row">
-                                                <span class="stat-dot stat-dot--active"></span>
+                                                <span class="stat-dot stat-dot--por-revisar"></span>
+                                                <span class="stat-label">{{ __('Under Review') }}</span>
+                                                <span class="stat-value">{{ $reviewMilestones ?? 0 }}</span>
+                                            </div>
+                                            <div class="stat-row">
+                                                <span class="stat-dot stat-dot--finalizado"></span>
                                                 <span class="stat-label">{{ __('Finished') }}</span>
                                                 <span class="stat-value">{{ $finishedMilestones ?? 0 }}</span>
                                             </div>
                                             <div class="stat-row">
-                                                <span class="stat-dot stat-dot--warning"></span>
+                                                <span class="stat-dot stat-dot--sin-asignar"></span>
+                                                <span class="stat-label">{{ __('Unassigned') }}</span>
+                                                <span class="stat-value">{{ $unassignedMilestones ?? 0 }}</span>
+                                            </div>
+                                            <div class="stat-row">
+                                                <span class="stat-dot stat-dot--en-pausa"></span>
                                                 <span class="stat-label">{{ __('Paused') }}</span>
                                                 <span class="stat-value">{{ $pausedMilestones ?? 0 }}</span>
                                             </div>
@@ -1069,7 +1080,7 @@
                                                 <span class="stat-value">{{ $myFueraPlazoMilestones ?? 0 }}</span>
                                             </div>
                                             <div class="stat-row">
-                                                <span class="stat-dot stat-dot--review"></span>
+                                                <span class="stat-dot stat-dot--por-revisar"></span>
                                                 <span class="stat-label">{{ __('En revisión') }}</span>
                                                 <span class="stat-value">{{ $myEnRevisionMilestones ?? 0 }}</span>
                                             </div>
@@ -1079,7 +1090,7 @@
                                                 <span class="stat-value">{{ $myFinalizadosMilestones ?? 0 }}</span>
                                             </div>
                                             <div class="stat-row">
-                                                <span class="stat-dot stat-dot--warning"></span>
+                                                <span class="stat-dot stat-dot--en-pausa"></span>
                                                 <span class="stat-label">{{ __('En pausa') }}</span>
                                                 <span class="stat-value">{{ $myEnPausaMilestones ?? 0 }}</span>
                                             </div>
