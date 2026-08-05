@@ -255,7 +255,7 @@
             .my-tasks-table-inner { zoom: .65; }
         }
 
-        .my-tasks-header-row {
+.my-tasks-header-row {
             display: flex;
             position: sticky;
             z-index: 2;
@@ -264,7 +264,7 @@
             top: 0;
             width: max-content;
             min-width: 100%;
-            gap: 8px;
+            gap: 12px;
         }
 
         .my-tasks-th {
@@ -301,7 +301,7 @@
             border-radius: 12px;
             background: #ffffff;
             transition: all .18s ease;
-            gap: 8px;
+            gap: 12px;
             cursor: pointer;
             width: max-content;
             min-width: 100%;
@@ -325,7 +325,7 @@
         }
 
         .my-tasks-th[data-col-key="project"],
-        .my-tasks-td[data-col-key="project"] { flex: 3; min-width: 150px; overflow: hidden; display: flex; align-items: center; }
+        .my-tasks-td[data-col-key="project"] { flex: 1 1 auto; width: 240px; min-width: 240px; overflow: hidden; display: flex; align-items: center; margin-right: 14px; }
 
         .my-tasks-td[data-col-key="project"] .my-tasks-main,
         .my-tasks-td[data-col-key="milestone"] .my-tasks-main {
@@ -335,25 +335,25 @@
         }
 
         .my-tasks-th[data-col-key="milestone"],
-        .my-tasks-td[data-col-key="milestone"] { flex: 3; min-width: 150px; overflow: hidden; display: flex; align-items: center; }
+        .my-tasks-td[data-col-key="milestone"] { flex: 1 1 auto; width: 200px; min-width: 200px; overflow: hidden; display: flex; align-items: center; }
 
         .my-tasks-th[data-col-key="stage"],
-        .my-tasks-td[data-col-key="stage"] { flex: 1.5; min-width: 95px; display: flex; align-items: center; }
+        .my-tasks-td[data-col-key="stage"] { flex: 1 1 auto; width: 120px; min-width: 120px; display: flex; align-items: center; }
 
         .my-tasks-th[data-col-key="phase"],
-        .my-tasks-td[data-col-key="phase"] { flex: 1.5; min-width: 95px; display: flex; align-items: center; }
+        .my-tasks-td[data-col-key="phase"] { flex: 1 1 auto; width: 120px; min-width: 120px; display: flex; align-items: center; }
 
         .my-tasks-th[data-col-key="task"],
-        .my-tasks-td[data-col-key="task"] { flex: none; width: 150px; min-width: 150px; overflow: hidden; display: flex; align-items: center; }
+        .my-tasks-td[data-col-key="task"] { flex: 1 1 auto; width: 160px; min-width: 160px; overflow: hidden; display: flex; align-items: center; }
 
         .my-tasks-th[data-col-key="start_date"],
-        .my-tasks-td[data-col-key="start_date"] { flex: 1.5; min-width: 95px; display: flex; align-items: center; }
+        .my-tasks-td[data-col-key="start_date"] { flex: 1 1 auto; width: 120px; min-width: 120px; display: flex; align-items: center; }
 
         .my-tasks-th[data-col-key="estimated_date"],
-        .my-tasks-td[data-col-key="estimated_date"] { flex: 1.5; min-width: 95px; display: flex; align-items: center; }
+        .my-tasks-td[data-col-key="estimated_date"] { flex: 1 1 auto; width: 140px; min-width: 140px; display: flex; align-items: center; }
 
         .my-tasks-th[data-col-key="finalization_date"],
-        .my-tasks-td[data-col-key="finalization_date"] { flex: 1.5; min-width: 95px; display: flex; align-items: center; }
+        .my-tasks-td[data-col-key="finalization_date"] { flex: 1 1 auto; width: 160px; min-width: 160px; display: flex; align-items: center; }
 
         .my-tasks-filter-btn {
             width: 24px;
