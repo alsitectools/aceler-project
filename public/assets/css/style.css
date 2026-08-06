@@ -22347,7 +22347,7 @@ body:not(.minimenu) .dash-sidebar .dash-submenu .dash-submenu .dash-submenu>.das
 }
 
 .card .card-header .float-end .btn {
-    margin: -6px 0;
+    margin: 3px 0;
 }
 
 .card .card-header h5,
