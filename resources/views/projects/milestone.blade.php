@@ -274,14 +274,10 @@
                             <div class="form-group">
                                 <label class="form-label">{{ __('Phase') }}</label>
                                 <select class="form-control form-control-light" name="stage" id="stage"
-                                    data-add-phase-label="{{ __('Add phase') }}">
-                                    <option value="">{{ __('Choose one') }}</option>
-                                    @foreach ($stagesProject ?? [] as $stageName)
-                                        <option value="{{ $stageName }}">{{ __($stageName) }}</option>
-                                    @endforeach
+                                    data-add-phase-label="{{ __('Add phase') }}" hidden>
                                     <option value="add_phase">{{ __('Add phase') }}</option>
                                 </select>
-                                <div id="new-stage-name-wrapper" class="mt-2" style="display: none;">
+                                <div id="new-stage-name-wrapper" class="mt-0" style="display: none;">
                                     <input type="text" name="new_stage_name" id="new_stage_name"
                                         class="form-control form-control-light"
                                         placeholder="{{ __('Enter phase name') }}" autocomplete="off">
@@ -611,7 +607,7 @@
             window.initCreateProjectSearch();
         }
     </script>
-    {{-- staging y produccion 
+    {{-- staging y produccion
  <script src="{{ asset('assets/js/create_project.js') }}"></script> --}}
 @endif
 

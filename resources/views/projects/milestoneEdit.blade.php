@@ -118,17 +118,10 @@
                         <div class="paddingRight0  col-md-6">
                             <label for="stage" class="col-form-label">{{ __('Phase') }}</label>
                             <select class="form-control form-control-light" id="stage" name="stage"
-                                data-add-phase-label="{{ __('Add phase') }}">
-                                <option value="">{{ __('Select a phase') }}</option>
-                                @foreach ($stagesProject as $stageName)
-                                    <option value="{{ $stageName }}"
-                                        {{ trim((string) $currentStage) === trim((string) $stageName) ? 'selected' : '' }}>
-                                        {{ $stageName }}
-                                    </option>
-                                @endforeach
+                                data-add-phase-label="{{ __('Add phase') }}" hidden>
                                 <option value="add_phase">{{ __('Add phase') }}</option>
                             </select>
-                            <div id="new-stage-name-wrapper" class="mt-2" style="display: none;">
+                            <div id="new-stage-name-wrapper" class="mt-0" style="display: none;">
                                 <input type="text" name="new_stage_name" id="new_stage_name"
                                     class="form-control form-control-light"
                                     placeholder="{{ __('Enter phase name') }}" autocomplete="off">

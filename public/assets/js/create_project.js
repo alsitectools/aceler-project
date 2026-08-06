@@ -114,18 +114,7 @@ window.initCreateProjectSearch = function () {
             return;
         }
 
-        const availableStageOptions = Array.isArray(stageOptions)
-            ? stageOptions
-            : [];
-
-        stageSelect.innerHTML = '<option value="">Choose one</option>';
-
-        availableStageOptions.forEach((stageName) => {
-            const option = document.createElement('option');
-            option.value = stageName;
-            option.textContent = stageName;
-            stageSelect.appendChild(option);
-        });
+        stageSelect.innerHTML = '';
 
         const addPhaseLabel = stageSelect.dataset.addPhaseLabel || 'Add phase';
         const addPhaseOption = document.createElement('option');
