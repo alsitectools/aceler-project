@@ -650,6 +650,7 @@ Route::get('/{slug}/projects', [ProjectController::class, 'index'])->name('proje
 Route::get('/{slug}/projects/create', [ProjectController::class, 'create'])->name('projects.create')->middleware(['auth', 'XSS']);
 Route::get('/{slug}/projects/task-create', [ProjectController::class, 'taskCreate'])->name('tasks.create')->middleware(['auth', 'XSS']);
 Route::get('/{slug}/projects/{id}', [ProjectController::class, 'show'])->name('projects.show')->middleware(['auth', 'XSS']);
+Route::post('/{slug}/projects/{id}/join', [ProjectController::class, 'joinProject'])->name('projects.join')->middleware(['auth', 'XSS']);
 Route::post('/{slug}/projects', [ProjectController::class, 'store'])->name('projects.store');
 // Route::post('/{slug}/projects/milestone_project/{isReload}', [ProjectController::class, 'store'])->middleware(['auth', 'XSS']);
 Route::post('/{slug}/milestone-board/milestone_project', [ProjectController::class, 'store'])->name('project.milestone.store');

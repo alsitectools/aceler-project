@@ -84,13 +84,41 @@ class ProjectController extends Controller
         $currentWorkspace = Utility::getWorkspaceBySlug($slug);
 
         // Cargamos los proyectos con la relación 'delegation' para evitar N+1 queries
-        $projects = Project::with('delegation')
+        $projects = Project::with([
+            'delegation',
+            'users',
+        ])
             ->where('projects.workspace', $currentWorkspace->id)
             ->get();
 
         $project_type = ProjectType::select('id', 'name')->get();
 
         return view('projects.index', compact('currentWorkspace', 'projects', 'project_type'));
+    }
+
+    public function joinProject($slug, $id)
+    {
+        $objUser = Auth::user();
+        $currentWorkspace = Utility::getWorkspaceBySlug($slug);
+
+        $project = Project::where('workspace', $currentWorkspace->id)->find($id);
+        if (!$project) {
+            return redirect()->back()->with('error', __('Project Not Found.'));
+        }
+
+        $existing = UserProject::where('user_id', $objUser->id)->where('project_id', $project->id)->first();
+        if ($existing) {
+            $existing->update(['is_active' => 1]);
+        } else {
+            UserProject::create([
+                'user_id'    => $objUser->id,
+                'project_id' => $project->id,
+                'permission' => json_encode(Utility::getAllPermission()),
+                'is_active'  => 1,
+            ]);
+        }
+
+        return redirect()->back()->with('success', __('You have joined the project.'));
     }
 
     public function autocomplete(Request $request)
@@ -1106,7 +1134,10 @@ class ProjectController extends Controller
         // ✅ Validar que el proyecto pertenece a ese workspace y que el usuario es participante
         $projectQuery = Project::where('workspace', $currentWorkspace->id)
             ->where('id', $projectID)
-            ->with('activities.user');
+            ->with([
+                'activities.user',
+                'users',
+            ]);
 
         $project = $projectQuery->first();
 
@@ -1140,7 +1171,10 @@ class ProjectController extends Controller
         if ($objUser && $currentWorkspace) {
             $project = Project::where('workspace', '=', $currentWorkspace->id)
                 ->where('id', '=', $projectID)
-                ->with('activities.user')
+                ->with([
+                    'activities.user',
+                    'users',
+                ])
                 ->first();
 
             if ($project) {
@@ -1745,10 +1779,24 @@ class ProjectController extends Controller
     public function leave($slug, $projectID)
     {
         $objUser = Auth::user();
-        $userProject = Project::find($projectID);
-        UserProject::where('project_id', '=', $userProject->id)->where('user_id', '=', $objUser->id)->delete();
+        $currentWorkspace = Utility::getWorkspaceBySlug($slug);
 
-        return redirect()->route('projects.index', $slug)->with('success', __('Project Leave Successfully!'));
+        $project = Project::where('workspace', $currentWorkspace->id)->find($projectID);
+        if (!$project) {
+            return redirect()->back()->with('error', __('Project Not Found.'));
+        }
+
+        // El creador del proyecto no puede salirse
+        if ((int) $project->created_by === (int) $objUser->id) {
+            return redirect()->back()->with('error', __("You cannot leave a project you created."));
+        }
+
+        // Salir = desactivar la membresía (is_active=0), conservando el historial
+        UserProject::where('user_id', $objUser->id)
+            ->where('project_id', $project->id)
+            ->update(['is_active' => 0]);
+
+        return redirect()->back()->with('success', __('Project Leave Successfully!'));
     }
 
     public function collaborator($user, $project)
@@ -1784,7 +1832,8 @@ class ProjectController extends Controller
                 'typeRel:id,name',
                 // 👇 cargar el workspace completo sin restricción de columnas
                 'workspaceData',
-                'milestones'
+                'milestones',
+                'users'
             ])
             ->orderByDesc('id')
             ->get();

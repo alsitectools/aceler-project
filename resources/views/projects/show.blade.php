@@ -19,6 +19,40 @@
 @endphp
 
 @section('multiple-action-button')
+    {{-- @auth('web')
+        @if ($project->users->contains('id', $objUser->id))
+            @if ((int) $project->created_by !== (int) $objUser->id)
+                <div class="col-md-auto col-sm-4 pb-3">
+                    <button type="button"
+                        class="btn btn-xs btn-icon-only col-12 join-leave-btn-show" data-toggle="tooltip"
+                        title="{{ __('Leave project') }}"
+                        onclick="event.preventDefault(); document.getElementById('leave-project-form').submit();">
+                        <i class="ti ti-logout"></i>
+                    </button>
+                    <form id="leave-project-form"
+                        action="{{ route('projects.leave', [$currentWorkspace->slug, $project->id]) }}"
+                        method="POST" style="display: none;">
+                        @csrf
+                        @method('DELETE')
+                    </form>
+                </div>
+            @endif
+        @else
+            <div class="col-md-auto col-sm-4 pb-3">
+                <button type="button"
+                    class="btn btn-xs btn-primary btn-icon-only col-12" data-toggle="tooltip"
+                    title="{{ __('Join project') }}"
+                    onclick="event.preventDefault(); document.getElementById('join-project-form').submit();">
+                    <i class="ti ti-login"></i>
+                </button>
+                <form id="join-project-form"
+                    action="{{ route('projects.join', [$currentWorkspace->slug, $project->id]) }}"
+                    method="POST" style="display: none;">
+                    @csrf
+                </form>
+            </div>
+        @endif
+    @endauth --}}
     @if (isset($currentWorkspace) && $currentWorkspace->permission == 'Owner')
         <div class="col-md-auto col-sm-4 pb-3">
             <a href="#" class="btn btn-xs btn-primary btn-icon-only col-12" data-toggle="popover"
@@ -38,6 +72,16 @@
         overflow: hidden;
         text-wrap: nowrap;
         text-overflow: ellipsis;
+    }
+
+    .join-leave-btn-show {
+        background-color: #aa182c !important;
+        color: #fff !important;
+    }
+
+    .join-leave-btn-show:hover {
+        background-color: #b9515f !important;
+        color: #fff !important;
     }
 
     .uploaded-file-buttons {

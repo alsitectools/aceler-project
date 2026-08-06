@@ -40,6 +40,7 @@ class Project extends Model
     public function users()
     {
         return $this->belongsToMany('App\Models\User', 'user_projects', 'project_id', 'user_id')
+            ->wherePivot('is_active', 1)
             ->withPivot('is_active')
             ->orderBy('users.id', 'ASC');
     }
@@ -47,6 +48,7 @@ class Project extends Model
     {
         return $this->belongsToMany('App\Models\User', 'user_projects', 'project_id', 'user_id')
             ->where('users.type', 'user')
+            ->wherePivot('is_active', 1)
             ->withPivot('is_active')
             ->orderBy('users.id', 'ASC');
     }
@@ -64,6 +66,7 @@ class Project extends Model
     {
         return $this->belongsToMany('App\Models\User', 'user_projects', 'project_id', 'user_id')
             ->where('users.type', 'client')
+            ->wherePivot('is_active', 1)
             ->withPivot('is_active')
             ->orderBy('users.id', 'ASC');
     }
@@ -77,6 +80,7 @@ class Project extends Model
     {
         return $this->belongsToMany('App\Models\User', 'user_projects', 'project_id', 'user_id')
             ->where('users.type', 'client')
+            ->wherePivot('is_active', 1)
             ->withPivot('is_active')
             ->pluck('client_id')
             ->orderBy('users.id', 'ASC');

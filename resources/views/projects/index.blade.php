@@ -27,6 +27,76 @@
         border-radius: 5px !important;
     }
 
+.join-leave-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border: none;
+        background: none;
+        color: #666;
+        width: 34px;
+        height: 34px;
+        padding: 0;
+        flex-shrink: 0;
+        line-height: 1;
+        cursor: pointer;
+        border-radius: 50%;
+        transition: color 0.15s ease, background 0.15s ease;
+        margin-left: -14px;
+        margin-top: 6px;
+    }
+
+    .join-leave-btn i {
+        font-size: 16px;
+        line-height: 1;
+    }
+
+    .jl-stack {
+        position: relative;
+        display: inline-flex;
+    }
+
+    .jl-stack .fa-user {
+        font-size: 22px;
+        line-height: 1;
+    }
+
+    .join-leave-btn .jl-badge {
+        position: absolute;
+        right: -5px;
+        bottom: -7px;
+        width: 14px;
+        height: 14px;
+        border-radius: 50%;
+        background: #fff;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .join-leave-btn .jl-badge i {
+        font-size: 9px;
+        line-height: 1;
+        color: inherit;
+        -webkit-text-stroke: 0.6px currentColor;
+    }
+
+    .join-leave-btn:hover {
+        color: #aa182c;
+    }
+
+    .join-leave-btn--leave {
+        color: #666;
+    }
+
+    .join-leave-btn--leave:hover {
+        color: #aa182c;
+    }
+
+    .join-leave-btn--join:hover {
+        color: #1e7d32;
+    }
+
     .participantsSection {
         width: 20% !important;
     }
@@ -504,6 +574,40 @@
                                                                         class="badge rounded-pill bg-warning p-2 tooltipCus">{{ __('OnHold') }}</span>
                                                                 @endif
                                                             </div>
+                                                            @auth('web')
+                                                                @if ($project->users->contains('id', Auth::id()))
+                                                                    @if ((int) $project->created_by !== (int) Auth::user()->id)
+                                                                        <button type="button" class="join-leave-btn join-leave-btn--leave"
+                                                                            title="{{ __('Leave project') }}"
+                                                                            onclick="event.stopPropagation(); document.getElementById('leave-project-{{ $project->id }}').submit();">
+                                                                            <span class="jl-stack">
+                                                                                <i class="fa-solid fa-user"></i>
+                                                                                <span class="jl-badge"><i class="fa-solid fa-check"></i></span>
+                                                                            </span>
+                                                                        </button>
+                                                                        <form id="leave-project-{{ $project->id }}"
+                                                                            action="{{ route('projects.leave', [$currentWorkspace->slug, $project->id]) }}"
+                                                                            method="POST" style="display: none;">
+                                                                                @csrf
+                                                                                @method('DELETE')
+                                                                        </form>
+                                                                    @endif
+                                                                @else
+                                                                    <button type="button" class="join-leave-btn join-leave-btn--join"
+                                                                        title="{{ __('Join project') }}"
+                                                                        onclick="event.stopPropagation(); document.getElementById('join-project-{{ $project->id }}').submit();">
+                                                                        <span class="jl-stack">
+                                                                            <i class="fa-solid fa-user"></i>
+                                                                            <span class="jl-badge"><i class="fa-solid fa-plus"></i></span>
+                                                                        </span>
+                                                                    </button>
+                                                                    <form id="join-project-{{ $project->id }}"
+                                                                        action="{{ route('projects.join', [$currentWorkspace->slug, $project->id]) }}"
+                                                                        method="POST" style="display: none;">
+                                                                        @csrf
+                                                                    </form>
+                                                                @endif
+                                                            @endauth
                                                             @if ($project->is_active && $project->created_by == Auth::user()->id)
                                                                 @auth('web')
                                                                     <button type="button" class="btn dropdown-toggle"
