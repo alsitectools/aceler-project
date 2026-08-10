@@ -415,12 +415,12 @@
 /* ----- 7. TASK LIST ----- */
 .milestone-task-list {
     width: 100%;
-    margin-bottom: 20px;
+    margin-bottom: 5px;
     padding: 0 12px;
     /* display: flex; */
     /* flex-direction: column; */
     align-items: center;
-    margin-top: 20px;
+    margin-top: 5px;
 
 }
 
@@ -529,10 +529,20 @@
 /* ----- 8. DROPDOWN / ACCORDION ----- */
 /* ----- 9. FOOTER AVATARS ----- */
 .milestone-footer {
+    position: relative;
     margin-top: auto;
     width: 100%;
-    padding: 8px 12px 5px;
-    /* border-top: 1px solid rgba(0, 0, 0, 0.1); */
+    padding: 8px 12px;
+}
+
+.milestone-footer::before {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 12px;
+    right: 12px;
+    height: 1px;
+    background: rgba(0, 0, 0, 0.1);
 }
 
 .milestone-avatars {
@@ -545,4 +555,83 @@
 .milestone-avatars .user-groupTasks {
     width: 28px;
     height: 28px;
+}
+
+/* ----- NUEVA SECCIÓN (icono + texto) ----- */
+.milestone-extra-info {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 8px;
+    font-size: 10px;
+    padding: 10px 12px;
+    width: 100%;
+    box-sizing: border-box;
+    color: #000;
+    text-align: left;
+    margin-top: 0;
+}
+
+.milestone-extra-info i {
+    color: #C8A2C8;
+    font-size: 14px;
+}
+
+.milestone-extra-info--orange i {
+    color: #f0b37d;
+}
+
+.milestone-extra-info--check i {
+    color: #9ccb98;
+}
+
+.milestone-extra-info--check.milestone-check-late i {
+    color: #e09a9a;
+}
+
+.milestone-extra-info--ready i {
+    color: #9ccb98;
+}
+
+.milestone-extra-info--hours i {
+    color: #a3c8e8;
+}
+
+.milestone-extra-info--no-tasks i {
+    color: #e09a9a;
+}
+
+.milestone-extra-info--paused {
+    justify-content: space-between;
+}
+
+.milestone-extra-info--paused i {
+    color: #eda15f;
+}
+
+.milestone-resume-btn {
+    font-size: 12px;
+    font-weight: 600;
+    color: #fff;
+    background: #eda15f;
+    border-radius: 5px;
+    padding: 3px 10px;
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+.milestone-resume-btn:hover {
+    color: #fff;
+    background: #e08a3c;
+    text-decoration: none;
+}
+
+.milestone-extra-info span {
+    line-height: 1.15;
+    margin-left: 0;
+    min-height: 27.6px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
 }
