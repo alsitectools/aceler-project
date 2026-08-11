@@ -160,10 +160,10 @@
             document.addEventListener('click', function(e) {
                 const ackBtn = e.target.closest('.task-ack-btn');
                 if (!ackBtn) return;
-                e.stopPropagation();
+                e.stopImmediatePropagation();
                 e.preventDefault();
                 openTaskReviewDetailModal(ackBtn);
-            });
+            }, { capture: true });
 
             document.getElementById('detail-ackBtn').addEventListener('click', function() {
                 clearTaskReview(this.getAttribute('data-task-id'));
