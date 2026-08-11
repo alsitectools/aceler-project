@@ -1021,5 +1021,10 @@
  "Please enter a comment for the requested change.": "Please enter a comment for the requested change.",
  "Error updating task review": "Error updating task review",
  "There are tasks pending correction": "There are tasks pending correction",
- "before moving to review": "before moving to review"
+ "before moving to review": "before moving to review",
+ "Revisar": "Review",
+ "Change request comment": "Change request comment",
+ "Requested by": "Requested by",
+ "Cerrar": "Close",
+ "Cambio realizado": "Change made"
 }

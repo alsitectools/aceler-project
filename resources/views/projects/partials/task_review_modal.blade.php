@@ -28,6 +28,32 @@
     </div>
 </div>
 
+<div class="modal fade" id="taskReviewDetailModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">{{ __('Revisar') }}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p class="mb-2"><strong id="detail-taskName"></strong></p>
+
+                <div class="mb-3">
+                    <label class="form-label">{{ __('Change request comment') }}</label>
+                    <p id="detail-comment" class="form-control-plaintext text-wrap"></p>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">{{ __('Requested by') }}</label>
+                    <p id="detail-user" class="form-control-plaintext"></p>
+                </div>
+
+                <button type="button" class="btn btn-primary w-100" id="detail-ackBtn">{{ __('Cambio realizado') }}</button>
+                <button type="button" class="btn btn-secondary w-100 mt-2" data-bs-dismiss="modal">{{ __('Cerrar') }}</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
     (function() {
         const reviewRoute = '{{ route('projects.milestone.task.review', [$currentWorkspace->slug]) }}';
@@ -87,6 +113,36 @@
             });
         }
 
+        function openTaskReviewDetailModal(btnEl) {
+            const modalEl = document.getElementById('taskReviewDetailModal');
+            if (!modalEl) return;
+
+            document.getElementById('detail-taskName').textContent = btnEl.getAttribute('data-task-name');
+            document.getElementById('detail-comment').textContent = btnEl.getAttribute('data-review-comment') || '—';
+            document.getElementById('detail-user').textContent = btnEl.getAttribute('data-review-user') || '—';
+
+            document.getElementById('detail-ackBtn').setAttribute('data-task-id', btnEl.getAttribute('data-task-id'));
+
+            bootstrap.Modal.getOrCreateInstance(modalEl).show();
+        }
+
+        function clearTaskReview(taskId) {
+            if (!taskId) return;
+            $.ajax({
+                url: clearRoute,
+                type: 'POST',
+                headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
+                data: { task_id: taskId },
+                success: function() {
+                    location.reload();
+                },
+                error: function(xhr) {
+                    console.error('Error al limpiar revisión:', xhr);
+                    alert('{{ __('Error updating task review') }}');
+                }
+            });
+        }
+
         document.addEventListener('DOMContentLoaded', function() {
             const modalEl = document.getElementById('taskReviewModal');
             if (!modalEl) return;
@@ -106,22 +162,11 @@
                 if (!ackBtn) return;
                 e.stopPropagation();
                 e.preventDefault();
-                const taskId = ackBtn.getAttribute('data-task-id');
-                if (!taskId) return;
+                openTaskReviewDetailModal(ackBtn);
+            });
 
-                $.ajax({
-                    url: clearRoute,
-                    type: 'POST',
-                    headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
-                    data: { task_id: taskId },
-                    success: function() {
-                        location.reload();
-                    },
-                    error: function(xhr) {
-                        console.error('Error al limpiar revisión:', xhr);
-                        alert('{{ __('Error updating task review') }}');
-                    }
-                });
+            document.getElementById('detail-ackBtn').addEventListener('click', function() {
+                clearTaskReview(this.getAttribute('data-task-id'));
             });
 
             document.addEventListener('contextmenu', function(e) {

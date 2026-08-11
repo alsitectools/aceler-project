@@ -224,8 +224,11 @@
                             {{ __($task['display_name'] ?? $task['name']) }}
                             @if ($reviewState === 'changes')
                                 <button type="button" class="task-ack-btn"
-                                        data-task-id="{{ $task['id'] }}">
-                                    {{ __('Entendido') }}
+                                        data-task-id="{{ $task['id'] }}"
+                                        data-task-name="{{ $task['display_name'] ?? $task['name'] }}"
+                                        data-review-comment="{{ $task['review_comment'] ?? '' }}"
+                                        data-review-user="{{ $task['review_user'] ?? '' }}">
+                                    {{ __('Revisar') }}
                                 </button>
                             @endif
                         </div>

@@ -2285,7 +2285,9 @@ class ProjectController extends Controller
                 'estimated_date' => $task->estimated_date,
                 'technician'     => User::find($task->assign_to),
                 'logged_hours'   => $task->getTotalLoggedHours(),
-                'review_state'   => $task->reviewState ? $task->reviewState->state_code : null,
+                'review_state'    => $task->reviewState ? $task->reviewState->state_code : null,
+                'review_comment'  => $task->reviewState ? $task->reviewState->comment : null,
+                'review_user'     => $task->reviewState && $task->reviewState->mark_user_id ? User::find($task->reviewState->mark_user_id)?->name : null,
             ];
         })->filter()->values()->toArray();
 
