@@ -205,6 +205,13 @@
     position: relative;
     box-shadow: 0 6px 20px rgba(0,0,0,0.18);
     transition: transform 0.2s ease, box-shadow 0.2s ease;
+    cursor: grab;
+}
+.milestone-card:active {
+    cursor: grabbing;
+}
+.gu-mirror {
+    cursor: grabbing !important;
 }
 .milestone-card:hover {
     transform: translateY(-3px);
@@ -481,6 +488,40 @@
     flex-shrink: 0;
 }
 
+.milestone-task.task-reviewed {
+    /* border-left: 3px solid #6c757d; */
+    padding-left: 6px;
+    border-radius: 4px;
+    text-decoration: line-through;
+    color: #6c757d;
+}
+
+.milestone-task.task-changes {
+    /* border-left: 3px solid #e6a23c; */
+    padding-left: 6px;
+    border-radius: 4px;
+    color: #dc3545;
+}
+
+.task-ack-btn {
+    font-size: 10px;
+    background: #fff;
+    color: #dc3545;
+    border: 1px solid #dc3545;
+    padding: 1px 6px;
+    border-radius: 10px;
+    margin-left: 6px;
+    white-space: nowrap;
+    cursor: pointer;
+    line-height: 1.4;
+    transition: background 0.15s ease, color 0.15s ease;
+}
+
+.task-ack-btn:hover {
+    background: #dc3545;
+    color: #fff;
+}
+
 .empty-state {
     margin: 0px 20px 0;
     padding: 24px 16px;
@@ -634,4 +675,8 @@
     display: flex;
     flex-direction: column;
     justify-content: center;
+}
+
+.milestone-extra-info--changes i {
+    color: #e09a9a;
 }

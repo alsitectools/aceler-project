@@ -144,6 +144,9 @@ Route::get('/{slug}/timesheet/createOrderForms/{project_id}', [ProjectController
 // Route::post('/timesheet/get-total-time', [ProjectController::class, 'timesheetTotalTime'])->name('getTotalTime')->middleware(['auth', 'XSS']);
 Route::post('/timesheet/get-total-time', [ProjectController::class, 'timesheetTotalTime'])->name('getTotalTime')->middleware(['auth', 'XSS']);
 
+Route::post('/{slug}/milestone/task/review', [ProjectController::class, 'milestoneTaskReview'])->name('projects.milestone.task.review')->middleware(['auth', 'XSS']);
+Route::post('/{slug}/milestone/task/review/clear', [ProjectController::class, 'milestoneTaskReviewClear'])->name('projects.milestone.task.review.clear')->middleware(['auth', 'XSS']);
+
 //================================= Invoice Payment Gateways for Copylink ====================================//
 
 Route::post('/{slug}/invoice-pay-with-paystack/{invoice_id}', [PaystackPaymentController::class, 'invoicePayWithPaystack'])->name('invoice.pay.with.paystack')->middleware(['XSS']);

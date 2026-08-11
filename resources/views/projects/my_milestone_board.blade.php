@@ -1543,5 +1543,7 @@
                 });
             </script>
 
+            @include('projects.partials.task_review_modal')
+
         @endpush
     @endif

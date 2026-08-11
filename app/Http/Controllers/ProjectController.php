@@ -38,6 +38,7 @@ use App\Models\Stage;
 use App\Models\SubTask;
 use App\Models\Task;
 use App\Models\TaskType;
+use App\Models\TaskReviewState;
 use App\Models\TaskFile;
 use App\Models\Timesheet;
 use App\Models\TimeTracker;
@@ -2243,18 +2244,18 @@ class ProjectController extends Controller
                 $milestone->assign_to == $objUser->id || $milestone->milestone_assigned_to_user == $objUser->id || $milestone->created_by == $objUser->id ||
                 in_array($milestone->id, $milestoneIds) || $milestone->milestone_assigned_to_user == ''
             ) {
-                $tasksOfmilestone = Task::where('milestone_id', $milestone->id)
+                $tasksOfmilestone = Task::with('reviewState')->where('milestone_id', $milestone->id)
                     ->where('project_id', $project->id)
                     ->get();
             } else {
                 // En otros casos, se muestran solo las tareas asignadas al usuario
-                $tasksOfmilestone = Task::where('milestone_id', $milestone->id)
+                $tasksOfmilestone = Task::with('reviewState')->where('milestone_id', $milestone->id)
                     ->where('project_id', $project->id)
                     ->where('assign_to', $objUser->id)
                     ->get();
             }
         } else {
-            $tasksOfmilestone = Task::where('milestone_id', $milestone->id)
+            $tasksOfmilestone = Task::with('reviewState')->where('milestone_id', $milestone->id)
                 ->where('project_id', $project->id)
                 ->get();
         }
@@ -2284,6 +2285,7 @@ class ProjectController extends Controller
                 'estimated_date' => $task->estimated_date,
                 'technician'     => User::find($task->assign_to),
                 'logged_hours'   => $task->getTotalLoggedHours(),
+                'review_state'   => $task->reviewState ? $task->reviewState->state_code : null,
             ];
         })->filter()->values()->toArray();
 
@@ -7835,5 +7837,65 @@ MilestoneFile::create([
         $project->copylinksetting = (count($data) > 0) ? json_encode($data) : null;
         $project->save();
         return redirect()->back()->with('success', __('Copy Link Setting Save Successfully!'));
+    }
+
+    public function milestoneTaskReview($slug, Request $request)
+    {
+        $task_id = $request->input('task_id');
+        $state_code = $request->input('state_code');
+
+        $validStates = array_keys(config('milestone_review_states', []));
+
+        if (!$task_id) {
+            return response()->json(['error' => 'Task id missing'], 422);
+        }
+
+        if (!in_array($state_code, $validStates, true) || in_array($state_code, ['cleared'], true)) {
+            return response()->json(['error' => 'Invalid state'], 422);
+        }
+
+        $task = Task::with('milestone')->find($task_id);
+
+        if (!$task) {
+            return response()->json(['error' => 'Task not found'], 404);
+        }
+
+        TaskReviewState::create([
+            'task_id'               => $task->id,
+            'milestone_id'          => $task->milestone_id,
+            'state_code'            => $state_code,
+            'mark_user_id'          => Auth::id(),
+            'task_owner_user_id'    => $task->assign_to,
+            'milestone_created_by'  => $task->milestone ? $task->milestone->created_by : null,
+            'comment'               => $request->input('comment'),
+        ]);
+
+        return response()->json(['success' => true]);
+    }
+
+    public function milestoneTaskReviewClear($slug, Request $request)
+    {
+        $task_id = $request->input('task_id');
+
+        if (!$task_id) {
+            return response()->json(['error' => 'Task id missing'], 422);
+        }
+
+        $task = Task::with('milestone')->find($task_id);
+
+        if (!$task) {
+            return response()->json(['error' => 'Task not found'], 404);
+        }
+
+        TaskReviewState::create([
+            'task_id'               => $task->id,
+            'milestone_id'          => $task->milestone_id,
+            'state_code'            => 'cleared',
+            'mark_user_id'          => Auth::id(),
+            'task_owner_user_id'    => $task->assign_to,
+            'milestone_created_by'  => $task->milestone ? $task->milestone->created_by : null,
+        ]);
+
+        return response()->json(['success' => true]);
     }
 }

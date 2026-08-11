@@ -1685,5 +1685,7 @@
                     bootstrap.Modal.getOrCreateInstance(modal).hide();
                 }
             </script>
+
+            @include('projects.partials.task_review_modal')
         @endpush
     @endif

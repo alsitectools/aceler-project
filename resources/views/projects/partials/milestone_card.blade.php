@@ -13,6 +13,7 @@
         {{ !empty($milestone['is_waiting']) && $milestone['is_waiting'] == 1 ? 'waitingMilestone' : '' }}
         {{ $extraClass ?? '' }}"
     id="{{ $milestone['id'] }}" data-status="{{ $status->id }}" data-project-id="{{ $milestone['project_id'] }}"
+    data-project-type-id="{{ $milestone['project_type_id'] ?? '' }}"
     data-project-name="{{ $milestone['project_name'] ?? '' }}"
     data-project-type="{{ strtolower($milestone['project_type'] ?? '') }}"
     data-project-type-label="{{ __($milestone['project_type'] ?? '') }}"
@@ -201,7 +202,15 @@
             <div class="milestone-task-box" id="box-{{ $milestone['id'] }}">
                 <div class="milestone-task-inner">
                     @foreach ($milestone['tasks'] as $i => $task)
-                        <div class="milestone-task tooltipCusTask {{ $i > 1 ? 'milestone-task-extra' : '' }}" role="button"
+                        @php
+                            $reviewState = $task['review_state'] ?? null;
+                            $reviewClass = match ($reviewState) {
+                                'reviewed' => 'task-reviewed',
+                                'changes'  => 'task-changes',
+                                default    => '',
+                            };
+                        @endphp
+                        <div class="milestone-task tooltipCusTask {{ $i > 1 ? 'milestone-task-extra' : '' }} {{ $reviewClass }}" role="button"
                              data-task-id="{{ $task['id'] }}"
                              data-task-name="{{ $task['display_name'] ?? $task['name'] }}"
                              data-milestone-id="{{ $milestone['id'] }}"
@@ -213,6 +222,12 @@
                              data-tooltip-content="{{ $task['technician']->name }} - {{ __('Imputed hours') }}: {{ $task['logged_hours'] }}">
                             <i class="ms-2 me-2 fa-solid fa-hourglass-start fa-xs" style="color:black;"></i>
                             {{ __($task['display_name'] ?? $task['name']) }}
+                            @if ($reviewState === 'changes')
+                                <button type="button" class="task-ack-btn"
+                                        data-task-id="{{ $task['id'] }}">
+                                    {{ __('Entendido') }}
+                                </button>
+                            @endif
                         </div>
                     @endforeach
                 </div>
@@ -275,6 +290,7 @@
             $statusIcon2 = 'fa-solid fa-arrow-circle-right';
             $statusLabel2 = __('Puede pasar a revisión');
             $taskList = $milestone['tasks'] ?? [];
+            $hasChanges = collect($taskList)->contains(fn($t) => ($t['review_state'] ?? null) === 'changes');
             if (count($taskList) === 0) {
                 $statusClass2 = 'milestone-extra-info--no-tasks';
                 $statusIcon2 = 'fa-solid fa-exclamation-triangle';
@@ -285,10 +301,17 @@
                 $statusLabel2 = __('Imputar las horas') . '<br>' . __('para pasar a revisión');
             }
         @endphp
-        <div class="milestone-extra-info milestone-extra-info--ready {{ $statusClass2 }}">
-            <i class="{{ $statusIcon2 }}"></i>
-            <span>{!! $statusLabel2 !!}</span>
-        </div>
+        @if ($hasChanges)
+            <div class="milestone-extra-info milestone-extra-info--changes">
+                <i class="fa-solid fa-triangle-exclamation"></i>
+                <span>{!! __('There are tasks pending correction') !!}<br>{{ __('before moving to review') }}</span>
+            </div>
+        @else
+            <div class="milestone-extra-info milestone-extra-info--ready {{ $statusClass2 }}">
+                <i class="{{ $statusIcon2 }}"></i>
+                <span>{!! $statusLabel2 !!}</span>
+            </div>
+        @endif
     @elseif ($status->id == 3)
         <div class="milestone-extra-info milestone-extra-info--orange">
             <i class="fa-solid fa-magnifying-glass"></i>

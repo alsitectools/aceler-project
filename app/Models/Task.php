@@ -137,6 +137,11 @@ class Task extends Model
         return sprintf('%02d:%02d', $hours, $minutes);
     }
 
+    public function reviewState()
+    {
+        return $this->hasOne(TaskReviewState::class, 'task_id', 'id')->latestOfMany();
+    }
+
        public function customTask()
     {
         return $this->hasOne(CustomTasks::class, 'id_task', 'id');

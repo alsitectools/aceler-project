@@ -1475,5 +1475,15 @@
     "Fuera de plazo": "Fuera de plazo",
     "En revisión": "En revisión",
     "Finalizados": "Finalizados",
-    "Total": "Total"
+    "Total": "Total",
+    "Entendido": "Entendido",
+    "Revisado": "Revisado",
+    "Pedir cambio": "Pedir cambio",
+    "Review task": "Revisar tarea",
+    "Explain the requested change...": "Explica el cambio solicitado...",
+    "Confirm change request": "Confirmar solicitud de cambio",
+    "Please enter a comment for the requested change.": "Por favor, introduce un comentario para el cambio solicitado.",
+    "Error updating task review": "Error al actualizar la revisión de la tarea",
+    "There are tasks pending correction": "Hay tareas por corregir",
+    "before moving to review": "antes de pasar a revisión"
 }
