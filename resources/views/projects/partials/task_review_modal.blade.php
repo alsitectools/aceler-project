@@ -38,11 +38,11 @@
             <div class="modal-body">
                 <p class="mb-2"><strong id="detail-taskName"></strong></p>
 
-                <div class="mb-3">
+                <div class="mb-3" id="detail-commentWrap">
                     <label class="form-label">{{ __('Change request comment') }}</label>
                     <p id="detail-comment" class="form-control-plaintext text-wrap"></p>
                 </div>
-                <div class="mb-3">
+                <div class="mb-3" id="detail-userWrap">
                     <label class="form-label">{{ __('Requested by') }}</label>
                     <p id="detail-user" class="form-control-plaintext"></p>
                 </div>
@@ -127,6 +127,14 @@
             document.getElementById('detail-user').textContent = btnEl.getAttribute('data-review-user') || '—';
 
             document.getElementById('detail-ackBtn').setAttribute('data-task-id', btnEl.getAttribute('data-task-id'));
+
+            const isViewOnly = btnEl.getAttribute('data-review-mode') === 'view';
+            document.getElementById('detail-commentWrap').style.display = isViewOnly ? 'none' : '';
+            document.getElementById('detail-userWrap').style.display = isViewOnly ? 'none' : '';
+            document.getElementById('detail-ackBtn').style.display = isViewOnly ? 'none' : '';
+
+            modalEl.querySelector('.modal-title').textContent =
+                isViewOnly ? '{{ __('Revisado') }}' : '{{ __('Revisar') }}';
 
             bootstrap.Modal.getOrCreateInstance(modalEl).show();
         }

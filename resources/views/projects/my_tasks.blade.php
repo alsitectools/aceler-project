@@ -1248,6 +1248,10 @@
                                                             </span>
                                                         @elseif ($reviewState === 'reviewed')
                                                             <span class="me-2 badge task-review-badge task-badge-reviewed"
+                                                                  style="cursor:pointer;"
+                                                                  data-review-mode="view"
+                                                                  data-task-name="{{ $displayTypeName }}"
+                                                                  data-task-id="{{ $task->id }}"
                                                                   title="{{ __('Revisado') }}">
                                                                 <i class="fa-solid fa-check text-success"></i>
                                                             </span>
