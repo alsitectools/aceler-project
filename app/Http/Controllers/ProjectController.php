@@ -4918,7 +4918,7 @@ MilestoneFile::create([
 
         $tasksQuery = Task::with([
             'project:id,name,workspace,type',
-            'milestone:id,title,project_id',
+            'milestone:id,title,project_id,status',
             'milestone.phase:id,id_milestone,phases',
             'milestone.stage:id,id_milestone,stages,milestone_stage_project_id',
             'milestone.stage.stageProject:id,name',
@@ -4931,9 +4931,6 @@ MilestoneFile::create([
             ->where(function ($query) use ($user) {
                 $query->whereRaw("find_in_set(?, assign_to)", [(string) $user->id])
                     ->orWhere('assign_to', (string) $user->id);
-            })
-            ->whereHas('milestone', function ($query) {
-                $query->whereNotIn('status', [3, 4]);
             })
             ->orderByRaw("CASE WHEN projects.name IS NULL OR TRIM(projects.name) = '' THEN 1 ELSE 0 END")
             ->orderBy('projects.name')

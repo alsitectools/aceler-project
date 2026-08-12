@@ -1203,6 +1203,7 @@
                                                 data-task-id="{{ $task->id }}"
                                                 data-task-name="{{ $displayTypeName }}"
                                                 data-milestone-id="{{ $task->milestone_id }}"
+                                                data-milestone-status="{{ optional($task->milestone)->status }}"
                                                 data-project-id="{{ $task->project_id }}"
                                                 data-project-type-id="{{ optional($task->project)->type ?? '' }}"
                                                 data-technician-name="{{ $task->assign_to }}"

@@ -59,6 +59,10 @@
         const reviewRoute = '{{ route('projects.milestone.task.review', [$currentWorkspace->slug]) }}';
         const clearRoute = '{{ route('projects.milestone.task.review.clear', [$currentWorkspace->slug]) }}';
 
+        function isReviewAllowed(milestoneStatus) {
+            return milestoneStatus === '2' || milestoneStatus === '3';
+        }
+
         function openTaskReviewModal(taskEl) {
             const modalEl = document.getElementById('taskReviewModal');
             if (!modalEl) return;
@@ -163,6 +167,15 @@
                 if (!ackBtn) return;
                 e.stopImmediatePropagation();
                 e.preventDefault();
+
+                const card = ackBtn.closest('.milestone-card');
+                const row = ackBtn.closest('.my-tasks-body-row');
+                const milestoneStatus = card
+                    ? card.getAttribute('data-status')
+                    : (row ? row.getAttribute('data-milestone-status') : '');
+
+                if (!isReviewAllowed(milestoneStatus)) return;
+
                 openTaskReviewDetailModal(ackBtn);
             }, { capture: true });
 
@@ -173,6 +186,9 @@
             document.addEventListener('contextmenu', function(e) {
                 const taskEl = e.target.closest('.milestone-task');
                 if (taskEl) {
+                    const card = taskEl.closest('.milestone-card');
+                    const milestoneStatus = card ? card.getAttribute('data-status') : '';
+                    if (!isReviewAllowed(milestoneStatus)) return;
                     e.preventDefault();
                     openTaskReviewModal(taskEl);
                     return;
@@ -180,6 +196,8 @@
 
                 const rowEl = e.target.closest('.my-tasks-body-row');
                 if (!rowEl) return;
+                const milestoneStatus = rowEl.getAttribute('data-milestone-status') || '';
+                if (!isReviewAllowed(milestoneStatus)) return;
                 e.preventDefault();
                 openTaskReviewModal(rowEl);
             });

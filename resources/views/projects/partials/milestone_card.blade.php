@@ -222,7 +222,7 @@
                              data-tooltip-content="{{ $task['technician']->name }} - {{ __('Imputed hours') }}: {{ $task['logged_hours'] }}">
                             <i class="ms-2 me-2 fa-solid fa-hourglass-start fa-xs" style="color:black;"></i>
                             {{ __($task['display_name'] ?? $task['name']) }}
-                            @if ($reviewState === 'changes')
+                            @if ($reviewState === 'changes' && in_array((int) $status->id, [2, 3], true))
                                 <button type="button" class="task-ack-btn"
                                         data-task-id="{{ $task['id'] }}"
                                         data-task-name="{{ $task['display_name'] ?? $task['name'] }}"
