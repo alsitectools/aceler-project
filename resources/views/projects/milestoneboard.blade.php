@@ -655,23 +655,12 @@
                         var oldStatus = a(source).data('status');
                         var newStatus = a(target).data('status');
                         var project_id = a(el).data('project-id');
-                        // var milestoneTitle = a(el).find('mileTitle').text(); // Título del milestone
-                        var milestoneTitle = a(el).find('.mileTitle').attr('data-header');
-
-                        // Fallback: Si no encontramos data-header, intentar obtener el text()
-                        if (!milestoneTitle) {
-                            milestoneTitle = a(el).find('.mileTitle').text();
-                        }
-
-                        // Fallback: Si aún no tenemos título, intentar por id milestoneTitleForNotification
-                        if (!milestoneTitle) {
-                            milestoneTitle = a(el).find('#milestoneTitleForNotification').text();
-                        }
+                        // El título vive en el atributo data-milestone-title del card o en .milestone-title
+                        var milestoneTitle = a(el).attr('data-milestone-title') || a(el).find('.milestone-title').text() || '';
 
                         console.log("el completo ");
                         console.log(el)
                         console.log("Milestone Title (obtenido): " + milestoneTitle);
-                        console.log("longitud " + a(el).find('#milestoneTitleForNotification').length);
 
                         // Guardar el título tanto en data como en atributo HTML para persistencia
                         a(el).data('milestoneTitle', milestoneTitle);
@@ -790,16 +779,8 @@
 
                                             // Si no tenemos el título desde atributo, intentar obtenerlo directamente
                                             if (!retrievedTitle) {
-                                                retrievedTitle = $milestoneCard.find('.mileTitle').attr(
-                                                    'data-header');
-                                            }
-                                            if (!retrievedTitle) {
-                                                retrievedTitle = $milestoneCard.find('.mileTitle')
+                                                retrievedTitle = $milestoneCard.find('.milestone-title')
                                                     .text();
-                                            }
-                                            if (!retrievedTitle) {
-                                                retrievedTitle = $milestoneCard.find(
-                                                    '#milestoneTitleForNotification').text();
                                             }
                                             if (!retrievedTitle) {
                                                 retrievedTitle = milestoneTitle || 'Sin título';
@@ -1174,7 +1155,7 @@
 
                             // === Mostrar popup personalizado cuando milestone pasa a estado 3 ===
                             var milestoneId = a(el).find('#milestoneReqName').attr('data-milestone-id');
-                            var milestoneTitle = a(el).find('.mileTitle').attr('data-header');
+                            var milestoneTitle = a(el).attr('data-milestone-title') || a(el).find('.milestone-title').text() || '';
                             var projectId = a(el).data('project-id');
                             var modalId = 'commonModal';
 
@@ -1425,45 +1406,6 @@
                             }).empty();
                         });
                     }
-                });
-            </script>
-
-
-            <script>
-                document.addEventListener('DOMContentLoaded', function() {
-                    // Delegación de eventos para manejar clicks dinámicos
-                    document.body.addEventListener('click', function(e) {
-                        const mileTitle = e.target.closest('.mileTitle');
-                        if (!mileTitle) return;
-
-                        const slug = mileTitle.dataset.projectSlug;
-                        const milestoneId = mileTitle.dataset.milestoneId;
-                        const viewLink = document.querySelector(`a[data-url*="/milestone/${milestoneId}/show"]`);
-
-                        if (viewLink) {
-                            // Simular click en el enlace "View" real
-                            viewLink.click();
-                        } else {
-                            // Fallback manual
-                            const url = `${window.location.origin}/projects/${slug}/milestone/${milestoneId}/show`;
-                            const modalEl = document.getElementById('commonModal');
-                            const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
-
-                            // Reset modal dialog classes before loading new content
-                            const modalDialog = modalEl.querySelector('.modal-dialog');
-                            if (modalDialog) {
-                                modalDialog.className = 'modal-dialog';
-                                modalDialog.removeAttribute('style');
-                            }
-
-                            fetch(url)
-                                .then(response => response.text())
-                                .then(data => {
-                                    modalEl.querySelector('.modal-body').innerHTML = data;
-                                    modal.show();
-                                });
-                        }
-                    });
                 });
             </script>
             <!-- Script encargado de la acción de "Add Task on Timesheet" al hacer clic en una tarea (se desactiva si el milestone está en status 4) -->

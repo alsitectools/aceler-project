@@ -493,8 +493,8 @@
                         var oldStatus = a(source).data('status');
                         var newStatus = a(target).data('status');
                         var project_id = a(el).data('project-id');
-                        // var milestoneTitle = a(el).find('mileTitle').text(); // Título del milestone
-                        var milestoneTitle = a(el).find('.mileTitle').attr('data-header');
+                        // El título vive en el atributo data-milestone-title del card o en .milestone-title
+                        var milestoneTitle = a(el).attr('data-milestone-title') || a(el).find('.milestone-title').text() || '';
                         console.log("=== DEBUG DRAG AND DROP ===");
                         console.log("Card ID:", cardId);
                         console.log("Project ID:", project_id);
@@ -574,8 +574,7 @@
                             var milestoneTitle =
                                 a(el).data('milestone-title') ||
                                 a(el).attr('data-milestone-title') ||
-                                a(el).find('.mileTitle').attr('data-header') ||
-                                a(el).find('.mileTitle').text() ||
+                                a(el).find('.milestone-title').text() ||
                                 'Sin título';
 
                             if (!wsSlug || !cardId || !project_id) {
@@ -642,8 +641,7 @@
                                         var retrievedTitle =
                                             $milestoneCard.data('milestone-title') ||
                                             $milestoneCard.attr('data-milestone-title') ||
-                                            $milestoneCard.find('.mileTitle').attr('data-header') ||
-                                            $milestoneCard.find('.mileTitle').text() ||
+                                            $milestoneCard.find('.milestone-title').text() ||
                                             milestoneTitle ||
                                             'Sin título';
 
@@ -1026,7 +1024,7 @@
 
                             // === Mostrar popup personalizado cuando milestone pasa a estado 3 ===
                             var milestoneId = a(el).find('#milestoneReqName').attr('data-milestone-id');
-                            var milestoneTitle = a(el).find('.mileTitle').attr('data-header');
+                            var milestoneTitle = a(el).attr('data-milestone-title') || a(el).find('.milestone-title').text() || '';
                             var projectId = a(el).data('project-id');
                             var modalId = 'commonModal';
 
@@ -1189,38 +1187,6 @@
                                 console.error('❌ Error al revertir milestone:', err);
                             }
                         });
-                    });
-                });
-            </script>
-
-
-            <script>
-                document.addEventListener('DOMContentLoaded', function() {
-                    // Delegación de eventos para manejar clicks dinámicos
-                    document.body.addEventListener('click', function(e) {
-                        const mileTitle = e.target.closest('.mileTitle');
-                        if (!mileTitle) return;
-
-                        const slug = mileTitle.dataset.projectSlug;
-                        const milestoneId = mileTitle.dataset.milestoneId;
-                        const viewLink = document.querySelector(`a[data-url*="/milestone/${milestoneId}/show"]`);
-
-                        if (viewLink) {
-                            // Simular click en el enlace "View" real
-                            viewLink.click();
-                        } else {
-                            // Fallback manual
-                            const url = `${window.location.origin}/projects/${slug}/milestone/${milestoneId}/show`;
-                            const modal = new bootstrap.Modal(document.getElementById('commonModal'));
-
-                            fetch(url)
-                                .then(response => response.text())
-                                .then(data => {
-                                    document.getElementById('commonModal').querySelector('.modal-body')
-                                        .innerHTML = data;
-                                    modal.show();
-                                });
-                        }
                     });
                 });
             </script>
