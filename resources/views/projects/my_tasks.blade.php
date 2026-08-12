@@ -915,6 +915,29 @@
                 display: none;
             }
         }
+
+        .task-review-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 20px;
+            height: 20px;
+            border-radius: 999px;
+            font-size: 10px;
+            vertical-align: middle;
+            flex-shrink: 0;
+        }
+        .task-badge-reviewed { background: #e0f2e5; }
+        .task-badge-changes  { background: #ffe0e0; }
+
+        .my-tasks-body-row.task-row-reviewed .my-tasks-truncate-task .my-tasks-main {
+            text-decoration: line-through;
+            color: #6c757d;
+        }
+
+        .my-tasks-body-row.task-row-changes .my-tasks-truncate-task .my-tasks-main {
+            color: #dc3545;
+        }
     </style>
 @endpush
 
@@ -1169,8 +1192,20 @@
                                                 $estimatedDateClass = $estimatedDateText === $naText ? $placeholderClass : 'task-date';
                                                 $finalizationRenderClass = $finalizationDateText === $naText ? $placeholderClass : $finalizationDateClass;
                                                 $hasTimesheetAction = !empty($task->timesheet_edit_url) && !empty($task->timesheet_edit_date);
+
+                                                $reviewState = $task->reviewState ? $task->reviewState->state_code : null;
+                                                $reviewComment = $task->reviewState ? $task->reviewState->comment : '';
+                                                $reviewUser = $task->reviewState && $task->reviewState->mark_user_id
+                                                    ? optional(\App\Models\User::find($task->reviewState->mark_user_id))->name
+                                                    : null;
                                             @endphp
-                                            <div class="my-tasks-body-row"
+                                            <div class="my-tasks-body-row {{ $reviewState ? 'task-row-' . $reviewState : '' }}"
+                                                data-task-id="{{ $task->id }}"
+                                                data-task-name="{{ $displayTypeName }}"
+                                                data-milestone-id="{{ $task->milestone_id }}"
+                                                data-project-id="{{ $task->project_id }}"
+                                                data-project-type-id="{{ optional($task->project)->type ?? '' }}"
+                                                data-technician-name="{{ $task->assign_to }}"
                                                 @if ($hasTimesheetAction)
                                                     data-timesheet-edit-url="{{ $task->timesheet_edit_url }}"
                                                     data-timesheet-edit-date="{{ $task->timesheet_edit_date }}"
@@ -1200,6 +1235,22 @@
                                                 @endif
                                                 <div class="my-tasks-td" data-col-key="task">
                                                     <div class="my-tasks-truncate-task" title="{{ $displayTypeName }}">
+                                                        @if ($reviewState === 'changes')
+                                                            <span class="me-2 badge task-review-badge task-badge-changes"
+                                                                  title="{{ $reviewComment ? __('Change request comment') . ': ' . $reviewComment : '' }} {{ $reviewUser ? '— ' . __('Requested by') . ': ' . $reviewUser : '' }}"
+                                                                  data-task-name="{{ $displayTypeName }}"
+                                                                  data-review-comment="{{ $reviewComment }}"
+                                                                  data-review-user="{{ $reviewUser ?? '' }}"
+                                                                  data-task-id="{{ $task->id }}"
+                                                                  style="cursor:pointer;">
+                                                                <i class="fa-solid fa-triangle-exclamation text-danger"></i>
+                                                            </span>
+                                                        @elseif ($reviewState === 'reviewed')
+                                                            <span class="me-2 badge task-review-badge task-badge-reviewed"
+                                                                  title="{{ __('Revisado') }}">
+                                                                <i class="fa-solid fa-check text-success"></i>
+                                                            </span>
+                                                        @endif
                                                         <span class="{{ $taskTypeClass }}">{{ $displayTypeName }}</span>
                                                     </div>
                                                 </div>
@@ -1271,6 +1322,7 @@
 @endsection
 
 @push('scripts')
+    @include('projects.partials.task_review_modal')
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
         (function() {

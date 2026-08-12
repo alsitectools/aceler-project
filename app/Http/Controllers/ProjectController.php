@@ -4924,6 +4924,7 @@ MilestoneFile::create([
             'milestone.stage.stageProject:id,name',
             'type:id,name',
             'customTask:id,id_task,name',
+            'reviewState',
         ])
             ->leftJoin('projects', 'projects.id', '=', 'tasks.project_id')
             ->select('tasks.*')

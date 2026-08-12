@@ -64,11 +64,12 @@
             if (!modalEl) return;
 
             const card = taskEl.closest('.milestone-card');
+            const projectTypeId = taskEl.getAttribute('data-project-type-id')
+                || (card ? card.getAttribute('data-project-type-id') : '');
 
             document.getElementById('taskReview-taskId').value = taskEl.getAttribute('data-task-id');
             document.getElementById('taskReview-taskName').textContent = taskEl.getAttribute('data-task-name');
-            document.getElementById('taskReview-projectTypeId').value = card
-                ? card.getAttribute('data-project-type-id') : '';
+            document.getElementById('taskReview-projectTypeId').value = projectTypeId;
 
             document.getElementById('taskReview-commentWrap').style.display = 'none';
             document.getElementById('taskReview-comment').value = '';
@@ -158,7 +159,7 @@
             });
 
             document.addEventListener('click', function(e) {
-                const ackBtn = e.target.closest('.task-ack-btn');
+                const ackBtn = e.target.closest('.task-ack-btn, .task-review-badge');
                 if (!ackBtn) return;
                 e.stopImmediatePropagation();
                 e.preventDefault();
@@ -171,9 +172,16 @@
 
             document.addEventListener('contextmenu', function(e) {
                 const taskEl = e.target.closest('.milestone-task');
-                if (!taskEl) return;
+                if (taskEl) {
+                    e.preventDefault();
+                    openTaskReviewModal(taskEl);
+                    return;
+                }
+
+                const rowEl = e.target.closest('.my-tasks-body-row');
+                if (!rowEl) return;
                 e.preventDefault();
-                openTaskReviewModal(taskEl);
+                openTaskReviewModal(rowEl);
             });
         });
     })();
