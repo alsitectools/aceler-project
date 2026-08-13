@@ -951,18 +951,18 @@
         $naText = __('N/A');
         $showStageColumn = $taskCollection->contains(function ($task) use ($projectTypesWithStageAndPhase, $notApplicableStagePhaseText, $naText) {
             $supportsStageAndPhase = in_array((int) optional($task->project)->type, $projectTypesWithStageAndPhase, true);
-            $resolvedStageName = optional($task->milestone)->resolved_stage_name;
+            $phaseValue = optional(optional($task->milestone)->phase)->phases;
             $stageName = $supportsStageAndPhase
-                ? ($resolvedStageName ?: $naText)
+                ? ($phaseValue ? __(\App\Models\MilestonePhases::translationKey($phaseValue)) : $naText)
                 : $notApplicableStagePhaseText;
 
             return $stageName !== $notApplicableStagePhaseText;
         });
         $showPhaseColumn = $taskCollection->contains(function ($task) use ($projectTypesWithStageAndPhase, $notApplicableStagePhaseText, $naText) {
             $supportsStageAndPhase = in_array((int) optional($task->project)->type, $projectTypesWithStageAndPhase, true);
-            $phaseValue = optional(optional($task->milestone)->phase)->phases;
+            $resolvedStageName = optional($task->milestone)->resolved_stage_name;
             $phaseName = $supportsStageAndPhase
-                ? ($phaseValue ? __(\App\Models\MilestonePhases::translationKey($phaseValue)) : $naText)
+                ? ($resolvedStageName ?: $naText)
                 : $notApplicableStagePhaseText;
 
             return $phaseName !== $notApplicableStagePhaseText;
@@ -1169,13 +1169,13 @@
 
                                                 $projectTypeId = (int) optional($task->project)->type;
                                                 $supportsStageAndPhase = in_array($projectTypeId, $projectTypesWithStageAndPhase, true);
-                                                $resolvedStageName = optional($task->milestone)->resolved_stage_name;
-                                                $stageName = $supportsStageAndPhase
-                                                    ? ($resolvedStageName ?: __('N/A'))
-                                                    : $notApplicableStagePhaseText;
                                                 $phaseValue = optional(optional($task->milestone)->phase)->phases;
-                                                $phaseName = $supportsStageAndPhase
+                                                $stageName = $supportsStageAndPhase
                                                     ? ($phaseValue ? __(\App\Models\MilestonePhases::translationKey($phaseValue)) : __('N/A'))
+                                                    : $notApplicableStagePhaseText;
+                                                $resolvedStageName = optional($task->milestone)->resolved_stage_name;
+                                                $phaseName = $supportsStageAndPhase
+                                                    ? ($resolvedStageName ?: __('N/A'))
                                                     : $notApplicableStagePhaseText;
 
                                                 $projectClass = $projectName === $naText ? $placeholderClass : '';
