@@ -341,6 +341,56 @@ class HomeController extends Controller
                 ->where('milestones.priority', 'baja')
                 ->count();
 
+            // My tasks (assigned to user) in milestones of this workspace
+            $myTaskTotal = Task::join('milestones', 'milestones.id', '=', 'tasks.milestone_id')
+                ->join('projects', 'projects.id', '=', 'milestones.project_id')
+                ->where('projects.workspace', $currentWorkspace->id)
+                ->whereRaw("FIND_IN_SET(?, tasks.assign_to)", [$userObj->id])
+                ->whereIn('milestones.status', [2, 3])
+                ->count();
+
+            // Subquery: latest review state per task (max id per task_id)
+            $latestReview = DB::table('task_review_states')
+                ->select('task_id', 'state_code')
+                ->whereIn('id', function ($q) {
+                    $q->selectRaw('MAX(id)')->from('task_review_states')->groupBy('task_id');
+                });
+
+            $myTaskReviewed = Task::join('milestones', 'milestones.id', '=', 'tasks.milestone_id')
+                ->join('projects', 'projects.id', '=', 'milestones.project_id')
+                ->joinSub($latestReview, 'latest_review', function ($join) {
+                    $join->on('latest_review.task_id', '=', 'tasks.id');
+                })
+                ->where('projects.workspace', $currentWorkspace->id)
+                ->whereRaw("FIND_IN_SET(?, tasks.assign_to)", [$userObj->id])
+                ->whereIn('milestones.status', [2, 3])
+                ->where('latest_review.state_code', 'reviewed')
+                ->count();
+
+            $myTaskChanges = Task::join('milestones', 'milestones.id', '=', 'tasks.milestone_id')
+                ->join('projects', 'projects.id', '=', 'milestones.project_id')
+                ->joinSub($latestReview, 'latest_review', function ($join) {
+                    $join->on('latest_review.task_id', '=', 'tasks.id');
+                })
+                ->where('projects.workspace', $currentWorkspace->id)
+                ->whereRaw("FIND_IN_SET(?, tasks.assign_to)", [$userObj->id])
+                ->whereIn('milestones.status', [2, 3])
+                ->where('latest_review.state_code', 'changes')
+                ->count();
+
+            $myDoneSeconds = DB::table('tasks')
+                ->join('milestones', 'milestones.id', '=', 'tasks.milestone_id')
+                ->join('projects', 'projects.id', '=', 'milestones.project_id')
+                ->join('timesheets', 'timesheets.task_id', '=', 'tasks.id')
+                ->where('projects.workspace', $currentWorkspace->id)
+                ->whereRaw("FIND_IN_SET(?, tasks.assign_to)", [$userObj->id])
+                ->where('milestones.status', 4)
+                ->sum(DB::raw('TIME_TO_SEC(timesheets.time)'));
+
+            $myDoneHours = $myDoneSeconds > 0
+                ? sprintf('%02d:%02d', floor($myDoneSeconds / 3600), floor(($myDoneSeconds % 3600) / 60))
+                : '00:00';
+
             $totalTaskByType = Task::join('milestones', 'tasks.milestone_id', '=', 'milestones.id')
                 ->join('projects', 'milestones.project_id', '=', 'projects.id')
                 ->where('projects.workspace', $currentWorkspace->id)
@@ -535,7 +585,11 @@ class HomeController extends Controller
                 'myAltaPriorityMilestones',
                 'myMediaPriorityMilestones',
                 'myBajaPriorityMilestones',
-                'totalTaskByType'
+                'totalTaskByType',
+                'myTaskTotal',
+                'myTaskReviewed',
+                'myTaskChanges',
+                'myDoneHours'
             ));
 
             // }

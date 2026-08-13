@@ -1131,9 +1131,39 @@
                                             </div>
                                         </div>
                                     </div>
-                                    <div class="tabs ctr empty-card" data-card="3">
-                                        <div class="empty-card-content">
-                                            <span class="empty-label">{{ __('Mi actividad - Card 3') }}</span>
+                                    <div class="tabs ctr" data-card="3">
+                                        <div class="card-header-inner">
+                                            <div class="tabIcon taskIcon">
+                                                <img class="icons"
+                                                     src="{{ asset('assets/custom/libs/@fontawesome/fontawesome-free/svgs/solid/tasks.svg') }}"
+                                                     alt="logo" />
+                                            </div>
+                                            <div class="tabTexts">{{ __('Mis tareas') }}</div>
+                                            <div class="tabTexts tabNumCounter">
+                                                <span>{{ $myTaskTotal ?? 0 }}</span>
+                                            </div>
+                                        </div>
+                                        <div class="statusContainer">
+                                            <div class="stat-row">
+                                                <span class="stat-dot stat-dot--active"></span>
+                                                <span class="stat-label">{{ __('En curso + Revisión') }}</span>
+                                                <span class="stat-value">{{ $myTaskTotal ?? 0 }}</span>
+                                            </div>
+                                            <div class="stat-row">
+                                                <span class="stat-dot stat-dot--review"></span>
+                                                <span class="stat-label">{{ __('Revisadas') }}</span>
+                                                <span class="stat-value">{{ $myTaskReviewed ?? 0 }}</span>
+                                            </div>
+                                            <div class="stat-row">
+                                                <span class="stat-dot stat-dot--warning"></span>
+                                                <span class="stat-label">{{ __('Piden cambio') }}</span>
+                                                <span class="stat-value">{{ $myTaskChanges ?? 0 }}</span>
+                                            </div>
+                                            <div class="stat-row">
+                                                <span class="stat-dot stat-dot--finalizado"></span>
+                                                <span class="stat-label">{{ __('Hecho - Horas imputadas') }}</span>
+                                                <span class="stat-value">{{ $myDoneHours ?? '00:00' }}</span>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
