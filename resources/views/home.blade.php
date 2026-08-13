@@ -1070,31 +1070,41 @@
                                             </div>
                                         </div>
                                         <div class="statusContainer">
+                                            @if ((int) ($myEnPlazoMilestones ?? 0) > 0)
                                             <div class="stat-row">
                                                 <span class="stat-dot stat-dot--active"></span>
                                                 <span class="stat-label">{{ __('En plazo') }}</span>
                                                 <span class="stat-value">{{ $myEnPlazoMilestones ?? 0 }}</span>
                                             </div>
+                                            @endif
+                                            @if ((int) ($myFueraPlazoMilestones ?? 0) > 0)
                                             <div class="stat-row">
                                                 <span class="stat-dot stat-dot--pending"></span>
                                                 <span class="stat-label">{{ __('Fuera de plazo') }}</span>
                                                 <span class="stat-value">{{ $myFueraPlazoMilestones ?? 0 }}</span>
                                             </div>
+                                            @endif
+                                            @if ((int) ($myEnRevisionMilestones ?? 0) > 0)
                                             <div class="stat-row">
                                                 <span class="stat-dot stat-dot--por-revisar"></span>
                                                 <span class="stat-label">{{ __('En revisión') }}</span>
                                                 <span class="stat-value">{{ $myEnRevisionMilestones ?? 0 }}</span>
                                             </div>
+                                            @endif
+                                            @if ((int) ($myFinalizadosMilestones ?? 0) > 0)
                                             <div class="stat-row">
                                                 <span class="stat-dot stat-dot--active"></span>
                                                 <span class="stat-label">{{ __('Finalizados') }}</span>
                                                 <span class="stat-value">{{ $myFinalizadosMilestones ?? 0 }}</span>
                                             </div>
+                                            @endif
+                                            @if ((int) ($myEnPausaMilestones ?? 0) > 0)
                                             <div class="stat-row">
                                                 <span class="stat-dot stat-dot--en-pausa"></span>
                                                 <span class="stat-label">{{ __('En pausa') }}</span>
                                                 <span class="stat-value">{{ $myEnPausaMilestones ?? 0 }}</span>
                                             </div>
+                                            @endif
                                         </div>
                                     </div>
                                     <div class="tabs ctr" data-card="2">
@@ -1115,21 +1125,27 @@
                                             </div>
                                         </div>
                                         <div class="statusContainer">
+                                            @if ((int) ($myAltaPriorityMilestones ?? 0) > 0)
                                             <div class="stat-row">
                                                 <span class="stat-dot stat-dot--pending"></span>
                                                 <span class="stat-label">{{ __('Alta') }}</span>
                                                 <span class="stat-value">{{ $myAltaPriorityMilestones ?? 0 }}</span>
                                             </div>
+                                            @endif
+                                            @if ((int) ($myMediaPriorityMilestones ?? 0) > 0)
                                             <div class="stat-row">
                                                 <span class="stat-dot stat-dot--warning"></span>
                                                 <span class="stat-label">{{ __('Media') }}</span>
                                                 <span class="stat-value">{{ $myMediaPriorityMilestones ?? 0 }}</span>
                                             </div>
+                                            @endif
+                                            @if ((int) ($myBajaPriorityMilestones ?? 0) > 0)
                                             <div class="stat-row">
                                                 <span class="stat-dot stat-dot--info"></span>
                                                 <span class="stat-label">{{ __('Baja') }}</span>
                                                 <span class="stat-value">{{ $myBajaPriorityMilestones ?? 0 }}</span>
                                             </div>
+                                            @endif
                                         </div>
                                     </div>
                                     <div class="tabs ctr" data-card="3">
@@ -1146,21 +1162,27 @@
                                             </div>
                                         </div>
                                         <div class="statusContainer">
+                                            @if ((int) ($myTaskTotal ?? 0) > 0)
                                             <div class="stat-row">
                                                 <span class="stat-dot stat-dot--active"></span>
                                                 <span class="stat-label">{{ __('En curso + Revisión') }}</span>
                                                 <span class="stat-value">{{ $myTaskTotal ?? 0 }}</span>
                                             </div>
+                                            @endif
+                                            @if ((int) ($myTaskReviewed ?? 0) > 0)
                                             <div class="stat-row">
                                                 <span class="stat-dot stat-dot--review"></span>
                                                 <span class="stat-label">{{ __('Revisadas') }}</span>
                                                 <span class="stat-value">{{ $myTaskReviewed ?? 0 }}</span>
                                             </div>
+                                            @endif
+                                            @if ((int) ($myTaskChanges ?? 0) > 0)
                                             <div class="stat-row">
                                                 <span class="stat-dot stat-dot--change"></span>
                                                 <span class="stat-label">{{ __('Cambio solicitado') }}</span>
                                                 <span class="stat-value">{{ $myTaskChanges ?? 0 }}</span>
                                             </div>
+                                            @endif
                                             <div class="stat-row">
                                                 <span class="stat-dot stat-dot--finalizado"></span>
                                                 <span class="stat-label">{{ __('Hecho - Horas imputadas') }}</span>
