@@ -1476,6 +1476,9 @@
                         const currentUserId = "{{ Auth::id() }}";
 
                         if (technicianId === currentUserId) {
+                            if (task.classList.contains('task-inactive')) {
+                                task.style.cursor = 'not-allowed';
+                            }
                             task.addEventListener('click', function() {
                                 // El resto del código del evento click se mantiene igual
                                 const milestone = this.closest('.card');
@@ -1484,6 +1487,11 @@
                                 if (milestoneStatus === '4' || milestoneStatus === '3') {
                                     console.log(
                                         'El milestone está en status 3 o 4, no se ejecutará la acción.');
+                                    return;
+                                }
+
+                                if (this.classList.contains('task-inactive')) {
+                                    // Tareas "por hacer" (tipo 3): no se permite imputar horas
                                     return;
                                 }
 
