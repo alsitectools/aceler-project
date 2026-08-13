@@ -12,7 +12,7 @@
 
                 <div class="d-grid gap-2">
                     <button type="button" class="btn btn-success" data-state="reviewed">{{ __('Revisado') }}</button>
-                    <button type="button" class="btn btn-warning" data-state="changes">{{ __('Pedir cambio') }}</button>
+                    <button type="button" class="btn btn-warning" data-state="changes">{{ __('Solicitar cambio') }}</button>
                 </div>
 
                 <div class="mt-3" id="taskReview-commentWrap" style="display:none;">

@@ -141,6 +141,7 @@
     .stat-dot--active { background: #22c55e; }
     .stat-dot--info { background: #53b446e0; }
     .stat-dot--warning { background: #f59e0b; }
+    .stat-dot--change { background: #ff0000a3; }
     .stat-dot--info1 { background: #3b82f6; }
 
     /* Activity card: Prioridad de mis encargos */
@@ -1137,6 +1138,7 @@
                                                 <img class="icons"
                                                      src="{{ asset('assets/custom/libs/@fontawesome/fontawesome-free/svgs/solid/tasks.svg') }}"
                                                      alt="logo" />
+                                                <span class="tabIcon-badge"><i class="fas fa-user"></i></span>
                                             </div>
                                             <div class="tabTexts">{{ __('Mis tareas') }}</div>
                                             <div class="tabTexts tabNumCounter">
@@ -1155,8 +1157,8 @@
                                                 <span class="stat-value">{{ $myTaskReviewed ?? 0 }}</span>
                                             </div>
                                             <div class="stat-row">
-                                                <span class="stat-dot stat-dot--warning"></span>
-                                                <span class="stat-label">{{ __('Piden cambio') }}</span>
+                                                <span class="stat-dot stat-dot--change"></span>
+                                                <span class="stat-label">{{ __('Cambio solicitado') }}</span>
                                                 <span class="stat-value">{{ $myTaskChanges ?? 0 }}</span>
                                             </div>
                                             <div class="stat-row">
