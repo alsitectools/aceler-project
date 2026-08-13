@@ -318,6 +318,7 @@
     </div>
 @endsection
 @section('content')
+    @include('saver.saver', ['letters' => 'ESPERE...', 'overlayId' => 'espera-overlay'])
     <div class="row modifiedWidth">
         <div class="col-sm-12">
             <div class="row kanban-wrapper horizontal-scroll-cards" data-toggle="dragula"
@@ -636,6 +637,49 @@
                                     // -----------------------------------
                                     document.addEventListener('milestoneAssigned', function showTaskModal() {
 
+                                        // Si la card ya tiene tareas, NO abrir "Create New Task":
+                                        // solo se persiste el paso a "en curso" y se recarga el board
+                                        var $milestoneCardEl = a("#" + cardId);
+                                        var hasTasks = $milestoneCardEl.find('.milestone-task').length > 0;
+
+                                        if (hasTasks) {
+                                            var orderUrlTemplate =
+                                                "{{ route('milestone.update.order', ['__SLUG__', ':projectId']) }}";
+                                            var orderUrl = orderUrlTemplate
+                                                .replace('__SLUG__', encodeURIComponent(wsSlug))
+                                                .replace(':projectId', project_id);
+                                            var sort = [];
+                                            var container = $milestoneCardEl.closest('.card-list');
+                                            container.find('.card').each(function(key) {
+                                                var cid = a(this).attr('id');
+                                                if (cid) {
+                                                    sort.push(cid);
+                                                }
+                                            });
+                                            a.ajax({
+                                                url: orderUrl,
+                                                type: 'POST',
+                                                data: {
+                                                    id: cardId,
+                                                    sort: sort,
+                                                    new_status: 2,
+                                                    old_status: 1,
+                                                    project_id: project_id
+                                                },
+                                                success: function() {
+                                                    location.reload();
+                                                }
+                                            });
+                                            return;
+                                        }
+
+                                        // Mostrar el loader de texto grande "ESPERE" durante la carga
+                                        var esperaOverlay = document.getElementById('espera-overlay');
+                                        if (esperaOverlay) {
+                                            esperaOverlay.style.display = 'flex';
+                                            document.body.style.overflow = 'hidden';
+                                        }
+
                                         // (recalcular el título por si cambió algo)
                                         var $milestoneCard = a("#" + cardId);
                                         var retrievedTitle =
@@ -652,7 +696,7 @@
                                             '?project_id=' + encodeURIComponent(project_id) +
                                             '&milestoneTitle=' + encodeURIComponent(retrievedTitle) +
                                             '&milestone_id=' + encodeURIComponent(cardId) +
-                                            '&fromMyMilestoneBoard=true';
+                                            '&fromMyMilestoneBoard=true&fromMilestoneBoard=true';
 
                                         var createTaskTitle = "{{ __('Create New Task') }}";
                                         $("#" + modalId + " .modal-title").html(createTaskTitle);
@@ -677,6 +721,10 @@
                                                 }
 
                                                 $('#' + modalId + ' .body').html(taskData);
+                                                if (esperaOverlay) {
+                                                    esperaOverlay.style.display = 'none';
+                                                    document.body.style.overflow = 'auto';
+                                                }
                                                 modal.show();
 
                                                 commonLoader();
@@ -687,6 +735,10 @@
                                                     'Error al cargar el formulario de tarea:',
                                                     error);
                                                 console.error('Response:', xhr.responseText);
+                                                if (esperaOverlay) {
+                                                    esperaOverlay.style.display = 'none';
+                                                    document.body.style.overflow = 'auto';
+                                                }
                                                 alert(
                                                     'Error al cargar el formulario de creación de tarea'
                                                 );

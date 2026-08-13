@@ -2863,8 +2863,17 @@ class ProjectController extends Controller
             return redirect()->back()->with('error', 'Proyecto no encontrado o no pertenece al espacio de trabajo actual.');
         }
 
-        $selectedMilestone = Milestone::select('id', 'milestone_assigned_to_user')
+        $selectedMilestone = Milestone::select('id', 'milestone_assigned_to_user', 'status')
             ->find($request->milestone_id);
+
+        // Encargo "por hacer" de un proyecto tipo 3 (I+D): la tarea se añade pero el
+        // encargo NO pasa aún a "en curso" (las tareas quedan inactivas hasta ese momento).
+        // No aplica cuando la tarea viene del flujo de drag&drop (fromMilestoneBoard)
+        $fromDragFlow = $request->has('fromMilestoneBoard');
+        $isPendingType3 = $selectedMilestone
+            && (int) $selectedMilestone->status === 1
+            && (int) $project->type === 3
+            && !$fromDragFlow;
 
         $canOverrideAssignee = in_array((int) $project->type, [3, 5], true)
             && $selectedMilestone
@@ -2927,7 +2936,7 @@ class ProjectController extends Controller
             // $task->customTask()->create(['name' => trim($request->custom_task_name)]);
         }
 
-        // Actualizar milestone status
+        // Actualizar milestone status (no para tareas añadidas en "por hacer" tipo 3)
         $milestone = Milestone::find($request->milestone_id);
 
         if (!$milestone) {
@@ -2938,8 +2947,10 @@ class ProjectController extends Controller
             return redirect()->back()->with('error', 'Error: El encargo no tiene título.');
         }
 
-        $milestone->status = 2;
-        $milestone->save();
+        if (!$isPendingType3) {
+            $milestone->status = 2;
+            $milestone->save();
+        }
 
         return redirect()->back()->with(['success' => __('Task Created Successfully!')]);
     }
@@ -4931,6 +4942,14 @@ MilestoneFile::create([
             ->where(function ($query) use ($user) {
                 $query->whereRaw("find_in_set(?, assign_to)", [(string) $user->id])
                     ->orWhere('assign_to', (string) $user->id);
+            })
+            ->where(function ($query) {
+                $query->where('projects.type', '!=', 3)
+                    ->orWhereNull('projects.type')
+                    ->orWhereDoesntHave('milestone')
+                    ->orWhereHas('milestone', function ($q) {
+                        $q->where('status', '!=', 1);
+                    });
             })
             ->orderByRaw("CASE WHEN projects.name IS NULL OR TRIM(projects.name) = '' THEN 1 ELSE 0 END")
             ->orderBy('projects.name')

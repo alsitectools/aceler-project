@@ -210,7 +210,7 @@
                                 default    => '',
                             };
                         @endphp
-                        <div class="milestone-task tooltipCusTask {{ $i > 1 ? 'milestone-task-extra' : '' }} {{ $reviewClass }}" role="button"
+                        <div class="milestone-task tooltipCusTask {{ $i > 1 ? 'milestone-task-extra' : '' }} {{ $reviewClass }} {{ ($status->id == 1 && (int) ($milestone['project_type_id'] ?? 0) === 3) ? 'task-inactive' : '' }}" role="button"
                              data-task-id="{{ $task['id'] }}"
                              data-task-name="{{ $task['display_name'] ?? $task['name'] }}"
                              data-milestone-id="{{ $milestone['id'] }}"
@@ -220,7 +220,7 @@
                              data-url="{{ route('create.timesheet.from.orders', [$currentWorkspace->slug, $project_id]) }}"
                              data-ajax-timesheet-popup="true"
                              data-tooltip-content="{{ $task['technician']->name }} - {{ __('Imputed hours') }}: {{ $task['logged_hours'] }}">
-                            <i class="ms-2 me-2 fa-solid fa-hourglass-start fa-xs" style="color:black;"></i>
+                            <i class="ms-2 me-2 fa-solid fa-hourglass-start fa-xs"></i>
                             {{ __($task['display_name'] ?? $task['name']) }}
                             @if ($reviewState === 'changes' && in_array((int) $status->id, [2, 3], true))
                                 <button type="button" class="task-ack-btn"
@@ -375,7 +375,7 @@
                            data-url="{{ route('projects.milestone.assign', [$currentWorkspace->slug, $milestone['id']]) }}">
                             <i class="fa-solid fa-user-plus"></i> {{ __('Assign Milestone') }}
                         </a>
-                        @if ($status->id != 1)
+                        @if ($status->id != 1 || ((int) ($milestone['project_type_id'] ?? 0) === 3 && $status->id == 1))
                             @php
                                 $isMyMilestoneBoardUrl = strpos(request()->url(), 'my-milestone-board') !== false;
                                 $taskCreateRoute = $isMyMilestoneBoardUrl

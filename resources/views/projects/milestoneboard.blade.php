@@ -317,6 +317,7 @@
 @endsection
 
 @section('content')
+    @include('saver.saver', ['letters' => 'ESPERE...', 'overlayId' => 'espera-overlay'])
     <div class="row modifiedWidth">
         <div class="col-sm-12">
             <div class="row kanban-wrapper horizontal-scroll-cards" data-toggle="dragula"
@@ -761,6 +762,46 @@
 
                                     // Escuchar el evento solo si se disparó desde el form
                                     document.addEventListener('milestoneAssigned', function showTaskModal() {
+                                        // Si la card ya tiene tareas, NO abrir "Create New Task":
+                                        // solo se persiste el paso a "en curso" y se recarga el board
+                                        var $milestoneCardEl = a("#" + cardId);
+                                        var hasTasks = $milestoneCardEl.find('.milestone-task').length > 0;
+
+                                        if (hasTasks) {
+                                            var orderUrl = '{{ route('milestone.update.order', [$currentWorkspace->slug, ':projectId']) }}'
+                                                .replace(':projectId', project_id);
+                                            var sort = [];
+                                            var container = $milestoneCardEl.closest('.card-list');
+                                            container.find('.card').each(function(key) {
+                                                var cid = a(this).attr('id');
+                                                if (cid) {
+                                                    sort.push(cid);
+                                                }
+                                            });
+                                            a.ajax({
+                                                url: orderUrl,
+                                                type: 'POST',
+                                                data: {
+                                                    id: cardId,
+                                                    sort: sort,
+                                                    new_status: 2,
+                                                    old_status: 1,
+                                                    project_id: project_id
+                                                },
+                                                success: function() {
+                                                    location.reload();
+                                                }
+                                            });
+                                            return;
+                                        }
+
+                                        // Mostrar el loader de texto grande "ESPERE" durante el delay
+                                        var esperaOverlay = document.getElementById('espera-overlay');
+                                        if (esperaOverlay) {
+                                            esperaOverlay.style.display = 'flex';
+                                            document.body.style.overflow = 'hidden';
+                                        }
+
                                         setTimeout(() => {
 
 
@@ -823,9 +864,22 @@
                                                     }
                                                     $('#' + modalId + ' .body').html(
                                                         taskData);
+                                                    if (esperaOverlay) {
+                                                        esperaOverlay.style.display = 'none';
+                                                        document.body.style.overflow = 'auto';
+                                                    }
                                                     modal.show();
                                                     commonLoader();
                                                     loadConfirm();
+                                                },
+                                                error: function(xhr, status, error) {
+                                                    console.error(
+                                                        'Error al cargar el formulario de creación de tarea:',
+                                                        error);
+                                                    if (esperaOverlay) {
+                                                        esperaOverlay.style.display = 'none';
+                                                        document.body.style.overflow = 'auto';
+                                                    }
                                                 }
                                             });
                                         }, 2000);

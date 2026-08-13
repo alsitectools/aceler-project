@@ -486,6 +486,7 @@
 }
 .milestone-task .fa-hourglass-start {
     flex-shrink: 0;
+    color: black;
 }
 
 .milestone-task.task-reviewed {
@@ -501,6 +502,16 @@
     padding-left: 6px;
     border-radius: 4px;
     color: #dc3545;
+}
+
+.milestone-task.task-inactive {
+    color: #adb5bd;
+    opacity: 0.75;
+}
+
+.milestone-task.task-inactive .task-icon,
+.milestone-task.task-inactive .fa-hourglass-start {
+    color: #adb5bd;
 }
 
 .task-ack-btn {
