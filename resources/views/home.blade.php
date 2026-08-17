@@ -492,6 +492,18 @@
         align-items: center;
     }
 
+    .divStatisticsButtons .btn.btn-primary.active {
+        background: #AA182C !important;
+        color: #fff !important;
+        border-color: #AA182C !important;
+        box-shadow: 0 0 0 2px rgba(170, 24, 44, 0.4) !important;
+    }
+
+    .divStatisticsButtons .btn-primary:not(.active) {
+        background: #6c757d;
+        border-color: #6c757d;
+    }
+
     .formControlModified {
         cursor: pointer;
         width: 10% !important;
@@ -1226,15 +1238,20 @@
                                         @endforeach
                                     </div>
 
-                                    <button onclick="updateChart('monthly')"
+                                    <button onclick="updateChart('monthly')" data-view="monthly"
                                         class="marginRight1 btn btn-primary">{{ __('Monthly') }}
                                     </button>
-                                    <button onclick="updateChart('quarterly')"
+                                    <button onclick="updateChart('quarterly')" data-view="quarterly"
                                         class="marginRight1 btn btn-primary">{{ __('Quarterly') }}</button>
-                                    <button onclick="updateChart('yearly')"
+                                    <button onclick="updateChart('yearly')" data-view="yearly"
                                         class="btn btn-primary">{{ __('Yearly') }}</button>
                                 </div>
                                 <canvas id="myChart" style="height: 400px; width:100%"></canvas>
+                                <div id="chartEmptyMessage"
+                                    style="display:none; min-height:400px; align-items:center; justify-content:center;"
+                                    class="text-center text-muted">
+                                    {{ __('No finalized milestones in this period') }}
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -1338,282 +1355,25 @@
                     "max-height": 300
                 }).niceScroll();
             }
-
-            $("#yearDropdown").click(function() {
-                $("#yearList").toggle();
-            });
-
-            // Cuando se selecciona un año, actualiza el input y la vista actual sin cambiar la modalidad
-            $(".yearOption").click(function() {
-                let selectedYear = $(this).data("year");
-
-                $("#yearSelect").val(selectedYear); // Actualiza el input oculto
-                $("#yearDisplay").text(selectedYear); // Muestra el año seleccionado
-                $("#yearList").hide(); // Oculta la lista de años
-
-                updateYear(); // Actualiza la gráfica sin cambiar la vista
-            });
-
-            // Ocultar la lista si se hace clic fuera de ella
-            $(document).click(function(event) {
-                if (!$(event.target).closest("#yearDropdown, #yearList").length) {
-                    $("#yearList").hide();
-                }
-            });
         });
     </script>
     <script>
-        // all average data
-        var averageTimes = @json($averageTimes);
-        let selectedYear = document.getElementById('yearSelect').value;
-        //updateChartData(averageTimes[selectedYear]); // Inicializa con el primer año
-
-        function updateYear() {
-            let selectedYear = $("#yearSelect").val();
-
-            if (!averageTimes[selectedYear]) {
-                console.log(`No hay datos para el año ${selectedYear}`);
-                return;
-            }
-
-            // Mantiene la vista activa cuando cambia el año
-            updateChart(currentView);
-        }
-
-        function updateChart(view) {
-            let selectedYear = $("#yearSelect").val();
-
-            if (!averageTimes[selectedYear]) {
-                console.log(`No hay datos para el año ${selectedYear}`);
-                return;
-            }
-
-            let data = averageTimes[selectedYear];
-
-            // Mantiene la vista seleccionada
-            currentView = view;
-
-            if (view === 'monthly') {
-                console.log("Datos mensuales:", data.months);
-                updateChartData(data.months, "{{ __('Month') }}");
-            } else if (view === 'quarterly') {
-                console.log("Datos trimestrales:", data.quarters);
-                updateChartData(data.quarters, "{{ __('Quarter') }}");
-
-            } else if (view === 'yearly') {
-                console.log("Datos anuales:", data.yearly);
-                updateYearlyChart(data.yearly);
-            }
-        }
-
-        function updateYearlyChart(data) {
-            if (!window.chart) {
-                console.log("Error: El gráfico aún no ha sido inicializado.");
-                return;
-            }
-
-            if (!data) {
-                console.log("No hay datos disponibles para la vista anual.");
-                return;
-            }
-            console.log("Datos anuales recibidos en la funcion del chart:", data);
-            let selectedYear = $("#yearSelect").val(); // Obtener el año seleccionado
-
-            let labels = [selectedYear]; // Mostrar el año actual en el eje X
-            let tiempo_inicio = [data.averageStartUp || 0];
-            let tiempo_bueno = [data.averageWorking || 0];
-            let retraso = [data.averageDelay || 0];
-            let estimado_usuario = [data.avgEstimatedByUser || 0]; // Nuevo punto lila
-
-            // Mantener las barras apiladas
-            window.chart.config.type = 'bar';
-            window.chart.options.scales.x.stacked = true;
-            window.chart.options.scales.y.stacked = true;
-
-            window.chart.data.labels = labels;
-            window.chart.data.datasets[0].data = tiempo_inicio;
-            window.chart.data.datasets[1].data = tiempo_bueno;
-            window.chart.data.datasets[2].data = retraso;
-            // window.chart.data.datasets[3].data = estimado_usuario; // Actualizar datos
-
-            window.chart.options.plugins.title.text = `{{ __('Annual average') }} (${selectedYear})`;
-            window.chart.update();
-        }
-
-        function updateChartData(data, labelType) {
-            if (!window.chart) {
-                console.log("Error: El gráfico aún no ha sido inicializado.");
-                return;
-            }
-
-            if (!data) {
-                console.log("No hay datos disponibles para la vista seleccionada.");
-                return;
-            }
-
-            // Ordenar etiquetas correctamente
-            const monthOrder = ["January", "February", "March", "April", "May", "June", "July", "August", "September",
-                "October", "November", "December"
-            ];
-            const quarterOrder = ["Q1", "Q2", "Q3", "Q4"];
-
-            let labels = Object.keys(data);
-
-            if (labelType === "Meses") {
-                labels.sort((a, b) => monthOrder.indexOf(a) - monthOrder.indexOf(b));
-            } else if (labelType === "Trimestres") {
-                labels.sort((a, b) => quarterOrder.indexOf(a) - quarterOrder.indexOf(b));
-            }
-
-            let tiempo_inicio = [];
-            let tiempo_bueno = [];
-            let retraso = [];
-            // let estimado_usuario = []; // Nuevo punto lila
-
-            labels.forEach(periodo => {
-                let periodoData = data[periodo] || {};
-                tiempo_inicio.push(periodoData.averageStartUp || 0);
-                tiempo_bueno.push(periodoData.averageWorking || 0);
-                retraso.push(periodoData.averageDelay || 0);
-                // estimado_usuario.push(periodoData.avgEstimatedByUser || 0); // Nuevo punto lila
-            });
-
-            window.chart.config.type = 'bar';
-            window.chart.options.scales.x.stacked = true;
-            window.chart.options.scales.y.stacked = true;
-
-            window.chart.data.labels = labels;
-            window.chart.data.datasets[0].data = tiempo_inicio;
-            window.chart.data.datasets[1].data = tiempo_bueno;
-            window.chart.data.datasets[2].data = retraso;
-            // window.chart.data.datasets[3].data = estimado_usuario; // Actualizar datos
-
-            window.chart.options.plugins.title.text = `{{ __('Average per') }} ${labelType}`;
-            window.chart.update();
-        }
-
-        document.addEventListener("DOMContentLoaded", function() {
-            const ctx = document.getElementById('myChart').getContext('2d');
-
-            window.chart = new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: [],
-                    datasets: [{
-                            label: "{{ __('Starting time') }}",
-                            data: [],
-                            backgroundColor: 'rgba(211, 211, 211, 0.8)',
-                            hidden: false
-                        },
-                        {
-                            label: "{{ __('On time') }}",
-                            data: [],
-                            backgroundColor: 'rgba(201, 237, 185, 0.8)',
-                            hidden: false
-                        },
-                        {
-                            label: "{{ __('Delay') }}",
-                            data: [],
-                            backgroundColor: 'rgba(224, 108, 113, 0.8)',
-                            hidden: false
-                        },
-                        // {
-                        //     label: "{{ __('Planned end date') }}",
-                        //     data: [],
-                        //     backgroundColor: 'rgba(186, 85, 211, 0.8)',
-                        //     hidden: false
-                        // }
-                    ]
-                },
-                options: {
-                    responsive: true,
-                    plugins: {
-                        legend: {
-                            position: 'top',
-                            align: 'end',
-                            labels: {
-                                generateLabels: function(chart) {
-                                    let labels = Chart.defaults.plugins.legend.labels.generateLabels(
-                                        chart);
-
-                                    labels.push({
-                                        text: "{{ __('Show values') }}",
-                                        fillStyle: 'black',
-                                        strokeStyle: 'black',
-                                        hidden: !chart.options.plugins.datalabels.display,
-                                        datasetIndex: -1
-                                    });
-
-                                    return labels;
-                                }
-                            },
-                            onClick: function(e, legendItem, legend) {
-                                if (legendItem.datasetIndex === -1) {
-                                    let currentDisplay = legend.chart.options.plugins.datalabels
-                                        .display;
-                                    legend.chart.options.plugins.datalabels.display = !currentDisplay;
-
-                                    legend.options.labels.generateLabels(legend.chart);
-                                    legend.chart.update();
-                                } else {
-                                    let dataset = legend.chart.data.datasets[legendItem.datasetIndex];
-                                    dataset.hidden = !dataset.hidden;
-                                    legend.chart.update();
-                                }
-                            }
-                        },
-                        title: {
-                            display: true,
-                        },
-                        datalabels: {
-                            anchor: 'center',
-                            align: 'center',
-                            // formatter: function(value, context) {
-                            //     // Obtener todos los valores apilados en esta posición
-                            //     const stackedValues = context.chart.data.datasets.map(ds => ds.data[
-                            //         context.dataIndex] || 0);
-
-                            //     const maxValue = Math.max(...stackedValues);
-                            //     const minValue = Math.min(...stackedValues);
-
-                            //     // Si la diferencia entre el más grande y el más pequeño es < 200, no mostrar la etiqueta
-                            //     if ((maxValue - minValue) < 50) return '';
-
-                            //     return value; // En caso contrario, mostrar el valor
-                            // },
-                            display: true,
-                            color: 'black',
-                            font: {
-                                weight: 'bold',
-                                size: 12
-                            }
-                        }
-                    },
-                    scales: {
-                        x: {
-                            stacked: true
-                        },
-                        y: {
-                            stacked: true,
-                            title: {
-                                display: true,
-                                text: "{{ __('Days') }}"
-                            }
-                        }
-                    },
-                    elements: {
-                        bar: {
-                            borderRadius: 8
-                        }
-                    }
-                },
-                plugins: [ChartDataLabels]
-            });
-
-            let selectedYear = document.getElementById('yearSelect').value;
-            updateChart('monthly');
-        });
+        // Datos y textos para el gráfico de Statistics (home-statistics.js)
+        window.averageTimes = @json($averageTimes);
+        window.statisticsI18n = {
+            startingTime: @json(__('Starting time')),
+            onTime: @json(__('On time')),
+            delay: @json(__('Delay')),
+            showValues: @json(__('Show values')),
+            days: @json(__('Days')),
+            averagePer: @json(__('Average per')),
+            annualAverage: @json(__('Annual average')),
+            month: @json(__('Month')),
+            quarter: @json(__('Quarter')),
+            noData: @json(__('No finalized milestones in this period'))
+        };
     </script>
+    <script src="{{ asset('assets/custom/js/home-statistics.js') }}"></script>
     <script>
         function filterList(inputId, containerId) {
             const input = document.getElementById(inputId);

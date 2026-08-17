@@ -19,6 +19,7 @@ use Carbon\CarbonPeriod;
 use App\Models\Project;
 use App\Models\Milestone;
 use Illuminate\Support\Facades\App;
+use App\Services\AverageTimeService;
 
 
 class HomeController extends Controller
@@ -52,167 +53,9 @@ class HomeController extends Controller
         return redirect('/home');
     }
 
-    public function getAllAverageTimes($workspaceID)
+    public function getAllAverageTimes(int $workspaceID): array
     {
-        // Obtener todos los milestones de todos los proyectos dentro del workspace
-        $milestones = DB::table('milestones')
-            ->join('projects', 'projects.id', '=', 'milestones.project_id')
-            ->where('projects.workspace', '=', $workspaceID)
-            ->select(
-                'projects.start_date as project_start_date',
-                'projects.end_date as project_end_date',
-                'milestones.start_date',
-                'milestones.end_date',
-                'milestones.id',
-                'milestones.title',
-                'milestones.task_start_date',
-                'milestones.finalization_date',
-                'milestones.planned_end_date' // Añadir el campo planned_end_date
-            )
-            ->get();
-
-        $groupedMilestones = [];
-
-        foreach ($milestones as $milestone) {
-            $year = date('Y', strtotime($milestone->project_start_date));
-
-            // Set the locale for Carbon based on the application's locale
-            $locale = App::getLocale();
-            Carbon::setLocale($locale);
-
-            $month = Carbon::parse($milestone->start_date)->translatedFormat('F'); // Nombre del mes traducido
-            $quarter = 'Q' . ceil(date('n', strtotime($milestone->start_date)) / 3); // Trimestre
-
-            $creation_date = Carbon::parse($milestone->start_date);
-            $estimated_date = Carbon::parse($milestone->end_date);
-            $task_start_date = Carbon::parse($milestone->task_start_date);
-            $finalization_date = $milestone->finalization_date ? Carbon::parse($milestone->finalization_date) : Carbon::now();
-            $planned_end_date = Carbon::parse($milestone->planned_end_date); // Fecha estimada por el usuario
-
-            // Cálculos de tiempo
-            $deliveryTime = $creation_date->diffInDays($finalization_date);
-            $startUpTime = $creation_date->diffInDays($task_start_date);
-            $delayTime = max(0, $estimated_date->diffInDays($finalization_date, false)); // Evita valores negativos
-            $workingTime = $deliveryTime - $startUpTime - $delayTime;
-            $avgEstimatedByUser = $creation_date->diffInDays($planned_end_date); // Tiempo medio estimado por el usuario
-
-            // Inicializar la estructura del año si no existe
-            if (!isset($groupedMilestones[$year])) {
-                $groupedMilestones[$year] = [
-                    'months' => [],
-                    'quarters' => [],
-                    'yearly' => [
-                        'total' => 0,
-                        'sumDelivery' => 0,
-                        'sumStartUp' => 0,
-                        'sumWorking' => 0,
-                        'sumDelay' => 0,
-                        'sumEstimatedByUser' => 0, // Suma de tiempos estimados por el usuario
-                        'averageDelivery' => 0,
-                        'averageStartUp' => 0,
-                        'averageWorking' => 0,
-                        'averageDelay' => 0,
-                        'avgEstimatedByUser' => 0, // Promedio de tiempos estimados por el usuario
-                    ]
-                ];
-            }
-
-            // ---- AGRUPACIÓN POR MESES ----
-            if (!isset($groupedMilestones[$year]['months'][$month])) {
-                $groupedMilestones[$year]['months'][$month] = [
-                    'total' => 0,
-                    'sumDelivery' => 0,
-                    'sumStartUp' => 0,
-                    'sumWorking' => 0,
-                    'sumDelay' => 0,
-                    'sumEstimatedByUser' => 0, // Suma de tiempos estimados por el usuario
-                    'averageDelivery' => 0,
-                    'averageStartUp' => 0,
-                    'averageWorking' => 0,
-                    'averageDelay' => 0,
-                    'avgEstimatedByUser' => 0, // Promedio de tiempos estimados por el usuario
-                ];
-            }
-
-            // Acumular valores
-            $groupedMilestones[$year]['months'][$month]['total']++;
-            $groupedMilestones[$year]['months'][$month]['sumDelivery'] += $deliveryTime;
-            $groupedMilestones[$year]['months'][$month]['sumStartUp'] += $startUpTime;
-            $groupedMilestones[$year]['months'][$month]['sumWorking'] += $workingTime;
-            $groupedMilestones[$year]['months'][$month]['sumDelay'] += $delayTime;
-            $groupedMilestones[$year]['months'][$month]['sumEstimatedByUser'] += $avgEstimatedByUser; // Acumular tiempo estimado por el usuario
-
-            // ---- AGRUPACIÓN POR TRIMESTRES ----
-            if (!isset($groupedMilestones[$year]['quarters'][$quarter])) {
-                $groupedMilestones[$year]['quarters'][$quarter] = [
-                    'total' => 0,
-                    'sumDelivery' => 0,
-                    'sumStartUp' => 0,
-                    'sumWorking' => 0,
-                    'sumDelay' => 0,
-                    'sumEstimatedByUser' => 0, // Suma de tiempos estimados por el usuario
-                    'averageDelivery' => 0,
-                    'averageStartUp' => 0,
-                    'averageWorking' => 0,
-                    'averageDelay' => 0,
-                    'avgEstimatedByUser' => 0, // Promedio de tiempos estimados por el usuario
-                ];
-            }
-
-            // Acumular valores
-            $groupedMilestones[$year]['quarters'][$quarter]['total']++;
-            $groupedMilestones[$year]['quarters'][$quarter]['sumDelivery'] += $deliveryTime;
-            $groupedMilestones[$year]['quarters'][$quarter]['sumStartUp'] += $startUpTime;
-            $groupedMilestones[$year]['quarters'][$quarter]['sumWorking'] += $workingTime;
-            $groupedMilestones[$year]['quarters'][$quarter]['sumDelay'] += $delayTime;
-            $groupedMilestones[$year]['quarters'][$quarter]['sumEstimatedByUser'] += $avgEstimatedByUser; // Acumular tiempo estimado por el usuario
-
-            // ---- AGRUPACIÓN POR AÑO (YEARLY) ----
-            $groupedMilestones[$year]['yearly']['total']++;
-            $groupedMilestones[$year]['yearly']['sumDelivery'] += $deliveryTime;
-            $groupedMilestones[$year]['yearly']['sumStartUp'] += $startUpTime;
-            $groupedMilestones[$year]['yearly']['sumWorking'] += $workingTime;
-            $groupedMilestones[$year]['yearly']['sumDelay'] += $delayTime;
-            $groupedMilestones[$year]['yearly']['sumEstimatedByUser'] += $avgEstimatedByUser; // Acumular tiempo estimado por el usuario
-        }
-
-        // Calcular promedios
-        foreach ($groupedMilestones as $year => &$yearData) {
-            foreach ($yearData['months'] as $month => &$monthData) {
-                if ($monthData['total'] > 0) {
-                    $monthData['averageDelivery'] = round($monthData['sumDelivery'] / $monthData['total']);
-                    $monthData['averageStartUp'] = round($monthData['sumStartUp'] / $monthData['total']);
-                    $monthData['averageWorking'] = round($monthData['sumWorking'] / $monthData['total']);
-                    $monthData['averageDelay'] = round($monthData['sumDelay'] / $monthData['total']);
-                    $monthData['avgEstimatedByUser'] = round($monthData['sumEstimatedByUser'] / $monthData['total']); // Calcular promedio de tiempo estimado por el usuario
-                }
-                unset($monthData['sumDelivery'], $monthData['sumStartUp'], $monthData['sumWorking'], $monthData['sumDelay'], $monthData['sumEstimatedByUser'], $monthData['total']);
-            }
-
-            foreach ($yearData['quarters'] as $quarter => &$quarterData) {
-                if ($quarterData['total'] > 0) {
-                    $quarterData['averageDelivery'] = round($quarterData['sumDelivery'] / $quarterData['total']);
-                    $quarterData['averageStartUp'] = round($quarterData['sumStartUp'] / $quarterData['total']);
-                    $quarterData['averageWorking'] = round($quarterData['sumWorking'] / $quarterData['total']);
-                    $quarterData['averageDelay'] = round($quarterData['sumDelay'] / $quarterData['total']);
-                    $quarterData['avgEstimatedByUser'] = round($quarterData['sumEstimatedByUser'] / $quarterData['total']); // Calcular promedio de tiempo estimado por el usuario
-                }
-                unset($quarterData['sumDelivery'], $quarterData['sumStartUp'], $quarterData['sumWorking'], $quarterData['sumDelay'], $quarterData['sumEstimatedByUser'], $quarterData['total']);
-            }
-
-            // Calcular promedios anuales
-            if ($yearData['yearly']['total'] > 0) {
-                $yearData['yearly']['averageDelivery'] = round($yearData['yearly']['sumDelivery'] / $yearData['yearly']['total']);
-                $yearData['yearly']['averageStartUp'] = round($yearData['yearly']['sumStartUp'] / $yearData['yearly']['total']);
-                $yearData['yearly']['averageWorking'] = round($yearData['yearly']['sumWorking'] / $yearData['yearly']['total']);
-                $yearData['yearly']['averageDelay'] = round($yearData['yearly']['sumDelay'] / $yearData['yearly']['total']);
-                $yearData['yearly']['avgEstimatedByUser'] = round($yearData['yearly']['sumEstimatedByUser'] / $yearData['yearly']['total']); // Calcular promedio de tiempo estimado por el usuario
-            }
-            unset($yearData['yearly']['sumDelivery'], $yearData['yearly']['sumStartUp'], $yearData['yearly']['sumWorking'], $yearData['yearly']['sumDelay'], $yearData['yearly']['sumEstimatedByUser'], $yearData['yearly']['total']);
-        }
-       // \Log::debug("Milestones organizados por año: " . json_encode($groupedMilestones, JSON_PRETTY_PRINT));
-
-        return $groupedMilestones;
+        return app(AverageTimeService::class)->getAllAverageTimes($workspaceID);
     }
 
     public function index($slug = '')
