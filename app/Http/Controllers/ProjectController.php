@@ -3549,6 +3549,40 @@ class ProjectController extends Controller
         ]);
     }
 
+    /**
+     * Devuelve el HTML de la card de un encargo tal como se muestra en el tablero,
+     * sea cual sea su estado actual. Se usa para el modal "Revisar card" de Mis tareas.
+     */
+    public function milestoneCard($slug, $id)
+    {
+        $currentWorkspace = Utility::getWorkspaceBySlug($slug);
+        if (!isset($currentWorkspace)) {
+            abort(404);
+        }
+
+        $milestone = Milestone::with('project')->find($id);
+        if (!$milestone || !$milestone->project) {
+            abort(404);
+        }
+
+        $status = Stage::find($milestone->status);
+        if (!$status) {
+            abort(404);
+        }
+
+        $milestoneData = $this->getMilestoneData($milestone, $milestone->project, Auth::user());
+
+        return view('projects.partials.milestone_card_modal', [
+            'milestone' => $milestoneData,
+            'status' => $status,
+            'currentWorkspace' => $currentWorkspace,
+            'project_id' => $milestone->project_id,
+            'extraClass' => 'milestone-card-modal',
+            'inlineStyle' => '',
+            'ownerShip' => 'yes',
+        ]);
+    }
+
     public function downloadCsv($project_id)
     {
         // Cargamos los timesheets con sus relaciones
@@ -4983,6 +5017,7 @@ MilestoneFile::create([
 
             $workspaceId = optional($task->project)->workspace;
             $workspaceSlug = $workspaceId ? $workspaceSlugsById->get($workspaceId) : null;
+            $task->workspace_slug = $workspaceSlug;
             $editableTimesheet = $latestTimesheetsByTask->get($task->id);
 
             if (!$workspaceSlug || !$task->project_id) {

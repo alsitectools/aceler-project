@@ -14,6 +14,7 @@
 @endsection
 
 @push('css-page')
+    <link rel="stylesheet" href="{{ asset('assets/css/milestoneboard.css') }}">
     <style>
         .my-tasks-wrap {
             --mt-accent: #b6122e;
@@ -938,6 +939,129 @@
         .my-tasks-body-row.task-row-changes .my-tasks-truncate-task .my-tasks-main {
             color: #dc3545;
         }
+
+        .my-tasks-td-milestone {
+            position: relative;
+        }
+        .my-tasks-review-card-btn {
+            display: none;
+            position: absolute;
+            right: 6px;
+            top: 50%;
+            transform: translateY(-50%);
+            z-index: 2;
+            background: #AA182C;
+            color: #fff;
+            border: none;
+            border-radius: 999px;
+            padding: 2px 10px;
+            font-size: 11px;
+            line-height: 18px;
+            cursor: pointer;
+            white-space: nowrap;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25);
+        }
+        .my-tasks-td-milestone:hover .my-tasks-review-card-btn {
+            display: inline-block;
+        }
+        .my-tasks-td-milestone:hover .my-tasks-truncate-milestone {
+            padding-right: 126px;
+        }
+        .my-tasks-review-card-btn:hover {
+            background: #8f1325;
+            color: #fff;
+        }
+
+        .milestoneCardModalBody .milestone-card-frame {
+            max-width: 360px;
+            margin: 0 auto;
+        }
+        .milestoneCardModalBody .milestone-card-frame .card-body {
+            padding: 0;
+        }
+        .milestoneCardModalBody .milestone-card-frame .card-header {
+            padding-left: 12px;
+            padding-right: 12px;
+        }
+        .milestoneCardModalBody .milestone-status-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+        }
+        .milestoneCardModalBody .milestone-status-header h4 {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            margin: 0;
+        }
+        .milestoneCardModalBody .milestone-status-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 6px 12px;
+            border-radius: 999px;
+            border: 1px solid #e5e7eb;
+            background: #f9fafb;
+            color: #4b5563;
+            font-size: 12.5px;
+            font-weight: 500;
+            line-height: 1;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.2s ease;
+            user-select: none;
+            flex: 0 0 auto;
+        }
+        .milestoneCardModalBody .milestone-status-btn i {
+            font-size: 15px;
+            line-height: 1;
+            transition: transform 0.2s ease;
+        }
+        .milestoneCardModalBody .milestone-status-btn:hover {
+            background: #AA182C;
+            border-color: #AA182C;
+            color: #fff;
+            box-shadow: 0 2px 6px rgba(170, 24, 44, 0.35);
+            transform: translateY(-1px);
+        }
+        .milestoneCardModalBody .milestone-status-btn-right:hover i {
+            transform: translateX(2px);
+        }
+        .milestoneCardModalBody .milestone-status-btn-left:hover i {
+            transform: translateX(-2px);
+        }
+        .milestoneCardModalBody .milestone-status-btn:active {
+            transform: translateY(0) scale(0.97);
+        }
+        .milestoneCardModalBody .milestone-status-btn.invisible {
+            transform: none;
+        }
+
+        .milestoneCardModalBody .milestone-flip {
+            perspective: 1200px;
+        }
+        .milestoneCardModalBody .milestone-flip-inner {
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform 0.7s cubic-bezier(0.4, 0.2, 0.2, 1);
+        }
+        .milestoneCardModalBody .milestone-flip-inner.is-flipped {
+            transform: rotateY(180deg);
+        }
+        .milestoneCardModalBody .milestone-flip-face {
+            -webkit-backface-visibility: hidden;
+            backface-visibility: hidden;
+        }
+        .milestoneCardModalBody .milestone-flip-face-back {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            transform: rotateY(180deg);
+        }
     </style>
 @endpush
 
@@ -1221,8 +1345,14 @@
                                                 <div class="my-tasks-td" data-col-key="project">
                                                     <div class="my-tasks-main my-tasks-truncate-project {{ $projectClass }}" title="{{ $projectName }}">{{ $projectName }}</div>
                                                 </div>
-                                                <div class="my-tasks-td" data-col-key="milestone">
+                                                <div class="my-tasks-td my-tasks-td-milestone" data-col-key="milestone">
                                                     <div class="my-tasks-main my-tasks-truncate-milestone {{ $milestoneClass }}" title="{{ $milestoneTitle }}">{{ $milestoneTitle }}</div>
+                                                    <button type="button" class="my-tasks-review-card-btn"
+                                                        data-milestone-id="{{ $task->milestone_id }}"
+                                                        data-workspace-slug="{{ $task->workspace_slug ?? '' }}"
+                                                        title="{{ __('Revisar card') }}">
+                                                        {{ __('Revisar card') }}
+                                                    </button>
                                                 </div>
                                                 @if ($showStageColumn)
                                                 <div class="my-tasks-td" data-col-key="stage">
@@ -1320,6 +1450,20 @@
                         </div>
                     </div>
 
+                <div class="modal fade" id="milestoneCardModal" tabindex="-1" aria-hidden="true">
+                        <div class="modal-dialog modal-lg modal-dialog-scrollable">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title mb-0">{{ __('Revisar card') }}</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{ __('Close') }}"></button>
+                                </div>
+                                <div class="modal-body milestoneCardModalBody" id="milestoneCardModalBody">
+                                    <div class="text-center text-muted py-4">{{ __('Loading...') }}</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                 </div>
             </div>
         </div>
@@ -1328,6 +1472,83 @@
 
 @push('scripts')
     @include('projects.partials.task_review_modal')
+    <script>
+        (function() {
+            const modalEl = document.getElementById('milestoneCardModal');
+            const bodyEl = document.getElementById('milestoneCardModalBody');
+            if (!modalEl || !bodyEl) return;
+
+            const cardUrlTemplate = @json(route('projects.milestone.card', ['__SLUG__', '__ID__']));
+
+            document.addEventListener('click', function(e) {
+                const btn = e.target.closest('.my-tasks-review-card-btn');
+                if (!btn) return;
+                e.preventDefault();
+
+                const milestoneId = btn.getAttribute('data-milestone-id');
+                const slug = btn.getAttribute('data-workspace-slug');
+                if (!milestoneId || !slug) return;
+
+                bodyEl.innerHTML = '<div class="text-center text-muted py-4">{{ __('Loading...') }}</div>';
+                const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+                modal.show();
+
+                fetch(cardUrlTemplate.replace('__SLUG__', slug).replace('__ID__', milestoneId), {
+                    headers: { 'Accept': 'text/html' }
+                })
+                    .then(function(response) {
+                        if (!response.ok) throw new Error('HTTP ' + response.status);
+                        return response.text();
+                    })
+                    .then(function(html) {
+                        bodyEl.innerHTML = html;
+                        bodyEl.querySelectorAll('script').forEach(function(s) {
+                            const ns = document.createElement('script');
+                            if (s.src) {
+                                ns.src = s.src;
+                            } else {
+                                ns.textContent = s.textContent;
+                            }
+                            s.parentNode.replaceChild(ns, s);
+                        });
+                    })
+                    .catch(function() {
+                        bodyEl.innerHTML = '<div class="text-center text-danger py-4">{{ __('Error') }}</div>';
+                    });
+            });
+
+                        modalEl.addEventListener('hidden.bs.modal', function() {
+                bodyEl.innerHTML = '';
+            });
+
+            function showFaceHeader(name) {
+                bodyEl.querySelectorAll('.milestone-face-header').forEach(function(h) {
+                    h.classList.add('d-none');
+                });
+                const target = bodyEl.querySelector('.milestone-face-header-' + name);
+                if (target) target.classList.remove('d-none');
+            }
+
+            document.addEventListener('click', function(e) {
+                const btn = e.target.closest('.milestone-status-btn');
+                if (!btn) return;
+                e.preventDefault();
+                const flipInner = bodyEl.querySelector('.milestone-flip-inner');
+                if (!flipInner) return;
+                const to = btn.getAttribute('data-flip-to');
+                if (to === 'revision') {
+                    flipInner.classList.add('is-flipped');
+                } else {
+                    if (to === 'hecho') {
+                        showFaceHeader('hecho');
+                    } else if (to === 'curso') {
+                        showFaceHeader('curso');
+                    }
+                    flipInner.classList.remove('is-flipped');
+                }
+            });
+        })();
+    </script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
         (function() {

@@ -699,6 +699,7 @@ Route::post(
 
 Route::get('/{slug}/projects/milestone-board/{id}/workload', [ProjectController::class, 'milestoneWorkload'])->name('projects.milestone.workload')->middleware(['auth', 'XSS']);
 Route::get('/{slug}/projects/milestone-board/{id}/checkTaskHours', [ProjectController::class, 'checkTaskHours'])->name('projects.milestone.checkTaskHours');
+Route::get('/{slug}/projects/milestone-card/{id}', [ProjectController::class, 'milestoneCard'])->name('projects.milestone.card')->middleware(['auth', 'XSS']);
 Route::get('/projects/milestone-board/{id}/getProjectName', [ProjectController::class, 'getProjectNameByID'])
   ->name('projects.milestone.getNameByID')
   ->middleware(['auth', 'XSS']);
