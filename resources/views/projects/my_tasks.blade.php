@@ -975,9 +975,51 @@
         .milestoneCardModalBody .milestone-card-frame {
             max-width: 360px;
             margin: 0 auto;
+            position: relative;
+        }
+        .milestoneCardModalBody {
+            overflow-x: hidden;
+        }
+        .milestoneCardModalBody .milestone-flip,
+        .milestoneCardModalBody .milestone-flip-face-front {
+            width: 100%;
+        }
+        .milestoneCardModalBody .milestone-card {
+            width: 100%;
+        }
+        .milestoneCardModalBody .milestone-busy-overlay {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            background: rgba(255, 255, 255, 0.75);
+            border-radius: inherit;
+            z-index: 30;
+            backdrop-filter: blur(1px);
+        }
+        .milestoneCardModalBody .milestone-busy-spinner {
+            width: 28px;
+            height: 28px;
+            border: 3px solid #e5e7eb;
+            border-top-color: #AA182C;
+            border-radius: 50%;
+            animation: mt-spin 0.8s linear infinite;
+        }
+        .milestoneCardModalBody .milestone-busy-text {
+            font-size: 12.5px;
+            font-weight: 600;
+            color: #4b5563;
+        }
+        @keyframes mt-spin {
+            to {
+                transform: rotate(360deg);
+            }
         }
         .milestoneCardModalBody .milestone-card-frame .card-body {
-            padding: 0;
+            padding: 12px;
         }
         .milestoneCardModalBody .milestone-card-frame .card-header {
             padding-left: 12px;
@@ -1039,9 +1081,46 @@
         .milestoneCardModalBody .milestone-status-btn.invisible {
             transform: none;
         }
+        .milestoneCardModalBody .milestone-flip-inner.mt-half {
+            transform: rotateY(90deg);
+        }
+        .milestoneCardModalBody .milestone-flip-inner.mt-flip-fast {
+            transition-duration: 0.35s;
+        }
+        .milestoneCardModalBody .milestone-card-frame.is-busy .milestone-status-btn {
+            opacity: 0.5;
+            pointer-events: none;
+        }
+        #milestoneCardModal .modal-content {
+            position: relative;
+        }
+        #milestoneCardModal .milestone-modal-alert {
+            position: absolute;
+            bottom: 14px;
+            right: 14px;
+            max-width: 280px;
+            margin: 0;
+            padding: 8px 14px;
+            font-size: 12.5px;
+            border-radius: 8px;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+            z-index: 20;
+            animation: mtToastIn 0.25s ease;
+        }
+        @keyframes mtToastIn {
+            from {
+                opacity: 0;
+                transform: translateX(12px);
+            }
+            to {
+                opacity: 1;
+                transform: none;
+            }
+        }
 
         .milestoneCardModalBody .milestone-flip {
             perspective: 1200px;
+            overflow: hidden;
         }
         .milestoneCardModalBody .milestone-flip-inner {
             position: relative;
@@ -1464,6 +1543,29 @@
                         </div>
                     </div>
 
+                <div class="modal fade" id="myTasksStatusChangeModal" tabindex="-1" role="dialog"
+                    aria-labelledby="myTasksStatusChangeModalLabel" aria-hidden="true">
+                    <div class="modal-dialog" role="document">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="myTasksStatusChangeModalLabel">{{ __('Volver a En curso') }}</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{ __('Close') }}"></button>
+                            </div>
+                            <div class="modal-body">
+                                <div class="form-group">
+                                    <label for="myTasksStatusChangeComment">{{ __('Motivo') }}</label>
+                                    <textarea class="form-control" id="myTasksStatusChangeComment" name="status_change_comment" rows="4"
+                                        placeholder="{{ __('Indica el motivo para volver a En curso...') }}"></textarea>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ __('Cancel') }}</button>
+                                <button type="button" class="btn btn-primary" onclick="submitMyTasksStatusChange()">{{ __('Volver a En curso') }}</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 </div>
             </div>
         </div>
@@ -1479,6 +1581,252 @@
             if (!modalEl || !bodyEl) return;
 
             const cardUrlTemplate = @json(route('projects.milestone.card', ['__SLUG__', '__ID__']));
+            const orderUrlTemplate = @json(route('milestone.update.order', ['__SLUG__', '__PROJECT__']));
+            const checkHoursUrlTemplate = @json(route('projects.milestone.checkTaskHours', ['__SLUG__', '__ID__']));
+            const notifyUrl = @json(route('notifications.add'));
+            const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+            const currentWorkspaceId = {{ $currentWorkspace->id }};
+            const currentWorkspaceSlug = @json($currentWorkspace->slug);
+
+            let isBusy = false;
+
+            function reExecScripts(container) {
+                container.querySelectorAll('script').forEach(function(s) {
+                    const ns = document.createElement('script');
+                    if (s.src) {
+                        ns.src = s.src;
+                    } else {
+                        ns.textContent = s.textContent;
+                    }
+                    s.parentNode.replaceChild(ns, s);
+                });
+            }
+
+            function loadMilestoneCard(slug, id) {
+                bodyEl.innerHTML = '<div class="text-center text-muted py-4">{{ __('Loading...') }}</div>';
+                return fetch(cardUrlTemplate.replace('__SLUG__', slug).replace('__ID__', id), {
+                    headers: { 'Accept': 'text/html' }
+                })
+                    .then(function(response) {
+                        if (!response.ok) throw new Error('HTTP ' + response.status);
+                        return response.text();
+                    })
+                    .then(function(html) {
+                        bodyEl.innerHTML = html;
+                        reExecScripts(bodyEl);
+                    })
+                    .catch(function() {
+                        bodyEl.innerHTML = '<div class="text-center text-danger py-4">{{ __('Error') }}</div>';
+                    });
+            }
+
+            function fetchCardHtml(slug, id) {
+                return fetch(cardUrlTemplate.replace('__SLUG__', slug).replace('__ID__', id), {
+                    headers: { 'Accept': 'text/html' }
+                }).then(function(response) {
+                    if (!response.ok) throw new Error('HTTP ' + response.status);
+                    return response.text();
+                });
+            }
+
+            function removeBusyOverlay() {
+                const frame = bodyEl.querySelector('.milestone-card-frame');
+                if (!frame) return;
+                const overlay = frame.querySelector('.milestone-busy-overlay');
+                if (overlay) overlay.remove();
+            }
+
+            function setBusy(busy) {
+                isBusy = busy;
+                const frame = bodyEl.querySelector('.milestone-card-frame');
+                if (!frame) return;
+                frame.classList.toggle('is-busy', busy);
+                if (busy) {
+                    if (!frame.querySelector('.milestone-busy-overlay')) {
+                        const overlay = document.createElement('div');
+                        overlay.className = 'milestone-busy-overlay';
+                        const spinner = document.createElement('div');
+                        spinner.className = 'milestone-busy-spinner';
+                        const text = document.createElement('div');
+                        text.className = 'milestone-busy-text';
+                        text.textContent = "{{ __('Procesando...') }}";
+                        overlay.appendChild(spinner);
+                        overlay.appendChild(text);
+                        frame.appendChild(overlay);
+                    }
+                } else {
+                    removeBusyOverlay();
+                }
+            }
+
+            function waitTransform(el) {
+                return new Promise(function(resolve) {
+                    let done = false;
+                    const onEnd = function(e) {
+                        if (e && e.propertyName && e.propertyName !== 'transform') return;
+                        if (done) return;
+                        done = true;
+                        el.removeEventListener('transitionend', onEnd);
+                        resolve();
+                    };
+                    el.addEventListener('transitionend', onEnd);
+                    setTimeout(function() { onEnd(null); }, 700);
+                });
+            }
+
+            function swapCardContent(freshHtml) {
+                removeBusyOverlay();
+                const inner = bodyEl.querySelector('.milestone-flip-inner');
+                if (!inner) {
+                    bodyEl.innerHTML = freshHtml;
+                    reExecScripts(bodyEl);
+                    return Promise.resolve();
+                }
+                return new Promise(function(resolve) {
+                    inner.classList.add('mt-flip-fast');
+                    const half = waitTransform(inner);
+                    inner.classList.add('mt-half');
+                    half.then(function() {
+                        const holder = document.createElement('div');
+                        holder.innerHTML = freshHtml;
+                        const freshInner = holder.querySelector('.milestone-flip-inner');
+                        const freshFrame = holder.querySelector('.milestone-card-frame');
+                        const frame = bodyEl.querySelector('.milestone-card-frame');
+                        let targetFlipped = false;
+                        if (freshInner) {
+                            inner.innerHTML = freshInner.innerHTML;
+                            targetFlipped = freshInner.classList.contains('is-flipped');
+                        }
+                        const rest = waitTransform(inner);
+                        inner.classList.remove('mt-half');
+                        inner.classList.toggle('is-flipped', targetFlipped);
+                        if (freshFrame && frame) {
+                            frame.className = freshFrame.className;
+                            if (isBusy) frame.classList.add('is-busy');
+                        }
+                        inner.classList.remove('mt-flip-fast');
+                        reExecScripts(inner);
+                        rest.then(resolve);
+                    });
+                });
+            }
+
+            function showModalToast(message, type) {
+                const container = modalEl.querySelector('.modal-content');
+                if (!container) return;
+                const existing = container.querySelector('.milestone-modal-alert');
+                if (existing) existing.remove();
+                const alert = document.createElement('div');
+                alert.className = 'milestone-modal-alert alert ' + (type === 'danger' ? 'alert-danger' : 'alert-success');
+                alert.setAttribute('role', 'alert');
+                alert.textContent = message;
+                container.appendChild(alert);
+                setTimeout(function() {
+                    if (alert.isConnected) alert.remove();
+                }, 3500);
+            }
+
+            function sendOrderUpdate(slug, data) {
+                return fetch(orderUrlTemplate.replace('__SLUG__', slug).replace('__PROJECT__', data.project_id), {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': csrfToken,
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        id: data.milestone_id,
+                        old_status: data.old_status,
+                        new_status: data.new_status,
+                        project_id: data.project_id,
+                        status_change_comment: data.status_change_comment || ''
+                    })
+                }).then(function(response) {
+                    if (!response.ok) throw new Error('HTTP ' + response.status);
+                    return response.json();
+                });
+            }
+
+            function sendReviewNotification(slug, milestoneId, projectName, milestoneTitle, technicianId) {
+                const msg = milestoneTitle + ' en el proyecto ' + projectName;
+                if (!msg) return Promise.resolve();
+                return fetch(notifyUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': csrfToken
+                    },
+                    body: JSON.stringify({
+                        workspace_id: currentWorkspaceId,
+                        msg: msg,
+                        ntipe: 5,
+                        milestoneAssignedTo: technicianId,
+                        milestone_id: milestoneId
+                    })
+                }).catch(function() {});
+            }
+
+            function getCardMeta() {
+                const card = bodyEl.querySelector('.milestone-card');
+                if (!card) return null;
+                return {
+                    slug: card.getAttribute('data-workspace-slug') || currentWorkspaceSlug,
+                    milestoneId: card.getAttribute('id'),
+                    projectId: card.getAttribute('data-project-id'),
+                    status: parseInt(card.getAttribute('data-status'), 10) || 0
+                };
+            }
+
+function moveToReview(meta) {
+                setBusy(true);
+                const checkUrl = checkHoursUrlTemplate.replace('__SLUG__', meta.slug).replace('__ID__', meta.milestoneId);
+                return fetch(checkUrl + '?id=' + encodeURIComponent(meta.milestoneId), {
+                    headers: { 'Accept': 'application/json' }
+                })
+                    .then(function(response) {
+                        if (!response.ok) throw new Error('HTTP ' + response.status);
+                        return response.json();
+                    })
+                    .then(function(data) {
+                        if (!data.all_exist) {
+                            setBusy(false);
+                            showModalToast(
+                                data.has_tasks
+                                    ? "{{ __('Todas las tareas tienen que tener horas imputadas') }}"
+                                    : "{{ __('No se puede mover un encargo sin tareas') }}",
+                                'danger'
+                            );
+                            return false;
+                        }
+                        return sendOrderUpdate(meta.slug, {
+                            milestone_id: meta.milestoneId,
+                            old_status: 2,
+                            new_status: 3,
+                            project_id: meta.projectId
+                        }).then(function() {
+                            const req = bodyEl.querySelector('#milestoneReqName');
+                            sendReviewNotification(
+                                meta.slug,
+                                meta.milestoneId,
+                                req ? req.getAttribute('data-project-name') : '',
+                                (bodyEl.querySelector('.milestone-title') || {}).textContent || '',
+                                req ? req.getAttribute('data-technician-id') : ''
+                            );
+                            return fetchCardHtml(meta.slug, meta.milestoneId);
+                        }).then(function(freshHtml) {
+                            return swapCardContent(freshHtml);
+                        }).then(function() {
+                            setBusy(false);
+                            showModalToast("{{ __('El estado se actualizó correctamente') }}", 'success');
+                        }).catch(function() {
+                            setBusy(false);
+                            showModalToast("{{ __('Error') }}", 'danger');
+                        });
+                    }).catch(function() {
+                        setBusy(false);
+                        showModalToast("{{ __('Error') }}", 'danger');
+                    });
+            }
 
             document.addEventListener('click', function(e) {
                 const btn = e.target.closest('.my-tasks-review-card-btn');
@@ -1489,64 +1837,93 @@
                 const slug = btn.getAttribute('data-workspace-slug');
                 if (!milestoneId || !slug) return;
 
-                bodyEl.innerHTML = '<div class="text-center text-muted py-4">{{ __('Loading...') }}</div>';
+                loadMilestoneCard(slug, milestoneId);
                 const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
                 modal.show();
-
-                fetch(cardUrlTemplate.replace('__SLUG__', slug).replace('__ID__', milestoneId), {
-                    headers: { 'Accept': 'text/html' }
-                })
-                    .then(function(response) {
-                        if (!response.ok) throw new Error('HTTP ' + response.status);
-                        return response.text();
-                    })
-                    .then(function(html) {
-                        bodyEl.innerHTML = html;
-                        bodyEl.querySelectorAll('script').forEach(function(s) {
-                            const ns = document.createElement('script');
-                            if (s.src) {
-                                ns.src = s.src;
-                            } else {
-                                ns.textContent = s.textContent;
-                            }
-                            s.parentNode.replaceChild(ns, s);
-                        });
-                    })
-                    .catch(function() {
-                        bodyEl.innerHTML = '<div class="text-center text-danger py-4">{{ __('Error') }}</div>';
-                    });
             });
 
-                        modalEl.addEventListener('hidden.bs.modal', function() {
+            modalEl.addEventListener('hidden.bs.modal', function() {
                 bodyEl.innerHTML = '';
             });
-
-            function showFaceHeader(name) {
-                bodyEl.querySelectorAll('.milestone-face-header').forEach(function(h) {
-                    h.classList.add('d-none');
-                });
-                const target = bodyEl.querySelector('.milestone-face-header-' + name);
-                if (target) target.classList.remove('d-none');
-            }
 
             document.addEventListener('click', function(e) {
                 const btn = e.target.closest('.milestone-status-btn');
                 if (!btn) return;
                 e.preventDefault();
-                const flipInner = bodyEl.querySelector('.milestone-flip-inner');
-                if (!flipInner) return;
+                if (isBusy) return;
+                const meta = getCardMeta();
+                if (!meta) return;
                 const to = btn.getAttribute('data-flip-to');
+
                 if (to === 'revision') {
-                    flipInner.classList.add('is-flipped');
-                } else {
-                    if (to === 'hecho') {
-                        showFaceHeader('hecho');
-                    } else if (to === 'curso') {
-                        showFaceHeader('curso');
-                    }
-                    flipInner.classList.remove('is-flipped');
+                    moveToReview(meta);
+                    return;
+                }
+
+                if (to === 'hecho') {
+                    setBusy(true);
+                    sendOrderUpdate(meta.slug, {
+                        milestone_id: meta.milestoneId,
+                        old_status: 3,
+                        new_status: 4,
+                        project_id: meta.projectId
+                    }).then(function() {
+                        return fetchCardHtml(meta.slug, meta.milestoneId);
+                    }).then(function(freshHtml) {
+                        return swapCardContent(freshHtml);
+                    }).then(function() {
+                        setBusy(false);
+                        showModalToast("{{ __('El estado se actualizó correctamente') }}", 'success');
+                    }).catch(function() {
+                        setBusy(false);
+                        showModalToast("{{ __('Error') }}", 'danger');
+                    });
+                    return;
+                }
+
+                if (to === 'curso') {
+                    const scModalEl = document.getElementById('myTasksStatusChangeModal');
+                    const commentEl = document.getElementById('myTasksStatusChangeComment');
+                    scModalEl.dataset.milestoneId = meta.milestoneId;
+                    scModalEl.dataset.slug = meta.slug;
+                    scModalEl.dataset.projectId = meta.projectId;
+                    commentEl.value = '';
+                    bootstrap.Modal.getOrCreateInstance(scModalEl).show();
                 }
             });
+
+            window.submitMyTasksStatusChange = function() {
+                const scModalEl = document.getElementById('myTasksStatusChangeModal');
+                const commentEl = document.getElementById('myTasksStatusChangeComment');
+                const comment = commentEl.value;
+                if (!comment.trim()) {
+                    alert("{{ __('Debes indicar el motivo para volver a En curso.') }}");
+                    return;
+                }
+                const milestoneId = scModalEl.dataset.milestoneId;
+                const slug = scModalEl.dataset.slug;
+                const projectId = scModalEl.dataset.projectId;
+
+                setBusy(true);
+                sendOrderUpdate(slug, {
+                    milestone_id: milestoneId,
+                    old_status: 3,
+                    new_status: 2,
+                    project_id: projectId,
+                    status_change_comment: comment
+                }).then(function() {
+                    bootstrap.Modal.getOrCreateInstance(scModalEl).hide();
+                    return fetchCardHtml(slug, milestoneId);
+                }).then(function(freshHtml) {
+                    return swapCardContent(freshHtml);
+                }).then(function() {
+                    setBusy(false);
+                    showModalToast("{{ __('El estado se actualizó correctamente') }}", 'success');
+                }).catch(function() {
+                    setBusy(false);
+                    showModalToast("{{ __('Error') }}", 'danger');
+                });
+            };
         })();
     </script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
