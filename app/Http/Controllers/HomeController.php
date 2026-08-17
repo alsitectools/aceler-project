@@ -221,18 +221,43 @@ class HomeController extends Controller
                 ->where('latest_review.state_code', 'changes')
                 ->count();
 
-            $myDoneSeconds = DB::table('tasks')
+            $today = max(
+                Carbon::now()->toDateString(),
+                DB::table('timesheets')->where('created_by', $userObj->id)->max('date')
+            );
+            $monthStart = Carbon::parse($today)->startOfMonth()->toDateString();
+
+            $myMonthSeconds = DB::table('timesheets')
+                ->join('tasks', 'tasks.id', '=', 'timesheets.task_id')
                 ->join('milestones', 'milestones.id', '=', 'tasks.milestone_id')
                 ->join('projects', 'projects.id', '=', 'milestones.project_id')
-                ->join('timesheets', 'timesheets.task_id', '=', 'tasks.id')
                 ->where('projects.workspace', $currentWorkspace->id)
-                ->whereRaw("FIND_IN_SET(?, tasks.assign_to)", [$userObj->id])
-                ->where('milestones.status', 4)
+                ->where('timesheets.created_by', $userObj->id)
+                ->whereBetween('timesheets.date', [$monthStart, $today])
                 ->sum(DB::raw('TIME_TO_SEC(timesheets.time)'));
 
-            $myDoneHours = $myDoneSeconds > 0
-                ? sprintf('%02d:%02d', floor($myDoneSeconds / 3600), floor(($myDoneSeconds % 3600) / 60))
+            $myMonthHours = $myMonthSeconds > 0
+                ? sprintf('%02d:%02d', floor($myMonthSeconds / 3600), floor(($myMonthSeconds % 3600) / 60))
                 : '00:00';
+
+            $myMonthTimesheets = DB::table('timesheets')
+                ->join('tasks', 'tasks.id', '=', 'timesheets.task_id')
+                ->join('milestones', 'milestones.id', '=', 'tasks.milestone_id')
+                ->join('projects', 'projects.id', '=', 'milestones.project_id')
+                ->leftJoin('task_types', 'task_types.id', '=', 'tasks.type_id')
+                ->where('projects.workspace', $currentWorkspace->id)
+                ->where('timesheets.created_by', $userObj->id)
+                ->whereBetween('timesheets.date', [$monthStart, $today])
+                ->orderBy('timesheets.date')
+                ->get([
+                    'timesheets.date',
+                    'timesheets.time',
+                    'timesheets.created_at',
+                    'timesheets.updated_at',
+                    'projects.name as project_name',
+                    'milestones.title as milestone_title',
+                    'task_types.name as task_name',
+                ]);
 
             $totalTaskByType = Task::join('milestones', 'tasks.milestone_id', '=', 'milestones.id')
                 ->join('projects', 'milestones.project_id', '=', 'projects.id')
@@ -432,7 +457,8 @@ class HomeController extends Controller
                 'myTaskTotal',
                 'myTaskReviewed',
                 'myTaskChanges',
-                'myDoneHours'
+                'myMonthHours',
+                'myMonthTimesheets'
             ));
 
             // }

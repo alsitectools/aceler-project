@@ -1195,10 +1195,12 @@
                                                 <span class="stat-value">{{ $myTaskChanges ?? 0 }}</span>
                                             </div>
                                             @endif
-                                            <div class="stat-row">
-                                                <span class="stat-dot stat-dot--finalizado"></span>
-                                                <span class="stat-label">{{ __('Hecho - Horas imputadas') }}</span>
-                                                <span class="stat-value">{{ $myDoneHours ?? '00:00' }}</span>
+                                            <div class="stat-row" id="monthHoursRow"
+                                                title="{{ __('Only in the current workspace') }}"
+                                                style="cursor:pointer;">
+                                                <span class="stat-dot stat-dot--active"></span>
+                                                <span class="stat-label">{{ __('Hours imputed this month') }}</span>
+                                                <span class="stat-value">{{ $myMonthHours ?? '00:00' }}</span>
                                             </div>
                                         </div>
                                     </div>
@@ -1341,6 +1343,64 @@
                         </div>
         @endif
     </section>
+
+    <div class="modal fade" id="monthHoursModal" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">{{ __('Hours imputed this month') }}</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body" style="overflow-x:auto;">
+                    @if (($myMonthTimesheets ?? collect())->count() > 0)
+                    <table class="table table-sm table-striped mb-0">
+                        <thead>
+                            <tr>
+                                <th>{{ __('Date') }}</th>
+                                <th>{{ __('Project') }}</th>
+                                <th>{{ __('Hito') }}</th>
+                                <th>{{ __('Task') }}</th>
+                                <th>{{ __('Hours') }}</th>
+                                <th>{{ __('Creado') }}</th>
+                                <th>{{ __('Editado') }}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach ($myMonthTimesheets as $ts)
+                            <tr>
+                                <td>{{ $ts->date }}</td>
+                                <td>{{ $ts->project_name }}</td>
+                                <td>{{ $ts->milestone_title }}</td>
+                                <td>{{ $ts->task_name ?? '-' }}</td>
+                                <td>{{ substr($ts->time, 0, 5) }}</td>
+                                <td>{{ \Carbon\Carbon::parse($ts->created_at)->format('d-m H:i:s') }}</td>
+                                <td>
+                                    {{ \Carbon\Carbon::parse($ts->updated_at)->format('d-m H:i:s') }}
+                                    @if ($ts->created_at != $ts->updated_at)
+                                    <span class="text-warning" title="{{ __('Edited') }}">⚠️</span>
+                                    @endif
+                                </td>
+                            </tr>
+                            @endforeach
+                        </tbody>
+                        <tfoot>
+                            <tr>
+                                <th colspan="4" class="text-end">{{ __('Total') }}</th>
+                                <th>{{ $myMonthHours ?? '00:00' }}</th>
+                                <th colspan="2"></th>
+                            </tr>
+                        </tfoot>
+                    </table>
+                    @else
+                    <p class="text-center text-muted mb-0">{{ __('No data') }}</p>
+                    @endif
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ __('Close') }}</button>
+                </div>
+            </div>
+        </div>
+    </div>
 @endsection
 @push('scripts')
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
@@ -1354,6 +1414,17 @@
                 $(".modifiedDivTecAndCom").css({
                     "max-height": 300
                 }).niceScroll();
+            }
+        });
+    </script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            var monthHoursRow = document.getElementById('monthHoursRow');
+            var monthHoursModal = document.getElementById('monthHoursModal');
+            if (monthHoursRow && monthHoursModal) {
+                monthHoursRow.addEventListener('click', function() {
+                    bootstrap.Modal.getOrCreateInstance(monthHoursModal).show();
+                });
             }
         });
     </script>
