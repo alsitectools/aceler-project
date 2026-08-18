@@ -767,14 +767,21 @@
         font-size: 14px;
         line-height: 1.4;
         margin-left: 0;
-        margin-right: -50px;
+        margin-right: 0;
         text-align: left;
         white-space: normal;
         overflow-wrap: break-word;
         display: -webkit-box;
         -webkit-line-clamp: 2;
         -webkit-box-orient: vertical;
-        max-width: 100%;
+        max-width: 110px;
+    }
+
+    .tabs.ctr[data-card="3"] .card-header-inner > .tabTexts:not(.tabNumCounter) {
+        white-space: normal;
+        line-height: 1.4;
+        font-size: 14px;
+        max-width: 50px;
     }
 
     @media screen and (max-width: 999px) {
@@ -827,6 +834,39 @@
 
         .stat-dot {
             margin-left: 0;
+        }
+
+        .tabs.ctr .stat-label {
+            font-size: 11px;
+        }
+
+        .tabs.ctr .stat-value {
+            font-size: 12px;
+        }
+
+        .tabs.ctr[data-card="3"] .card-header-inner > .tabTexts:not(.tabNumCounter) {
+            max-width: 32px;
+            font-size: 11px;
+        }
+    }
+
+    @media screen and (min-width: 1000px) and (max-width: 1280px) {
+        .tabs.ctr .stat-label {
+            font-size: 12px;
+        }
+
+        .tabs.ctr[data-card="3"] .card-header-inner {
+            padding-right: 6px;
+        }
+
+        .tabs.ctr[data-card="3"] .card-header-inner > .tabTexts:not(.tabNumCounter) {
+            max-width: 44px;
+        }
+    }
+
+    @media screen and (min-width: 1281px) {
+        .tabs.ctr[data-card="3"] .card-header-inner {
+            min-width: 110px;
         }
     }
 </style>
