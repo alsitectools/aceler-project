@@ -502,6 +502,14 @@
     .divStatisticsButtons .btn-primary:not(.active) {
         background: #6c757d;
         border-color: #6c757d;
+        transition: background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .divStatisticsButtons .btn-primary:not(.active):hover {
+        background: #5a6268 !important;
+        border-color: #5a6268 !important;
+        color: #fff !important;
+        box-shadow: 0 0 0 2px rgba(90, 98, 104, 0.3) !important;
     }
 
     .formControlModified {
