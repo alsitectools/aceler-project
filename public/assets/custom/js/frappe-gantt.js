@@ -468,14 +468,15 @@ var Gantt = (function () {
         }
 
         draw_label() {
-            createSVG('text', {
+            const label = createSVG('text', {
                 x: this.x + this.width / 2,
                 y: this.y + this.height / 2,
-                innerHTML: this.task.name,
                 class: 'bar-label',
                 'data-full-text': this.task.name,
                 append_to: this.bar_group
             });
+            // Use textContent (never innerHTML) to prevent XSS via task.name
+            label.textContent = this.task.name;
             // labels get BBox in the next tick
             requestAnimationFrame(() => this.update_label_position());
         }

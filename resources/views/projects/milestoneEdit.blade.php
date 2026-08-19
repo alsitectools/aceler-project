@@ -169,13 +169,13 @@
                             <div class="fileMilestoneEdit exist d-flex align-items-center mt-2 custom-file"
                                 data-file-id="{{ $file->id }}">
                                 <div class="d-flex align-items-center flex-grow-1" style="cursor: pointer;"
-                                    onclick="previewFile({{ $milestone->project_id }}, '{{ $milestone->title }}', '{{ $file->file }}', '{{ $extension }}')">
+                                    onclick="previewFile({{ $milestone->project_id }}, @json($milestone->title), @json($file->file), @json($extension))">
                                     <img src="{{ asset($iconPath) }}" alt="{{ $extension }} icon"
                                         style="width: 20px; height: 25px;">
                                     <div class="file-name ms-2">{{ $file->name }} </div>
                                 </div>
                                 <a class="buttonFiles btn btn-sm"
-                                    onclick="deleteFile({{ $milestone->project_id }}, '{{ $milestone->id }}', '{{ $file->id }}')">
+                                    onclick="deleteFile({{ $milestone->project_id }}, @json($milestone->id), @json($file->id))">
                                     <i class="fa-solid fa-trash-alt"
                                         style="color:white; background-color:#aa182c; padding:7px; border-radius:6px;"></i>
                                 </a>

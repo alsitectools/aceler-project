@@ -382,12 +382,12 @@ $logo_path = \App\Models\Utility::get_file('/logo/');
 @stack('scripts')
 @if(Session::has('success'))
     <script>
-        show_toastr('{{__('Success')}}', '{!! session('success') !!}', 'success');
+        show_toastr('{{__('Success')}}', @json(session('success')), 'success');
     </script>
 @endif
 @if(Session::has('error'))
     <script>
-        show_toastr('{{__('Error')}}', '{!! session('error') !!}', 'error');
+        show_toastr('{{__('Error')}}', @json(session('error')), 'error');
     </script>
 @endif
 

@@ -2183,7 +2183,7 @@
                     // #16 - Priority badge
                     if (extra.priority) {
                         const pColor = priorityColors[extra.priority] || '#999';
-                        const pLabel = priorityLabels[extra.priority] || extra.priority;
+                        const pLabel = priorityLabels[extra.priority] || escHtml(extra.priority);
                         badges +=
                             `<span class="badge-inline" style="background:${pColor};color:#fff;">${pLabel}</span> `;
                     }
@@ -2201,7 +2201,7 @@
                     let html = `<div class="details-container">
                         <div class="title">${escHtml(task.name.trim())} ${badges}</div>
                         <div class="subtitle">
-                            <b>{{ __('Status') }}:</b> ${statusLabels[extra.status] || extra.status}<br>`;
+                            <b>{{ __('Status') }}:</b> ${statusLabels[extra.status] || escHtml(extra.status)}<br>`;
                     // #11 - Formatted dates
                     if (extra.desired_date) html +=
                         `<div class="date-row"><span>{{ __('Desired delivery') }}:</span><span>${formatDate(extra.desired_date)}</span></div>`;

@@ -1980,7 +1980,7 @@
                                                                 dump($project);
                                                                 dump($file);
                                                             @endphp --}}
-                                                                <a onclick="downloadFile({{ $project->id }}, '', '{{ $file->file_path }}')"
+                                                                <a onclick="downloadFile({{ $project->id }}, '', @json($file->file_path))"
                                                                     class="buttonFiles btn btn-sm">
                                                                     <i class="ti ti-download" style="color:white"></i>
                                                                 </a>
@@ -2055,7 +2055,7 @@
                                                                                     </p>
                                                                                 </div>
                                                                                 <div class="uploaded-file-buttons">
-                                                                                    <a onclick="downloadFile({{ $project->id }}, '{{ $milestone['title'] }}', '{{ basename($file->file) }}')"
+                                                                                    <a onclick="downloadFile({{ $project->id }}, @json($milestone['title']), @json(basename($file->file)))"
                                                                                         class="buttonFiles btn btn-sm">
                                                                                         <i class="ti ti-download"
                                                                                             style="color:white"></i>
