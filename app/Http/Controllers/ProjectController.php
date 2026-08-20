@@ -2860,6 +2860,9 @@ class ProjectController extends Controller
         }
 
         if (!$project) {
+            if ($request->wantsJson()) {
+                return response()->json(['success' => false, 'message' => 'Proyecto no encontrado o no pertenece al espacio de trabajo actual.'], 422);
+            }
             return redirect()->back()->with('error', 'Proyecto no encontrado o no pertenece al espacio de trabajo actual.');
         }
 
@@ -2913,6 +2916,9 @@ class ProjectController extends Controller
         }
 
         if ($existingTask) {
+            if ($request->wantsJson()) {
+                return response()->json(['success' => false, 'message' => 'Error, no se pueden duplicar tareas'], 422);
+            }
             return redirect()->back()->with('error', 'Error, no se pueden duplicar tareas');
         }
 
@@ -2940,16 +2946,48 @@ class ProjectController extends Controller
         $milestone = Milestone::find($request->milestone_id);
 
         if (!$milestone) {
+            if ($request->wantsJson()) {
+                return response()->json(['success' => false, 'message' => 'Encargo no encontrado.'], 422);
+            }
             return redirect()->back()->with('error', 'Encargo no encontrado.');
         }
 
         if (empty($milestone->title)) {
+            if ($request->wantsJson()) {
+                return response()->json(['success' => false, 'message' => 'Error: El encargo no tiene título.'], 422);
+            }
             return redirect()->back()->with('error', 'Error: El encargo no tiene título.');
         }
 
         if (!$isPendingType3) {
             $milestone->status = 2;
             $milestone->save();
+        }
+
+        if ($request->wantsJson()) {
+            $milestoneData = $this->getMilestoneData($milestone, $project, null);
+            $statusObj = Stage::find($milestone->status);
+            $newTaskData = collect($milestoneData['tasks'] ?? [])->firstWhere('id', $task->id);
+
+            return response()->json([
+                'success' => true,
+                'message' => __('Task Created Successfully!'),
+                'task_id' => (int) $task->id,
+                'milestone_id' => (int) $request->milestone_id,
+                'project_id' => (int) $project->id,
+                'project_type_id' => (int) $project->type,
+                'status' => (int) $milestone->status,
+                'display_name' => $newTaskData['display_name'] ?? null,
+                'technician_id' => $newTaskData ? (int) ($newTaskData['technician']->id ?? 0) : 0,
+                'technician_name' => $newTaskData['technician']->name ?? null,
+                'logged_hours' => $newTaskData['logged_hours'] ?? '00:00',
+                'review_state' => $newTaskData['review_state'] ?? null,
+                'task_count' => count($milestoneData['tasks'] ?? []),
+                'milestone_extra_info' => $milestoneData ? view('projects.partials.milestone_extra_info', [
+                    'milestone' => $milestoneData,
+                    'status' => $statusObj,
+                ])->render() : '',
+            ]);
         }
 
         return redirect()->back()->with(['success' => __('Task Created Successfully!')]);

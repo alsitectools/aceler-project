@@ -191,6 +191,7 @@
         const taskAssigneeHidden = $('#task_assign_override');
         const taskAssigneeFeedback = $('#task-assignee-feedback');
         const currentUserId = "{{ Auth::id() }}";
+        const fromStatusChange = "{{ $fromMilestoneBoard ? 1 : 0 }}" === "1" || "{{ $fromMyMilestoneBoard ? 1 : 0 }}" === "1";
         const milestonesData = @json($milestones);
 
         function getSelectedMilestoneId() {
@@ -359,6 +360,69 @@
 
             taskAssigneeInput[0].setCustomValidity('');
             clearTaskAssigneeInvalidState();
+
+            // Envío AJAX: spinner + actualizar solo la tarjeta del tablero (sin recargar la página).
+            // Se omite en el flujo de arrastre 1->2 (fromStatusChange), que conserva su recarga actual,
+            // y en páginas que no definen el helper del tablero (my_milestone_board, timesheet, etc.).
+            if (!fromStatusChange && typeof window.milestoneBoardAppendTask === 'function') {
+                event.preventDefault();
+
+                var esperaOverlay = document.getElementById('espera-overlay');
+                if (esperaOverlay) {
+                    esperaOverlay.style.display = 'flex';
+                    document.body.style.overflow = 'hidden';
+                }
+
+                var $submitBtn = taskCreateForm.find('button[type="submit"]');
+                $submitBtn.prop('disabled', true);
+
+                $.ajax({
+                    url: taskCreateForm.attr('action'),
+                    type: 'POST',
+                    data: new FormData(taskCreateForm[0]),
+                    processData: false,
+                    contentType: false,
+                    headers: { 'Accept': 'application/json' },
+                    success: function(response) {
+                        if (esperaOverlay) {
+                            esperaOverlay.style.display = 'none';
+                            document.body.style.overflow = 'auto';
+                        }
+                        $submitBtn.prop('disabled', false);
+
+                        var modalEl = document.getElementById('commonModal');
+                        if (modalEl) {
+                            var modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+                            modal.hide();
+                        }
+
+                        if (window.milestoneBoardAppendTask) {
+                            window.milestoneBoardAppendTask(response);
+                        }
+
+                        if (typeof show_toastr === 'function') {
+                            show_toastr('Success', response.message || '{{ __("Task Created Successfully!") }}', 'success');
+                        }
+                    },
+                    error: function(xhr) {
+                        if (esperaOverlay) {
+                            esperaOverlay.style.display = 'none';
+                            document.body.style.overflow = 'auto';
+                        }
+                        $submitBtn.prop('disabled', false);
+
+                        var msg = '{{ __("Something went wrong.") }}';
+                        if (xhr.responseJSON && xhr.responseJSON.message) {
+                            msg = xhr.responseJSON.message;
+                        } else if (xhr.responseJSON && xhr.responseJSON.errors) {
+                            msg = Object.values(xhr.responseJSON.errors)[0];
+                        }
+                        if (typeof show_toastr === 'function') {
+                            show_toastr('Error', msg, 'error');
+                        }
+                    }
+                });
+            }
         });
 
         // Si hay un proyecto preseleccionado (vista 1) o se cambia de proyecto (vista 2) se actualizan los selects

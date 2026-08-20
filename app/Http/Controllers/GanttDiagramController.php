@@ -123,6 +123,7 @@ class GanttDiagramController extends Controller
                     ->addSelect(DB::raw('(SELECT MIN(t.date) FROM timesheets t WHERE t.task_id = tasks.id) as first_timesheet_date'));
             },
             'milestones.tasks.type',
+            'milestones.tasks.customTask',
         ])->orderBy('name')->get();
 
         $ganttItems = [];
@@ -136,7 +137,7 @@ class GanttDiagramController extends Controller
             // Compute real span from milestones so the bar matches visible children
             if ($project->milestones->isNotEmpty()) {
                 $computedStart = $this->computeProjectStartFromMilestones($project->milestones);
-                $computedEnd = $this->computeProjectEndFromMilestones($project->milestones);
+                $computedEnd = $this->computeProjectEndFromMilestones($project->milestones, $today);
 
                 // Use the earliest between project start_date and milestone start
                 if ($computedStart) {
@@ -210,9 +211,7 @@ class GanttDiagramController extends Controller
                 $msStart = $milestone->task_start_date
                     ?? $milestone->start_date
                     ?? $milestone->created_at?->format('Y-m-d');
-                $msEnd = $milestone->finalization_date
-                    ?? $milestone->planned_end_date
-                    ?? $milestone->end_date;
+                $msEnd = $this->resolveMilestoneEnd($milestone, $today);
 
                 if (!$msStart) {
                     $msStart = $projectStart;
@@ -228,11 +227,7 @@ class GanttDiagramController extends Controller
                 $msProgress = $this->milestoneProgress($milestone);
 
                 // #4 - Overdue detection
-                $isOverdue = false;
-                $deadlineDate = $milestone->planned_end_date ?? $milestone->end_date;
-                if ($deadlineDate && (string) $milestone->status !== '4' && Carbon::parse($deadlineDate)->lt(Carbon::parse($today))) {
-                    $isOverdue = true;
-                }
+                $isOverdue = $this->isMilestoneOverdue($milestone, $today);
 
                 $msStatusClass = $isOverdue
                     ? 'gantt-ms-overdue'
@@ -293,7 +288,11 @@ class GanttDiagramController extends Controller
 
                         // #5 - Real task progress based on logged vs estimated
                         $taskProgress = $this->computeTaskProgress($task);
-                        $taskName = $task->type ? $task->type->name : __('Task');
+                        $typeName = $task->type ? $task->type->name : null;
+                        $isCustomTask = $typeName && strtolower(trim($typeName)) === 'custom';
+                        $taskName = $isCustomTask
+                            ? ($task->customTask?->name ?: __('Custom'))
+                            : ($typeName ?: __('Task'));
 
                         $ganttItems[] = [
                             'id' => 'task_' . $task->id,
@@ -338,15 +337,13 @@ class GanttDiagramController extends Controller
         return $earliestDate;
     }
 
-    private function computeProjectEndFromMilestones($milestones): ?string
+    private function computeProjectEndFromMilestones($milestones, string $today): ?string
     {
         $latestDate = null;
 
         foreach ($milestones as $ms) {
             // Same coalesce as milestone bar display: first non-null wins
-            $msEnd = $ms->finalization_date
-                ?? $ms->planned_end_date
-                ?? $ms->end_date;
+            $msEnd = $this->resolveMilestoneEnd($ms, $today);
 
             // If no end date, use same fallback as display: start + 14 days
             if (!$msEnd) {
@@ -386,6 +383,33 @@ class GanttDiagramController extends Controller
             '4' => 'gantt-ms-done',
             default => 'gantt-ms-created',
         };
+    }
+
+    private function isMilestoneOverdue(Milestone $milestone, string $today): bool
+    {
+        $deadlineDate = $milestone->planned_end_date ?? $milestone->end_date;
+
+        return $deadlineDate
+            && (string) $milestone->status !== '4'
+            && Carbon::parse($deadlineDate)->lt(Carbon::parse($today));
+    }
+
+    /**
+     * Resuelve el fin de la barra de un encargo.
+     * Si está overdue (vencido y no terminado), la barra crece hasta hoy
+     * para señalar que el encargo sigue abierto.
+     */
+    private function resolveMilestoneEnd(Milestone $milestone, string $today): ?string
+    {
+        $msEnd = $milestone->finalization_date
+            ?? $milestone->planned_end_date
+            ?? $milestone->end_date;
+
+        if ($this->isMilestoneOverdue($milestone, $today)) {
+            $msEnd = $today;
+        }
+
+        return $msEnd;
     }
 
     /**

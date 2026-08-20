@@ -1464,83 +1464,194 @@
             </script>
             <!-- Script encargado de la acción de "Add Task on Timesheet" al hacer clic en una tarea (se desactiva si el milestone está en status 4) -->
             <script>
-                // Espera a que el DOM esté completamente cargado
-                document.addEventListener('DOMContentLoaded', function() {
+                window.bindMilestoneTaskClick = function(task) {
+                    if (!task || task.getAttribute('data-click-bound') === '1') return;
+                    task.setAttribute('data-click-bound', '1');
 
-                    // Selecciona todos los elementos con la clase .taskList
-                    const tasks = document.querySelectorAll('.milestone-task, .taskList');
+                    // Verifica si el técnico asignado es el usuario actual
+                    const technicianId = task.getAttribute('data-technician-name');
+                    const currentUserId = "{{ Auth::id() }}";
 
-                    tasks.forEach(task => {
-                        // Verifica si el técnico asignado es el usuario actual
-                        const technicianId = task.getAttribute('data-technician-name');
-                        const currentUserId = "{{ Auth::id() }}";
-
-                        if (technicianId === currentUserId) {
-                            if (task.classList.contains('task-inactive')) {
-                                task.style.cursor = 'not-allowed';
-                            }
-                            task.addEventListener('click', function() {
-                                // El resto del código del evento click se mantiene igual
-                                const milestone = this.closest('.card');
-                                const milestoneStatus = milestone.getAttribute('data-status');
-
-                                if (milestoneStatus === '4' || milestoneStatus === '3') {
-                                    console.log(
-                                        'El milestone está en status 3 o 4, no se ejecutará la acción.');
-                                    return;
-                                }
-
-                                if (this.classList.contains('task-inactive')) {
-                                    // Tareas "por hacer" (tipo 3): no se permite imputar horas
-                                    return;
-                                }
-
-                                const taskData = {
-                                    task_id: this.getAttribute('data-task-id'),
-                                    milestone_id: this.getAttribute('data-milestone-id'),
-                                    project_id: this.getAttribute('data-project-id'),
-                                    user_id: this.getAttribute('data-technician-name'),
-                                    date: new Date().toISOString().split('T')[0],
-                                };
-
-                                $.ajax({
-                                    url: '{{ route('create.timesheet.from.orders', [$currentWorkspace->slug, $project_id]) }}',
-                                    type: 'GET',
-                                    data: taskData,
-                                    success: function(data) {
-                                        var modalEl = document.getElementById(
-                                            'modal-container');
-                                        // Reset modal dialog
-                                        var modalDialog = modalEl.querySelector(
-                                            '.modal-dialog');
-                                        if (modalDialog) {
-                                            modalDialog.className = 'modal-dialog';
-                                            modalDialog.removeAttribute('style');
-                                        }
-                                        $('#modal-container .modal-content').html(data).css({
-                                            'text-align': 'left',
-                                            'width': '800px'
-                                        });
-                                        var myModal = bootstrap.Modal.getOrCreateInstance(
-                                            modalEl);
-                                        myModal.show();
-                                    },
-                                    error: function(xhr, status, error) {
-                                        console.error('Error al actualizar el orden:', error);
-                                    }
-                                });
-                            });
-                        } else {
-                            // Desactiva el evento click si el técnico asignado no es el usuario actual
-                            task.addEventListener('click', function(event) {
-                                event.stopPropagation();
-                                event.preventDefault();
-                            });
-                            // Añade el estilo de cursor not-allowed
+                    if (technicianId === currentUserId) {
+                        if (task.classList.contains('task-inactive')) {
                             task.style.cursor = 'not-allowed';
                         }
-                    });
+                        task.addEventListener('click', function() {
+                            // El resto del código del evento click se mantiene igual
+                            const milestone = this.closest('.card');
+                            if (!milestone) return;
+                            const milestoneStatus = milestone.getAttribute('data-status');
+
+                            if (milestoneStatus === '4' || milestoneStatus === '3') {
+                                console.log(
+                                    'El milestone está en status 3 o 4, no se ejecutará la acción.');
+                                return;
+                            }
+
+                            if (this.classList.contains('task-inactive')) {
+                                // Tareas "por hacer" (tipo 3): no se permite imputar horas
+                                return;
+                            }
+
+                            const taskData = {
+                                task_id: this.getAttribute('data-task-id'),
+                                milestone_id: this.getAttribute('data-milestone-id'),
+                                project_id: this.getAttribute('data-project-id'),
+                                user_id: this.getAttribute('data-technician-name'),
+                                date: new Date().toISOString().split('T')[0],
+                            };
+
+                            $.ajax({
+                                url: this.getAttribute('data-url') || '{{ route('create.timesheet.from.orders', [$currentWorkspace->slug, $project_id]) }}',
+                                type: 'GET',
+                                data: taskData,
+                                success: function(data) {
+                                    var modalEl = document.getElementById(
+                                        'modal-container');
+                                    if (!modalEl) return;
+                                    // Reset modal dialog
+                                    var modalDialog = modalEl.querySelector(
+                                        '.modal-dialog');
+                                    if (modalDialog) {
+                                        modalDialog.className = 'modal-dialog';
+                                        modalDialog.removeAttribute('style');
+                                    }
+                                    $('#modal-container .modal-content').html(data).css({
+                                        'text-align': 'left',
+                                        'width': '800px'
+                                    });
+                                    var myModal = bootstrap.Modal.getOrCreateInstance(
+                                        modalEl);
+                                    myModal.show();
+                                },
+                                error: function(xhr, status, error) {
+                                    console.error('Error al actualizar el orden:', error);
+                                }
+                            });
+                        });
+                    } else {
+                        // Desactiva el evento click si el técnico asignado no es el usuario actual
+                        task.addEventListener('click', function(event) {
+                            event.stopPropagation();
+                            event.preventDefault();
+                        });
+                        // Añade el estilo de cursor not-allowed
+                        task.style.cursor = 'not-allowed';
+                    }
+                };
+
+                document.addEventListener('DOMContentLoaded', function() {
+                    // Selecciona todos los elementos con la clase .taskList
+                    document.querySelectorAll('.milestone-task, .taskList').forEach(window.bindMilestoneTaskClick);
                 });
+            </script>
+            <script>
+                // Helper: tras crear una tarea vía AJAX, actualiza únicamente la tarjeta del milestone
+                window.milestoneBoardAppendTask = function(response) {
+                    if (!response || !response.milestone_id) return;
+
+                    var card = document.getElementById(String(response.milestone_id));
+                    if (!card) return;
+
+                    var taskListEl = document.getElementById('taskList-' + response.milestone_id);
+                    if (!taskListEl) return;
+
+                    var reviewClass = response.review_state === 'reviewed' ? 'task-reviewed' : (response.review_state === 'changes' ? 'task-changes' : '');
+                    var inactiveClass = (String(response.status) === '1' && String(response.project_type_id) === '3') ? 'task-inactive' : '';
+                    var extraClass = response.task_count > 2 ? 'milestone-task-extra' : '';
+                    var technicianName = response.technician_name || '';
+                    var tooltipContent = technicianName + ' - {{ __("Imputed hours") }}: ' + (response.logged_hours || '00:00');
+                    var timesheetBaseUrl = '{{ route('create.timesheet.from.orders', [$currentWorkspace->slug, ':PID']) }}';
+
+                    var taskEl = document.createElement('div');
+                    taskEl.className = 'milestone-task tooltipCusTask ' + extraClass + ' ' + reviewClass + ' ' + inactiveClass;
+                    taskEl.setAttribute('role', 'button');
+                    taskEl.setAttribute('data-task-id', response.task_id);
+                    taskEl.setAttribute('data-task-name', response.display_name || '');
+                    taskEl.setAttribute('data-milestone-id', response.milestone_id);
+                    taskEl.setAttribute('data-project-id', response.project_id);
+                    taskEl.setAttribute('data-technician-name', response.technician_id);
+                    taskEl.setAttribute('data-url', timesheetBaseUrl.replace(':PID', response.project_id));
+                    taskEl.setAttribute('data-ajax-timesheet-popup', 'true');
+                    taskEl.setAttribute('data-tooltip-content', tooltipContent);
+
+                    var icon = document.createElement('i');
+                    icon.className = 'ms-2 me-2 fa-solid fa-hourglass-start fa-xs';
+                    var nameSpan = document.createElement('span');
+                    nameSpan.className = 'milestone-task-title';
+                    nameSpan.textContent = response.display_name || '';
+
+                    taskEl.appendChild(icon);
+                    taskEl.appendChild(nameSpan);
+
+                    // Quitar el estado vacío si existía
+                    var emptyState = taskListEl.querySelector('.empty-state');
+                    if (emptyState) emptyState.remove();
+
+                    var taskBox = taskListEl.querySelector('.milestone-task-box');
+                    if (!taskBox) {
+                        taskBox = document.createElement('div');
+                        taskBox.className = 'milestone-task-box';
+                        taskBox.id = 'box-' + response.milestone_id;
+                        var inner = document.createElement('div');
+                        inner.className = 'milestone-task-inner';
+                        taskBox.appendChild(inner);
+                        taskListEl.appendChild(taskBox);
+                    }
+                    var innerEl = taskBox.querySelector('.milestone-task-inner');
+                    innerEl.appendChild(taskEl);
+
+                    // Mostrar/ocultar toggle de colapso según el nº de tareas
+                    var toggle = taskListEl.querySelector('.milestone-dropdown-toggle');
+                    if (response.task_count > 2) {
+                        if (!toggle) {
+                            toggle = document.createElement('span');
+                            toggle.className = 'milestone-dropdown-toggle';
+                            toggle.setAttribute('data-target', 'taskList-' + response.milestone_id);
+                            toggle.innerHTML = '&#9660;';
+                            taskListEl.appendChild(toggle);
+                        }
+                    } else if (toggle) {
+                        toggle.remove();
+                    }
+
+                    // Refrescar el aviso inferior de la tarjeta (ej: "Imputar las horas para pasar a revisión")
+                    if (response.milestone_extra_info) {
+                        var existing = card.querySelector('.milestone-extra-info');
+                        if (existing) {
+                            existing.outerHTML = response.milestone_extra_info;
+                        } else {
+                            card.insertAdjacentHTML('beforeend', response.milestone_extra_info);
+                        }
+                    }
+
+                    // Si el status del encargo cambió (ej: añadir tarea a una tarjeta en revisión/entregada),
+                    // mover la tarjeta a la columna correcta
+                    var currentStatus = card.getAttribute('data-status');
+                    if (String(response.status) !== String(currentStatus)) {
+                        var oldBox = card.closest('.kanban-box');
+                        var newBox = document.querySelector(".kanban-box[data-status='" + response.status + "']");
+                        if (oldBox && newBox) {
+                            card.setAttribute('data-status', response.status);
+                            newBox.appendChild(card);
+                            // Actualizar contadores y estados vacíos de ambas columnas
+                            [oldBox, newBox].forEach(function(box) {
+                                var cardList = box.closest('.card-list');
+                                if (!cardList) return;
+                                var countEl = cardList.querySelector('.count');
+                                var total = box.querySelectorAll(':scope > .card').length;
+                                if (countEl) countEl.textContent = total;
+                                var emptyStateEl = box.querySelector('.noNotificationsContainer');
+                                if (emptyStateEl) emptyStateEl.style.display = total > 0 ? 'none' : '';
+                            });
+                        }
+                    }
+
+                    // Re-enlazar eventos del nuevo elemento
+                    if (typeof window.bindMilestoneTaskClick === 'function') window.bindMilestoneTaskClick(taskEl);
+                    if (typeof window.bindMilestoneTaskTooltip === 'function') window.bindMilestoneTaskTooltip(taskEl);
+                    if (typeof window.bindMilestoneDropdownToggles === 'function') window.bindMilestoneDropdownToggles(taskListEl);
+                };
             </script>
             <!-- Script encargado de mostrar/ocultar la leyenda de colores -->
             <script>
