@@ -321,52 +321,15 @@
         });
 
         taskCreateForm.on('submit', function(event) {
-            if (taskAssignContainer.hasClass('d-none')) {
-                taskAssigneeInput[0].setCustomValidity('');
-                clearTaskAssigneeInvalidState();
-                taskAssigneeHidden.val('');
-                return;
-            }
-
-            const inputValue = taskAssigneeInput.val().trim().toLowerCase();
-            if (!inputValue) {
-                taskAssigneeHidden.val('');
-                taskAssigneeInput[0].setCustomValidity(
-                    "{{ __('Please select an assignee from the list.') }}");
-                setTaskAssigneeInvalidState();
-                taskAssigneeInput[0].reportValidity();
-                event.preventDefault();
-                return;
-            }
-
-            let matchedUserId = '';
-            taskAssigneeDropdown.find('.task-assignee-option').each(function() {
-                if ($(this).text().trim().toLowerCase() === inputValue) {
-                    matchedUserId = $(this).attr('collected-data-id');
-                    return false;
-                }
-            });
-
-            taskAssigneeHidden.val(matchedUserId);
-
-            if (!matchedUserId) {
-                taskAssigneeInput[0].setCustomValidity(
-                    "{{ __('Please select an assignee from the list.') }}");
-                setTaskAssigneeInvalidState();
-                taskAssigneeInput[0].reportValidity();
-                event.preventDefault();
-                return;
-            }
-
-            taskAssigneeInput[0].setCustomValidity('');
-            clearTaskAssigneeInvalidState();
+            const useAjax = !fromStatusChange && typeof window.milestoneBoardAppendTask === 'function';
 
             // Envío AJAX: spinner + actualizar solo la tarjeta del tablero (sin recargar la página).
-            // Se omite en el flujo de arrastre 1->2 (fromStatusChange), que conserva su recarga actual,
-            // y en páginas que no definen el helper del tablero (my_milestone_board, timesheet, etc.).
-            if (!fromStatusChange && typeof window.milestoneBoardAppendTask === 'function') {
+            // Se intercepta siempre desde el menú de la tarjeta para evitar el rerender completo.
+            if (useAjax) {
                 event.preventDefault();
+            }
 
+            function submitTaskViaAjax() {
                 var esperaOverlay = document.getElementById('espera-overlay');
                 if (esperaOverlay) {
                     esperaOverlay.style.display = 'flex';
@@ -422,6 +385,53 @@
                         }
                     }
                 });
+            }
+
+            if (taskAssignContainer.hasClass('d-none')) {
+                taskAssigneeInput[0].setCustomValidity('');
+                clearTaskAssigneeInvalidState();
+                taskAssigneeHidden.val('');
+                if (useAjax) {
+                    submitTaskViaAjax();
+                }
+                return;
+            }
+
+            const inputValue = taskAssigneeInput.val().trim().toLowerCase();
+            if (!inputValue) {
+                taskAssigneeHidden.val('');
+                taskAssigneeInput[0].setCustomValidity(
+                    "{{ __('Please select an assignee from the list.') }}");
+                setTaskAssigneeInvalidState();
+                taskAssigneeInput[0].reportValidity();
+                event.preventDefault();
+                return;
+            }
+
+            let matchedUserId = '';
+            taskAssigneeDropdown.find('.task-assignee-option').each(function() {
+                if ($(this).text().trim().toLowerCase() === inputValue) {
+                    matchedUserId = $(this).attr('collected-data-id');
+                    return false;
+                }
+            });
+
+            taskAssigneeHidden.val(matchedUserId);
+
+            if (!matchedUserId) {
+                taskAssigneeInput[0].setCustomValidity(
+                    "{{ __('Please select an assignee from the list.') }}");
+                setTaskAssigneeInvalidState();
+                taskAssigneeInput[0].reportValidity();
+                event.preventDefault();
+                return;
+            }
+
+            taskAssigneeInput[0].setCustomValidity('');
+            clearTaskAssigneeInvalidState();
+
+            if (useAjax) {
+                submitTaskViaAjax();
             }
         });
 
