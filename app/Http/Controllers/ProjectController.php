@@ -8026,12 +8026,21 @@ MilestoneFile::create([
             ])->render();
         }
 
+        $reviewComment = null;
+        $reviewUser = null;
+        if ($state_code === 'changes') {
+            $reviewComment = $request->input('comment');
+            $reviewUser = Auth::user()->name;
+        }
+
         return response()->json([
             'success' => true,
             'task_id' => $task->id,
             'review_state' => $state_code,
             'milestone_extra_info' => $milestoneExtraInfo,
             'show_revisar_btn' => $showRevisarBtn,
+            'review_comment' => $reviewComment,
+            'review_user' => $reviewUser,
         ]);
     }
 

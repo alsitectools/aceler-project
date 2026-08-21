@@ -610,10 +610,27 @@
                 taskEl.classList.add('task-' + response.review_state); // 'task-reviewed' o 'task-changes'
             }
 
-            // 2. Mostrar/ocultar botón "Revisar"
+            // 2. Mostrar/ocultar/crear botón "Revisar"
             var ackBtn = taskEl.querySelector('.task-ack-btn');
-            if (ackBtn) {
-                ackBtn.style.display = response.show_revisar_btn ? '' : 'none';
+            if (response.show_revisar_btn) {
+                if (!ackBtn) {
+                    // Crear botón dinámicamente si no existe
+                    ackBtn = document.createElement('button');
+                    ackBtn.type = 'button';
+                    ackBtn.className = 'task-ack-btn';
+                    ackBtn.setAttribute('data-task-id', response.task_id);
+                    ackBtn.setAttribute('data-task-name', taskEl.getAttribute('data-task-name') || '');
+                    // review-comment y review-user vienen en la respuesta AJAX para 'changes'
+                    if (response.review_state === 'changes') {
+                        ackBtn.setAttribute('data-review-comment', response.review_comment || '');
+                        ackBtn.setAttribute('data-review-user', response.review_user || '');
+                    }
+                    ackBtn.textContent = '{{ __("Revisar") }}';
+                    taskEl.appendChild(ackBtn);
+                }
+                ackBtn.style.display = '';
+            } else if (ackBtn) {
+                ackBtn.style.display = 'none';
             }
 
             // 3. Actualizar extra-info del milestone
