@@ -8006,7 +8006,33 @@ MilestoneFile::create([
             'comment'               => $request->input('comment'),
         ]);
 
-        return response()->json(['success' => true]);
+        // Recuperar milestone y proyecto para respuesta enriquecida
+        $milestone = $task->milestone;
+        $project = $milestone ? $milestone->project : ($task->project ?? null);
+        
+        $showRevisarBtn = false;
+        $milestoneExtraInfo = null;
+        
+        if ($milestone && $project) {
+            // El botón "Revisar" se muestra si el estado es 'changes' y el milestone está en status 2 o 3
+            $showRevisarBtn = ($state_code === 'changes') && in_array((int) $milestone->status, [2, 3], true);
+            
+            // Re-renderizar el aviso inferior (milestone_extra_info)
+            $milestoneData = $this->getMilestoneData($milestone, $project, null);
+            $statusObj = \App\Models\Stage::find($milestone->status);
+            $milestoneExtraInfo = view('projects.partials.milestone_extra_info', [
+                'milestone' => $milestoneData,
+                'status' => $statusObj,
+            ])->render();
+        }
+
+        return response()->json([
+            'success' => true,
+            'task_id' => $task->id,
+            'review_state' => $state_code,
+            'milestone_extra_info' => $milestoneExtraInfo,
+            'show_revisar_btn' => $showRevisarBtn,
+        ]);
     }
 
     public function milestoneTaskReviewClear($slug, Request $request)
@@ -8032,6 +8058,28 @@ MilestoneFile::create([
             'milestone_created_by'  => $task->milestone ? $task->milestone->created_by : null,
         ]);
 
-        return response()->json(['success' => true]);
+        // Recuperar milestone y proyecto para respuesta enriquecida
+        $milestone = $task->milestone;
+        $project = $milestone ? $milestone->project : ($task->project ?? null);
+        
+        $milestoneExtraInfo = null;
+        
+        if ($milestone && $project) {
+            // Re-renderizar el aviso inferior (milestone_extra_info)
+            $milestoneData = $this->getMilestoneData($milestone, $project, null);
+            $statusObj = \App\Models\Stage::find($milestone->status);
+            $milestoneExtraInfo = view('projects.partials.milestone_extra_info', [
+                'milestone' => $milestoneData,
+                'status' => $statusObj,
+            ])->render();
+        }
+
+        return response()->json([
+            'success' => true,
+            'task_id' => $task->id,
+            'review_state' => 'cleared',
+            'milestone_extra_info' => $milestoneExtraInfo,
+            'show_revisar_btn' => false,
+        ]);
     }
 }

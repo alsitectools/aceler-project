@@ -102,16 +102,41 @@
                 }
             }
 
+            // Mostrar spinner ESPERE
+            const overlay = document.getElementById('espera-overlay');
+            if (overlay) {
+                overlay.style.display = 'flex';
+                document.body.style.overflow = 'hidden';
+            }
+
             $.ajax({
                 url: url,
                 type: 'POST',
                 headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
                 data: data,
-                success: function() {
+                success: function(response) {
+                    if (overlay) {
+                        overlay.style.display = 'none';
+                        document.body.style.overflow = 'auto';
+                    }
                     bootstrap.Modal.getOrCreateInstance(modalEl).hide();
-                    location.reload();
+                    
+                    // Actualizar solo la tarjeta sin recargar la página
+                    if (typeof window.updateTaskReviewState === 'function' && response) {
+                        window.updateTaskReviewState(response);
+                    }
+                    
+                    if (typeof show_toastr === 'function') {
+                        const msg = stateCode === 'reviewed' ? '{{ __("Task marked as reviewed") }}' :
+                                   (stateCode === 'changes' ? '{{ __("Change requested") }}' : '{{ __("Review cleared") }}');
+                        show_toastr('Success', msg, 'success');
+                    }
                 },
                 error: function(xhr) {
+                    if (overlay) {
+                        overlay.style.display = 'none';
+                        document.body.style.overflow = 'auto';
+                    }
                     console.error('Error al marcar revisión:', xhr);
                     alert('{{ __('Error updating task review') }}');
                 }
@@ -141,15 +166,46 @@
 
         function clearTaskReview(taskId) {
             if (!taskId) return;
+            
+            // Mostrar spinner ESPERE
+            const overlay = document.getElementById('espera-overlay');
+            if (overlay) {
+                overlay.style.display = 'flex';
+                document.body.style.overflow = 'hidden';
+            }
+
+            const detailModalEl = document.getElementById('taskReviewDetailModal');
+
             $.ajax({
                 url: clearRoute,
                 type: 'POST',
                 headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
                 data: { task_id: taskId },
-                success: function() {
-                    location.reload();
+                success: function(response) {
+                    if (overlay) {
+                        overlay.style.display = 'none';
+                        document.body.style.overflow = 'auto';
+                    }
+                    
+                    // Cerrar el modal de detalle
+                    if (detailModalEl) {
+                        bootstrap.Modal.getOrCreateInstance(detailModalEl).hide();
+                    }
+                    
+                    // Actualizar solo la tarjeta sin recargar la página
+                    if (typeof window.updateTaskReviewState === 'function' && response) {
+                        window.updateTaskReviewState(response);
+                    }
+                    
+                    if (typeof show_toastr === 'function') {
+                        show_toastr('Success', '{{ __("Review cleared") }}', 'success');
+                    }
                 },
                 error: function(xhr) {
+                    if (overlay) {
+                        overlay.style.display = 'none';
+                        document.body.style.overflow = 'auto';
+                    }
                     console.error('Error al limpiar revisión:', xhr);
                     alert('{{ __('Error updating task review') }}');
                 }

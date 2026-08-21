@@ -597,6 +597,38 @@
         };
     }
 
+    if (typeof window.updateTaskReviewState !== 'function') {
+        window.updateTaskReviewState = function(response) {
+            if (!response || !response.task_id) return;
+
+            var taskEl = document.querySelector('.milestone-task[data-task-id="' + response.task_id + '"]');
+            if (!taskEl) return;
+
+            // 1. Actualizar clases de estado
+            taskEl.classList.remove('task-reviewed', 'task-changes');
+            if (response.review_state !== 'cleared') {
+                taskEl.classList.add('task-' + response.review_state); // 'task-reviewed' o 'task-changes'
+            }
+
+            // 2. Mostrar/ocultar botón "Revisar"
+            var ackBtn = taskEl.querySelector('.task-ack-btn');
+            if (ackBtn) {
+                ackBtn.style.display = response.show_revisar_btn ? '' : 'none';
+            }
+
+            // 3. Actualizar extra-info del milestone
+            var card = taskEl.closest('.milestone-card') || taskEl.closest('.card');
+            if (card && response.milestone_extra_info) {
+                window.replaceMilestoneExtraInfo(card, response.milestone_extra_info);
+            }
+
+            // 4. Re-bind tooltip si existe
+            if (typeof window.bindMilestoneTaskTooltip === 'function') {
+                window.bindMilestoneTaskTooltip(taskEl);
+            }
+        };
+    }
+
     bindMilestoneDropdownToggles(document);
     document.querySelectorAll('.milestone-task[data-tooltip-content]').forEach(window.bindMilestoneTaskTooltip);
 </script>
