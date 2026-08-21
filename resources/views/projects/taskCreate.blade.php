@@ -191,7 +191,7 @@
         const taskAssigneeHidden = $('#task_assign_override');
         const taskAssigneeFeedback = $('#task-assignee-feedback');
         const currentUserId = "{{ Auth::id() }}";
-        const fromStatusChange = "{{ $fromMilestoneBoard ? 1 : 0 }}" === "1" || "{{ $fromMyMilestoneBoard ? 1 : 0 }}" === "1";
+        const fromStatusChange = "{{ $fromMilestoneBoard ? 1 : 0 }}" === "1";
         const milestonesData = @json($milestones);
 
         function getSelectedMilestoneId() {
@@ -607,8 +607,7 @@
     (function() {
         // ✅ Detectar si este Create Task viene del cambio de estado 1->2
         const fromStatusChange =
-            "{{ $fromMilestoneBoard ? 1 : 0 }}" === "1" ||
-            "{{ $fromMyMilestoneBoard ? 1 : 0 }}" === "1";
+            "{{ $fromMilestoneBoard ? 1 : 0 }}" === "1";
 
         if (!fromStatusChange) return;
 

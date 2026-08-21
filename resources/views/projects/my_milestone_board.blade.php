@@ -1350,74 +1350,75 @@
             @endif
             <!-- Script encargado de la acción de "Add Task on Timesheet" al hacer clic en una tarea (se desactiva si el milestone está en status 4) -->
             <script>
-                // Espera a que el DOM esté completamente cargado
-                document.addEventListener('DOMContentLoaded', function() {
+                // bindMilestoneTaskClick: reutilizable para tasks existentes y tasks añadidas vía AJAX
+                window.bindMilestoneTaskClick = function(task) {
+                    if (!task || task.getAttribute('data-click-bound') === '1') return;
+                    task.setAttribute('data-click-bound', '1');
 
-                    // Selecciona todos los elementos con la clase .taskList
-                    const tasks = document.querySelectorAll('.milestone-task, .taskList');
+                    // Verifica si el técnico asignado es el usuario actual
+                    const technicianId = task.getAttribute('data-technician-name');
+                    const currentUserId = "{{ Auth::id() }}";
 
-                    tasks.forEach(task => {
-                        // Verifica si el técnico asignado es el usuario actual
-                        const technicianId = task.getAttribute('data-technician-name');
-                        const currentUserId = "{{ Auth::id() }}";
-
-                        if (technicianId === currentUserId) {
-                            if (task.classList.contains('task-inactive')) {
-                                task.style.cursor = 'not-allowed';
-                            }
-                            task.addEventListener('click', function() {
-                                // El resto del código del evento click se mantiene igual
-                                const milestone = this.closest('.card');
-                                const milestoneStatus = milestone.getAttribute('data-status');
-
-                                if (milestoneStatus === '4' || milestoneStatus === '3') {
-                                    console.log(
-                                        'El milestone está en status 3 o 4, no se ejecutará la acción.');
-                                    return;
-                                }
-
-                                if (this.classList.contains('task-inactive')) {
-                                    // Tareas "por hacer" (tipo 3): no se permite imputar horas
-                                    return;
-                                }
-
-                                const taskData = {
-                                    task_id: this.getAttribute('data-task-id'),
-                                    milestone_id: this.getAttribute('data-milestone-id'),
-                                    project_id: this.getAttribute('data-project-id'),
-                                    user_id: this.getAttribute('data-technician-name'),
-                                    date: new Date().toISOString().split('T')[0],
-                                };
-
-                                $.ajax({
-                                    url: '{{ route('create.timesheet.from.orders', [$currentWorkspace->slug, $project_id]) }}',
-                                    type: 'GET',
-                                    data: taskData,
-                                    success: function(data) {
-                                        $('#modal-container .modal-content').html(data).css({
-                                            'text-align': 'left',
-                                            'width': '800px'
-                                        });
-                                        var myModal = bootstrap.Modal.getOrCreateInstance(
-                                            document
-                                            .getElementById('modal-container'));
-                                        myModal.show();
-                                    },
-                                    error: function(xhr, status, error) {
-                                        console.error('Error al actualizar el orden:', error);
-                                    }
-                                });
-                            });
-                        } else {
-                            // Desactiva el evento click si el técnico asignado no es el usuario actual
-                            task.addEventListener('click', function(event) {
-                                event.stopPropagation();
-                                event.preventDefault();
-                            });
-                            // Añade el estilo de cursor not-allowed
+                    if (technicianId === currentUserId) {
+                        if (task.classList.contains('task-inactive')) {
                             task.style.cursor = 'not-allowed';
                         }
-                    });
+                        task.addEventListener('click', function() {
+                            // El resto del código del evento click se mantiene igual
+                            const milestone = this.closest('.card');
+                            const milestoneStatus = milestone.getAttribute('data-status');
+
+                            if (milestoneStatus === '4' || milestoneStatus === '3') {
+                                console.log(
+                                    'El milestone está en status 3 o 4, no se ejecutará la acción.');
+                                return;
+                            }
+
+                            if (this.classList.contains('task-inactive')) {
+                                // Tareas "por hacer" (tipo 3): no se permite imputar horas
+                                return;
+                            }
+
+                            const taskData = {
+                                task_id: this.getAttribute('data-task-id'),
+                                milestone_id: this.getAttribute('data-milestone-id'),
+                                project_id: this.getAttribute('data-project-id'),
+                                user_id: this.getAttribute('data-technician-name'),
+                                date: new Date().toISOString().split('T')[0],
+                            };
+
+                            $.ajax({
+                                url: this.getAttribute('data-url') || '{{ route('create.timesheet.from.orders', [$currentWorkspace->slug, $project_id]) }}',
+                                type: 'GET',
+                                data: taskData,
+                                success: function(data) {
+                                    $('#modal-container .modal-content').html(data).css({
+                                        'text-align': 'left',
+                                        'width': '800px'
+                                    });
+                                    var myModal = bootstrap.Modal.getOrCreateInstance(
+                                        document
+                                        .getElementById('modal-container'));
+                                    myModal.show();
+                                },
+                                error: function(xhr, status, error) {
+                                    console.error('Error al actualizar el orden:', error);
+                                }
+                            });
+                        });
+                    } else {
+                        // Desactiva el evento click si el técnico asignado no es el usuario actual
+                        task.addEventListener('click', function(event) {
+                            event.stopPropagation();
+                            event.preventDefault();
+                        });
+                        // Añade el estilo de cursor not-allowed
+                        task.style.cursor = 'not-allowed';
+                    }
+                };
+
+                document.addEventListener('DOMContentLoaded', function() {
+                    document.querySelectorAll('.milestone-task, .taskList').forEach(window.bindMilestoneTaskClick);
                 });
             </script>
             <!-- Script encargado de mostrar/ocultar la leyenda de colores -->
