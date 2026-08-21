@@ -1546,6 +1546,36 @@
                 });
             </script>
             <script>
+                // Helpers compartidos: refrescar el aviso inferior y mover la tarjeta de columna
+                window.replaceMilestoneExtraInfo = function(card, html) {
+                    if (!html) return;
+                    var existing = card.querySelector('.milestone-extra-info');
+                    if (existing) {
+                        existing.outerHTML = html;
+                    } else {
+                        card.insertAdjacentHTML('beforeend', html);
+                    }
+                };
+
+                window.moveMilestoneCardToStatus = function(card, statusId) {
+                    var currentStatus = card.getAttribute('data-status');
+                    if (String(statusId) === String(currentStatus)) return;
+                    var oldBox = card.closest('.kanban-box');
+                    var newBox = document.querySelector(".kanban-box[data-status='" + statusId + "']");
+                    if (!oldBox || !newBox) return;
+                    card.setAttribute('data-status', statusId);
+                    newBox.appendChild(card);
+                    [oldBox, newBox].forEach(function(box) {
+                        var cardList = box.closest('.card-list');
+                        if (!cardList) return;
+                        var countEl = cardList.querySelector('.count');
+                        var total = box.querySelectorAll(':scope > .card').length;
+                        if (countEl) countEl.textContent = total;
+                        var emptyStateEl = box.querySelector('.noNotificationsContainer');
+                        if (emptyStateEl) emptyStateEl.style.display = total > 0 ? 'none' : '';
+                    });
+                };
+
                 // Helper: tras crear una tarea vía AJAX, actualiza únicamente la tarjeta del milestone
                 window.milestoneBoardAppendTask = function(response) {
                     if (!response || !response.milestone_id) return;
@@ -1616,41 +1646,39 @@
                     }
 
                     // Refrescar el aviso inferior de la tarjeta (ej: "Imputar las horas para pasar a revisión")
-                    if (response.milestone_extra_info) {
-                        var existing = card.querySelector('.milestone-extra-info');
-                        if (existing) {
-                            existing.outerHTML = response.milestone_extra_info;
-                        } else {
-                            card.insertAdjacentHTML('beforeend', response.milestone_extra_info);
-                        }
-                    }
+                    window.replaceMilestoneExtraInfo(card, response.milestone_extra_info);
 
                     // Si el status del encargo cambió (ej: añadir tarea a una tarjeta en revisión/entregada),
                     // mover la tarjeta a la columna correcta
-                    var currentStatus = card.getAttribute('data-status');
-                    if (String(response.status) !== String(currentStatus)) {
-                        var oldBox = card.closest('.kanban-box');
-                        var newBox = document.querySelector(".kanban-box[data-status='" + response.status + "']");
-                        if (oldBox && newBox) {
-                            card.setAttribute('data-status', response.status);
-                            newBox.appendChild(card);
-                            // Actualizar contadores y estados vacíos de ambas columnas
-                            [oldBox, newBox].forEach(function(box) {
-                                var cardList = box.closest('.card-list');
-                                if (!cardList) return;
-                                var countEl = cardList.querySelector('.count');
-                                var total = box.querySelectorAll(':scope > .card').length;
-                                if (countEl) countEl.textContent = total;
-                                var emptyStateEl = box.querySelector('.noNotificationsContainer');
-                                if (emptyStateEl) emptyStateEl.style.display = total > 0 ? 'none' : '';
-                            });
-                        }
-                    }
+                    window.moveMilestoneCardToStatus(card, response.status);
 
                     // Re-enlazar eventos del nuevo elemento
                     if (typeof window.bindMilestoneTaskClick === 'function') window.bindMilestoneTaskClick(taskEl);
                     if (typeof window.bindMilestoneTaskTooltip === 'function') window.bindMilestoneTaskTooltip(taskEl);
                     if (typeof window.bindMilestoneDropdownToggles === 'function') window.bindMilestoneDropdownToggles(taskListEl);
+                };
+
+                // Helper: tras imputar horas vía AJAX desde la card, actualiza únicamente la tarjeta del milestone
+                window.milestoneBoardUpdateTaskHours = function(response) {
+                    if (!response || !response.milestone_id) return;
+
+                    var card = document.getElementById(String(response.milestone_id));
+                    if (!card) return;
+
+                    // Actualizar el tooltip de la tarea con las horas imputadas
+                    if (response.task_id) {
+                        var taskEl = card.querySelector('.milestone-task[data-task-id="' + response.task_id + '"]');
+                        if (taskEl) {
+                            var technicianName = response.technician_name || '';
+                            taskEl.setAttribute('data-tooltip-content', technicianName + ' - {{ __("Imputed hours") }}: ' + (response.logged_hours || '00:00'));
+                        }
+                    }
+
+                    // Refrescar el aviso inferior de la tarjeta (ej: "Imputar las horas…" -> "Puede pasar a revisión")
+                    window.replaceMilestoneExtraInfo(card, response.milestone_extra_info);
+
+                    // Si el status del encargo cambió, mover la tarjeta a la columna correcta
+                    window.moveMilestoneCardToStatus(card, response.status);
                 };
             </script>
             <!-- Script encargado de mostrar/ocultar la leyenda de colores -->

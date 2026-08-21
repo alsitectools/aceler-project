@@ -5734,16 +5734,25 @@ MilestoneFile::create([
         $validator = Validator::make($request->all(), $rules);
 
         if ($validator->fails()) {
+            if ($request->wantsJson()) {
+                return response()->json(['success' => false, 'message' => $validator->errors()->first()], 422);
+            }
             return redirect()->back()->with('error', $validator->errors()->first());
         }
 
         try {
             $selectedDate = Carbon::parse($request->date)->toDateString();
         } catch (\Throwable $e) {
+            if ($request->wantsJson()) {
+                return response()->json(['success' => false, 'message' => __('Invalid date selected.')], 422);
+            }
             return redirect()->back()->withInput()->with('error', __('Invalid date selected.'));
         }
 
         if ($this->isUserHolidayDate($user->id, $selectedDate)) {
+            if ($request->wantsJson()) {
+                return response()->json(['success' => false, 'message' => __('You cannot log hours on a holiday.')], 422);
+            }
             return redirect()->back()->withInput()->with('error', __('You cannot log hours on a holiday.'));
         }
 
@@ -5753,6 +5762,9 @@ MilestoneFile::create([
         $project = Project::find($request->project_id);
 
         if (!$project) {
+            if ($request->wantsJson()) {
+                return response()->json(['success' => false, 'message' => 'Proyecto no encontrado.'], 422);
+            }
             return redirect()->back()->with('error', 'Proyecto no encontrado.');
         }
 
@@ -5762,6 +5774,9 @@ MilestoneFile::create([
             ->first();
 
         if (!$task) {
+            if ($request->wantsJson()) {
+                return response()->json(['success' => false, 'message' => 'Tarea no encontrada o no pertenece al proyecto.'], 422);
+            }
             return redirect()->back()->with('error', 'Tarea no encontrada o no pertenece al proyecto.');
         }
 
@@ -5790,6 +5805,9 @@ MilestoneFile::create([
         }
 
         if (!$hasAccess) {
+            if ($request->wantsJson()) {
+                return response()->json(['success' => false, 'message' => 'No tienes acceso a esta tarea.'], 422);
+            }
             return redirect()->back()->with('error', 'No tienes acceso a esta tarea.');
         }
 
@@ -5823,6 +5841,32 @@ MilestoneFile::create([
         }
 
         $this->employeesInProject(Auth::user()->id, $project->id);
+
+        if ($request->wantsJson()) {
+            $technician = User::find($task->assign_to);
+
+            $milestoneExtraInfo = null;
+            if ($milestone) {
+                $milestoneData = $this->getMilestoneData($milestone, $project, null);
+                $milestoneStage = Stage::find($milestone->status);
+                $milestoneExtraInfo = view('projects.partials.milestone_extra_info', [
+                    'milestone' => $milestoneData,
+                    'status' => $milestoneStage,
+                ])->render();
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => __('Timesheet Updated Successfully!'),
+                'task_id' => $task->id,
+                'milestone_id' => $milestone ? $milestone->id : null,
+                'project_id' => $project->id,
+                'status' => $milestone ? (int) $milestone->status : null,
+                'logged_hours' => $task->getTotalLoggedHours(),
+                'technician_name' => $technician ? $technician->name : null,
+                'milestone_extra_info' => $milestoneExtraInfo,
+            ]);
+        }
 
         return redirect()->back()->with('success', __('Timesheet Updated Successfully!'));
     }
