@@ -1173,6 +1173,7 @@
         .gantt-sidebar-row[data-type="project"] {
             padding-left: 8px;
             font-weight: 600;
+            font-size: 12px;
         }
 
         .gantt-sidebar-row[data-type="milestone"] {
@@ -1185,6 +1186,18 @@
             font-weight: 400;
             color: #64748b;
         }
+
+        /* Project group zebra striping - applies to project + all its children (milestones, tasks) */
+        .gantt-sidebar-row[data-project-group="0"] { background: #f8fafc; }
+        .gantt-sidebar-row[data-project-group="1"] { background: #eef2f7; }
+        .gantt-sidebar-row[data-project-group="2"] { background: #f8fafc; }
+        .gantt-sidebar-row[data-project-group="3"] { background: #eef2f7; }
+        .gantt-sidebar-row[data-project-group="4"] { background: #f8fafc; }
+        .gantt-sidebar-row[data-project-group="5"] { background: #eef2f7; }
+        .gantt-sidebar-row[data-project-group="6"] { background: #f8fafc; }
+        .gantt-sidebar-row[data-project-group="7"] { background: #eef2f7; }
+        .gantt-sidebar-row[data-project-group="8"] { background: #f8fafc; }
+        .gantt-sidebar-row[data-project-group="9"] { background: #eef2f7; }
 
         /* Collapse toggle chevron */
         .gantt-collapse-toggle {
@@ -1847,12 +1860,20 @@
                 container.innerHTML = '';
                 headerEl.textContent = '{{ __('Structure') }}';
 
+                let currentProjectGroup = -1;
+
                 visibleItems.forEach((item, idx) => {
                     const row = document.createElement('div');
                     row.className = 'gantt-sidebar-row';
                     row.setAttribute('data-type', item.type);
                     row.setAttribute('data-id', item.id);
                     row.setAttribute('data-index', idx);
+
+                    // Assign project group for zebra striping
+                    if (item.type === 'project') {
+                        currentProjectGroup++;
+                    }
+                    row.setAttribute('data-project-group', currentProjectGroup);
 
                     // Projects and milestones are always collapsible
                     const canCollapse = isCollapsible(item);
