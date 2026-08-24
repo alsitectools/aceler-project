@@ -55,12 +55,8 @@ class GanttDiagramController extends Controller
         $user = Auth::user();
         $currentWorkspace = Workspace::find($user->currant_workspace);
 
-        // #7 - Build cache key from all filter params
-        $cacheKey = 'gantt_' . $currentWorkspace->id . '_' . md5($request->fullUrl());
-
-        return Cache::remember($cacheKey, 90, function () use ($request, $currentWorkspace) {
-            return $this->buildGanttData($request, $currentWorkspace);
-        });
+        // Sin cache - datos siempre frescos
+        return $this->buildGanttData($request, $currentWorkspace);
     }
 
     private function buildGanttData(Request $request, Workspace $currentWorkspace)
@@ -120,7 +116,8 @@ class GanttDiagramController extends Controller
             'milestones.tasks' => function ($q) {
                 $q->select('tasks.*')
                     ->addSelect(DB::raw('(SELECT SUM(TIME_TO_SEC(t.time)) FROM timesheets t WHERE t.task_id = tasks.id) as total_logged_seconds'))
-                    ->addSelect(DB::raw('(SELECT MIN(t.date) FROM timesheets t WHERE t.task_id = tasks.id) as first_timesheet_date'));
+                    ->addSelect(DB::raw('(SELECT MIN(t.date) FROM timesheets t WHERE t.task_id = tasks.id) as first_timesheet_date'))
+                    ->with('reviewState'); // eager load review_state relationship
             },
             'milestones.tasks.type',
             'milestones.tasks.customTask',
@@ -273,14 +270,38 @@ class GanttDiagramController extends Controller
 
                 if ($showTasks) {
                     foreach ($milestone->tasks as $task) {
-                        $taskStart = $task->start_date
-                            ? Carbon::parse($task->start_date)->format('Y-m-d')
-                            : ($task->first_timesheet_date ?? $msStart);
-                        $taskEnd = $task->end_date
-                            ? Carbon::parse($task->end_date)->format('Y-m-d')
-                            : ($task->estimated_date
-                                ? Carbon::parse($task->estimated_date)->format('Y-m-d')
-                                : Carbon::parse($taskStart)->addDays(7)->format('Y-m-d'));
+                        // Task start = prioridad de fechas propias de la tarea:
+                        // 1) first_timesheet_date (primer timesheet de ESTA tarea)
+                        // 2) start_date (fecha planificada de la tarea)
+                        // 3) created_at (cuando se creó la tarea = hoy para tareas nuevas)
+                        // 4) milestone->task_start_date (fallback para tareas antiguas)
+                        // 5) $msStart (último recurso)
+                        $taskStart = $task->first_timesheet_date
+                            ? Carbon::parse($task->first_timesheet_date)->format('Y-m-d')
+                            : ($task->start_date
+                                ? Carbon::parse($task->start_date)->format('Y-m-d')
+                                : ($task->created_at
+                                    ? Carbon::parse($task->created_at)->format('Y-m-d')
+                                    : ($milestone->task_start_date
+                                        ? Carbon::parse($milestone->task_start_date)->format('Y-m-d')
+                                        : $msStart)));
+
+                        // Task end:
+                        // - Si tarea revisada O milestone status 4 → fecha real (mínimo entre reviewed_date y milestone_done_date)
+                        // - Si tarea ACTIVA (no revisada Y milestone ≠ 4) → HOY (crece como overdue)
+                        $taskReviewedDate = $this->getTaskReviewedDate($task); // Y-m-d o null
+                        $milestoneDoneDate = ($milestone->status === '4') ? $milestone->finalization_date : null;
+
+                        if ($taskReviewedDate || $milestoneDoneDate) {
+                            // Tarea terminada (revisada o milestone hecho)
+                            $endCandidates = collect([$taskReviewedDate, $milestoneDoneDate])
+                                ->filter()
+                                ->values();
+                            $taskEnd = $endCandidates->min();
+                        } else {
+                            // Tarea ACTIVA: la barra crece hasta hoy
+                            $taskEnd = now()->format('Y-m-d');
+                        }
 
                         if (Carbon::parse($taskEnd)->lt(Carbon::parse($taskStart))) {
                             $taskEnd = $taskStart;
@@ -309,6 +330,8 @@ class GanttDiagramController extends Controller
                                 'task_id' => $task->id,
                                 'slug' => $currentWorkspace->slug,
                                 'project_id' => $task->project_id,
+                                'reviewed_date' => $taskReviewedDate,
+                                'milestone_done_date' => $milestoneDoneDate,
                             ],
                         ];
                     }
@@ -365,13 +388,23 @@ class GanttDiagramController extends Controller
 
     private function milestoneProgress(Milestone $milestone): int
     {
-        return match ((string) $milestone->status) {
-            '1' => 0,
-            '2' => 25,
-            '3' => 50,
-            '4' => 100,
-            default => 0,
-        };
+        if ((string)$milestone->status === '4') return 100;
+
+        $tasks = $milestone->tasks;
+        $total = $tasks->count();
+        if ($total === 0) return 0;
+
+        $sum = 0;
+        foreach ($tasks as $task) {
+            $reviewState = $task->reviewState ? $task->reviewState->state_code : null;
+            $isCompleted = $task->end_date || $reviewState === 'reviewed' || $reviewState === 'changes';
+            $isHalf = $reviewState === 'changes';
+            
+            if ($isCompleted) {
+                $sum += $isHalf ? 0.5 : 1.0;
+            }
+        }
+        return (int) round(($sum / $total) * 100);
     }
 
     private function milestoneStatusClass(Milestone $milestone): string
@@ -417,6 +450,18 @@ class GanttDiagramController extends Controller
      */
     private function computeTaskProgress($task): int
     {
+        $reviewState = $task->reviewState ? $task->reviewState->state_code : null;
+        
+        // Changes = 50% (submitted but not approved)
+        if ($reviewState === 'changes') {
+            return 50;
+        }
+        
+        // If task is marked as reviewed, it's 100% complete
+        if ($reviewState === 'reviewed') {
+            return 100;
+        }
+
         if ($task->end_date) {
             return 100;
         }
@@ -442,5 +487,19 @@ class GanttDiagramController extends Controller
         $hours = intdiv($totalSeconds, 3600);
         $minutes = intdiv($totalSeconds % 3600, 60);
         return sprintf('%02d:%02d', $hours, $minutes);
+    }
+
+    /**
+     * Obtiene la fecha en que la tarea se marcó como 'reviewed'.
+     * Busca en TaskReviewState el primer registro con state_code='reviewed'.
+     */
+    private function getTaskReviewedDate($task): ?string
+    {
+        $reviewed = \App\Models\TaskReviewState::where('task_id', $task->id)
+            ->where('state_code', 'reviewed')
+            ->orderBy('created_at')
+            ->first();
+
+        return $reviewed ? Carbon::parse($reviewed->created_at)->format('Y-m-d') : null;
     }
 }
