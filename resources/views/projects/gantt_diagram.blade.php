@@ -925,9 +925,9 @@
             opacity: 0.06;
         }
 
-        /* Project separators */
+/* Project separators */
         .gantt-separator-line {
-            stroke: #e2e8f0;
+            stroke: #72c8d4 ;
             stroke-width: 1;
             stroke-dasharray: 4 2;
             pointer-events: none;
@@ -2098,7 +2098,7 @@
                 }
             }
 
-            // #17 - Draw separator lines between projects
+            // #17 - Draw separator lines between projects (original dashed line)
             function drawProjectSeparators(items) {
                 if (!ganttChart) return;
                 try {
@@ -2116,7 +2116,7 @@
                             if (barEl) {
                                 const barG = barEl.querySelector('.bar');
                                 if (barG) {
-                                    const y = parseFloat(barG.getAttribute('y')) - 5;
+                                    const y = parseFloat(barG.getAttribute('y')) - 10;
                                     const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
                                     line.setAttribute('x1', 0);
                                     line.setAttribute('x2', svgWidth);
