@@ -453,13 +453,14 @@ var Gantt = (function () {
 
         draw_progress_bar() {
             if (this.invalid) return;
+            const progressHeight = 10;
             this.$bar_progress = createSVG('rect', {
                 x: this.x,
-                y: this.y,
+                y: this.y + (this.height - progressHeight) / 2,
                 width: this.progress_width,
-                height: this.height,
-                rx: this.corner_radius,
-                ry: this.corner_radius,
+                height: progressHeight,
+                rx: 1.5,
+                ry: 1.5,
                 class: 'bar-progress',
                 append_to: this.bar_group
             });
@@ -824,6 +825,16 @@ var Gantt = (function () {
         calculate_path() {
             let start_x =
                 this.from_task.$bar.getX() + this.from_task.$bar.getWidth() / 2;
+
+            const fromType = this.from_task.task.type;
+            const toType = this.to_task.task.type;
+            if ((fromType === 'project' || fromType === 'milestone') && toType === 'task') {
+                const one_day_px = (24 / this.gantt.options.step) * this.gantt.options.column_width;
+                start_x = Math.max(
+                    this.to_task.$bar.getX() - one_day_px,
+                    this.from_task.$bar.getX()
+                );
+            }
 
             const condition = () =>
                 this.to_task.$bar.getX() < start_x + this.gantt.options.padding &&
