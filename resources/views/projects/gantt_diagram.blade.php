@@ -1742,7 +1742,6 @@
                 if (dateTo) params.set('date_to', dateTo);
                 params.set('show_tasks', '1'); // Always fetch all levels
 
-                console.log('[Gantt] fetchAndRender | projects:', projectIds, 'statuses:', statuses, 'users:', assignedTo, 'dates:', dateFrom, '-', dateTo);
 
                 // #12
                 syncFiltersToURL();
@@ -1787,7 +1786,6 @@
                     milestoneIds.forEach(id => collapsedIds.add(id));
                 }
                 // 'tasks' → collapsedIds stays empty (everything expanded)
-                console.log('[Gantt] applyLevelCollapses | level:', currentLevel, '| collapsedIds:', [...collapsedIds].length);
                 saveCollapsedState();
             }
 
@@ -1810,26 +1808,16 @@
 
             function applyCollapseFilter(items) {
                 if (collapsedIds.size === 0) return items;
-                console.log('[Gantt] applyCollapseFilter | input:', items.length, '| collapsedIds:', [...collapsedIds]);
                 return items.filter(item => {
                     const parentId = getParentId(item);
-                    if (item.type === 'milestone' && parentId && collapsedIds.has(parentId)) {
-                        console.log('[Gantt] applyCollapseFilter | HIDING milestone:', item.id, '| parent:', parentId);
-                        return false;
-                    }
+                    if (item.type === 'milestone' && parentId && collapsedIds.has(parentId)) return false;
                     if (item.type === 'task') {
-                        if (parentId && collapsedIds.has(parentId)) {
-                            console.log('[Gantt] applyCollapseFilter | HIDING task:', item.id, '| parent:', parentId);
-                            return false;
-                        }
+                        if (parentId && collapsedIds.has(parentId)) return false;
                         // Also hide if grandparent (project) is collapsed
                         const parentMs = items.find(i => i.id === parentId);
                         if (parentMs) {
                             const grandId = getParentId(parentMs);
-                            if (grandId && collapsedIds.has(grandId)) {
-                                console.log('[Gantt] applyCollapseFilter | HIDING task (grandparent):', item.id, '| grandparent:', grandId);
-                                return false;
-                            }
+                            if (grandId && collapsedIds.has(grandId)) return false;
                         }
                     }
                     return true;
@@ -2325,7 +2313,6 @@
                 btn.addEventListener('click', function() {
                     const idx = viewModes.indexOf(this.dataset.view);
                     const curIdx = viewModes.indexOf(currentViewMode);
-                    console.log('[Gantt] View mode clicked:', this.dataset.view, '| current:', currentViewMode);
                     setViewMode(this.dataset.view, idx < curIdx ? 'in' : 'out');
                 });
             });
@@ -2333,7 +2320,6 @@
             // Level toggle buttons — control mass collapse/expand
             document.querySelectorAll('#level_toggle .gantt-seg-btn').forEach(btn => {
                 btn.addEventListener('click', function() {
-                    console.log('[Gantt] Level toggle clicked:', this.dataset.level, '| current:', currentLevel);
                     document.querySelectorAll('#level_toggle .gantt-seg-btn').forEach(b => b.classList
                         .remove('active'));
                     this.classList.add('active');
@@ -2476,7 +2462,6 @@
             }
 
             function setViewMode(newMode, direction) {
-                console.log('[Gantt] setViewMode | newMode:', newMode, '| current:', currentViewMode, '| direction:', direction);
                 if (newMode === currentViewMode) return;
                 currentViewMode = newMode;
 
