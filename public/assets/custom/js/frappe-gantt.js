@@ -449,6 +449,23 @@ var Gantt = (function () {
             if (this.invalid) {
                 this.$bar.classList.add('bar-invalid');
             }
+
+            if (this.task.type === 'project') {
+                const dSize = 6;
+                const cy = this.y + this.height * 0.80;
+                const cx1 = this.x + 0.05;
+                createSVG('polygon', {
+                    points: `${cx1},${cy - dSize} ${cx1 + dSize},${cy} ${cx1},${cy + dSize} ${cx1 - dSize},${cy}`,
+                    class: 'bar-diamond bar-diamond-left',
+                    append_to: this.bar_group
+                });
+                const cx2 = this.x + this.width - 0.05;
+                createSVG('polygon', {
+                    points: `${cx2},${cy - dSize} ${cx2 + dSize},${cy} ${cx2},${cy + dSize} ${cx2 - dSize},${cy}`,
+                    class: 'bar-diamond bar-diamond-right',
+                    append_to: this.bar_group
+                });
+            }
         }
 
         draw_progress_bar() {

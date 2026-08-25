@@ -716,9 +716,30 @@
 
         /* === D — COLOR PALETTE (armonizada) === */
 
-        /* Project (Ongoing - indigo) */
+        /* Project bars — thinner with diamond fangs */
         .gantt-project .bar {
             fill: #6366f1 !important;
+            transform: scaleY(0.7);
+            transform-box: fill-box;
+            transform-origin: center;
+        }
+
+        .gantt-project .bar-diamond {
+            fill: #6366f1 !important;
+        }
+
+        .gantt-project .bar-diamond-left {
+            clip-path: inset(50% 0 0 50%);
+        }
+
+        .gantt-project .bar-diamond-right {
+            clip-path: inset(50% 50% 0 0);
+        }
+
+        .gantt-project .handle {
+            transform: scaleY(calc(1 / 0.7));
+            transform-box: fill-box;
+            transform-origin: center;
         }
 
         .gantt-project .bar-progress {
@@ -750,6 +771,10 @@
 
         /* Project On Hold (slate) */
         .gantt-project-onhold .bar {
+            fill: #94a3b8 !important;
+        }
+
+        .gantt-project-onhold .bar-diamond {
             fill: #94a3b8 !important;
         }
 
