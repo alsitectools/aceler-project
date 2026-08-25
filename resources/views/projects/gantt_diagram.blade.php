@@ -1096,7 +1096,7 @@
             overflow: hidden;
             background: #fff;
             position: relative;
-            height: 500px;
+            height: 580px;
         }
 
         /* Sidebar panel */
