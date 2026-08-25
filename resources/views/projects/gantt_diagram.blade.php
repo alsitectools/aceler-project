@@ -954,6 +954,9 @@
         .gantt-container { cursor: grab; }
         .gantt-container.dragging { cursor: grabbing; user-select: none; }
 
+        /* Sticky header layer */
+        .sticky-layer { will-change: transform; }
+
         #ganttSection.gantt-hide-bar-labels .gantt .bar-label {
             visibility: hidden !important;
         }
@@ -1093,7 +1096,7 @@
             overflow: hidden;
             background: #fff;
             position: relative;
-            min-height: 420px;
+            height: 500px;
         }
 
         /* Sidebar panel */
@@ -1192,16 +1195,8 @@
         }
 
         /* Project group zebra striping - applies to project + all its children (milestones, tasks) */
-        .gantt-sidebar-row[data-project-group="0"] { background: #f8fafc; }
-        .gantt-sidebar-row[data-project-group="1"] { background: #eef2f7; }
-        .gantt-sidebar-row[data-project-group="2"] { background: #f8fafc; }
-        .gantt-sidebar-row[data-project-group="3"] { background: #eef2f7; }
-        .gantt-sidebar-row[data-project-group="4"] { background: #f8fafc; }
-        .gantt-sidebar-row[data-project-group="5"] { background: #eef2f7; }
-        .gantt-sidebar-row[data-project-group="6"] { background: #f8fafc; }
-        .gantt-sidebar-row[data-project-group="7"] { background: #eef2f7; }
-        .gantt-sidebar-row[data-project-group="8"] { background: #f8fafc; }
-        .gantt-sidebar-row[data-project-group="9"] { background: #eef2f7; }
+        .gantt-sidebar-row[data-project-group="even"] { background: #f8fafc; }
+        .gantt-sidebar-row[data-project-group="odd"]  { background: #eef2f7; }
 
         /* Collapse toggle chevron */
         .gantt-collapse-toggle {
@@ -1268,8 +1263,16 @@
         /* Timeline takes remaining space */
         .gantt-timeline {
             flex: 1;
-            overflow: auto;
+            overflow: hidden;
             min-width: 0;
+        }
+
+        .gantt-target {
+            height: 100%;
+        }
+
+        .gantt-target .gantt-container {
+            height: 100%;
         }
 
         /* Responsive — hide sidebar on mobile */
@@ -1865,7 +1868,7 @@
                 container.innerHTML = '';
                 headerEl.textContent = '{{ __('Structure') }}';
 
-                let currentProjectGroup = -1;
+                let currentProjectGroup = 0;
 
                 visibleItems.forEach((item, idx) => {
                     const row = document.createElement('div');
@@ -1878,7 +1881,7 @@
                     if (item.type === 'project') {
                         currentProjectGroup++;
                     }
-                    row.setAttribute('data-project-group', currentProjectGroup);
+                    row.setAttribute('data-project-group', currentProjectGroup % 2 === 0 ? 'even' : 'odd');
 
                     // Projects and milestones are always collapsible
                     const canCollapse = isCollapsible(item);
@@ -1946,6 +1949,10 @@
                 setupScrollSync();
                 // Drag-to-pan on Gantt timeline
                 setupDragToPan();
+                // Sticky grid-header on vertical scroll
+                setupStickyHeader();
+                // Create sticky layer (header + dates on top of bars)
+                setupStickyHeaderLayer();
                 // Apply initial sidebar visibility
                 applySidebarVisibility();
             }
@@ -1955,7 +1962,7 @@
                 const svg = document.querySelector('.gantt-target svg');
                 const rowsEl = document.getElementById('ganttSidebarRows');
                 if (svg && rowsEl) {
-                    const svgHeight = svg.getBBox ? svg.getBBox().height : svg.clientHeight;
+                    const svgHeight = svg.clientHeight || svg.getBoundingClientRect().height || 0;
                     if (svgHeight > 0) {
                         rowsEl.style.minHeight = svgHeight + 'px';
                     }
@@ -2036,6 +2043,50 @@
                 dragToPanSetup = true;
             }
 
+            // Sticky grid-header: keep the date header at the top when scrolling vertically
+            let stickyHeaderSetup = false;
+
+            function setupStickyHeader() {
+                if (stickyHeaderSetup) return;
+                const scroller = getScrollContainer();
+                if (!scroller) return;
+
+                let ticking = false;
+                scroller.addEventListener('scroll', function() {
+                    if (!ticking) {
+                        requestAnimationFrame(function() {
+                            const scrollTop = scroller.scrollTop;
+                            const stickyLayer = scroller.querySelector('.sticky-layer');
+                            if (stickyLayer) {
+                                stickyLayer.style.transform = 'translateY(' + scrollTop + 'px)';
+                            }
+                            ticking = false;
+                        });
+                        ticking = true;
+                    }
+                });
+
+                stickyHeaderSetup = true;
+            }
+
+            // Create sticky layer: move grid-header + date labels to a layer rendered ON TOP of bars
+            function setupStickyHeaderLayer() {
+                const svg = document.querySelector('.gantt-target svg');
+                if (!svg) return;
+                // Remove old sticky layer if re-rendering
+                const old = svg.querySelector('.sticky-layer');
+                if (old) old.remove();
+                // Create new layer at end of SVG (rendered on top of everything)
+                const layer = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+                layer.setAttribute('class', 'sticky-layer');
+                svg.appendChild(layer);
+                // Move grid-header rect
+                const header = svg.querySelector('.grid-header');
+                if (header) layer.appendChild(header);
+                // Move date text labels
+                svg.querySelectorAll('g.date text').forEach(function(t) { layer.appendChild(t); });
+            }
+
             // Apply sidebar visibility state
             function applySidebarVisibility() {
                 const sidebar = document.getElementById('ganttSidebar');
@@ -2069,6 +2120,7 @@
                 targetEl.innerHTML = '';
                 // Reset scroll sync so it rebinds to new Frappe container
                 scrollSyncSetup = false;
+                stickyHeaderSetup = false;
 
                 ganttChart = new Gantt(".gantt-target", items, {
                     custom_popup_html: function(task) {
