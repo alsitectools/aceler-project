@@ -950,6 +950,10 @@
             display: none !important;
         }
 
+        /* Drag-to-pan */
+        .gantt-container { cursor: grab; }
+        .gantt-container.dragging { cursor: grabbing; user-select: none; }
+
         #ganttSection.gantt-hide-bar-labels .gantt .bar-label {
             visibility: hidden !important;
         }
@@ -1952,6 +1956,8 @@
                 syncSidebarHeight();
                 // Setup bidirectional scroll sync
                 setupScrollSync();
+                // Drag-to-pan on Gantt timeline
+                setupDragToPan();
                 // Apply initial sidebar visibility
                 applySidebarVisibility();
             }
@@ -1998,6 +2004,48 @@
                 });
 
                 scrollSyncSetup = true;
+            }
+
+            // Drag-to-pan: click and drag on Gantt timeline to scroll horizontally
+            // Bind mousedown on the stable outer #ganttContainer (survives re-renders)
+            // Use getScrollContainer() dynamically for scrollLeft (inner div gets recreated)
+            let dragToPanSetup = false;
+
+            function setupDragToPan() {
+                if (dragToPanSetup) return;
+                const outer = document.getElementById('ganttContainer');
+                if (!outer) return;
+
+                let isDragging = false, startX, startScrollLeft;
+
+                outer.addEventListener('mousedown', function(e) {
+                    if (e.button !== 0) return;
+                    if (e.target.closest('.bar-wrapper')) return;
+                    const scroller = getScrollContainer();
+                    if (!scroller) return;
+                    isDragging = true;
+                    startX = e.pageX;
+                    startScrollLeft = scroller.scrollLeft;
+                    scroller.classList.add('dragging');
+                    e.preventDefault();
+                });
+
+                document.addEventListener('mousemove', function(e) {
+                    if (!isDragging) return;
+                    const scroller = getScrollContainer();
+                    if (!scroller) return;
+                    const dx = e.pageX - startX;
+                    scroller.scrollLeft = startScrollLeft - dx;
+                });
+
+                document.addEventListener('mouseup', function() {
+                    if (!isDragging) return;
+                    const scroller = getScrollContainer();
+                    if (scroller) scroller.classList.remove('dragging');
+                    isDragging = false;
+                });
+
+                dragToPanSetup = true;
             }
 
             // Apply sidebar visibility state
