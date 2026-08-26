@@ -1000,8 +1000,31 @@
         .gantt-container { cursor: grab; }
         .gantt-container.dragging { cursor: grabbing; user-select: none; }
 
-        /* Sticky header layer */
-        .sticky-layer { will-change: transform; }
+        /* HTML sticky date header — position:sticky, same mechanism as sidebar header */
+        .gantt-sticky-header {
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            background: #fff;
+            overflow: hidden;
+            pointer-events: none;
+        }
+
+        .gantt-sticky-header svg {
+            display: block;
+        }
+
+        .gantt-sticky-header .grid-header {
+            fill: #fff;
+            stroke: #e0e0e0;
+            stroke-width: 1.4;
+        }
+
+        /* Hide original header in main SVG (replaced by overlay) */
+        .gantt-target .grid-header,
+        .gantt-target g.date text {
+            visibility: hidden;
+        }
 
         #ganttSection.gantt-hide-bar-labels .gantt .bar-label {
             visibility: hidden !important;
@@ -1052,7 +1075,7 @@
             z-index: 9999;
             background: #fff;
             padding: 16px;
-            overflow: auto;
+            overflow: hidden;
         }
 
         #ganttSection.gantt-fullscreen #ganttLayout {
@@ -1060,8 +1083,8 @@
         }
 
         #ganttSection.gantt-fullscreen .gantt-container {
-            max-height: calc(100vh - 140px);
-            overflow: auto;
+            overflow-x: auto;
+            overflow-y: hidden;
         }
 
         #exitFullscreenWrapper {
@@ -1141,9 +1164,11 @@
                                                                                                                                                    ============================================ */
         .gantt-layout {
             display: flex;
+            align-items: flex-start;
             border: 1px solid #e2e8f0;
             border-radius: 10px;
-            overflow: hidden;
+            overflow-y: auto;
+            overflow-x: hidden;
             background: #fff;
             position: relative;
             height: 580px;
@@ -1159,7 +1184,6 @@
             flex-direction: column;
             background: #f8fafc;
             transition: width .2s ease, min-width .2s ease, opacity .2s ease, border-width .2s ease;
-            overflow: hidden;
         }
 
         .gantt-sidebar.collapsed {
@@ -1182,12 +1206,15 @@
             color: #94a3b8;
             text-transform: uppercase;
             letter-spacing: .5px;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            background: #f8fafc;
         }
 
         .gantt-sidebar-scroll {
             flex: 1;
-            overflow-y: auto;
-            overflow-x: hidden;
+            overflow: hidden;
         }
 
         /* Hide scrollbar on sidebar (synced with timeline) */
@@ -1313,16 +1340,15 @@
         /* Timeline takes remaining space */
         .gantt-timeline {
             flex: 1;
-            overflow: hidden;
             min-width: 0;
         }
 
         .gantt-target {
-            height: 100%;
         }
 
         .gantt-target .gantt-container {
-            height: 100%;
+            overflow-x: auto;
+            overflow-y: hidden;
         }
 
         /* Responsive — hide sidebar on mobile */
@@ -1995,14 +2021,11 @@
 
                 // Match sidebar rows height to SVG height
                 syncSidebarHeight();
-                // Setup bidirectional scroll sync
-                setupScrollSync();
                 // Drag-to-pan on Gantt timeline
                 setupDragToPan();
-                // Sticky grid-header on vertical scroll
-                setupStickyHeader();
-                // Create sticky layer (header + dates on top of bars)
-                setupStickyHeaderLayer();
+                // HTML sticky header overlay + horizontal sync
+                buildStickyHeaderOverlay();
+                setupStickyHeaderScrollSync();
                 // Apply initial sidebar visibility
                 applySidebarVisibility();
             }
@@ -2012,64 +2035,21 @@
                 const svg = document.querySelector('.gantt-target svg');
                 const rowsEl = document.getElementById('ganttSidebarRows');
                 if (svg && rowsEl) {
-                    const isFullscreen = document.getElementById('ganttSection').classList.contains('gantt-fullscreen');
                     let svgHeight;
-                    if (isFullscreen) {
-                        svgHeight = (svg.height && svg.height.baseVal && svg.height.baseVal.value)
-                            || svg.getAttribute('height')
-                            || svg.clientHeight
-                            || 0;
-                    } else {
-                        svgHeight = svg.clientHeight || svg.getBoundingClientRect().height || 0;
+                    svgHeight = (svg.height && svg.height.baseVal && svg.height.baseVal.value)
+                        || svg.getAttribute('height')
+                        || svg.clientHeight
+                        || svg.getBoundingClientRect().height
+                        || 0;
+                    const headerRect = svg.querySelector('.grid-header');
+                    const headerH = headerRect
+                        ? (parseFloat(headerRect.getAttribute('height')) || 60)
+                        : 60;
+                    const contentHeight = svgHeight - headerH;
+                    if (contentHeight > 0) {
+                        rowsEl.style.minHeight = contentHeight + 'px';
                     }
-                    if (svgHeight > 0) {
-                        rowsEl.style.minHeight = svgHeight + 'px';
-                    }
                 }
-            }
-
-            // Bidirectional vertical scroll sync between sidebar and timeline
-            let scrollSyncSetup = false;
-            let scrollSyncCleanup = null;
-
-            function setupScrollSync() {
-                if (scrollSyncSetup) return;
-                const sidebarScroll = document.getElementById('ganttSidebarScroll');
-                const timelineScroll = getScrollContainer();
-                if (!sidebarScroll || !timelineScroll) return;
-
-                // Limpiar listeners viejos del sidebar (persiste entre renders)
-                if (scrollSyncCleanup) scrollSyncCleanup();
-
-                let syncing = false;
-
-                function onSidebarScroll() {
-                    if (syncing) return;
-                    syncing = true;
-                    requestAnimationFrame(() => {
-                        timelineScroll.scrollTop = sidebarScroll.scrollTop;
-                        syncing = false;
-                    });
-                }
-
-                function onTimelineScroll() {
-                    if (syncing) return;
-                    syncing = true;
-                    requestAnimationFrame(() => {
-                        sidebarScroll.scrollTop = timelineScroll.scrollTop;
-                        syncing = false;
-                    });
-                }
-
-                sidebarScroll.addEventListener('scroll', onSidebarScroll);
-                timelineScroll.addEventListener('scroll', onTimelineScroll);
-
-                scrollSyncCleanup = () => {
-                    sidebarScroll.removeEventListener('scroll', onSidebarScroll);
-                    timelineScroll.removeEventListener('scroll', onTimelineScroll);
-                };
-
-                scrollSyncSetup = true;
             }
 
             // Drag-to-pan: click and drag on Gantt timeline to scroll horizontally
@@ -2114,48 +2094,69 @@
                 dragToPanSetup = true;
             }
 
-            // Sticky grid-header: keep the date header at the top when scrolling vertically
-            let stickyHeaderSetup = false;
+            // Sticky date header: HTML overlay with position:sticky
+            function buildStickyHeaderOverlay() {
+                var timeline = document.querySelector('.gantt-timeline');
+                var svg = document.querySelector('.gantt-target svg');
+                if (!timeline || !svg) return;
 
-            function setupStickyHeader() {
-                if (stickyHeaderSetup) return;
-                const scroller = getScrollContainer();
-                if (!scroller) return;
+                var old = document.getElementById('ganttStickyHeader');
+                if (old) old.remove();
 
-                let ticking = false;
-                scroller.addEventListener('scroll', function() {
-                    if (!ticking) {
-                        requestAnimationFrame(function() {
-                            const scrollTop = scroller.scrollTop;
-                            const stickyLayer = scroller.querySelector('.sticky-layer');
-                            if (stickyLayer) {
-                                stickyLayer.style.transform = 'translateY(' + scrollTop + 'px)';
-                            }
-                            ticking = false;
-                        });
-                        ticking = true;
-                    }
+                var headerRect = svg.querySelector('.grid-header');
+                var headerH = headerRect
+                    ? (parseFloat(headerRect.getAttribute('height')) || 60)
+                    : 60;
+                var headerW = headerRect
+                    ? (parseFloat(headerRect.getAttribute('width')) || 0)
+                    : 0;
+
+                var overlay = document.createElement('div');
+                overlay.id = 'ganttStickyHeader';
+                overlay.className = 'gantt-sticky-header';
+                overlay.style.height = headerH + 'px';
+
+                var svgNS = 'http://www.w3.org/2000/svg';
+                var cloneSvg = document.createElementNS(svgNS, 'svg');
+                cloneSvg.classList.add('gantt');
+                cloneSvg.setAttribute('width', headerW);
+                cloneSvg.setAttribute('height', headerH);
+                cloneSvg.style.width = headerW + 'px';
+                cloneSvg.style.height = headerH + 'px';
+
+                if (headerRect) {
+                    var clonedRect = headerRect.cloneNode(true);
+                    clonedRect.style.visibility = 'visible';
+                    cloneSvg.appendChild(clonedRect);
+                }
+
+                var todayHL = svg.querySelector('.today-highlight');
+                if (todayHL) {
+                    cloneSvg.appendChild(todayHL.cloneNode(true));
+                }
+
+                svg.querySelectorAll('g.date text').forEach(function(txt) {
+                    var cloned = txt.cloneNode(true);
+                    cloned.style.visibility = 'visible';
+                    cloneSvg.appendChild(cloned);
                 });
 
-                stickyHeaderSetup = true;
+                overlay.appendChild(cloneSvg);
+                timeline.insertBefore(overlay, timeline.querySelector('.gantt-target'));
+
+                // Compensate: sticky header takes flow space, pull .gantt-target up to re-align bars with sidebar rows
+                var targetEl = document.querySelector('.gantt-target');
+                if (targetEl) targetEl.style.marginTop = -headerH + 'px';
             }
 
-            // Create sticky layer: move grid-header + date labels to a layer rendered ON TOP of bars
-            function setupStickyHeaderLayer() {
-                const svg = document.querySelector('.gantt-target svg');
-                if (!svg) return;
-                // Remove old sticky layer if re-rendering
-                const old = svg.querySelector('.sticky-layer');
-                if (old) old.remove();
-                // Create new layer at end of SVG (rendered on top of everything)
-                const layer = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-                layer.setAttribute('class', 'sticky-layer');
-                svg.appendChild(layer);
-                // Move grid-header rect
-                const header = svg.querySelector('.grid-header');
-                if (header) layer.appendChild(header);
-                // Move date text labels
-                svg.querySelectorAll('g.date text').forEach(function(t) { layer.appendChild(t); });
+            // Sync overlay horizontal position with .gantt-container scroll
+            function setupStickyHeaderScrollSync() {
+                var scroller = getScrollContainer();
+                var overlaySvg = document.querySelector('#ganttStickyHeader svg');
+                if (!scroller || !overlaySvg) return;
+                scroller.addEventListener('scroll', function() {
+                    overlaySvg.style.transform = 'translateX(' + (-scroller.scrollLeft) + 'px)';
+                }, { passive: true });
             }
 
             // Apply sidebar visibility state
@@ -2189,10 +2190,7 @@
                 emptyEl.style.display = 'none';
                 if (layoutEl) layoutEl.style.display = 'flex';
                 targetEl.innerHTML = '';
-                // Reset scroll sync so it rebinds to new Frappe container
-                scrollSyncSetup = false;
-                scrollSyncCleanup = null;
-                stickyHeaderSetup = false;
+                targetEl.style.marginTop = '';
 
                 ganttChart = new Gantt(".gantt-target", items, {
                     custom_popup_html: function(task) {
@@ -2468,12 +2466,8 @@
                     setTimeout(() => {
                         if (ganttChart) {
                             renderGantt(applyClientFilters(allData));
-                            requestAnimationFrame(() => {
-                                syncSidebarHeight();
-                                setupScrollSync();
-                            });
                         }
-                    }, 200);
+                    }, 300);
                 }
             }
 
@@ -2490,12 +2484,8 @@
                 setTimeout(() => {
                     if (ganttChart) {
                         renderGantt(applyClientFilters(allData));
-                        requestAnimationFrame(() => {
-                            syncSidebarHeight();
-                            setupScrollSync();
-                        });
                     }
-                }, 200);
+                }, 300);
             });
 
             document.getElementById('btnExitFullscreen').addEventListener('click', exitFullscreen);
