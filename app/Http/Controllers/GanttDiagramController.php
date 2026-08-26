@@ -270,6 +270,7 @@ class GanttDiagramController extends Controller
 
                 if ($showTasks) {
                     foreach ($milestone->tasks as $task) {
+                        if ((string) $milestone->status === '1') continue;
                         // Task start = prioridad de fechas propias de la tarea:
                         // 1) first_timesheet_date (primer timesheet de ESTA tarea)
                         // 2) start_date (fecha planificada de la tarea)
