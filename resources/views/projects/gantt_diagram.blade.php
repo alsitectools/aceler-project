@@ -2012,7 +2012,16 @@
                 const svg = document.querySelector('.gantt-target svg');
                 const rowsEl = document.getElementById('ganttSidebarRows');
                 if (svg && rowsEl) {
-                    const svgHeight = svg.clientHeight || svg.getBoundingClientRect().height || 0;
+                    const isFullscreen = document.getElementById('ganttSection').classList.contains('gantt-fullscreen');
+                    let svgHeight;
+                    if (isFullscreen) {
+                        svgHeight = (svg.height && svg.height.baseVal && svg.height.baseVal.value)
+                            || svg.getAttribute('height')
+                            || svg.clientHeight
+                            || 0;
+                    } else {
+                        svgHeight = svg.clientHeight || svg.getBoundingClientRect().height || 0;
+                    }
                     if (svgHeight > 0) {
                         rowsEl.style.minHeight = svgHeight + 'px';
                     }
@@ -2021,6 +2030,7 @@
 
             // Bidirectional vertical scroll sync between sidebar and timeline
             let scrollSyncSetup = false;
+            let scrollSyncCleanup = null;
 
             function setupScrollSync() {
                 if (scrollSyncSetup) return;
@@ -2028,25 +2038,36 @@
                 const timelineScroll = getScrollContainer();
                 if (!sidebarScroll || !timelineScroll) return;
 
+                // Limpiar listeners viejos del sidebar (persiste entre renders)
+                if (scrollSyncCleanup) scrollSyncCleanup();
+
                 let syncing = false;
 
-                sidebarScroll.addEventListener('scroll', function() {
+                function onSidebarScroll() {
                     if (syncing) return;
                     syncing = true;
                     requestAnimationFrame(() => {
                         timelineScroll.scrollTop = sidebarScroll.scrollTop;
                         syncing = false;
                     });
-                });
+                }
 
-                timelineScroll.addEventListener('scroll', function() {
+                function onTimelineScroll() {
                     if (syncing) return;
                     syncing = true;
                     requestAnimationFrame(() => {
                         sidebarScroll.scrollTop = timelineScroll.scrollTop;
                         syncing = false;
                     });
-                });
+                }
+
+                sidebarScroll.addEventListener('scroll', onSidebarScroll);
+                timelineScroll.addEventListener('scroll', onTimelineScroll);
+
+                scrollSyncCleanup = () => {
+                    sidebarScroll.removeEventListener('scroll', onSidebarScroll);
+                    timelineScroll.removeEventListener('scroll', onTimelineScroll);
+                };
 
                 scrollSyncSetup = true;
             }
@@ -2170,6 +2191,7 @@
                 targetEl.innerHTML = '';
                 // Reset scroll sync so it rebinds to new Frappe container
                 scrollSyncSetup = false;
+                scrollSyncCleanup = null;
                 stickyHeaderSetup = false;
 
                 ganttChart = new Gantt(".gantt-target", items, {
@@ -2444,7 +2466,13 @@
                     section.classList.remove('gantt-fullscreen');
                     document.querySelector('#btnFullscreen i').className = 'fa-solid fa-expand';
                     setTimeout(() => {
-                        if (ganttChart) renderGantt(applyClientFilters(allData));
+                        if (ganttChart) {
+                            renderGantt(applyClientFilters(allData));
+                            requestAnimationFrame(() => {
+                                syncSidebarHeight();
+                                setupScrollSync();
+                            });
+                        }
                     }, 200);
                 }
             }
@@ -2460,7 +2488,13 @@
                 }
                 // Re-render to fit new size
                 setTimeout(() => {
-                    if (ganttChart) renderGantt(applyClientFilters(allData));
+                    if (ganttChart) {
+                        renderGantt(applyClientFilters(allData));
+                        requestAnimationFrame(() => {
+                            syncSidebarHeight();
+                            setupScrollSync();
+                        });
+                    }
                 }, 200);
             });
 
