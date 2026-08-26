@@ -495,11 +495,10 @@ class GanttDiagramController extends Controller
      */
     private function getTaskReviewedDate($task): ?string
     {
-        $reviewed = \App\Models\TaskReviewState::where('task_id', $task->id)
-            ->where('state_code', 'reviewed')
-            ->orderBy('created_at')
-            ->first();
-
-        return $reviewed ? Carbon::parse($reviewed->created_at)->format('Y-m-d') : null;
+        $latest = $task->reviewState;
+        if (!$latest || $latest->state_code !== 'reviewed') {
+            return null;
+        }
+        return $latest->created_at ? Carbon::parse($latest->created_at)->format('Y-m-d') : null;
     }
 }

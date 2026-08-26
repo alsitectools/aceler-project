@@ -360,6 +360,15 @@ var Gantt = (function () {
         element.setAttribute(attr, value);
     };
 
+    function dateToX(dateStr, gantt) {
+        if (!dateStr) return null;
+        const d = new Date(dateStr + 'T00:00:00');
+        const gStart = new Date(gantt.gantt_start);
+        const diffHours = (d - gStart) / (1000 * 60 * 60);
+        const { step, column_width } = gantt.options;
+        return (diffHours / step) * column_width;
+    }
+
     class Bar {
         constructor(gantt, task) {
             this.set_defaults(gantt, task);
@@ -465,6 +474,54 @@ var Gantt = (function () {
                     class: 'bar-diamond bar-diamond-right',
                     append_to: this.bar_group
                 });
+            }
+
+            if (this.task.type === 'milestone') {
+                const extra = this.task.extra;
+
+                if (extra.status === '4' || extra.finalization_date) return;
+
+                const dSize = 8;
+                const cy = this.y - dSize - 2;
+
+                if (extra.planned_date && extra.desired_date && extra.planned_date === extra.desired_date) {
+                    const x = dateToX(extra.planned_date, this.gantt);
+                    if (x !== null) {
+                        createSVG('polygon', {
+                            points: `${x},${cy - dSize} ${x + dSize},${cy} ${x},${cy + dSize} ${x - dSize},${cy}`,
+                            class: 'bar-marker',
+                            append_to: this.bar_group
+                        });
+                        const text = createSVG('text', {
+                            x: x, y: cy + 3,
+                            'text-anchor': 'middle',
+                            class: 'bar-marker-text bar-marker-text-combined',
+                            append_to: this.bar_group
+                        });
+                        text.textContent = 'P+D';
+                    }
+                } else {
+                    const markers = [
+                        { date: extra.planned_date, letter: 'P' },
+                        { date: extra.desired_date, letter: 'D' }
+                    ];
+                    markers.forEach(({ date, letter }) => {
+                        const x = dateToX(date, this.gantt);
+                        if (x === null) return;
+                        createSVG('polygon', {
+                            points: `${x},${cy - dSize} ${x + dSize},${cy} ${x},${cy + dSize} ${x - dSize},${cy}`,
+                            class: 'bar-marker',
+                            append_to: this.bar_group
+                        });
+                        const text = createSVG('text', {
+                            x: x, y: cy + 3,
+                            'text-anchor': 'middle',
+                            class: 'bar-marker-text',
+                            append_to: this.bar_group
+                        });
+                        text.textContent = letter;
+                    });
+                }
             }
         }
 

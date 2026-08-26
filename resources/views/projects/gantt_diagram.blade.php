@@ -742,6 +742,23 @@
             transform-origin: center;
         }
 
+        .gantt-ms-created .bar-marker  { fill: #94a3b8 !important; }
+        .gantt-ms-active .bar-marker   { fill: #3b82f6 !important; }
+        .gantt-ms-progress .bar-marker { fill: #f59e0b !important; }
+        .gantt-ms-done .bar-marker     { fill: #10b981 !important; }
+        .gantt-ms-overdue .bar-marker  { fill: #ef4444 !important; }
+
+        .bar-marker-text {
+            fill: #ffffff !important;
+            font-size: 9px;
+            font-weight: 700;
+            pointer-events: none;
+        }
+
+        .bar-marker-text-combined {
+            font-size: 7px;
+        }
+
         .gantt-project .bar-progress {
             fill: #4f46e5 !important;
         }
@@ -766,6 +783,10 @@
         }
 
         .gantt-project-finished .bar-label.big {
+            fill: #10b981 !important;
+        }
+
+        .gantt-project-finished .bar-diamond {
             fill: #10b981 !important;
         }
 
