@@ -1004,7 +1004,7 @@
         .gantt-sticky-header {
             position: sticky;
             top: 0;
-            z-index: 1000;
+            z-index: 15;
             background: #fff;
             overflow: hidden;
             pointer-events: none;
