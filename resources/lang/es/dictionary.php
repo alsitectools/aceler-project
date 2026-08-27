@@ -144,7 +144,7 @@ return [
     'Summary' => 'Resumen',
     'Login_azure' => 'Iniciar sesión con Azure',
     'Todo' => 'Por hacer',
-    'In_Progress' => 'En curso',
+    'In_Progress' => 'En progreso',
     'Review' => 'Revisar',
     'Done' => 'Hecho',
     'End_Date' => 'Fecha finalización',

@@ -159,32 +159,25 @@
         {{-- Legend --}}
         <div class="gantt-legend" id="ganttLegend">
             <span class="gantt-legend-group">
-                <span class="gantt-legend-item"><span class="gantt-dot"
-                        style="background:#6366f1;"></span>{{ __('Project') }}</span>
-                <span class="gantt-legend-item"><span class="gantt-dot"
-                        style="background:#10b981;"></span>{{ __('Finished') }}</span>
-                <span class="gantt-legend-item"><span class="gantt-dot"
-                        style="background:#94a3b8;"></span>{{ __('On Hold') }}</span>
+                <span class="gantt-legend-group-label">{{ __('Projects') }}:</span>
+                <span class="gantt-legend-item"><i class="fa-solid fa-diagram-project" style="color:#6366f1;"></i>{{ __('Ongoing') }}</span>
+                <span class="gantt-legend-item"><i class="fa-solid fa-diagram-project" style="color:#10b981;"></i>{{ __('Finished') }}</span>
+                <span class="gantt-legend-item"><i class="fa-solid fa-diagram-project" style="color:#94a3b8;"></i>{{ __('On Hold') }}</span>
             </span>
             <span class="gantt-legend-sep"></span>
             <span class="gantt-legend-group">
-                <span class="gantt-legend-item"><span class="gantt-dot"
-                        style="background:#cbd5e1;"></span>{{ __('Created') }}</span>
-                <span class="gantt-legend-item"><span class="gantt-dot"
-                        style="background:#60a5fa;"></span>{{ __('Active') }}</span>
-                <span class="gantt-legend-item"><span class="gantt-dot"
-                        style="background:#fbbf24;"></span>{{ __('In Progress') }}</span>
-                <span class="gantt-legend-item"><span class="gantt-dot"
-                        style="background:#34d399;"></span>{{ __('Done') }}</span>
-                <span class="gantt-legend-item"><span class="gantt-dot"
-                        style="background:#f87171;"></span>{{ __('Overdue') }}</span>
+                <span class="gantt-legend-group-label">{{ __('Milestones') }}:</span>
+                <span class="gantt-legend-item"><i class="fa-solid fa-file-lines" style="color:#cbd5e1;"></i>{{ __('Todo') }}</span>
+                <span class="gantt-legend-item"><i class="fa-solid fa-file-lines" style="color:#60a5fa;"></i>{{ __('In_Progress') }}</span>
+                <span class="gantt-legend-item"><i class="fa-solid fa-file-lines" style="color:#fbbf24;"></i>{{ __('Review') }}</span>
+                <span class="gantt-legend-item"><i class="fa-solid fa-file-lines" style="color:#34d399;"></i>{{ __('Done') }}</span>
+                <span class="gantt-legend-item"><i class="fa-solid fa-file-lines" style="color:#f87171;"></i>{{ __('Overdue') }}</span>
             </span>
             <span class="gantt-legend-sep"></span>
             <span class="gantt-legend-group">
+                <span class="gantt-legend-group-label">{{ __('Tasks') }}:</span>
                 <span class="gantt-legend-item"><span class="gantt-dot"
-                        style="background:#94a3b8;"></span>{{ __('Task') }}</span>
-                <span class="gantt-legend-item gantt-legend-waiting"><i class="fa-solid fa-pause"></i>
-                    {{ __('Waiting') }}</span>
+                        style="background:#a5b4fc;"></span>{{ __('Task') }}</span>
             </span>
         </div>
 
@@ -669,6 +662,7 @@
         .gantt-legend {
             display: flex;
             align-items: center;
+            justify-content: space-around;
             flex-wrap: wrap;
             gap: 6px;
             padding: 0 0 16px;
@@ -680,6 +674,14 @@
             display: inline-flex;
             align-items: center;
             gap: 12px;
+        }
+
+        .gantt-legend-group-label {
+            font-weight: 700;
+            color: #475569;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: .3px;
         }
 
         .gantt-legend-item {
@@ -698,20 +700,7 @@
         }
 
         .gantt-legend-sep {
-            width: 1px;
-            height: 16px;
-            background: #e2e8f0;
-            margin: 0 8px;
-        }
-
-        .gantt-legend-waiting {
-            color: #c2410c;
-            font-weight: 600;
-            font-size: 11px;
-        }
-
-        .gantt-legend-waiting i {
-            font-size: 8px;
+            display: none;
         }
 
         /* === D — COLOR PALETTE (armonizada) === */
@@ -807,7 +796,7 @@
             fill: #94a3b8 !important;
         }
 
-        /* Milestone Created (light slate) */
+        /* Milestone To Do (light slate) */
         .gantt-ms-created .bar {
             fill: #cbd5e1 !important;
         }
@@ -816,7 +805,7 @@
             fill: #94a3b8 !important;
         }
 
-        /* Milestone Active (blue) */
+        /* Milestone In Progress (blue) */
         .gantt-ms-active .bar {
             fill: #60a5fa !important;
         }
@@ -825,7 +814,7 @@
             fill: #3b82f6 !important;
         }
 
-        /* Milestone In Progress (amber) */
+        /* Milestone Review (amber) */
         .gantt-ms-progress .bar {
             fill: #fbbf24 !important;
         }
@@ -857,13 +846,13 @@
             font-weight: 600 !important;
         }
 
-        /* Tasks (neutral slate) */
+        /* Tasks (indigo light) */
         .gantt-task .bar {
-            fill: #94a3b8 !important;
+            fill: #a5b4fc !important;
         }
 
         .gantt-task .bar-progress {
-            fill: #64748b !important;
+            fill: #818cf8 !important;
         }
 
         .gantt-task .bar-label {
@@ -902,7 +891,7 @@
         }
 
         .gantt-task .bar-label.big {
-            fill: #64748b !important;
+            fill: #818cf8 !important;
         }
 
         /* === F — POPUP (SaaS style) === */
@@ -1317,13 +1306,22 @@
             flex-shrink: 0;
         }
 
-        /* Type indicator dot */
-        .gantt-sidebar-dot {
-            width: 6px;
-            height: 6px;
-            border-radius: 50%;
+        /* Type indicator icon (projects & milestones) */
+        .gantt-sidebar-icon {
             flex-shrink: 0;
-            margin-right: 6px;
+            margin-right: 8px;
+            font-size: 12px;
+            width: 20px;
+            text-align: center;
+        }
+
+        /* Type indicator dot (tasks) */
+        .gantt-sidebar-dot {
+            font-size: 8px;
+            flex-shrink: 0;
+            margin-right: 8px;
+            width: 20px;
+            text-align: center;
         }
 
         /* Row label text */
@@ -1923,7 +1921,7 @@
                     if (s === '2') return '#60a5fa';
                     return '#cbd5e1';
                 }
-                return '#94a3b8'; // task
+                return '#a5b4fc'; // task
             }
 
             // Collapsible only if the item actually has children in allData
@@ -1975,10 +1973,16 @@
                         row.appendChild(spacer);
                     }
 
-                    // Color dot
-                    const dot = document.createElement('span');
-                    dot.className = 'gantt-sidebar-dot';
-                    dot.style.backgroundColor = getSidebarDotColor(item);
+                    // Color dot / icon
+                    const dot = document.createElement('i');
+                    dot.style.color = getSidebarDotColor(item);
+                    if (item.type === 'project') {
+                        dot.className = 'fa-solid fa-diagram-project gantt-sidebar-icon';
+                    } else if (item.type === 'milestone') {
+                        dot.className = 'fa-solid fa-file-lines gantt-sidebar-icon';
+                    } else {
+                        dot.className = 'fas fa-circle-dot gantt-sidebar-dot';
+                    }
                     row.appendChild(dot);
 
                     // Label
@@ -2355,9 +2359,9 @@
 
                 if (extra.type === 'milestone') {
                     const statusLabels = {
-                        '1': '{{ __('Created') }}',
-                        '2': '{{ __('Active') }}',
-                        '3': '{{ __('In Progress') }}',
+                        '1': '{{ __('Todo') }}',
+                        '2': '{{ __('In_Progress') }}',
+                        '3': '{{ __('Review') }}',
                         '4': '{{ __('Done') }}'
                     };
                     const priorityLabels = {
