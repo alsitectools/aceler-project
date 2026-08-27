@@ -151,6 +151,9 @@ return [
     'Notification' => 'Notification',
     'No_tasks' => 'No task in progress',
     'Branch' => 'Branch',
-    'Project_type' => 'Proyect type'
+    'Project_type' => 'Proyect type',
+    'Show_percentages' => 'Show percentages',
+    'Hide_percentages' => 'Hide percentages',
+    'Labels' => 'Labels'
 
 ];

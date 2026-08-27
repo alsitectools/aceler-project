@@ -156,4 +156,7 @@ return [
     'No_tasks' => 'No hay tareas en curso',
     'Branch' => 'Delegación',
     'Project_type' => 'Tipo de proyecto',
+    'Show_percentages' => 'Mostrar porcentajes',
+    'Hide_percentages' => 'Ocultar porcentajes',
+    'Labels' => 'Etiquetas',
 ];

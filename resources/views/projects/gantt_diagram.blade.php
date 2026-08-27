@@ -143,11 +143,17 @@
                 <input type="date" id="filterDateTo" class="form-control form-control-sm"
                     placeholder="{{ __('To') }}">
             </div>
-            <div class="col-auto mb-2">
-                <button type="button" class="gantt-text-toggle-btn" id="btnToggleLabels">
-                    <i class="fa-solid fa-font"></i>
-                    <span id="btnToggleLabelsText">{{ __('Show labels') }}</span>
-                </button>
+            <div class="col-auto mb-2 gantt-toggle-col">
+                <label class="gantt-switch" title="{{ __('Show labels') }}">
+                    <span class="gantt-switch-label">{{ __('Labels') }}</span>
+                    <input type="checkbox" id="toggleLabels">
+                    <span class="gantt-switch-track"></span>
+                </label>
+                <label class="gantt-switch" title="{{ __('Show_percentages') }}">
+                    <span class="gantt-switch-label">%</span>
+                    <input type="checkbox" id="togglePercentages">
+                    <span class="gantt-switch-track"></span>
+                </label>
             </div>
             <div class="col-auto mb-2" id="exitFullscreenWrapper">
                 <button class="btn btn-sm btn-danger" id="btnExitFullscreen" title="{{ __('Exit Fullscreen') }}">
@@ -160,7 +166,7 @@
         <div class="gantt-legend" id="ganttLegend">
             <span class="gantt-legend-group">
                 <span class="gantt-legend-group-label">{{ __('Projects') }}:</span>
-                <span class="gantt-legend-item"><i class="fa-solid fa-diagram-project" style="color:#6366f1;"></i>{{ __('Ongoing') }}</span>
+                <span class="gantt-legend-item"><i class="fa-solid fa-diagram-project" style="color:#1c49b5;"></i>{{ __('Ongoing') }}</span>
                 <span class="gantt-legend-item"><i class="fa-solid fa-diagram-project" style="color:#10b981;"></i>{{ __('Finished') }}</span>
                 <span class="gantt-legend-item"><i class="fa-solid fa-diagram-project" style="color:#94a3b8;"></i>{{ __('On Hold') }}</span>
             </span>
@@ -197,7 +203,7 @@
                     {{-- Project row --}}
                     <div class="gantt-skeleton-row skel-project">
                         <span class="skel-chevron"></span>
-                        <span class="skel-dot" style="background:#6366f1"></span>
+                        <span class="skel-dot" style="background:#1c49b5"></span>
                         <span class="skel-text" style="width:60%"></span>
                     </div>
                     {{-- Milestone rows --}}
@@ -229,7 +235,7 @@
                     {{-- Second project --}}
                     <div class="gantt-skeleton-row skel-project" style="border-top:1px solid #e2e8f0">
                         <span class="skel-chevron"></span>
-                        <span class="skel-dot" style="background:#6366f1"></span>
+                        <span class="skel-dot" style="background:#1c49b5"></span>
                         <span class="skel-text" style="width:52%"></span>
                     </div>
                     <div class="gantt-skeleton-row skel-milestone">
@@ -658,6 +664,64 @@
             font-size: 12px;
         }
 
+        /* Compact toggles (switch) */
+        .gantt-toggle-col {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .gantt-switch {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 500;
+            color: #64748b;
+            user-select: none;
+            white-space: nowrap;
+        }
+
+        .gantt-switch input {
+            display: none;
+        }
+
+        .gantt-switch-track {
+            width: 34px;
+            height: 20px;
+            border-radius: 999px;
+            background: #cbd5e1;
+            position: relative;
+            transition: background .2s ease;
+            flex-shrink: 0;
+        }
+
+        .gantt-switch-track::after {
+            content: '';
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: #fff;
+            transition: transform .2s ease;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, .2);
+        }
+
+        .gantt-switch input:checked+.gantt-switch-track {
+            background: #aa182c;
+        }
+
+        .gantt-switch input:checked+.gantt-switch-track::after {
+            transform: translateX(14px);
+        }
+
+        .gantt-switch:hover .gantt-switch-label {
+            color: #334155;
+        }
+
         /* === C — LEGEND === */
         .gantt-legend {
             display: flex;
@@ -707,14 +771,14 @@
 
         /* Project bars — thinner with diamond fangs */
         .gantt-project .bar {
-            fill: #6366f1 !important;
+            fill: #1c49b5 !important;
             transform: scaleY(0.7);
             transform-box: fill-box;
             transform-origin: center;
         }
 
         .gantt-project .bar-diamond {
-            fill: #6366f1 !important;
+            fill: #1c49b5 !important;
         }
 
         .gantt-project .bar-diamond-left {
@@ -749,7 +813,7 @@
         }
 
         .gantt-project .bar-progress {
-            fill: #4f46e5 !important;
+            fill: #163790 !important;
         }
 
         .gantt-project .bar-label {
@@ -759,7 +823,7 @@
         }
 
         .gantt-project .bar-label.big {
-            fill: #6366f1 !important;
+            fill: #1c49b5 !important;
         }
 
         /* Project Finished (emerald) */
@@ -1019,6 +1083,18 @@
             visibility: hidden !important;
         }
 
+        /* Milestone (encargo) percentage labels at the right of each bar */
+        .gantt-percent-label {
+            font-size: 11px;
+            font-weight: 600;
+            fill: #334155;
+            pointer-events: none;
+        }
+
+        #ganttSection.gantt-hide-bar-percentages .gantt-percent-label {
+            display: none;
+        }
+
         /* === G — EMPTY STATE === */
         .gantt-empty-state {
             text-align: center;
@@ -1155,12 +1231,30 @@
             display: flex;
             align-items: flex-start;
             border: 1px solid #e2e8f0;
-            border-radius: 10px;
+            border-radius: 12px;
             overflow-y: auto;
             overflow-x: hidden;
             background: #fff;
+            box-shadow: 0 4px 20px rgba(15, 23, 42, .05);
             position: relative;
             height: 580px;
+        }
+
+        #ganttLayout::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        #ganttLayout::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 999px;
+        }
+
+        #ganttLayout::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+
+        #ganttLayout::-webkit-scrollbar-track {
+            background: transparent;
         }
 
         /* Sidebar panel */
@@ -1171,7 +1265,7 @@
             border-right: 1px solid #e2e8f0;
             display: flex;
             flex-direction: column;
-            background: #f8fafc;
+            background: linear-gradient(180deg, #fafbfc 0%, #f1f5f9 100%);
             transition: width .2s ease, min-width .2s ease, opacity .2s ease, border-width .2s ease;
         }
 
@@ -1198,7 +1292,8 @@
             position: sticky;
             top: 0;
             z-index: 10;
-            background: #f8fafc;
+            background: #ffffff;
+            box-shadow: 0 1px 3px rgba(15, 23, 42, .04);
         }
 
         .gantt-sidebar-scroll {
@@ -1568,6 +1663,7 @@
 
             let sidebarVisible = window.innerWidth > 768;
             let labelsVisibleOverride = null;
+            let percentagesVisible = true;
             const collapsedIds = new Set(JSON.parse(sessionStorage.getItem('ganttCollapsed') || '[]'));
 
             const dataUrl = @json(route('gantt.diagram.data'));
@@ -1577,13 +1673,9 @@
             }
 
             function updateLabelsToggleButton() {
-                const btn = document.getElementById('btnToggleLabels');
-                const text = document.getElementById('btnToggleLabelsText');
-                if (!btn || !text) return;
-                const visible = getLabelsVisible();
-                btn.classList.toggle('active', visible);
-                text.textContent = visible ? '{{ __('Hide labels') }}' : '{{ __('Show labels') }}';
-                btn.setAttribute('title', visible ? '{{ __('Hide labels') }}' : '{{ __('Show labels') }}');
+                const cb = document.getElementById('toggleLabels');
+                if (!cb) return;
+                cb.checked = getLabelsVisible();
             }
 
             function applyLabelVisibility() {
@@ -1591,6 +1683,53 @@
                 if (!section) return;
                 section.classList.toggle('gantt-hide-bar-labels', !getLabelsVisible());
                 updateLabelsToggleButton();
+            }
+
+            function updatePercentagesToggleButton() {
+                const cb = document.getElementById('togglePercentages');
+                if (!cb) return;
+                cb.checked = percentagesVisible;
+            }
+
+            function applyPercentagesVisibility() {
+                const section = document.getElementById('ganttSection');
+                if (!section) return;
+                section.classList.toggle('gantt-hide-bar-percentages', !percentagesVisible);
+                updatePercentagesToggleButton();
+            }
+
+            // # - Draw milestone (encargo) percentage labels at the right of each bar
+            function drawPercentages(items) {
+                const svg = document.querySelector('.gantt-target svg');
+                if (!svg) return;
+                svg.querySelectorAll('.gantt-percent-label').forEach(n => n.remove());
+
+                const byId = {};
+                (items || []).forEach(i => byId[i.id] = i);
+
+                const bars = svg.querySelectorAll('.bar-wrapper');
+                bars.forEach(bw => {
+                    const cls = bw.getAttribute('class') || '';
+                    if (!/gantt-ms-/.test(cls)) return; // solo encargos (milestones)
+                    const item = byId[bw.getAttribute('data-id')];
+                    const bar = bw.querySelector('.bar');
+                    if (!item || !bar) return;
+
+                    const pct = Math.round(+item.progress || 0);
+                    const x = parseFloat(bar.getAttribute('x')) + parseFloat(bar.getAttribute('width'));
+                    const y = parseFloat(bar.getAttribute('y')) + parseFloat(bar.getAttribute('height')) / 2;
+
+                    const t = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                    t.setAttribute('x', x + 5);
+                    t.setAttribute('y', y);
+                    t.setAttribute('dominant-baseline', 'central');
+                    t.setAttribute('text-anchor', 'start');
+                    t.setAttribute('class', 'gantt-percent-label');
+                    t.textContent = pct + '%';
+                    svg.appendChild(t);
+                });
+
+                applyPercentagesVisibility();
             }
 
             // === EXCEL-STYLE MULTISELECT DROPDOWNS ===
@@ -1911,7 +2050,7 @@
                 if (item.type === 'project') {
                     if (item.extra && item.extra.status === 'Finished') return '#10b981';
                     if (item.extra && item.extra.status === 'OnHold') return '#94a3b8';
-                    return '#6366f1';
+                    return '#1c49b5';
                 }
                 if (item.type === 'milestone') {
                     if (item.extra && item.extra.is_overdue) return '#ef4444';
@@ -2216,6 +2355,7 @@
                 buildSidebar(items);
 
                 applyLabelVisibility();
+                drawPercentages(items);
 
                 // #13 - Scroll to today (deferred to ensure SVG layout is complete)
                 setTimeout(scrollToToday, 300);
@@ -2501,9 +2641,14 @@
                 applySidebarVisibility();
             });
 
-            document.getElementById('btnToggleLabels').addEventListener('click', function() {
-                labelsVisibleOverride = !getLabelsVisible();
+            document.getElementById('toggleLabels').addEventListener('change', function() {
+                labelsVisibleOverride = this.checked;
                 applyLabelVisibility();
+            });
+
+            document.getElementById('togglePercentages').addEventListener('change', function() {
+                percentagesVisible = this.checked;
+                applyPercentagesVisibility();
             });
 
             // Cross-highlight: hovering a Gantt bar highlights the sidebar row
