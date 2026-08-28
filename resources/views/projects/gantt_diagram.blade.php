@@ -20,8 +20,8 @@
     {{-- Level toggle --}}
     <div class="gantt-segmented mx-1" id="level_toggle" role="group">
         <button class="gantt-seg-btn" data-level="projects">{{ __('Projects') }}</button>
-        <button class="gantt-seg-btn active" data-level="milestones">{{ __('+ Order Forms') }}</button>
-        <button class="gantt-seg-btn" data-level="tasks">{{ __('+ Tasks') }}</button>
+        <button class="gantt-seg-btn active" data-level="milestones">{{ __('Order Forms') }}</button>
+        <button class="gantt-seg-btn" data-level="tasks">{{ __('Tasks') }}</button>
     </div>
 
     {{-- #15 - Fullscreen button --}}
@@ -35,7 +35,7 @@
     </button>
 
     {{-- #14 - Export PNG button --}}
-    <button class="gantt-icon-btn mx-1" id="btnExport" title="{{ __('Export PNG') }}">
+    <button class="gantt-icon-btn mx-1" id="btnExport" title="{{ __('Export SVG') }}">
         <i class="fa-solid fa-download"></i>
     </button>
 @endsection
@@ -1173,6 +1173,18 @@
 
         #ganttSection.gantt-fullscreen #exitFullscreenWrapper {
             display: block;
+        }
+
+        #btnExitFullscreen {
+            background-color: #aa182c !important;
+            border-color: #aa182c !important;
+            color: #ffffff !important;
+        }
+
+        #btnExitFullscreen:hover {
+            background-color: #8f1423 !important;
+            border-color: #8f1423 !important;
+            color: #ffffff !important;
         }
 
         /* === I — ZOOM INDICATOR === */
@@ -2896,40 +2908,87 @@
             });
 
             // #14 - Export to PNG
+            // Collect CSS rules that affect the Gantt so the exported SVG keeps its colours
+            function collectGanttCSS() {
+                let css = '';
+                let sheets;
+                try {
+                    sheets = document.styleSheets;
+                } catch (e) {
+                    return '';
+                }
+                for (let i = 0; i < sheets.length; i++) {
+                    let rules;
+                    try {
+                        rules = sheets[i].cssRules;
+                    } catch (e) {
+                        continue; // cross-origin sheet, skip
+                    }
+                    if (!rules) continue;
+                    for (let j = 0; j < rules.length; j++) {
+                        const rule = rules[j];
+                        if (rule.type !== CSSRule.STYLE_RULE) continue;
+                        const sel = rule.selectorText || '';
+                        if (/\bgantt\b|\.bar|\.grid-|\.date|\.milestone|\.lower-text|\.upper-text|\.today/.test(sel)) {
+                            css += rule.cssText + '\n';
+                        }
+                    }
+                }
+                return css;
+            }
+
             document.getElementById('btnExport').addEventListener('click', function() {
-                const svg = document.querySelector('.gantt-target svg');
-                if (!svg) return;
+                try {
+                    const original = document.querySelector('.gantt-target svg');
+                    if (!original) {
+                        console.error('Export: SVG not found');
+                        return;
+                    }
 
-                const svgData = new XMLSerializer().serializeToString(svg);
-                const svgBlob = new Blob([svgData], {
-                    type: 'image/svg+xml;charset=utf-8'
-                });
-                const url = URL.createObjectURL(svgBlob);
+                    const svg = original.cloneNode(true);
 
-                const img = new Image();
-                img.onload = function() {
-                    const canvas = document.createElement('canvas');
-                    const scale = 2; // retina quality
-                    canvas.width = img.width * scale;
-                    canvas.height = img.height * scale;
-                    const ctx = canvas.getContext('2d');
-                    ctx.scale(scale, scale);
-                    ctx.fillStyle = '#ffffff';
-                    ctx.fillRect(0, 0, canvas.width, canvas.height);
-                    ctx.drawImage(img, 0, 0);
+                    // Force the header dates visible (the main SVG hides them because
+                    // the visible header is the sticky overlay) and add a white backdrop.
+                    const namespace = 'http://www.w3.org/2000/svg';
+                    const styleEl = document.createElementNS(namespace, 'style');
+                    styleEl.setAttribute('type', 'text/css');
+                    styleEl.textContent = collectGanttCSS() +
+                        '.gantt g.date text, .gantt .grid-header { visibility: visible !important; }';
+                    svg.insertBefore(styleEl, svg.firstChild);
 
-                    canvas.toBlob(function(blob) {
-                        const a = document.createElement('a');
-                        a.href = URL.createObjectURL(blob);
-                        a.download = 'gantt-diagram-' + new Date().toISOString().slice(0, 10) +
-                            '.png';
-                        a.click();
-                        URL.revokeObjectURL(a.href);
-                    }, 'image/png');
+                    // Freeze the chart and drop invalid/incomplete fragments so the
+                    // downloaded document stays clean: remove SMIL animations and any
+                    // element carrying NaN attributes (Day-view project fangs).
+                    svg.querySelectorAll('animate').forEach(n => n.remove());
+                    svg.querySelectorAll('[points="NaN"], [points^="NaN"], [x="NaN"], [y="NaN"], [width="NaN"], [height="NaN"]')
+                        .forEach(n => n.remove());
 
-                    URL.revokeObjectURL(url);
-                };
-                img.src = url;
+                    // Keep the intrinsic aspect ratio; fall back gracefully if unknown.
+                    const grid = original.querySelector('.grid-background');
+                    const w = grid ? parseFloat(grid.getAttribute('width')) : 0;
+                    const h = grid ? parseFloat(grid.getAttribute('height')) : 0;
+                    if (w && h && isFinite(w) && isFinite(h)) {
+                        svg.setAttribute('viewBox', '0 0 ' + w + ' ' + h);
+                        svg.setAttribute('width', w);
+                        svg.setAttribute('height', h);
+                    }
+
+                    const xml = '<?xml version="1.0" encoding="UTF-8"?>\n' +
+                        new XMLSerializer().serializeToString(svg);
+                    const blob = new Blob([xml], {
+                        type: 'image/svg+xml;charset=utf-8'
+                    });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = 'gantt-diagram-' + new Date().toISOString().slice(0, 10) + '.svg';
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    setTimeout(() => URL.revokeObjectURL(url), 1000);
+                } catch (e) {
+                    console.error('Export error:', e);
+                }
             });
 
             // === SCROLL ZOOM ===

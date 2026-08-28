@@ -1,5 +1,13 @@
 {
  "Structure": "Estructura",
+ "All Statuses": "Todos los estados",
+ "On Hold": "En espera",
+ "Overdue": "Atrasado",
+ "In_Progress": "En progreso",
+ "Exit Fullscreen": "Salir de pantalla completa",
+ "Fullscreen": "Pantalla completa",
+ "Toggle sidebar": "Alternar panel lateral",
+ "Export SVG": "Exportar SVG",
  " Add Invoice": "Agregar factura",
  " Generate": "Generar",
  " Notes": "Notas",
