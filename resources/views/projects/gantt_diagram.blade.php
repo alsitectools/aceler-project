@@ -1407,7 +1407,12 @@
             margin-right: 8px;
             font-size: 12px;
             width: 20px;
-            text-align: center;
+            height: 20px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 5px;
+            color: #fff;
         }
 
         /* Type indicator dot (tasks) */
@@ -2114,13 +2119,15 @@
 
                     // Color dot / icon
                     const dot = document.createElement('i');
-                    dot.style.color = getSidebarDotColor(item);
                     if (item.type === 'project') {
                         dot.className = 'fa-solid fa-diagram-project gantt-sidebar-icon';
+                        dot.style.backgroundColor = getSidebarDotColor(item);
                     } else if (item.type === 'milestone') {
                         dot.className = 'fa-solid fa-file-lines gantt-sidebar-icon';
+                        dot.style.backgroundColor = getSidebarDotColor(item);
                     } else {
                         dot.className = 'fas fa-circle-dot gantt-sidebar-dot';
+                        dot.style.color = getSidebarDotColor(item);
                     }
                     row.appendChild(dot);
 
