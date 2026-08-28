@@ -322,6 +322,8 @@
             border-radius: 12px;
             padding: 16px 16px 8px;
             margin-bottom: 16px;
+            margin-right: 12px;
+            margin-left: 12px;
         }
 
         /* === B — FORM CONTROLS === */
@@ -1072,6 +1074,12 @@
             visibility: hidden;
         }
 
+        /* "Hoy"/"Today" in today's cell (Day view) */
+        .gantt-today-label {
+            font-size: 11px;
+            fill: #aa182c !important;
+        }
+
         #ganttSection.gantt-hide-bar-labels .gantt .bar-label {
             visibility: hidden !important;
         }
@@ -1279,7 +1287,7 @@
             padding: 0 12px;
             font-size: 11px;
             font-weight: 600;
-            color: #94a3b8;
+            color: #000;
             text-transform: uppercase;
             letter-spacing: .5px;
             position: sticky;
@@ -1714,13 +1722,14 @@
     <script>
         (function() {
             let ganttChart = null;
-            let currentViewMode = 'Week';
-            let currentLevel = 'milestones';
+            let currentViewMode = localStorage.getItem('ganttViewMode') || 'Week';
+            let currentLevel = localStorage.getItem('ganttLevel') || 'milestones';
             let allData = [];
 
             let sidebarVisible = window.innerWidth > 768;
-            let labelsVisibleOverride = null;
-            let percentagesVisible = true;
+            const savedLabelsOverride = localStorage.getItem('ganttLabelsOverride');
+            let labelsVisibleOverride = savedLabelsOverride === null ? null : (savedLabelsOverride === 'true');
+            let percentagesVisible = localStorage.getItem('ganttPercentagesVisible') !== 'false';
             const collapsedIds = new Set(JSON.parse(sessionStorage.getItem('ganttCollapsed') || '[]'));
 
             const dataUrl = @json(route('gantt.diagram.data'));
@@ -1948,12 +1957,22 @@
                 if (params.has('date_to')) document.getElementById('filterDateTo').value = params.get('date_to');
                 if (params.has('view')) {
                     currentViewMode = params.get('view');
+                    localStorage.setItem('ganttViewMode', currentViewMode);
+                    document.querySelectorAll('#change_view .gantt-seg-btn').forEach(b => {
+                        b.classList.toggle('active', b.dataset.view === currentViewMode);
+                    });
+                } else {
                     document.querySelectorAll('#change_view .gantt-seg-btn').forEach(b => {
                         b.classList.toggle('active', b.dataset.view === currentViewMode);
                     });
                 }
                 if (params.has('level')) {
                     currentLevel = params.get('level');
+                    localStorage.setItem('ganttLevel', currentLevel);
+                    document.querySelectorAll('#level_toggle .gantt-seg-btn').forEach(b => {
+                        b.classList.toggle('active', b.dataset.level === currentLevel);
+                    });
+                } else {
                     document.querySelectorAll('#level_toggle .gantt-seg-btn').forEach(b => {
                         b.classList.toggle('active', b.dataset.level === currentLevel);
                     });
@@ -2772,6 +2791,7 @@
                         .remove('active'));
                     this.classList.add('active');
                     currentLevel = this.dataset.level;
+                    localStorage.setItem('ganttLevel', currentLevel);
                     applyLevelCollapses(allData);
                     renderGantt(applyClientFilters(allData));
                     syncFiltersToURL();
@@ -2820,16 +2840,19 @@
             document.getElementById('btnToggleSidebar').addEventListener('click', function() {
                 sidebarVisible = !sidebarVisible;
                 labelsVisibleOverride = null;
+                localStorage.removeItem('ganttLabelsOverride');
                 applySidebarVisibility();
             });
 
             document.getElementById('toggleLabels').addEventListener('change', function() {
                 labelsVisibleOverride = this.checked;
+                localStorage.setItem('ganttLabelsOverride', String(this.checked));
                 applyLabelVisibility();
             });
 
             document.getElementById('togglePercentages').addEventListener('change', function() {
                 percentagesVisible = this.checked;
+                localStorage.setItem('ganttPercentagesVisible', String(this.checked));
                 applyPercentagesVisibility();
             });
 
@@ -2921,6 +2944,7 @@
             function setViewMode(newMode, direction) {
                 if (newMode === currentViewMode) return;
                 currentViewMode = newMode;
+                localStorage.setItem('ganttViewMode', currentViewMode);
 
                 // Sync buttons
                 document.querySelectorAll('#change_view .gantt-seg-btn').forEach(b => {

@@ -1538,6 +1538,17 @@ var Gantt = (function () {
                     class: 'lower-text',
                     append_to: this.layers.date
                 });
+                if (date.is_today) {
+                    // Keep the day number and show "Hoy"/"Today" above it
+                    const lang = (this.options.language || '').toLowerCase();
+                    createSVG('text', {
+                        x: date.lower_x,
+                        y: date.lower_y - 20,
+                        innerHTML: lang.startsWith('es') ? 'Hoy' : 'Today',
+                        class: 'lower-text gantt-today-label',
+                        append_to: this.layers.date
+                    });
+                }
 
                 if (date.upper_text) {
                     const $upper_text = createSVG('text', {
@@ -1642,13 +1653,21 @@ var Gantt = (function () {
                 Year_upper: this.options.column_width * 30 / 2
             };
 
+            const now_ = new Date();
+            const is_today =
+                this.view_is('Day') &&
+                date.getFullYear() === now_.getFullYear() &&
+                date.getMonth() === now_.getMonth() &&
+                date.getDate() === now_.getDate();
+
             return {
                 upper_text: date_text[`${this.options.view_mode}_upper`],
                 lower_text: date_text[`${this.options.view_mode}_lower`],
                 upper_x: base_pos.x + x_pos[`${this.options.view_mode}_upper`],
                 upper_y: base_pos.upper_y,
                 lower_x: base_pos.x + x_pos[`${this.options.view_mode}_lower`],
-                lower_y: base_pos.lower_y
+                lower_y: base_pos.lower_y,
+                is_today
             };
         }
 
