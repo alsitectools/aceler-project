@@ -265,8 +265,8 @@ var Gantt = (function () {
         attr,
         from,
         to,
-        dur = '0.4s',
-        begin = '0.1s'
+        dur = '0.9s',
+        begin = '0s'
     ) {
         const animEl = svgElement.querySelector('animate');
         if (animEl) {
@@ -464,15 +464,30 @@ var Gantt = (function () {
                 const cy = this.y + this.height * 0.80;
                 const cx1 = this.x + 0.05;
                 createSVG('polygon', {
-                    points: `${cx1},${cy - dSize} ${cx1 + dSize},${cy} ${cx1},${cy + dSize} ${cx1 - dSize},${cy}`,
+                    points: `${cx1},${cy} ${cx1},${cy + dSize} ${cx1 + dSize},${cy}`,
                     class: 'bar-diamond bar-diamond-left',
                     append_to: this.bar_group
                 });
+
                 const cx2 = this.x + this.width - 0.05;
-                createSVG('polygon', {
-                    points: `${cx2},${cy - dSize} ${cx2 + dSize},${cy} ${cx2},${cy + dSize} ${cx2 - dSize},${cy}`,
+                const fromCx = this.x - 0.05;
+                const rightPts = `${cx2},${cy} ${cx2},${cy + dSize} ${cx2 - dSize},${cy}`;
+                const rightDiamond = createSVG('polygon', {
+                    points: rightPts,
                     class: 'bar-diamond bar-diamond-right',
                     append_to: this.bar_group
+                });
+                // Travel with the right edge of the growing bar so the fang never
+                // floats apart or overlaps while the bar animates its width.
+                createSVG('animate', {
+                    attributeName: 'points',
+                    values: `${fromCx},${cy} ${fromCx},${cy + dSize} ${fromCx - dSize},${cy};${rightPts}`,
+                    dur: '0.9s',
+                    begin: '0s',
+                    calcMode: 'spline',
+                    keyTimes: '0; 1',
+                    keySplines: '0 0 .58 1',
+                    append_to: rightDiamond
                 });
             }
 

@@ -165,23 +165,23 @@
         {{-- Legend --}}
         <div class="gantt-legend" id="ganttLegend">
             <span class="gantt-legend-group">
-                <span class="gantt-legend-group-label">{{ __('Projects') }}:</span>
-                <span class="gantt-legend-item"><i class="fa-solid fa-diagram-project" style="color:#1c49b5;"></i>{{ __('Ongoing') }}</span>
-                <span class="gantt-legend-item"><i class="fa-solid fa-diagram-project" style="color:#10b981;"></i>{{ __('Finished') }}</span>
-                <span class="gantt-legend-item"><i class="fa-solid fa-diagram-project" style="color:#94a3b8;"></i>{{ __('On Hold') }}</span>
+                <span class="gantt-legend-group-label">{{ __('Projects') }}</span>
+                <span class="gantt-legend-item"><span class="gantt-dot" style="background:#1c49b5;"></span>{{ __('Ongoing') }}</span>
+                <span class="gantt-legend-item"><span class="gantt-dot" style="background:#10b981;"></span>{{ __('Finished') }}</span>
+                <span class="gantt-legend-item"><span class="gantt-dot" style="background:#94a3b8;"></span>{{ __('On Hold') }}</span>
             </span>
             <span class="gantt-legend-sep"></span>
             <span class="gantt-legend-group">
-                <span class="gantt-legend-group-label">{{ __('Milestones') }}:</span>
-                <span class="gantt-legend-item"><i class="fa-solid fa-file-lines" style="color:#cbd5e1;"></i>{{ __('Todo') }}</span>
-                <span class="gantt-legend-item"><i class="fa-solid fa-file-lines" style="color:#60a5fa;"></i>{{ __('In_Progress') }}</span>
-                <span class="gantt-legend-item"><i class="fa-solid fa-file-lines" style="color:#fbbf24;"></i>{{ __('Review') }}</span>
-                <span class="gantt-legend-item"><i class="fa-solid fa-file-lines" style="color:#34d399;"></i>{{ __('Done') }}</span>
-                <span class="gantt-legend-item"><i class="fa-solid fa-file-lines" style="color:#f87171;"></i>{{ __('Overdue') }}</span>
+                <span class="gantt-legend-group-label">{{ __('Milestones') }}</span>
+                <span class="gantt-legend-item"><span class="gantt-dot" style="background:#cbd5e1;"></span>{{ __('Todo') }}</span>
+                <span class="gantt-legend-item"><span class="gantt-dot" style="background:#60a5fa;"></span>{{ __('In_Progress') }}</span>
+                <span class="gantt-legend-item"><span class="gantt-dot" style="background:#fbbf24;"></span>{{ __('Review') }}</span>
+                <span class="gantt-legend-item"><span class="gantt-dot" style="background:#34d399;"></span>{{ __('Done') }}</span>
+                <span class="gantt-legend-item"><span class="gantt-dot" style="background:#f87171;"></span>{{ __('Overdue') }}</span>
             </span>
             <span class="gantt-legend-sep"></span>
             <span class="gantt-legend-group">
-                <span class="gantt-legend-group-label">{{ __('Tasks') }}:</span>
+                <span class="gantt-legend-group-label">{{ __('Tasks') }}</span>
                 <span class="gantt-legend-item"><span class="gantt-dot"
                         style="background:#a5b4fc;"></span>{{ __('Task') }}</span>
             </span>
@@ -746,6 +746,7 @@
             font-size: 11px;
             text-transform: uppercase;
             letter-spacing: .3px;
+            transform: translateY(1px);
         }
 
         .gantt-legend-item {
@@ -779,14 +780,6 @@
 
         .gantt-project .bar-diamond {
             fill: #1c49b5 !important;
-        }
-
-        .gantt-project .bar-diamond-left {
-            clip-path: inset(50% 0 0 50%);
-        }
-
-        .gantt-project .bar-diamond-right {
-            clip-path: inset(50% 50% 0 0);
         }
 
         .gantt-project .handle {
@@ -1312,6 +1305,7 @@
 
         .gantt-sidebar-rows {
             /* Height set dynamically by JS to match SVG */
+            transition: min-height .45s cubic-bezier(.4,0,.2,1);
         }
 
         /* Sidebar row */
@@ -1373,7 +1367,7 @@
             font-size: 11px;
             cursor: pointer;
             border-radius: 4px;
-            transition: transform .2s ease, color .15s ease, background .15s ease;
+            transition: transform .55s cubic-bezier(.4,0,.2,1), color .15s ease, background .15s ease;
             margin-right: 4px;
         }
 
@@ -1384,6 +1378,15 @@
 
         .gantt-collapse-toggle.collapsed {
             transform: rotate(-90deg);
+        }
+
+        .gantt-collapse-toggle.gantt-spin {
+            animation: ganttChevronSpin .55s cubic-bezier(.4,0,.2,1);
+        }
+
+        @keyframes ganttChevronSpin {
+            from { transform: rotate(-90deg); }
+            to   { transform: rotate(0deg); }
         }
 
         /* Parent rows are collapsible on click */
@@ -1405,13 +1408,13 @@
         .gantt-sidebar-icon {
             flex-shrink: 0;
             margin-right: 8px;
-            font-size: 12px;
-            width: 20px;
-            height: 20px;
+            font-size: 10px;
+            width: 16px;
+            height: 16px;
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            border-radius: 5px;
+            border-radius: 4px;
             color: #fff;
         }
 
@@ -1428,6 +1431,55 @@
         .gantt-sidebar-label {
             overflow: hidden;
             text-overflow: ellipsis;
+        }
+
+        /* Collapse/expand animations for sidebar rows */
+        .gantt-sidebar-row {
+            transition: opacity .4s cubic-bezier(.4,0,.2,1), transform .4s cubic-bezier(.4,0,.2,1),
+                height .45s cubic-bezier(.4,0,.2,1), padding .45s cubic-bezier(.4,0,.2,1),
+                border-width .45s cubic-bezier(.4,0,.2,1), background .1s ease;
+        }
+        .gantt-sidebar-row.gantt-row-hide {
+            opacity: 0;
+            transform: translateY(-6px);
+            height: 0;
+            padding-top: 0;
+            padding-bottom: 0;
+            border-bottom-width: 0;
+            pointer-events: none;
+        }
+        .gantt-sidebar-row.gantt-row-enter {
+            animation: ganttRowEnter .55s cubic-bezier(.22,.61,.36,1) backwards;
+        }
+        @keyframes ganttRowEnter {
+            from { height: 0; opacity: 0; transform: translateY(-4px); }
+            to   { height: 38px; opacity: 1; transform: none; }
+        }
+
+        /* Collapse/expand animations for timeline bars */
+        .gantt-target .bar-wrapper.gantt-bar-hide {
+            opacity: 0;
+            transition: opacity .34s cubic-bezier(.4,0,.2,1);
+        }
+        .gantt-target .bar-wrapper.gantt-bar-enter {
+            animation: ganttBarEnter .4s cubic-bezier(.22,.61,.36,1);
+        }
+        @keyframes ganttBarEnter {
+            from { opacity: 0; }
+            to   { opacity: 1; }
+        }
+
+        /* Fade the whole timeline SVG during re-render */
+        .gantt-target.gantt-fade-out {
+            opacity: 0;
+            transform: translateY(5px);
+            transition: opacity .4s cubic-bezier(.4,0,.2,1), transform .4s cubic-bezier(.4,0,.2,1);
+            pointer-events: none;
+        }
+        .gantt-target.gantt-fade-in {
+            opacity: 1;
+            transform: translateY(0);
+            transition: opacity .6s cubic-bezier(.4,0,.2,1), transform .6s cubic-bezier(.4,0,.2,1);
         }
 
         /* Separator line for projects */
@@ -2077,6 +2129,119 @@
                 return false;
             }
 
+            // Collect all descendant ids (milestones + tasks) of a project/encargo
+            function collectDescendantIds(itemId) {
+                const parentMs = allData.find(i => i.id === itemId);
+                if (parentMs && parentMs.type === 'milestone') {
+                    return allData.filter(i => i.type === 'task' && getParentId(i) === itemId).map(i => i.id);
+                }
+                const msIds = allData.filter(i => i.type === 'milestone' && getParentId(i) === itemId).map(i => i.id);
+                const taskIds = allData.filter(i => i.type === 'task').filter(t => {
+                    const p = getParentId(t);
+                    return msIds.includes(p) || p === itemId;
+                }).map(i => i.id);
+                return msIds.concat(taskIds);
+            }
+
+            // Fade the timeline SVG out, run a render callback while hidden, then fade it back in
+            function fadeThroughSvg(renderFn, contentFn, onDone) {
+                const svg = document.querySelector('.gantt-target svg');
+                const wrap = document.querySelector('.gantt-target');
+                if (!svg || !wrap) {
+                    renderFn();
+                    if (onDone) onDone();
+                    return;
+                }
+                wrap.classList.add('gantt-fade-out');
+                setTimeout(function() {
+                    renderFn();
+                    contentFn && contentFn();
+                    // On collapse, snap sidebar min-height to its exact final value
+                    // without animating, so the re-render doesn't cause a residual jump
+                    // at the moment the SVG fades back in.
+                    if (!contentFn) {
+                        const snap = document.getElementById('ganttSidebarRows');
+                        if (snap) {
+                            snap.style.transition = 'none';
+                            syncSidebarHeight();
+                            void snap.offsetWidth;
+                            snap.style.transition = '';
+                        }
+                    }
+                    // Force reflow then fade back in
+                    void wrap.offsetWidth;
+                    wrap.classList.remove('gantt-fade-out');
+                    wrap.classList.add('gantt-fade-in');
+                    setTimeout(function() {
+                        wrap.classList.remove('gantt-fade-in');
+                        if (onDone) onDone();
+                    }, 640);
+                }, 500);
+            }
+
+            // Animate collapsing: fade child sidebar rows + bars, fade SVG, re-render, fade back in
+            function animateCollapse(itemId, descIds, doRender) {
+                const rowsEl = document.getElementById('ganttSidebarRows');
+                if (!rowsEl || descIds.length === 0) {
+                    doRender();
+                    return;
+                }
+                spinChevron(itemId, true);
+                rowsEl.querySelectorAll('.gantt-sidebar-row').forEach(r => {
+                    const rid = r.getAttribute('data-id');
+                    if (descIds.indexOf(rid) !== -1) r.classList.add('gantt-row-hide');
+                });
+                const curMin = parseFloat(rowsEl.style.minHeight) || 0;
+                rowsEl.style.minHeight = Math.max(curMin - descIds.length * 38, 0) + 'px';
+                descIds.forEach(id => {
+                    const bar = document.querySelector('.gantt-target .bar-wrapper[data-id="' + id + '"]');
+                    if (bar) bar.classList.add('gantt-bar-hide');
+                });
+                fadeThroughSvg(doRender, null, null);
+            }
+
+            // Rotate/span the chevron of a sidebar row's collapse toggle
+            function spinChevron(itemId, addCollapsed) {
+                const row = document.querySelector('.gantt-sidebar-row[data-id="' + itemId + '"]');
+                if (!row) return;
+                const toggle = row.querySelector('.gantt-collapse-toggle');
+                if (!toggle) return;
+                if (addCollapsed) {
+                    toggle.classList.add('collapsed');
+                } else {
+                    toggle.classList.remove('collapsed');
+                    toggle.classList.add('gantt-spin');
+                    toggle.addEventListener('animationend', function() {
+                        toggle.classList.remove('gantt-spin');
+                    }, { once: true });
+                }
+            }
+
+            // Animate expanding: fade SVG, re-render, fade back in, then slide in child rows + bars
+            function animateExpand(itemId, descIds, doRender) {
+                const rowsEl = document.getElementById('ganttSidebarRows');
+                if (!rowsEl || descIds.length === 0) {
+                    doRender();
+                    return;
+                }
+                fadeThroughSvg(doRender, doExpandBody, null);
+
+                function doExpandBody() {
+                    spinChevron(itemId, false);
+                    rowsEl.querySelectorAll('.gantt-sidebar-row').forEach(function(r) {
+                        const rid = r.getAttribute('data-id');
+                        if (descIds.indexOf(rid) === -1) return;
+                        r.classList.add('gantt-row-enter');
+                    });
+                    const curMin = parseFloat(rowsEl.style.minHeight) || 0;
+                    rowsEl.style.minHeight = (curMin + descIds.length * 38) + 'px';
+                    descIds.forEach(id => {
+                        const bar = document.querySelector('.gantt-target .bar-wrapper[data-id="' + id + '"]');
+                        if (bar) bar.classList.add('gantt-bar-enter');
+                    });
+                }
+            }
+
             // Build sidebar rows from visible items
             function buildSidebar(visibleItems) {
                 const container = document.getElementById('ganttSidebarRows');
@@ -2141,14 +2306,24 @@
                     // Single click handler on the row
                     row.addEventListener('click', function(e) {
                         e.preventDefault();
-                        if (canCollapse) {
-                            if (collapsedIds.has(item.id)) {
-                                collapsedIds.delete(item.id);
-                            } else {
+                        if (!canCollapse) return;
+                        const willCollapse = !collapsedIds.has(item.id);
+
+                        const doRender = function() {
+                            if (willCollapse) {
                                 collapsedIds.add(item.id);
+                            } else {
+                                collapsedIds.delete(item.id);
                             }
                             saveCollapsedState();
                             renderGantt(applyClientFilters(allData));
+                        };
+
+                        const descIds = collectDescendantIds(item.id);
+                        if (willCollapse) {
+                            animateCollapse(item.id, descIds, doRender);
+                        } else {
+                            animateExpand(item.id, descIds, doRender);
                         }
                     });
 
