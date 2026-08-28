@@ -908,10 +908,24 @@
         /* Tasks (indigo light) */
         .gantt-task .bar {
             fill: #a5b4fc !important;
+            transform: scaleY(0.8);
+            transform-box: fill-box;
+            transform-origin: center;
         }
 
         .gantt-task .bar-progress {
             fill: #818cf8 !important;
+        }
+
+        /* Order-form bars (milestones) — slightly thinner */
+        .gantt-ms-created .bar,
+        .gantt-ms-active .bar,
+        .gantt-ms-progress .bar,
+        .gantt-ms-done .bar,
+        .gantt-ms-overdue .bar {
+            transform: scaleY(0.8);
+            transform-box: fill-box;
+            transform-origin: center;
         }
 
         .gantt-task .bar-label {
