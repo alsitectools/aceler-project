@@ -1268,7 +1268,7 @@
             background: #fff;
             box-shadow: 0 4px 20px rgba(15, 23, 42, .05);
             position: relative;
-            height: 580px;
+            height: 480px;
             scrollbar-color: #aa182c #f1f5f9;
         }
 
