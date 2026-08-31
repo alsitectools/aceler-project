@@ -1265,6 +1265,7 @@
             box-shadow: 0 4px 20px rgba(15, 23, 42, .05);
             position: relative;
             height: 580px;
+            scrollbar-color: #aa182c #f1f5f9;
         }
 
         #ganttLayout::-webkit-scrollbar {
@@ -1272,12 +1273,12 @@
         }
 
         #ganttLayout::-webkit-scrollbar-thumb {
-            background: #cbd5e1;
+            background: #aa182c;
             border-radius: 999px;
         }
 
         #ganttLayout::-webkit-scrollbar-thumb:hover {
-            background: #94a3b8;
+            background: #8f1423;
         }
 
         #ganttLayout::-webkit-scrollbar-track {
@@ -1533,6 +1534,20 @@
         .gantt-target .gantt-container {
             overflow-x: auto;
             overflow-y: hidden;
+            scrollbar-color: #aa182c #f1f5f9;
+        }
+
+        .gantt-target .gantt-container::-webkit-scrollbar-thumb {
+            background: #aa182c;
+            border-radius: 999px;
+        }
+
+        .gantt-target .gantt-container::-webkit-scrollbar-thumb:hover {
+            background: #8f1423;
+        }
+
+        .gantt-target .gantt-container::-webkit-scrollbar-track {
+            background: #f1f5f9;
         }
 
         /* Responsive — hide sidebar on mobile */
