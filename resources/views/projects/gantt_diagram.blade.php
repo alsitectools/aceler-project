@@ -606,8 +606,8 @@
         }
 
         .gantt-seg-btn.active {
-            background: #fff;
-            color: #1e293b;
+            background: #aa182c;
+            color: #fff;
             box-shadow: 0 1px 3px rgba(0, 0, 0, .1), 0 1px 2px rgba(0, 0, 0, .06);
             font-weight: 600;
         }
@@ -622,15 +622,15 @@
             border: 1px solid #e2e8f0;
             border-radius: 8px;
             background: #fff;
-            color: #64748b;
+            color: #aa182c;
             font-size: 14px;
             cursor: pointer;
             transition: all .15s ease;
         }
 
         .gantt-icon-btn:hover {
-            border-color: #6366f1;
-            color: #6366f1;
+            border-color: #aa182c;
+            color: #aa182c;
             background: #f8fafc;
         }
 

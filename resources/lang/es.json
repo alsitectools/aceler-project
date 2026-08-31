@@ -1,5 +1,6 @@
 {
  "Structure": "Estructura",
+ "Gantt Diagram": "Diagrama de Gantt",
  "All Statuses": "Todos los estados",
  "On Hold": "En espera",
  "Overdue": "Atrasado",
@@ -900,6 +901,7 @@
  "Profile": "Perfil",
  "Profile Information": "información del perfil",
  "Progress": "Progreso",
+ "Total logged": "Total registrado",
  "Project": "Proyecto",
  "Project Budget": "Presupuesto del proyecto",
  "Project Created Successfully!": "¡Proyecto creado con éxito!",

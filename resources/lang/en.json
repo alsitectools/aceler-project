@@ -1,5 +1,6 @@
 {
  "Structure": "Structure",
+ "Gantt Diagram": "Gantt Diagram",
  "Order Forms": "Order Forms",
  "Tasks": "Tasks",
  "Overdue": "Overdue",
@@ -901,6 +902,7 @@
  "Profile": "Profile",
  "Profile Information": "Profile Information",
  "Progress": "Progress",
+ "Total logged": "Total logged",
  "Project": "Project",
  "Project Budget": "Project Budget",
  "Project Created Successfully!": "Project Created Successfully!",
