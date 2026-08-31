@@ -1094,6 +1094,10 @@
             fill: #aa182c !important;
         }
 
+        .gantt-today-number {
+            fill: #aa182c !important;
+        }
+
         #ganttSection.gantt-hide-bar-labels .gantt .bar-label {
             visibility: hidden !important;
         }

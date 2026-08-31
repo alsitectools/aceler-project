@@ -1535,7 +1535,7 @@ var Gantt = (function () {
                     x: date.lower_x,
                     y: date.lower_y,
                     innerHTML: date.lower_text,
-                    class: 'lower-text',
+                    class: 'lower-text' + (date.is_today ? ' gantt-today-number' : ''),
                     append_to: this.layers.date
                 });
                 if (date.is_today) {
