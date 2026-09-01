@@ -326,6 +326,22 @@
             margin-left: 12px;
         }
 
+        /* Reparto uniforme de las cajas de filtros en desktop */
+        @media (min-width: 992px) {
+            .gantt-filters > [class*="col-"] {
+                flex: 1 1 0;
+                max-width: none;
+                min-width: 0;
+            }
+            #ganttFilters .gantt-toggle-col {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                flex-wrap: wrap;
+                gap: 55px;
+            }
+        }
+
         /* === B — FORM CONTROLS === */
         #ganttSection input.form-control {
             border: 1px solid #e2e8f0;
@@ -1268,7 +1284,7 @@
             background: #fff;
             box-shadow: 0 4px 20px rgba(15, 23, 42, .05);
             position: relative;
-            height: 480px;
+            height: 560px;
             scrollbar-color: #aa182c #f1f5f9;
         }
 
