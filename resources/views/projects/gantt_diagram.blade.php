@@ -3002,10 +3002,44 @@
                     const grid = original.querySelector('.grid-background');
                     const w = grid ? parseFloat(grid.getAttribute('width')) : 0;
                     const h = grid ? parseFloat(grid.getAttribute('height')) : 0;
+
+                    // Compute the X position (in px) of "today" so the exported SVG opens
+                    // scrolled to the most recent part, while keeping the full range (old
+                    // projects remain reachable by scrolling left).
+                    let xHoy = 0;
+                    let pxPerDay = 38;
+                    try {
+                        const ganttStart = ganttChart ? ganttChart.gantt_start : null;
+                        if (ganttStart) {
+                            const ticks = original.querySelectorAll('.tick');
+                            if (ticks.length >= 2) {
+                                const x1 = parseFloat(ticks[0].getAttribute('x1') || ticks[0].getAttribute('x'));
+                                const x2 = parseFloat(ticks[1].getAttribute('x1') || ticks[1].getAttribute('x'));
+                                if (!isNaN(x1) && !isNaN(x2) && x2 > x1) {
+                                    pxPerDay = x2 - x1;
+                                    if (currentViewMode === 'Week') pxPerDay = pxPerDay / 7;
+                                    else if (currentViewMode === 'Month') pxPerDay = pxPerDay / 30;
+                                }
+                            }
+                            const today = new Date();
+                            today.setHours(0, 0, 0, 0);
+                            const diffDays = (today - ganttStart) / (1000 * 60 * 60 * 24);
+                            xHoy = Math.max(0, Math.round(diffDays * pxPerDay));
+                        }
+                    } catch (e) {
+                        xHoy = 0;
+                    }
+
                     if (w && h && isFinite(w) && isFinite(h)) {
                         svg.setAttribute('viewBox', '0 0 ' + w + ' ' + h);
                         svg.setAttribute('width', w);
                         svg.setAttribute('height', h);
+                    }
+
+                    // Open scrolled so the view starts 15 days before today.
+                    const scrollX = Math.max(0, Math.round(xHoy - 30 * pxPerDay));
+                    if (scrollX > 0) {
+                        svg.setAttribute('onload', 'window.scrollTo(' + scrollX + ', 0);');
                     }
 
                     const xml = '<?xml version="1.0" encoding="UTF-8"?>\n' +
