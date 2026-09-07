@@ -3722,9 +3722,7 @@ class ProjectController extends Controller
             }
         }
 
-        $objMo = $query->with(['clients' => function ($query) {
-            $query->select('potential_clients.potential_customer_id', 'potential_clients.name', 'potential_clients.customer_id');
-        }])->limit(50)->paginate(25);
+        $objMo = $query->limit(50)->paginate(25);
 
         $arrMo = $objMo->toArray();
 
@@ -3754,6 +3752,35 @@ class ProjectController extends Controller
             'clients' => $arrClients,
         ]);
     }
+
+    public function getClientsByMoJson($slug, Request $request)
+    {
+        $refMo = trim((string) $request->get('ref_mo', ''));
+        $search = trim((string) $request->get('search', ''));
+
+        if ($refMo === '') {
+            return response()->json(['clients' => []]);
+        }
+
+        $query = ClientsMo::query()
+            ->join('potential_clients', 'potential_clients.potential_customer_id', '=', 'clients_mos.potential_customer_id')
+            ->select('potential_clients.potential_customer_id', 'potential_clients.name', 'potential_clients.business_unit')
+            ->where('clients_mos.ref_mo', $refMo);
+
+        if ($search !== '') {
+            $query->where(function ($query) use ($search) {
+                $query->where('potential_clients.name', 'LIKE', "%" . $search . "%")
+                    ->orWhere('potential_clients.potential_customer_id', 'LIKE', "%" . $search . "%");
+            });
+        }
+
+        $clients = $query->distinct()->paginate(25);
+
+        return response()->json([
+            'clients' => $clients,
+        ]);
+    }
+
     public function getProjectsJson($slug, $search = null)
     {
         $currentWorkspace = Utility::getWorkspaceBySlug($slug);

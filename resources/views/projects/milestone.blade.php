@@ -598,6 +598,7 @@
         const currentWorkspaceSlug = '{{ $currentWorkspace->slug }}';
         const searchMoUrl = "{{ route('search-mo-json', '__slug') }}".replace('__slug', currentWorkspaceSlug);
         const searchClipoUrl = "{{ route('search-clipo-json', '__slug') }}".replace('__slug', currentWorkspaceSlug);
+        const searchClientsMoUrl = "{{ route('search-clients-mo-json', '__slug') }}".replace('__slug', currentWorkspaceSlug);
         const searchProjectsUrl = "{{ route('search-project-json', '__slug') }}".replace('__slug', currentWorkspaceSlug);
         const searchSalesManagerUrl = "{{ route('search-sales-json', '__slug') }}".replace('__slug', currentWorkspaceSlug);
     </script>

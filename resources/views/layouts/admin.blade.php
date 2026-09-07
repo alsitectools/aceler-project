@@ -936,7 +936,8 @@
             }
         })();
     </script>
-    <script src="{{ asset('assets/js/create_project.js') }}"></script>
+    <script src="{{ asset('assets/custom/libs/nicescroll/jquery.nicescroll.min.js') }}"></script>
+    <script src="{{ asset('assets/js/create_project.js') }}?v={{ time() }}"></script>
     @stack('scripts')
     {{-- @stack('script-page') --}}
     @if (Session::has('success'))

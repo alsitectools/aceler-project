@@ -99,6 +99,7 @@
     const currentWorkspaceSlug = '{{ $currentWorkspace->slug }}';
     window.searchMoUrl = "{{ route('search-mo-json', '__slug') }}".replace('__slug', currentWorkspaceSlug);
     window.searchClipoUrl = "{{ route('search-clipo-json', '__slug') }}".replace('__slug', currentWorkspaceSlug);
+    window.searchClientsMoUrl = "{{ route('search-clients-mo-json', '__slug') }}".replace('__slug', currentWorkspaceSlug);
     window.searchProjectsUrl = "{{ route('search-project-json', '__slug') }}".replace('__slug', currentWorkspaceSlug);
     window.searchSalesManagerUrl = "{{ route('search-sales-json', '__slug') }}".replace('__slug', currentWorkspaceSlug);
     if (typeof window.initCreateProjectSearch === 'function') {

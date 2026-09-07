@@ -3,16 +3,6 @@ window.initCreateProjectSearch = function () {
         window.createProjectSearchCleanup();
     }
 
-    let projects = [];
-    try {
-        const form = document.getElementById('new-project-form');
-        if (form && form.dataset.projects) {
-            projects = JSON.parse(form.dataset.projects);
-        }
-    } catch (e) {
-        projects = [];
-    }
-
     const projectInput = $('#searchProject');
     const projectList = $('#projects_list');
     const refMoInput = $('#searchMo');
@@ -36,6 +26,7 @@ window.initCreateProjectSearch = function () {
     let currentRequest = null;
     let loading = false;
     let searchQuery = '';
+    let noMoreResults = false;
 
     function removeAllLoadingSpinners() {
         $('.loading-spinner-container').remove();
@@ -160,6 +151,7 @@ window.initCreateProjectSearch = function () {
         hideAllLists(list);
         searchQuery = input.val().trim();
         currentPage = 1;
+        noMoreResults = false;
 
         if (searchQuery == '') {
             if (currentRequest) {
@@ -171,7 +163,41 @@ window.initCreateProjectSearch = function () {
         }
 
         fetchData(`${url}/${encodeURIComponent(searchQuery)}?page=${currentPage}`, list, data => data[type].data, noResultsMessage, type);
-    }, 300);
+    }, 150);
+
+    function buildClientsByMoUrl(q, page) {
+        const refMo = refMoInput.val().trim();
+        const params = new URLSearchParams();
+        if (refMo) params.set('ref_mo', refMo);
+        if (q) params.set('search', q);
+        if (page) params.set('page', page);
+        return `${searchClientsMoUrl}?${params.toString()}`;
+    }
+
+    function loadClientsByMo(q, page = 1) {
+        const refMo = refMoInput.val().trim();
+
+        if (!refMo) {
+            if (currentRequest) {
+                currentRequest.abort();
+                currentRequest = null;
+            }
+            removeAllLoadingSpinners();
+            clipoList.empty().hide();
+            return;
+        }
+
+        hideAllLists(clipoList);
+        searchQuery = q;
+        currentPage = page;
+        noMoreResults = false;
+
+        fetchData(buildClientsByMoUrl(searchQuery, currentPage), clipoList, data => data.clients.data, 'Sin clientes encontrados', 'clipo');
+    }
+
+    const handleClientsByMoChange = debounce(function (q) {
+        loadClientsByMo(q, 1);
+    }, 150);
 
     $(document).on('input.createProjectSearch', '#searchProject', function () {
         milestoneMoInput.val("");
@@ -187,16 +213,49 @@ window.initCreateProjectSearch = function () {
     });
 
     const handleMoInputChange = debounce(function () {
+        const q = refMoInput.val().trim();
+        if (q.length < 3) {
+            if (currentRequest) {
+                currentRequest.abort();
+            }
+            removeAllLoadingSpinners();
+            refMoList.empty().hide();
+            return;
+        }
         clientInput.val("");
         project_nameInput.val("");
         $('#projectId').val('');
         handleInputChange(refMoInput, refMoList, searchMoUrl, 'Sin resultados encontrados', 'mo');
-    }, 150);
+    }, 100);
 
     $(document).on('input.createProjectSearch', '#searchMo', handleMoInputChange);
 
     $(document).on('input.createProjectSearch', '#searchClipo', function () {
-        handleInputChange($(this), clipoList, searchClipoUrl, 'Sin resultados encontrados', 'clients');
+        const q = clientInput.val().trim();
+        const refMo = refMoInput.val().trim();
+
+        if (!refMo) {
+            if (currentRequest) {
+                currentRequest.abort();
+                currentRequest = null;
+            }
+            removeAllLoadingSpinners();
+            clipoList.empty().hide();
+            return;
+        }
+
+        handleClientsByMoChange(q);
+    });
+
+    $(document).on('click.createProjectSearch', '#searchClipo', function () {
+        const refMo = refMoInput.val().trim();
+
+        if (!refMo) {
+            clipoList.empty().hide();
+            return;
+        }
+
+        handleClientsByMoChange(clientInput.val().trim());
     });
 
     $(document).on('change.createProjectSearch', '#project_type', function () {
@@ -246,7 +305,7 @@ window.initCreateProjectSearch = function () {
                 const itemData = itemProcessor(data);
                 console.log('obras', itemData);
 
-                if (!itemData.length && searchQuery.length >= 3) {
+                if (!itemData.length && searchQuery.length >= 3 && currentPage === 1) {
                     list.append(`<p class="text-danger">${noResultsMessage}</p>`);
                 }
 
@@ -268,6 +327,7 @@ window.initCreateProjectSearch = function () {
         }
 
         if (dataList && dataList.length) {
+            noMoreResults = false;
             const listItems = dataList.map(item => {
                 console.log(item);
                 let displayText = item.potential_customer_id
@@ -279,16 +339,19 @@ window.initCreateProjectSearch = function () {
             });
             list.append(listItems);
             currentPage++;
-            list.niceScroll({
-                cursorcolor: "grey",
-                cursorwidth: "8px",
-                background: "transparent",
-                autohidemode: true,
-                cursorborder: "1px solid #ccc",
-                cursorborderradius: "5px",
-            });
+            if (typeof list.niceScroll === 'function') {
+                list.niceScroll({
+                    cursorcolor: "grey",
+                    cursorwidth: "8px",
+                    background: "transparent",
+                    autohidemode: true,
+                    cursorborder: "1px solid #ccc",
+                    cursorborderradius: "5px",
+                });
+            }
 
         } else if (currentPage === 1) {
+            noMoreResults = true;
             let errorMessage = $(`<div class="text-danger list-group-item m-0">${noResultsMessage}</div>`);
             list.append(errorMessage);
 
@@ -297,6 +360,8 @@ window.initCreateProjectSearch = function () {
                     $(this).remove();
                 });
             }, 5000);
+        } else {
+            noMoreResults = true;
         }
     }
 
@@ -340,7 +405,7 @@ window.initCreateProjectSearch = function () {
             const scrollHeight = list[0].scrollHeight;
             const innerHeight = list.innerHeight();
 
-            if (!loading && (scrollTop + innerHeight >= scrollHeight - 10)) {
+            if (!loading && !noMoreResults && (scrollTop + innerHeight >= scrollHeight - 10)) {
                 fetchData(`${url}/${encodeURIComponent(searchQuery)}?page=${currentPage}`, list,
                     itemProcessor, noResultsMessage, type);
             }
@@ -350,7 +415,16 @@ window.initCreateProjectSearch = function () {
     setupInfiniteScroll(projectList, searchMoUrl, data => data.projects.data,
         'Sin resultados. El proyecto no ha sido creado.', 'projects');
     setupInfiniteScroll(refMoList, searchMoUrl, data => data.mo.data, 'Sin proyectos encontrados', 'ref_mo');
-    setupInfiniteScroll(clipoList, searchClipoUrl, data => data.clients.data, 'Sin clientes encontrados', 'clipo');
+
+    clipoList.on('scroll.createProjectSearch', function () {
+        const scrollTop = clipoList[0].scrollTop;
+        const scrollHeight = clipoList[0].scrollHeight;
+        const innerHeight = clipoList.innerHeight();
+
+        if (!loading && !noMoreResults && (scrollTop + innerHeight >= scrollHeight - 10)) {
+            loadClientsByMo(searchQuery, currentPage);
+        }
+    });
 
     $(document).on('click.createProjectSearch', '.list-group-item.stylelist', function (e) {
         e.preventDefault();
@@ -368,9 +442,20 @@ window.initCreateProjectSearch = function () {
         const populate = $this.data('populate');
 
         if (populate === 'mo') {
+            if (currentRequest) {
+                currentRequest.abort();
+                currentRequest = null;
+            }
+            loading = false;
+            removeAllLoadingSpinners();
             refMoInput.val(item.ref_mo);
             project_nameInput.val(item.name);
             refMoList.empty().hide();
+            if (item.clients && item.clients.length) {
+                populateClientList(item.clients);
+            } else {
+                clipoList.empty().hide();
+            }
             return;
         }
 
@@ -384,12 +469,6 @@ window.initCreateProjectSearch = function () {
         console.log('handlelistitemclick item::', item);
 
         if (type === 'mo') {
-            let existingProject = projects.find(project => project.ref_mo === item.ref_mo);
-            if (existingProject) {
-                showAlert('El número de referencia ya existe.', type);
-                resetSearchFields();
-                return;
-            }
             refMoInput.val(item.ref_mo);
             project_nameInput.val(item.name);
 
