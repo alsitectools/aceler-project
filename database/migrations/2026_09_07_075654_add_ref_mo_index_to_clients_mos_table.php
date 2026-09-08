@@ -14,6 +14,10 @@ return new class extends Migration
         Schema::table('clients_mos', function (Blueprint $table) {
             $table->index('ref_mo');
         });
+
+        Schema::table('potential_clients', function (Blueprint $table) {
+            $table->index('potential_customer_id');
+        });
     }
 
     /**
@@ -23,6 +27,10 @@ return new class extends Migration
     {
         Schema::table('clients_mos', function (Blueprint $table) {
             $table->dropIndex(['ref_mo']);
+        });
+
+        Schema::table('potential_clients', function (Blueprint $table) {
+            $table->dropIndex(['potential_customer_id']);
         });
     }
 };

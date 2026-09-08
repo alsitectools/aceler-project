@@ -34,8 +34,9 @@ window.initCreateProjectSearch = function () {
 
     function getSpinnerTarget(type) {
         switch (type) {
-            case 'clients':
-                return $('#clipo > label').first();
+case 'clients':
+        case 'clipo':
+            return $('#clipo > label').first();
             case 'salesManagers':
                 return $('#sales_manager > label').first();
             case 'mo':
@@ -165,16 +166,15 @@ window.initCreateProjectSearch = function () {
         fetchData(`${url}/${encodeURIComponent(searchQuery)}?page=${currentPage}`, list, data => data[type].data, noResultsMessage, type);
     }, 150);
 
-    function buildClientsByMoUrl(q, page) {
+    function buildClientsByMoUrl(q) {
         const refMo = refMoInput.val().trim();
         const params = new URLSearchParams();
         if (refMo) params.set('ref_mo', refMo);
         if (q) params.set('search', q);
-        if (page) params.set('page', page);
         return `${searchClientsMoUrl}?${params.toString()}`;
     }
 
-    function loadClientsByMo(q, page = 1) {
+    function loadClientsByMo(q) {
         const refMo = refMoInput.val().trim();
 
         if (!refMo) {
@@ -189,14 +189,14 @@ window.initCreateProjectSearch = function () {
 
         hideAllLists(clipoList);
         searchQuery = q;
-        currentPage = page;
+        currentPage = 1;
         noMoreResults = false;
 
-        fetchData(buildClientsByMoUrl(searchQuery, currentPage), clipoList, data => data.clients.data, 'Sin clientes encontrados', 'clipo');
+        fetchData(buildClientsByMoUrl(searchQuery), clipoList, data => data.clients, 'Sin clientes encontrados', 'clipo');
     }
 
     const handleClientsByMoChange = debounce(function (q) {
-        loadClientsByMo(q, 1);
+        loadClientsByMo(q);
     }, 150);
 
     $(document).on('input.createProjectSearch', '#searchProject', function () {
@@ -415,16 +415,6 @@ window.initCreateProjectSearch = function () {
     setupInfiniteScroll(projectList, searchMoUrl, data => data.projects.data,
         'Sin resultados. El proyecto no ha sido creado.', 'projects');
     setupInfiniteScroll(refMoList, searchMoUrl, data => data.mo.data, 'Sin proyectos encontrados', 'ref_mo');
-
-    clipoList.on('scroll.createProjectSearch', function () {
-        const scrollTop = clipoList[0].scrollTop;
-        const scrollHeight = clipoList[0].scrollHeight;
-        const innerHeight = clipoList.innerHeight();
-
-        if (!loading && !noMoreResults && (scrollTop + innerHeight >= scrollHeight - 10)) {
-            loadClientsByMo(searchQuery, currentPage);
-        }
-    });
 
     $(document).on('click.createProjectSearch', '.list-group-item.stylelist', function (e) {
         e.preventDefault();

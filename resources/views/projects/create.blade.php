@@ -96,15 +96,17 @@
 
 <!-- Pasando variables de Blade a JavaScript -->
 <script>
-    const currentWorkspaceSlug = '{{ $currentWorkspace->slug }}';
-    window.searchMoUrl = "{{ route('search-mo-json', '__slug') }}".replace('__slug', currentWorkspaceSlug);
-    window.searchClipoUrl = "{{ route('search-clipo-json', '__slug') }}".replace('__slug', currentWorkspaceSlug);
-    window.searchClientsMoUrl = "{{ route('search-clients-mo-json', '__slug') }}".replace('__slug', currentWorkspaceSlug);
-    window.searchProjectsUrl = "{{ route('search-project-json', '__slug') }}".replace('__slug', currentWorkspaceSlug);
-    window.searchSalesManagerUrl = "{{ route('search-sales-json', '__slug') }}".replace('__slug', currentWorkspaceSlug);
-    if (typeof window.initCreateProjectSearch === 'function') {
-        window.initCreateProjectSearch();
-    }
+    (function () {
+        const currentWorkspaceSlug = '{{ $currentWorkspace->slug }}';
+        window.searchMoUrl = "{{ route('search-mo-json', '__slug') }}".replace('__slug', currentWorkspaceSlug);
+        window.searchClipoUrl = "{{ route('search-clipo-json', '__slug') }}".replace('__slug', currentWorkspaceSlug);
+        window.searchClientsMoUrl = "{{ route('search-clients-mo-json', '__slug') }}".replace('__slug', currentWorkspaceSlug);
+        window.searchProjectsUrl = "{{ route('search-project-json', '__slug') }}".replace('__slug', currentWorkspaceSlug);
+        window.searchSalesManagerUrl = "{{ route('search-sales-json', '__slug') }}".replace('__slug', currentWorkspaceSlug);
+        if (typeof window.initCreateProjectSearch === 'function') {
+            window.initCreateProjectSearch();
+        }
+    })();
 </script>
 
 <!-- Función de notificación y manejo del submit -->
@@ -184,62 +186,64 @@
     // });
 </script>
 <script>
-    const projectTypeSelect = document.getElementById('project_type');
-    const delegacionField = document.getElementById('delegacion');
-    const delegacionInput = document.getElementById('delegacionInput');
-    const delegacionList = document.getElementById('delegacionList');
-    const delegacionHidden = document.getElementById('delegacionHidden');
+    (function () {
+        const projectTypeSelect = document.getElementById('project_type');
+        const delegacionField = document.getElementById('delegacion');
+        const delegacionInput = document.getElementById('delegacionInput');
+        const delegacionList = document.getElementById('delegacionList');
+        const delegacionHidden = document.getElementById('delegacionHidden');
 
-    projectTypeSelect.addEventListener('change', function() {
-        const selectedOption = this.options[this.selectedIndex];
-        const selectedText = selectedOption.getAttribute('data-type');
+        projectTypeSelect.addEventListener('change', function () {
+            const selectedOption = this.options[this.selectedIndex];
+            const selectedText = selectedOption.getAttribute('data-type');
 
-        if (selectedText && selectedText.toLowerCase() !== 'jobsite') {
-            delegacionField.style.display = 'block';
-        } else {
-            delegacionField.style.display = 'none';
-            delegacionInput.value = '';
-            delegacionHidden.value = '';
-        }
-    });
-
-    // Filtrado de delegaciones
-    delegacionInput.addEventListener('input', function() {
-        const searchText = this.value.toLowerCase();
-        const items = delegacionList.getElementsByTagName('a');
-
-        delegacionList.style.display = 'block';
-
-        Array.from(items).forEach(item => {
-            const text = item.textContent.toLowerCase();
-            item.style.display = text.includes(searchText) ? 'block' : 'none';
+            if (selectedText && selectedText.toLowerCase() !== 'jobsite') {
+                delegacionField.style.display = 'block';
+            } else {
+                delegacionField.style.display = 'none';
+                delegacionInput.value = '';
+                delegacionHidden.value = '';
+            }
         });
-    });
 
-    // Selección de delegación
-    delegacionList.addEventListener('click', function(e) {
-        if (e.target.tagName === 'A') {
-            e.preventDefault();
-            delegacionInput.value = e.target.getAttribute('data-name');
-            delegacionHidden.value = e.target.getAttribute('data-id');
-            delegacionList.style.display = 'none';
-        }
-    });
+        // Filtrado de delegaciones
+        delegacionInput.addEventListener('input', function () {
+            const searchText = this.value.toLowerCase();
+            const items = delegacionList.getElementsByTagName('a');
 
-    // Ocultar lista cuando se hace clic fuera
-    document.addEventListener('click', function(e) {
-        if (!delegacionInput.contains(e.target) && !delegacionList.contains(e.target)) {
-            delegacionList.style.display = 'none';
-        }
-    });
+            delegacionList.style.display = 'block';
 
-    // Mostrar lista al hacer focus en el input
-    delegacionInput.addEventListener('focus', function() {
-        delegacionList.style.display = 'block';
-        // Mostrar todos los elementos de la lista
-        const items = delegacionList.getElementsByTagName('a');
-        Array.from(items).forEach(item => {
-            item.style.display = 'block';
+            Array.from(items).forEach(item => {
+                const text = item.textContent.toLowerCase();
+                item.style.display = text.includes(searchText) ? 'block' : 'none';
+            });
         });
-    });
+
+        // Selección de delegación
+        delegacionList.addEventListener('click', function (e) {
+            if (e.target.tagName === 'A') {
+                e.preventDefault();
+                delegacionInput.value = e.target.getAttribute('data-name');
+                delegacionHidden.value = e.target.getAttribute('data-id');
+                delegacionList.style.display = 'none';
+            }
+        });
+
+        // Ocultar lista cuando se hace clic fuera
+        document.addEventListener('click', function (e) {
+            if (!delegacionInput.contains(e.target) && !delegacionList.contains(e.target)) {
+                delegacionList.style.display = 'none';
+            }
+        });
+
+        // Mostrar lista al hacer focus en el input
+        delegacionInput.addEventListener('focus', function () {
+            delegacionList.style.display = 'block';
+            // Mostrar todos los elementos de la lista
+            const items = delegacionList.getElementsByTagName('a');
+            Array.from(items).forEach(item => {
+                item.style.display = 'block';
+            });
+        });
+    })();
 </script>

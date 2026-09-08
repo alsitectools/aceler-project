@@ -3774,7 +3774,7 @@ class ProjectController extends Controller
             });
         }
 
-        $clients = $query->distinct()->paginate(25);
+        $clients = $query->get();
 
         return response()->json([
             'clients' => $clients,
