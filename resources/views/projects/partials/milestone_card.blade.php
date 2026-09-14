@@ -491,6 +491,93 @@
         };
     }
 
+    if (typeof window.getTargetExtraInfo !== 'function') {
+        window.getTargetExtraInfo = function(card, statusId) {
+            var s = parseInt(statusId);
+            var isWaiting = card.getAttribute('data-is-waiting') === '1';
+
+            if (isWaiting) {
+                return '<div class="milestone-extra-info milestone-extra-info--paused">'
+                    + '<i class="far fa-pause-circle"></i>'
+                    + '<span>{{ __("Encargo pausado") }}</span>'
+                    + '<a href="#" class="milestone-resume-btn" onclick="event.preventDefault();document.getElementById(\'resume-milestone-' + card.id + '\').submit();">{{ __("Activar") }}</a>'
+                    + '</div>';
+            }
+
+            if (s === 1) {
+                return '<div class="milestone-extra-info">'
+                    + '<i class="fa-solid fa-arrows-alt"></i>'
+                    + '<span>{{ __("Arrastrar a en curso") }}<br>{{ __("para empezar el encargo") }}</span>'
+                    + '</div>';
+            }
+
+            if (s === 2) {
+                var tasks = card.querySelectorAll('.milestone-task');
+                var hasChanges = !!card.querySelector('.task-changes');
+                if (hasChanges) {
+                    return '<div class="milestone-extra-info milestone-extra-info--changes">'
+                        + '<i class="fa-solid fa-triangle-exclamation"></i>'
+                        + '<span>{{ __("There are tasks pending correction") }}<br>{{ __("before moving to review") }}</span>'
+                        + '</div>';
+                }
+                var statusClass2 = '';
+                var statusIcon2 = 'fa-solid fa-arrow-circle-right';
+                var statusLabel2 = '{{ __("Puede pasar a revisión") }}';
+                if (tasks.length === 0) {
+                    statusClass2 = 'milestone-extra-info--no-tasks';
+                    statusIcon2 = 'fa-solid fa-exclamation-triangle';
+                    statusLabel2 = '{{ __("No puede pasar a revisión.") }}<br>{{ __("Se necesita añadir tareas") }}';
+                } else {
+                    var allHaveHours = true;
+                    for (var i = 0; i < tasks.length; i++) {
+                        var tip = tasks[i].getAttribute('data-tooltip-content') || '';
+                        if (/[: ]00:00\s*$/.test(tip)) {
+                            allHaveHours = false;
+                            break;
+                        }
+                    }
+                    if (!allHaveHours) {
+                        statusClass2 = 'milestone-extra-info--hours';
+                        statusIcon2 = 'far fa-clock';
+                        statusLabel2 = '{{ __("Imputar las horas") }}<br>{{ __("para pasar a revisión") }}';
+                    }
+                }
+                return '<div class="milestone-extra-info milestone-extra-info--ready ' + statusClass2 + '">'
+                    + '<i class="' + statusIcon2 + '"></i>'
+                    + '<span>' + statusLabel2 + '</span>'
+                    + '</div>';
+            }
+
+            if (s === 3) {
+                return '<div class="milestone-extra-info milestone-extra-info--orange">'
+                    + '<i class="fa-solid fa-magnifying-glass"></i>'
+                    + '<span>{{ __("Encargo en revisión") }}</span>'
+                    + '</div>';
+            }
+
+            if (s === 4) {
+                var completed = card.getAttribute('data-completed-date') || '';
+                var desired   = card.getAttribute('data-desired-delivery-date') || '';
+                var isLate = false;
+                if (desired && desired !== '0000-00-00') {
+                    if (completed && completed !== '0000-00-00') {
+                        isLate = new Date(completed) > new Date(desired);
+                    } else {
+                        isLate = new Date() > new Date(desired);
+                    }
+                }
+                var cls  = 'milestone-extra-info milestone-extra-info--check' + (isLate ? ' milestone-check-late' : '');
+                var lbl  = isLate ? '{{ __("Entregado fuera de plazo") }}' : '{{ __("Entregado en plazo") }}';
+                return '<div class="' + cls + '">'
+                    + '<i class="far fa-check-circle"></i>'
+                    + '<span>' + lbl + '</span>'
+                    + '</div>';
+            }
+
+            return null;
+        };
+    }
+
     if (typeof window.milestoneBoardAppendTask !== 'function') {
         window.milestoneBoardAppendTask = function(response) {
             if (!response || !response.milestone_id) return;

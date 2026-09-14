@@ -1134,6 +1134,9 @@
                         // el atributo data-status se actualiza y el toggle lo detecta correctamente.
                         a(el).attr('data-status', newStatus);
 
+                        var extraInfo = window.getTargetExtraInfo ? window.getTargetExtraInfo(el, newStatus) : null;
+                        if (extraInfo) window.replaceMilestoneExtraInfo(el, extraInfo);
+
                         // Se realiza la llamada AJAX para actualizar el orden y el estado en el servidor
                         a.ajax({
                             url: '{{ route('milestone.update.order', [$currentWorkspace->slug, $milestone['project_id']]) }}',
