@@ -826,9 +826,13 @@
                             modal.dataset.oldStatus = oldStatus;
                             modal.dataset.newStatus = newStatus;
                             modal.dataset.sort = JSON.stringify(sort);
+                            // Guardar contexto para revertir si se cancela (patrón ASSIGN)
+                            $(modal).data('originContainer', source);
+                            modal.dataset.originalIndex = a(el).data('originalIndex');
 
                             // Para saber si se guardó o canceló
                             modal.dataset.saved = '0';
+                            modal.dataset.reverted = '0';
 
                             // Limpiar textarea
                             document.getElementById('statusChangeComment').value = '';
@@ -1489,6 +1493,54 @@
                 </div>
             </div>
             <script>
+                // Réplica local de updateTaskCount para este scope (el original está dentro del IIFE de dragula)
+                function refreshBoardCounts(board) {
+                    var parentCardList = $(board).parents('.card-list');
+                    var allCards = $(board).children('.card');
+                    var totalCount = allCards.length;
+                    var visibleCount = allCards.filter(function() {
+                        return $(this).css('display') !== 'none';
+                    }).length;
+                    parentCardList.find('.count').text(visibleCount);
+                    var emptyState = $(board).find('.noNotificationsContainer').first();
+                    if (emptyState.length) {
+                        if (totalCount > 0) {
+                            emptyState.hide();
+                        } else {
+                            emptyState.show();
+                        }
+                    }
+                    var status = $(board).data('status');
+                    if (status == 4 && totalCount != visibleCount) {
+                        console.warn('[COUNTER] Columna Hecho: total=' + totalCount + ' visible=' + visibleCount);
+                    }
+                }
+
+                function showEsperaOverlay() {
+                    var overlay = document.getElementById('espera-overlay');
+                    if (overlay) {
+                        overlay.style.display = 'flex';
+                        document.body.style.overflow = 'hidden';
+                    }
+                }
+
+                function hideEsperaOverlay() {
+                    var overlay = document.getElementById('espera-overlay');
+                    if (overlay) {
+                        overlay.style.display = 'none';
+                        document.body.style.overflow = '';
+                    }
+                }
+
+                // Aplica el nuevo estado en la card sin recargar
+                function applyStatusChangeToCard(milestoneId, newStatus) {
+                    const card = document.getElementById(String(milestoneId));
+                    if (!card) return;
+                    card.setAttribute('data-status', newStatus);
+                    const extraInfo = window.getTargetExtraInfo ? window.getTargetExtraInfo(card, newStatus) : null;
+                    if (extraInfo) window.replaceMilestoneExtraInfo(card, extraInfo);
+                }
+
                 function submitStatusChange() {
                     const modal = document.getElementById('statusChangeModal');
 
@@ -1505,8 +1557,20 @@
                         return;
                     }
 
-                    // Marcar como guardado (para que no haga reload por cancelar)
+                    // Marcar como guardado (para que no revierta ni recargue al cerrar)
                     modal.dataset.saved = '1';
+
+                    // Spinner como holder mientras se persiste (sin recargar)
+                    showEsperaOverlay();
+
+                    function finishAndRefresh() {
+                        applyStatusChangeToCard(milestoneId, newStatus);
+                        const sourceBox = document.querySelector(`.kanban-box[data-status='${oldStatus}']`);
+                        const destBox = document.querySelector(`.kanban-box[data-status='${newStatus}']`);
+                        if (sourceBox) refreshBoardCounts(sourceBox);
+                        if (destBox) refreshBoardCounts(destBox);
+                        hideEsperaOverlay();
+                    }
 
                     // 1) Actualizar status en servidor
                     $.ajax({
@@ -1538,17 +1602,18 @@
                                         'X-CSRF-TOKEN': '{{ csrf_token() }}'
                                     },
                                     complete: function() {
-                                        // 3) Siempre recargar al final (haya o no error borrando)
-                                        location.reload();
+                                        // Sin recargar: actualizamos card + contadores
+                                        finishAndRefresh();
                                     }
                                 });
 
                             } else {
-                                location.reload();
+                                finishAndRefresh();
                             }
                         },
                         error: function(xhr, status, error) {
                             console.error('Error al actualizar estado:', error);
+                            hideEsperaOverlay();
                             alert('Error updating milestone status');
                         }
                     });
@@ -1556,19 +1621,87 @@
                     bootstrap.Modal.getOrCreateInstance(modal).hide();
                 }
 
-                // Cancelar => reload para volver a ver el estado correcto (y NO borrar puntuaciones)
+                // Cancelar => revertir la card en el DOM (sin recargar)
                 document.addEventListener('DOMContentLoaded', function() {
-                    const modal = document.getElementById('statusChangeModal');
-                    if (!modal) return;
+                    const statusModal = document.getElementById('statusChangeModal');
+                    if (!statusModal) return;
 
-                    modal.dataset.saved = '0';
+                    statusModal.dataset.saved = '0';
+                    statusModal.dataset.reverted = '0';
 
-                    modal.addEventListener('hidden.bs.modal', function() {
-                        if (modal.dataset.saved !== '1') {
-                            // cancel / x
-                            location.reload();
+                    // Revertir la card a su columna "En revisión" y posición original (sin reload).
+                    // Se ejecuta al instante al pulsar Cancelar/X; el hidden actúa como fallback.
+                    function revertStatusChangeToReview() {
+                        if (statusModal.dataset.reverted === '1') return;
+                        statusModal.dataset.reverted = '1';
+
+                        const milestoneId = statusModal.dataset.milestoneId;
+                        const originContainer = $(statusModal).data('originContainer');
+                        const originalIndex = parseInt(statusModal.dataset.originalIndex || '-1', 10);
+                        const previousStatus = statusModal.dataset.oldStatus || '3';
+                        const projectId = statusModal.dataset.projectId;
+
+                        if (!milestoneId || !originContainer) return;
+
+                        const $milestoneCard = $(`.card[id='${milestoneId}']`);
+                        const $origin = $(originContainer);
+
+                        if ($milestoneCard.length && $origin.length) {
+                            const $cards = $origin.children('.card');
+                            $milestoneCard.detach();
+                            if ($cards.length > 0 && originalIndex >= 0 && originalIndex < $cards.length) {
+                                $milestoneCard.insertBefore($cards.eq(originalIndex));
+                            } else {
+                                $origin.append($milestoneCard);
+                            }
+
+                            $milestoneCard.attr('data-status', previousStatus);
+
+                            refreshBoardCounts($origin[0]);
+                            const destBox = document.querySelector(`.kanban-box[data-status='${statusModal.dataset.newStatus || '2'}']`);
+                            if (destBox) refreshBoardCounts(destBox);
+
+                            const extraInfo = window.getTargetExtraInfo ? window.getTargetExtraInfo($milestoneCard[0], previousStatus) : null;
+                            if (extraInfo) window.replaceMilestoneExtraInfo($milestoneCard[0], extraInfo);
+
+                            // Rollback en backend (patrón ASSIGN) sin reload
+                            $.ajax({
+                                url: '{{ route('milestone.update.order', [$currentWorkspace->slug, ':projectId']) }}'
+                                    .replace(':projectId', projectId),
+                                type: 'POST',
+                                headers: {
+                                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                                },
+                                data: {
+                                    id: milestoneId,
+                                    sort: [],
+                                    new_status: previousStatus,
+                                    old_status: 2,
+                                    project_id: projectId
+                                },
+                                complete: function() {
+                                    // nada; no recargamos para evitar parpadeos
+                                }
+                            });
                         }
-                        modal.dataset.saved = '0';
+                    }
+
+                    // Revertir AL INSTANTE al pulsar Cancelar o la X (antes de que el modal se oculte)
+                    statusModal.querySelectorAll('[data-bs-dismiss="modal"]').forEach(function(btn) {
+                        btn.addEventListener('click', function() {
+                            if (statusModal.dataset.saved !== '1') {
+                                revertStatusChangeToReview();
+                            }
+                        });
+                    });
+
+                    // Fallback para cierres por backdrop que no dispararon el click anterior
+                    statusModal.addEventListener('hidden.bs.modal', function() {
+                        if (statusModal.dataset.saved !== '1' && statusModal.dataset.reverted !== '1') {
+                            revertStatusChangeToReview();
+                        }
+                        statusModal.dataset.saved = '0';
+                        statusModal.dataset.reverted = '0';
                     });
                 });
             </script>
