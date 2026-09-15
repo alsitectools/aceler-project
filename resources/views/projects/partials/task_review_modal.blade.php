@@ -115,6 +115,11 @@
                 headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
                 data: data,
                 success: function(response) {
+                    // Actualizar la fila de la tabla de mis tareas antes de destapar la pantalla
+                    if (typeof window.updateMyTasksReviewRow === 'function' && response) {
+                        window.updateMyTasksReviewRow(response);
+                    }
+                    
                     if (overlay) {
                         overlay.style.display = 'none';
                         document.body.style.overflow = 'auto';
@@ -182,6 +187,11 @@
                 headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
                 data: { task_id: taskId },
                 success: function(response) {
+                    // Actualizar la fila de la tabla de mis tareas antes de destapar la pantalla
+                    if (typeof window.updateMyTasksReviewRow === 'function' && response) {
+                        window.updateMyTasksReviewRow(response);
+                    }
+                    
                     if (overlay) {
                         overlay.style.display = 'none';
                         document.body.style.overflow = 'auto';

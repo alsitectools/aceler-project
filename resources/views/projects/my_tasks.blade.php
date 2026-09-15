@@ -1576,6 +1576,52 @@
     @include('projects.partials.task_review_modal')
     <script>
         (function() {
+            if (typeof window.updateMyTasksReviewRow !== 'function') {
+                window.updateMyTasksReviewRow = function(response) {
+                    if (!response || !response.task_id) return;
+
+                    var row = document.querySelector('.my-tasks-body-row[data-task-id="' + response.task_id + '"]');
+                    if (!row) return;
+
+                    var reviewState = response.review_state;
+
+                    row.classList.remove('task-row-changes', 'task-row-reviewed');
+                    if (reviewState && reviewState !== 'cleared') {
+                        row.classList.add('task-row-' + reviewState);
+                    }
+
+                    var truncateEl = row.querySelector('.my-tasks-truncate-task');
+                    if (!truncateEl) return;
+
+                    truncateEl.querySelectorAll('.task-review-badge').forEach(function(b) { b.remove(); });
+
+                    if (reviewState === 'cleared') return;
+
+                    var badge = document.createElement('span');
+                    badge.className = 'me-2 badge task-review-badge ' + (reviewState === 'changes' ? 'task-badge-changes' : 'task-badge-reviewed');
+                    badge.style.cursor = 'pointer';
+                    badge.setAttribute('data-task-name', row.getAttribute('data-task-name') || '');
+                    badge.setAttribute('data-task-id', response.task_id);
+
+                    if (reviewState === 'changes') {
+                        badge.setAttribute('data-review-comment', response.review_comment || '');
+                        badge.setAttribute('data-review-user', response.review_user || '');
+                        badge.title = '{{ __("Change request comment") }}: ' + (response.review_comment || '') + ' — {{ __("Requested by") }}: ' + (response.review_user || '');
+                        badge.innerHTML = '<i class="fa-solid fa-triangle-exclamation text-danger"></i>';
+                    } else if (reviewState === 'reviewed') {
+                        badge.setAttribute('data-review-mode', 'view');
+                        badge.title = '{{ __("Revisado") }}';
+                        badge.innerHTML = '<i class="fa-solid fa-check text-success"></i>';
+                    } else {
+                        return;
+                    }
+
+                    var nameEl = truncateEl.querySelector('.my-tasks-main');
+                    truncateEl.insertBefore(badge, nameEl || truncateEl.firstChild);
+                };
+            }
+        })();
+        (function() {
             const modalEl = document.getElementById('milestoneCardModal');
             const bodyEl = document.getElementById('milestoneCardModalBody');
             if (!modalEl || !bodyEl) return;
