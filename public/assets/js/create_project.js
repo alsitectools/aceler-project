@@ -429,6 +429,8 @@ case 'clients':
         else if (list.is('#projects_list')) type = 'projects';
         else if (list.is('#sales_manager_list')) type = 'salesManagers';
 
+        if (!type) return;
+
         const populate = $this.data('populate');
 
         if (populate === 'mo') {
