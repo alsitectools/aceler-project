@@ -214,7 +214,7 @@ case 'clients':
 
     const handleMoInputChange = debounce(function () {
         const q = refMoInput.val().trim();
-        if (q.length < 3) {
+        if (q.length < 1) {
             if (currentRequest) {
                 currentRequest.abort();
             }
