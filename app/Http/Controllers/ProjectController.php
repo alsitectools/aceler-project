@@ -527,14 +527,16 @@ class ProjectController extends Controller
         $objUser = Auth::user();
         $currentWorkspace = Utility::getWorkspaceBySlug($slug);
 
+        // Delegación obligatoria solo para proyectos de tipo Obra (Jobsite)
+        $isJobsiteType = (bool) ProjectType::where('id', $request->project_type)->value('name') === 'Jobsite';
+
         // Validación de la solicitud
         $request->validate([
             'project_type' => 'required',
             'ref_mo' => 'nullable|string',
             'name' => 'required|string',
             'clipo' => 'nullable|string',
-            // 'delegacion' => $request->project_type != 'jobsite' ? 'required|exists:delegations,id' : 'nullable'
-
+            'delegacion' => $isJobsiteType ? 'required|exists:delegations,id' : 'nullable|exists:delegations,id',
         ]);
         \Log::info(["Info de la request:" => $request->all()]);
 

@@ -196,14 +196,12 @@
         projectTypeSelect.addEventListener('change', function () {
             const selectedOption = this.options[this.selectedIndex];
             const selectedText = selectedOption.getAttribute('data-type');
+            const isJobsite = selectedText && selectedText.toLowerCase() === 'jobsite';
 
-            if (selectedText && selectedText.toLowerCase() !== 'jobsite') {
-                delegacionField.style.display = 'block';
-            } else {
-                delegacionField.style.display = 'none';
-                delegacionInput.value = '';
-                delegacionHidden.value = '';
-            }
+            delegacionField.style.display = 'block';
+            delegacionInput.value = '';
+            delegacionHidden.value = '';
+            delegacionHidden.required = isJobsite;
         });
 
         // Filtrado de delegaciones
