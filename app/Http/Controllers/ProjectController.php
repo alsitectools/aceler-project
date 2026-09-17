@@ -1079,7 +1079,7 @@ class ProjectController extends Controller
             $delta->hr_decimal
         );
 
-        $fecha = date('ymd'); // YYMMDD
+        $fecha = date('Ymd'); // YYYYMMDD
         $op = '210'; // siempre 210
         $lineNumberInMilestone = 0;
 
@@ -1092,7 +1092,7 @@ class ProjectController extends Controller
 
             // Preparar línea con ancho fijo
             $line = '';
-            $line .= str_pad($regId, $fieldWidths['regId']);
+            $line .= str_pad($regId, $fieldWidths['regId'], ' ', STR_PAD_LEFT);
             $line .= str_pad($fecha, $fieldWidths['fecha']);
             $line .= str_pad($projectData->empresa, $fieldWidths['empresa']);
             $line .= str_pad($projectData->delegacion, $fieldWidths['delegacion']);
@@ -1100,10 +1100,10 @@ class ProjectController extends Controller
             $line .= str_pad($projectData->masterobrasid, $fieldWidths['masterobrasid']);
             $line .= str_pad('', $fieldWidths['obra']); // obra vacío
             $line .= str_pad('', $fieldWidths['descripcion']); // descripcion vacío
-            $line .= str_pad($op, $fieldWidths['op']);
+            $line .= str_pad($op, $fieldWidths['op'], ' ', STR_PAD_LEFT);
             $line .= str_pad($horasFormatted, $fieldWidths['horas']);
             $line .= str_pad($projectData->ref, $fieldWidths['ref']);
-            $line .= str_pad($lineNumberInMilestone, $fieldWidths['linea']);
+            $line .= str_pad($lineNumberInMilestone, $fieldWidths['linea'], ' ', STR_PAD_LEFT);
             $line .= str_pad(number_format($splitLine->hr_decimal, 7, '.', ''), $fieldWidths['hrDecimal']);
             $line .= str_pad(number_format($splitLine->puntos, 2, '.', ''), $fieldWidths['puntos']);
 
