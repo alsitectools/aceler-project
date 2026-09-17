@@ -1079,7 +1079,7 @@ class ProjectController extends Controller
             $delta->hr_decimal
         );
 
-        $fecha = date('Ymd'); // YYYYMMDD
+        $fecha = date('ymd'); // YYMMDD
         $op = '210'; // siempre 210
         $lineNumberInMilestone = 0;
 
@@ -1104,7 +1104,7 @@ class ProjectController extends Controller
             $line .= str_pad($horasFormatted, $fieldWidths['horas']);
             $line .= str_pad($projectData->ref, $fieldWidths['ref']);
             $line .= str_pad($lineNumberInMilestone, $fieldWidths['linea']);
-            $line .= str_pad(number_format($splitLine->hr_decimal, 2, '.', ''), $fieldWidths['hrDecimal']);
+            $line .= str_pad(number_format($splitLine->hr_decimal, 7, '.', ''), $fieldWidths['hrDecimal']);
             $line .= str_pad(number_format($splitLine->puntos, 2, '.', ''), $fieldWidths['puntos']);
 
             $linesToExport[] = $line;

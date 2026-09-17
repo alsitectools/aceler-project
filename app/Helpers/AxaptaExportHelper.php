@@ -275,7 +275,7 @@ class AxaptaExportHelper
     public static function getProjectExportData($project)
     {
         $workspace = Workspace::find($project->workspace);
-        $delegationId = $workspace?->delegation_id ?? '0';
+        $delegationId = $project->ref_delegation ?? $workspace?->delegation_id ?? '0';
 
         $delegation = Delegation::find($delegationId);
         $empresa = $delegation?->empresa ?? '';
