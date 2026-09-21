@@ -2835,7 +2835,11 @@ class ProjectController extends Controller
 
         $users = User::orderBy('name', 'asc')->get();
 
-        return view('projects.taskCreate', compact('currentWorkspace', 'projects', 'taskType', 'milestones', 'users'));
+        $delegations = Delegation::select('id')->orderBy('id')->get();
+
+        $systems = System::select('id_system', 'code_system')->orderBy('id_system')->get();
+
+        return view('projects.taskCreate', compact('currentWorkspace', 'projects', 'taskType', 'milestones', 'users', 'delegations', 'systems'));
     }
 
     public function taskStore(Request $request, $slug)
@@ -2932,6 +2936,7 @@ class ProjectController extends Controller
         $task->start_date = date('Y-m-d');
         $task->estimated_date = $request->estimated_date;
         $task->assign_to = $assigneeId;
+        $task->description = $request->description ?? null;
         $task->save();
 
         // Si es custom, crear el registro en custom_tasks
@@ -3277,6 +3282,7 @@ class ProjectController extends Controller
             'estimated_date' => 'required|date',
             'end_date' => 'nullable|date',
             'custom_task_name' => 'nullable|string|max:255',
+            'description' => 'nullable|string',
         ]);
 
         $task = Task::find($taskID);
@@ -3314,6 +3320,7 @@ class ProjectController extends Controller
             'milestone_id' => $request->milestone_id,
             'type_id' => (int) $request->type_id,
             'assign_to' => implode(',', $request->assign_to),
+            'description' => $request->description ?? null,
             'start_date' => $request->filled('start_date') ? Carbon::parse($request->start_date)->format('Y-m-d H:i:s') : null,
             'estimated_date' => Carbon::parse($request->estimated_date)->format('Y-m-d H:i:s'),
             'end_date' => $request->filled('end_date')

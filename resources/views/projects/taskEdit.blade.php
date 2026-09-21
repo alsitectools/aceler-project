@@ -65,9 +65,16 @@
                     </div>
                 </div>
 
-                <div class="form-group">
-                    <label class="col-form-label">{{ __('Description') }}</label>
-                    <textarea class="form-control form-control-light" id="task-description" rows="3" name="description">{{ $task->description }}</textarea>
+                <div class="form-group col-md-12">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="addDescriptionCheck">
+                        <label class="form-check-label" for="addDescriptionCheck">
+                            {{ __('Añadir descripcion ') }}<span style="font-weight: normal; font-size: 0.85em;">(opcional)</span>
+                        </label>
+                    </div>
+                    <div class="d-none mt-2" id="description-box-container">
+                        <textarea class="form-control form-control-light" id="task-description" rows="3" name="description">{{ $task->description }}</textarea>
+                    </div>
                 </div>
             </div>
         </div>
@@ -80,6 +87,10 @@
     <script src="{{ asset('assets/custom/libs/bootstrap-daterangepicker/daterangepicker.js') }}"></script>
 
     <script>
+        $('#addDescriptionCheck').on('change', function() {
+            $('#description-box-container').toggleClass('d-none', !this.checked);
+        });
+
         if ($(".multi-select").length > 0) {
             $($(".multi-select")).each(function(index, element) {
                 var id = $(element).attr('id');

@@ -118,6 +118,47 @@
                     <input type="hidden" name="task_assign_override" id="task_assign_override" value="">
                 </div>
 
+                <!-- Master -->
+                <div class="form-group col-md-12 mt-2 d-none" id="master-container">
+                    <label class="col-form-label">{{ __('Master') }}</label>
+                    <div class="d-flex align-items-center gap-1">
+                        <input type="text" class="form-control master-box text-center" maxlength="2" data-master-index="1" readonly placeholder="YY">
+                        <select class="form-control master-box master-select text-center" data-master-index="2">
+                            <option value=""></option>
+                            @foreach ($delegations as $del)
+                                <option value="{{ $del->id }}">{{ $del->id }}</option>
+                            @endforeach
+                        </select>
+                        <input type="text" class="form-control master-box master-num text-center" maxlength="3" data-master-index="3" inputmode="numeric" placeholder="000">
+                        <input type="text" class="form-control master-box master-letter text-center" maxlength="1" data-master-index="4" placeholder="A">
+                        <select class="form-control master-box master-select master-sys-select text-center" data-master-index="5">
+                            <option value="">0</option>
+                            @foreach ($systems as $sys)
+                                <option value="{{ $sys->id_system }}">{{ $sys->id_system }}</option>
+                            @endforeach
+                        </select>
+                        <span class="mx-1">.</span>
+                        <input type="text" class="form-control master-box text-center" maxlength="1" data-master-index="6" inputmode="numeric" placeholder="0">
+                        <span class="mx-1">-</span>
+                        <input type="text" class="form-control master-box text-center" maxlength="1" data-master-index="7" inputmode="numeric" placeholder="0">
+                        <input type="text" class="form-control master-box text-center" maxlength="1" data-master-index="8" inputmode="numeric" placeholder="0">
+                    </div>
+                    <input type="hidden" id="task-master" name="master" value="">
+                </div>
+
+                <div class="form-group col-md-12 mt-2" id="description-toggle-container">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="addDescriptionCheck">
+                        <label class="form-check-label" for="addDescriptionCheck">
+                            {{ __('Añadir descripcion ') }}<span style="font-weight: normal; font-size: 0.85em;">(opcional)</span>
+                        </label>
+                    </div>
+                    <div class="d-none mt-2" id="description-box-container">
+                        <textarea class="form-control form-control-light" id="task_description" name="description" rows="3"
+                            placeholder="{{ __('Write a description...') }}"></textarea>
+                    </div>
+                </div>
+
                 {{-- <!-- Fecha de inicio -->
                 <div class="form-group col-md-6" style="width: 100% !important;">
                     <label for="start_date" class="col-form-label">{{ __('Start date') }}</label>
@@ -186,6 +227,7 @@
         const milestoneFieldContainer = $('#milestone-field-container');
         const taskTypeContainer = $('#task-container');
         const taskAssignContainer = $('#task-assign-container');
+        const masterContainer = $('#master-container');
         const taskAssigneeInput = $('#search-task-assignee');
         const taskAssigneeDropdown = $('#user-select-task-assignee');
         const taskAssigneeHidden = $('#task_assign_override');
@@ -232,6 +274,16 @@
             }
 
             return String(selectedMilestone.milestone_assigned_to_user || '') === String(currentUserId);
+        }
+
+        function toggleMasterContainer(selectedProject) {
+            const isJobsite = selectedProject && String(selectedProject.type) === '1';
+            masterContainer.toggleClass('d-none', !isJobsite);
+
+            if (isJobsite) {
+                const delegation = selectedProject.ref_delegation;
+                $('.master-box[data-master-index="2"]').val(delegation || '');
+            }
         }
 
         function applyProjectTypeLayout(selectedProject, shouldShowTaskAssign) {
@@ -449,6 +501,78 @@
         // ✅ Listener SOLO UNA VEZ
         $('#task-list').on('change', toggleCustomTaskName);
 
+        $('#addDescriptionCheck').on('change', function() {
+            $('#description-box-container').toggleClass('d-none', !this.checked);
+            if (!this.checked) $('#task_description').val('');
+        });
+
+        function updateMasterHidden() {
+            const values = [];
+            $('.master-box').each(function() {
+                values.push($(this).val().toUpperCase());
+            });
+            const [a, b, c, d, e, f, g, h] = values;
+            $('#task-master').val((a || '') + (b || '') + (c || '') + (d || '') + (e || '') + '.' +
+                (f || '') + '-' + (g || '') + (h || ''));
+        }
+
+        function setMasterYearBox() {
+            const year = String(new Date().getFullYear()).slice(-2);
+            const box = $('.master-box[data-master-index="1"]');
+            if (box.val() !== year) {
+                box.val(year);
+                updateMasterHidden();
+            }
+        }
+        setMasterYearBox();
+        setInterval(setMasterYearBox, 60000);
+
+        $(document).on('input', '.master-box[type="text"]', function() {
+            const index = Number($(this).data('master-index'));
+            if (index === 3) {
+                const cleaned = this.value.replace(/\D/g, '').slice(0, 3);
+                if (this.value !== cleaned) this.value = cleaned;
+            }
+            if (index === 4) {
+                const cleaned = this.value.toUpperCase().replace(/[^A-Z]/g, '');
+                if (this.value !== cleaned) this.value = cleaned;
+            }
+            if (index === 6 || index === 7 || index === 8) {
+                const cleaned = this.value.replace(/\D/g, '').slice(0, 1);
+                if (this.value !== cleaned) this.value = cleaned;
+            }
+            const val = $(this).val();
+            const maxLen = index === 3 ? 3 : 1;
+            const next = $('.master-box[data-master-index="' + (index + 1) + '"]');
+            if (val.length >= maxLen && next.length) {
+                next.focus().select();
+            }
+            updateMasterHidden();
+        });
+
+        $('.master-box[data-master-index="2"], .master-box[data-master-index="5"]').on('change', function() {
+            const next = $('.master-box[data-master-index="' + (Number($(this).data('master-index')) + 1) + '"]');
+            if ($(this).val() && next.length) {
+                next.focus().select();
+            }
+            if (Number($(this).data('master-index')) === 5) {
+                $(this).toggleClass('master-sys-empty', !$(this).val());
+            }
+            updateMasterHidden();
+        });
+
+        $('.master-box[data-master-index="5"]').toggleClass('master-sys-empty', !$('.master-box[data-master-index="5"]').val());
+
+        $(document).on('keydown', '.master-box[type="text"]', function(e) {
+            if (e.key === 'Backspace' && $(this).val() === '') {
+                const prev = $('.master-box[data-master-index="' + (Number($(this).data('master-index')) - 1) + '"]');
+                if (prev.length) {
+                    prev.focus().select();
+                    e.preventDefault();
+                }
+            }
+        });
+
         function updateSelects(projectIdOverride = null) {
             var projectId, selectedProject;
 
@@ -521,6 +645,7 @@
             // ✅ Ajustar visibilidad del input tras repintar
             toggleCustomTaskName();
             const shouldShowTaskAssign = toggleTaskAssignSelector(selectedProject);
+            toggleMasterContainer(selectedProject);
             applyProjectTypeLayout(selectedProject, shouldShowTaskAssign);
         }
 
@@ -532,6 +657,7 @@
                 selectedProject = JSON.parse(selectedProject);
             }
             const shouldShowTaskAssign = toggleTaskAssignSelector(selectedProject);
+            toggleMasterContainer(selectedProject);
             applyProjectTypeLayout(selectedProject, shouldShowTaskAssign);
         });
 
@@ -651,5 +777,69 @@
     .estimated_date>p {
         font-size: 14px;
         text-align: center;
+    }
+
+    .master-box {
+        width: 44px;
+        min-width: 44px;
+        max-width: 44px;
+        height: 38px;
+        padding: 0.4rem 0.25rem;
+        font-size: 0.8rem;
+        font-weight: 500;
+        line-height: 1;
+        text-align: center;
+    }
+
+    .master-num {
+        width: 50px;
+        min-width: 50px;
+        max-width: 50px;
+        height: 38px;
+        font-size: 0.8rem;
+        font-weight: 500;
+        letter-spacing: 1px;
+    }
+
+    .master-select {
+        width: auto;
+        min-width: 52px;
+        max-width: none;
+        height: 38px;
+        border: 1px solid #ced4da;
+        border-radius: 0.25rem;
+        vertical-align: middle;
+        appearance: none;
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        padding: 0.25rem 1.75rem 0.25rem 0.5rem;
+        font-size: 0.8rem;
+        font-weight: 500;
+        text-align: center;
+        background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'><path d='M1 1l4 4 4-4' stroke='%236c757d' stroke-width='1.5' fill='none' stroke-linecap='round'/></svg>");
+        background-repeat: no-repeat;
+        background-position: right 0.45rem center;
+        cursor: pointer;
+    }
+
+    .master-sys-select {
+        text-align-last: center;
+        text-align: center;
+    }
+
+    .master-sys-select.master-sys-empty {
+        color: #adb5bd;
+        font-weight: 400;
+    }
+
+    .master-select:hover,
+    .master-select:focus {
+        border-color: #6c757d;
+        box-shadow: none;
+    }
+
+    .master-box[data-master-index]:not([data-master-index="1"])::placeholder {
+        color: #adb5bd;
+        font-weight: 400;
     }
 </style>
