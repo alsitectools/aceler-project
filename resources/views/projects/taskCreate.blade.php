@@ -131,12 +131,18 @@
                         </select>
                         <input type="text" class="form-control master-box master-num text-center" maxlength="3" data-master-index="3" inputmode="numeric" placeholder="000">
                         <input type="text" class="form-control master-box master-letter text-center" maxlength="1" data-master-index="4" placeholder="A">
-                        <select class="form-control master-box master-select master-sys-select text-center" data-master-index="5">
-                            <option value="">0</option>
-                            @foreach ($systems as $sys)
-                                <option value="{{ $sys->id_system }}">{{ $sys->id_system }}</option>
-                            @endforeach
-                        </select>
+                        <div class="master-sys-dd">
+                            <button type="button" class="master-sys-btn text-center" aria-expanded="false">
+                                <span class="master-sys-value"></span>
+                            </button>
+                            <div class="master-sys-menu">
+                                <a class="master-sys-item" href="#" data-value="">0</a>
+                                @foreach ($systems as $sys)
+                                    <a class="master-sys-item" href="#" data-value="{{ $sys->id_system }}">{{ $sys->id_system }} · {{ $sys->code_system }}</a>
+                                @endforeach
+                            </div>
+                            <input type="hidden" class="master-box" data-master-index="5" value="">
+                        </div>
                         <span class="mx-1">.</span>
                         <input type="text" class="form-control master-box text-center" maxlength="1" data-master-index="6" inputmode="numeric" placeholder="0">
                         <span class="mx-1">-</span>
@@ -550,18 +556,36 @@
             updateMasterHidden();
         });
 
-        $('.master-box[data-master-index="2"], .master-box[data-master-index="5"]').on('change', function() {
+        $('.master-box[data-master-index="2"]').on('change', function() {
             const next = $('.master-box[data-master-index="' + (Number($(this).data('master-index')) + 1) + '"]');
             if ($(this).val() && next.length) {
                 next.focus().select();
             }
-            if (Number($(this).data('master-index')) === 5) {
-                $(this).toggleClass('master-sys-empty', !$(this).val());
+            updateMasterHidden();
+        });
+
+        $('.master-sys-btn').on('click', function() {
+            $('.master-sys-dd').toggleClass('show');
+        });
+
+        $('.master-sys-item').on('click', function(e) {
+            e.preventDefault();
+            const val = $(this).data('value');
+            $('.master-box[data-master-index="5"]').val(val || '');
+            $('.master-sys-value').text(val ? val : '');
+            $('.master-sys-dd').toggleClass('show', false);
+            const next = $('.master-box[data-master-index="6"]');
+            if (val && next.length) {
+                next.focus().select();
             }
             updateMasterHidden();
         });
 
-        $('.master-box[data-master-index="5"]').toggleClass('master-sys-empty', !$('.master-box[data-master-index="5"]').val());
+        $(document).on('click', function(e) {
+            if (!$(e.target).closest('.master-sys-dd').length) {
+                $('.master-sys-dd').removeClass('show');
+            }
+        });
 
         $(document).on('keydown', '.master-box[type="text"]', function(e) {
             if (e.key === 'Backspace' && $(this).val() === '') {
@@ -801,41 +825,80 @@
         letter-spacing: 1px;
     }
 
-    .master-select {
+    .master-sys-dd {
+        position: relative;
+        display: inline-block;
+    }
+
+    .master-sys-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
         width: auto;
         min-width: 52px;
         max-width: none;
         height: 38px;
         border: 1px solid #ced4da;
         border-radius: 0.25rem;
-        vertical-align: middle;
-        appearance: none;
-        -webkit-appearance: none;
-        -moz-appearance: none;
-        padding: 0.25rem 1.75rem 0.25rem 0.5rem;
+        background-color: #fff;
+        color: #212529;
         font-size: 0.8rem;
         font-weight: 500;
-        text-align: center;
+        appearance: none;
+        -webkit-appearance: none;
+        padding: 0.25rem 1.25rem 0.25rem 0.5rem;
         background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'><path d='M1 1l4 4 4-4' stroke='%236c757d' stroke-width='1.5' fill='none' stroke-linecap='round'/></svg>");
         background-repeat: no-repeat;
         background-position: right 0.45rem center;
         cursor: pointer;
     }
 
-    .master-sys-select {
-        text-align-last: center;
-        text-align: center;
+    .master-sys-btn:hover,
+    .master-sys-btn:focus {
+        border-color: #6c757d;
+        box-shadow: none;
     }
 
-    .master-sys-select.master-sys-empty {
+    .master-sys-value:empty::before {
+        content: "0";
         color: #adb5bd;
         font-weight: 400;
     }
 
-    .master-select:hover,
-    .master-select:focus {
-        border-color: #6c757d;
-        box-shadow: none;
+    .master-sys-menu {
+        display: none;
+        position: absolute;
+        top: calc(100% + 4px);
+        left: 0;
+        z-index: 1500;
+        min-width: 180px;
+        max-height: 250px;
+        overflow-y: auto;
+        padding: 0.25rem 0;
+        background-color: #fff;
+        border: 1px solid #e4e7e9;
+        border-radius: 0.25rem;
+        box-shadow: 0 0.3rem 0.8rem rgba(0, 0, 0, 0.15);
+        text-align: left;
+    }
+
+    .master-sys-dd.show .master-sys-menu {
+        display: block;
+    }
+
+    .master-sys-item {
+        display: block;
+        padding: 0.4rem 0.75rem;
+        font-size: 0.8rem;
+        font-weight: 500;
+        color: #293240;
+        text-decoration: none;
+        cursor: pointer;
+    }
+
+    .master-sys-item:hover {
+        background-color: #eff0f2;
+        color: #293240;
     }
 
     .master-box[data-master-index]:not([data-master-index="1"])::placeholder {
