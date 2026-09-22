@@ -120,7 +120,7 @@
 
                 <!-- Master -->
                 <div class="form-group col-md-12 mt-2 d-none" id="master-container">
-                    <label class="col-form-label">{{ __('Master') }}</label>
+                    <label class="col-form-label">{{ __('Referencia') }}</label>
                     <div class="d-flex align-items-center gap-1">
                         <input type="text" class="form-control master-box text-center" maxlength="2" data-master-index="1" readonly placeholder="YY">
                         <select class="form-control master-box master-select text-center" data-master-index="2">
@@ -823,6 +823,39 @@
         font-size: 0.8rem;
         font-weight: 500;
         letter-spacing: 1px;
+    }
+
+    .master-select {
+        width: auto;
+        min-width: 52px;
+        max-width: none;
+        height: 38px;
+        border: 1px solid #ced4da;
+        border-radius: 0.25rem;
+        vertical-align: middle;
+        appearance: none;
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        padding: 0.25rem 1.25rem 0.25rem 0.5rem;
+        font-size: 0.8rem;
+        font-weight: 500;
+        text-align: center;
+        background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'><path d='M1 1l4 4 4-4' stroke='%236c757d' stroke-width='1.5' fill='none' stroke-linecap='round'/></svg>");
+        background-repeat: no-repeat;
+        background-position: right 0.45rem center;
+        cursor: pointer;
+    }
+
+    .master-select:hover,
+    .master-select:focus {
+        border-color: #6c757d;
+        box-shadow: none;
+    }
+
+    .master-box[data-master-index="2"] {
+        width: 120px;
+        min-width: 75px;
+        max-width: 120px;
     }
 
     .master-sys-dd {
