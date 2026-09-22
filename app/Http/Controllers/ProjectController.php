@@ -18,6 +18,7 @@ use App\Models\Client;
 use App\Models\ClientProject;
 use App\Models\ClientsMo;
 use App\Models\Delegation;
+use App\Models\Empresa;
 use App\Models\Notification;
 use App\Models\Comment;
 use App\Models\Mail\SendInvication;
@@ -2839,7 +2840,9 @@ class ProjectController extends Controller
 
         $systems = System::select('id_system', 'code_system')->orderBy('id_system')->get();
 
-        return view('projects.taskCreate', compact('currentWorkspace', 'projects', 'taskType', 'milestones', 'users', 'delegations', 'systems'));
+        $empresas = Empresa::select('id', 'name')->orderBy('id')->get();
+
+        return view('projects.taskCreate', compact('currentWorkspace', 'projects', 'taskType', 'milestones', 'users', 'delegations', 'systems', 'empresas'));
     }
 
     public function taskStore(Request $request, $slug)

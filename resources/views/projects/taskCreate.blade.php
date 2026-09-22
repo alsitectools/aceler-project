@@ -152,6 +152,25 @@
                     <input type="hidden" id="task-master" name="master" value="">
                 </div>
 
+                <div class="form-group col-md-12 mt-2 d-none" id="empresa-container">
+                    <label class="col-form-label">{{ __('Empresa') }}</label>
+                    <div class="empresa-dd">
+                        <input type="text" class="form-control empresa-input" id="empresa_input"
+                            placeholder="{{ __('Buscar empresa...') }}" autocomplete="off" aria-expanded="false">
+                        <div class="empresa-menu">
+                            <a class="empresa-item" href="#" data-value="">—</a>
+                            @foreach ($empresas as $emp)
+                                <a class="empresa-item" href="#" data-value="{{ $emp->id }}" data-id="{{ $emp->id }}"
+                                    data-tosearch="{{ strtolower($emp->id . ' ' . $emp->name) }}">{{ $emp->id }} · {{ $emp->name }}</a>
+                            @endforeach
+                            <a class="empresa-item empresa-no-match" href="#" data-value="" style="display:none;">
+                                {{ __('No hay coincidencia') }}
+                            </a>
+                        </div>
+                        <input type="hidden" name="empresa" id="empresa_id" value="">
+                    </div>
+                </div>
+
                 <div class="form-group col-md-12 mt-2" id="description-toggle-container">
                     <div class="form-check">
                         <input class="form-check-input" type="checkbox" id="addDescriptionCheck">
@@ -234,6 +253,7 @@
         const taskTypeContainer = $('#task-container');
         const taskAssignContainer = $('#task-assign-container');
         const masterContainer = $('#master-container');
+        const empresaContainer = $('#empresa-container');
         const taskAssigneeInput = $('#search-task-assignee');
         const taskAssigneeDropdown = $('#user-select-task-assignee');
         const taskAssigneeHidden = $('#task_assign_override');
@@ -285,10 +305,15 @@
         function toggleMasterContainer(selectedProject) {
             const isJobsite = selectedProject && String(selectedProject.type) === '1';
             masterContainer.toggleClass('d-none', !isJobsite);
+            empresaContainer.toggleClass('d-none', !isJobsite);
 
             if (isJobsite) {
                 const delegation = selectedProject.ref_delegation;
                 $('.master-box[data-master-index="2"]').val(delegation || '');
+            } else {
+                $('#empresa_id').val('');
+                $('#empresa_input').val('');
+                $('.empresa-dd').removeClass('show');
             }
         }
 
@@ -581,9 +606,53 @@
             updateMasterHidden();
         });
 
+        $('.empresa-input').on('click', function() {
+            $('.empresa-dd').addClass('show');
+        });
+
+        $('.empresa-input').on('input', function() {
+            const term = $(this).val().trim().toLowerCase();
+            const clearItem = $('.empresa-item[data-value=""]').first();
+            const noMatch = $('.empresa-no-match');
+            let anyVisible = false;
+
+            $('.empresa-dd .empresa-item:not(.empresa-no-match)').each(function() {
+                if (term === '') {
+                    $(this).show();
+                    anyVisible = true;
+                } else {
+                    const hay = String($(this).data('tosearch') || '').indexOf(term) !== -1;
+                    $(this).toggle(hay);
+                    if (hay) {
+                        anyVisible = true;
+                    }
+                }
+            });
+
+            clearItem.toggle(term === '');
+            noMatch.toggle(term !== '' && !anyVisible);
+
+            const selected = $('#empresa_id').val();
+            if (selected && $('.empresa-dd .empresa-item[data-value="' + selected + '"]').is(':hidden')) {
+                $('#empresa_id').val('');
+            }
+            $('.empresa-dd').addClass('show');
+        });
+
+        $('.empresa-item:not(.empresa-no-match)').on('click', function(e) {
+            e.preventDefault();
+            const val = $(this).data('value');
+            $('#empresa_id').val(val || '');
+            $('#empresa_input').val(val || '');
+            $('.empresa-dd').removeClass('show');
+        });
+
         $(document).on('click', function(e) {
             if (!$(e.target).closest('.master-sys-dd').length) {
                 $('.master-sys-dd').removeClass('show');
+            }
+            if (!$(e.target).closest('.empresa-dd').length) {
+                $('.empresa-dd').removeClass('show');
             }
         });
 
@@ -932,6 +1001,82 @@
     .master-sys-item:hover {
         background-color: #eff0f2;
         color: #293240;
+    }
+
+    .empresa-dd {
+        position: relative;
+        display: inline-block;
+    }
+
+    .empresa-input {
+        width: min(250px, 100%);
+        min-width: 180px;
+        max-width: none;
+        height: 38px;
+        border: 1px solid #ced4da;
+        border-radius: 0.25rem;
+        background-color: #fff;
+        color: #212529;
+        font-size: 0.8rem;
+        font-weight: 500;
+        padding: 0.25rem 1.75rem 0.25rem 0.5rem;
+        background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'><path d='M1 1l4 4 4-4' stroke='%236c757d' stroke-width='1.5' fill='none' stroke-linecap='round'/></svg>");
+        background-repeat: no-repeat;
+        background-position: right 0.6rem center;
+    }
+
+    .empresa-input:hover,
+    .empresa-input:focus {
+        border-color: #6c757d;
+        box-shadow: none;
+        outline: none;
+    }
+
+    .empresa-menu {
+        display: none;
+        position: absolute;
+        top: calc(100% + 4px);
+        left: 0;
+        z-index: 1500;
+        min-width: 200px;
+        max-height: 250px;
+        overflow-y: auto;
+        padding: 0.25rem 0;
+        background-color: #fff;
+        border: 1px solid #e4e7e9;
+        border-radius: 0.25rem;
+        box-shadow: 0 0.3rem 0.8rem rgba(0, 0, 0, 0.15);
+        text-align: left;
+    }
+
+    .empresa-dd.show .empresa-menu {
+        display: block;
+    }
+
+    .empresa-item {
+        display: block;
+        padding: 0.4rem 0.75rem;
+        font-size: 0.8rem;
+        font-weight: 500;
+        color: #293240;
+        text-decoration: none;
+        cursor: pointer;
+    }
+
+    .empresa-item:hover {
+        background-color: #eff0f2;
+        color: #293240;
+    }
+
+    .empresa-no-match {
+        color: #dc3545;
+        font-style: italic;
+        cursor: default;
+    }
+
+    .empresa-no-match:hover {
+        background-color: transparent;
+        color: #dc3545;
     }
 
     .master-box[data-master-index]:not([data-master-index="1"])::placeholder {
