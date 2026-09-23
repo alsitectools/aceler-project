@@ -149,7 +149,7 @@
                         <input type="text" class="form-control master-box text-center" maxlength="1" data-master-index="7" inputmode="numeric" placeholder="0">
                         <input type="text" class="form-control master-box text-center" maxlength="1" data-master-index="8" inputmode="numeric" placeholder="0">
                     </div>
-                    <input type="hidden" id="task-master" name="master" value="">
+                    <input type="hidden" id="task-referencia" name="referencia" value="">
                 </div>
 
                 <div class="form-group col-md-12 mt-2 d-none" id="empresa-container">
@@ -543,7 +543,7 @@
                 values.push($(this).val().toUpperCase());
             });
             const [a, b, c, d, e, f, g, h] = values;
-            $('#task-master').val((a || '') + (b || '') + (c || '') + (d || '') + (e || '') + '.' +
+            $('#task-referencia').val((a || '') + (b || '') + (c || '') + (d || '') + (e || '') + '.' +
                 (f || '') + '-' + (g || '') + (h || ''));
         }
 

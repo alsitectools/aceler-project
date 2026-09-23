@@ -880,7 +880,7 @@ class ProjectController extends Controller
             'descripcion' => 50,
             'op' => 10,
             'horas' => 10,
-            'ref' => 14,
+            'ref' => 20,
             'linea' => 10,
             'hrDecimal' => 10,
             'puntos' => 10,
@@ -929,6 +929,19 @@ class ProjectController extends Controller
 
                 // Obtener todas las tareas y sus timesheets
                 $tasks = Task::where('milestone_id', $milestone->id)->get();
+
+                // Usar los valores de referencia/empresa de la primera tarea del milestone que los tenga
+                $milestoneTask = $tasks->first(function ($t) {
+                    return !empty($t->referencia) || !empty($t->empresa);
+                });
+                if ($milestoneTask) {
+                    if (!empty($milestoneTask->empresa)) {
+                        $projectData->empresa = $milestoneTask->empresa;
+                    }
+                    if (!empty($milestoneTask->referencia)) {
+                        $projectData->ref = $milestoneTask->referencia;
+                    }
+                }
 
                 // Obtener usuarios únicos en esta milestone
                 $uniqueUsers = Timesheet::whereIn('task_id', $tasks->pluck('id'))
@@ -2940,6 +2953,8 @@ class ProjectController extends Controller
         $task->estimated_date = $request->estimated_date;
         $task->assign_to = $assigneeId;
         $task->description = $request->description ?? null;
+        $task->referencia = $request->referencia ?? null;
+        $task->empresa = $request->empresa ?? null;
         $task->save();
 
         // Si es custom, crear el registro en custom_tasks
@@ -3286,6 +3301,8 @@ class ProjectController extends Controller
             'end_date' => 'nullable|date',
             'custom_task_name' => 'nullable|string|max:255',
             'description' => 'nullable|string',
+            'referencia' => 'nullable|string|max:20',
+            'empresa' => 'nullable|string|max:50',
         ]);
 
         $task = Task::find($taskID);
@@ -3324,6 +3341,8 @@ class ProjectController extends Controller
             'type_id' => (int) $request->type_id,
             'assign_to' => implode(',', $request->assign_to),
             'description' => $request->description ?? null,
+            'referencia' => $request->referencia ?? $task->referencia,
+            'empresa' => $request->empresa ?? $task->empresa,
             'start_date' => $request->filled('start_date') ? Carbon::parse($request->start_date)->format('Y-m-d H:i:s') : null,
             'estimated_date' => Carbon::parse($request->estimated_date)->format('Y-m-d H:i:s'),
             'end_date' => $request->filled('end_date')
