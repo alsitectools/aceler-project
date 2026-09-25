@@ -120,7 +120,11 @@
 
                 <!-- Master -->
                 <div class="form-group col-md-12 mt-2 d-none" id="master-container">
-                    <label class="col-form-label">{{ __('Referencia') }}</label>
+                    <label class="col-form-label">{{ __('Referencia') }}
+                        <i id="referencia-help" class="fa-solid fa-info-circle text-muted" tabindex="0"
+                            role="button" aria-label="{{ __('Ayuda para rellenar la referencia') }}"
+                            style="cursor: pointer;"></i>
+                    </label>
                     <div class="d-flex align-items-center gap-1">
                         <input type="text" class="form-control master-box text-center" maxlength="2" data-master-index="1" readonly placeholder="YY">
                         <select class="form-control master-box master-select text-center" data-master-index="2">
@@ -173,8 +177,8 @@
 
                 <div class="form-group col-md-12 mt-2" id="description-toggle-container">
                     <div class="form-check">
-                        <input class="form-check-input" type="checkbox" id="addDescriptionCheck">
-                        <label class="form-check-label" for="addDescriptionCheck">
+                        <input class="form-check-input" type="checkbox" id="addDescriptionCheck" style="cursor: pointer;">
+                        <label class="form-check-label" for="addDescriptionCheck" style="cursor: pointer; user-select: none;">
                             {{ __('Añadir descripcion ') }}<span style="font-weight: normal; font-size: 0.85em;">(opcional)</span>
                         </label>
                     </div>
@@ -244,6 +248,13 @@
 <!-- Incluimos los estilos y scripts necesarios -->
 <link rel="stylesheet" href="{{ asset('assets/custom/libs/bootstrap-daterangepicker/daterangepicker.css') }}">
 <script src="{{ asset('assets/custom/libs/bootstrap-daterangepicker/daterangepicker.js') }}"></script>
+
+<style>
+    .referencia-help-popover {
+        --bs-popover-zindex: 1080 !important;
+        z-index: 1080 !important;
+    }
+</style>
 
 <script>
     $(document).ready(function() {
@@ -406,6 +417,26 @@
         taskCreateForm.on('submit', function(event) {
             const useAjax = !fromStatusChange && typeof window.milestoneBoardAppendTask === 'function';
 
+            // Validar cuadros obligatorios de la referencia (solo tipo obra / master-container visible)
+            if (!masterContainer.hasClass('d-none')) {
+                const fixedBoxes = [1, 2, 3, 4, 5, 6];
+                const missing = fixedBoxes.some(function(idx) {
+                    const value = ($('.master-box[data-master-index="' + idx + '"]').val() || '').trim();
+                    if (value !== '') return false;
+                    return true;
+                });
+
+                if (missing) {
+                    event.preventDefault();
+                    if (typeof show_toastr === 'function') {
+                        show_toastr('Error', '{{ __("Complete los cuadros obligatorios de la referencia (año, delegación, código, zona, sistema y versión).") }}', 'error');
+                    } else {
+                        alert('{{ __("Complete los cuadros obligatorios de la referencia.") }}');
+                    }
+                    return false;
+                }
+            }
+
             // Envío AJAX: spinner + actualizar solo la tarjeta del tablero (sin recargar la página).
             // Se intercepta siempre desde el menú de la tarjeta para evitar el rerender completo.
             if (useAjax) {
@@ -557,6 +588,41 @@
         }
         setMasterYearBox();
         setInterval(setMasterYearBox, 60000);
+
+        // Popover de ayuda para la referencia (cuadraditos)
+        var referenciaHelpContent = '' +
+            '<div style="max-width: 320px; padding: 4px 2px;">' +
+            '<p class="mb-1" style="font-weight:600; font-size:0.85rem;">{{ __("Cómo rellenar la referencia") }}</p>' +
+            '<div class="d-flex justify-content-between" style="font-size:0.75rem;"><span>{{ __("Año") }} (auto)</span><code>26</code></div>' +
+            '<div class="d-flex justify-content-between" style="font-size:0.75rem;"><span>{{ __("Delegación") }}</span><code>EN</code></div>' +
+            '<div class="d-flex justify-content-between" style="font-size:0.75rem;"><span>{{ __("Código de obra") }}</span><code>123</code></div>' +
+            '<div class="d-flex justify-content-between" style="font-size:0.75rem;"><span>{{ __("Zona") }}</span><code>L</code></div>' +
+            '<div class="d-flex justify-content-between" style="font-size:0.75rem;"><span>{{ __("Sistema") }}</span><code>3</code></div>' +
+            '<div class="d-flex justify-content-between" style="font-size:0.75rem;"><span>{{ __("Versión") }}</span><code>2</code></div>' +
+            '<div class="d-flex justify-content-between" style="font-size:0.75rem;"><span>{{ __("Nº de planos") }} <em>({{ __("opcional") }})</em></span><code>1</code></div>' +
+            '<div class="d-flex justify-content-between" style="font-size:0.75rem;"><span>{{ __("Desglose por falta de campos") }} <em>({{ __("opcional") }})</em></span><code>1</code></div>' +
+            '<hr style="margin:6px 0;">' +
+            '<div style="font-size:0.72rem; color:#6b7280;">' +
+            '{{ __("Formato") }}: código + delegación + obra + zona + sistema . versión - planos + desglose<br>' +
+            '{{ __("Solo los 2 últimos cuadros son opcionales. Los 6 primeros son obligatorios.") }}' +
+            '</div>' +
+            '</div>';
+
+        if (typeof bootstrap !== 'undefined' && typeof bootstrap.Popover !== 'undefined' && document.getElementById('referencia-help')) {
+            var referenciaHelpPopover = new bootstrap.Popover(document.getElementById('referencia-help'), {
+                html: true,
+                placement: 'right',
+                trigger: 'click',
+                customClass: 'referencia-help-popover',
+                sanitize: false,
+                title: '<div class="d-flex align-items-center justify-content-between w-100" style="gap: 16px;">{{ __("Referencia") }}<button type="button" class="btn-close position-static flex-shrink-0" id="referencia-help-close" aria-label="Cerrar"></button></div>',
+                content: referenciaHelpContent
+            });
+
+            $(document).on('click', '#referencia-help-close', function() {
+                referenciaHelpPopover.hide();
+            });
+        }
 
         $(document).on('input', '.master-box[type="text"]', function() {
             const index = Number($(this).data('master-index'));
