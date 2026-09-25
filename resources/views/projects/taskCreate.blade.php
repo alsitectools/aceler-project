@@ -154,6 +154,12 @@
                         <input type="text" class="form-control master-box text-center" maxlength="1" data-master-index="8" inputmode="numeric" placeholder="0">
                     </div>
                     <input type="hidden" id="task-referencia" name="referencia" value="">
+                    <div class="mt-2 p-2" style="background:#f8f9fa; border-radius:6px; font-size:0.85rem;">
+                        <span class="text-muted" style="font-size:0.72rem; text-transform:uppercase; letter-spacing:.5px;">{{ __('Referencia') }}</span>
+                        <div class="font-monospace" style="letter-spacing:1px;" id="referencia-preview">
+                            <span class="text-muted">—</span>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="form-group col-md-12 mt-2 d-none" id="empresa-container">
@@ -252,6 +258,7 @@
 <style>
     .referencia-help-popover {
         --bs-popover-zindex: 1080 !important;
+        --bs-popover-max-width: 340px !important;
         z-index: 1080 !important;
     }
 </style>
@@ -574,8 +581,14 @@
                 values.push($(this).val().toUpperCase());
             });
             const [a, b, c, d, e, f, g, h] = values;
-            $('#task-referencia').val((a || '') + (b || '') + (c || '') + (d || '') + (e || '') + '.' +
-                (f || '') + '-' + (g || '') + (h || ''));
+            let ref = (a || '') + (b || '') + (c || '') + (d || '') + (e || '');
+            if (f) ref += '.' + f;
+            if (g || h) ref += '-' + (g || '') + (h ? '(' + h + ')' : '');
+            $('#task-referencia').val(ref);
+            const preview = document.getElementById('referencia-preview');
+            if (preview) {
+                preview.textContent = ref || '—';
+            }
         }
 
         function setMasterYearBox() {
@@ -591,20 +604,35 @@
 
         // Popover de ayuda para la referencia (cuadraditos)
         var referenciaHelpContent = '' +
-            '<div style="max-width: 320px; padding: 4px 2px;">' +
+            '<div style="padding: 4px 2px;">' +
             '<p class="mb-1" style="font-weight:600; font-size:0.85rem;">{{ __("Cómo rellenar la referencia") }}</p>' +
-            '<div class="d-flex justify-content-between" style="font-size:0.75rem;"><span>{{ __("Año") }} (auto)</span><code>26</code></div>' +
-            '<div class="d-flex justify-content-between" style="font-size:0.75rem;"><span>{{ __("Delegación") }}</span><code>EN</code></div>' +
-            '<div class="d-flex justify-content-between" style="font-size:0.75rem;"><span>{{ __("Código de obra") }}</span><code>123</code></div>' +
-            '<div class="d-flex justify-content-between" style="font-size:0.75rem;"><span>{{ __("Zona") }}</span><code>L</code></div>' +
-            '<div class="d-flex justify-content-between" style="font-size:0.75rem;"><span>{{ __("Sistema") }}</span><code>3</code></div>' +
-            '<div class="d-flex justify-content-between" style="font-size:0.75rem;"><span>{{ __("Versión") }}</span><code>2</code></div>' +
-            '<div class="d-flex justify-content-between" style="font-size:0.75rem;"><span>{{ __("Nº de planos") }} <em>({{ __("opcional") }})</em></span><code>1</code></div>' +
-            '<div class="d-flex justify-content-between" style="font-size:0.75rem;"><span>{{ __("Desglose por falta de campos") }} <em>({{ __("opcional") }})</em></span><code>1</code></div>' +
+            '<div style="font-size:0.8rem; background:#f8f9fa; border-radius:6px; padding:6px 8px; margin-bottom:8px;">' +
+            '<div style="font-size:0.65rem; text-transform:uppercase; letter-spacing:.5px; color:#6b7280;">{{ __("Ejemplo") }}</div>' +
+            '<code style="color:#0d6efd; font-size:0.85rem;">26</code>' +
+            '<code style="color:#198754; font-size:0.85rem;">EN</code>' +
+            '<code style="color:#dc3545; font-size:0.85rem;">123</code>' +
+            '<code style="color:#fd7e14; font-size:0.85rem;">L</code>' +
+            '<code style="color:#6f42c1; font-size:0.85rem;">3</code>' +
+            '<span style="color:#6b7280;">.</span>' +
+            '<code style="color:#0dcaf0; font-size:0.85rem;">2</code>' +
+            '<span style="color:#6b7280;">-</span>' +
+            '<code style="color:#6610f2; font-size:0.85rem;">1</code>' +
+            '<span style="color:#6b7280;">(</span>' +
+            '<code style="color:#d63384; font-size:0.85rem;">1</code>' +
+            '<span style="color:#6b7280;">)</span>' +
+            '</div>' +
+            '<div class="d-flex justify-content-between" style="font-size:0.75rem;"><span>1 · {{ __("Año") }} ({{ __("auto") }})</span><code>26</code></div>' +
+            '<div class="d-flex justify-content-between" style="font-size:0.75rem;"><span>2 · {{ __("Delegación") }}</span><code>EN</code></div>' +
+            '<div class="d-flex justify-content-between" style="font-size:0.75rem;"><span>3 · {{ __("Código de obra") }} (3 {{ __("dígitos") }})</span><code>123</code></div>' +
+            '<div class="d-flex justify-content-between" style="font-size:0.75rem;"><span>4 · {{ __("Zona") }} (1 {{ __("letra") }})</span><code>L</code></div>' +
+            '<div class="d-flex justify-content-between" style="font-size:0.75rem;"><span>5 · {{ __("Sistema") }} <em>({{ __("usa el nº") }})</em></span><code>3</code></div>' +
+            '<div class="d-flex justify-content-between" style="font-size:0.75rem;"><span>6 · {{ __("Versión") }}</span><code>2</code></div>' +
+            '<div class="d-flex justify-content-between" style="font-size:0.75rem;"><span>7 · {{ __("Nº de planos") }} <em>({{ __("opcional") }})</em></span><code>1</code></div>' +
+            '<div class="d-flex justify-content-between" style="font-size:0.75rem;"><span>8 · {{ __("Desglose") }} <em>({{ __("opcional") }})</em></span><code>(1)</code></div>' +
             '<hr style="margin:6px 0;">' +
             '<div style="font-size:0.72rem; color:#6b7280;">' +
-            '{{ __("Formato") }}: código + delegación + obra + zona + sistema . versión - planos + desglose<br>' +
-            '{{ __("Solo los 2 últimos cuadros son opcionales. Los 6 primeros son obligatorios.") }}' +
+            '{{ __("Formato") }}: {{ __("año") }} · {{ __("delegación") }} · {{ __("obra") }} · {{ __("zona") }} · {{ __("sistema") }} . {{ __("versión") }} - {{ __("planos") }} ({{ __("desglose") }})<br>' +
+            '{{ __("Cuadros 1-6 obligatorios; los 2 últimos son opcionales.") }}' +
             '</div>' +
             '</div>';
 
