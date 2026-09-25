@@ -585,9 +585,27 @@
             if (f) ref += '.' + f;
             if (g || h) ref += '-' + (g || '') + (h ? '(' + h + ')' : '');
             $('#task-referencia').val(ref);
+
+            const filled = [a, b, c, d, e, f, g, h].map(function(v) { return (v || '').trim() !== ''; });
+            const cell = function(i) {
+                if (filled[i]) {
+                    return String(values[i]).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+                }
+                return filled.slice(i + 1).some(Boolean) ?
+                    '<span style="color:#dc3545; font-weight:700;">#</span>' : '';
+            };
+            let html = cell(0) + cell(1) + cell(2) + cell(3) + cell(4);
+            if (filled[5] || filled.slice(6).some(Boolean)) {
+                html += '.' + cell(5);
+            }
+            if (filled[6] || filled[7]) {
+                html += '-' + cell(6);
+                if (filled[7]) html += '(' + cell(7) + ')';
+            }
+
             const preview = document.getElementById('referencia-preview');
             if (preview) {
-                preview.textContent = ref || '—';
+                preview.innerHTML = html || '<span class="text-muted">—</span>';
             }
         }
 
