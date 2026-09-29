@@ -2855,7 +2855,24 @@ class ProjectController extends Controller
 
         $empresas = Empresa::select('id', 'name')->orderBy('id')->get();
 
-        return view('projects.taskCreate', compact('currentWorkspace', 'projects', 'taskType', 'milestones', 'users', 'delegations', 'systems', 'empresas'));
+        // Últimas referencias existentes (para el listado "Últimas 5" del modal de crear tarea)
+        $referenciasData = \App\Models\Task::whereNotNull('referencia')
+            ->where('referencia', '!=', '')
+            ->orderBy('id', 'desc')
+            ->pluck('referencia')
+            ->map(function ($ref) {
+                if (preg_match('/^\d{2}([A-Za-z]{2})(\d{3})/', $ref, $m)) {
+                    return ['deleg' => strtoupper($m[1]), 'code' => $m[2], 'ref' => $ref];
+                }
+                return null;
+            })
+            ->filter()
+            ->unique('ref')
+            ->sortBy('code')
+            ->values()
+            ->toArray();
+
+        return view('projects.taskCreate', compact('currentWorkspace', 'projects', 'taskType', 'milestones', 'users', 'delegations', 'systems', 'empresas', 'referenciasData'));
     }
 
     public function taskStore(Request $request, $slug)

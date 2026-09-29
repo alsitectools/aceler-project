@@ -160,6 +160,12 @@
                             <span class="text-muted">—</span>
                         </div>
                     </div>
+                    <div class="mt-2 p-2" style="background:#fff; border:1px dashed #dee2e6; border-radius:6px; font-size:0.85rem;">
+                        <span class="text-muted" style="font-size:0.72rem; text-transform:uppercase; letter-spacing:.5px;">{{ __('Últimas 5 referencias') }}</span>
+                        <div class="font-monospace" style="letter-spacing:0.5px;" id="ultimas-refs">
+                            <span class="text-muted">—</span>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="form-group col-md-12 mt-2 d-none" id="empresa-container">
@@ -279,6 +285,7 @@
         const currentUserId = "{{ Auth::id() }}";
         const fromStatusChange = "{{ $fromMilestoneBoard ? 1 : 0 }}" === "1";
         const milestonesData = @json($milestones);
+        const refsData = @json($referenciasData);
 
         function getSelectedMilestoneId() {
             const milestoneSelect = $('#milestone_id');
@@ -328,6 +335,7 @@
             if (isJobsite) {
                 const delegation = selectedProject.ref_delegation;
                 $('.master-box[data-master-index="2"]').val(delegation || '');
+                renderUltimasRefs();
             } else {
                 $('#empresa_id').val('');
                 $('#empresa_input').val('');
@@ -609,6 +617,37 @@
             }
         }
 
+        function renderUltimasRefs() {
+            const container = $('#ultimas-refs');
+            if (!container.length) return;
+
+            const deleg = String($('.master-box[data-master-index="2"]').val() || '').trim();
+            const code = String($('.master-box[data-master-index="3"]').val() || '').trim();
+
+            let items = refsData.filter(function(r) {
+                return !deleg || r.deleg === deleg;
+            });
+            if (code) {
+                const padded = code.padStart(3, '0');
+                items = items.filter(function(r) {
+                    return r.code === padded;
+                });
+            }
+            const top = items.slice(0, 5);
+
+            if (!top.length) {
+                container.html('<span class="text-muted">{{ __("Sin referencias para esta delegación") }}</span>');
+                return;
+            }
+
+            container.html(top.map(function(r) {
+                return '<div>' +
+                    '<span style="color:#6b7280;">' + String(r.code).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;') + ' · </span>' +
+                    String(r.ref).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;') +
+                    '</div>';
+            }).join(''));
+        }
+
         function setMasterYearBox() {
             const year = String(new Date().getFullYear()).slice(-2);
             const box = $('.master-box[data-master-index="1"]');
@@ -691,6 +730,7 @@
                 next.focus().select();
             }
             updateMasterHidden();
+            renderUltimasRefs();
         });
 
         $('.master-box[data-master-index="2"]').on('change', function() {
@@ -699,6 +739,7 @@
                 next.focus().select();
             }
             updateMasterHidden();
+            renderUltimasRefs();
         });
 
         $('.master-sys-btn').on('click', function() {
