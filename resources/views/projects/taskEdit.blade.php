@@ -69,11 +69,13 @@
                     <div class="form-check">
                         <input class="form-check-input" type="checkbox" id="addDescriptionCheck">
                         <label class="form-check-label" for="addDescriptionCheck">
-                            {{ __('Añadir descripcion ') }}<span style="font-weight: normal; font-size: 0.85em;">(opcional)</span>
+                            {{ __('Mostrar descripcion') }}
                         </label>
                     </div>
                     <div class="d-none mt-2" id="description-box-container">
-                        <textarea class="form-control form-control-light" id="task-description" rows="3" name="description">{{ $task->description }}</textarea>
+                        <div class="form-control form-control-light"
+                            style="height: auto; min-height: 82px; max-height: 240px; overflow-y: auto; white-space: pre-wrap; background-color: #f8f9fa;"
+                            id="milestone-description-box"></div>
                     </div>
                 </div>
             </div>
@@ -87,9 +89,34 @@
     <script src="{{ asset('assets/custom/libs/bootstrap-daterangepicker/daterangepicker.js') }}"></script>
 
     <script>
+        const editMilestones = @json($project->milestones);
+
+        function renderMilestoneDescription() {
+            const box = document.getElementById('milestone-description-box');
+            if (!box) return;
+
+            const selectedMilestoneId = $('#task-milestone').val();
+            if (!selectedMilestoneId) {
+                box.textContent = '—';
+                return;
+            }
+
+            const milestone = (editMilestones || []).find(function(m) {
+                return String(m.id) === String(selectedMilestoneId);
+            });
+
+            const summary = milestone ? String(milestone.summary || '').trim() : '';
+            box.textContent = summary || '—';
+        }
+
         $('#addDescriptionCheck').on('change', function() {
             $('#description-box-container').toggleClass('d-none', !this.checked);
+            if (this.checked) renderMilestoneDescription();
         });
+
+        $('#task-milestone').on('change', renderMilestoneDescription);
+
+        renderMilestoneDescription();
 
         if ($(".multi-select").length > 0) {
             $($(".multi-select")).each(function(index, element) {

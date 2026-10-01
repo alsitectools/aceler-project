@@ -6,7 +6,6 @@ use App\Models\Delegation;
 use App\Models\ExportLedgerLine;
 use App\Models\Milestone;
 use App\Models\Project;
-use App\Models\PuntuacionTarea;
 use App\Models\Task;
 use App\Models\Timesheet;
 use App\Models\User;
@@ -112,54 +111,38 @@ class AxaptaExportHelper
     }
 
     /**
-     * Calcula el estado DESEADO ACTUAL (desired_actual)
-     * Suma de horas/puntos de timesheets que existen ahora mismo
+     * Calcula el estado DESEADO ACTUAL (desired_actual) de UN ENCARGO
+     * Suma de horas de los timesheets imputados por el empleado asignado
+     * en las tareas del encargo. Los puntos y hr_decimal siempre son 0.
      *
-     * @param int $projectId
      * @param int $milestoneId
-     * @param int $userId
+     * @param int $userId Empleado asignado al encargo (milestone_assigned_to_user)
      * @return object
      */
-    public static function calculateDesiredState($projectId, $milestoneId, $userId): object
+    public static function calculateDesiredState($milestoneId, $userId): object
     {
-        $tasks = Task::where('milestone_id', $milestoneId)->get();
+        $timesheets = Timesheet::whereIn('task_id', function ($query) use ($milestoneId) {
+            $query->select('id')->from('tasks')->where('milestone_id', $milestoneId);
+        })
+            ->where('created_by', $userId)
+            ->get();
 
         $totalHours = 0;
-        $totalPuntos = 0;
-        $totalHrDecimal = 0;
 
-        foreach ($tasks as $task) {
-            // Obtener timesheets de este usuario en esta tarea
-            $timesheets = Timesheet::where('task_id', $task->id)
-                ->where('created_by', $userId)
-                ->get();
-
-            if ($timesheets->count() > 0) {
-                // Obtener puntuación tarea (solo una vez por tarea)
-                $puntuacion = PuntuacionTarea::where('id_tarea', $task->id)->first();
-                $cantidadPuntajeTarea = (float)($puntuacion->cantidad_puntaje ?? 0);
-                $puntuacionHora = (float)($puntuacion->puntos_hora ?? 0);
-
-                $totalPuntos += $cantidadPuntajeTarea;
-                $totalHrDecimal += $puntuacionHora;
-
-                // Sumar horas de timesheets
-                foreach ($timesheets as $timesheet) {
-                    $totalHours += self::timeToDecimal($timesheet->time);
-                }
-            }
+        foreach ($timesheets as $timesheet) {
+            $totalHours += self::timeToDecimal($timesheet->time);
         }
 
         return (object)[
             'hours_decimal' => $totalHours,
-            'puntos' => $totalPuntos,
-            'hr_decimal' => $totalHrDecimal
+            'puntos' => 0,
+            'hr_decimal' => 0
         ];
     }
 
     /**
-     * Calcula el estado EXPORTADO ACUMULADO (exported_acumulado)
-     * Suma de valores históricos en export_ledger_lines
+     * Calcula el estado EXPORTADO ACUMULADO (exported_acumulado) de UN ENCARGO
+     * Suma de valores históricos en export_ledger_lines para ese encargo y empleado
      *
      * @param int $projectId
      * @param int $milestoneId
@@ -174,13 +157,11 @@ class AxaptaExportHelper
             ->get();
 
         $totalHours = $exported->sum('hours_decimal');
-        $totalPuntos = $exported->sum('puntos');
-        $totalHrDecimal = $exported->sum('hr_decimal');
 
         return (object)[
             'hours_decimal' => (float)$totalHours,
-            'puntos' => (float)$totalPuntos,
-            'hr_decimal' => (float)$totalHrDecimal
+            'puntos' => 0,
+            'hr_decimal' => 0
         ];
     }
 
@@ -201,7 +182,8 @@ class AxaptaExportHelper
     }
 
     /**
-     * Detecta registros que fueron borrados (existían en ledger pero ya no existen en BD)
+     * Detecta encargos que fueron borrados o quedaron sin timesheets (del empleado asignado)
+     * (existían en ledger por encargo pero ya no tienen horas en BD)
      * Retorna array de combinaciones (project_id, milestone_id, employee_number) borradas
      *
      * @param int $projectId
@@ -209,7 +191,7 @@ class AxaptaExportHelper
      */
     public static function detectDeletedRecords($projectId): array
     {
-        // Obtener todas las milestones que alguna vez fueron exportadas para este proyecto
+        // Obtener todos los encargos que alguna vez fueron exportados para este proyecto
         $exportedMilestones = ExportLedgerLine::where('project_id', $projectId)
             ->select('milestone_id', 'employee_number')
             ->distinct()
@@ -218,14 +200,18 @@ class AxaptaExportHelper
         $deletedRecords = [];
 
         foreach ($exportedMilestones as $record) {
+            if (empty($record->milestone_id)) {
+                continue;
+            }
+
             $milestoneId = $record->milestone_id;
             $employeeNumber = $record->employee_number;
 
-            // Verificar si la milestone aún existe
+            // Verificar si el encargo aún existe y sigue en estado Hecho (4)
             $milestone = Milestone::find($milestoneId);
 
             if (!$milestone) {
-                // Milestone fue borrada
+                // Encargo fue borrado
                 $deletedRecords[] = [
                     'project_id' => $projectId,
                     'milestone_id' => $milestoneId,
@@ -235,7 +221,18 @@ class AxaptaExportHelper
                 continue;
             }
 
-            // Verificar si existen timesheets actuales para este usuario en esta milestone
+            if ((int) $milestone->status !== 4) {
+                // Encargo ya no está en Hecho
+                $deletedRecords[] = [
+                    'project_id' => $projectId,
+                    'milestone_id' => $milestoneId,
+                    'employee_number' => $employeeNumber,
+                    'reason' => 'MILESTONE_NOT_DONE'
+                ];
+                continue;
+            }
+
+            // Verificar si el empleado asignado actual coincide con el exportado
             $user = User::where('number_employee', $employeeNumber)->first();
             if (!$user) {
                 // Usuario no existe
@@ -248,15 +245,15 @@ class AxaptaExportHelper
                 continue;
             }
 
-            // Verificar si hay timesheets actuales
-            $tasks = Task::where('milestone_id', $milestoneId)->pluck('id');
-            $hasCurrentTimesheets = Timesheet::whereIn('task_id', $tasks)
+            // Verificar si hay timesheets actuales del empleado asignado en el encargo
+            $hasCurrentTimesheets = Timesheet::whereIn('task_id', function ($query) use ($milestoneId) {
+                $query->select('id')->from('tasks')->where('milestone_id', $milestoneId);
+            })
                 ->where('created_by', $user->id)
                 ->exists();
 
             if (!$hasCurrentTimesheets) {
-                // Este usuario ya no tiene timesheets en esta milestone
-                // Pero podría ser que todas sus tareas fueron borradas
+                // Este empleado ya no tiene timesheets en este encargo
                 $deletedRecords[] = [
                     'project_id' => $projectId,
                     'milestone_id' => $milestoneId,

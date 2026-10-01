@@ -127,13 +127,8 @@
                     </label>
                     <div class="d-flex align-items-center gap-1">
                         <input type="text" class="form-control master-box text-center" maxlength="2" data-master-index="1" readonly placeholder="YY">
-                        <select class="form-control master-box master-select text-center" data-master-index="2">
-                            <option value=""></option>
-                            @foreach ($delegations as $del)
-                                <option value="{{ $del->id }}">{{ $del->id }}</option>
-                            @endforeach
-                        </select>
-                        <input type="text" class="form-control master-box master-num text-center" maxlength="3" data-master-index="3" inputmode="numeric" placeholder="000">
+                        <input type="text" class="form-control master-box text-center" maxlength="6" data-master-index="2" placeholder="EN" autocomplete="off">
+                        <input type="text" class="form-control master-box master-num text-center" maxlength="3" data-master-index="3" inputmode="numeric" placeholder="000" readonly>
                         <input type="text" class="form-control master-box master-letter text-center" maxlength="1" data-master-index="4" placeholder="A">
                         <div class="master-sys-dd">
                             <button type="button" class="master-sys-btn text-center" aria-expanded="false">
@@ -191,12 +186,13 @@
                     <div class="form-check">
                         <input class="form-check-input" type="checkbox" id="addDescriptionCheck" style="cursor: pointer;">
                         <label class="form-check-label" for="addDescriptionCheck" style="cursor: pointer; user-select: none;">
-                            {{ __('Añadir descripcion ') }}<span style="font-weight: normal; font-size: 0.85em;">(opcional)</span>
+                            {{ __('Mostrar descripcion') }}
                         </label>
                     </div>
                     <div class="d-none mt-2" id="description-box-container">
-                        <textarea class="form-control form-control-light" id="task_description" name="description" rows="3"
-                            placeholder="{{ __('Write a description...') }}"></textarea>
+                        <div class="form-control form-control-light"
+                            style="height: auto; min-height: 82px; max-height: 240px; overflow-y: auto; white-space: pre-wrap; background-color: #f8f9fa;"
+                            id="milestone-description-box"></div>
                     </div>
                 </div>
 
@@ -286,6 +282,9 @@
         const fromStatusChange = "{{ $fromMilestoneBoard ? 1 : 0 }}" === "1";
         const milestonesData = @json($milestones);
         const refsData = @json($referenciasData);
+        const delegationCodes = @json($delegations->pluck('id')->values());
+        let delegLetter = '';
+        let delegCodeValue = '';
 
         function getSelectedMilestoneId() {
             const milestoneSelect = $('#milestone_id');
@@ -333,10 +332,19 @@
             empresaContainer.toggleClass('d-none', !isJobsite);
 
             if (isJobsite) {
-                const delegation = selectedProject.ref_delegation;
-                $('.master-box[data-master-index="2"]').val(delegation || '');
+                const delegation = String(selectedProject.ref_delegation || '').trim().toUpperCase();
+                delegLetter = String(selectedProject.ref_mo || '').trim() !== '' ? 'O' : 'X';
+                delegCodeValue = delegation;
+                const delegBox = $('.master-box[data-master-index="2"]');
+                delegBox.val(delegation ? delegation + delegLetter : '');
+                delegBox.prop('readonly', delegation !== '');
                 renderUltimasRefs();
             } else {
+                delegLetter = '';
+                delegCodeValue = '';
+                const delegBox = $('.master-box[data-master-index="2"]');
+                delegBox.val('');
+                delegBox.prop('readonly', false);
                 $('#empresa_id').val('');
                 $('#empresa_input').val('');
                 $('.empresa-dd').removeClass('show');
@@ -434,7 +442,18 @@
 
             // Validar cuadros obligatorios de la referencia (solo tipo obra / master-container visible)
             if (!masterContainer.hasClass('d-none')) {
-                const fixedBoxes = [1, 2, 3, 4, 5, 6];
+                const selectedMilestone = (typeof milestonesData !== 'undefined' ? milestonesData : []).find(function(m) {
+                    return String(m.id) === String(getSelectedMilestoneId());
+                });
+                const hasObraNumber = !!selectedMilestone &&
+                    selectedMilestone.obra_number !== null &&
+                    selectedMilestone.obra_number !== undefined;
+
+                let fixedBoxes = [1, 2, 3, 4, 5, 6];
+                if (!hasObraNumber) {
+                    fixedBoxes = fixedBoxes.filter(function(idx) { return idx !== 3; });
+                }
+
                 const missing = fixedBoxes.some(function(idx) {
                     const value = ($('.master-box[data-master-index="' + idx + '"]').val() || '').trim();
                     if (value !== '') return false;
@@ -580,8 +599,54 @@
 
         $('#addDescriptionCheck').on('change', function() {
             $('#description-box-container').toggleClass('d-none', !this.checked);
-            if (!this.checked) $('#task_description').val('');
+            if (this.checked) renderMilestoneDescription();
         });
+
+        function renderMilestoneDescription() {
+            const box = document.getElementById('milestone-description-box');
+            if (!box) return;
+
+            const selectedMilestoneId = getSelectedMilestoneId();
+            if (!selectedMilestoneId) {
+                box.textContent = '—';
+                return;
+            }
+
+            const milestone = (typeof milestonesData !== 'undefined' ? milestonesData : []).find(function(m) {
+                return String(m.id) === String(selectedMilestoneId);
+            });
+
+            const summary = milestone ? String(milestone.summary || '').trim() : '';
+            box.textContent = summary || '—';
+        }
+
+        // Código de obra (caja 3): se autocompleta con el número del encargo y nunca se edita
+        function renderObraNumberBox() {
+            const box = $('.master-box[data-master-index="3"]');
+            if (!box.length) {
+                return;
+            }
+
+            box.prop('readonly', true);
+
+            const selectedMilestoneId = getSelectedMilestoneId();
+            if (!selectedMilestoneId || masterContainer.hasClass('d-none')) {
+                box.val('');
+                updateMasterHidden();
+                return;
+            }
+
+            const milestone = (typeof milestonesData !== 'undefined' ? milestonesData : []).find(function(m) {
+                return String(m.id) === String(selectedMilestoneId);
+            });
+
+            const obraNumber = milestone && milestone.obra_number !== null && milestone.obra_number !== undefined
+                ? String(milestone.obra_number).padStart(3, '0')
+                : '';
+
+            box.val(obraNumber);
+            updateMasterHidden();
+        }
 
         function updateMasterHidden() {
             const values = [];
@@ -621,7 +686,11 @@
             const container = $('#ultimas-refs');
             if (!container.length) return;
 
-            const deleg = String($('.master-box[data-master-index="2"]').val() || '').trim();
+            const delegRaw = String($('.master-box[data-master-index="2"]').val() || '').trim();
+            // Quitar la letra final (O/X) para comparar por código de delegación
+            const deleg = (delegLetter && delegRaw.slice(-1) === delegLetter)
+                ? delegRaw.slice(0, -1)
+                : delegRaw;
             const code = String($('.master-box[data-master-index="3"]').val() || '').trim();
 
             let items = refsData.filter(function(r) {
@@ -711,6 +780,20 @@
 
         $(document).on('input', '.master-box[type="text"]', function() {
             const index = Number($(this).data('master-index'));
+            if (index === 2) {
+                let cleaned = this.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+                // Quitar la letra del final si ya viene tecleada
+                if (delegLetter && cleaned.slice(-1) === delegLetter) {
+                    cleaned = cleaned.slice(0, -1);
+                }
+                cleaned = cleaned.slice(0, 5);
+                delegCodeValue = cleaned;
+                this.value = delegLetter ? cleaned + delegLetter : cleaned;
+                // Cursor justo antes de la letra para que no se pueda borrar
+                if (delegLetter) {
+                    try { this.setSelectionRange(cleaned.length, cleaned.length); } catch (err) {}
+                }
+            }
             if (index === 3) {
                 const cleaned = this.value.replace(/\D/g, '').slice(0, 3);
                 if (this.value !== cleaned) this.value = cleaned;
@@ -726,7 +809,11 @@
             const val = $(this).val();
             const maxLen = index === 3 ? 3 : 1;
             const next = $('.master-box[data-master-index="' + (index + 1) + '"]');
-            if (val.length >= maxLen && next.length) {
+            if (index === 2) {
+                if (delegCodeValue.length >= 5 && next.length) {
+                    next.focus().select();
+                }
+            } else if (val.length >= maxLen && next.length) {
                 next.focus().select();
             }
             updateMasterHidden();
@@ -893,6 +980,8 @@
             const shouldShowTaskAssign = toggleTaskAssignSelector(selectedProject);
             toggleMasterContainer(selectedProject);
             applyProjectTypeLayout(selectedProject, shouldShowTaskAssign);
+            renderMilestoneDescription();
+            renderObraNumberBox();
         }
 
         $('#project_id').on('change', updateSelects);
@@ -905,12 +994,17 @@
             const shouldShowTaskAssign = toggleTaskAssignSelector(selectedProject);
             toggleMasterContainer(selectedProject);
             applyProjectTypeLayout(selectedProject, shouldShowTaskAssign);
+            renderMilestoneDescription();
+            renderObraNumberBox();
         });
 
         // Si ya hay proyecto preseleccionado, disparar updateSelects con el ID
         @if ($selectedProjectId)
             updateSelects('{{ $selectedProjectId }}');
         @endif
+
+        renderMilestoneDescription();
+        renderObraNumberBox();
 
 
 
@@ -1045,39 +1139,6 @@
         font-size: 0.8rem;
         font-weight: 500;
         letter-spacing: 1px;
-    }
-
-    .master-select {
-        width: auto;
-        min-width: 52px;
-        max-width: none;
-        height: 38px;
-        border: 1px solid #ced4da;
-        border-radius: 0.25rem;
-        vertical-align: middle;
-        appearance: none;
-        -webkit-appearance: none;
-        -moz-appearance: none;
-        padding: 0.25rem 1.25rem 0.25rem 0.5rem;
-        font-size: 0.8rem;
-        font-weight: 500;
-        text-align: center;
-        background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'><path d='M1 1l4 4 4-4' stroke='%236c757d' stroke-width='1.5' fill='none' stroke-linecap='round'/></svg>");
-        background-repeat: no-repeat;
-        background-position: right 0.45rem center;
-        cursor: pointer;
-    }
-
-    .master-select:hover,
-    .master-select:focus {
-        border-color: #6c757d;
-        box-shadow: none;
-    }
-
-    .master-box[data-master-index="2"] {
-        width: 120px;
-        min-width: 75px;
-        max-width: 120px;
     }
 
     .master-sys-dd {

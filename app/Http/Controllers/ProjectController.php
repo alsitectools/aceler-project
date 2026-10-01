@@ -919,78 +919,67 @@ class ProjectController extends Controller
             // Obtener datos del proyecto
             $projectData = AxaptaExportHelper::getProjectExportData($project);
 
-            // Obtener milestones
-            $milestones = Milestone::where('project_id', $project->id)->get();
-            \Log::info("  Milestones encontrados: " . $milestones->count());
+            // Obtener milestones en estado Hecho (4)
+            $milestones = Milestone::where('project_id', $project->id)
+                ->where('status', 4)
+                ->get();
+            \Log::info("  Milestones en hecho encontrados: " . $milestones->count());
 
             // Procesar cambios (deltas) en datos actuales
             foreach ($milestones as $milestone) {
                 \Log::info("  Procesando milestone: {$milestone->id} - {$milestone->title}");
 
-                // Obtener todas las tareas y sus timesheets
-                $tasks = Task::where('milestone_id', $milestone->id)->get();
-
-                // Usar los valores de referencia/empresa de la primera tarea del milestone que los tenga
-                $milestoneTask = $tasks->first(function ($t) {
-                    return !empty($t->referencia) || !empty($t->empresa);
-                });
-                if ($milestoneTask) {
-                    if (!empty($milestoneTask->empresa)) {
-                        $projectData->empresa = $milestoneTask->empresa;
-                    }
-                    if (!empty($milestoneTask->referencia)) {
-                        $projectData->ref = $milestoneTask->referencia;
-                    }
+                // Empleado asignado al encargo
+                $assignedUserId = $milestone->milestone_assigned_to_user;
+                if (empty($assignedUserId)) {
+                    \Log::info("    Sin empleado asignado - omitido");
+                    continue;
                 }
 
-                // Obtener usuarios únicos en esta milestone
-                $uniqueUsers = Timesheet::whereIn('task_id', $tasks->pluck('id'))
-                    ->select('created_by')
-                    ->distinct()
-                    ->pluck('created_by');
+                $user = User::find($assignedUserId);
+                if (!$user) {
+                    \Log::info("    Empleado asignado no encontrado (id: {$assignedUserId}) - omitido");
+                    continue;
+                }
 
-                foreach ($uniqueUsers as $userId) {
-                    $user = User::find($userId);
-                    if (!$user) continue;
+                $employeeNumber = $user->number_employee ?? '0';
+                \Log::info("    Usuario asignado: {$user->id} - {$employeeNumber}");
 
-                    $employeeNumber = $user->number_employee ?? '0';
-                    \Log::info("    Procesando usuario: {$userId} - {$employeeNumber}");
+                // Calcular estado deseado (actual) del encargo
+                $desired = AxaptaExportHelper::calculateDesiredState($milestone->id, $user->id);
+                \Log::info("      Desired - Horas: {$desired->hours_decimal}, Puntos: {$desired->puntos}, HrDecimal: {$desired->hr_decimal}");
 
-                    // Calcular estado deseado (actual)
-                    $desired = AxaptaExportHelper::calculateDesiredState($project->id, $milestone->id, $userId);
-                    \Log::info("      Desired - Horas: {$desired->hours_decimal}, Puntos: {$desired->puntos}, HrDecimal: {$desired->hr_decimal}");
+                // Calcular estado exportado (histórico) del encargo
+                $exported = AxaptaExportHelper::calculateExportedState($project->id, $milestone->id, $user);
+                \Log::info("      Exported - Horas: {$exported->hours_decimal}, Puntos: {$exported->puntos}, HrDecimal: {$exported->hr_decimal}");
 
-                    // Calcular estado exportado (histórico)
-                    $exported = AxaptaExportHelper::calculateExportedState($project->id, $milestone->id, $user);
-                    \Log::info("      Exported - Horas: {$exported->hours_decimal}, Puntos: {$exported->puntos}, HrDecimal: {$exported->hr_decimal}");
+                // Calcular delta
+                $delta = AxaptaExportHelper::calculateDelta($desired, $exported);
+                \Log::info("      Delta - Horas: {$delta->hours_decimal}, Puntos: {$delta->puntos}, HrDecimal: {$delta->hr_decimal}");
 
-                    // Calcular delta
-                    $delta = AxaptaExportHelper::calculateDelta($desired, $exported);
-                    \Log::info("      Delta - Horas: {$delta->hours_decimal}, Puntos: {$delta->puntos}, HrDecimal: {$delta->hr_decimal}");
-
-                    // Si hay delta, generar líneas
-                    if (AxaptaExportHelper::hasDelta($delta)) {
-                        $this->generateExportLines(
-                            $project,
-                            $milestone,
-                            $user,
-                            $delta,
-                            $projectData,
-                            $fieldWidths,
-                            $regId,
-                            $linesToExport,
-                            $ledgerRecords
-                        );
-                    }
+                // Si hay delta, generar líneas
+                if (AxaptaExportHelper::hasDelta($delta)) {
+                    $this->generateExportLines(
+                        $project,
+                        $milestone,
+                        null,
+                        $user,
+                        $delta,
+                        $projectData,
+                        $fieldWidths,
+                        $regId,
+                        $linesToExport,
+                        $ledgerRecords
+                    );
                 }
             }
 
-            // Detectar registros borrados
+            // Detectar registros borrados (a nivel encargo)
             $deletedRecords = AxaptaExportHelper::detectDeletedRecords($project->id);
             \Log::info("  Registros borrados detectados: " . count($deletedRecords));
 
             foreach ($deletedRecords as $deleted) {
-                \Log::info("  Generando reversión para milestone borrada: {$deleted['milestone_id']} - {$deleted['reason']}");
+                \Log::info("  Generando reversión para encargo borrado: {$deleted['milestone_id']} - {$deleted['reason']}");
 
                 // Obtener el último estado exportado
                 $exported = ExportLedgerLine::where('project_id', $deleted['project_id'])
@@ -1015,7 +1004,8 @@ class ProjectController extends Controller
                         $milestone = Milestone::find($deleted['milestone_id']);
                         $this->generateExportLines(
                             $project,
-                            $milestone ?? (object)['id' => $deleted['milestone_id'], 'title' => 'DELETED'],
+                            $milestone,
+                            null,
                             $user,
                             $negativeDelta,
                             $projectData,
@@ -1023,7 +1013,8 @@ class ProjectController extends Controller
                             $regId,
                             $linesToExport,
                             $ledgerRecords,
-                            $deleted['reason']
+                            $deleted['reason'],
+                            $exported->first()->ref ?? null
                         );
                     }
                 }
@@ -1077,6 +1068,7 @@ class ProjectController extends Controller
     private function generateExportLines(
         $project,
         $milestone,
+        $task,
         $user,
         $delta,
         $projectData,
@@ -1084,7 +1076,8 @@ class ProjectController extends Controller
         &$regId,
         &$linesToExport,
         &$ledgerRecords,
-        $reason = null
+        $reason = null,
+        $refOverride = null
     ) {
         // Dividir horas si es necesario
         $splitLines = AxaptaExportHelper::splitHoursIfNeeded(
@@ -1092,6 +1085,29 @@ class ProjectController extends Controller
             $delta->puntos,
             $delta->hr_decimal
         );
+
+        // Referencia: primera tarea del encargo con referencia (o fallback al del proyecto)
+        $firstTask = $milestone
+            ? Task::where('milestone_id', $milestone->id)
+                ->whereNotNull('referencia')
+                ->where('referencia', '!=', '')
+                ->orderBy('id')
+                ->first()
+            : null;
+
+        $ref = ($firstTask && !empty($firstTask->referencia))
+            ? $firstTask->referencia
+            : ($refOverride ?? $projectData->ref);
+
+        // Empresa: de la primera tarea (o fallback al de la delegación)
+        $empresa = ($firstTask && !empty($firstTask->empresa)) ? $firstTask->empresa : $projectData->empresa;
+
+        // Descripción del encargo: texto plano en una sola línea, recortado al ancho del campo
+        $descripcion = '';
+        if ($milestone && !empty($milestone->summary)) {
+            $descripcion = preg_replace('/\s+/u', ' ', trim((string) $milestone->summary));
+            $descripcion = mb_substr($descripcion, 0, $fieldWidths['descripcion']);
+        }
 
         $fecha = date('Ymd'); // YYYYMMDD
         $op = '210'; // siempre 210
@@ -1108,15 +1124,15 @@ class ProjectController extends Controller
             $line = '';
             $line .= str_pad($regId, $fieldWidths['regId'], ' ', STR_PAD_LEFT);
             $line .= str_pad($fecha, $fieldWidths['fecha']);
-            $line .= str_pad($projectData->empresa, $fieldWidths['empresa']);
+            $line .= str_pad($empresa, $fieldWidths['empresa']);
             $line .= str_pad($projectData->delegacion, $fieldWidths['delegacion']);
             $line .= str_pad($user->number_employee ?? '0', $fieldWidths['empleado']);
             $line .= str_pad($projectData->masterobrasid, $fieldWidths['masterobrasid']);
             $line .= str_pad('', $fieldWidths['obra']); // obra vacío
-            $line .= str_pad('', $fieldWidths['descripcion']); // descripcion vacío
+            $line .= str_pad($descripcion, $fieldWidths['descripcion']);
             $line .= str_pad($op, $fieldWidths['op'], ' ', STR_PAD_LEFT);
             $line .= str_pad($horasFormatted, $fieldWidths['horas']);
-            $line .= str_pad($projectData->ref, $fieldWidths['ref']);
+            $line .= str_pad($ref, $fieldWidths['ref']);
             $line .= str_pad($lineNumberInMilestone, $fieldWidths['linea'], ' ', STR_PAD_LEFT);
             $line .= str_pad(number_format($splitLine->hr_decimal, 7, '.', ''), $fieldWidths['hrDecimal']);
             $line .= str_pad(number_format($splitLine->puntos, 2, '.', ''), $fieldWidths['puntos']);
@@ -1126,12 +1142,13 @@ class ProjectController extends Controller
             // Registrar en ledger
             $ledgerRecords[] = [
                 'project_id' => $project->id,
-                'milestone_id' => $milestone->id,
+                'milestone_id' => $milestone ? $milestone->id : null,
+                'task_id' => null,
                 'employee_number' => $user->number_employee ?? '0',
-                'empresa' => $projectData->empresa,
+                'empresa' => $empresa,
                 'delegacion' => $projectData->delegacion,
                 'masterobrasid' => $projectData->masterobrasid,
-                'ref' => $projectData->ref,
+                'ref' => $ref,
                 'op' => $op,
                 'hours_decimal' => $splitLine->hours_decimal,
                 'puntos' => $splitLine->puntos,
@@ -1139,7 +1156,7 @@ class ProjectController extends Controller
                 'created_at' => now()
             ];
 
-            \Log::info("      Línea generada {$regId} - Horas: {$splitLine->hours_decimal}, Puntos: {$splitLine->puntos}, HrDecimal: {$splitLine->hr_decimal}");
+            \Log::info("      Línea generada {$regId} - Milestone: " . ($milestone ? $milestone->id : 'deleted') . " - Horas: {$splitLine->hours_decimal}, Puntos: {$splitLine->puntos}, HrDecimal: {$splitLine->hr_decimal}");
         }
     }
 
@@ -2861,7 +2878,7 @@ class ProjectController extends Controller
             ->orderBy('id', 'desc')
             ->pluck('referencia')
             ->map(function ($ref) {
-                if (preg_match('/^\d{2}([A-Za-z]{2})(\d{3})/', $ref, $m)) {
+                if (preg_match('/^\d{2}([A-Za-z]+[0-9]?)(\d{3})/', $ref, $m)) {
                     return ['deleg' => strtoupper($m[1]), 'code' => $m[2], 'ref' => $ref];
                 }
                 return null;
@@ -2969,8 +2986,10 @@ class ProjectController extends Controller
         $task->start_date = date('Y-m-d');
         $task->estimated_date = $request->estimated_date;
         $task->assign_to = $assigneeId;
-        $task->description = $request->description ?? null;
-        $task->referencia = $request->referencia ?? null;
+        $task->referencia = $this->applyMilestoneObraNumberToReference(
+            $request->referencia ?? null,
+            $request->milestone_id
+        );
         $task->empresa = $request->empresa ?? null;
         $task->save();
 
@@ -3317,7 +3336,6 @@ class ProjectController extends Controller
             'estimated_date' => 'required|date',
             'end_date' => 'nullable|date',
             'custom_task_name' => 'nullable|string|max:255',
-            'description' => 'nullable|string',
             'referencia' => 'nullable|string|max:20',
             'empresa' => 'nullable|string|max:50',
         ]);
@@ -3357,7 +3375,6 @@ class ProjectController extends Controller
             'milestone_id' => $request->milestone_id,
             'type_id' => (int) $request->type_id,
             'assign_to' => implode(',', $request->assign_to),
-            'description' => $request->description ?? null,
             'referencia' => $request->referencia ?? $task->referencia,
             'empresa' => $request->empresa ?? $task->empresa,
             'start_date' => $request->filled('start_date') ? Carbon::parse($request->start_date)->format('Y-m-d H:i:s') : null,
@@ -4172,6 +4189,119 @@ class ProjectController extends Controller
         return redirect()->back()->with('success', __('Stage deleted successfully.'));
     }
 
+    /**
+     * Resuelve la delegación que ya tiene el proyecto del encargo.
+     * Usa projects.ref_delegation y, si está vacía, cae a master_obras.business_unit.
+     */
+    private function resolveMilestoneDelegationId($project)
+    {
+        $delegationId = trim((string) ($project->ref_delegation ?? ''));
+
+        if ($delegationId !== '') {
+            return $delegationId;
+        }
+
+        $businessUnit = MasterObra::where('project_id', $project->id)
+            ->whereNotNull('business_unit')
+            ->where('business_unit', '!=', '')
+            ->value('business_unit');
+
+        if (empty($businessUnit) && !empty($project->ref_mo)) {
+            $businessUnit = MasterObra::where('ref_mo', $project->ref_mo)
+                ->whereNotNull('business_unit')
+                ->where('business_unit', '!=', '')
+                ->value('business_unit');
+        }
+
+        return trim((string) ($businessUnit ?? ''));
+    }
+
+    /**
+     * Devuelve el siguiente código de obra (3 dígitos) de la delegación de forma atómica.
+     * Cada delegación tiene su propio contador con un máximo de 999 obras.
+     */
+    private function assignObraNumber($delegationId)
+    {
+        $maxObras = 999;
+
+        $row = DB::table('obra_counters')
+            ->where('delegation_id', $delegationId)
+            ->lockForUpdate()
+            ->first();
+
+        if (!$row) {
+            DB::table('obra_counters')->insert([
+                'delegation_id'  => $delegationId,
+                'current_number' => 0,
+                'created_at'     => now(),
+                'updated_at'     => now(),
+            ]);
+
+            $row = DB::table('obra_counters')
+                ->where('delegation_id', $delegationId)
+                ->lockForUpdate()
+                ->first();
+        }
+
+        $nextNumber = ((int) $row->current_number) + 1;
+
+        if ($nextNumber > $maxObras) {
+            throw new \RuntimeException(__('The delegation :delegation has reached the maximum of :max works.', [
+                'delegation' => $delegationId,
+                'max'        => $maxObras,
+            ]));
+        }
+
+        DB::table('obra_counters')
+            ->where('delegation_id', $delegationId)
+            ->update(['current_number' => $nextNumber, 'updated_at' => now()]);
+
+        return $nextNumber;
+    }
+
+    /**
+     * Fuerza en el servidor el código de obra del encargo dentro de la referencia,
+     * para que no dependa de lo que envíe el formulario.
+     */
+    private function applyMilestoneObraNumberToReference($referencia, $milestoneId)
+    {
+        if (empty($milestoneId) || empty($referencia)) {
+            return $referencia;
+        }
+
+        $milestone = Milestone::find($milestoneId);
+
+        if (!$milestone || $milestone->obra_number === null) {
+            return $referencia;
+        }
+
+        $project = Project::find($milestone->project_id);
+
+        if (!$project || (int) $project->type !== 1) {
+            return $referencia;
+        }
+
+        $delegationId = trim((string) ($project->ref_delegation ?? ''));
+
+        if ($delegationId === '') {
+            return $referencia;
+        }
+
+        $letter = trim((string) $project->ref_mo) !== '' ? 'O' : 'X';
+        $prefix = date('y') . strtoupper($delegationId) . $letter;
+        $referencia = (string) $referencia;
+
+        if (strtoupper(substr($referencia, 0, strlen($prefix))) !== $prefix) {
+            return $referencia;
+        }
+
+        $code = str_pad((string) (int) $milestone->obra_number, 3, '0', STR_PAD_LEFT);
+        $rest = substr($referencia, strlen($prefix));
+        $rest = preg_replace('/^\d{0,3}/', $code, $rest, 1);
+
+        return $prefix . $rest;
+    }
+
     public function milestoneStore($slug, $projectID, Request $request)
     {
         if (is_numeric($request->project_id)) {
@@ -4287,6 +4417,31 @@ class ProjectController extends Controller
         $milestone->summary = $request->description ?? '';
         $milestone->priority = $request->priority === '' ? null : $request->priority;
         $milestone->save();
+
+        // Código de obra automático por delegación (001-999) para proyectos tipo 1
+        if ((int) $project->type === 1) {
+            try {
+                $delegationId = $this->resolveMilestoneDelegationId($project);
+                if ($delegationId !== '') {
+                    $milestone->obra_number = $this->assignObraNumber($delegationId);
+                    $milestone->save();
+                } else {
+                    \Log::warning('Milestone created without obra_number: delegation could not be resolved', [
+                        'milestone_id' => $milestone->id,
+                        'project_id'   => $project->id,
+                    ]);
+                }
+            } catch (\RuntimeException $e) {
+                DB::rollBack();
+                $message = $e->getMessage();
+
+                if ($request->expectsJson() || $request->ajax()) {
+                    return response()->json(['success' => false, 'error' => $message], 422);
+                }
+
+                return redirect()->back()->with('error', $message)->withInput();
+            }
+        }
 
         // ✅ Guardar fase para proyectos tipo 3 o 5
         if (in_array((int) $project->type, [3, 5], true)) {
