@@ -1086,7 +1086,7 @@ class ProjectController extends Controller
             $delta->hr_decimal
         );
 
-        // Referencia: primera tarea del encargo con referencia (o fallback al del proyecto)
+        // Primera tarea del encargo con referencia (se usa solo para la empresa)
         $firstTask = $milestone
             ? Task::where('milestone_id', $milestone->id)
                 ->whereNotNull('referencia')
@@ -1095,9 +1095,8 @@ class ProjectController extends Controller
                 ->first()
             : null;
 
-        $ref = ($firstTask && !empty($firstTask->referencia))
-            ? $firstTask->referencia
-            : ($refOverride ?? $projectData->ref);
+        // Referencia: solo la parte automática (año + delegación + letra + nº obra)
+        $ref = $this->buildAutomaticExportReference($milestone, $project);
 
         // Empresa: de la primera tarea (o fallback al de la delegación)
         $empresa = ($firstTask && !empty($firstTask->empresa)) ? $firstTask->empresa : $projectData->empresa;
@@ -1134,7 +1133,9 @@ class ProjectController extends Controller
             $line .= str_pad($horasFormatted, $fieldWidths['horas']);
             $line .= str_pad($ref, $fieldWidths['ref']);
             $line .= str_pad($lineNumberInMilestone, $fieldWidths['linea'], ' ', STR_PAD_LEFT);
-            $line .= str_pad(number_format($splitLine->hr_decimal, 7, '.', ''), $fieldWidths['hrDecimal']);
+            // HrDecimal: valor fijo, no se calcula. El cálculo original queda desactivado:
+            // $line .= str_pad(number_format($splitLine->hr_decimal, 7, '.', ''), $fieldWidths['hrDecimal']);
+            $line .= str_pad('00.0000000', $fieldWidths['hrDecimal']);
             $line .= str_pad(number_format($splitLine->puntos, 2, '.', ''), $fieldWidths['puntos']);
 
             $linesToExport[] = $line;
@@ -1158,6 +1159,38 @@ class ProjectController extends Controller
 
             \Log::info("      Línea generada {$regId} - Milestone: " . ($milestone ? $milestone->id : 'deleted') . " - Horas: {$splitLine->hours_decimal}, Puntos: {$splitLine->puntos}, HrDecimal: {$splitLine->hr_decimal}");
         }
+    }
+
+    /**
+     * Compone la referencia automática del export a Axapta:
+     * año (yy) + delegación + letra (O si el proyecto tiene ref_mo, X si no) + nº de obra (3 dígitos).
+     * Ejemplo: 26 + EN + O + 001 = 26ENO001
+     * No incluye la zona, sistema, versión, planos ni desglose.
+     */
+    private function buildAutomaticExportReference($milestone, $project): string
+    {
+        $delegationId = trim((string) ($project->ref_delegation ?? ''));
+
+        if ($delegationId === '' && $milestone) {
+            $milestoneProject = Project::find($milestone->project_id);
+            if ($milestoneProject) {
+                $delegationId = $this->resolveMilestoneDelegationId($milestoneProject);
+            }
+        }
+
+        if ($delegationId === '') {
+            return '';
+        }
+
+        $year = date('y');
+        $letter = trim((string) ($project->ref_mo ?? '')) !== '' ? 'O' : 'X';
+
+        $obra = '';
+        if ($milestone && $milestone->obra_number !== null) {
+            $obra = str_pad((string) (int) $milestone->obra_number, 3, '0', STR_PAD_LEFT);
+        }
+
+        return $year . strtoupper($delegationId) . $letter . $obra;
     }
 
     // FUNCION QUE SE LLAMA AL ESTAR DENTRO DE UN PROYECTO
@@ -2868,24 +2901,32 @@ class ProjectController extends Controller
 
         $delegations = Delegation::select('id')->orderBy('id')->get();
 
-        $systems = System::select('id_system', 'code_system')->orderBy('id_system')->get();
+        $systems = System::select('id_system', 'code_system', 'name_system')->orderBy('id_system')->get();
 
         $empresas = Empresa::select('id', 'name')->orderBy('id')->get();
 
         // Últimas referencias existentes (para el listado "Últimas 5" del modal de crear tarea)
-        $referenciasData = \App\Models\Task::whereNotNull('referencia')
-            ->where('referencia', '!=', '')
-            ->orderBy('id', 'desc')
-            ->pluck('referencia')
-            ->map(function ($ref) {
-                if (preg_match('/^\d{2}([A-Za-z]+[0-9]?)(\d{3})/', $ref, $m)) {
-                    return ['deleg' => strtoupper($m[1]), 'code' => $m[2], 'ref' => $ref];
-                }
-                return null;
+        // El código de obra sale de milestones.obra_number (fuente de verdad), no del texto
+        // de la referencia, para no depender de cómo se haya tecleado la cola.
+        $referenciasData = \App\Models\Task::query()
+            ->join('milestones', 'milestones.id', '=', 'tasks.milestone_id')
+            ->join('projects', 'projects.id', '=', 'milestones.project_id')
+            ->whereNotNull('tasks.referencia')
+            ->where('tasks.referencia', '!=', '')
+            ->orderBy('tasks.id', 'desc')
+            ->get(['tasks.referencia', 'milestones.obra_number', 'projects.ref_delegation'])
+            ->map(function ($t) {
+                return [
+                    'deleg' => strtoupper(trim((string) ($t->ref_delegation ?? ''))),
+                    'code' => $t->obra_number !== null
+                        ? str_pad((string) (int) $t->obra_number, 3, '0', STR_PAD_LEFT)
+                        : null,
+                    'ref' => $t->referencia,
+                ];
             })
-            ->filter()
-            ->unique('ref')
-            ->sortBy('code')
+            ->filter(function ($t) {
+                return $t['code'] !== null && $t['deleg'] !== '';
+            })
             ->values()
             ->toArray();
 
@@ -6296,6 +6337,7 @@ MilestoneFile::create([
             'project_name' => $project_name,
             'task_id' => $task->id,
             'task_name' => $task_name,
+            'referencia' => $task->referencia ?? null,
             'milestone_id' => $milestone_id,
             'milestone_name' => __($milestone_name),
             'date' => $selected_date,
@@ -7534,6 +7576,7 @@ MilestoneFile::create([
             'project_name' => $project_name,
             'task_id' => $task->id,
             'task_name' => $task_name,
+            'referencia' => $task->referencia ?? null,
             'milestone_id' => $milestone_id,
             'milestone_name' => __($milestone_name),
             'date' => $selected_date,

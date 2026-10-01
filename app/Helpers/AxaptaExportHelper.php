@@ -186,6 +186,11 @@ class AxaptaExportHelper
      * (existían en ledger por encargo pero ya no tienen horas en BD)
      * Retorna array de combinaciones (project_id, milestone_id, employee_number) borradas
      *
+     * Nota: un encargo que sale de la fase 4 (Hecho) NO se revuelve. Como ya fue
+     * exportado, sus horas quedan registradas en Axapta tal como se enviaron.
+     * Solo se revierte si el encargo o el usuario fueron borrados, o si el empleado
+     * quedó sin timesheets en el encargo.
+     *
      * @param int $projectId
      * @return array
      */
@@ -222,13 +227,8 @@ class AxaptaExportHelper
             }
 
             if ((int) $milestone->status !== 4) {
-                // Encargo ya no está en Hecho
-                $deletedRecords[] = [
-                    'project_id' => $projectId,
-                    'milestone_id' => $milestoneId,
-                    'employee_number' => $employeeNumber,
-                    'reason' => 'MILESTONE_NOT_DONE'
-                ];
+                // El encargo ya no está en Hecho, pero ya fue exportado.
+                // No se revierte: las horas enviadas a Axapta se conservan.
                 continue;
             }
 

@@ -26,6 +26,10 @@
             <input type="text" class="form-control" value={{ __($parseArray['task_name']) }} disabled>
         </div>
         <div class="form-group">
+            <label class="col-form-label">{{ __('Reference') }}</label>
+            <input type="text" class="form-control" value="{{ $parseArray['referencia'] ?? '' }}" disabled>
+        </div>
+        <div class="form-group">
             <label class="col-form-label">{{ __('Date') }}</label>
             <input type="date" onclick="this.showPicker()" class="form-control form-control-light date"
                 value="{{ $parseArray['date'] }}" placeholder="{{ __('Date') }}" name="date"

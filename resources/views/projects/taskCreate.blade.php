@@ -135,9 +135,9 @@
                                 <span class="master-sys-value"></span>
                             </button>
                             <div class="master-sys-menu">
-                                <a class="master-sys-item" href="#" data-value="">0</a>
+                                <a class="master-sys-item" href="#" data-value="" data-label="0" data-name="0">0</a>
                                 @foreach ($systems as $sys)
-                                    <a class="master-sys-item" href="#" data-value="{{ $sys->id_system }}">{{ $sys->id_system }} · {{ $sys->code_system }}</a>
+                                    <a class="master-sys-item" href="#" data-value="{{ $sys->id_system }}" data-label="{{ $sys->id_system }}" data-name="{{ $sys->name_system ?: $sys->code_system }}">{{ $sys->id_system }} · {{ $sys->name_system ?: $sys->code_system }}</a>
                                 @endforeach
                             </div>
                             <input type="hidden" class="master-box" data-master-index="5" value="">
@@ -633,6 +633,7 @@
             if (!selectedMilestoneId || masterContainer.hasClass('d-none')) {
                 box.val('');
                 updateMasterHidden();
+                renderUltimasRefs();
                 return;
             }
 
@@ -646,6 +647,7 @@
 
             box.val(obraNumber);
             updateMasterHidden();
+            renderUltimasRefs();
         }
 
         function updateMasterHidden() {
@@ -686,11 +688,7 @@
             const container = $('#ultimas-refs');
             if (!container.length) return;
 
-            const delegRaw = String($('.master-box[data-master-index="2"]').val() || '').trim();
-            // Quitar la letra final (O/X) para comparar por código de delegación
-            const deleg = (delegLetter && delegRaw.slice(-1) === delegLetter)
-                ? delegRaw.slice(0, -1)
-                : delegRaw;
+            const deleg = String(delegCodeValue || '').trim();
             const code = String($('.master-box[data-master-index="3"]').val() || '').trim();
 
             let items = refsData.filter(function(r) {
@@ -705,7 +703,10 @@
             const top = items.slice(0, 5);
 
             if (!top.length) {
-                container.html('<span class="text-muted">{{ __("Sin referencias para esta delegación") }}</span>');
+                container.html('<span class="text-muted">' +
+                    (code ? '{{ __("Sin referencias para este número de obra") }}'
+                          : '{{ __("Sin referencias para esta delegación") }}') +
+                    '</span>');
                 return;
             }
 
@@ -836,8 +837,11 @@
         $('.master-sys-item').on('click', function(e) {
             e.preventDefault();
             const val = $(this).data('value');
+            const label = $(this).attr('data-label') || '';
+            const name = $(this).attr('data-name') || '';
             $('.master-box[data-master-index="5"]').val(val || '');
-            $('.master-sys-value').text(val ? val : '');
+            $('.master-sys-value').text(label);
+            $('.master-sys-btn').attr('title', name);
             $('.master-sys-dd').toggleClass('show', false);
             const next = $('.master-box[data-master-index="6"]');
             if (val && next.length) {
@@ -1187,7 +1191,8 @@
         top: calc(100% + 4px);
         left: 0;
         z-index: 1500;
-        min-width: 180px;
+        min-width: 240px;
+        max-width: 320px;
         max-height: 250px;
         overflow-y: auto;
         padding: 0.25rem 0;
@@ -1210,6 +1215,9 @@
         color: #293240;
         text-decoration: none;
         cursor: pointer;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
     }
 
     .master-sys-item:hover {
