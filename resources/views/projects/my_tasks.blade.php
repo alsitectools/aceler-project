@@ -1231,7 +1231,17 @@
 
                     <div class="card my-tasks-card" id="tableViewCard">
                         <div class="card-header d-flex  align-items-center flex-wrap gap-2">
-                            <h5 class="mb-0">{{ __('Assigned tasks') }}</h5>
+                            <div class="my-tasks-title-row">
+                                <h5 class="mb-0">{{ __('Assigned tasks') }}</h5>
+                                <img class="my-tasks-help-icon" id="assignedTasksHelpIcon" src="{{ asset('assets/img/questionCircle.svg') }}"
+                                    alt="{{ __('Assigned tasks info') }}" title="{{ __('Assigned tasks info') }}" />
+                                <div class="my-tasks-help-popup" id="assignedTasksHelpPopup">
+                                    <p>{!! __('<strong>Click</strong> on a row to log hours for that task.') !!}</p>
+                                    <p>{!! __('Use the <strong>funnel icon</strong> in a column header to filter that column, and the <strong>eye button</strong> next to this title to show or hide columns.') !!}</p>
+                                    <p>{!! __('<strong>Right click</strong> on a row to mark the task as <strong>Revisado</strong> or <strong>Solicitar cambio</strong>.') !!}</p>
+                                    <p>{!! __('<strong>Click the green or red badge</strong> next to the task name to read the comment and confirm the change.') !!}</p>
+                                </div>
+                            </div>
                             <div class="my-tasks-header-tools">
                                 <button type="button" id="myTasksColumnsToggleBtn" class="my-tasks-column-toggle-btn" aria-label="{{ __('Show or hide table columns') }}" title="{{ __('Show or hide table columns') }}" aria-expanded="false">
                                     <svg class="my-tasks-column-toggle-icon" viewBox="0 0 16 16" aria-hidden="true">
@@ -1989,6 +1999,8 @@ function moveToReview(meta) {
             const projectTasksModalElement = document.getElementById('projectTasksModal');
             const taskOverviewHelpIcon = document.getElementById('taskOverviewHelpIcon');
             const taskOverviewHelpPopup = document.getElementById('taskOverviewHelpPopup');
+            const assignedTasksHelpIcon = document.getElementById('assignedTasksHelpIcon');
+            const assignedTasksHelpPopup = document.getElementById('assignedTasksHelpPopup');
             const projectTasksModalTitle = document.getElementById('projectTasksModalTitle');
             const projectTasksModalPeriod = document.getElementById('projectTasksModalPeriod');
             const projectTasksModalContent = document.getElementById('projectTasksModalContent');
@@ -2831,25 +2843,33 @@ function moveToReview(meta) {
                 });
             });
 
-            if (taskOverviewHelpIcon && taskOverviewHelpPopup) {
-                taskOverviewHelpPopup.style.opacity = '0';
-                taskOverviewHelpPopup.style.transform = 'translateY(-10px)';
-                taskOverviewHelpPopup.style.visibility = 'hidden';
+            function setupHelpPopup(icon, popup) {
+                if (!icon || !popup) {
+                    return;
+                }
 
-                taskOverviewHelpIcon.addEventListener('click', function(event) {
+                popup.style.opacity = '0';
+                popup.style.transform = 'translateY(-10px)';
+                popup.style.visibility = 'hidden';
+
+                const hide = function() {
+                    popup.style.opacity = '0';
+                    popup.style.transform = 'translateY(-10px)';
+                    setTimeout(function() {
+                        popup.style.visibility = 'hidden';
+                    }, 300);
+                };
+
+                icon.addEventListener('click', function(event) {
                     event.stopPropagation();
-                    const isVisible = taskOverviewHelpPopup.style.visibility === 'visible';
+                    const isVisible = popup.style.visibility === 'visible';
 
                     if (isVisible) {
-                        taskOverviewHelpPopup.style.opacity = '0';
-                        taskOverviewHelpPopup.style.transform = 'translateY(-10px)';
-                        setTimeout(function() {
-                            taskOverviewHelpPopup.style.visibility = 'hidden';
-                        }, 300);
+                        hide();
                     } else {
-                        taskOverviewHelpPopup.style.visibility = 'visible';
-                        taskOverviewHelpPopup.style.opacity = '1';
-                        taskOverviewHelpPopup.style.transform = 'translateY(0)';
+                        popup.style.visibility = 'visible';
+                        popup.style.opacity = '1';
+                        popup.style.transform = 'translateY(0)';
                     }
 
                     this.style.transform = 'scale(0.9)';
@@ -2859,21 +2879,22 @@ function moveToReview(meta) {
                 });
 
                 document.addEventListener('click', function(event) {
-                    if (!taskOverviewHelpPopup.contains(event.target) && event.target !== taskOverviewHelpIcon) {
-                        if (taskOverviewHelpPopup.style.visibility === 'visible') {
-                            taskOverviewHelpPopup.style.opacity = '0';
-                            taskOverviewHelpPopup.style.transform = 'translateY(-10px)';
-                            setTimeout(function() {
-                                taskOverviewHelpPopup.style.visibility = 'hidden';
-                            }, 300);
-                        }
+                    if (popup.style.visibility !== 'visible') {
+                        return;
+                    }
+
+                    if (!popup.contains(event.target) && event.target !== icon) {
+                        hide();
                     }
                 });
 
-                taskOverviewHelpPopup.addEventListener('click', function(event) {
+                popup.addEventListener('click', function(event) {
                     event.stopPropagation();
                 });
             }
+
+            setupHelpPopup(taskOverviewHelpIcon, taskOverviewHelpPopup);
+            setupHelpPopup(assignedTasksHelpIcon, assignedTasksHelpPopup);
 
             document.addEventListener('click', function(event) {
                 if (!filterMenu.hidden && !filterMenu.contains(event.target) && !event.target.closest('.my-tasks-filter-btn')) {
