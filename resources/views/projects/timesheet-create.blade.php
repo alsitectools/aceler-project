@@ -25,10 +25,12 @@
             <label class="col-form-label">{{ __('Task') }}</label>
             <input type="text" class="form-control" value={{ __($parseArray['task_name']) }} disabled>
         </div>
-        <div class="form-group">
-            <label class="col-form-label">{{ __('Reference') }}</label>
-            <input type="text" class="form-control" value="{{ $parseArray['referencia'] ?? '' }}" disabled>
-        </div>
+        @if((int)($parseArray['project_type'] ?? 0) === 1)
+            <div class="form-group">
+                <label class="col-form-label">{{ __('Reference') }}</label>
+                <input type="text" class="form-control" value="{{ $parseArray['referencia'] ?? '' }}" disabled>
+            </div>
+        @endif
         <div class="form-group">
             <label class="col-form-label">{{ __('Date') }}</label>
             <input type="date" onclick="this.showPicker()" class="form-control form-control-light date"
@@ -84,7 +86,6 @@
     <button type="button" class="btn btn-light" data-bs-dismiss="modal">{{ __('Close') }}</button>
     <input type="submit" value="{{ __('Save Changes') }}" class="btn btn-primary" id="timesheet-save-btn">
 </div>
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
     $(document).ready(function() {
         // Elementos

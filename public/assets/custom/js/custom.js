@@ -29,7 +29,39 @@ function show_toastr(title, message, type) {
         cls = 'danger';
     }
     // console.log("Tipo:", type, "Clase:", cls, "Mensaje:", message);
-    $.notify({ icon: icon, title: " " + title, message: message, url: "" }, {
+    var $j = (typeof window.jQuery !== 'undefined' && window.jQuery) ? window.jQuery : (typeof $ !== 'undefined' ? $ : null);
+
+    // Si el plugin bootstrap-notify no está disponible (por ejemplo, si otro modal
+    // cargó una copia nueva de jQuery y sustituyó la global), se recurre a un toast
+    // de Bootstrap 5 para no romper el flujo que 연출 el aviso.
+    if (!$j || typeof $j.notify !== 'function') {
+        var bs = window.bootstrap;
+        if (bs && typeof bs.Toast === 'function') {
+            var wrapper = document.createElement('div');
+            wrapper.className = 'toast-container position-fixed top-0 end-0 p-3';
+            wrapper.style.zIndex = '1080';
+            wrapper.innerHTML = '<div id="toastr-fallback-' + Date.now() + '" class="toast text-white bg-' + cls + ' show" role="alert" aria-live="assertive" aria-atomic="true">'
+                + '<div class="d-flex">'
+                + '<div class="toast-body"><i class="' + icon + ' me-2"></i>' + message + '</div>'
+                + '<button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>'
+                + '</div>'
+                + '</div>';
+            document.body.appendChild(wrapper);
+            var el = wrapper.firstElementChild;
+            var instance = new bs.Toast(el, { delay: 2500 });
+            el.addEventListener('hidden.bs.toast', function () {
+                if (wrapper.parentNode) {
+                    wrapper.parentNode.removeChild(wrapper);
+                }
+            });
+            instance.show();
+        } else if (typeof console !== 'undefined' && typeof console.error === 'function') {
+            console.error('[show_toastr] ' + title + ': ' + message);
+        }
+        return;
+    }
+
+    $j.notify({ icon: icon, title: " " + title, message: message, url: "" }, {
         element: "body",
         type: cls,
         allow_dismiss: !0,
