@@ -27,7 +27,8 @@ class Milestone extends Model
         'reminder_mail_is_send',
         'milestone_assigned_to_user',
         'priority',
-        'is_waiting'
+        'is_waiting',
+        'obra_number'
     ];
 
     public function daysLeft()
@@ -78,7 +79,7 @@ class Milestone extends Model
 
     public function getRequestedBy()
     {
-        $requested_by = User::join('milestones', 'milestones.assign_to', '=', 'users.id')
+        $requested_by = User::select('users.*')->join('milestones', 'milestones.assign_to', '=', 'users.id')
             ->where('milestones.assign_to', $this->assign_to)
             ->first();
 
@@ -86,7 +87,7 @@ class Milestone extends Model
     }
     public function getAssignedToUser()
     {
-        $assigned_to_user = User::join('milestones', 'milestones.milestone_assigned_to_user', '=', 'users.id')
+        $assigned_to_user = User::select('users.*')->join('milestones', 'milestones.milestone_assigned_to_user', '=', 'users.id')
             ->where('milestones.milestone_assigned_to_user', $this->milestone_assigned_to_user)
             ->first();
 
@@ -140,20 +141,19 @@ class Milestone extends Model
             return null;
         }
 
+        if (!empty($stage->milestone_stage_project_id)) {
+            $stageProjectName = $stage->relationLoaded('stageProject')
+                ? optional($stage->stageProject)->name
+                : MilestoneStageProject::where('id', $stage->milestone_stage_project_id)->value('name');
+
+            if (!empty($stageProjectName)) {
+                return trim((string) $stageProjectName);
+            }
+        }
+
         $stageName = trim((string) ($stage->stages ?? ''));
-        if ($stageName !== '') {
-            return $stageName;
-        }
 
-        if (empty($stage->milestone_stage_project_id)) {
-            return null;
-        }
-
-        if ($stage->relationLoaded('stageProject')) {
-            return optional($stage->stageProject)->name;
-        }
-
-        return MilestoneStageProject::where('id', $stage->milestone_stage_project_id)->value('name');
+        return $stageName !== '' ? $stageName : null;
     }
 
 

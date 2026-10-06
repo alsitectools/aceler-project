@@ -79,7 +79,6 @@
     <button type="button" class="btn btn-light" data-bs-dismiss="modal">{{ __('Close') }}</button>
     <input type="submit" value="{{ __('Save Changes') }}" class="btn btn-primary" id="timesheet-save-btn">
 </div>
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
     $(document).ready(function() {
         const totalTimeDisplay = $('.display-total-time span');

@@ -6,6 +6,7 @@ use App\Http\Controllers\HomeController;
 use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\ProjectReportController;
+use App\Http\Controllers\GanttDiagramController;
 use App\Http\Controllers\UserController;
 // use App\Http\Controllers\PlanController;
 use App\Http\Controllers\SettingsController;
@@ -84,9 +85,27 @@ Route::get('login/azure/callback', [AzureController::class, 'handleAzureCallback
 
 // Ruta protegida por autenticación
 Route::get('/home', [HomeController::class, 'index'])->middleware('auth')->name('home');
-Route::get('/register/azure', [AzureController::class, 'showRegistrationForm'])->name('register.azure');
 Route::post('/register/azure', [AzureController::class, 'registerUser'])->name('register.azure.post');
 
+
+Route::get('/user/{id}/email', function ($id) {
+    $user = \App\Models\User::findOrFail($id);
+    return response()->json(['email' => $user->email]);
+})->middleware('auth')->name('user.email.reveal');
+
+Route::get('/avatar/{id}', function ($id) {
+    $user = \App\Models\User::findOrFail($id);
+    $originalUrl = $user->getRawAvatarAttribute();
+    if (!$originalUrl) {
+        abort(404);
+    }
+    $relativePath = parse_url($originalUrl, PHP_URL_PATH);
+    $file = public_path(ltrim($relativePath, '/'));
+    if (!file_exists($file)) {
+        abort(404);
+    }
+    return response()->file($file);
+})->name('avatar.serve');
 
 //----------------------- FIN AZURE --------------------------------------//
 
@@ -124,6 +143,9 @@ Route::get('/{slug}/timesheet-table-view', [ProjectController::class, 'filterTim
 Route::get('/{slug}/timesheet/createOrderForms/{project_id}', [ProjectController::class, 'creatTimeshitFromOrderForms'])->name('create.timesheet.from.orders')->middleware(['auth', 'XSS']);
 // Route::post('/timesheet/get-total-time', [ProjectController::class, 'timesheetTotalTime'])->name('getTotalTime')->middleware(['auth', 'XSS']);
 Route::post('/timesheet/get-total-time', [ProjectController::class, 'timesheetTotalTime'])->name('getTotalTime')->middleware(['auth', 'XSS']);
+
+Route::post('/{slug}/milestone/task/review', [ProjectController::class, 'milestoneTaskReview'])->name('projects.milestone.task.review')->middleware(['auth', 'XSS']);
+Route::post('/{slug}/milestone/task/review/clear', [ProjectController::class, 'milestoneTaskReviewClear'])->name('projects.milestone.task.review.clear')->middleware(['auth', 'XSS']);
 
 //================================= Invoice Payment Gateways for Copylink ====================================//
 
@@ -604,6 +626,7 @@ Route::post('/workspace/{slug}/settings', [WorkspaceController::class, 'settings
 Route::post('/workspace', [WorkspaceController::class, 'store'])->name('add-workspace')->middleware(['auth', 'XSS']);
 Route::delete('/workspace/{id}', [WorkspaceController::class, 'destroy'])->name('delete-workspace')->middleware(['auth', 'XSS']);
 Route::delete('/workspace/leave/{id}', [WorkspaceController::class, 'leave'])->name('leave-workspace')->middleware(['auth', 'XSS']);
+Route::post('/workspace/leave-batch', [WorkspaceController::class, 'leaveBatch'])->name('leave-workspace-batch')->middleware(['auth', 'XSS']);
 Route::get('/workspace/{id}', [WorkspaceController::class, 'changeCurrentWorkspace'])->name('changeWorkspace')->middleware(['auth', 'XSS']);
 Route::get('/home/changeWorkspace/{id}', [WorkspaceController::class, 'changeWorkspace'])->name('change-workspace')->middleware(['auth', 'XSS']);
 //agregar workspace como currant_workspace
@@ -615,17 +638,23 @@ Route::post('/workspace/settings/seo', [SettingsController::class, 'seosetting']
 Route::get('/projects/search-mo/{search?}', [ProjectController::class, 'getMoJson'])->name('search-mo-json');
 Route::get('/projects/{slug}/search-mo/{search?}', [ProjectController::class, 'getMoJson'])->name('search-mo-json')->middleware(['auth', 'XSS']);
 Route::get('/projects/{slug}/search-clipo/{search?}', [ProjectController::class, 'getClientJson'])->name('search-clipo-json')->middleware(['auth', 'XSS']);
+Route::get('/projects/{slug}/search-clients-mo', [ProjectController::class, 'getClientsByMoJson'])->name('search-clients-mo-json')->middleware(['auth', 'XSS']);
 Route::get('/projects/{slug}/search-project/{search?}', [ProjectController::class, 'getProjectsJson'])->name('search-project-json')->middleware(['auth', 'XSS']);
 Route::get('/projects/{slug}/search-sales/{search?}', [ProjectController::class, 'getSalesJson'])->name('search-sales-json')->middleware(['auth', 'XSS']);
 //My projects
 Route::get('/projects/myProjects', [ProjectController::class, 'getAllParticipatingProjects'])->name('my_projects')->middleware(['auth', 'XSS']);
 Route::get('/projects/my-summary', [ProjectController::class, 'mySummary'])->name('my_summary')->middleware(['auth', 'XSS']);
 
+// Gantt Diagram (global workspace view)
+Route::get('/gantt-diagram', [GanttDiagramController::class, 'index'])->name('gantt.diagram')->middleware(['auth', 'XSS']);
+Route::get('/gantt-diagram/data', [GanttDiagramController::class, 'getData'])->name('gantt.diagram.data')->middleware(['auth', 'XSS']);
+
 // Route::get('/search-mo/{search?}', [ProjectController::class, 'getMoJson'])->name('search-mo-json');
 Route::get('/{slug}/projects', [ProjectController::class, 'index'])->name('projects.index')->middleware(['auth', 'XSS']);
 Route::get('/{slug}/projects/create', [ProjectController::class, 'create'])->name('projects.create')->middleware(['auth', 'XSS']);
 Route::get('/{slug}/projects/task-create', [ProjectController::class, 'taskCreate'])->name('tasks.create')->middleware(['auth', 'XSS']);
 Route::get('/{slug}/projects/{id}', [ProjectController::class, 'show'])->name('projects.show')->middleware(['auth', 'XSS']);
+Route::post('/{slug}/projects/{id}/join', [ProjectController::class, 'joinProject'])->name('projects.join')->middleware(['auth', 'XSS']);
 Route::post('/{slug}/projects', [ProjectController::class, 'store'])->name('projects.store');
 // Route::post('/{slug}/projects/milestone_project/{isReload}', [ProjectController::class, 'store'])->middleware(['auth', 'XSS']);
 Route::post('/{slug}/milestone-board/milestone_project', [ProjectController::class, 'store'])->name('project.milestone.store');
@@ -671,6 +700,7 @@ Route::post(
 
 Route::get('/{slug}/projects/milestone-board/{id}/workload', [ProjectController::class, 'milestoneWorkload'])->name('projects.milestone.workload')->middleware(['auth', 'XSS']);
 Route::get('/{slug}/projects/milestone-board/{id}/checkTaskHours', [ProjectController::class, 'checkTaskHours'])->name('projects.milestone.checkTaskHours');
+Route::get('/{slug}/projects/milestone-card/{id}', [ProjectController::class, 'milestoneCard'])->name('projects.milestone.card')->middleware(['auth', 'XSS']);
 Route::get('/projects/milestone-board/{id}/getProjectName', [ProjectController::class, 'getProjectNameByID'])
   ->name('projects.milestone.getNameByID')
   ->middleware(['auth', 'XSS']);

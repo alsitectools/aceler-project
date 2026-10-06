@@ -18,6 +18,7 @@ use App\Models\Client;
 use App\Models\ClientProject;
 use App\Models\ClientsMo;
 use App\Models\Delegation;
+use App\Models\Empresa;
 use App\Models\Notification;
 use App\Models\Comment;
 use App\Models\Mail\SendInvication;
@@ -38,6 +39,7 @@ use App\Models\Stage;
 use App\Models\SubTask;
 use App\Models\Task;
 use App\Models\TaskType;
+use App\Models\TaskReviewState;
 use App\Models\TaskFile;
 use App\Models\Timesheet;
 use App\Models\TimeTracker;
@@ -84,13 +86,41 @@ class ProjectController extends Controller
         $currentWorkspace = Utility::getWorkspaceBySlug($slug);
 
         // Cargamos los proyectos con la relación 'delegation' para evitar N+1 queries
-        $projects = Project::with('delegation')
+        $projects = Project::with([
+            'delegation',
+            'users',
+        ])
             ->where('projects.workspace', $currentWorkspace->id)
             ->get();
 
         $project_type = ProjectType::select('id', 'name')->get();
 
         return view('projects.index', compact('currentWorkspace', 'projects', 'project_type'));
+    }
+
+    public function joinProject($slug, $id)
+    {
+        $objUser = Auth::user();
+        $currentWorkspace = Utility::getWorkspaceBySlug($slug);
+
+        $project = Project::where('workspace', $currentWorkspace->id)->find($id);
+        if (!$project) {
+            return redirect()->back()->with('error', __('Project Not Found.'));
+        }
+
+        $existing = UserProject::where('user_id', $objUser->id)->where('project_id', $project->id)->first();
+        if ($existing) {
+            $existing->update(['is_active' => 1]);
+        } else {
+            UserProject::create([
+                'user_id'    => $objUser->id,
+                'project_id' => $project->id,
+                'permission' => json_encode(Utility::getAllPermission()),
+                'is_active'  => 1,
+            ]);
+        }
+
+        return redirect()->back()->with('success', __('You have joined the project.'));
     }
 
     public function autocomplete(Request $request)
@@ -498,14 +528,16 @@ class ProjectController extends Controller
         $objUser = Auth::user();
         $currentWorkspace = Utility::getWorkspaceBySlug($slug);
 
+        // Delegación obligatoria solo para proyectos de tipo Obra (Jobsite)
+        $isJobsiteType = (bool) ProjectType::where('id', $request->project_type)->value('name') === 'Jobsite';
+
         // Validación de la solicitud
         $request->validate([
             'project_type' => 'required',
             'ref_mo' => 'nullable|string',
             'name' => 'required|string',
             'clipo' => 'nullable|string',
-            // 'delegacion' => $request->project_type != 'jobsite' ? 'required|exists:delegations,id' : 'nullable'
-
+            'delegacion' => $isJobsiteType ? 'required|exists:delegations,id' : 'nullable|exists:delegations,id',
         ]);
         \Log::info(["Info de la request:" => $request->all()]);
 
@@ -522,6 +554,16 @@ class ProjectController extends Controller
 
         // Datos del proyecto a crear
         $post = $request->all();
+        $name = strip_tags($request->name);
+        if (empty(trim($name))) {
+            if ($request->get('isReload', false)) {
+                return response()->json(['success' => false, 'message' => __('The project name is invalid.')], 422);
+            }
+            return redirect()->back()
+                ->with('error', __('The project name is invalid.'))
+                ->withInput();
+        }
+        $post['name'] = $name;
         $post['ref_mo'] = $request->ref_mo;
         $post['type'] = $request->project_type;
         $post['clipo'] = $clipo;
@@ -838,7 +880,7 @@ class ProjectController extends Controller
             'descripcion' => 50,
             'op' => 10,
             'horas' => 10,
-            'ref' => 14,
+            'ref' => 20,
             'linea' => 10,
             'hrDecimal' => 10,
             'puntos' => 10,
@@ -877,65 +919,67 @@ class ProjectController extends Controller
             // Obtener datos del proyecto
             $projectData = AxaptaExportHelper::getProjectExportData($project);
 
-            // Obtener milestones
-            $milestones = Milestone::where('project_id', $project->id)->get();
-            \Log::info("  Milestones encontrados: " . $milestones->count());
+            // Obtener milestones en estado Hecho (4)
+            $milestones = Milestone::where('project_id', $project->id)
+                ->where('status', 4)
+                ->get();
+            \Log::info("  Milestones en hecho encontrados: " . $milestones->count());
 
             // Procesar cambios (deltas) en datos actuales
             foreach ($milestones as $milestone) {
                 \Log::info("  Procesando milestone: {$milestone->id} - {$milestone->title}");
 
-                // Obtener todas las tareas y sus timesheets
-                $tasks = Task::where('milestone_id', $milestone->id)->get();
+                // Empleado asignado al encargo
+                $assignedUserId = $milestone->milestone_assigned_to_user;
+                if (empty($assignedUserId)) {
+                    \Log::info("    Sin empleado asignado - omitido");
+                    continue;
+                }
 
-                // Obtener usuarios únicos en esta milestone
-                $uniqueUsers = Timesheet::whereIn('task_id', $tasks->pluck('id'))
-                    ->select('created_by')
-                    ->distinct()
-                    ->pluck('created_by');
+                $user = User::find($assignedUserId);
+                if (!$user) {
+                    \Log::info("    Empleado asignado no encontrado (id: {$assignedUserId}) - omitido");
+                    continue;
+                }
 
-                foreach ($uniqueUsers as $userId) {
-                    $user = User::find($userId);
-                    if (!$user) continue;
+                $employeeNumber = $user->number_employee ?? '0';
+                \Log::info("    Usuario asignado: {$user->id} - {$employeeNumber}");
 
-                    $employeeNumber = $user->number_employee ?? '0';
-                    \Log::info("    Procesando usuario: {$userId} - {$employeeNumber}");
+                // Calcular estado deseado (actual) del encargo
+                $desired = AxaptaExportHelper::calculateDesiredState($milestone->id, $user->id);
+                \Log::info("      Desired - Horas: {$desired->hours_decimal}, Puntos: {$desired->puntos}, HrDecimal: {$desired->hr_decimal}");
 
-                    // Calcular estado deseado (actual)
-                    $desired = AxaptaExportHelper::calculateDesiredState($project->id, $milestone->id, $userId);
-                    \Log::info("      Desired - Horas: {$desired->hours_decimal}, Puntos: {$desired->puntos}, HrDecimal: {$desired->hr_decimal}");
+                // Calcular estado exportado (histórico) del encargo
+                $exported = AxaptaExportHelper::calculateExportedState($project->id, $milestone->id, $user);
+                \Log::info("      Exported - Horas: {$exported->hours_decimal}, Puntos: {$exported->puntos}, HrDecimal: {$exported->hr_decimal}");
 
-                    // Calcular estado exportado (histórico)
-                    $exported = AxaptaExportHelper::calculateExportedState($project->id, $milestone->id, $user);
-                    \Log::info("      Exported - Horas: {$exported->hours_decimal}, Puntos: {$exported->puntos}, HrDecimal: {$exported->hr_decimal}");
+                // Calcular delta
+                $delta = AxaptaExportHelper::calculateDelta($desired, $exported);
+                \Log::info("      Delta - Horas: {$delta->hours_decimal}, Puntos: {$delta->puntos}, HrDecimal: {$delta->hr_decimal}");
 
-                    // Calcular delta
-                    $delta = AxaptaExportHelper::calculateDelta($desired, $exported);
-                    \Log::info("      Delta - Horas: {$delta->hours_decimal}, Puntos: {$delta->puntos}, HrDecimal: {$delta->hr_decimal}");
-
-                    // Si hay delta, generar líneas
-                    if (AxaptaExportHelper::hasDelta($delta)) {
-                        $this->generateExportLines(
-                            $project,
-                            $milestone,
-                            $user,
-                            $delta,
-                            $projectData,
-                            $fieldWidths,
-                            $regId,
-                            $linesToExport,
-                            $ledgerRecords
-                        );
-                    }
+                // Si hay delta, generar líneas
+                if (AxaptaExportHelper::hasDelta($delta)) {
+                    $this->generateExportLines(
+                        $project,
+                        $milestone,
+                        null,
+                        $user,
+                        $delta,
+                        $projectData,
+                        $fieldWidths,
+                        $regId,
+                        $linesToExport,
+                        $ledgerRecords
+                    );
                 }
             }
 
-            // Detectar registros borrados
+            // Detectar registros borrados (a nivel encargo)
             $deletedRecords = AxaptaExportHelper::detectDeletedRecords($project->id);
             \Log::info("  Registros borrados detectados: " . count($deletedRecords));
 
             foreach ($deletedRecords as $deleted) {
-                \Log::info("  Generando reversión para milestone borrada: {$deleted['milestone_id']} - {$deleted['reason']}");
+                \Log::info("  Generando reversión para encargo borrado: {$deleted['milestone_id']} - {$deleted['reason']}");
 
                 // Obtener el último estado exportado
                 $exported = ExportLedgerLine::where('project_id', $deleted['project_id'])
@@ -960,7 +1004,8 @@ class ProjectController extends Controller
                         $milestone = Milestone::find($deleted['milestone_id']);
                         $this->generateExportLines(
                             $project,
-                            $milestone ?? (object)['id' => $deleted['milestone_id'], 'title' => 'DELETED'],
+                            $milestone,
+                            null,
                             $user,
                             $negativeDelta,
                             $projectData,
@@ -968,7 +1013,8 @@ class ProjectController extends Controller
                             $regId,
                             $linesToExport,
                             $ledgerRecords,
-                            $deleted['reason']
+                            $deleted['reason'],
+                            $exported->first()->ref ?? null
                         );
                     }
                 }
@@ -1022,6 +1068,7 @@ class ProjectController extends Controller
     private function generateExportLines(
         $project,
         $milestone,
+        $task,
         $user,
         $delta,
         $projectData,
@@ -1029,7 +1076,8 @@ class ProjectController extends Controller
         &$regId,
         &$linesToExport,
         &$ledgerRecords,
-        $reason = null
+        $reason = null,
+        $refOverride = null
     ) {
         // Dividir horas si es necesario
         $splitLines = AxaptaExportHelper::splitHoursIfNeeded(
@@ -1037,6 +1085,28 @@ class ProjectController extends Controller
             $delta->puntos,
             $delta->hr_decimal
         );
+
+        // Primera tarea del encargo con referencia (se usa solo para la empresa)
+        $firstTask = $milestone
+            ? Task::where('milestone_id', $milestone->id)
+                ->whereNotNull('referencia')
+                ->where('referencia', '!=', '')
+                ->orderBy('id')
+                ->first()
+            : null;
+
+        // Referencia: solo la parte automática (año + delegación + letra + nº obra)
+        $ref = $this->buildAutomaticExportReference($milestone, $project);
+
+        // Empresa: de la primera tarea (o fallback al de la delegación)
+        $empresa = ($firstTask && !empty($firstTask->empresa)) ? $firstTask->empresa : $projectData->empresa;
+
+        // Descripción del encargo: texto plano en una sola línea, recortado al ancho del campo
+        $descripcion = '';
+        if ($milestone && !empty($milestone->summary)) {
+            $descripcion = preg_replace('/\s+/u', ' ', trim((string) $milestone->summary));
+            $descripcion = mb_substr($descripcion, 0, $fieldWidths['descripcion']);
+        }
 
         $fecha = date('Ymd'); // YYYYMMDD
         $op = '210'; // siempre 210
@@ -1051,19 +1121,21 @@ class ProjectController extends Controller
 
             // Preparar línea con ancho fijo
             $line = '';
-            $line .= str_pad($regId, $fieldWidths['regId']);
+            $line .= str_pad($regId, $fieldWidths['regId'], ' ', STR_PAD_LEFT);
             $line .= str_pad($fecha, $fieldWidths['fecha']);
-            $line .= str_pad($projectData->empresa, $fieldWidths['empresa']);
+            $line .= str_pad($empresa, $fieldWidths['empresa']);
             $line .= str_pad($projectData->delegacion, $fieldWidths['delegacion']);
             $line .= str_pad($user->number_employee ?? '0', $fieldWidths['empleado']);
             $line .= str_pad($projectData->masterobrasid, $fieldWidths['masterobrasid']);
             $line .= str_pad('', $fieldWidths['obra']); // obra vacío
-            $line .= str_pad('', $fieldWidths['descripcion']); // descripcion vacío
-            $line .= str_pad($op, $fieldWidths['op']);
+            $line .= str_pad($descripcion, $fieldWidths['descripcion']);
+            $line .= str_pad($op, $fieldWidths['op'], ' ', STR_PAD_LEFT);
             $line .= str_pad($horasFormatted, $fieldWidths['horas']);
-            $line .= str_pad($projectData->ref, $fieldWidths['ref']);
-            $line .= str_pad($lineNumberInMilestone, $fieldWidths['linea']);
-            $line .= str_pad(number_format($splitLine->hr_decimal, 2, '.', ''), $fieldWidths['hrDecimal']);
+            $line .= str_pad($ref, $fieldWidths['ref']);
+            $line .= str_pad($lineNumberInMilestone, $fieldWidths['linea'], ' ', STR_PAD_LEFT);
+            // HrDecimal: valor fijo, no se calcula. El cálculo original queda desactivado:
+            // $line .= str_pad(number_format($splitLine->hr_decimal, 7, '.', ''), $fieldWidths['hrDecimal']);
+            $line .= str_pad('00.0000000', $fieldWidths['hrDecimal']);
             $line .= str_pad(number_format($splitLine->puntos, 2, '.', ''), $fieldWidths['puntos']);
 
             $linesToExport[] = $line;
@@ -1071,12 +1143,13 @@ class ProjectController extends Controller
             // Registrar en ledger
             $ledgerRecords[] = [
                 'project_id' => $project->id,
-                'milestone_id' => $milestone->id,
+                'milestone_id' => $milestone ? $milestone->id : null,
+                'task_id' => null,
                 'employee_number' => $user->number_employee ?? '0',
-                'empresa' => $projectData->empresa,
+                'empresa' => $empresa,
                 'delegacion' => $projectData->delegacion,
                 'masterobrasid' => $projectData->masterobrasid,
-                'ref' => $projectData->ref,
+                'ref' => $ref,
                 'op' => $op,
                 'hours_decimal' => $splitLine->hours_decimal,
                 'puntos' => $splitLine->puntos,
@@ -1084,8 +1157,40 @@ class ProjectController extends Controller
                 'created_at' => now()
             ];
 
-            \Log::info("      Línea generada {$regId} - Horas: {$splitLine->hours_decimal}, Puntos: {$splitLine->puntos}, HrDecimal: {$splitLine->hr_decimal}");
+            \Log::info("      Línea generada {$regId} - Milestone: " . ($milestone ? $milestone->id : 'deleted') . " - Horas: {$splitLine->hours_decimal}, Puntos: {$splitLine->puntos}, HrDecimal: {$splitLine->hr_decimal}");
         }
+    }
+
+    /**
+     * Compone la referencia automática del export a Axapta:
+     * año (yy) + delegación + letra (O si el proyecto tiene ref_mo, X si no) + nº de obra (3 dígitos).
+     * Ejemplo: 26 + EN + O + 001 = 26ENO001
+     * No incluye la zona, sistema, versión, planos ni desglose.
+     */
+    private function buildAutomaticExportReference($milestone, $project): string
+    {
+        $delegationId = trim((string) ($project->ref_delegation ?? ''));
+
+        if ($delegationId === '' && $milestone) {
+            $milestoneProject = Project::find($milestone->project_id);
+            if ($milestoneProject) {
+                $delegationId = $this->resolveMilestoneDelegationId($milestoneProject);
+            }
+        }
+
+        if ($delegationId === '') {
+            return '';
+        }
+
+        $year = date('y');
+        $letter = trim((string) ($project->ref_mo ?? '')) !== '' ? 'O' : 'X';
+
+        $obra = '';
+        if ($milestone && $milestone->obra_number !== null) {
+            $obra = str_pad((string) (int) $milestone->obra_number, 3, '0', STR_PAD_LEFT);
+        }
+
+        return $year . strtoupper($delegationId) . $letter . $obra;
     }
 
     // FUNCION QUE SE LLAMA AL ESTAR DENTRO DE UN PROYECTO
@@ -1096,7 +1201,10 @@ class ProjectController extends Controller
         // ✅ Validar que el proyecto pertenece a ese workspace y que el usuario es participante
         $projectQuery = Project::where('workspace', $currentWorkspace->id)
             ->where('id', $projectID)
-            ->with('activities.user');
+            ->with([
+                'activities.user',
+                'users',
+            ]);
 
         $project = $projectQuery->first();
 
@@ -1130,7 +1238,10 @@ class ProjectController extends Controller
         if ($objUser && $currentWorkspace) {
             $project = Project::where('workspace', '=', $currentWorkspace->id)
                 ->where('id', '=', $projectID)
-                ->with('activities.user')
+                ->with([
+                    'activities.user',
+                    'users',
+                ])
                 ->first();
 
             if ($project) {
@@ -1255,7 +1366,7 @@ class ProjectController extends Controller
                 //     $finalizationDate = $milestone->finalization_date ? Carbon::parse($milestone->finalization_date) : null;
 
                 //     // Calculate the difference in days
-                //     $deliveryTime = $finalizationDateDelivery->diffInDays($startDate); 
+                //     $deliveryTime = $finalizationDateDelivery->diffInDays($startDate);
                 //     // Store an arrays
                 //     $milestoneDelivery[] = $deliveryTime;
 
@@ -1269,7 +1380,7 @@ class ProjectController extends Controller
 
                 //         $delayTime = $finalizationDate->diffInDays($end_date);
                 //         $milestoneDelayTime[] = $delayTime;
-                //     }      
+                //     }
 
                 // }
                 // //Average for the statistics
@@ -1288,7 +1399,7 @@ class ProjectController extends Controller
                 );
 
 
-                //USUARIOS QUE HAN CREADO UNA HOJA DE ENCARGO    
+                //USUARIOS QUE HAN CREADO UNA HOJA DE ENCARGO
                 $milestoneCreators = \App\Models\User::select('users.*')
                     ->join('milestones', 'milestones.created_by', '=', 'users.id')
                     ->where('milestones.project_id', $projectID)
@@ -1735,10 +1846,24 @@ class ProjectController extends Controller
     public function leave($slug, $projectID)
     {
         $objUser = Auth::user();
-        $userProject = Project::find($projectID);
-        UserProject::where('project_id', '=', $userProject->id)->where('user_id', '=', $objUser->id)->delete();
+        $currentWorkspace = Utility::getWorkspaceBySlug($slug);
 
-        return redirect()->route('projects.index', $slug)->with('success', __('Project Leave Successfully!'));
+        $project = Project::where('workspace', $currentWorkspace->id)->find($projectID);
+        if (!$project) {
+            return redirect()->back()->with('error', __('Project Not Found.'));
+        }
+
+        // El creador del proyecto no puede salirse
+        if ((int) $project->created_by === (int) $objUser->id) {
+            return redirect()->back()->with('error', __("You cannot leave a project you created."));
+        }
+
+        // Salir = desactivar la membresía (is_active=0), conservando el historial
+        UserProject::where('user_id', $objUser->id)
+            ->where('project_id', $project->id)
+            ->update(['is_active' => 0]);
+
+        return redirect()->back()->with('success', __('Project Leave Successfully!'));
     }
 
     public function collaborator($user, $project)
@@ -1774,7 +1899,8 @@ class ProjectController extends Controller
                 'typeRel:id,name',
                 // 👇 cargar el workspace completo sin restricción de columnas
                 'workspaceData',
-                'milestones'
+                'milestones',
+                'users'
             ])
             ->orderByDesc('id')
             ->get();
@@ -1852,6 +1978,7 @@ class ProjectController extends Controller
                 $summary->project_url = $summary->workspace_slug
                     ? route('projects.show', [$summary->workspace_slug, $summary->id])
                     : null;
+                $summary->workspace_display_name = \App\Models\Workspace::translateName($summary->workspace_name);
 
                 return $summary;
             });
@@ -1914,6 +2041,7 @@ class ProjectController extends Controller
 
             $milestone->requested_by_name = optional($requestersById->get($milestone->assign_to))->name;
             $milestone->workspace_name = optional($workspace)->name;
+            $milestone->workspace_display_name = optional($workspace)->display_name;
             $milestone->workspace_slug = optional($workspace)->slug;
             $milestone->project_name = optional($milestone->project)->name;
             $milestone->board_url = $milestone->workspace_slug && $milestone->project_id
@@ -2182,18 +2310,18 @@ class ProjectController extends Controller
                 $milestone->assign_to == $objUser->id || $milestone->milestone_assigned_to_user == $objUser->id || $milestone->created_by == $objUser->id ||
                 in_array($milestone->id, $milestoneIds) || $milestone->milestone_assigned_to_user == ''
             ) {
-                $tasksOfmilestone = Task::where('milestone_id', $milestone->id)
+                $tasksOfmilestone = Task::with('reviewState')->where('milestone_id', $milestone->id)
                     ->where('project_id', $project->id)
                     ->get();
             } else {
                 // En otros casos, se muestran solo las tareas asignadas al usuario
-                $tasksOfmilestone = Task::where('milestone_id', $milestone->id)
+                $tasksOfmilestone = Task::with('reviewState')->where('milestone_id', $milestone->id)
                     ->where('project_id', $project->id)
                     ->where('assign_to', $objUser->id)
                     ->get();
             }
         } else {
-            $tasksOfmilestone = Task::where('milestone_id', $milestone->id)
+            $tasksOfmilestone = Task::with('reviewState')->where('milestone_id', $milestone->id)
                 ->where('project_id', $project->id)
                 ->get();
         }
@@ -2223,6 +2351,9 @@ class ProjectController extends Controller
                 'estimated_date' => $task->estimated_date,
                 'technician'     => User::find($task->assign_to),
                 'logged_hours'   => $task->getTotalLoggedHours(),
+                'review_state'    => $task->reviewState ? $task->reviewState->state_code : null,
+                'review_comment'  => $task->reviewState ? $task->reviewState->comment : null,
+                'review_user'     => $task->reviewState && $task->reviewState->mark_user_id ? User::find($task->reviewState->mark_user_id)?->name : null,
             ];
         })->filter()->values()->toArray();
 
@@ -2272,6 +2403,7 @@ class ProjectController extends Controller
             'project_type_id' => $project->type,
             'project_ref'   => $project->ref_mo ? '- ' . $project->ref_mo : '',
             'workspace_name' => optional(Workspace::find($project->workspace))->name ?? 'N/A',
+            'workspace_display_name' => optional(Workspace::find($project->workspace))->display_name ?? 'N/A',
             'workspace_id'  => $project->workspace,
             'tasks'         => $taskData,
             'sales'         => User::find($milestone->assign_to),
@@ -2317,6 +2449,7 @@ class ProjectController extends Controller
 
                 $data['workspace_slug'] = $workspace->slug ?? null;
                 $data['workspace_name'] = $workspace->name ?? null;
+                $data['workspace_display_name'] = $workspace->display_name ?? null;
 
                 return $data;
             })->toArray();
@@ -2766,7 +2899,38 @@ class ProjectController extends Controller
 
         $users = User::orderBy('name', 'asc')->get();
 
-        return view('projects.taskCreate', compact('currentWorkspace', 'projects', 'taskType', 'milestones', 'users'));
+        $delegations = Delegation::select('id')->orderBy('id')->get();
+
+        $systems = System::select('id_system', 'code_system', 'name_system')->orderBy('id_system')->get();
+
+        $empresas = Empresa::select('id', 'name')->orderBy('id')->get();
+
+        // Últimas referencias existentes (para el listado "Últimas 5" del modal de crear tarea)
+        // El código de obra sale de milestones.obra_number (fuente de verdad), no del texto
+        // de la referencia, para no depender de cómo se haya tecleado la cola.
+        $referenciasData = \App\Models\Task::query()
+            ->join('milestones', 'milestones.id', '=', 'tasks.milestone_id')
+            ->join('projects', 'projects.id', '=', 'milestones.project_id')
+            ->whereNotNull('tasks.referencia')
+            ->where('tasks.referencia', '!=', '')
+            ->orderBy('tasks.id', 'desc')
+            ->get(['tasks.referencia', 'milestones.obra_number', 'projects.ref_delegation'])
+            ->map(function ($t) {
+                return [
+                    'deleg' => strtoupper(trim((string) ($t->ref_delegation ?? ''))),
+                    'code' => $t->obra_number !== null
+                        ? str_pad((string) (int) $t->obra_number, 3, '0', STR_PAD_LEFT)
+                        : null,
+                    'ref' => $t->referencia,
+                ];
+            })
+            ->filter(function ($t) {
+                return $t['code'] !== null && $t['deleg'] !== '';
+            })
+            ->values()
+            ->toArray();
+
+        return view('projects.taskCreate', compact('currentWorkspace', 'projects', 'taskType', 'milestones', 'users', 'delegations', 'systems', 'empresas', 'referenciasData'));
     }
 
     public function taskStore(Request $request, $slug)
@@ -2793,11 +2957,23 @@ class ProjectController extends Controller
         }
 
         if (!$project) {
+            if ($request->wantsJson()) {
+                return response()->json(['success' => false, 'message' => 'Proyecto no encontrado o no pertenece al espacio de trabajo actual.'], 422);
+            }
             return redirect()->back()->with('error', 'Proyecto no encontrado o no pertenece al espacio de trabajo actual.');
         }
 
-        $selectedMilestone = Milestone::select('id', 'milestone_assigned_to_user')
+        $selectedMilestone = Milestone::select('id', 'milestone_assigned_to_user', 'status')
             ->find($request->milestone_id);
+
+        // Encargo "por hacer" de un proyecto tipo 3 (I+D): la tarea se añade pero el
+        // encargo NO pasa aún a "en curso" (las tareas quedan inactivas hasta ese momento).
+        // No aplica cuando la tarea viene del flujo de drag&drop (fromMilestoneBoard)
+        $fromDragFlow = $request->has('fromMilestoneBoard');
+        $isPendingType3 = $selectedMilestone
+            && (int) $selectedMilestone->status === 1
+            && (int) $project->type === 3
+            && !$fromDragFlow;
 
         $canOverrideAssignee = in_array((int) $project->type, [3, 5], true)
             && $selectedMilestone
@@ -2837,6 +3013,9 @@ class ProjectController extends Controller
         }
 
         if ($existingTask) {
+            if ($request->wantsJson()) {
+                return response()->json(['success' => false, 'message' => 'Error, no se pueden duplicar tareas'], 422);
+            }
             return redirect()->back()->with('error', 'Error, no se pueden duplicar tareas');
         }
 
@@ -2848,6 +3027,11 @@ class ProjectController extends Controller
         $task->start_date = date('Y-m-d');
         $task->estimated_date = $request->estimated_date;
         $task->assign_to = $assigneeId;
+        $task->referencia = $this->applyMilestoneObraNumberToReference(
+            $request->referencia ?? null,
+            $request->milestone_id
+        );
+        $task->empresa = $request->empresa ?? null;
         $task->save();
 
         // Si es custom, crear el registro en custom_tasks
@@ -2860,19 +3044,53 @@ class ProjectController extends Controller
             // $task->customTask()->create(['name' => trim($request->custom_task_name)]);
         }
 
-        // Actualizar milestone status
+        // Actualizar milestone status (no para tareas añadidas en "por hacer" tipo 3)
         $milestone = Milestone::find($request->milestone_id);
 
         if (!$milestone) {
+            if ($request->wantsJson()) {
+                return response()->json(['success' => false, 'message' => 'Encargo no encontrado.'], 422);
+            }
             return redirect()->back()->with('error', 'Encargo no encontrado.');
         }
 
         if (empty($milestone->title)) {
+            if ($request->wantsJson()) {
+                return response()->json(['success' => false, 'message' => 'Error: El encargo no tiene título.'], 422);
+            }
             return redirect()->back()->with('error', 'Error: El encargo no tiene título.');
         }
 
-        $milestone->status = 2;
-        $milestone->save();
+        if (!$isPendingType3) {
+            $milestone->status = 2;
+            $milestone->save();
+        }
+
+        if ($request->wantsJson()) {
+            $milestoneData = $this->getMilestoneData($milestone, $project, null);
+            $statusObj = Stage::find($milestone->status);
+            $newTaskData = collect($milestoneData['tasks'] ?? [])->firstWhere('id', $task->id);
+
+            return response()->json([
+                'success' => true,
+                'message' => __('Task Created Successfully!'),
+                'task_id' => (int) $task->id,
+                'milestone_id' => (int) $request->milestone_id,
+                'project_id' => (int) $project->id,
+                'project_type_id' => (int) $project->type,
+                'status' => (int) $milestone->status,
+                'display_name' => $newTaskData['display_name'] ?? null,
+                'technician_id' => $newTaskData ? (int) ($newTaskData['technician']->id ?? 0) : 0,
+                'technician_name' => $newTaskData['technician']->name ?? null,
+                'logged_hours' => $newTaskData['logged_hours'] ?? '00:00',
+                'review_state' => $newTaskData['review_state'] ?? null,
+                'task_count' => count($milestoneData['tasks'] ?? []),
+                'milestone_extra_info' => $milestoneData ? view('projects.partials.milestone_extra_info', [
+                    'milestone' => $milestoneData,
+                    'status' => $statusObj,
+                ])->render() : '',
+            ]);
+        }
 
         return redirect()->back()->with(['success' => __('Task Created Successfully!')]);
     }
@@ -3159,6 +3377,8 @@ class ProjectController extends Controller
             'estimated_date' => 'required|date',
             'end_date' => 'nullable|date',
             'custom_task_name' => 'nullable|string|max:255',
+            'referencia' => 'nullable|string|max:20',
+            'empresa' => 'nullable|string|max:50',
         ]);
 
         $task = Task::find($taskID);
@@ -3196,6 +3416,8 @@ class ProjectController extends Controller
             'milestone_id' => $request->milestone_id,
             'type_id' => (int) $request->type_id,
             'assign_to' => implode(',', $request->assign_to),
+            'referencia' => $request->referencia ?? $task->referencia,
+            'empresa' => $request->empresa ?? $task->empresa,
             'start_date' => $request->filled('start_date') ? Carbon::parse($request->start_date)->format('Y-m-d H:i:s') : null,
             'estimated_date' => Carbon::parse($request->estimated_date)->format('Y-m-d H:i:s'),
             'end_date' => $request->filled('end_date')
@@ -3471,6 +3693,40 @@ class ProjectController extends Controller
         ]);
     }
 
+    /**
+     * Devuelve el HTML de la card de un encargo tal como se muestra en el tablero,
+     * sea cual sea su estado actual. Se usa para el modal "Revisar card" de Mis tareas.
+     */
+    public function milestoneCard($slug, $id)
+    {
+        $currentWorkspace = Utility::getWorkspaceBySlug($slug);
+        if (!isset($currentWorkspace)) {
+            abort(404);
+        }
+
+        $milestone = Milestone::with('project')->find($id);
+        if (!$milestone || !$milestone->project) {
+            abort(404);
+        }
+
+        $status = Stage::find($milestone->status);
+        if (!$status) {
+            abort(404);
+        }
+
+        $milestoneData = $this->getMilestoneData($milestone, $milestone->project, Auth::user());
+
+        return view('projects.partials.milestone_card_modal', [
+            'milestone' => $milestoneData,
+            'status' => $status,
+            'currentWorkspace' => $currentWorkspace,
+            'project_id' => $milestone->project_id,
+            'extraClass' => 'milestone-card-modal',
+            'inlineStyle' => '',
+            'ownerShip' => 'yes',
+        ]);
+    }
+
     public function downloadCsv($project_id)
     {
         // Cargamos los timesheets con sus relaciones
@@ -3572,9 +3828,7 @@ class ProjectController extends Controller
             }
         }
 
-        $objMo = $query->with(['clients' => function ($query) {
-            $query->select('potential_clients.potential_customer_id', 'potential_clients.name', 'potential_clients.customer_id');
-        }])->limit(50)->paginate(25);
+        $objMo = $query->limit(50)->paginate(25);
 
         $arrMo = $objMo->toArray();
 
@@ -3604,6 +3858,35 @@ class ProjectController extends Controller
             'clients' => $arrClients,
         ]);
     }
+
+    public function getClientsByMoJson($slug, Request $request)
+    {
+        $refMo = trim((string) $request->get('ref_mo', ''));
+        $search = trim((string) $request->get('search', ''));
+
+        if ($refMo === '') {
+            return response()->json(['clients' => []]);
+        }
+
+        $query = ClientsMo::query()
+            ->join('potential_clients', 'potential_clients.potential_customer_id', '=', 'clients_mos.potential_customer_id')
+            ->select('potential_clients.potential_customer_id', 'potential_clients.name', 'potential_clients.business_unit')
+            ->where('clients_mos.ref_mo', $refMo);
+
+        if ($search !== '') {
+            $query->where(function ($query) use ($search) {
+                $query->where('potential_clients.name', 'LIKE', "%" . $search . "%")
+                    ->orWhere('potential_clients.potential_customer_id', 'LIKE', "%" . $search . "%");
+            });
+        }
+
+        $clients = $query->get();
+
+        return response()->json([
+            'clients' => $clients,
+        ]);
+    }
+
     public function getProjectsJson($slug, $search = null)
     {
         $currentWorkspace = Utility::getWorkspaceBySlug($slug);
@@ -3682,9 +3965,9 @@ class ProjectController extends Controller
     private function getEnumValues($table, $column)
     {
         $type = DB::selectOne("
-        SELECT COLUMN_TYPE 
-        FROM information_schema.COLUMNS 
-        WHERE TABLE_NAME = ? 
+        SELECT COLUMN_TYPE
+        FROM information_schema.COLUMNS
+        WHERE TABLE_NAME = ?
           AND COLUMN_NAME = ?
     ", [$table, $column]);
 
@@ -3727,6 +4010,91 @@ class ProjectController extends Controller
                 'name' => $stageName,
             ]);
         }
+    }
+
+    private const MILESTONE_STAGE_ADD_OPTION = 'add_phase';
+
+    private function findOrCreateProjectStage(Project $project, string $name): string
+    {
+        $name = trim($name);
+
+        $existing = MilestoneStageProject::where('project_id', $project->id)
+            ->where('name', $name)
+            ->first();
+
+        if ($existing) {
+            return $existing->name;
+        }
+
+        MilestoneStageProject::create([
+            'project_id' => $project->id,
+            'name' => $name,
+        ]);
+
+        return $name;
+    }
+
+    private function resolveProjectStageFromRequest(Project $project, Request $request): ?string
+    {
+        $stage = trim((string) $request->input('stage', ''));
+
+        if ($stage === self::MILESTONE_STAGE_ADD_OPTION) {
+            $newName = trim((string) $request->input('new_stage_name', ''));
+
+            return $newName !== '' ? $this->findOrCreateProjectStage($project, $newName) : null;
+        }
+
+        return $stage !== '' ? $stage : null;
+    }
+
+    private function appendMilestoneStageValidation($validator, Project $project, Request $request): void
+    {
+        $validator->after(function ($validator) use ($project, $request) {
+            if (!in_array((int) $project->type, [3, 5], true)) {
+                return;
+            }
+
+            $stage = trim((string) $request->input('stage', ''));
+
+            if ($stage === self::MILESTONE_STAGE_ADD_OPTION) {
+                if (trim((string) $request->input('new_stage_name', '')) === '') {
+                    $validator->errors()->add('new_stage_name', __('Please enter a phase name.'));
+                }
+
+                return;
+            }
+
+            if ($stage === '') {
+                return;
+            }
+
+            $exists = MilestoneStageProject::where('project_id', $project->id)
+                ->where('name', $stage)
+                ->exists();
+
+            if (!$exists) {
+                $validator->errors()->add('stage', __('Invalid phase selected.'));
+            }
+        });
+    }
+
+    private function syncMilestoneStageForProject(Milestone $milestone, Project $project, ?string $selectedStageName): void
+    {
+        if ($selectedStageName === null || $selectedStageName === '') {
+            return;
+        }
+
+        $selectedStageId = MilestoneStageProject::where('project_id', $project->id)
+            ->where('name', $selectedStageName)
+            ->value('id');
+
+        MilestoneStages::updateOrCreate(
+            ['id_milestone' => $milestone->id],
+            [
+                'stages' => $selectedStageName,
+                'milestone_stage_project_id' => $selectedStageId,
+            ]
+        );
     }
 
     public function milestone($slug, $projectID)
@@ -3807,6 +4175,7 @@ class ProjectController extends Controller
     {
         $project = Project::findOrFail($projectID);
         $stage = MilestoneStageProject::where('project_id', $project->id)->findOrFail($stageID);
+        $previousStageName = trim((string) $stage->name);
 
         $validated = $request->validate([
             'name' => [
@@ -3821,14 +4190,23 @@ class ProjectController extends Controller
             ],
         ]);
 
+        $updatedStageName = trim((string) $validated['name']);
+
         $stage->update([
-            'name' => trim($validated['name']),
+            'name' => $updatedStageName,
         ]);
 
         MilestoneStages::whereHas('milestone', function ($query) use ($project) {
             $query->where('project_id', $project->id);
-        })->where('stages', $stage->getOriginal('name'))->update([
-            'stages' => trim($validated['name']),
+        })->where(function ($query) use ($stage, $previousStageName) {
+            $query->where('milestone_stage_project_id', $stage->id);
+
+            if ($previousStageName !== '') {
+                $query->orWhere('stages', $previousStageName);
+            }
+        })->update([
+            'stages' => $updatedStageName,
+            'milestone_stage_project_id' => $stage->id,
         ]);
 
         return redirect()->back()->with('success', __('Stage updated successfully.'));
@@ -3850,6 +4228,119 @@ class ProjectController extends Controller
         $stage->delete();
 
         return redirect()->back()->with('success', __('Stage deleted successfully.'));
+    }
+
+    /**
+     * Resuelve la delegación que ya tiene el proyecto del encargo.
+     * Usa projects.ref_delegation y, si está vacía, cae a master_obras.business_unit.
+     */
+    private function resolveMilestoneDelegationId($project)
+    {
+        $delegationId = trim((string) ($project->ref_delegation ?? ''));
+
+        if ($delegationId !== '') {
+            return $delegationId;
+        }
+
+        $businessUnit = MasterObra::where('project_id', $project->id)
+            ->whereNotNull('business_unit')
+            ->where('business_unit', '!=', '')
+            ->value('business_unit');
+
+        if (empty($businessUnit) && !empty($project->ref_mo)) {
+            $businessUnit = MasterObra::where('ref_mo', $project->ref_mo)
+                ->whereNotNull('business_unit')
+                ->where('business_unit', '!=', '')
+                ->value('business_unit');
+        }
+
+        return trim((string) ($businessUnit ?? ''));
+    }
+
+    /**
+     * Devuelve el siguiente código de obra (3 dígitos) de la delegación de forma atómica.
+     * Cada delegación tiene su propio contador con un máximo de 999 obras.
+     */
+    private function assignObraNumber($delegationId)
+    {
+        $maxObras = 999;
+
+        $row = DB::table('obra_counters')
+            ->where('delegation_id', $delegationId)
+            ->lockForUpdate()
+            ->first();
+
+        if (!$row) {
+            DB::table('obra_counters')->insert([
+                'delegation_id'  => $delegationId,
+                'current_number' => 0,
+                'created_at'     => now(),
+                'updated_at'     => now(),
+            ]);
+
+            $row = DB::table('obra_counters')
+                ->where('delegation_id', $delegationId)
+                ->lockForUpdate()
+                ->first();
+        }
+
+        $nextNumber = ((int) $row->current_number) + 1;
+
+        if ($nextNumber > $maxObras) {
+            throw new \RuntimeException(__('The delegation :delegation has reached the maximum of :max works.', [
+                'delegation' => $delegationId,
+                'max'        => $maxObras,
+            ]));
+        }
+
+        DB::table('obra_counters')
+            ->where('delegation_id', $delegationId)
+            ->update(['current_number' => $nextNumber, 'updated_at' => now()]);
+
+        return $nextNumber;
+    }
+
+    /**
+     * Fuerza en el servidor el código de obra del encargo dentro de la referencia,
+     * para que no dependa de lo que envíe el formulario.
+     */
+    private function applyMilestoneObraNumberToReference($referencia, $milestoneId)
+    {
+        if (empty($milestoneId) || empty($referencia)) {
+            return $referencia;
+        }
+
+        $milestone = Milestone::find($milestoneId);
+
+        if (!$milestone || $milestone->obra_number === null) {
+            return $referencia;
+        }
+
+        $project = Project::find($milestone->project_id);
+
+        if (!$project || (int) $project->type !== 1) {
+            return $referencia;
+        }
+
+        $delegationId = trim((string) ($project->ref_delegation ?? ''));
+
+        if ($delegationId === '') {
+            return $referencia;
+        }
+
+        $letter = trim((string) $project->ref_mo) !== '' ? 'O' : 'X';
+        $prefix = date('y') . strtoupper($delegationId) . $letter;
+        $referencia = (string) $referencia;
+
+        if (strtoupper(substr($referencia, 0, strlen($prefix))) !== $prefix) {
+            return $referencia;
+        }
+
+        $code = str_pad((string) (int) $milestone->obra_number, 3, '0', STR_PAD_LEFT);
+        $rest = substr($referencia, strlen($prefix));
+        $rest = preg_replace('/^\d{0,3}/', $code, $rest, 1);
+
+        return $prefix . $rest;
     }
 
     public function milestoneStore($slug, $projectID, Request $request)
@@ -3903,15 +4394,16 @@ class ProjectController extends Controller
         if (in_array((int) $project->type, [3, 5], true)) {
             $this->ensureProjectDefaultStages($project);
 
-            $availableStages = MilestoneStageProject::where('project_id', $project->id)
-                ->pluck('name')
-                ->toArray();
-
-            $rules['stage'] = ['nullable', Rule::in($availableStages)];
+            $rules['stage'] = 'nullable|string|max:255';
+            $rules['new_stage_name'] = 'nullable|string|max:255';
         }
 
 
         $validator = Validator::make($request->all(), $rules);
+
+        if (in_array((int) $project->type, [3, 5], true)) {
+            $this->appendMilestoneStageValidation($validator, $project, $request);
+        }
 
         if ($validator->fails()) {
             \Log::error('Validation failed for milestone creation', [
@@ -3940,9 +4432,19 @@ class ProjectController extends Controller
             : $inputEndDate->toDateString();
 
         // Crear el milestone
+        $title = strip_tags($request->title);
+        if (empty(trim($title))) {
+            if ($request->expectsJson() || $request->ajax()) {
+                return response()->json(['success' => false, 'error' => __('The milestone title is invalid.')], 422);
+            }
+            return redirect()->back()
+                ->with('error', __('The milestone title is invalid.'))
+                ->withInput();
+        }
+        DB::beginTransaction();
         $milestone = new Milestone();
         $milestone->project_id = $project->id;
-        $milestone->title = $request->title;
+        $milestone->title = $title;
         $milestone->assign_to = $request->assing_to;
         $milestone->start_date = date('Y-m-d');
         $milestone->company = $request->company ?? '';
@@ -3952,10 +4454,35 @@ class ProjectController extends Controller
         $milestone->milestone_assigned_to_user = $request->req_assing_to ?? '';
         $milestone->planned_end_date = $request->planned_end_date ?? '';
         $milestone->created_by = Auth::user()->id;
-        $milestone->end_date = $finalEndDate; // ✅ Fecha corregida aquí
+        $milestone->end_date = $finalEndDate;
         $milestone->summary = $request->description ?? '';
         $milestone->priority = $request->priority === '' ? null : $request->priority;
         $milestone->save();
+
+        // Código de obra automático por delegación (001-999) para proyectos tipo 1
+        if ((int) $project->type === 1) {
+            try {
+                $delegationId = $this->resolveMilestoneDelegationId($project);
+                if ($delegationId !== '') {
+                    $milestone->obra_number = $this->assignObraNumber($delegationId);
+                    $milestone->save();
+                } else {
+                    \Log::warning('Milestone created without obra_number: delegation could not be resolved', [
+                        'milestone_id' => $milestone->id,
+                        'project_id'   => $project->id,
+                    ]);
+                }
+            } catch (\RuntimeException $e) {
+                DB::rollBack();
+                $message = $e->getMessage();
+
+                if ($request->expectsJson() || $request->ajax()) {
+                    return response()->json(['success' => false, 'error' => $message], 422);
+                }
+
+                return redirect()->back()->with('error', $message)->withInput();
+            }
+        }
 
         // ✅ Guardar fase para proyectos tipo 3 o 5
         if (in_array((int) $project->type, [3, 5], true)) {
@@ -3965,19 +4492,9 @@ class ProjectController extends Controller
             );
         }
 
-        if (in_array((int) $project->type, [3, 5], true) && !empty($request->stage)) {
-            $selectedStageName = trim((string) $request->stage);
-            $selectedStageId = MilestoneStageProject::where('project_id', $project->id)
-                ->where('name', $selectedStageName)
-                ->value('id');
-
-            MilestoneStages::updateOrCreate(
-                ['id_milestone' => $milestone->id],
-                [
-                    'stages' => $selectedStageName,
-                    'milestone_stage_project_id' => $selectedStageId,
-                ]
-            );
+        if (in_array((int) $project->type, [3, 5], true)) {
+            $selectedStageName = $this->resolveProjectStageFromRequest($project, $request);
+            $this->syncMilestoneStageForProject($milestone, $project, $selectedStageName);
         }
 
         if (isset($project)) {
@@ -4000,6 +4517,138 @@ class ProjectController extends Controller
                 ->toArray();
 
             foreach ($request->file('files') as $file) {
+                // ✅ VALIDACIÓN MIME REAL DEL SERVIDOR (PUNTO 1)
+                $finfo = finfo_open(FILEINFO_MIME_TYPE);
+                $realMimeType = finfo_file($finfo, $file->getPathName());
+                finfo_close($finfo);
+
+                // Definir tipos MIME permitidos (debe coincidir con lo que necesitas)
+                $allowedMimes = [
+                    'image/jpeg',      // JPG
+                    'image/png',       // PNG
+                    'application/pdf', // PDF
+                    'text/plain',      // TXT
+                    'application/msword',                           // .doc
+                    'application/vnd.openxmlformats-officedocument.wordprocessingml.document', // .docx
+                    'application/zip',  // .zip
+                    'application/x-rar-compressed',                 // .rar
+                    'application/acad',         // .dwg (AutoCAD)
+                    'application/autocad_dwg',  // .dwg
+                    'application/dxf'           // .dxf
+                ];
+
+                // Rechazar si el MIME real no está en la lista permitida
+                if (!in_array($realMimeType, $allowedMimes, true)) {
+                    // Registrar intento fallido (puedes usar tu sistema de logs existente)
+                    \Log::warning('Archivo rechazado por MIME type inválido', [
+                        'original_name' => $file->getClientOriginalName(),
+                        'declared_mime' => $file->getMimeType(),
+                        'real_mime' => $realMimeType,
+                        'user_id' => Auth::id(),
+                        'ip' => request()->ip()
+                    ]);
+
+                    // Opcional: mostrar mensaje al usuario (si es AJAX o deseas feedback inmediato)
+                    DB::rollBack();
+                    return response()->json([
+                        'success' => false,
+                        'error' => 'Tipo de archivo no permitido: ' . $file->getClientOriginalName()
+                    ], 422);
+                }
+
+                // ✅ DETECTAR JAVASCRIPT EN PDFS
+                if ($realMimeType === 'application/pdf') {
+                    $pdfContent = file_get_contents($file->getPathName());
+                    if (preg_match('/\/JavaScript\s*$|\/JS\s+\d+\s+\d+\s+R|\/S\s*\/JavaScript|\/OpenAction\s/', $pdfContent)) {
+                        \Log::warning('PDF rechazado - contiene JavaScript', [
+                            'original_name' => $file->getClientOriginalName(),
+                            'user_id' => Auth::id(),
+                            'ip' => request()->ip()
+                        ]);
+                        DB::rollBack();
+                        return response()->json([
+                            'success' => false,
+                            'error' => 'El PDF contiene JavaScript y no está permitido: ' . $file->getClientOriginalName()
+                        ], 422);
+                    }
+                }
+
+                // ✅ DETECTAR MACROS EN DOCUMENTOS .DOCX (PUNTO 11)
+                $ext = strtolower($file->getClientOriginalExtension());
+                if ($ext === 'docx') {
+                    $content = file_get_contents($file->getPathName(), false, null, 0, 1048576);
+                    if ($content !== false && strpos($content, 'vbaProject.bin') !== false) {
+                        \Log::warning('Documento rechazado - contiene macros', [
+                            'original_name' => $file->getClientOriginalName(),
+                            'user_id' => Auth::id(),
+                            'ip' => request()->ip()
+                        ]);
+                        DB::rollBack();
+                        return response()->json([
+                            'success' => false,
+                            'error' => 'El documento contiene macros: ' . $file->getClientOriginalName()
+                        ], 422);
+                    }
+                }
+
+                // ✅ DETECTAR MACROS EN DOCUMENTOS .DOC (Word 97-2003)
+                if ($ext === 'doc') {
+                    $content = file_get_contents($file->getPathName(), false, null, 0, 2097152);
+                    if ($content !== false && (strpos($content, '_VBA_PROJECT') !== false || strpos($content, "V\0B\0A\0") !== false)) {
+                        \Log::warning('Documento rechazado - contiene macros (.doc)', [
+                            'original_name' => $file->getClientOriginalName(),
+                            'user_id' => Auth::id(),
+                            'ip' => request()->ip()
+                        ]);
+                        DB::rollBack();
+                        return response()->json([
+                            'success' => false,
+                            'error' => 'El documento contiene macros: ' . $file->getClientOriginalName()
+                        ], 422);
+                    }
+                }
+
+                // ✅ VERIFICAR QUE LAS IMÁGENES SEAN REALES (PUNTO 6)
+                if (in_array($realMimeType, ['image/jpeg', 'image/png'], true)) {
+                    $imageInfo = getimagesize($file->getPathName());
+                    if ($imageInfo === false) {
+                        // No es una imagen válida
+                        \Log::warning('Archivo rechazado - imagen no válida o corrupta', [
+                            'original_name' => $file->getClientOriginalName(),
+                            'mime_type' => $realMimeType,
+                            'user_id' => Auth::id(),
+                            'ip' => request()->ip()
+                        ]);
+
+                        DB::rollBack();
+                        return response()->json([
+                            'success' => false,
+                            'error' => 'Archivo de imagen no válido o corrupto: ' . $file->getClientOriginalName()
+                        ], 422);
+                    }
+                }
+
+                // ✅ NO PERMITIR ARCHIVOS EJECUTABLES (PUNTO 7) - DEFENSA EN PROFUNDIDAD
+                $dangerousExtensions = ['php', 'php5', 'phtml', 'exe', 'bat', 'sh', 'js', 'jsp', 'asp', 'cgi'];
+                $originalExtension = strtolower($file->getClientOriginalExtension());
+
+                if (in_array($originalExtension, $dangerousExtensions, true)) {
+                    // Rechazar inmediatamente: extensión peligrosa detectada
+                    \Log::warning('Archivo rechazado - extensión peligrosa detectada', [
+                        'original_name' => $file->getClientOriginalName(),
+                        'extension' => $originalExtension,
+                        'mime_type' => $realMimeType,
+                        'user_id' => Auth::id(),
+                        'ip' => request()->ip()
+                    ]);
+
+                    DB::rollBack();
+                    return response()->json([
+                        'success' => false,
+                        'error' => 'Tipo de archivo no permitido por seguridad: ' . $file->getClientOriginalName()
+                    ], 422);
+                }
+
                 if ($file->isValid()) {
                     $originalName = $this->cleanFileName($file->getClientOriginalName());
 
@@ -4011,12 +4660,12 @@ class ProjectController extends Controller
                     $fileName = $milestone->id . '_' . time() . '_' . $uniqueDisplayName;
                     $file->move(storage_path($dir), $fileName);
 
-                    $filePath = storage_path($dir . '/' . $fileName);
+$filePath = storage_path($dir . '/' . $fileName);
                     $fileSize = file_exists($filePath)
                         ? round(filesize($filePath) / 1024, 2) . ' KB'
                         : '0 KB';
 
-                    MilestoneFile::create([
+MilestoneFile::create([
                         'milestone_id' => $milestone->id,
                         'file' => $fileName,
                         'name' => $uniqueDisplayName,
@@ -4025,10 +4674,24 @@ class ProjectController extends Controller
                         'created_by' => Auth::id(),
                         'user_type' => Auth::user()->type,
                     ]);
+
+                    // ✅ REGISTRAR SUBIDA EXITOSA (PUNTO 10)
+                    \Log::info('Archivo subido exitosamente', [
+                        'original_name' => $file->getClientOriginalName(),
+                        'stored_as' => $fileName,
+                        'size_kb' => round(filesize($filePath) / 1024, 2),
+                        'mime_type' => $realMimeType,
+                        'extension' => $file->getClientOriginalExtension(),
+                        'milestone_id' => $milestone->id,
+                        'user_id' => Auth::id(),
+                        'ip' => request()->ip(),
+                        'user_agent' => request()->userAgent()
+                    ]);
                 } else {
                     $errorMsg = 'Uno o más archivos no son válidos.';
 
                     // Si es AJAX, devolver JSON
+                    DB::rollBack();
                     if ($request->expectsJson() || $request->ajax()) {
                         return response()->json([
                             'success' => false,
@@ -4065,6 +4728,7 @@ class ProjectController extends Controller
         }
 
         // Siempre devolver JSON si es una solicitud AJAX o si viene del modal
+        DB::commit();
         if ($request->ajax() || $request->wantsJson() || $request->expectsJson()) {
             return response()->json([
                 'success' => true,
@@ -4073,6 +4737,7 @@ class ProjectController extends Controller
             ]);
         }
 
+        DB::commit();
         return redirect()->back()->with('success', __('Milestone created successfully!'));
     }
 
@@ -4281,13 +4946,31 @@ class ProjectController extends Controller
 
         $setting = Utility::getAdminPaymentSettings();
 
-        $request->validate([
-            'end_date' => 'required|date',
-        ]);
-
         $milestone = Milestone::find($milestoneID);
         if (!$milestone) {
             return redirect()->back()->with('error', 'Milestone not found');
+        }
+
+        $project = Project::find($milestone->project_id);
+
+        $rules = [
+            'end_date' => 'required|date',
+        ];
+
+        if ($project && in_array((int) $project->type, [3, 5], true)) {
+            $this->ensureProjectDefaultStages($project);
+            $rules['stage'] = 'nullable|string|max:255';
+            $rules['new_stage_name'] = 'nullable|string|max:255';
+        }
+
+        $validator = Validator::make($request->all(), $rules);
+
+        if ($project && in_array((int) $project->type, [3, 5], true)) {
+            $this->appendMilestoneStageValidation($validator, $project, $request);
+        }
+
+        if ($validator->fails()) {
+            return redirect()->back()->withErrors($validator)->withInput();
         }
 
         // Validar end_date: si es anterior a hoy, usar hoy
@@ -4308,7 +4991,16 @@ class ProjectController extends Controller
         ]);
 
         if (!empty($request->title)) {
-            $milestone->title = $request->title;
+            $title = strip_tags($request->title);
+            if (empty(trim($title))) {
+                if ($request->expectsJson() || $request->ajax()) {
+                    return response()->json(['success' => false, 'error' => __('The milestone title is invalid.')], 422);
+                }
+                return redirect()->back()
+                    ->with('error', __('The milestone title is invalid.'))
+                    ->withInput();
+            }
+            $milestone->title = $title;
         }
         $milestone->summary = $request->summary;
         // Solo actualizar milestone_assigned_to_user si viene con valor, de lo contrario mantener el actual
@@ -4343,26 +5035,20 @@ class ProjectController extends Controller
             ]);
         }
 
-        if ($request->has('stage')) {
-            if (!empty($request->stage)) {
-                $selectedStageName = trim((string) $request->stage);
-                $selectedStageId = MilestoneStageProject::where('project_id', $milestone->project_id)
-                    ->where('name', $selectedStageName)
-                    ->value('id');
+        if ($request->has('stage') && $project && in_array((int) $project->type, [3, 5], true)) {
+            $selectedStageName = $this->resolveProjectStageFromRequest($project, $request);
 
-                MilestoneStages::updateOrCreate(
-                    ['id_milestone' => $milestone->id],
-                    [
-                        'stages' => $selectedStageName,
-                        'milestone_stage_project_id' => $selectedStageId,
-                    ]
-                );
+            if ($selectedStageName) {
+                $this->syncMilestoneStageForProject($milestone, $project, $selectedStageName);
             } else {
                 MilestoneStages::where('id_milestone', $milestone->id)->delete();
             }
         }
 
-        $project = Project::where('id', $milestone->project_id)->first();
+        if (!$project) {
+            $project = Project::where('id', $milestone->project_id)->first();
+        }
+
         if (!$project) {
             return redirect()->back()->with('error', 'Project not found');
         }
@@ -4493,7 +5179,7 @@ class ProjectController extends Controller
             return optional($task->customTask)->name ?: __('Custom');
         }
 
-        return $taskTypeName ?: __('N/A');
+        return $taskTypeName ? __($taskTypeName) : __('N/A');
     }
 
 
@@ -4505,7 +5191,7 @@ class ProjectController extends Controller
 
         return sprintf('%02d:%02d', $hours, $minutes);
     }
-    
+
     private function buildLoggedTaskDetailsForPeriod(int $userId, Carbon $startDate, Carbon $endDate): array
     {
         $loggedTaskRows = Timesheet::query()
@@ -4586,12 +5272,13 @@ class ProjectController extends Controller
 
         $tasksQuery = Task::with([
             'project:id,name,workspace,type',
-            'milestone:id,title,project_id',
+            'milestone:id,title,project_id,status',
             'milestone.phase:id,id_milestone,phases',
             'milestone.stage:id,id_milestone,stages,milestone_stage_project_id',
             'milestone.stage.stageProject:id,name',
             'type:id,name',
             'customTask:id,id_task,name',
+            'reviewState',
         ])
             ->leftJoin('projects', 'projects.id', '=', 'tasks.project_id')
             ->select('tasks.*')
@@ -4599,8 +5286,13 @@ class ProjectController extends Controller
                 $query->whereRaw("find_in_set(?, assign_to)", [(string) $user->id])
                     ->orWhere('assign_to', (string) $user->id);
             })
-            ->whereHas('milestone', function ($query) {
-                $query->whereNotIn('status', [3, 4]);
+            ->where(function ($query) {
+                $query->where('projects.type', '!=', 3)
+                    ->orWhereNull('projects.type')
+                    ->orWhereDoesntHave('milestone')
+                    ->orWhereHas('milestone', function ($q) {
+                        $q->where('status', '!=', 1);
+                    });
             })
             ->orderByRaw("CASE WHEN projects.name IS NULL OR TRIM(projects.name) = '' THEN 1 ELSE 0 END")
             ->orderBy('projects.name')
@@ -4634,6 +5326,7 @@ class ProjectController extends Controller
 
             $workspaceId = optional($task->project)->workspace;
             $workspaceSlug = $workspaceId ? $workspaceSlugsById->get($workspaceId) : null;
+            $task->workspace_slug = $workspaceSlug;
             $editableTimesheet = $latestTimesheetsByTask->get($task->id);
 
             if (!$workspaceSlug || !$task->project_id) {
@@ -4746,7 +5439,7 @@ class ProjectController extends Controller
                     : ($taskTypeName ?: __('N/A'));
 
                 $tasksByProject[$projectId][] = [
-                    'name' => $displayTypeName,
+                    'name' => __($displayTypeName),
                     'milestone' => optional($taskModel->milestone)->title ?: __('N/A'),
                     'start_date' => $taskModel->start_date ? Carbon::parse($taskModel->start_date)->format('d/m/Y') : __('N/A'),
                     'estimated_date' => $taskModel->estimated_date ? Carbon::parse($taskModel->estimated_date)->format('d/m/Y') : __('N/A'),
@@ -4940,6 +5633,153 @@ class ProjectController extends Controller
         ]);
 
         $file = $request->file('file');
+        // ✅ VALIDACIÓN MIME REAL DEL SERVIDOR (PUNTO 1)
+        $finfo = finfo_open(FILEINFO_MIME_TYPE);
+        $realMimeType = finfo_file($finfo, $file->getPathName());
+        finfo_close($finfo);
+
+        # Definir tipos MIME permitidos (debe coincidir con lo que necesitas)
+        $allowedMimes = [
+            'image/jpeg',      // JPG
+            'image/png',       // PNG
+            'application/pdf', // PDF
+            'text/plain',      // TXT
+            'application/msword',                           // .doc
+            'application/vnd.openxmlformats-officedocument.wordprocessingml.document', // .docx
+            'application/zip',  // .zip
+            'application/x-rar-compressed',                 // .rar
+            'application/acad',         // .dwg (AutoCAD)
+            'application/autocad_dwg',  // .dwg
+            'application/dxf'           // .dxf
+        ];
+
+        # Rechazar si el MIME real no está en la lista permitida
+        if (!in_array($realMimeType, $allowedMimes, true)) {
+            # Registrar intento fallido
+            \Log::warning('Archivo rechazado por MIME type inválido (fileUpload)', [
+                'original_name' => $file->getClientOriginalName(),
+                'declared_mime' => $file->getMimeType(),
+                'real_mime' => $realMimeType,
+                'user_id' => Auth::id(),
+                'ip' => request()->ip()
+            ]);
+
+            # Mostrar mensaje al usuario
+            if ($request->ajax() || $request->expectsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'error' => 'Tipo de archivo no permitido: ' . $file->getClientOriginalName()
+                ], 422);
+            }
+
+            return redirect()->back()->with('error', 'Tipo de archivo no permitido: ' . $file->getClientOriginalName());
+        }
+
+        # ✅ DETECTAR JAVASCRIPT EN PDFS (fileUpload)
+        if ($realMimeType === 'application/pdf') {
+            $pdfContent = file_get_contents($file->getPathName());
+            if (preg_match('/\/JavaScript\s*$|\/JS\s+\d+\s+\d+\s+R|\/S\s*\/JavaScript|\/OpenAction\s/', $pdfContent)) {
+                \Log::warning('PDF rechazado - contiene JavaScript (fileUpload)', [
+                    'original_name' => $file->getClientOriginalName(),
+                    'user_id' => Auth::id(),
+                    'ip' => request()->ip()
+                ]);
+                if ($request->ajax() || $request->expectsJson()) {
+                    return response()->json([
+                        'success' => false,
+                        'error' => 'El PDF contiene JavaScript y no está permitido: ' . $file->getClientOriginalName()
+                    ], 422);
+                }
+                return redirect()->back()->with('error', 'El PDF contiene JavaScript y no está permitido: ' . $file->getClientOriginalName());
+            }
+        }
+
+        # ✅ DETECTAR MACROS EN DOCUMENTOS .DOCX (fileUpload)
+        $ext = strtolower($file->getClientOriginalExtension());
+        if ($ext === 'docx') {
+            $content = file_get_contents($file->getPathName(), false, null, 0, 1048576);
+            if ($content !== false && strpos($content, 'vbaProject.bin') !== false) {
+                \Log::warning('Documento rechazado - contiene macros (fileUpload)', [
+                    'original_name' => $file->getClientOriginalName(),
+                    'user_id' => Auth::id(),
+                    'ip' => request()->ip()
+                ]);
+                if ($request->ajax() || $request->expectsJson()) {
+                    return response()->json([
+                        'success' => false,
+                        'error' => 'El documento contiene macros: ' . $file->getClientOriginalName()
+                    ], 422);
+                }
+                return redirect()->back()->with('error', 'El documento contiene macros: ' . $file->getClientOriginalName());
+            }
+        }
+
+        # ✅ DETECTAR MACROS EN DOCUMENTOS .DOC (Word 97-2003) (fileUpload)
+        if ($ext === 'doc') {
+            $content = file_get_contents($file->getPathName(), false, null, 0, 2097152);
+            if ($content !== false && (strpos($content, '_VBA_PROJECT') !== false || strpos($content, "V\0B\0A\0") !== false)) {
+                \Log::warning('Documento rechazado - contiene macros (.doc) (fileUpload)', [
+                    'original_name' => $file->getClientOriginalName(),
+                    'user_id' => Auth::id(),
+                    'ip' => request()->ip()
+                ]);
+                if ($request->ajax() || $request->expectsJson()) {
+                    return response()->json([
+                        'success' => false,
+                        'error' => 'El documento contiene macros: ' . $file->getClientOriginalName()
+                    ], 422);
+                }
+                return redirect()->back()->with('error', 'El documento contiene macros: ' . $file->getClientOriginalName());
+            }
+        }
+
+        # ✅ VERIFICAR QUE LAS IMÁGENES SEAN REALES (PUNTO 6)
+        if (in_array($realMimeType, ['image/jpeg', 'image/png'], true)) {
+            $imageInfo = getimagesize($file->getPathName());
+            if ($imageInfo === false) {
+                # No es una imagen válida
+                \Log::warning('Archivo rechazado - imagen no válida o corrupta (fileUpload)', [
+                    'original_name' => $file->getClientOriginalName(),
+                    'mime_type' => $realMimeType,
+                    'user_id' => Auth::id(),
+                    'ip' => request()->ip()
+                ]);
+
+                if ($request->ajax() || $request->expectsJson()) {
+                    return response()->json([
+                        'success' => false,
+                        'error' => 'Archivo de imagen no válido o corrupto: ' . $file->getClientOriginalName()
+                    ], 422);
+                }
+
+                return redirect()->back()->with('error', 'Archivo de imagen no válido o corrupto: ' . $file->getClientOriginalName());
+            }
+        }
+
+        # ✅ NO PERMITIR ARCHIVOS EJECUTABLES (PUNTO 7) - DEFENSA EN PROFUNDIDAD
+        $dangerousExtensions = ['php', 'php5', 'phtml', 'exe', 'bat', 'sh', 'js', 'jsp', 'asp', 'cgi'];
+        $originalExtension = strtolower($file->getClientOriginalExtension());
+
+        if (in_array($originalExtension, $dangerousExtensions, true)) {
+            # Rechazar inmediatamente: extensión peligrosa detectada
+            \Log::warning('Archivo rechazado - extensión peligrosa detectada (fileUpload)', [
+                'original_name' => $file->getClientOriginalName(),
+                'extension' => $originalExtension,
+                'mime_type' => $realMimeType,
+                'user_id' => Auth::id(),
+                'ip' => request()->ip()
+            ]);
+
+            if ($request->ajax() || $request->expectsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'error' => 'Tipo de archivo no permitido por seguridad: ' . $file->getClientOriginalName()
+                ], 422);
+            }
+
+            return redirect()->back()->with('error', 'Tipo de archivo no permitido por seguridad: ' . $file->getClientOriginalName());
+        }
+
         // ✅ Mantener el nombre original del archivo (sin sanitizar)
         $file_name = $this->cleanFileName($file->getClientOriginalName());
         $extension = $file->getClientOriginalExtension();
@@ -5165,16 +6005,25 @@ class ProjectController extends Controller
         $validator = Validator::make($request->all(), $rules);
 
         if ($validator->fails()) {
+            if ($request->wantsJson()) {
+                return response()->json(['success' => false, 'message' => $validator->errors()->first()], 422);
+            }
             return redirect()->back()->with('error', $validator->errors()->first());
         }
 
         try {
             $selectedDate = Carbon::parse($request->date)->toDateString();
         } catch (\Throwable $e) {
+            if ($request->wantsJson()) {
+                return response()->json(['success' => false, 'message' => __('Invalid date selected.')], 422);
+            }
             return redirect()->back()->withInput()->with('error', __('Invalid date selected.'));
         }
 
         if ($this->isUserHolidayDate($user->id, $selectedDate)) {
+            if ($request->wantsJson()) {
+                return response()->json(['success' => false, 'message' => __('You cannot log hours on a holiday.')], 422);
+            }
             return redirect()->back()->withInput()->with('error', __('You cannot log hours on a holiday.'));
         }
 
@@ -5184,6 +6033,9 @@ class ProjectController extends Controller
         $project = Project::find($request->project_id);
 
         if (!$project) {
+            if ($request->wantsJson()) {
+                return response()->json(['success' => false, 'message' => 'Proyecto no encontrado.'], 422);
+            }
             return redirect()->back()->with('error', 'Proyecto no encontrado.');
         }
 
@@ -5193,6 +6045,9 @@ class ProjectController extends Controller
             ->first();
 
         if (!$task) {
+            if ($request->wantsJson()) {
+                return response()->json(['success' => false, 'message' => 'Tarea no encontrada o no pertenece al proyecto.'], 422);
+            }
             return redirect()->back()->with('error', 'Tarea no encontrada o no pertenece al proyecto.');
         }
 
@@ -5221,6 +6076,9 @@ class ProjectController extends Controller
         }
 
         if (!$hasAccess) {
+            if ($request->wantsJson()) {
+                return response()->json(['success' => false, 'message' => 'No tienes acceso a esta tarea.'], 422);
+            }
             return redirect()->back()->with('error', 'No tienes acceso a esta tarea.');
         }
 
@@ -5254,6 +6112,32 @@ class ProjectController extends Controller
         }
 
         $this->employeesInProject(Auth::user()->id, $project->id);
+
+        if ($request->wantsJson()) {
+            $technician = User::find($task->assign_to);
+
+            $milestoneExtraInfo = null;
+            if ($milestone) {
+                $milestoneData = $this->getMilestoneData($milestone, $project, null);
+                $milestoneStage = Stage::find($milestone->status);
+                $milestoneExtraInfo = view('projects.partials.milestone_extra_info', [
+                    'milestone' => $milestoneData,
+                    'status' => $milestoneStage,
+                ])->render();
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => __('Timesheet Updated Successfully!'),
+                'task_id' => $task->id,
+                'milestone_id' => $milestone ? $milestone->id : null,
+                'project_id' => $project->id,
+                'status' => $milestone ? (int) $milestone->status : null,
+                'logged_hours' => $task->getTotalLoggedHours(),
+                'technician_name' => $technician ? $technician->name : null,
+                'milestone_extra_info' => $milestoneExtraInfo,
+            ]);
+        }
 
         return redirect()->back()->with('success', __('Timesheet Updated Successfully!'));
     }
@@ -5453,6 +6337,8 @@ class ProjectController extends Controller
             'project_name' => $project_name,
             'task_id' => $task->id,
             'task_name' => $task_name,
+            'referencia' => $task->referencia ?? null,
+            'project_type' => $project->type,
             'milestone_id' => $milestone_id,
             'milestone_name' => __($milestone_name),
             'date' => $selected_date,
@@ -5788,6 +6674,8 @@ class ProjectController extends Controller
     {
         \Log::info('Enviando correo a: ' . $toEmail . ' con tipo de notificación: ' . $notificationType . ' y mensaje: ' . $message);
 
+        $emailSubject = 'Notificación en project Alsina';
+
 
         if ($notificationType == '2') {
             preg_match('/^(.*?) en (.*)$/', $message, $matches);
@@ -5801,6 +6689,8 @@ class ProjectController extends Controller
             }
             \Log::info('Datos extraídos para el correo de creación de milestone:' . $notificationType . ' - Encargo: ' . $encargo . ', Proyecto: ' . $proyecto .  ', Prioridad: ' . $priority . ', Estado: ' . $status . ', Slug: ' . $slug . ', Workspace: ' . $workspace);
 
+            $emailSubject = 'Se ha creado un nuevo hito o fase en tu proyecto en project Alsina';
+
             $htmlContent = View::make('emailTemplates.templateMilestone', [
                 'notificationType' => $notificationType,
                 'message' => $message,
@@ -5810,6 +6700,7 @@ class ProjectController extends Controller
                 'status' => $status,
                 'slug' => $slug,
                 'workspace' => $workspace,
+                'emailSubject' => $emailSubject,
             ])->render();
         } else if ($notificationType == '5') {
 
@@ -5825,6 +6716,8 @@ class ProjectController extends Controller
 
             \Log::info('Datos extraídos para el correo del pending review:' . $notificationType . ' - Encargo: ' . $encargo . ', Proyecto: ' . $proyecto .  ', Prioridad: ' . $priority . ', Estado: ' . $status . ', Slug: ' . $slug . ', Workspace: ' . $workspace);
 
+            $emailSubject = 'Una hoja de encargo está pendiente de revisión en project Alsina';
+
             $htmlContent = View::make('emailTemplates.templatePendingReview', [
                 'notificationType' => $notificationType,
                 'message' => $message,
@@ -5834,6 +6727,7 @@ class ProjectController extends Controller
                 'status' => $status,
                 'slug' => $slug,
                 'workspace' => $workspace,
+                'emailSubject' => $emailSubject,
             ])->render();
         } else if ($notificationType == '4') {
             // Extraer los datos desde el mensaje
@@ -5852,6 +6746,9 @@ class ProjectController extends Controller
             }
 
             \Log::info('Datos extraídos para el correo:' . $notificationType . ' - Encargo: ' . $encargo . ', Proyecto: ' . $proyecto . ', Fecha: ' . $fecha . ', Prioridad: ' . $priority . ', Estado: ' . $status . ', Slug: ' . $slug . ', Workspace: ' . $workspace);
+
+            $emailSubject = 'Te han asignado una nueva hoja de encargo en project Alsina';
+
             $htmlContent = View::make('emailTemplates.templateAssignedToUser', [
                 'notificationType' => $notificationType,
                 'message' => $message,
@@ -5862,6 +6759,7 @@ class ProjectController extends Controller
                 'status' => $status,
                 'slug' => $slug,
                 'workspace' => $workspace,
+                'emailSubject' => $emailSubject,
             ])->render();
         } else {
             return;
@@ -5870,7 +6768,7 @@ class ProjectController extends Controller
 
         $email = new \SendGrid\Mail\Mail();
         $email->setFrom(config('services.sendgrid.from_email'), config('services.sendgrid.from_name'));
-        $email->setSubject('¡Tienes novedades en project Alsina!');
+        $email->setSubject($emailSubject);
         $email->addTo($toEmail);
 
         // Contenido HTML
@@ -5941,12 +6839,13 @@ class ProjectController extends Controller
             'priority' => $milestone->priority,
             'status' => $milestone->status,
             'slug' => $workspace->slug,
-            'workspace' => $workspace->name
+            'workspace' => $workspace->name,
+            'emailSubject' => 'Se ha asignado una hoja de encargo a un miembro de tu equipo en project Alsina'
         ])->render();
 
         $email = new \SendGrid\Mail\Mail();
         $email->setFrom(config('services.sendgrid.from_email'), config('services.sendgrid.from_name'));
-        $email->setSubject('¡Tienes novedades en project Alsina!');
+        $email->setSubject('Se ha asignado una hoja de encargo a un miembro de tu equipo en project Alsina');
         $email->addTo($requesterEmail);
 
         // Contenido HTML
@@ -6320,7 +7219,7 @@ class ProjectController extends Controller
 
             if ($currentWorkspace->permission == 'Owner' ||  Auth::user()->type == 'user') {
                 $tmp['action'] = '
-                <a href="#" class="action-btn btn-info  btn btn-sm d-inline-flex align-items-center"  
+                <a href="#" class="action-btn btn-info  btn btn-sm d-inline-flex align-items-center"
                 data-toggle="popover"  title="' . __('Edit Task')
                     . '"  data-ajax-popup="true" data-size="lg" data-title="' . __('Edit Task') . '" data-url="' . route(
                         'tasks.edit',
@@ -6330,7 +7229,7 @@ class ProjectController extends Controller
                             $task->id,
                         ]
                     ) . '"><i class="ti ti-pencil"></i></a>
-                <a href="#" class="action-btn btn-danger  btn btn-sm d-inline-flex align-items-center 
+                <a href="#" class="action-btn btn-danger  btn btn-sm d-inline-flex align-items-center
                 bs-pass-para" data-toggle="popover" title="'
                     . __('Delete')
                     . '" data-confirm="' . __('Are You Sure?')
@@ -6589,8 +7488,8 @@ class ProjectController extends Controller
                 $returnHTML .= '<tr><td><span class="task-name ml-3">' . $name . '</span></td>';
 
                 foreach ($period as $key => $dateobj) {
-                    $returnHTML .= '<td><div role="button" class="form-control border-dark wid-120" data-ajax-timesheet-popup="true" 
-                    data-type="create" data-task-id="' . $task->id . '" data-date="' . $dateobj->format('Y-m-d') . '" 
+                    $returnHTML .= '<td><div role="button" class="form-control border-dark wid-120" data-ajax-timesheet-popup="true"
+                    data-type="create" data-task-id="' . $task->id . '" data-date="' . $dateobj->format('Y-m-d') . '"
                     data-url="' . route(
                         'project.timesheet.create',
                         [
@@ -6678,6 +7577,8 @@ class ProjectController extends Controller
             'project_name' => $project_name,
             'task_id' => $task->id,
             'task_name' => $task_name,
+            'referencia' => $task->referencia ?? null,
+            'project_type' => $project->type,
             'milestone_id' => $milestone_id,
             'milestone_name' => __($milestone_name),
             'date' => $selected_date,
@@ -7347,5 +8248,122 @@ class ProjectController extends Controller
         $project->copylinksetting = (count($data) > 0) ? json_encode($data) : null;
         $project->save();
         return redirect()->back()->with('success', __('Copy Link Setting Save Successfully!'));
+    }
+
+    public function milestoneTaskReview($slug, Request $request)
+    {
+        $task_id = $request->input('task_id');
+        $state_code = $request->input('state_code');
+
+        $validStates = array_keys(config('milestone_review_states', []));
+
+        if (!$task_id) {
+            return response()->json(['error' => 'Task id missing'], 422);
+        }
+
+        if (!in_array($state_code, $validStates, true) || in_array($state_code, ['cleared'], true)) {
+            return response()->json(['error' => 'Invalid state'], 422);
+        }
+
+        $task = Task::with('milestone')->find($task_id);
+
+        if (!$task) {
+            return response()->json(['error' => 'Task not found'], 404);
+        }
+
+        TaskReviewState::create([
+            'task_id'               => $task->id,
+            'milestone_id'          => $task->milestone_id,
+            'state_code'            => $state_code,
+            'mark_user_id'          => Auth::id(),
+            'task_owner_user_id'    => $task->assign_to,
+            'milestone_created_by'  => $task->milestone ? $task->milestone->created_by : null,
+            'comment'               => $request->input('comment'),
+        ]);
+
+        // Recuperar milestone y proyecto para respuesta enriquecida
+        $milestone = $task->milestone;
+        $project = $milestone ? $milestone->project : ($task->project ?? null);
+        
+        $showRevisarBtn = false;
+        $milestoneExtraInfo = null;
+        
+        if ($milestone && $project) {
+            // El botón "Revisar" se muestra si el estado es 'changes' y el milestone está en status 2 o 3
+            $showRevisarBtn = ($state_code === 'changes') && in_array((int) $milestone->status, [2, 3], true);
+            
+            // Re-renderizar el aviso inferior (milestone_extra_info)
+            $milestoneData = $this->getMilestoneData($milestone, $project, null);
+            $statusObj = \App\Models\Stage::find($milestone->status);
+            $milestoneExtraInfo = view('projects.partials.milestone_extra_info', [
+                'milestone' => $milestoneData,
+                'status' => $statusObj,
+            ])->render();
+        }
+
+        $reviewComment = null;
+        $reviewUser = null;
+        if ($state_code === 'changes') {
+            $reviewComment = $request->input('comment');
+            $reviewUser = Auth::user()->name;
+        }
+
+        return response()->json([
+            'success' => true,
+            'task_id' => $task->id,
+            'review_state' => $state_code,
+            'milestone_extra_info' => $milestoneExtraInfo,
+            'show_revisar_btn' => $showRevisarBtn,
+            'review_comment' => $reviewComment,
+            'review_user' => $reviewUser,
+        ]);
+    }
+
+    public function milestoneTaskReviewClear($slug, Request $request)
+    {
+        $task_id = $request->input('task_id');
+
+        if (!$task_id) {
+            return response()->json(['error' => 'Task id missing'], 422);
+        }
+
+        $task = Task::with('milestone')->find($task_id);
+
+        if (!$task) {
+            return response()->json(['error' => 'Task not found'], 404);
+        }
+
+        TaskReviewState::create([
+            'task_id'               => $task->id,
+            'milestone_id'          => $task->milestone_id,
+            'state_code'            => 'cleared',
+            'mark_user_id'          => Auth::id(),
+            'task_owner_user_id'    => $task->assign_to,
+            'milestone_created_by'  => $task->milestone ? $task->milestone->created_by : null,
+        ]);
+
+        // Recuperar milestone y proyecto para respuesta enriquecida
+        $milestone = $task->milestone;
+        $project = $milestone ? $milestone->project : ($task->project ?? null);
+        
+        $milestoneExtraInfo = null;
+        
+        if ($milestone && $project) {
+            // Re-renderizar el aviso inferior (milestone_extra_info)
+            $milestoneData = $this->getMilestoneData($milestone, $project, null);
+            $statusObj = \App\Models\Stage::find($milestone->status);
+            $milestoneExtraInfo = view('projects.partials.milestone_extra_info', [
+                'milestone' => $milestoneData,
+                'status' => $statusObj,
+            ])->render();
+        }
+
+        return response()->json([
+            'success' => true,
+            'task_id' => $task->id,
+            'review_state' => 'cleared',
+            'milestone_extra_info' => $milestoneExtraInfo,
+            'show_revisar_btn' => false,
+        ]);
     }
 }

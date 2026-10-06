@@ -78,7 +78,7 @@
                                 @foreach ($phases as $phase)
                                     <option value="{{ $phase }}"
                                         {{ trim((string) $currentPhase) === trim((string) $phase) ? 'selected' : '' }}>
-                                        {{ $phase }}
+                                        {{ __(\App\Models\MilestonePhases::translationKey($phase)) }}
                                     </option>
                                 @endforeach
                             </select>
@@ -117,15 +117,15 @@
                     @if ($project && in_array((int) $project->type, [3, 5], true))
                         <div class="paddingRight0  col-md-6">
                             <label for="stage" class="col-form-label">{{ __('Phase') }}</label>
-                            <select class="form-control form-control-light" id="stage" name="stage">
-                                <option value="">{{ __('Select a phase') }}</option>
-                                @foreach ($stagesProject as $stageName)
-                                    <option value="{{ $stageName }}"
-                                        {{ trim((string) $currentStage) === trim((string) $stageName) ? 'selected' : '' }}>
-                                        {{ $stageName }}
-                                    </option>
-                                @endforeach
+                            <select class="form-control form-control-light" id="stage" name="stage"
+                                data-add-phase-label="{{ __('Add phase') }}" hidden>
+                                <option value="add_phase">{{ __('Add phase') }}</option>
                             </select>
+                            <div id="new-stage-name-wrapper" class="mt-0" style="display: none;">
+                                <input type="text" name="new_stage_name" id="new_stage_name"
+                                    class="form-control form-control-light"
+                                    placeholder="{{ __('Enter phase name') }}" autocomplete="off">
+                            </div>
                         </div>
                     @endif
                 </div>
@@ -169,13 +169,13 @@
                             <div class="fileMilestoneEdit exist d-flex align-items-center mt-2 custom-file"
                                 data-file-id="{{ $file->id }}">
                                 <div class="d-flex align-items-center flex-grow-1" style="cursor: pointer;"
-                                    onclick="previewFile({{ $milestone->project_id }}, '{{ $milestone->title }}', '{{ $file->file }}', '{{ $extension }}')">
+                                    onclick="previewFile({{ $milestone->project_id }}, @json($milestone->title), @json($file->file), @json($extension))">
                                     <img src="{{ asset($iconPath) }}" alt="{{ $extension }} icon"
                                         style="width: 20px; height: 25px;">
                                     <div class="file-name ms-2">{{ $file->name }} </div>
                                 </div>
                                 <a class="buttonFiles btn btn-sm"
-                                    onclick="deleteFile({{ $milestone->project_id }}, '{{ $milestone->id }}', '{{ $file->id }}')">
+                                    onclick="deleteFile({{ $milestone->project_id }}, @json($milestone->id), @json($file->id))">
                                     <i class="fa-solid fa-trash-alt"
                                         style="color:white; background-color:#aa182c; padding:7px; border-radius:6px;"></i>
                                 </a>
@@ -203,6 +203,46 @@
 @endif
 <script>
     var assetBasePath = "{{ asset('assets/iconFilesTypes') }}/";
+</script>
+
+<script>
+    (function() {
+        const stageSelect = document.getElementById('stage');
+        const newStageWrapper = document.getElementById('new-stage-name-wrapper');
+        const newStageInput = document.getElementById('new_stage_name');
+        const milestoneForm = stageSelect ? stageSelect.closest('form') : null;
+
+        if (!stageSelect || !newStageWrapper) {
+            return;
+        }
+
+        const toggleNewStageInput = function() {
+            const showInput = stageSelect.value === 'add_phase';
+            newStageWrapper.style.display = showInput ? '' : 'none';
+            if (!showInput && newStageInput) {
+                newStageInput.value = '';
+                newStageInput.classList.remove('is-invalid');
+            }
+        };
+
+        stageSelect.addEventListener('change', toggleNewStageInput);
+        toggleNewStageInput();
+
+        if (milestoneForm) {
+            milestoneForm.addEventListener('submit', function(e) {
+                if (stageSelect.value !== 'add_phase') {
+                    return;
+                }
+
+                const newStageName = (newStageInput?.value || '').trim();
+                if (!newStageName) {
+                    e.preventDefault();
+                    newStageInput?.classList.add('is-invalid');
+                    newStageInput?.focus();
+                }
+            });
+        }
+    })();
 </script>
 
 <script>

@@ -25,6 +25,12 @@
             <label class="col-form-label">{{ __('Task') }}</label>
             <input type="text" class="form-control" value={{ __($parseArray['task_name']) }} disabled>
         </div>
+        @if((int)($parseArray['project_type'] ?? 0) === 1)
+            <div class="form-group">
+                <label class="col-form-label">{{ __('Reference') }}</label>
+                <input type="text" class="form-control" value="{{ $parseArray['referencia'] ?? '' }}" disabled>
+            </div>
+        @endif
         <div class="form-group">
             <label class="col-form-label">{{ __('Date') }}</label>
             <input type="date" onclick="this.showPicker()" class="form-control form-control-light date"
@@ -80,7 +86,6 @@
     <button type="button" class="btn btn-light" data-bs-dismiss="modal">{{ __('Close') }}</button>
     <input type="submit" value="{{ __('Save Changes') }}" class="btn btn-primary" id="timesheet-save-btn">
 </div>
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
     $(document).ready(function() {
         // Elementos
@@ -209,26 +214,99 @@
 
         $('#project_form').on('submit', function(event) {
             const selectedDate = (dateInput.val() || '').trim();
+            const useAjax = typeof window.milestoneBoardUpdateTaskHours === 'function';
+            const form = this;
+
+            function doSubmit() {
+                if (useAjax) {
+                    event.preventDefault();
+                    submitTimesheetViaAjax();
+                } else {
+                    $('#project_form').off('submit');
+                    form.submit();
+                }
+            }
 
             if (selectedDate && lastValidatedDate === selectedDate) {
                 if (isCurrentDateHoliday) {
                     event.preventDefault();
+                } else if (useAjax) {
+                    event.preventDefault();
+                    submitTimesheetViaAjax();
                 }
                 return;
             }
 
             event.preventDefault();
-            const form = this;
 
             validateHolidayDate().then(function(canLogHours) {
                 if (!canLogHours) {
                     return;
                 }
 
-                $('#project_form').off('submit');
-                form.submit();
+                doSubmit();
             });
         });
+
+        function submitTimesheetViaAjax() {
+            const overlay = document.getElementById('espera-overlay');
+            if (overlay) {
+                overlay.style.display = 'flex';
+                document.body.style.overflow = 'hidden';
+            }
+            saveButton.prop('disabled', true);
+
+            $.ajax({
+                url: $('#project_form').attr('action'),
+                type: 'POST',
+                data: new FormData($('#project_form')[0]),
+                processData: false,
+                contentType: false,
+                headers: { 'Accept': 'application/json' },
+                success: function(response) {
+                    if (overlay) {
+                        overlay.style.display = 'none';
+                        document.body.style.overflow = 'auto';
+                    }
+                    saveButton.prop('disabled', false);
+
+                    const modalEl = document.getElementById('modal-container');
+                    if (modalEl) {
+                        const modal = bootstrap.Modal.getInstance(modalEl);
+                        if (modal) {
+                            modal.hide();
+                        }
+                    }
+
+                    if (typeof window.milestoneBoardUpdateTaskHours === 'function') {
+                        window.milestoneBoardUpdateTaskHours(response);
+                    }
+
+                    if (typeof show_toastr === 'function') {
+                        show_toastr('Success', response.message || '{{ __("Timesheet Updated Successfully!") }}', 'success');
+                    }
+                },
+                error: function(xhr) {
+                    if (overlay) {
+                        overlay.style.display = 'none';
+                        document.body.style.overflow = 'auto';
+                    }
+                    saveButton.prop('disabled', false);
+
+                    let msg = 'Something went wrong.';
+                    if (xhr.responseJSON && xhr.responseJSON.message) {
+                        msg = xhr.responseJSON.message;
+                    } else if (xhr.responseJSON && xhr.responseJSON.errors) {
+                        const firstKey = Object.keys(xhr.responseJSON.errors)[0];
+                        msg = xhr.responseJSON.errors[firstKey];
+                    }
+
+                    if (typeof show_toastr === 'function') {
+                        show_toastr('Error', msg, 'error');
+                    }
+                }
+            });
+        }
 
         validateHolidayDate();
     });

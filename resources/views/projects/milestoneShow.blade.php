@@ -52,7 +52,7 @@
 
                             @if (filled($phaseName))
                                 <label class="statusBadge " style="background-color: #493d3f !important;"
-                                    title="{{ __('Stage') }}">{{ $phaseName }}</label>
+                                    title="{{ __('Stage') }}">{{ __(\App\Models\MilestonePhases::translationKey($phaseName)) }}</label>
                             @endif
 
                             @if (filled($stageName))
@@ -216,11 +216,11 @@
                             @if (!empty($milestoneFiles) && count($milestoneFiles) > 0)
                                 @foreach ($milestoneFiles as $file)
                                     <div class="custom-file" style="cursor: pointer;"
-                                        onclick="previewFile({{ $project->id }}, '{{ $milestone->title }}', '{{ $file->file }}', '{{ $file->extension }}')">
+                                        onclick="previewFile({{ $project->id }}, @json($milestone->title), @json($file->file), @json($file->extension))">
                                         <img src="{{ asset('assets/iconFilesTypes/' . $file->extension . '.png') }}"
                                             alt="{{ $file->extension }} icon" class="styleIconFiles">
                                         <p class="file-name">{{ $file->name }}</p>
-                                        <a onclick="event.stopPropagation(); downloadFile({{ $project->id }}, '{{ $milestone->title }}', '{{ $file->file }}')"
+                                        <a onclick="event.stopPropagation(); downloadFile({{ $project->id }}, @json($milestone->title), @json($file->file))"
                                             class="buttonFiles btn btn-sm">
                                             <i class="ti ti-download" style="color:white"></i>
                                         </a>

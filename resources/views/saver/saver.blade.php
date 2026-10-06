@@ -1,3 +1,8 @@
+@php
+    $saverLetters = $letters ?? 'SAVING';
+    $saverOverlayId = $overlayId ?? 'saving-overlay';
+    $saverLettersArr = str_split(strtoupper($saverLetters));
+@endphp
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@500&display=swap');
 
@@ -96,6 +101,14 @@
   animation-delay: 0.7s;
 }
 
+.saving-text span:nth-child(8) {
+  animation-delay: 0.8s;
+}
+
+.saving-text span:nth-child(9) {
+  animation-delay: 0.9s;
+}
+
 @keyframes moveLetters {
   0% {
     transform: translateX(-15vw);
@@ -113,7 +126,7 @@
   }
 }
 
-#saving-overlay{
+.saver-overlay{
     background-color: #00000069;
     position: fixed; 
     top: 0; 
@@ -126,15 +139,12 @@
     z-index: 9999;
 }
 </style>
-<div id="saving-overlay" style="display: none;">
+<div id="{{ $saverOverlayId }}" class="saver-overlay" style="display: none;">
   <div class="saving-container">
     <div class="saving-text">
-      <span>S</span>
-      <span>A</span>
-      <span>V</span>
-      <span>I</span>
-      <span>N</span>
-      <span>G</span>
+      @foreach ($saverLettersArr as $letter)
+        <span>{{ $letter }}</span>
+      @endforeach
     </div>
   </div>
 </div>

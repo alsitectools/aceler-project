@@ -121,7 +121,7 @@
                                 <select class="form-control form-control-light" name="phase" id="phase">
                                     <option value="">{{ __('Choose one') }}</option>
                                     @foreach ($phases as $phase)
-                                        <option value="{{ $phase }}">{{ __($phase) }}</option>
+                                        <option value="{{ $phase }}">{{ __(\App\Models\MilestonePhases::translationKey($phase)) }}</option>
                                     @endforeach
                                 </select>
                             </div>
@@ -273,12 +273,15 @@
                         <div class="col-md-6" id="stage-wrapper" style="{{ $showStage ? '' : 'display:none;' }}">
                             <div class="form-group">
                                 <label class="form-label">{{ __('Phase') }}</label>
-                                <select class="form-control form-control-light" name="stage" id="stage">
-                                    <option value="">{{ __('Choose one') }}</option>
-                                    @foreach ($stagesProject ?? [] as $stageName)
-                                        <option value="{{ $stageName }}">{{ __($stageName) }}</option>
-                                    @endforeach
+                                <select class="form-control form-control-light" name="stage" id="stage"
+                                    data-add-phase-label="{{ __('Add phase') }}" hidden>
+                                    <option value="add_phase">{{ __('Add phase') }}</option>
                                 </select>
+                                <div id="new-stage-name-wrapper" class="mt-0" style="display: none;">
+                                    <input type="text" name="new_stage_name" id="new_stage_name"
+                                        class="form-control form-control-light"
+                                        placeholder="{{ __('Enter phase name') }}" autocomplete="off">
+                                </div>
                             </div>
                         </div>
 
@@ -595,13 +598,51 @@
         const currentWorkspaceSlug = '{{ $currentWorkspace->slug }}';
         const searchMoUrl = "{{ route('search-mo-json', '__slug') }}".replace('__slug', currentWorkspaceSlug);
         const searchClipoUrl = "{{ route('search-clipo-json', '__slug') }}".replace('__slug', currentWorkspaceSlug);
+        const searchClientsMoUrl = "{{ route('search-clients-mo-json', '__slug') }}".replace('__slug', currentWorkspaceSlug);
         const searchProjectsUrl = "{{ route('search-project-json', '__slug') }}".replace('__slug', currentWorkspaceSlug);
         const searchSalesManagerUrl = "{{ route('search-sales-json', '__slug') }}".replace('__slug', currentWorkspaceSlug);
     </script>
     <script src="{{ asset('assets/js/create_project.js') }}?v={{ time() }}"></script>
-    {{-- staging y produccion 
+    <script>
+        if (typeof window.initCreateProjectSearch === 'function') {
+            window.initCreateProjectSearch();
+        }
+    </script>
+    {{-- staging y produccion
  <script src="{{ asset('assets/js/create_project.js') }}"></script> --}}
 @endif
+
+<script>
+    (function() {
+        function initMilestoneStageAddPhaseToggle() {
+            const stageSelect = document.getElementById('stage');
+            const newStageWrapper = document.getElementById('new-stage-name-wrapper');
+            const newStageInput = document.getElementById('new_stage_name');
+
+            if (!stageSelect || !newStageWrapper) {
+                return;
+            }
+
+            const toggleNewStageInput = function() {
+                const showInput = stageSelect.value === 'add_phase';
+                newStageWrapper.style.display = showInput ? '' : 'none';
+                if (!showInput && newStageInput) {
+                    newStageInput.value = '';
+                    newStageInput.classList.remove('is-invalid');
+                }
+            };
+
+            stageSelect.removeEventListener('change', stageSelect._toggleNewStageHandler || function() {});
+            stageSelect._toggleNewStageHandler = toggleNewStageInput;
+            stageSelect.addEventListener('change', toggleNewStageInput);
+            toggleNewStageInput();
+        }
+
+        window.initMilestoneStageAddPhaseToggle = initMilestoneStageAddPhaseToggle;
+        document.addEventListener('DOMContentLoaded', initMilestoneStageAddPhaseToggle);
+        initMilestoneStageAddPhaseToggle();
+    })();
+</script>
 
 <!-- Código para el envío del formulario "Add New project" -->
 <script>
@@ -613,7 +654,7 @@
                 name: $('#projectname').val(),
                 ref_mo: $('#searchMo').val(),
                 clipo: $('#searchClipo').val(),
-                isReload: false
+                isReload: true
             };
             const slug = "{{ $currentWorkspace->slug }}";
             const url = "{{ route('project.milestone.store', ['slug' => 'slug']) }}";
@@ -627,20 +668,35 @@
                     'X-CSRF-TOKEN': '{{ csrf_token() }}'
                 },
                 success: function(response) {
-                    $('#projectname').val("");
-                    $('#searchMo').val("");
-                    $('#searchClipo').val("");
-                    let msg = '{{ __('Project Created Successfully!') }}';
-                    $('#toastMessage').text(msg);
-                    const toast = new bootstrap.Toast(document.getElementById(
-                        'successToast'), {
-                        delay: 2000
-                    });
-                    toast.show();
+                    if (response.project_id) {
+                        $('#projectname').val("");
+                        $('#searchMo').val("");
+                        $('#searchClipo').val("");
+                        let msg = '{{ __('Project Created Successfully!') }}';
+                        $('#toastMessage').text(msg);
+                        const toast = new bootstrap.Toast(document.getElementById(
+                            'successToast'), {
+                            delay: 2000
+                        });
+                        toast.show();
+                    } else {
+                        let errMsg = response.message || '{{ __('Error creating project.') }}';
+                        $('#toastMessage').text(errMsg);
+                        const toast = new bootstrap.Toast(document.getElementById(
+                            'successToast'), {
+                            delay: 2000
+                        });
+                        toast.show();
+                    }
                 },
                 error: function(xhr, status, error) {
-                    console.error('Error:', xhr.responseText);
-                    $('#toastMessage').text('An error occurred.');
+                    let errMsg = '{{ __('Error creating project.') }}';
+                    try {
+                        const resp = JSON.parse(xhr.responseText);
+                        if (resp.error) errMsg = resp.error;
+                        else if (resp.message) errMsg = resp.message;
+                    } catch(e) {}
+                    $('#toastMessage').text(errMsg);
                     const toast = new bootstrap.Toast(document.getElementById(
                         'successToast'), {
                         delay: 2000
@@ -1243,6 +1299,26 @@
                     validationErrors.push('Debes seleccionar una fase');
                 } else {
                     phaseField.classList.remove('is-invalid');
+                }
+            }
+
+            // Validar Stage / nueva phase (solo si la sección está visible)
+            const stageWrapper = document.getElementById('stage-wrapper');
+            if (stageWrapper && stageWrapper.style.display !== 'none') {
+                const stageField = document.getElementById('stage');
+                const newStageNameField = document.getElementById('new_stage_name');
+                const stageValue = (stageField?.value || '').trim();
+
+                if (stageValue === 'add_phase') {
+                    const newStageName = (newStageNameField?.value || '').trim();
+                    if (!newStageName) {
+                        newStageNameField?.classList.add('is-invalid');
+                        validationErrors.push('{{ __('Please enter a phase name.') }}');
+                    } else {
+                        newStageNameField?.classList.remove('is-invalid');
+                    }
+                } else {
+                    newStageNameField?.classList.remove('is-invalid');
                 }
             }
 

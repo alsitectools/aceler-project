@@ -14,6 +14,7 @@
 @endsection
 
 @push('css-page')
+    <link rel="stylesheet" href="{{ asset('assets/css/milestoneboard.css') }}">
     <style>
         .my-tasks-wrap {
             --mt-accent: #b6122e;
@@ -213,30 +214,72 @@
         .my-tasks-card {
             border-radius: 16px;
             border: 1px solid var(--mt-border);
-            overflow: hidden;
             background: #ffffff;
             box-shadow: 0 10px 24px rgba(74, 20, 33, 0.05);
         }
 
-        .my-tasks-table-shell {
-            border-radius: 14px;
-            padding: 10px;
-            max-height: 350px;
-            overflow-y: auto;
+        .my-tasks-card .card-body {
+            padding: 12px 0 48px;
         }
 
-        .my-tasks-table thead th {
+        .my-tasks-table-shell {
+            border-radius: 14px;
+            padding: 0 36px 4px;
+            width: 100%;
+        }
+
+        .my-tasks-table-scroll {
+            max-height: 350px;
+            overflow: auto;
+            scrollbar-gutter: stable;
+        }
+
+        .my-tasks-table-inner {
+            min-width: 100%;
+            width: max-content;
+            zoom: 0.9;
+        }
+
+        @media (max-width: 1920px) {
+            .my-tasks-table-inner { zoom: .80; }
+        }
+        @media (max-width: 1600px) {
+            .my-tasks-table-inner { zoom: .75; }
+        }
+        @media (max-width: 1440px) {
+            .my-tasks-table-inner { zoom: .70; }
+        }
+        @media (max-width: 1366px) {
+            .my-tasks-table-inner { zoom: .70; }
+        }
+        @media (max-width: 1280px) {
+            .my-tasks-table-inner { zoom: .65; }
+        }
+
+.my-tasks-header-row {
+            display: flex;
             position: sticky;
+            z-index: 2;
+            background: #f8f9fd;
+            border-bottom: 2px solid #f8f9fd;
             top: 0;
-            z-index: 1;
-            background: #fff3f6;
-            color: #6f1830;
+            width: max-content;
+            min-width: 100%;
+            gap: 12px;
+        }
+
+        .my-tasks-th {
+            display: flex;
+            align-items: center;
+            gap: 3px;
+            padding: 16px 8px;
             font-size: 12px;
+            font-weight: 700;
             text-transform: uppercase;
             letter-spacing: .06em;
-            border: 0;
+            color: #000000;
             white-space: nowrap;
-            padding: 12px 14px;
+            flex-shrink: 0;
         }
 
         .my-tasks-th-content {
@@ -244,6 +287,74 @@
             align-items: center;
             gap: 8px;
         }
+
+        .my-tasks-body-rows {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            padding-top: 12px;
+            width: 100%;
+        }
+
+        .my-tasks-body-row {
+            display: flex;
+            border: 1px solid #f0dde2;
+            border-radius: 12px;
+            background: #ffffff;
+            transition: all .18s ease;
+            gap: 12px;
+            cursor: pointer;
+            width: max-content;
+            min-width: 100%;
+        }
+
+        .my-tasks-body-row:hover {
+            border-color: #b6122e;
+            background: #fff0f4;
+            color: #7b1528;
+            transform: translateY(-1px);
+        }
+
+        .my-tasks-body-row:focus-visible {
+            outline: 0;
+            box-shadow: inset 0 0 0 2px rgba(182, 18, 46, 0.18);
+        }
+
+        .my-tasks-td {
+            padding: 12px 8px;
+            flex-shrink: 0;
+        }
+
+        .my-tasks-th[data-col-key="project"],
+        .my-tasks-td[data-col-key="project"] { flex: 1 1 auto; width: 240px; min-width: 240px; overflow: hidden; display: flex; align-items: center; margin-right: 14px; }
+
+        .my-tasks-td[data-col-key="project"] .my-tasks-main,
+        .my-tasks-td[data-col-key="milestone"] .my-tasks-main {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .my-tasks-th[data-col-key="milestone"],
+        .my-tasks-td[data-col-key="milestone"] { flex: 1 1 auto; width: 200px; min-width: 200px; overflow: hidden; display: flex; align-items: center; }
+
+        .my-tasks-th[data-col-key="stage"],
+        .my-tasks-td[data-col-key="stage"] { flex: 1 1 auto; width: 120px; min-width: 120px; display: flex; align-items: center; }
+
+        .my-tasks-th[data-col-key="phase"],
+        .my-tasks-td[data-col-key="phase"] { flex: 1 1 auto; width: 120px; min-width: 120px; display: flex; align-items: center; }
+
+        .my-tasks-th[data-col-key="task"],
+        .my-tasks-td[data-col-key="task"] { flex: 1 1 auto; width: 160px; min-width: 160px; overflow: hidden; display: flex; align-items: center; }
+
+        .my-tasks-th[data-col-key="start_date"],
+        .my-tasks-td[data-col-key="start_date"] { flex: 1 1 auto; width: 120px; min-width: 120px; display: flex; align-items: center; }
+
+        .my-tasks-th[data-col-key="estimated_date"],
+        .my-tasks-td[data-col-key="estimated_date"] { flex: 1 1 auto; width: 140px; min-width: 140px; display: flex; align-items: center; }
+
+        .my-tasks-th[data-col-key="finalization_date"],
+        .my-tasks-td[data-col-key="finalization_date"] { flex: 1 1 auto; width: 160px; min-width: 160px; display: flex; align-items: center; }
 
         .my-tasks-filter-btn {
             width: 24px;
@@ -257,6 +368,7 @@
             justify-content: center;
             transition: all .18s ease;
             padding: 0;
+            flex-shrink: 0;
         }
 
         .my-tasks-filter-btn:hover {
@@ -349,14 +461,14 @@
 
         .my-tasks-column-menu {
             position: fixed;
-            z-index: 1081;
+            z-index: 1200;
             width: 260px;
             max-width: calc(100vw - 24px);
             background: #fff;
-            border: 1px solid lightgray;
+            border: 1px solid #efc6d1;
             border-radius: 14px;
-            box-shadow: 0px 0px 10px rgb(0 0 0 / 15%);
-            padding: 12px;
+            box-shadow: 0 18px 40px rgba(64, 24, 33, 0.16);
+            padding: 14px;
         }
 
         .my-tasks-column-menu[hidden] {
@@ -371,22 +483,22 @@
         }
 
         .my-tasks-filter-icon {
-            width: 12px;
-            height: 12px;
+            width: 14px;
+            height: 14px;
             display: block;
             fill: currentColor;
         }
 
         .my-tasks-filter-menu {
             position: fixed;
-            z-index: 1080;
+            z-index: 1200;
             width: 260px;
             max-width: calc(100vw - 24px);
             background: #fff;
-                border: 1px solid lightgray;
-    border-radius: 14px;
-    box-shadow: 0px 0px 10px rgb(0 0 0 / 15%);
-            padding: 12px;
+            border: 1px solid #efc6d1;
+            border-radius: 14px;
+            box-shadow: 0 18px 40px rgba(64, 24, 33, 0.16);
+            padding: 14px;
         }
 
         .my-tasks-filter-menu[hidden] {
@@ -439,29 +551,44 @@
 
         .my-tasks-filter-search:focus {
             outline: 0;
-            /* border-color: #b6122e;
-            box-shadow: 0 0 0 3px rgba(182, 18, 46, 0.12); */
+            border-color: #b6122e;
+            box-shadow: 0 0 0 3px rgba(182, 18, 46, 0.12);
         }
 
         .my-tasks-filter-options {
-            max-height: 220px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            max-height: 280px;
             overflow: auto;
-            display: grid;
-            gap: 6px;
-            padding-right: 2px;
         }
 
         .my-tasks-filter-option {
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 10px;
             font-size: 13px;
-            color: #342126;
-            padding: 4px 2px;
+            color: #4d4d4d;
+            padding: 8px 10px;
+            border-radius: 8px;
+            cursor: pointer;
         }
 
-        .my-tasks-filter-option input {
-            accent-color: #b6122e;
+        .my-tasks-filter-option:hover {
+            background: #fff5f7;
+        }
+
+        .my-tasks-filter-option input[type='checkbox'] {
+            accent-color: #aa182c;
+            cursor: pointer;
+        }
+
+        .my-tasks-filter-option span:first-of-type {
+            flex: 1;
+            min-width: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
         }
 
         .my-tasks-filter-option-count {
@@ -493,65 +620,6 @@
             display: block;
         }
 
-        .my-tasks-table {
-            border-collapse: separate;
-            border-spacing: 0 10px;
-            margin-bottom: 0;
-        }
-
-        .my-tasks-table td {
-            vertical-align: middle;
-            border: 0;
-            background: #ffffff;
-            padding: 14px;
-        }
-
-        .my-tasks-table tbody tr {
-            transition: transform .16s ease, box-shadow .16s ease;
-        }
-
-        .my-tasks-table tbody tr[data-timesheet-edit-url] {
-            cursor: pointer;
-        }
-
-        .my-tasks-table tbody tr[data-timesheet-edit-url]:hover {
-                border-color: #b6122e;
-    background: #fff0f4;
-    color: #7b1528;
-    transform: translateY(-1px);
-        }
-
-        .my-tasks-table tbody tr[data-timesheet-edit-url]:focus-visible td {
-            outline: 0;
-            box-shadow: inset 0 0 0 2px rgba(182, 18, 46, 0.18);
-        }
-
-        .my-tasks-table tbody tr td:first-child {
-            border-top-left-radius: 12px;
-            border-bottom-left-radius: 12px;
-            border-left: 1px solid #f0dde2;
-            border-top: 1px solid #f0dde2;
-            border-bottom: 1px solid #f0dde2;
-        }
-
-        .my-tasks-table tbody tr td:not(:first-child):not(:last-child) {
-            border-top: 1px solid #f0dde2;
-            border-bottom: 1px solid #f0dde2;
-        }
-
-        .my-tasks-table tbody tr td:last-child {
-            border-top-right-radius: 12px;
-            border-bottom-right-radius: 12px;
-            border-right: 1px solid #f0dde2;
-            border-top: 1px solid #f0dde2;
-            border-bottom: 1px solid #f0dde2;
-        }
-
-        /* .my-tasks-table tbody tr:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 8px 18px rgba(74, 20, 33, 0.08);
-        } */
-
         .task-id-pill {
             display: inline-flex;
             align-items: center;
@@ -570,10 +638,17 @@
         }
 
         .my-tasks-truncate-project,
-        .my-tasks-truncate-milestone,
+        .my-tasks-truncate-milestone {
+            display: block;
+            max-width: 250px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
         .my-tasks-truncate-task {
             display: block;
-            max-width: 200px;
+            max-width: 150px;
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
@@ -581,9 +656,11 @@
 
         @media (max-width: 1400px) {
             .my-tasks-truncate-project,
-            .my-tasks-truncate-milestone,
+            .my-tasks-truncate-milestone {
+                max-width: 150px;
+            }
             .my-tasks-truncate-task {
-                max-width: 180px;
+                max-width: 100px;
             }
         }
 
@@ -821,13 +898,14 @@
                 grid-template-columns: 1fr;
             }
 
-            .my-tasks-table {
-                border-spacing: 0 8px;
+            .my-tasks-body-rows {
+                gap: 6px;
+                padding-top: 8px;
             }
 
-            .my-tasks-table thead th,
-            .my-tasks-table td {
-                padding: 10px;
+            .my-tasks-th,
+            .my-tasks-td {
+                padding: 10px 6px;
             }
 
             .my-tasks-column-toggle-btn {
@@ -837,6 +915,231 @@
             .my-tasks-column-toggle-label {
                 display: none;
             }
+        }
+
+        .task-review-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 20px;
+            height: 20px;
+            border-radius: 999px;
+            font-size: 10px;
+            vertical-align: middle;
+            flex-shrink: 0;
+        }
+        .task-badge-reviewed { background: #e0f2e5; }
+        .task-badge-changes  { background: #ffe0e0; }
+
+        .my-tasks-body-row.task-row-reviewed .my-tasks-truncate-task .my-tasks-main {
+            text-decoration: line-through;
+            color: #6c757d;
+        }
+
+        .my-tasks-body-row.task-row-changes .my-tasks-truncate-task .my-tasks-main {
+            color: #dc3545;
+        }
+
+        .my-tasks-td-milestone {
+            position: relative;
+        }
+        .my-tasks-review-card-btn {
+            display: none;
+            position: absolute;
+            right: 6px;
+            top: 50%;
+            transform: translateY(-50%);
+            z-index: 2;
+            background: #AA182C;
+            color: #fff;
+            border: none;
+            border-radius: 999px;
+            padding: 2px 10px;
+            font-size: 11px;
+            line-height: 18px;
+            cursor: pointer;
+            white-space: nowrap;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25);
+        }
+        .my-tasks-td-milestone:hover .my-tasks-review-card-btn {
+            display: inline-block;
+        }
+        .my-tasks-td-milestone:hover .my-tasks-truncate-milestone {
+            padding-right: 126px;
+        }
+        .my-tasks-review-card-btn:hover {
+            background: #8f1325;
+            color: #fff;
+        }
+
+        .milestoneCardModalBody .milestone-card-frame {
+            max-width: 360px;
+            margin: 0 auto;
+            position: relative;
+        }
+        .milestoneCardModalBody {
+            overflow-x: hidden;
+        }
+        .milestoneCardModalBody .milestone-flip,
+        .milestoneCardModalBody .milestone-flip-face-front {
+            width: 100%;
+        }
+        .milestoneCardModalBody .milestone-card {
+            width: 100%;
+        }
+        .milestoneCardModalBody .milestone-busy-overlay {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            background: rgba(255, 255, 255, 0.75);
+            border-radius: inherit;
+            z-index: 30;
+            backdrop-filter: blur(1px);
+        }
+        .milestoneCardModalBody .milestone-busy-spinner {
+            width: 28px;
+            height: 28px;
+            border: 3px solid #e5e7eb;
+            border-top-color: #AA182C;
+            border-radius: 50%;
+            animation: mt-spin 0.8s linear infinite;
+        }
+        .milestoneCardModalBody .milestone-busy-text {
+            font-size: 12.5px;
+            font-weight: 600;
+            color: #4b5563;
+        }
+        @keyframes mt-spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+        .milestoneCardModalBody .milestone-card-frame .card-body {
+            padding: 12px;
+        }
+        .milestoneCardModalBody .milestone-card-frame .card-header {
+            padding-left: 12px;
+            padding-right: 12px;
+        }
+        .milestoneCardModalBody .milestone-status-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+        }
+        .milestoneCardModalBody .milestone-status-header h4 {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            margin: 0;
+        }
+        .milestoneCardModalBody .milestone-status-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 6px 12px;
+            border-radius: 999px;
+            border: 1px solid #e5e7eb;
+            background: #f9fafb;
+            color: #4b5563;
+            font-size: 12.5px;
+            font-weight: 500;
+            line-height: 1;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.2s ease;
+            user-select: none;
+            flex: 0 0 auto;
+        }
+        .milestoneCardModalBody .milestone-status-btn i {
+            font-size: 15px;
+            line-height: 1;
+            transition: transform 0.2s ease;
+        }
+        .milestoneCardModalBody .milestone-status-btn:hover {
+            background: #AA182C;
+            border-color: #AA182C;
+            color: #fff;
+            box-shadow: 0 2px 6px rgba(170, 24, 44, 0.35);
+            transform: translateY(-1px);
+        }
+        .milestoneCardModalBody .milestone-status-btn-right:hover i {
+            transform: translateX(2px);
+        }
+        .milestoneCardModalBody .milestone-status-btn-left:hover i {
+            transform: translateX(-2px);
+        }
+        .milestoneCardModalBody .milestone-status-btn:active {
+            transform: translateY(0) scale(0.97);
+        }
+        .milestoneCardModalBody .milestone-status-btn.invisible {
+            transform: none;
+        }
+        .milestoneCardModalBody .milestone-flip-inner.mt-half {
+            transform: rotateY(90deg);
+        }
+        .milestoneCardModalBody .milestone-flip-inner.mt-flip-fast {
+            transition-duration: 0.35s;
+        }
+        .milestoneCardModalBody .milestone-card-frame.is-busy .milestone-status-btn {
+            opacity: 0.5;
+            pointer-events: none;
+        }
+        #milestoneCardModal .modal-content {
+            position: relative;
+        }
+        #milestoneCardModal .milestone-modal-alert {
+            position: absolute;
+            bottom: 14px;
+            right: 14px;
+            max-width: 280px;
+            margin: 0;
+            padding: 8px 14px;
+            font-size: 12.5px;
+            border-radius: 8px;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+            z-index: 20;
+            animation: mtToastIn 0.25s ease;
+        }
+        @keyframes mtToastIn {
+            from {
+                opacity: 0;
+                transform: translateX(12px);
+            }
+            to {
+                opacity: 1;
+                transform: none;
+            }
+        }
+
+        .milestoneCardModalBody .milestone-flip {
+            perspective: 1200px;
+            overflow: hidden;
+        }
+        .milestoneCardModalBody .milestone-flip-inner {
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform 0.7s cubic-bezier(0.4, 0.2, 0.2, 1);
+        }
+        .milestoneCardModalBody .milestone-flip-inner.is-flipped {
+            transform: rotateY(180deg);
+        }
+        .milestoneCardModalBody .milestone-flip-face {
+            -webkit-backface-visibility: hidden;
+            backface-visibility: hidden;
+        }
+        .milestoneCardModalBody .milestone-flip-face-back {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            transform: rotateY(180deg);
         }
     </style>
 @endpush
@@ -851,18 +1154,18 @@
         $naText = __('N/A');
         $showStageColumn = $taskCollection->contains(function ($task) use ($projectTypesWithStageAndPhase, $notApplicableStagePhaseText, $naText) {
             $supportsStageAndPhase = in_array((int) optional($task->project)->type, $projectTypesWithStageAndPhase, true);
-            $resolvedStageName = optional($task->milestone)->resolved_stage_name;
+            $phaseValue = optional(optional($task->milestone)->phase)->phases;
             $stageName = $supportsStageAndPhase
-                ? ($resolvedStageName ?: $naText)
+                ? ($phaseValue ? __(\App\Models\MilestonePhases::translationKey($phaseValue)) : $naText)
                 : $notApplicableStagePhaseText;
 
             return $stageName !== $notApplicableStagePhaseText;
         });
         $showPhaseColumn = $taskCollection->contains(function ($task) use ($projectTypesWithStageAndPhase, $notApplicableStagePhaseText, $naText) {
             $supportsStageAndPhase = in_array((int) optional($task->project)->type, $projectTypesWithStageAndPhase, true);
-            $phaseValue = optional(optional($task->milestone)->phase)->phases;
+            $resolvedStageName = optional($task->milestone)->resolved_stage_name;
             $phaseName = $supportsStageAndPhase
-                ? ($phaseValue ? __(\App\Models\MilestonePhases::translationKey($phaseValue)) : $naText)
+                ? ($resolvedStageName ?: $naText)
                 : $notApplicableStagePhaseText;
 
             return $phaseName !== $notApplicableStagePhaseText;
@@ -886,8 +1189,8 @@
                             <img class="my-tasks-help-icon" id="taskOverviewHelpIcon" src="{{ asset('assets/img/questionCircle.svg') }}"
                                 alt="{{ __('Task Overview info') }}" title="{{ __('Task Overview info') }}" />
                             <div class="my-tasks-help-popup" id="taskOverviewHelpPopup">
-                                <p>En <strong>Diagram View</strong>, las tareas que se muestran respetan la fecha de creacion de la tarea.</p>
-                                <p><strong>N/A</strong> significa que no hay ningun valor para dicho campo.</p>
+                                <p>{!! __('In <strong>Diagram View</strong>, the tasks shown respect the task\'s creation date.') !!}</p>
+                                <p>{!! __('<strong>N/A</strong> means there is no value for that field.') !!}</p>
                             </div>
                         </div>
                         <p>{{ __('Quick view of your assigned work and upcoming delivery dates.') }}</p>
@@ -928,7 +1231,17 @@
 
                     <div class="card my-tasks-card" id="tableViewCard">
                         <div class="card-header d-flex  align-items-center flex-wrap gap-2">
-                            <h5 class="mb-0">{{ __('Assigned tasks') }}</h5>
+                            <div class="my-tasks-title-row">
+                                <h5 class="mb-0">{{ __('Assigned tasks') }}</h5>
+                                <img class="my-tasks-help-icon" id="assignedTasksHelpIcon" src="{{ asset('assets/img/questionCircle.svg') }}"
+                                    alt="{{ __('Assigned tasks info') }}" title="{{ __('Assigned tasks info') }}" />
+                                <div class="my-tasks-help-popup" id="assignedTasksHelpPopup">
+                                    <p>{!! __('<strong>Click</strong> on a row to log hours for that task.') !!}</p>
+                                    <p>{!! __('Use the <strong>funnel icon</strong> in a column header to filter that column, and the <strong>eye button</strong> next to this title to show or hide columns.') !!}</p>
+                                    <p>{!! __('<strong>Right click</strong> on a row to mark the task as <strong>Revisado</strong> or <strong>Solicitar cambio</strong>.') !!}</p>
+                                    <p>{!! __('<strong>Click the green or red badge</strong> next to the task name to read the comment and confirm the change.') !!}</p>
+                                </div>
+                            </div>
                             <div class="my-tasks-header-tools">
                                 <button type="button" id="myTasksColumnsToggleBtn" class="my-tasks-column-toggle-btn" aria-label="{{ __('Show or hide table columns') }}" title="{{ __('Show or hide table columns') }}" aria-expanded="false">
                                     <svg class="my-tasks-column-toggle-icon" viewBox="0 0 16 16" aria-hidden="true">
@@ -946,104 +1259,103 @@
                                 <p class="text-muted mb-0">{{ __('You currently do not have assigned tasks.') }}</p>
                             </div>
                         @else
-                            <div class="table-responsive my-tasks-table-shell">
-                                <table class="table align-middle my-tasks-table">
-                                    <thead>
-                                        <tr>
-                                            <th>
-                                                <div class="my-tasks-th-content">
-                                                    <span>{{ __('Project') }}</span>
-                                                    <button type="button" class="my-tasks-filter-btn" data-filter-key="project" data-filter-label="{{ __('Project') }}" data-column-index="0" aria-label="{{ __('Filter Project') }}">
-                                                        <svg class="my-tasks-filter-icon" viewBox="0 0 16 16" aria-hidden="true">
-                                                            <path d="M2 3.25A1.25 1.25 0 0 1 3.25 2h9.5A1.25 1.25 0 0 1 14 3.25c0 .3-.11.6-.31.82L9.5 8.45v3.3a1 1 0 0 1-.55.9l-2 1A1 1 0 0 1 5.5 12.75V8.45L2.31 4.07A1.25 1.25 0 0 1 2 3.25Z"></path>
-                                                        </svg>
-                                                    </button>
-                                                </div>
-                                            </th>
-                                            <th>
-                                                <div class="my-tasks-th-content">
-                                                    <span>{{ __('Encargo') }}</span>
-                                                    <button type="button" class="my-tasks-filter-btn" data-filter-key="milestone" data-filter-label="{{ __('Encargo') }}" data-column-index="1" aria-label="{{ __('Filter Encargo') }}">
-                                                        <svg class="my-tasks-filter-icon" viewBox="0 0 16 16" aria-hidden="true">
-                                                            <path d="M2 3.25A1.25 1.25 0 0 1 3.25 2h9.5A1.25 1.25 0 0 1 14 3.25c0 .3-.11.6-.31.82L9.5 8.45v3.3a1 1 0 0 1-.55.9l-2 1A1 1 0 0 1 5.5 12.75V8.45L2.31 4.07A1.25 1.25 0 0 1 2 3.25Z"></path>
-                                                        </svg>
-                                                    </button>
-                                                </div>
-                                            </th>
-                                            @if ($showStageColumn)
-                                            <th>
-                                                <div class="my-tasks-th-content">
-                                                    <span>{{ __('Stage') }}</span>
-                                                    <button type="button" class="my-tasks-filter-btn" data-filter-key="stage" data-filter-label="{{ __('Stage') }}" data-column-index="{{ $stageColumnIndex }}" aria-label="{{ __('Filter Stage') }}">
-                                                        <svg class="my-tasks-filter-icon" viewBox="0 0 16 16" aria-hidden="true">
-                                                            <path d="M2 3.25A1.25 1.25 0 0 1 3.25 2h9.5A1.25 1.25 0 0 1 14 3.25c0 .3-.11.6-.31.82L9.5 8.45v3.3a1 1 0 0 1-.55.9l-2 1A1 1 0 0 1 5.5 12.75V8.45L2.31 4.07A1.25 1.25 0 0 1 2 3.25Z"></path>
-                                                        </svg>
-                                                    </button>
-                                                </div>
-                                            </th>
-                                            @endif
-                                            @if ($showPhaseColumn)
-                                            <th>
-                                                <div class="my-tasks-th-content">
-                                                    <span>{{ __('Phase') }}</span>
-                                                    <button type="button" class="my-tasks-filter-btn" data-filter-key="phase" data-filter-label="{{ __('Phase') }}" data-column-index="{{ $phaseColumnIndex }}" aria-label="{{ __('Filter Phase') }}">
-                                                        <svg class="my-tasks-filter-icon" viewBox="0 0 16 16" aria-hidden="true">
-                                                            <path d="M2 3.25A1.25 1.25 0 0 1 3.25 2h9.5A1.25 1.25 0 0 1 14 3.25c0 .3-.11.6-.31.82L9.5 8.45v3.3a1 1 0 0 1-.55.9l-2 1A1 1 0 0 1 5.5 12.75V8.45L2.31 4.07A1.25 1.25 0 0 1 2 3.25Z"></path>
-                                                        </svg>
-                                                    </button>
-                                                </div>
-                                            </th>
-                                            @endif
-                                            <th>
-                                                <div class="my-tasks-th-content">
-                                                    <span>{{ __('Task') }}</span>
-                                                    <button type="button" class="my-tasks-filter-btn" data-filter-key="task" data-filter-label="{{ __('Task') }}" data-column-index="{{ $taskColumnIndex }}" aria-label="{{ __('Filter Task') }}">
-                                                        <svg class="my-tasks-filter-icon" viewBox="0 0 16 16" aria-hidden="true">
-                                                            <path d="M2 3.25A1.25 1.25 0 0 1 3.25 2h9.5A1.25 1.25 0 0 1 14 3.25c0 .3-.11.6-.31.82L9.5 8.45v3.3a1 1 0 0 1-.55.9l-2 1A1 1 0 0 1 5.5 12.75V8.45L2.31 4.07A1.25 1.25 0 0 1 2 3.25Z"></path>
-                                                        </svg>
-                                                    </button>
-                                                </div>
-                                            </th>
-                                            <th>
-                                                <div class="my-tasks-th-content">
-                                                    <span>{{ __('Start date') }}</span>
-                                                    <button type="button" class="my-tasks-filter-btn" data-filter-key="start_date" data-filter-label="{{ __('Start date') }}" data-column-index="{{ $startDateColumnIndex }}" aria-label="{{ __('Filter Start date') }}">
-                                                        <svg class="my-tasks-filter-icon" viewBox="0 0 16 16" aria-hidden="true">
-                                                            <path d="M2 3.25A1.25 1.25 0 0 1 3.25 2h9.5A1.25 1.25 0 0 1 14 3.25c0 .3-.11.6-.31.82L9.5 8.45v3.3a1 1 0 0 1-.55.9l-2 1A1 1 0 0 1 5.5 12.75V8.45L2.31 4.07A1.25 1.25 0 0 1 2 3.25Z"></path>
-                                                        </svg>
-                                                    </button>
-                                                </div>
-                                            </th>
-                                            <th>
-                                                <div class="my-tasks-th-content">
-                                                    <span>{{ __('Estimated date') }}</span>
-                                                    <button type="button" class="my-tasks-filter-btn" data-filter-key="estimated_date" data-filter-label="{{ __('Estimated date') }}" data-column-index="{{ $estimatedDateColumnIndex }}" aria-label="{{ __('Filter Estimated date') }}">
-                                                        <svg class="my-tasks-filter-icon" viewBox="0 0 16 16" aria-hidden="true">
-                                                            <path d="M2 3.25A1.25 1.25 0 0 1 3.25 2h9.5A1.25 1.25 0 0 1 14 3.25c0 .3-.11.6-.31.82L9.5 8.45v3.3a1 1 0 0 1-.55.9l-2 1A1 1 0 0 1 5.5 12.75V8.45L2.31 4.07A1.25 1.25 0 0 1 2 3.25Z"></path>
-                                                        </svg>
-                                                    </button>
-                                                </div>
-                                            </th>
-                                            <th>
-                                                <div class="my-tasks-th-content">
-                                                    <span>{{ __('Finalization date') }}</span>
-                                                    <button type="button" class="my-tasks-filter-btn" data-filter-key="finalization_date" data-filter-label="{{ __('Finalization date') }}" data-column-index="{{ $finalizationDateColumnIndex }}" aria-label="{{ __('Filter Finalization date') }}">
-                                                        <svg class="my-tasks-filter-icon" viewBox="0 0 16 16" aria-hidden="true">
-                                                            <path d="M2 3.25A1.25 1.25 0 0 1 3.25 2h9.5A1.25 1.25 0 0 1 14 3.25c0 .3-.11.6-.31.82L9.5 8.45v3.3a1 1 0 0 1-.55.9l-2 1A1 1 0 0 1 5.5 12.75V8.45L2.31 4.07A1.25 1.25 0 0 1 2 3.25Z"></path>
-                                                        </svg>
-                                                    </button>
-                                                </div>
-                                            </th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
+                            <div class="my-tasks-table-shell">
+                                <div class="my-tasks-table-scroll">
+                                <div class="my-tasks-table-inner">
+                                    <div class="my-tasks-header-row">
+                                        <div class="my-tasks-th" data-col-key="project">
+                                            <div class="my-tasks-th-content">
+                                                <span>{{ __('Project') }}</span>
+                                                <button type="button" class="my-tasks-filter-btn" data-filter-key="project" data-filter-label="{{ __('Project') }}" data-column-index="0" aria-label="{{ __('Filter Project') }}">
+                                                    <svg class="my-tasks-filter-icon" viewBox="0 0 16 16" aria-hidden="true">
+                                                        <path d="M2 3.25A1.25 1.25 0 0 1 3.25 2h9.5A1.25 1.25 0 0 1 14 3.25c0 .3-.11.6-.31.82L9.5 8.45v3.3a1 1 0 0 1-.55.9l-2 1A1 1 0 0 1 5.5 12.75V8.45L2.31 4.07A1.25 1.25 0 0 1 2 3.25Z"></path>
+                                                    </svg>
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <div class="my-tasks-th" data-col-key="milestone">
+                                            <div class="my-tasks-th-content">
+                                                <span>{{ __('Milestone') }}</span>
+                                                <button type="button" class="my-tasks-filter-btn" data-filter-key="milestone" data-filter-label="{{ __('Milestone') }}" data-column-index="1" aria-label="{{ __('Filter Milestone') }}">
+                                                    <svg class="my-tasks-filter-icon" viewBox="0 0 16 16" aria-hidden="true">
+                                                        <path d="M2 3.25A1.25 1.25 0 0 1 3.25 2h9.5A1.25 1.25 0 0 1 14 3.25c0 .3-.11.6-.31.82L9.5 8.45v3.3a1 1 0 0 1-.55.9l-2 1A1 1 0 0 1 5.5 12.75V8.45L2.31 4.07A1.25 1.25 0 0 1 2 3.25Z"></path>
+                                                    </svg>
+                                                </button>
+                                            </div>
+                                        </div>
+                                        @if ($showStageColumn)
+                                        <div class="my-tasks-th" data-col-key="stage">
+                                            <div class="my-tasks-th-content">
+                                                <span>{{ __('Stage') }}</span>
+                                                <button type="button" class="my-tasks-filter-btn" data-filter-key="stage" data-filter-label="{{ __('Stage') }}" data-column-index="{{ $stageColumnIndex }}" aria-label="{{ __('Filter Stage') }}">
+                                                    <svg class="my-tasks-filter-icon" viewBox="0 0 16 16" aria-hidden="true">
+                                                        <path d="M2 3.25A1.25 1.25 0 0 1 3.25 2h9.5A1.25 1.25 0 0 1 14 3.25c0 .3-.11.6-.31.82L9.5 8.45v3.3a1 1 0 0 1-.55.9l-2 1A1 1 0 0 1 5.5 12.75V8.45L2.31 4.07A1.25 1.25 0 0 1 2 3.25Z"></path>
+                                                    </svg>
+                                                </button>
+                                            </div>
+                                        </div>
+                                        @endif
+                                        @if ($showPhaseColumn)
+                                        <div class="my-tasks-th" data-col-key="phase">
+                                            <div class="my-tasks-th-content">
+                                                <span>{{ __('Phase') }}</span>
+                                                <button type="button" class="my-tasks-filter-btn" data-filter-key="phase" data-filter-label="{{ __('Phase') }}" data-column-index="{{ $phaseColumnIndex }}" aria-label="{{ __('Filter Phase') }}">
+                                                    <svg class="my-tasks-filter-icon" viewBox="0 0 16 16" aria-hidden="true">
+                                                        <path d="M2 3.25A1.25 1.25 0 0 1 3.25 2h9.5A1.25 1.25 0 0 1 14 3.25c0 .3-.11.6-.31.82L9.5 8.45v3.3a1 1 0 0 1-.55.9l-2 1A1 1 0 0 1 5.5 12.75V8.45L2.31 4.07A1.25 1.25 0 0 1 2 3.25Z"></path>
+                                                    </svg>
+                                                </button>
+                                            </div>
+                                        </div>
+                                        @endif
+                                        <div class="my-tasks-th" data-col-key="task">
+                                            <div class="my-tasks-th-content">
+                                                <span>{{ __('Task') }}</span>
+                                                <button type="button" class="my-tasks-filter-btn" data-filter-key="task" data-filter-label="{{ __('Task') }}" data-column-index="{{ $taskColumnIndex }}" aria-label="{{ __('Filter Task') }}">
+                                                    <svg class="my-tasks-filter-icon" viewBox="0 0 16 16" aria-hidden="true">
+                                                        <path d="M2 3.25A1.25 1.25 0 0 1 3.25 2h9.5A1.25 1.25 0 0 1 14 3.25c0 .3-.11.6-.31.82L9.5 8.45v3.3a1 1 0 0 1-.55.9l-2 1A1 1 0 0 1 5.5 12.75V8.45L2.31 4.07A1.25 1.25 0 0 1 2 3.25Z"></path>
+                                                    </svg>
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <div class="my-tasks-th" data-col-key="start_date">
+                                            <div class="my-tasks-th-content">
+                                                <span>{{ __('Start date') }}</span>
+                                                <button type="button" class="my-tasks-filter-btn" data-filter-key="start_date" data-filter-label="{{ __('Start date') }}" data-column-index="{{ $startDateColumnIndex }}" aria-label="{{ __('Filter Start date') }}">
+                                                    <svg class="my-tasks-filter-icon" viewBox="0 0 16 16" aria-hidden="true">
+                                                        <path d="M2 3.25A1.25 1.25 0 0 1 3.25 2h9.5A1.25 1.25 0 0 1 14 3.25c0 .3-.11.6-.31.82L9.5 8.45v3.3a1 1 0 0 1-.55.9l-2 1A1 1 0 0 1 5.5 12.75V8.45L2.31 4.07A1.25 1.25 0 0 1 2 3.25Z"></path>
+                                                    </svg>
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <div class="my-tasks-th" data-col-key="estimated_date">
+                                            <div class="my-tasks-th-content">
+                                                <span>{{ __('Estimated date') }}</span>
+                                                <button type="button" class="my-tasks-filter-btn" data-filter-key="estimated_date" data-filter-label="{{ __('Estimated date') }}" data-column-index="{{ $estimatedDateColumnIndex }}" aria-label="{{ __('Filter Estimated date') }}">
+                                                    <svg class="my-tasks-filter-icon" viewBox="0 0 16 16" aria-hidden="true">
+                                                        <path d="M2 3.25A1.25 1.25 0 0 1 3.25 2h9.5A1.25 1.25 0 0 1 14 3.25c0 .3-.11.6-.31.82L9.5 8.45v3.3a1 1 0 0 1-.55.9l-2 1A1 1 0 0 1 5.5 12.75V8.45L2.31 4.07A1.25 1.25 0 0 1 2 3.25Z"></path>
+                                                    </svg>
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <div class="my-tasks-th" data-col-key="finalization_date">
+                                            <div class="my-tasks-th-content">
+                                                <span>{{ __('Finalization date') }}</span>
+                                                <button type="button" class="my-tasks-filter-btn" data-filter-key="finalization_date" data-filter-label="{{ __('Finalization date') }}" data-column-index="{{ $finalizationDateColumnIndex }}" aria-label="{{ __('Filter Finalization date') }}">
+                                                    <svg class="my-tasks-filter-icon" viewBox="0 0 16 16" aria-hidden="true">
+                                                        <path d="M2 3.25A1.25 1.25 0 0 1 3.25 2h9.5A1.25 1.25 0 0 1 14 3.25c0 .3-.11.6-.31.82L9.5 8.45v3.3a1 1 0 0 1-.55.9l-2 1A1 1 0 0 1 5.5 12.75V8.45L2.31 4.07A1.25 1.25 0 0 1 2 3.25Z"></path>
+                                                    </svg>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="my-tasks-body-rows">
                                         @foreach ($tasks as $task)
                                             @php
                                                 $taskTypeName = optional($task->type)->name;
                                                 $isCustomType = strtolower(trim((string) $taskTypeName)) === 'custom';
                                                 $displayTypeName = $isCustomType
                                                     ? (optional($task->customTask)->name ?: __('Custom'))
-                                                    : ($taskTypeName ?: __('N/A'));
+                                                    : ($taskTypeName ? __($taskTypeName) : __('N/A'));
 
                                                 $estimatedDate = !empty($task->estimated_date)
                                                     ? \Carbon\Carbon::parse($task->estimated_date)
@@ -1060,17 +1372,6 @@
                                                         : ' overdue';
                                                 }
 
-                                                $projectTypeId = (int) optional($task->project)->type;
-                                                $supportsStageAndPhase = in_array($projectTypeId, $projectTypesWithStageAndPhase, true);
-                                                $resolvedStageName = optional($task->milestone)->resolved_stage_name;
-                                                $stageName = $supportsStageAndPhase
-                                                    ? ($resolvedStageName ?: __('N/A'))
-                                                    : $notApplicableStagePhaseText;
-                                                $phaseValue = optional(optional($task->milestone)->phase)->phases;
-                                                $phaseName = $supportsStageAndPhase
-                                                    ? ($phaseValue ? __(\App\Models\MilestonePhases::translationKey($phaseValue)) : __('N/A'))
-                                                    : $notApplicableStagePhaseText;
-
                                                 $projectName = optional($task->project)->name ?: $naText;
                                                 $milestoneTitle = optional($task->milestone)->title ?: $naText;
                                                 $startDateText = $task->start_date ? \Carbon\Carbon::parse($task->start_date)->format('d/m/Y') : $naText;
@@ -1078,11 +1379,22 @@
                                                 $finalizationDateText = $task->end_date ? \Carbon\Carbon::parse($task->end_date)->format('d/m/Y') : $naText;
 
                                                 $placeholderClass = 'my-tasks-placeholder';
-                                                $notRequiredClass = 'my-tasks-placeholder my-tasks-placeholder--not-required';
+
+                                                $projectTypeId = (int) optional($task->project)->type;
+                                                $supportsStageAndPhase = in_array($projectTypeId, $projectTypesWithStageAndPhase, true);
+                                                $phaseValue = optional(optional($task->milestone)->phase)->phases;
+                                                $stageName = $supportsStageAndPhase
+                                                    ? ($phaseValue ? __(\App\Models\MilestonePhases::translationKey($phaseValue)) : __('N/A'))
+                                                    : $notApplicableStagePhaseText;
+                                                $resolvedStageName = optional($task->milestone)->resolved_stage_name;
+                                                $phaseName = $supportsStageAndPhase
+                                                    ? ($resolvedStageName ?: __('N/A'))
+                                                    : $notApplicableStagePhaseText;
 
                                                 $projectClass = $projectName === $naText ? $placeholderClass : '';
                                                 $milestoneClass = $milestoneTitle === $naText ? $placeholderClass : '';
                                                 $taskTypeClass = $displayTypeName === $naText ? $placeholderClass : 'my-tasks-main';
+                                                $notRequiredClass = 'my-tasks-placeholder my-tasks-placeholder--not-required';
                                                 $stageClass = $stageName === $notApplicableStagePhaseText
                                                     ? $notRequiredClass
                                                     : ($stageName === $naText ? $placeholderClass : 'my-tasks-main');
@@ -1093,8 +1405,21 @@
                                                 $estimatedDateClass = $estimatedDateText === $naText ? $placeholderClass : 'task-date';
                                                 $finalizationRenderClass = $finalizationDateText === $naText ? $placeholderClass : $finalizationDateClass;
                                                 $hasTimesheetAction = !empty($task->timesheet_edit_url) && !empty($task->timesheet_edit_date);
+
+                                                $reviewState = $task->reviewState ? $task->reviewState->state_code : null;
+                                                $reviewComment = $task->reviewState ? $task->reviewState->comment : '';
+                                                $reviewUser = $task->reviewState && $task->reviewState->mark_user_id
+                                                    ? optional(\App\Models\User::find($task->reviewState->mark_user_id))->name
+                                                    : null;
                                             @endphp
-                                            <tr
+                                            <div class="my-tasks-body-row {{ $reviewState ? 'task-row-' . $reviewState : '' }}"
+                                                data-task-id="{{ $task->id }}"
+                                                data-task-name="{{ $displayTypeName }}"
+                                                data-milestone-id="{{ $task->milestone_id }}"
+                                                data-milestone-status="{{ optional($task->milestone)->status }}"
+                                                data-project-id="{{ $task->project_id }}"
+                                                data-project-type-id="{{ optional($task->project)->type ?? '' }}"
+                                                data-technician-name="{{ $task->assign_to }}"
                                                 @if ($hasTimesheetAction)
                                                     data-timesheet-edit-url="{{ $task->timesheet_edit_url }}"
                                                     data-timesheet-edit-date="{{ $task->timesheet_edit_date }}"
@@ -1106,45 +1431,72 @@
                                                     aria-label="{{ $task->timesheet_action_title }}"
                                                 @endif
                                             >
-                                                <td>
+                                                <div class="my-tasks-td" data-col-key="project">
                                                     <div class="my-tasks-main my-tasks-truncate-project {{ $projectClass }}" title="{{ $projectName }}">{{ $projectName }}</div>
-                                                </td>
-                                                <td>
+                                                </div>
+                                                <div class="my-tasks-td my-tasks-td-milestone" data-col-key="milestone">
                                                     <div class="my-tasks-main my-tasks-truncate-milestone {{ $milestoneClass }}" title="{{ $milestoneTitle }}">{{ $milestoneTitle }}</div>
-                                                </td>
+                                                    <button type="button" class="my-tasks-review-card-btn"
+                                                        data-milestone-id="{{ $task->milestone_id }}"
+                                                        data-workspace-slug="{{ $task->workspace_slug ?? '' }}"
+                                                        title="{{ __('Revisar card') }}">
+                                                        {{ __('Revisar card') }}
+                                                    </button>
+                                                </div>
                                                 @if ($showStageColumn)
-                                                    <td>
-                                                        <span class="{{ $stageClass }}">{{ $stageName }}</span>
-                                                    </td>
+                                                <div class="my-tasks-td" data-col-key="stage">
+                                                    <span class="{{ $stageClass }}">{{ $stageName }}</span>
+                                                </div>
                                                 @endif
                                                 @if ($showPhaseColumn)
-                                                    <td>
-                                                        <span class="{{ $phaseClass }}">{{ $phaseName }}</span>
-                                                    </td>
+                                                <div class="my-tasks-td" data-col-key="phase">
+                                                    <span class="{{ $phaseClass }}">{{ $phaseName }}</span>
+                                                </div>
                                                 @endif
-                                                <td>
+                                                <div class="my-tasks-td" data-col-key="task">
                                                     <div class="my-tasks-truncate-task" title="{{ $displayTypeName }}">
+                                                        @if ($reviewState === 'changes')
+                                                            <span class="me-2 badge task-review-badge task-badge-changes"
+                                                                  title="{{ $reviewComment ? __('Change request comment') . ': ' . $reviewComment : '' }} {{ $reviewUser ? '— ' . __('Requested by') . ': ' . $reviewUser : '' }}"
+                                                                  data-task-name="{{ $displayTypeName }}"
+                                                                  data-review-comment="{{ $reviewComment }}"
+                                                                  data-review-user="{{ $reviewUser ?? '' }}"
+                                                                  data-task-id="{{ $task->id }}"
+                                                                  style="cursor:pointer;">
+                                                                <i class="fa-solid fa-triangle-exclamation text-danger"></i>
+                                                            </span>
+                                                        @elseif ($reviewState === 'reviewed')
+                                                            <span class="me-2 badge task-review-badge task-badge-reviewed"
+                                                                  style="cursor:pointer;"
+                                                                  data-review-mode="view"
+                                                                  data-task-name="{{ $displayTypeName }}"
+                                                                  data-task-id="{{ $task->id }}"
+                                                                  title="{{ __('Revisado') }}">
+                                                                <i class="fa-solid fa-check text-success"></i>
+                                                            </span>
+                                                        @endif
                                                         <span class="{{ $taskTypeClass }}">{{ $displayTypeName }}</span>
                                                     </div>
-                                                </td>
-                                                <td>
+                                                </div>
+                                                <div class="my-tasks-td" data-col-key="start_date">
                                                     <span class="{{ $startDateClass }}">{{ $startDateText }}</span>
-                                                </td>
-                                                <td>
+                                                </div>
+                                                <div class="my-tasks-td" data-col-key="estimated_date">
                                                     <span class="{{ $estimatedDateClass }}">{{ $estimatedDateText }}</span>
-                                                </td>
-                                                <td>
+                                                </div>
+                                                <div class="my-tasks-td" data-col-key="finalization_date">
                                                     <span class="{{ $finalizationRenderClass }}">{{ $finalizationDateText }}</span>
-                                                </td>
-                                            </tr>
+                                                </div>
+                                            </div>
                                         @endforeach
-                                    </tbody>
-                                </table>
-                                <div id="myTasksFilteredEmptyState" class="my-tasks-filtered-empty-state">
-                                    <h6 class="mb-2">{{ __('No tasks match the selected filters') }}</h6>
-                                    <p class="mb-0">{{ __('Adjust or clear filters to see more results.') }}</p>
+                                    </div>
+                                    <div id="myTasksFilteredEmptyState" class="my-tasks-filtered-empty-state">
+                                        <h6 class="mb-2">{{ __('No tasks match the selected filters') }}</h6>
+                                        <p class="mb-0">{{ __('Adjust or clear filters to see more results.') }}</p>
+                                    </div>
                                 </div>
                             </div>
+                        </div>
                         @endif
                         </div>
                     </div>
@@ -1187,6 +1539,43 @@
                         </div>
                     </div>
 
+                <div class="modal fade" id="milestoneCardModal" tabindex="-1" aria-hidden="true">
+                        <div class="modal-dialog modal-lg modal-dialog-scrollable">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title mb-0">{{ __('Revisar card') }}</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{ __('Close') }}"></button>
+                                </div>
+                                <div class="modal-body milestoneCardModalBody" id="milestoneCardModalBody">
+                                    <div class="text-center text-muted py-4">{{ __('Loading...') }}</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                <div class="modal fade" id="myTasksStatusChangeModal" tabindex="-1" role="dialog"
+                    aria-labelledby="myTasksStatusChangeModalLabel" aria-hidden="true">
+                    <div class="modal-dialog" role="document">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="myTasksStatusChangeModalLabel">{{ __('Volver a En curso') }}</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{ __('Close') }}"></button>
+                            </div>
+                            <div class="modal-body">
+                                <div class="form-group">
+                                    <label for="myTasksStatusChangeComment">{{ __('Motivo') }}</label>
+                                    <textarea class="form-control" id="myTasksStatusChangeComment" name="status_change_comment" rows="4"
+                                        placeholder="{{ __('Indica el motivo para volver a En curso...') }}"></textarea>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ __('Cancel') }}</button>
+                                <button type="button" class="btn btn-primary" onclick="submitMyTasksStatusChange()">{{ __('Volver a En curso') }}</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 </div>
             </div>
         </div>
@@ -1194,6 +1583,405 @@
 @endsection
 
 @push('scripts')
+    @include('projects.partials.task_review_modal')
+    <script>
+        (function() {
+            if (typeof window.updateMyTasksReviewRow !== 'function') {
+                window.updateMyTasksReviewRow = function(response) {
+                    if (!response || !response.task_id) return;
+
+                    var row = document.querySelector('.my-tasks-body-row[data-task-id="' + response.task_id + '"]');
+                    if (!row) return;
+
+                    var reviewState = response.review_state;
+
+                    row.classList.remove('task-row-changes', 'task-row-reviewed');
+                    if (reviewState && reviewState !== 'cleared') {
+                        row.classList.add('task-row-' + reviewState);
+                    }
+
+                    var truncateEl = row.querySelector('.my-tasks-truncate-task');
+                    if (!truncateEl) return;
+
+                    truncateEl.querySelectorAll('.task-review-badge').forEach(function(b) { b.remove(); });
+
+                    if (reviewState === 'cleared') return;
+
+                    var badge = document.createElement('span');
+                    badge.className = 'me-2 badge task-review-badge ' + (reviewState === 'changes' ? 'task-badge-changes' : 'task-badge-reviewed');
+                    badge.style.cursor = 'pointer';
+                    badge.setAttribute('data-task-name', row.getAttribute('data-task-name') || '');
+                    badge.setAttribute('data-task-id', response.task_id);
+
+                    if (reviewState === 'changes') {
+                        badge.setAttribute('data-review-comment', response.review_comment || '');
+                        badge.setAttribute('data-review-user', response.review_user || '');
+                        badge.title = '{{ __("Change request comment") }}: ' + (response.review_comment || '') + ' — {{ __("Requested by") }}: ' + (response.review_user || '');
+                        badge.innerHTML = '<i class="fa-solid fa-triangle-exclamation text-danger"></i>';
+                    } else if (reviewState === 'reviewed') {
+                        badge.setAttribute('data-review-mode', 'view');
+                        badge.title = '{{ __("Revisado") }}';
+                        badge.innerHTML = '<i class="fa-solid fa-check text-success"></i>';
+                    } else {
+                        return;
+                    }
+
+                    var nameEl = truncateEl.querySelector('.my-tasks-main');
+                    truncateEl.insertBefore(badge, nameEl || truncateEl.firstChild);
+                };
+            }
+        })();
+        (function() {
+            const modalEl = document.getElementById('milestoneCardModal');
+            const bodyEl = document.getElementById('milestoneCardModalBody');
+            if (!modalEl || !bodyEl) return;
+
+            const cardUrlTemplate = @json(route('projects.milestone.card', ['__SLUG__', '__ID__']));
+            const orderUrlTemplate = @json(route('milestone.update.order', ['__SLUG__', '__PROJECT__']));
+            const checkHoursUrlTemplate = @json(route('projects.milestone.checkTaskHours', ['__SLUG__', '__ID__']));
+            const notifyUrl = @json(route('notifications.add'));
+            const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+            const currentWorkspaceId = {{ $currentWorkspace->id }};
+            const currentWorkspaceSlug = @json($currentWorkspace->slug);
+
+            let isBusy = false;
+
+            function reExecScripts(container) {
+                container.querySelectorAll('script').forEach(function(s) {
+                    const ns = document.createElement('script');
+                    if (s.src) {
+                        ns.src = s.src;
+                    } else {
+                        ns.textContent = s.textContent;
+                    }
+                    s.parentNode.replaceChild(ns, s);
+                });
+            }
+
+            function loadMilestoneCard(slug, id) {
+                bodyEl.innerHTML = '<div class="text-center text-muted py-4">{{ __('Loading...') }}</div>';
+                return fetch(cardUrlTemplate.replace('__SLUG__', slug).replace('__ID__', id), {
+                    headers: { 'Accept': 'text/html' }
+                })
+                    .then(function(response) {
+                        if (!response.ok) throw new Error('HTTP ' + response.status);
+                        return response.text();
+                    })
+                    .then(function(html) {
+                        bodyEl.innerHTML = html;
+                        reExecScripts(bodyEl);
+                    })
+                    .catch(function() {
+                        bodyEl.innerHTML = '<div class="text-center text-danger py-4">{{ __('Error') }}</div>';
+                    });
+            }
+
+            function fetchCardHtml(slug, id) {
+                return fetch(cardUrlTemplate.replace('__SLUG__', slug).replace('__ID__', id), {
+                    headers: { 'Accept': 'text/html' }
+                }).then(function(response) {
+                    if (!response.ok) throw new Error('HTTP ' + response.status);
+                    return response.text();
+                });
+            }
+
+            function removeBusyOverlay() {
+                const frame = bodyEl.querySelector('.milestone-card-frame');
+                if (!frame) return;
+                const overlay = frame.querySelector('.milestone-busy-overlay');
+                if (overlay) overlay.remove();
+            }
+
+            function setBusy(busy) {
+                isBusy = busy;
+                const frame = bodyEl.querySelector('.milestone-card-frame');
+                if (!frame) return;
+                frame.classList.toggle('is-busy', busy);
+                if (busy) {
+                    if (!frame.querySelector('.milestone-busy-overlay')) {
+                        const overlay = document.createElement('div');
+                        overlay.className = 'milestone-busy-overlay';
+                        const spinner = document.createElement('div');
+                        spinner.className = 'milestone-busy-spinner';
+                        const text = document.createElement('div');
+                        text.className = 'milestone-busy-text';
+                        text.textContent = "{{ __('Procesando...') }}";
+                        overlay.appendChild(spinner);
+                        overlay.appendChild(text);
+                        frame.appendChild(overlay);
+                    }
+                } else {
+                    removeBusyOverlay();
+                }
+            }
+
+            function waitTransform(el) {
+                return new Promise(function(resolve) {
+                    let done = false;
+                    const onEnd = function(e) {
+                        if (e && e.propertyName && e.propertyName !== 'transform') return;
+                        if (done) return;
+                        done = true;
+                        el.removeEventListener('transitionend', onEnd);
+                        resolve();
+                    };
+                    el.addEventListener('transitionend', onEnd);
+                    setTimeout(function() { onEnd(null); }, 700);
+                });
+            }
+
+            function swapCardContent(freshHtml) {
+                removeBusyOverlay();
+                const inner = bodyEl.querySelector('.milestone-flip-inner');
+                if (!inner) {
+                    bodyEl.innerHTML = freshHtml;
+                    reExecScripts(bodyEl);
+                    return Promise.resolve();
+                }
+                return new Promise(function(resolve) {
+                    inner.classList.add('mt-flip-fast');
+                    const half = waitTransform(inner);
+                    inner.classList.add('mt-half');
+                    half.then(function() {
+                        const holder = document.createElement('div');
+                        holder.innerHTML = freshHtml;
+                        const freshInner = holder.querySelector('.milestone-flip-inner');
+                        const freshFrame = holder.querySelector('.milestone-card-frame');
+                        const frame = bodyEl.querySelector('.milestone-card-frame');
+                        let targetFlipped = false;
+                        if (freshInner) {
+                            inner.innerHTML = freshInner.innerHTML;
+                            targetFlipped = freshInner.classList.contains('is-flipped');
+                        }
+                        const rest = waitTransform(inner);
+                        inner.classList.remove('mt-half');
+                        inner.classList.toggle('is-flipped', targetFlipped);
+                        if (freshFrame && frame) {
+                            frame.className = freshFrame.className;
+                            if (isBusy) frame.classList.add('is-busy');
+                        }
+                        inner.classList.remove('mt-flip-fast');
+                        reExecScripts(inner);
+                        rest.then(resolve);
+                    });
+                });
+            }
+
+            function showModalToast(message, type) {
+                const container = modalEl.querySelector('.modal-content');
+                if (!container) return;
+                const existing = container.querySelector('.milestone-modal-alert');
+                if (existing) existing.remove();
+                const alert = document.createElement('div');
+                alert.className = 'milestone-modal-alert alert ' + (type === 'danger' ? 'alert-danger' : 'alert-success');
+                alert.setAttribute('role', 'alert');
+                alert.textContent = message;
+                container.appendChild(alert);
+                setTimeout(function() {
+                    if (alert.isConnected) alert.remove();
+                }, 3500);
+            }
+
+            function sendOrderUpdate(slug, data) {
+                return fetch(orderUrlTemplate.replace('__SLUG__', slug).replace('__PROJECT__', data.project_id), {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': csrfToken,
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        id: data.milestone_id,
+                        old_status: data.old_status,
+                        new_status: data.new_status,
+                        project_id: data.project_id,
+                        status_change_comment: data.status_change_comment || ''
+                    })
+                }).then(function(response) {
+                    if (!response.ok) throw new Error('HTTP ' + response.status);
+                    return response.json();
+                });
+            }
+
+            function sendReviewNotification(slug, milestoneId, projectName, milestoneTitle, technicianId) {
+                const msg = milestoneTitle + ' en el proyecto ' + projectName;
+                if (!msg) return Promise.resolve();
+                return fetch(notifyUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': csrfToken
+                    },
+                    body: JSON.stringify({
+                        workspace_id: currentWorkspaceId,
+                        msg: msg,
+                        ntipe: 5,
+                        milestoneAssignedTo: technicianId,
+                        milestone_id: milestoneId
+                    })
+                }).catch(function() {});
+            }
+
+            function getCardMeta() {
+                const card = bodyEl.querySelector('.milestone-card');
+                if (!card) return null;
+                return {
+                    slug: card.getAttribute('data-workspace-slug') || currentWorkspaceSlug,
+                    milestoneId: card.getAttribute('id'),
+                    projectId: card.getAttribute('data-project-id'),
+                    status: parseInt(card.getAttribute('data-status'), 10) || 0
+                };
+            }
+
+function moveToReview(meta) {
+                setBusy(true);
+                const checkUrl = checkHoursUrlTemplate.replace('__SLUG__', meta.slug).replace('__ID__', meta.milestoneId);
+                return fetch(checkUrl + '?id=' + encodeURIComponent(meta.milestoneId), {
+                    headers: { 'Accept': 'application/json' }
+                })
+                    .then(function(response) {
+                        if (!response.ok) throw new Error('HTTP ' + response.status);
+                        return response.json();
+                    })
+                    .then(function(data) {
+                        if (!data.all_exist) {
+                            setBusy(false);
+                            showModalToast(
+                                data.has_tasks
+                                    ? "{{ __('Todas las tareas tienen que tener horas imputadas') }}"
+                                    : "{{ __('No se puede mover un encargo sin tareas') }}",
+                                'danger'
+                            );
+                            return false;
+                        }
+                        return sendOrderUpdate(meta.slug, {
+                            milestone_id: meta.milestoneId,
+                            old_status: 2,
+                            new_status: 3,
+                            project_id: meta.projectId
+                        }).then(function() {
+                            const req = bodyEl.querySelector('#milestoneReqName');
+                            sendReviewNotification(
+                                meta.slug,
+                                meta.milestoneId,
+                                req ? req.getAttribute('data-project-name') : '',
+                                (bodyEl.querySelector('.milestone-title') || {}).textContent || '',
+                                req ? req.getAttribute('data-technician-id') : ''
+                            );
+                            return fetchCardHtml(meta.slug, meta.milestoneId);
+                        }).then(function(freshHtml) {
+                            return swapCardContent(freshHtml);
+                        }).then(function() {
+                            setBusy(false);
+                            showModalToast("{{ __('El estado se actualizó correctamente') }}", 'success');
+                        }).catch(function() {
+                            setBusy(false);
+                            showModalToast("{{ __('Error') }}", 'danger');
+                        });
+                    }).catch(function() {
+                        setBusy(false);
+                        showModalToast("{{ __('Error') }}", 'danger');
+                    });
+            }
+
+            document.addEventListener('click', function(e) {
+                const btn = e.target.closest('.my-tasks-review-card-btn');
+                if (!btn) return;
+                e.preventDefault();
+
+                const milestoneId = btn.getAttribute('data-milestone-id');
+                const slug = btn.getAttribute('data-workspace-slug');
+                if (!milestoneId || !slug) return;
+
+                loadMilestoneCard(slug, milestoneId);
+                const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+                modal.show();
+            });
+
+            modalEl.addEventListener('hidden.bs.modal', function() {
+                bodyEl.innerHTML = '';
+            });
+
+            document.addEventListener('click', function(e) {
+                const btn = e.target.closest('.milestone-status-btn');
+                if (!btn) return;
+                e.preventDefault();
+                if (isBusy) return;
+                const meta = getCardMeta();
+                if (!meta) return;
+                const to = btn.getAttribute('data-flip-to');
+
+                if (to === 'revision') {
+                    moveToReview(meta);
+                    return;
+                }
+
+                if (to === 'hecho') {
+                    setBusy(true);
+                    sendOrderUpdate(meta.slug, {
+                        milestone_id: meta.milestoneId,
+                        old_status: 3,
+                        new_status: 4,
+                        project_id: meta.projectId
+                    }).then(function() {
+                        return fetchCardHtml(meta.slug, meta.milestoneId);
+                    }).then(function(freshHtml) {
+                        return swapCardContent(freshHtml);
+                    }).then(function() {
+                        setBusy(false);
+                        showModalToast("{{ __('El estado se actualizó correctamente') }}", 'success');
+                    }).catch(function() {
+                        setBusy(false);
+                        showModalToast("{{ __('Error') }}", 'danger');
+                    });
+                    return;
+                }
+
+                if (to === 'curso') {
+                    const scModalEl = document.getElementById('myTasksStatusChangeModal');
+                    const commentEl = document.getElementById('myTasksStatusChangeComment');
+                    scModalEl.dataset.milestoneId = meta.milestoneId;
+                    scModalEl.dataset.slug = meta.slug;
+                    scModalEl.dataset.projectId = meta.projectId;
+                    commentEl.value = '';
+                    bootstrap.Modal.getOrCreateInstance(scModalEl).show();
+                }
+            });
+
+            window.submitMyTasksStatusChange = function() {
+                const scModalEl = document.getElementById('myTasksStatusChangeModal');
+                const commentEl = document.getElementById('myTasksStatusChangeComment');
+                const comment = commentEl.value;
+                if (!comment.trim()) {
+                    alert("{{ __('Debes indicar el motivo para volver a En curso.') }}");
+                    return;
+                }
+                const milestoneId = scModalEl.dataset.milestoneId;
+                const slug = scModalEl.dataset.slug;
+                const projectId = scModalEl.dataset.projectId;
+
+                setBusy(true);
+                sendOrderUpdate(slug, {
+                    milestone_id: milestoneId,
+                    old_status: 3,
+                    new_status: 2,
+                    project_id: projectId,
+                    status_change_comment: comment
+                }).then(function() {
+                    bootstrap.Modal.getOrCreateInstance(scModalEl).hide();
+                    return fetchCardHtml(slug, milestoneId);
+                }).then(function(freshHtml) {
+                    return swapCardContent(freshHtml);
+                }).then(function() {
+                    setBusy(false);
+                    showModalToast("{{ __('El estado se actualizó correctamente') }}", 'success');
+                }).catch(function() {
+                    setBusy(false);
+                    showModalToast("{{ __('Error') }}", 'danger');
+                });
+            };
+        })();
+    </script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
         (function() {
@@ -1211,14 +1999,16 @@
             const projectTasksModalElement = document.getElementById('projectTasksModal');
             const taskOverviewHelpIcon = document.getElementById('taskOverviewHelpIcon');
             const taskOverviewHelpPopup = document.getElementById('taskOverviewHelpPopup');
+            const assignedTasksHelpIcon = document.getElementById('assignedTasksHelpIcon');
+            const assignedTasksHelpPopup = document.getElementById('assignedTasksHelpPopup');
             const projectTasksModalTitle = document.getElementById('projectTasksModalTitle');
             const projectTasksModalPeriod = document.getElementById('projectTasksModalPeriod');
             const projectTasksModalContent = document.getElementById('projectTasksModalContent');
             const columnToggleButton = document.getElementById('myTasksColumnsToggleBtn');
-            const taskTable = document.querySelector('.my-tasks-table');
-            const taskTableRows = taskTable ? Array.from(taskTable.querySelectorAll('tbody tr')) : [];
-            const timesheetTableRows = taskTable ? Array.from(taskTable.querySelectorAll('tbody tr[data-timesheet-edit-url]')) : [];
-            const taskTableHeaders = taskTable ? Array.from(taskTable.querySelectorAll('thead th')) : [];
+            const taskTable = document.querySelector('.my-tasks-table-inner');
+            const taskTableRows = taskTable ? Array.from(taskTable.querySelectorAll('.my-tasks-body-row')) : [];
+            const timesheetTableRows = taskTable ? Array.from(taskTable.querySelectorAll('.my-tasks-body-row[data-timesheet-edit-url]')) : [];
+            const taskTableHeaders = taskTable ? Array.from(taskTable.querySelectorAll('.my-tasks-header-row .my-tasks-th')) : [];
             const tableFilterButtons = taskTable ? Array.from(taskTable.querySelectorAll('.my-tasks-filter-btn')) : [];
             const filteredEmptyState = document.getElementById('myTasksFilteredEmptyState');
             const projectTasksModal = (window.bootstrap && projectTasksModalElement)
@@ -1853,7 +2643,7 @@
                         renderDisplayValue(task.project || naLabel, 'project-task-meta-value'),
                         '</div>',
                         '<div>',
-                        '<span class="project-task-meta-label">{{ __('Encargo') }}</span>',
+                        '<span class="project-task-meta-label">{{ __('Milestone') }}</span>',
                         renderDisplayValue(task.milestone || naLabel, 'project-task-meta-value'),
                         '</div>',
                         '<div>',
@@ -2053,25 +2843,33 @@
                 });
             });
 
-            if (taskOverviewHelpIcon && taskOverviewHelpPopup) {
-                taskOverviewHelpPopup.style.opacity = '0';
-                taskOverviewHelpPopup.style.transform = 'translateY(-10px)';
-                taskOverviewHelpPopup.style.visibility = 'hidden';
+            function setupHelpPopup(icon, popup) {
+                if (!icon || !popup) {
+                    return;
+                }
 
-                taskOverviewHelpIcon.addEventListener('click', function(event) {
+                popup.style.opacity = '0';
+                popup.style.transform = 'translateY(-10px)';
+                popup.style.visibility = 'hidden';
+
+                const hide = function() {
+                    popup.style.opacity = '0';
+                    popup.style.transform = 'translateY(-10px)';
+                    setTimeout(function() {
+                        popup.style.visibility = 'hidden';
+                    }, 300);
+                };
+
+                icon.addEventListener('click', function(event) {
                     event.stopPropagation();
-                    const isVisible = taskOverviewHelpPopup.style.visibility === 'visible';
+                    const isVisible = popup.style.visibility === 'visible';
 
                     if (isVisible) {
-                        taskOverviewHelpPopup.style.opacity = '0';
-                        taskOverviewHelpPopup.style.transform = 'translateY(-10px)';
-                        setTimeout(function() {
-                            taskOverviewHelpPopup.style.visibility = 'hidden';
-                        }, 300);
+                        hide();
                     } else {
-                        taskOverviewHelpPopup.style.visibility = 'visible';
-                        taskOverviewHelpPopup.style.opacity = '1';
-                        taskOverviewHelpPopup.style.transform = 'translateY(0)';
+                        popup.style.visibility = 'visible';
+                        popup.style.opacity = '1';
+                        popup.style.transform = 'translateY(0)';
                     }
 
                     this.style.transform = 'scale(0.9)';
@@ -2081,21 +2879,22 @@
                 });
 
                 document.addEventListener('click', function(event) {
-                    if (!taskOverviewHelpPopup.contains(event.target) && event.target !== taskOverviewHelpIcon) {
-                        if (taskOverviewHelpPopup.style.visibility === 'visible') {
-                            taskOverviewHelpPopup.style.opacity = '0';
-                            taskOverviewHelpPopup.style.transform = 'translateY(-10px)';
-                            setTimeout(function() {
-                                taskOverviewHelpPopup.style.visibility = 'hidden';
-                            }, 300);
-                        }
+                    if (popup.style.visibility !== 'visible') {
+                        return;
+                    }
+
+                    if (!popup.contains(event.target) && event.target !== icon) {
+                        hide();
                     }
                 });
 
-                taskOverviewHelpPopup.addEventListener('click', function(event) {
+                popup.addEventListener('click', function(event) {
                     event.stopPropagation();
                 });
             }
+
+            setupHelpPopup(taskOverviewHelpIcon, taskOverviewHelpPopup);
+            setupHelpPopup(assignedTasksHelpIcon, assignedTasksHelpPopup);
 
             document.addEventListener('click', function(event) {
                 if (!filterMenu.hidden && !filterMenu.contains(event.target) && !event.target.closest('.my-tasks-filter-btn')) {

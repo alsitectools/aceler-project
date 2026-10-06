@@ -43,8 +43,13 @@
                                 @endif
                                 alt="{{ Auth::user()->name }}"> -->
                             </div>
-                            <h4 class="mt-2">{{ $user->name }}</h4>
-                            <small>{{ $user->email }}</small>
+                             <div class="email-reveal-wrapper">
+                                 <div class="d-flex align-items-center gap-2">
+                                     <h4 class="mt-2">{{ $user->name }}</h4>
+                                     <i class="bi bi-envelope-fill email-reveal-icon tooltipCus" data-title="{{ __('messages.Mostrar correo') }}" data-show-text="{{ __('messages.Mostrar correo') }}" data-hide-text="{{ __('messages.Ocultar correo') }}" data-user-id="{{ $user->id }}"></i>
+                                 </div>
+                                 <small class="email-reveal-email"></small>
+                             </div>
 
                             <div class=" mb-0 mt-3">
                                 <div class=" p-3">

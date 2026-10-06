@@ -1,0 +1,4 @@
+[Thu Jul  2 13:32:01 2026] PHP 8.2.12 Development Server (http://localhost:8000) started
+[Thu Jul  2 13:32:26 2026] [::1]:57209 Accepted
+[Thu Jul  2 13:32:27 2026] [::1]:57209 [302]: GET /
+[Thu Jul  2 13:32:27 2026] [::1]:57209 Closing

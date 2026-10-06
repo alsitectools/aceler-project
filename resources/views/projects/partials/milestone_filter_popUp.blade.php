@@ -1112,12 +1112,12 @@
                                                 aria-label="{{ __('Workspace Milestones') }}">
                                                 <label class="filterBinaryOption" for="showAllMilestonesYes">
                                                     <input type="radio" id="showAllMilestonesYes"
-                                                        name="showAllMilestones" value="1">
+                                                        name="showAllMilestones" value="1" checked>
                                                     <span>{{ __('All') }}</span>
                                                 </label>
                                                 <label class="filterBinaryOption" for="showAllMilestonesNo">
                                                     <input type="radio" id="showAllMilestonesNo"
-                                                        name="showAllMilestones" value="0" checked>
+                                                        name="showAllMilestones" value="0">
                                                     <span>{{ __('Mine') }}</span>
                                                 </label>
                                             </div>
@@ -1300,7 +1300,7 @@
 
         const filtersState = {
             hideUnassigned: false,
-            showAll: hasShowAllFilter ? false : true,
+            showAll: true,
             showCompleted: hasCompletedFilter ? false : true,
             selectedPriorities: [],
             selectedProjectTypes: [],
@@ -1316,6 +1316,38 @@
 
         window.milestoneBoardFilters = filtersState;
         window.milestoneBoardShowCompleted = filtersState.showCompleted;
+        window.applyMilestoneFilters = applyMilestoneFilters;
+
+        window.addEventListener('beforeunload', function() {
+            localStorage.setItem('milestoneBoardFilters', JSON.stringify({
+                hideUnassigned: filtersState.hideUnassigned,
+                showAll: filtersState.showAll,
+                showCompleted: filtersState.showCompleted,
+                selectedPriorities: filtersState.selectedPriorities,
+                selectedProjectTypes: filtersState.selectedProjectTypes,
+                selectedProjects: filtersState.selectedProjects,
+                selectedWorkspaces: filtersState.selectedWorkspaces,
+                selectedRequestedBy: filtersState.selectedRequestedBy,
+                selectedAssignedTo: filtersState.selectedAssignedTo,
+                selectedAssignedToNone: filtersState.selectedAssignedToNone,
+                dateField: filtersState.dateField,
+                dateFrom: filtersState.dateFrom,
+                dateTo: filtersState.dateTo,
+            }));
+        });
+
+        var savedFilters = localStorage.getItem('milestoneBoardFilters');
+        if (savedFilters) {
+            try {
+                var parsed = JSON.parse(savedFilters);
+                Object.keys(parsed).forEach(function(key) {
+                    if (key in filtersState) {
+                        filtersState[key] = parsed[key];
+                    }
+                });
+            } catch(e) {}
+            localStorage.removeItem('milestoneBoardFilters');
+        }
 
         function syncBinaryFiltersUi() {
             if (hasCompletedFilter) {
@@ -1679,11 +1711,11 @@
                 });
             }
 
-            if (hasShowAllFilter && filtersState.showAll) {
+            if (hasShowAllFilter && !filtersState.showAll) {
                 chips.push({
                     type: 'showAll',
-                    value: '1',
-                    label: "{{ __('Workspace Milestones') }}",
+                    value: '0',
+                    label: "{{ __('Workspace Milestones') }}: {{ __('Mine') }}",
                 });
             }
 
@@ -1951,16 +1983,6 @@
         }
 
         /**
-         * A project is considered completed when every visible milestone card in that project has status 4.
-         */
-        function isCompletedProject(card, groupedByProject) {
-            const projectId = card.dataset.projectId;
-            const projectMilestones = groupedByProject.get(projectId) || [];
-            return projectMilestones.length > 0 && projectMilestones.every(m =>
-                parseInt(m.dataset.status, 10) === 4);
-        }
-
-        /**
          * Central visibility predicate used by both count helpers and final board rendering.
          */
         function cardMatchesFilters(card, groupedByProject, criteria, ignoreFilter = '') {
@@ -1972,8 +1994,6 @@
             const requestedBy = normalizeRequestedBy(card.dataset.requestedBy || '');
             const assignedTo = normalizeRequestedBy(card.dataset.assignTo || '');
             const isUnassigned = card.classList.contains('notAsignedMilestone');
-            const allInStatus4 = isCompletedProject(card, groupedByProject);
-
             if (!isMyBoardMode && !filtersState.showAll && !isMine(card)) {
                 return false;
             }
@@ -2026,7 +2046,7 @@
                 return false;
             }
 
-            if (hasCompletedFilter && !filtersState.showCompleted && allInStatus4) {
+            if (hasCompletedFilter && !filtersState.showCompleted && card.dataset.status === '4') {
                 return false;
             }
 
@@ -2889,7 +2909,7 @@
 
         function hasAnyFilterApplied() {
             return filtersState.hideUnassigned ||
-                (hasShowAllFilter && filtersState.showAll) ||
+                (hasShowAllFilter && !filtersState.showAll) ||
                 filtersState.selectedPriorities.length > 0 ||
                 filtersState.selectedProjectTypes.length > 0 ||
                 filtersState.selectedProjects.length > 0 ||
@@ -2919,7 +2939,7 @@
 
         function resetAllMilestoneFilters() {
             filtersState.hideUnassigned = false;
-            filtersState.showAll = hasShowAllFilter ? false : true;
+            filtersState.showAll = true;
             filtersState.showCompleted = hasCompletedFilter ? false : true;
             filtersState.selectedPriorities = [];
             filtersState.selectedProjectTypes = [];
@@ -2999,15 +3019,22 @@
             const criteria = getFilterCriteria();
 
             allMilestones.forEach(card => {
-                const allInStatus4 = isCompletedProject(card, groupedByProject);
                 const visible = cardMatchesFilters(card, groupedByProject, criteria);
 
                 card.style.display = visible ? '' : 'none';
 
                 if (hasCompletedFilter) {
-                    card.style.border = (filtersState.showCompleted && allInStatus4) ?
+                    card.style.border = (filtersState.showCompleted && card.dataset.status === '4') ?
                         '3px solid #15b500' : 'none';
                 }
+            });
+
+            document.querySelectorAll('.kanban-box.fixedHeight').forEach(column => {
+                const cards = column.querySelectorAll('.card[data-project-id]');
+                const hiddenMsg = column.querySelector('.filtered-empty-state');
+                if (!hiddenMsg) return;
+                const visibleCount = Array.from(cards).filter(c => c.style.display !== 'none').length;
+                hiddenMsg.style.display = (cards.length > 0 && visibleCount === 0) ? 'flex' : 'none';
             });
 
             updatePriorityOptionCounts();
@@ -3015,6 +3042,39 @@
             renderActiveFiltersChips();
 
             updateResetFiltersButtonVisibility();
+
+            var status4Cards = document.querySelectorAll('.kanban-box.fixedHeight[data-status="4"]');
+            if (status4Cards.length) {
+                var visibleStatus4 = 0;
+                var totalStatus4 = 0;
+                for (var si = 0; si < status4Cards[0].children.length; si++) {
+                    var child = status4Cards[0].children[si];
+                    if (child.classList && child.classList.contains('card')) {
+                        totalStatus4++;
+                        if (child.style.display !== 'none') visibleStatus4++;
+                    }
+                }
+            }
+
+            document.querySelectorAll('.kanban-box.fixedHeight').forEach(function(container) {
+                var parentCardList = container.closest('.card-list');
+                if (!parentCardList) return;
+                var totalCount = 0;
+                var visibleCount = 0;
+                for (var i = 0; i < container.children.length; i++) {
+                    var child = container.children[i];
+                    if (child.classList && child.classList.contains('card')) {
+                        totalCount++;
+                        if (child.style.display !== 'none') visibleCount++;
+                    }
+                }
+                var badge = parentCardList.querySelector('.count');
+                if (badge) badge.textContent = visibleCount;
+                var emptyState = container.querySelector('.noNotificationsContainer');
+                if (emptyState) {
+                    emptyState.style.display = totalCount > 0 ? 'none' : '';
+                }
+            });
         }
 
         if (hasCompletedFilter) {
@@ -3570,7 +3630,7 @@
                     filtersState.hideUnassigned = false;
                     syncBinaryFiltersUi();
                 } else if (chipType === 'showAll') {
-                    filtersState.showAll = false;
+                    filtersState.showAll = true;
                     syncBinaryFiltersUi();
                 } else if (chipType === 'showCompleted') {
                     filtersState.showCompleted = false;
@@ -3672,6 +3732,11 @@
             assignedToNoneCheckbox.checked = !!filtersState.selectedAssignedToNone;
         }
         syncBinaryFiltersUi();
+        if (priorityFilterCheckboxes.length) {
+            priorityFilterCheckboxes.forEach(function(cb) {
+                cb.checked = filtersState.selectedPriorities.includes(cb.value);
+            });
+        }
         applyMilestoneFilters();
     });
 </script>

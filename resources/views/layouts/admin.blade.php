@@ -936,19 +936,99 @@
             }
         })();
     </script>
+    <script src="{{ asset('assets/custom/libs/nicescroll/jquery.nicescroll.min.js') }}"></script>
+    <script src="{{ asset('assets/js/create_project.js') }}?v={{ time() }}"></script>
     @stack('scripts')
     {{-- @stack('script-page') --}}
     @if (Session::has('success'))
         <script>
-            show_toastr('{{ __('Success') }}', '{!! session('success') !!}', 'success');
+            show_toastr('{{ __('Success') }}', @json(session('success')), 'success');
         </script>
     @endif
     @if (Session::has('error'))
         <script>
-            show_toastr('{{ __('Error') }}', '{!! session('error') !!}', 'error');
+            show_toastr('{{ __('Error') }}', @json(session('error')), 'error');
         </script>
     @endif
-    <script></script>
+
+    <style>
+        .email-reveal-wrapper {
+            display: flex;
+            flex-direction: column;
+        }
+        .email-reveal-icon {
+            cursor: pointer; font-size: 16px; color: #6c757d; transition: color 0.2s, transform 0.2s; padding-right:12px;
+        }
+        .email-reveal-icon:hover {
+            color: #8f1425;
+            transform: scale(1.15);
+        }
+        .email-reveal-email {
+            display: none; font-size: 1rem; color: #6c757d;
+            clear: both;
+        }
+        .email-reveal-floating-tooltip {
+            position: fixed;
+            z-index: 999999;
+            background-color: #333;
+            color: #fff;
+            font-size: 12px;
+            text-align: center;
+            border-radius: 6px;
+            padding: 6px 10px;
+            white-space: nowrap;
+            pointer-events: none;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+        }
+    </style>
+    <script>
+        $(document).on('click', '.email-reveal-icon', function () {
+            var $icon = $(this);
+            var $wrapper = $icon.closest('.email-reveal-wrapper');
+            if (!$wrapper.length) {
+                $wrapper = $icon.closest('.comercialAndTechnicians').find('.email-reveal-wrapper');
+            }
+            var $emailEl = $wrapper.find('.email-reveal-email');
+            if ($emailEl.is(':visible')) {
+                $icon.attr('data-title', $icon.data('show-text'));
+                $emailEl.slideUp(200, function() {
+                    $(this).text('');
+                });
+                return;
+            }
+            if ($icon.data('loading')) return;
+            $icon.data('loading', true);
+
+            $.get('{{ url('/') }}/user/' + $icon.data('user-id') + '/email', function (res) {
+                $emailEl.text(res.email);
+                $emailEl.slideDown(200);
+                $icon.attr('data-title', $icon.data('hide-text'));
+                $icon.data('loading', false);
+            }).fail(function () {
+                $icon.data('loading', false);
+            });
+        });
+
+        var emailTooltipTimer = null;
+        $(document).on('mouseenter', '.email-reveal-icon', function () {
+            clearTimeout(emailTooltipTimer);
+            $('.email-reveal-floating-tooltip').remove();
+            var $icon = $(this);
+            var text = $icon.attr('data-title');
+            if (!text) return;
+            var $tooltip = $('<div class="email-reveal-floating-tooltip">' + $('<span>').text(text).html() + '</div>');
+            $('body').append($tooltip);
+            var rect = this.getBoundingClientRect();
+            var top = rect.top - $tooltip.outerHeight() - 6;
+            var left = rect.left + (rect.width / 2) - ($tooltip.outerWidth() / 2);
+            $tooltip.css({ top: top + 'px', left: left + 'px' });
+        });
+        $(document).on('mouseleave', '.email-reveal-icon', function () {
+            emailTooltipTimer = setTimeout(function () {
+                $('.email-reveal-floating-tooltip').remove();
+            }, 150);
+        });
+    </script>
     @include('partials.footer')
     @include('Chatify::layouts.footerLinks')
 </body>

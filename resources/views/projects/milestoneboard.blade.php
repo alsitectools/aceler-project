@@ -47,7 +47,9 @@
     }
 
     .fixedHeight {
+        min-height: 600px;
         max-height: 600px;
+        height: 600px;
         overflow: hidden;
         overflow-y: auto;
         scrollbar-color: #aa182c #ffff0000;
@@ -122,6 +124,20 @@
         transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         pointer-events: none;
     }
+    .legend-close {
+        position: absolute;
+        top: 10px;
+        right: 14px;
+        background: none;
+        border: none;
+        font-size: 24px;
+        cursor: pointer;
+        color: #666;
+        line-height: 1;
+        padding: 0;
+        z-index: 4;
+        pointer-events: auto;
+    }
 
     .legend.visible {
         pointer-events: auto;
@@ -188,6 +204,28 @@
         text-wrap: nowrap;
         text-overflow: ellipsis;
     }
+
+    .kanban-box .dash-micon {
+        margin-right: 0;
+        margin-bottom: 16px;
+        height: 80px;
+        width: 80px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 16px;
+    }
+    .kanban-box .dash-micon i {
+        font-size: 48px;
+        color: #adb5bd;
+    }
+    .empty-state-text {
+        font-size: 20px;
+        color: #d1d1d1;
+    }
+    .filtered-empty-state {
+        display: none;
+    }
 </style>
 @section('links')
     @if (isset($project_id) && $project_id != -1)
@@ -205,6 +243,7 @@
     <li class="breadcrumb-item">{{ __('Order Forms Board') }}</li>
     <img class="legendIcon" src="{{ asset('assets/img/questionCircle.svg') }}" />
     <div class="legend">
+        <button type="button" class="legend-close" onclick="this.closest('.legend').style.opacity='0'; this.closest('.legend').style.pointerEvents='none';">&times;</button>
         <span class="lTitle">{{ __('Color legend') }}</span>
         <hr style="backgroundColor: #e0e1e1; width: 100%; height: 2px;">
         <div class="lEntry" style="border:2px solid #000000 ;height: 5rem !important; text-align: center; "
@@ -278,6 +317,7 @@
 @endsection
 
 @section('content')
+    @include('saver.saver', ['letters' => 'ESPERE...', 'overlayId' => 'espera-overlay'])
     <div class="row modifiedWidth">
         <div class="col-sm-12">
             <div class="row kanban-wrapper horizontal-scroll-cards" data-toggle="dragula"
@@ -288,13 +328,27 @@
                             <div class="card-header">
                                 <div class="float-end">
                                     <button class="btn-submit btn btn-md btn-primary btn-icon px-1 py-0 "
-                                        style="height: 19.7px;">
+                                        style="height: 19.7px; margin-top:2px">
                                         <span class="badge badge-secondary rounded-pill count">
                                             {{ isset($milestones[$status->id]) ? count($milestones[$status->id]) : 0 }}
                                         </span>
                                     </button>
                                 </div>
                                 <h4 class="mb-0">
+                                    @switch($status->id)
+                                        @case(1)
+                                            <i class="ti ti-clipboard-list me-1" style="color: #aa182c;"></i>
+                                            @break
+                                        @case(2)
+                                            <i class="ti ti-activity me-1" style="color: #aa182c;"></i>
+                                            @break
+                                        @case(3)
+                                            <i class="ti ti-eye me-1" style="color: #aa182c;"></i>
+                                            @break
+                                        @case(4)
+                                            <i class="ti ti-circle-check me-1" style="color: #aa182c;"></i>
+                                            @break
+                                    @endswitch
                                     {{ __($status->name) }}
                                 </h4>
                             </div>
@@ -341,11 +395,31 @@
                                             'currentWorkspace' => $currentWorkspace,
                                             'project_id' => $project_id,
                                             'extraClass' => 'other-user-milestone',
-                                            'inlineStyle' => 'display:none;',
+                                            'inlineStyle' => '',
                                             'ownerShip' => 'no',
                                         ])
                                     @endforeach
                                 @endif
+
+                                @php
+                                    $msCount = (isset($milestones[$status->id]) ? count($milestones[$status->id]) : 0)
+                                             + (isset($milestonesUsers[$status->id]) ? count($milestonesUsers[$status->id]) : 0);
+                                @endphp
+                                <div class="noNotificationsContainer" style="margin-top: -20px; {{ $msCount > 0 ? 'display: none;' : '' }}">
+                                    <span class="dash-micon">
+                                        <i class="fa-solid fa-file-lines"></i>
+                                    </span>
+                                    <small class="empty-state-text">{{ __('No order forms yet') }}</small>
+                                    <span style="font-size: 11px; color: #999; margin-top: 4px;">{{ __('Drag an order form here') }}</span>
+                                </div>
+
+                                <div class="noNotificationsContainer filtered-empty-state" style="margin-top: -20px; display: none;">
+                                    <span class="dash-micon">
+                                        <i class="fa-solid fa-eye-slash"></i>
+                                    </span>
+                                    <small class="empty-state-text">{{ __('Hidden order forms') }}</small>
+                                    <span style="font-size: 11px; color: #999; margin-top: 4px;">{{ __('Apply filters to view them') }}</span>
+                                </div>
 
                             </div>
                         </div>
@@ -520,6 +594,9 @@
                             // Inicializamos dragula y agregamos eventos 'drag' y 'drop'
                             dragula(containersArray, {
                                     moves: function(el, container, handle) {
+                                        if (handle && handle.closest && handle.closest('.milestone-dropdown-toggle')) {
+                                            return false;
+                                        }
                                         return el.classList.contains('card');
                                     }
                                 })
@@ -532,6 +609,33 @@
                                 .on('drop', handleDrop);
                         });
                     };
+
+                    function updateTaskCount(container) {
+                        var parentCardList = a(container).parents('.card-list');
+                        var allCards = a(container).children('.card');
+                        var totalCount = allCards.length;
+                        var visibleCount = allCards.filter(function() {
+                            return a(this).css('display') !== 'none';
+                        }).length;
+                        parentCardList.find('.count').text(visibleCount);
+                        var emptyState = a(container).find('.noNotificationsContainer').first();
+                        if (emptyState.length) {
+                            if (totalCount > 0) {
+                                emptyState.hide();
+                            } else {
+                                emptyState.show();
+                            }
+                        }
+                        var status = a(container).data('status');
+                        if (status == 4 && totalCount != visibleCount) {
+                            console.warn('[COUNTER] Columna Hecho: total=' + totalCount + ' visible=' + visibleCount);
+                            allCards.each(function() {
+                                if (a(this).css('display') === 'none') {
+                                    console.warn('[COUNTER] Card oculta:', a(this).attr('id'), 'data-project-id:', a(this).data('project-id'));
+                                }
+                            });
+                        }
+                    }
 
                     function handleDrop(el, target, source, sibling) {
                         // Obtenemos el nuevo orden de los elementos en el contenedor destino
@@ -552,23 +656,12 @@
                         var oldStatus = a(source).data('status');
                         var newStatus = a(target).data('status');
                         var project_id = a(el).data('project-id');
-                        // var milestoneTitle = a(el).find('mileTitle').text(); // Título del milestone
-                        var milestoneTitle = a(el).find('.mileTitle').attr('data-header');
-
-                        // Fallback: Si no encontramos data-header, intentar obtener el text()
-                        if (!milestoneTitle) {
-                            milestoneTitle = a(el).find('.mileTitle').text();
-                        }
-
-                        // Fallback: Si aún no tenemos título, intentar por id milestoneTitleForNotification
-                        if (!milestoneTitle) {
-                            milestoneTitle = a(el).find('#milestoneTitleForNotification').text();
-                        }
+                        // El título vive en el atributo data-milestone-title del card o en .milestone-title
+                        var milestoneTitle = a(el).attr('data-milestone-title') || a(el).find('.milestone-title').text() || '';
 
                         console.log("el completo ");
                         console.log(el)
                         console.log("Milestone Title (obtenido): " + milestoneTitle);
-                        console.log("longitud " + a(el).find('#milestoneTitleForNotification').length);
 
                         // Guardar el título tanto en data como en atributo HTML para persistencia
                         a(el).data('milestoneTitle', milestoneTitle);
@@ -669,6 +762,46 @@
 
                                     // Escuchar el evento solo si se disparó desde el form
                                     document.addEventListener('milestoneAssigned', function showTaskModal() {
+                                        // Si la card ya tiene tareas, NO abrir "Create New Task":
+                                        // solo se persiste el paso a "en curso" y se recarga el board
+                                        var $milestoneCardEl = a("#" + cardId);
+                                        var hasTasks = $milestoneCardEl.find('.milestone-task').length > 0;
+
+                                        if (hasTasks) {
+                                            var orderUrl = '{{ route('milestone.update.order', [$currentWorkspace->slug, ':projectId']) }}'
+                                                .replace(':projectId', project_id);
+                                            var sort = [];
+                                            var container = $milestoneCardEl.closest('.card-list');
+                                            container.find('.card').each(function(key) {
+                                                var cid = a(this).attr('id');
+                                                if (cid) {
+                                                    sort.push(cid);
+                                                }
+                                            });
+                                            a.ajax({
+                                                url: orderUrl,
+                                                type: 'POST',
+                                                data: {
+                                                    id: cardId,
+                                                    sort: sort,
+                                                    new_status: 2,
+                                                    old_status: 1,
+                                                    project_id: project_id
+                                                },
+                                                success: function() {
+                                                    location.reload();
+                                                }
+                                            });
+                                            return;
+                                        }
+
+                                        // Mostrar el loader de texto grande "ESPERE" durante el delay
+                                        var esperaOverlay = document.getElementById('espera-overlay');
+                                        if (esperaOverlay) {
+                                            esperaOverlay.style.display = 'flex';
+                                            document.body.style.overflow = 'hidden';
+                                        }
+
                                         setTimeout(() => {
 
 
@@ -687,16 +820,8 @@
 
                                             // Si no tenemos el título desde atributo, intentar obtenerlo directamente
                                             if (!retrievedTitle) {
-                                                retrievedTitle = $milestoneCard.find('.mileTitle').attr(
-                                                    'data-header');
-                                            }
-                                            if (!retrievedTitle) {
-                                                retrievedTitle = $milestoneCard.find('.mileTitle')
+                                                retrievedTitle = $milestoneCard.find('.milestone-title')
                                                     .text();
-                                            }
-                                            if (!retrievedTitle) {
-                                                retrievedTitle = $milestoneCard.find(
-                                                    '#milestoneTitleForNotification').text();
                                             }
                                             if (!retrievedTitle) {
                                                 retrievedTitle = milestoneTitle || 'Sin título';
@@ -739,9 +864,22 @@
                                                     }
                                                     $('#' + modalId + ' .body').html(
                                                         taskData);
+                                                    if (esperaOverlay) {
+                                                        esperaOverlay.style.display = 'none';
+                                                        document.body.style.overflow = 'auto';
+                                                    }
                                                     modal.show();
                                                     commonLoader();
                                                     loadConfirm();
+                                                },
+                                                error: function(xhr, status, error) {
+                                                    console.error(
+                                                        'Error al cargar el formulario de creación de tarea:',
+                                                        error);
+                                                    if (esperaOverlay) {
+                                                        esperaOverlay.style.display = 'none';
+                                                        document.body.style.overflow = 'auto';
+                                                    }
                                                 }
                                             });
                                         }, 2000);
@@ -787,12 +925,19 @@
                                         let notificationList = document.querySelector('.limited');
                                         let newNotification = document.createElement('div');
                                         newNotification.classList.add('notificationSTL');
-                                        newNotification.innerHTML = `
-                    <span class="textRepo">${data.data.msg}</span>
-                    <span class="textRepo">${data.data.type}</span>
-                    <button type="button" class="btn-close repoIcon" aria-label="Close"></button>
-                `;
-                                        notificationList.prepend(newNotification);
+                                        const span1 = document.createElement('span');
+                                        span1.className = 'textRepo';
+                                        span1.textContent = data.data.msg;
+                                        const span2 = document.createElement('span');
+                                        span2.className = 'textRepo';
+                                        span2.textContent = data.data.type;
+                                        const btn = document.createElement('button');
+                                        btn.type = 'button';
+                                        btn.className = 'btn-close repoIcon';
+                                        btn.setAttribute('aria-label', 'Close');
+                                        newNotification.appendChild(span1);
+                                        newNotification.appendChild(span2);
+                                        newNotification.appendChild(btn);
                                     }
                                 })
                                 .catch(error => console.error("Error al agregar notificación:", error));
@@ -806,6 +951,11 @@
                             document.getElementById('statusChangeModal').dataset.newStatus = newStatus;
                             document.getElementById('statusChangeModal').dataset.projectId = project_id;
                             document.getElementById('statusChangeModal').dataset.sort = JSON.stringify(sort);
+                            // Guardar contexto para revertir si se cancela (patrón ASSIGN)
+                            $(document.getElementById('statusChangeModal')).data('originContainer', source);
+                            document.getElementById('statusChangeModal').dataset.originalIndex = a(el).data('originalIndex');
+                            document.getElementById('statusChangeModal').dataset.saved = '0';
+                            document.getElementById('statusChangeModal').dataset.reverted = '0';
 
                             // Limpiar el textarea
                             document.getElementById('statusChangeComment').value = '';
@@ -868,11 +1018,19 @@
                                                         let notificationList = document.querySelector('.limited');
                                                         let newNotification = document.createElement('div');
                                                         newNotification.classList.add('notificationSTL');
-                                                        newNotification.innerHTML = `
-                <span class="textRepo">${data.data.msg}</span>
-                <span class="textRepo">${data.data.type}</span>
-                <button type="button" class="btn-close repoIcon" aria-label="Close"></button>
-            `;
+                                                        const spanMsg = document.createElement('span');
+                                                        spanMsg.className = 'textRepo';
+                                                        spanMsg.textContent = data.data.msg;
+                                                        const spanType = document.createElement('span');
+                                                        spanType.className = 'textRepo';
+                                                        spanType.textContent = data.data.type;
+                                                        const btn = document.createElement('button');
+                                                        btn.type = 'button';
+                                                        btn.className = 'btn-close repoIcon';
+                                                        btn.setAttribute('aria-label', 'Close');
+                                                        newNotification.appendChild(spanMsg);
+                                                        newNotification.appendChild(spanType);
+                                                        newNotification.appendChild(btn);
                                                         notificationList.prepend(newNotification);
                                                     }
                                                 })
@@ -988,6 +1146,7 @@
                                                     // Actualizar contadores de tareas
                                                     updateTaskCount(source);
                                                     updateTaskCount(newContainer);
+                                                    updateTaskCount(target);
                                                 }
 
                                                 const toastMessage = data.has_tasks ?
@@ -1055,7 +1214,7 @@
 
                             // === Mostrar popup personalizado cuando milestone pasa a estado 3 ===
                             var milestoneId = a(el).find('#milestoneReqName').attr('data-milestone-id');
-                            var milestoneTitle = a(el).find('.mileTitle').attr('data-header');
+                            var milestoneTitle = a(el).attr('data-milestone-title') || a(el).find('.milestone-title').text() || '';
                             var projectId = a(el).data('project-id');
                             var modalId = 'commonModal';
 
@@ -1113,6 +1272,9 @@
                         // el atributo data-status se actualiza y el toggle lo detecta correctamente.
                         a(el).attr('data-status', newStatus);
 
+                        var extraInfo = window.getTargetExtraInfo ? window.getTargetExtraInfo(el, newStatus) : null;
+                        if (extraInfo) window.replaceMilestoneExtraInfo(el, extraInfo);
+
                         // Se realiza la llamada AJAX para actualizar el orden y el estado en el servidor
                         a.ajax({
                             url: '{{ route('milestone.update.order', [$currentWorkspace->slug, $milestone['project_id']]) }}',
@@ -1131,12 +1293,6 @@
                                 console.error('Error al actualizar el orden:', error);
                             }
                         });
-                    }
-
-                    function updateTaskCount(container) {
-                        var parentCardList = a(container).parents('.card-list');
-                        var count = a(container).children('.card').length;
-                        parentCardList.find('.count').text(count);
                     }
 
                     a.Dragula = new t;
@@ -1314,115 +1470,87 @@
                     }
                 });
             </script>
-
-
-            <script>
-                document.addEventListener('DOMContentLoaded', function() {
-                    // Delegación de eventos para manejar clicks dinámicos
-                    document.body.addEventListener('click', function(e) {
-                        const mileTitle = e.target.closest('.mileTitle');
-                        if (!mileTitle) return;
-
-                        const slug = mileTitle.dataset.projectSlug;
-                        const milestoneId = mileTitle.dataset.milestoneId;
-                        const viewLink = document.querySelector(`a[data-url*="/milestone/${milestoneId}/show"]`);
-
-                        if (viewLink) {
-                            // Simular click en el enlace "View" real
-                            viewLink.click();
-                        } else {
-                            // Fallback manual
-                            const url = `${window.location.origin}/projects/${slug}/milestone/${milestoneId}/show`;
-                            const modalEl = document.getElementById('commonModal');
-                            const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
-
-                            // Reset modal dialog classes before loading new content
-                            const modalDialog = modalEl.querySelector('.modal-dialog');
-                            if (modalDialog) {
-                                modalDialog.className = 'modal-dialog';
-                                modalDialog.removeAttribute('style');
-                            }
-
-                            fetch(url)
-                                .then(response => response.text())
-                                .then(data => {
-                                    modalEl.querySelector('.modal-body').innerHTML = data;
-                                    modal.show();
-                                });
-                        }
-                    });
-                });
-            </script>
             <!-- Script encargado de la acción de "Add Task on Timesheet" al hacer clic en una tarea (se desactiva si el milestone está en status 4) -->
             <script>
-                // Espera a que el DOM esté completamente cargado
-                document.addEventListener('DOMContentLoaded', function() {
+                window.bindMilestoneTaskClick = function(task) {
+                    if (!task || task.getAttribute('data-click-bound') === '1') return;
+                    task.setAttribute('data-click-bound', '1');
 
-                    // Selecciona todos los elementos con la clase .taskList
-                    const tasks = document.querySelectorAll('.taskList');
+                    // Verifica si el técnico asignado es el usuario actual
+                    const technicianId = task.getAttribute('data-technician-name');
+                    const currentUserId = "{{ Auth::id() }}";
 
-                    tasks.forEach(task => {
-                        // Verifica si el técnico asignado es el usuario actual
-                        const technicianId = task.getAttribute('data-technician-name');
-                        const currentUserId = "{{ Auth::id() }}";
-
-                        if (technicianId === currentUserId) {
-                            task.addEventListener('click', function() {
-                                // El resto del código del evento click se mantiene igual
-                                const milestone = this.closest('.card');
-                                const milestoneStatus = milestone.getAttribute('data-status');
-
-                                if (milestoneStatus === '4' || milestoneStatus === '3') {
-                                    console.log(
-                                        'El milestone está en status 3 o 4, no se ejecutará la acción.');
-                                    return;
-                                }
-
-                                const taskData = {
-                                    task_id: this.getAttribute('data-task-id'),
-                                    milestone_id: this.getAttribute('data-milestone-id'),
-                                    project_id: this.getAttribute('data-project-id'),
-                                    user_id: this.getAttribute('data-technician-name'),
-                                    date: new Date().toISOString().split('T')[0],
-                                };
-
-                                $.ajax({
-                                    url: '{{ route('create.timesheet.from.orders', [$currentWorkspace->slug, $project_id]) }}',
-                                    type: 'GET',
-                                    data: taskData,
-                                    success: function(data) {
-                                        var modalEl = document.getElementById(
-                                            'modal-container');
-                                        // Reset modal dialog
-                                        var modalDialog = modalEl.querySelector(
-                                            '.modal-dialog');
-                                        if (modalDialog) {
-                                            modalDialog.className = 'modal-dialog';
-                                            modalDialog.removeAttribute('style');
-                                        }
-                                        $('#modal-container .modal-content').html(data).css({
-                                            'text-align': 'left',
-                                            'width': '800px'
-                                        });
-                                        var myModal = bootstrap.Modal.getOrCreateInstance(
-                                            modalEl);
-                                        myModal.show();
-                                    },
-                                    error: function(xhr, status, error) {
-                                        console.error('Error al actualizar el orden:', error);
-                                    }
-                                });
-                            });
-                        } else {
-                            // Desactiva el evento click si el técnico asignado no es el usuario actual
-                            task.addEventListener('click', function(event) {
-                                event.stopPropagation();
-                                event.preventDefault();
-                            });
-                            // Añade el estilo de cursor not-allowed
+                    if (technicianId === currentUserId) {
+                        if (task.classList.contains('task-inactive')) {
                             task.style.cursor = 'not-allowed';
                         }
-                    });
+                        task.addEventListener('click', function() {
+                            // El resto del código del evento click se mantiene igual
+                            const milestone = this.closest('.card');
+                            if (!milestone) return;
+                            const milestoneStatus = milestone.getAttribute('data-status');
+
+                            if (milestoneStatus === '4' || milestoneStatus === '3') {
+                                console.log(
+                                    'El milestone está en status 3 o 4, no se ejecutará la acción.');
+                                return;
+                            }
+
+                            if (this.classList.contains('task-inactive')) {
+                                // Tareas "por hacer" (tipo 3): no se permite imputar horas
+                                return;
+                            }
+
+                            const taskData = {
+                                task_id: this.getAttribute('data-task-id'),
+                                milestone_id: this.getAttribute('data-milestone-id'),
+                                project_id: this.getAttribute('data-project-id'),
+                                user_id: this.getAttribute('data-technician-name'),
+                                date: new Date().toISOString().split('T')[0],
+                            };
+
+                            $.ajax({
+                                url: this.getAttribute('data-url') || '{{ route('create.timesheet.from.orders', [$currentWorkspace->slug, $project_id]) }}',
+                                type: 'GET',
+                                data: taskData,
+                                success: function(data) {
+                                    var modalEl = document.getElementById(
+                                        'modal-container');
+                                    if (!modalEl) return;
+                                    // Reset modal dialog
+                                    var modalDialog = modalEl.querySelector(
+                                        '.modal-dialog');
+                                    if (modalDialog) {
+                                        modalDialog.className = 'modal-dialog';
+                                        modalDialog.removeAttribute('style');
+                                    }
+                                    $('#modal-container .modal-content').html(data).css({
+                                        'text-align': 'left',
+                                        'width': '800px'
+                                    });
+                                    var myModal = bootstrap.Modal.getOrCreateInstance(
+                                        modalEl);
+                                    myModal.show();
+                                },
+                                error: function(xhr, status, error) {
+                                    console.error('Error al actualizar el orden:', error);
+                                }
+                            });
+                        });
+                    } else {
+                        // Desactiva el evento click si el técnico asignado no es el usuario actual
+                        task.addEventListener('click', function(event) {
+                            event.stopPropagation();
+                            event.preventDefault();
+                        });
+                        // Añade el estilo de cursor not-allowed
+                        task.style.cursor = 'not-allowed';
+                    }
+                };
+
+                document.addEventListener('DOMContentLoaded', function() {
+                    // Selecciona todos los elementos con la clase .taskList
+                    document.querySelectorAll('.milestone-task, .taskList').forEach(window.bindMilestoneTaskClick);
                 });
             </script>
             <!-- Script encargado de mostrar/ocultar la leyenda de colores -->
@@ -1494,15 +1622,161 @@
                     const statusModal = document.getElementById('statusChangeModal');
                     if (!statusModal) return;
 
-                    // Se ejecuta cuando se cierra por Cancelar, X o backdrop
+                    // Réplica local de updateTaskCount (que vive dentro del IIFE de dragula).
+                    // Mantiene la convención del archivo: `.card-list .count` + `.noNotificationsContainer`.
+                    function refreshBoardCounts(board) {
+                        var parentCardList = $(board).parents('.card-list');
+                        var allCards = $(board).children('.card');
+                        var totalCount = allCards.length;
+                        var visibleCount = allCards.filter(function() {
+                            return $(this).css('display') !== 'none';
+                        }).length;
+                        parentCardList.find('.count').text(visibleCount);
+                        var emptyState = $(board).find('.noNotificationsContainer').first();
+                        if (emptyState.length) {
+                            if (totalCount > 0) {
+                                emptyState.hide();
+                            } else {
+                                emptyState.show();
+                            }
+                        }
+                        var status = $(board).data('status');
+                        if (status == 4 && totalCount != visibleCount) {
+                            console.warn('[COUNTER] Columna Hecho: total=' + totalCount + ' visible=' + visibleCount);
+                        }
+                    }
+
+                    // Revertir la card a su columna "En revisión" y posición original (sin reload).
+                    // Se ejecuta al instante al pulsar Cancelar/X; el hidden actúa como fallback.
+                    function revertStatusChangeToReview() {
+                        if (statusModal.dataset.reverted === '1') return;
+                        statusModal.dataset.reverted = '1';
+
+                        const milestoneId = statusModal.dataset.milestoneId;
+                        const originContainer = $(statusModal).data('originContainer');
+                        const originalIndex = parseInt(statusModal.dataset.originalIndex || '-1', 10);
+                        const previousStatus = statusModal.dataset.oldStatus || '3';
+                        const projectId = statusModal.dataset.projectId;
+
+                        if (!milestoneId || !originContainer) return;
+
+                        const $milestoneCard = $(`.card[id='${milestoneId}']`);
+                        const $origin = $(originContainer);
+
+                        if ($milestoneCard.length && $origin.length) {
+                            // Insertar en la misma posición si existe
+                            const $cards = $origin.children('.card');
+                            $milestoneCard.detach();
+                            if ($cards.length > 0 && originalIndex >= 0 && originalIndex < $cards.length) {
+                                $milestoneCard.insertBefore($cards.eq(originalIndex));
+                            } else {
+                                $origin.append($milestoneCard);
+                            }
+
+                            $milestoneCard.attr('data-status', previousStatus);
+
+                            // Recalcular contadores (convención local)
+                            refreshBoardCounts($origin[0]);
+                            const destContainer = document.querySelector(`.kanban-box[data-status='${statusModal.dataset.newStatus || '2'}']`);
+                            if (destContainer) refreshBoardCounts(destContainer);
+
+                            // Restaurar el extra-info del estado anterior (en revisión)
+                            const extraInfo = window.getTargetExtraInfo ? window.getTargetExtraInfo($milestoneCard[0], previousStatus) : null;
+                            if (extraInfo) window.replaceMilestoneExtraInfo($milestoneCard[0], extraInfo);
+                        }
+
+                        // Rollback en backend (patrón ASSIGN) sin reload
+                        $.ajax({
+                            url: '{{ route('milestone.update.order', [$currentWorkspace->slug, ':projectId']) }}'
+                                .replace(':projectId', projectId),
+                            type: 'POST',
+                            headers: {
+                                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                            },
+                            data: {
+                                id: milestoneId,
+                                sort: [],
+                                new_status: previousStatus,
+                                old_status: 2,
+                                project_id: projectId
+                            },
+                            complete: function() {
+                                // nada; no recargamos aquí para evitar parpadeos
+                            }
+                        });
+                    }
+
+                    // Revertir AL INSTANTE al pulsar Cancelar o la X (antes de que el modal se oculte)
+                    statusModal.querySelectorAll('[data-bs-dismiss="modal"]').forEach(function(btn) {
+                        btn.addEventListener('click', function() {
+                            if (statusModal.dataset.saved !== '1') {
+                                revertStatusChangeToReview();
+                            }
+                        });
+                    });
+
+                    // Se ejecuta cuando el modal terminó de cerrarse.
+                    // Fallback para cierres por ESC/backdrop que no dispararon el click anterior.
                     statusModal.addEventListener('hidden.bs.modal', function() {
-                        // Recargar la página siempre que se cierre el modal
-                        location.reload();
+                        // Si se confirmó (saved === 1) no se revierte: el submit ya actualizó el DOM
+                        if (statusModal.dataset.saved !== '1' && statusModal.dataset.reverted !== '1') {
+                            revertStatusChangeToReview();
+                        }
+                        statusModal.dataset.saved = '0';
+                        statusModal.dataset.reverted = '0';
                     });
                 });
             </script>
 
             <script>
+                // Réplica local de updateTaskCount para este scope (el original está dentro del IIFE de dragula)
+                function refreshBoardCounts(board) {
+                    var parentCardList = $(board).parents('.card-list');
+                    var allCards = $(board).children('.card');
+                    var totalCount = allCards.length;
+                    var visibleCount = allCards.filter(function() {
+                        return $(this).css('display') !== 'none';
+                    }).length;
+                    parentCardList.find('.count').text(visibleCount);
+                    var emptyState = $(board).find('.noNotificationsContainer').first();
+                    if (emptyState.length) {
+                        if (totalCount > 0) {
+                            emptyState.hide();
+                        } else {
+                            emptyState.show();
+                        }
+                    }
+                    var status = $(board).data('status');
+                    if (status == 4 && totalCount != visibleCount) {
+                        console.warn('[COUNTER] Columna Hecho: total=' + totalCount + ' visible=' + visibleCount);
+                    }
+                }
+
+                function showEsperaOverlay() {
+                    var overlay = document.getElementById('espera-overlay');
+                    if (overlay) {
+                        overlay.style.display = 'flex';
+                        document.body.style.overflow = 'hidden';
+                    }
+                }
+
+                function hideEsperaOverlay() {
+                    var overlay = document.getElementById('espera-overlay');
+                    if (overlay) {
+                        overlay.style.display = 'none';
+                        document.body.style.overflow = '';
+                    }
+                }
+
+                // Aplica el nuevo estado (2) en la card sin recargar
+                function applyStatusChangeToCard(milestoneId, newStatus) {
+                    const card = document.getElementById(String(milestoneId));
+                    if (!card) return;
+                    card.setAttribute('data-status', newStatus);
+                    const extraInfo = window.getTargetExtraInfo ? window.getTargetExtraInfo(card, newStatus) : null;
+                    if (extraInfo) window.replaceMilestoneExtraInfo(card, extraInfo);
+                }
+
                 function submitStatusChange() {
                     const modal = document.getElementById('statusChangeModal');
 
@@ -1518,6 +1792,12 @@
                         alert("Debes indicar el motivo para volver a In Progress.");
                         return;
                     }
+
+                    // Marcamos como confirmado antes de ocultar: el hidden no debe revertir
+                    modal.dataset.saved = '1';
+
+                    // Spinner como holder mientras se persiste (sin recargar)
+                    showEsperaOverlay();
 
                     $.ajax({
                         url: '{{ route('milestone.update.order', [$currentWorkspace->slug, ':projectId']) }}'
@@ -1547,24 +1827,33 @@
                                     headers: {
                                         'X-CSRF-TOKEN': '{{ csrf_token() }}'
                                     },
-                                    success: function() {
-                                        // cuando termina, recargamos
-                                        location.reload();
-                                    },
-                                    error: function(xhr, status, error) {
-                                        console.error('Error al eliminar puntuaciones:', error);
-                                        // aunque falle el borrado, recarga para reflejar el cambio de status
-                                        location.reload();
+                                    complete: function() {
+                                        // Actualizamos la card sin recargar
+                                        applyStatusChangeToCard(milestoneId, newStatus);
+
+                                        // Contadores de ambas columnas (convención local)
+                                        const sourceBox = document.querySelector(`.kanban-box[data-status='${oldStatus}']`);
+                                        const destBox = document.querySelector(`.kanban-box[data-status='${newStatus}']`);
+                                        if (sourceBox) refreshBoardCounts(sourceBox);
+                                        if (destBox) refreshBoardCounts(destBox);
+
+                                        hideEsperaOverlay();
                                     }
                                 });
 
                             } else {
-                                // otros cambios -> recarga normal
-                                location.reload();
+                                // otros cambios -> actualización DOM (sin recarga)
+                                applyStatusChangeToCard(milestoneId, newStatus);
+                                const sourceBox = document.querySelector(`.kanban-box[data-status='${oldStatus}']`);
+                                const destBox = document.querySelector(`.kanban-box[data-status='${newStatus}']`);
+                                if (sourceBox) refreshBoardCounts(sourceBox);
+                                if (destBox) refreshBoardCounts(destBox);
+                                hideEsperaOverlay();
                             }
                         },
                         error: function(xhr, status, error) {
                             console.error('Error al actualizar estado:', error);
+                            hideEsperaOverlay();
                             alert('{{ __('Error updating milestone status') }}');
                         }
                     });
@@ -1572,5 +1861,7 @@
                     bootstrap.Modal.getOrCreateInstance(modal).hide();
                 }
             </script>
+
+            @include('projects.partials.task_review_modal')
         @endpush
     @endif

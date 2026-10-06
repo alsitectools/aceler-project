@@ -1,0 +1,6 @@
+<IfModule mod_headers.c>
+    <FilesMatch "\.(pdf|doc|docx|zip|rar|dwg|dxf)$">
+        Header set Content-Disposition "attachment"
+        Header set X-Content-Type-Options "nosniff"
+    </FilesMatch>
+</IfModule>

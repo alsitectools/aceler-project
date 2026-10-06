@@ -72,7 +72,7 @@
                                 <select class="form-select" name="currant_workspace" id="currant_workspace" required>
                                     <option disabled selected></option>
                                     @foreach ($workspaces as $workspace)
-                                        <option value={{ $workspace->slug }}>{{ $workspace->name }}</option>
+                                        <option value={{ $workspace->slug }}>{{ $workspace->display_name }}</option>
                                     @endforeach
                                 </select>
                             </div>

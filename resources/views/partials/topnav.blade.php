@@ -61,6 +61,16 @@
     .noti-body {
         height: 600px;
         overflow: auto;
+        position: relative;
+    }
+
+    .noNotificationsContainer {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        text-align: center;
+        width: 100%;
     }
 
     .notificationSTL {
@@ -503,7 +513,7 @@
         </div>
     </div>
 </header>
-<script>
+{{-- <script>
     document.getElementById('addNotificationBtn').addEventListener('click', function() {
         let msg = prompt("Escribe tu notificación:");
         let ntipe = 4
@@ -528,17 +538,26 @@
                     let notificationList = document.querySelector('.limited');
                     let newNotification = document.createElement('div');
                     newNotification.classList.add('notificationSTL');
-                    newNotification.innerHTML =
-                        `<span class="textRepo">${data.data.msg}</span>
-                     <span class="textRepo">${data.data.type}</span>
-                     <button type="button" class="btn-close repoIcon" aria-label="Close"></button>`;
+                    const span1 = document.createElement('span');
+                    span1.className = 'textRepo';
+                    span1.textContent = data.data.msg;
+                    const span2 = document.createElement('span');
+                    span2.className = 'textRepo';
+                    span2.textContent = data.data.type;
+                    const btn = document.createElement('button');
+                    btn.type = 'button';
+                    btn.className = 'btn-close repoIcon';
+                    btn.setAttribute('aria-label', 'Close');
+                    newNotification.appendChild(span1);
+                    newNotification.appendChild(span2);
+                    newNotification.appendChild(btn);
                     notificationList.prepend(newNotification);
                     checkEmptyState()
                 }
             })
             .catch(error => console.error("Error al agregar notificación:", error));
     });
-</script>
+</script> --}}
 <script>
     // Asocia el evento click a cada botón de cierre dentro de las notificaciones
     document.querySelectorAll('.notificationSTL .btn-close').forEach(function(button) {

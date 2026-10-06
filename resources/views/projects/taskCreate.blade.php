@@ -118,6 +118,84 @@
                     <input type="hidden" name="task_assign_override" id="task_assign_override" value="">
                 </div>
 
+                <!-- Master -->
+                <div class="form-group col-md-12 mt-2 d-none" id="master-container">
+                    <label class="col-form-label">{{ __('Referencia') }}
+                        <i id="referencia-help" class="fa-solid fa-info-circle text-muted" tabindex="0"
+                            role="button" aria-label="{{ __('Ayuda para rellenar la referencia') }}"
+                            style="cursor: pointer;"></i>
+                    </label>
+                    <div class="d-flex align-items-center gap-1">
+                        <input type="text" class="form-control master-box text-center" maxlength="2" data-master-index="1" readonly placeholder="YY">
+                        <input type="text" class="form-control master-box text-center" maxlength="6" data-master-index="2" placeholder="EN" autocomplete="off">
+                        <input type="text" class="form-control master-box master-num text-center" maxlength="3" data-master-index="3" inputmode="numeric" placeholder="000" readonly>
+                        <input type="text" class="form-control master-box master-letter text-center" maxlength="1" data-master-index="4" placeholder="A">
+                        <div class="master-sys-dd">
+                            <button type="button" class="master-sys-btn text-center" aria-expanded="false">
+                                <span class="master-sys-value"></span>
+                            </button>
+                            <div class="master-sys-menu">
+                                <a class="master-sys-item" href="#" data-value="" data-label="0" data-name="0">0</a>
+                                @foreach ($systems as $sys)
+                                    <a class="master-sys-item" href="#" data-value="{{ $sys->id_system }}" data-label="{{ $sys->id_system }}" data-name="{{ $sys->name_system ?: $sys->code_system }}">{{ $sys->id_system }} · {{ $sys->name_system ?: $sys->code_system }}</a>
+                                @endforeach
+                            </div>
+                            <input type="hidden" class="master-box" data-master-index="5" value="">
+                        </div>
+                        <span class="mx-1">.</span>
+                        <input type="text" class="form-control master-box text-center" maxlength="1" data-master-index="6" inputmode="numeric" placeholder="0">
+                        <span class="mx-1">-</span>
+                        <input type="text" class="form-control master-box text-center" maxlength="1" data-master-index="7" inputmode="numeric" placeholder="0">
+                        <input type="text" class="form-control master-box text-center" maxlength="1" data-master-index="8" inputmode="numeric" placeholder="0">
+                    </div>
+                    <input type="hidden" id="task-referencia" name="referencia" value="">
+                    <div class="mt-2 p-2" style="background:#f8f9fa; border-radius:6px; font-size:0.85rem;">
+                        <span class="text-muted" style="font-size:0.72rem; text-transform:uppercase; letter-spacing:.5px;">{{ __('Referencia') }}</span>
+                        <div class="font-monospace" style="letter-spacing:1px;" id="referencia-preview">
+                            <span class="text-muted">—</span>
+                        </div>
+                    </div>
+                    <div class="mt-2 p-2" style="background:#fff; border:1px dashed #dee2e6; border-radius:6px; font-size:0.85rem;">
+                        <span class="text-muted" style="font-size:0.72rem; text-transform:uppercase; letter-spacing:.5px;">{{ __('Últimas 5 referencias') }}</span>
+                        <div class="font-monospace" style="letter-spacing:0.5px;" id="ultimas-refs">
+                            <span class="text-muted">—</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group col-md-12 mt-2 d-none" id="empresa-container">
+                    <label class="col-form-label">{{ __('Empresa') }}</label>
+                    <div class="empresa-dd">
+                        <input type="text" class="form-control empresa-input" id="empresa_input"
+                            placeholder="{{ __('Buscar empresa...') }}" autocomplete="off" aria-expanded="false">
+                        <div class="empresa-menu">
+                            <a class="empresa-item" href="#" data-value="">—</a>
+                            @foreach ($empresas as $emp)
+                                <a class="empresa-item" href="#" data-value="{{ $emp->id }}" data-id="{{ $emp->id }}"
+                                    data-tosearch="{{ strtolower($emp->id . ' ' . $emp->name) }}">{{ $emp->id }} · {{ $emp->name }}</a>
+                            @endforeach
+                            <a class="empresa-item empresa-no-match" href="#" data-value="" style="display:none;">
+                                {{ __('No hay coincidencia') }}
+                            </a>
+                        </div>
+                        <input type="hidden" name="empresa" id="empresa_id" value="">
+                    </div>
+                </div>
+
+                <div class="form-group col-md-12 mt-2" id="description-toggle-container">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="addDescriptionCheck" style="cursor: pointer;">
+                        <label class="form-check-label" for="addDescriptionCheck" style="cursor: pointer; user-select: none;">
+                            {{ __('Mostrar descripcion') }}
+                        </label>
+                    </div>
+                    <div class="d-none mt-2" id="description-box-container">
+                        <div class="form-control form-control-light"
+                            style="height: auto; min-height: 82px; max-height: 240px; overflow-y: auto; white-space: pre-wrap; background-color: #f8f9fa;"
+                            id="milestone-description-box"></div>
+                    </div>
+                </div>
+
                 {{-- <!-- Fecha de inicio -->
                 <div class="form-group col-md-6" style="width: 100% !important;">
                     <label for="start_date" class="col-form-label">{{ __('Start date') }}</label>
@@ -179,6 +257,14 @@
 <link rel="stylesheet" href="{{ asset('assets/custom/libs/bootstrap-daterangepicker/daterangepicker.css') }}">
 <script src="{{ asset('assets/custom/libs/bootstrap-daterangepicker/daterangepicker.js') }}"></script>
 
+<style>
+    .referencia-help-popover {
+        --bs-popover-zindex: 1080 !important;
+        --bs-popover-max-width: 340px !important;
+        z-index: 1080 !important;
+    }
+</style>
+
 <script>
     $(document).ready(function() {
         const taskCreateForm = $('#taskCreateForm');
@@ -186,12 +272,19 @@
         const milestoneFieldContainer = $('#milestone-field-container');
         const taskTypeContainer = $('#task-container');
         const taskAssignContainer = $('#task-assign-container');
+        const masterContainer = $('#master-container');
+        const empresaContainer = $('#empresa-container');
         const taskAssigneeInput = $('#search-task-assignee');
         const taskAssigneeDropdown = $('#user-select-task-assignee');
         const taskAssigneeHidden = $('#task_assign_override');
         const taskAssigneeFeedback = $('#task-assignee-feedback');
         const currentUserId = "{{ Auth::id() }}";
+        const fromStatusChange = "{{ $fromMilestoneBoard ? 1 : 0 }}" === "1";
         const milestonesData = @json($milestones);
+        const refsData = @json($referenciasData);
+        const delegationCodes = @json($delegations->pluck('id')->values());
+        let delegLetter = '';
+        let delegCodeValue = '';
 
         function getSelectedMilestoneId() {
             const milestoneSelect = $('#milestone_id');
@@ -231,6 +324,31 @@
             }
 
             return String(selectedMilestone.milestone_assigned_to_user || '') === String(currentUserId);
+        }
+
+        function toggleMasterContainer(selectedProject) {
+            const isJobsite = selectedProject && String(selectedProject.type) === '1';
+            masterContainer.toggleClass('d-none', !isJobsite);
+            empresaContainer.toggleClass('d-none', !isJobsite);
+
+            if (isJobsite) {
+                const delegation = String(selectedProject.ref_delegation || '').trim().toUpperCase();
+                delegLetter = String(selectedProject.ref_mo || '').trim() !== '' ? 'O' : 'X';
+                delegCodeValue = delegation;
+                const delegBox = $('.master-box[data-master-index="2"]');
+                delegBox.val(delegation ? delegation + delegLetter : '');
+                delegBox.prop('readonly', delegation !== '');
+                renderUltimasRefs();
+            } else {
+                delegLetter = '';
+                delegCodeValue = '';
+                const delegBox = $('.master-box[data-master-index="2"]');
+                delegBox.val('');
+                delegBox.prop('readonly', false);
+                $('#empresa_id').val('');
+                $('#empresa_input').val('');
+                $('.empresa-dd').removeClass('show');
+            }
         }
 
         function applyProjectTypeLayout(selectedProject, shouldShowTaskAssign) {
@@ -320,10 +438,110 @@
         });
 
         taskCreateForm.on('submit', function(event) {
+            const useAjax = !fromStatusChange && typeof window.milestoneBoardAppendTask === 'function';
+
+            // Validar cuadros obligatorios de la referencia (solo tipo obra / master-container visible)
+            if (!masterContainer.hasClass('d-none')) {
+                const selectedMilestone = (typeof milestonesData !== 'undefined' ? milestonesData : []).find(function(m) {
+                    return String(m.id) === String(getSelectedMilestoneId());
+                });
+                const hasObraNumber = !!selectedMilestone &&
+                    selectedMilestone.obra_number !== null &&
+                    selectedMilestone.obra_number !== undefined;
+
+                let fixedBoxes = [1, 2, 3, 4, 5, 6];
+                if (!hasObraNumber) {
+                    fixedBoxes = fixedBoxes.filter(function(idx) { return idx !== 3; });
+                }
+
+                const missing = fixedBoxes.some(function(idx) {
+                    const value = ($('.master-box[data-master-index="' + idx + '"]').val() || '').trim();
+                    if (value !== '') return false;
+                    return true;
+                });
+
+                if (missing) {
+                    event.preventDefault();
+                    if (typeof show_toastr === 'function') {
+                        show_toastr('Error', '{{ __("Complete los cuadros obligatorios de la referencia (año, delegación, código, zona, sistema y versión).") }}', 'error');
+                    } else {
+                        alert('{{ __("Complete los cuadros obligatorios de la referencia.") }}');
+                    }
+                    return false;
+                }
+            }
+
+            // Envío AJAX: spinner + actualizar solo la tarjeta del tablero (sin recargar la página).
+            // Se intercepta siempre desde el menú de la tarjeta para evitar el rerender completo.
+            if (useAjax) {
+                event.preventDefault();
+            }
+
+            function submitTaskViaAjax() {
+                var esperaOverlay = document.getElementById('espera-overlay');
+                if (esperaOverlay) {
+                    esperaOverlay.style.display = 'flex';
+                    document.body.style.overflow = 'hidden';
+                }
+
+                var $submitBtn = taskCreateForm.find('button[type="submit"]');
+                $submitBtn.prop('disabled', true);
+
+                $.ajax({
+                    url: taskCreateForm.attr('action'),
+                    type: 'POST',
+                    data: new FormData(taskCreateForm[0]),
+                    processData: false,
+                    contentType: false,
+                    headers: { 'Accept': 'application/json' },
+                    success: function(response) {
+                        if (esperaOverlay) {
+                            esperaOverlay.style.display = 'none';
+                            document.body.style.overflow = 'auto';
+                        }
+                        $submitBtn.prop('disabled', false);
+
+                        var modalEl = document.getElementById('commonModal');
+                        if (modalEl) {
+                            var modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+                            modal.hide();
+                        }
+
+                        if (window.milestoneBoardAppendTask) {
+                            window.milestoneBoardAppendTask(response);
+                        }
+
+                        if (typeof show_toastr === 'function') {
+                            show_toastr('Success', response.message || '{{ __("Task Created Successfully!") }}', 'success');
+                        }
+                    },
+                    error: function(xhr) {
+                        if (esperaOverlay) {
+                            esperaOverlay.style.display = 'none';
+                            document.body.style.overflow = 'auto';
+                        }
+                        $submitBtn.prop('disabled', false);
+
+                        var msg = '{{ __("Something went wrong.") }}';
+                        if (xhr.responseJSON && xhr.responseJSON.message) {
+                            msg = xhr.responseJSON.message;
+                        } else if (xhr.responseJSON && xhr.responseJSON.errors) {
+                            msg = Object.values(xhr.responseJSON.errors)[0];
+                        }
+                        if (typeof show_toastr === 'function') {
+                            show_toastr('Error', msg, 'error');
+                        }
+                    }
+                });
+            }
+
             if (taskAssignContainer.hasClass('d-none')) {
                 taskAssigneeInput[0].setCustomValidity('');
                 clearTaskAssigneeInvalidState();
                 taskAssigneeHidden.val('');
+                if (useAjax) {
+                    submitTaskViaAjax();
+                }
                 return;
             }
 
@@ -359,6 +577,10 @@
 
             taskAssigneeInput[0].setCustomValidity('');
             clearTaskAssigneeInvalidState();
+
+            if (useAjax) {
+                submitTaskViaAjax();
+            }
         });
 
         // Si hay un proyecto preseleccionado (vista 1) o se cambia de proyecto (vista 2) se actualizan los selects
@@ -374,6 +596,319 @@
 
         // ✅ Listener SOLO UNA VEZ
         $('#task-list').on('change', toggleCustomTaskName);
+
+        $('#addDescriptionCheck').on('change', function() {
+            $('#description-box-container').toggleClass('d-none', !this.checked);
+            if (this.checked) renderMilestoneDescription();
+        });
+
+        function renderMilestoneDescription() {
+            const box = document.getElementById('milestone-description-box');
+            if (!box) return;
+
+            const selectedMilestoneId = getSelectedMilestoneId();
+            if (!selectedMilestoneId) {
+                box.textContent = '—';
+                return;
+            }
+
+            const milestone = (typeof milestonesData !== 'undefined' ? milestonesData : []).find(function(m) {
+                return String(m.id) === String(selectedMilestoneId);
+            });
+
+            const summary = milestone ? String(milestone.summary || '').trim() : '';
+            box.textContent = summary || '—';
+        }
+
+        // Código de obra (caja 3): se autocompleta con el número del encargo y nunca se edita
+        function renderObraNumberBox() {
+            const box = $('.master-box[data-master-index="3"]');
+            if (!box.length) {
+                return;
+            }
+
+            box.prop('readonly', true);
+
+            const selectedMilestoneId = getSelectedMilestoneId();
+            if (!selectedMilestoneId || masterContainer.hasClass('d-none')) {
+                box.val('');
+                updateMasterHidden();
+                renderUltimasRefs();
+                return;
+            }
+
+            const milestone = (typeof milestonesData !== 'undefined' ? milestonesData : []).find(function(m) {
+                return String(m.id) === String(selectedMilestoneId);
+            });
+
+            const obraNumber = milestone && milestone.obra_number !== null && milestone.obra_number !== undefined
+                ? String(milestone.obra_number).padStart(3, '0')
+                : '';
+
+            box.val(obraNumber);
+            updateMasterHidden();
+            renderUltimasRefs();
+        }
+
+        function updateMasterHidden() {
+            const values = [];
+            $('.master-box').each(function() {
+                values.push($(this).val().toUpperCase());
+            });
+            const [a, b, c, d, e, f, g, h] = values;
+            let ref = (a || '') + (b || '') + (c || '') + (d || '') + (e || '');
+            if (f) ref += '.' + f;
+            if (g || h) ref += '-' + (g || '') + (h ? '(' + h + ')' : '');
+            $('#task-referencia').val(ref);
+
+            const filled = [a, b, c, d, e, f, g, h].map(function(v) { return (v || '').trim() !== ''; });
+            const cell = function(i) {
+                if (filled[i]) {
+                    return String(values[i]).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+                }
+                return filled.slice(i + 1).some(Boolean) ?
+                    '<span style="color:#dc3545; font-weight:700;">#</span>' : '';
+            };
+            let html = cell(0) + cell(1) + cell(2) + cell(3) + cell(4);
+            if (filled[5] || filled.slice(6).some(Boolean)) {
+                html += '.' + cell(5);
+            }
+            if (filled[6] || filled[7]) {
+                html += '-' + cell(6);
+                if (filled[7]) html += '(' + cell(7) + ')';
+            }
+
+            const preview = document.getElementById('referencia-preview');
+            if (preview) {
+                preview.innerHTML = html || '<span class="text-muted">—</span>';
+            }
+        }
+
+        function renderUltimasRefs() {
+            const container = $('#ultimas-refs');
+            if (!container.length) return;
+
+            const deleg = String(delegCodeValue || '').trim();
+            const code = String($('.master-box[data-master-index="3"]').val() || '').trim();
+
+            let items = refsData.filter(function(r) {
+                return !deleg || r.deleg === deleg;
+            });
+            if (code) {
+                const padded = code.padStart(3, '0');
+                items = items.filter(function(r) {
+                    return r.code === padded;
+                });
+            }
+            const top = items.slice(0, 5);
+
+            if (!top.length) {
+                container.html('<span class="text-muted">' +
+                    (code ? '{{ __("Sin referencias para este número de obra") }}'
+                          : '{{ __("Sin referencias para esta delegación") }}') +
+                    '</span>');
+                return;
+            }
+
+            container.html(top.map(function(r) {
+                return '<div>' +
+                    '<span style="color:#6b7280;">' + String(r.code).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;') + ' · </span>' +
+                    String(r.ref).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;') +
+                    '</div>';
+            }).join(''));
+        }
+
+        function setMasterYearBox() {
+            const year = String(new Date().getFullYear()).slice(-2);
+            const box = $('.master-box[data-master-index="1"]');
+            if (box.val() !== year) {
+                box.val(year);
+                updateMasterHidden();
+            }
+        }
+        setMasterYearBox();
+        setInterval(setMasterYearBox, 60000);
+
+        // Popover de ayuda para la referencia (cuadraditos)
+        var referenciaHelpContent = '' +
+            '<div style="padding: 4px 2px;">' +
+            '<p class="mb-1" style="font-weight:600; font-size:0.85rem;">{{ __("Cómo rellenar la referencia") }}</p>' +
+            '<div style="font-size:0.8rem; background:#f8f9fa; border-radius:6px; padding:6px 8px; margin-bottom:8px;">' +
+            '<div style="font-size:0.65rem; text-transform:uppercase; letter-spacing:.5px; color:#6b7280;">{{ __("Ejemplo") }}</div>' +
+            '<code style="color:#0d6efd; font-size:0.85rem;">26</code>' +
+            '<code style="color:#198754; font-size:0.85rem;">EN</code>' +
+            '<code style="color:#dc3545; font-size:0.85rem;">123</code>' +
+            '<code style="color:#fd7e14; font-size:0.85rem;">L</code>' +
+            '<code style="color:#6f42c1; font-size:0.85rem;">3</code>' +
+            '<span style="color:#6b7280;">.</span>' +
+            '<code style="color:#0dcaf0; font-size:0.85rem;">2</code>' +
+            '<span style="color:#6b7280;">-</span>' +
+            '<code style="color:#6610f2; font-size:0.85rem;">1</code>' +
+            '<span style="color:#6b7280;">(</span>' +
+            '<code style="color:#d63384; font-size:0.85rem;">1</code>' +
+            '<span style="color:#6b7280;">)</span>' +
+            '</div>' +
+            '<div class="d-flex justify-content-between" style="font-size:0.75rem;"><span>1 · {{ __("Año") }} ({{ __("auto") }})</span><code>26</code></div>' +
+            '<div class="d-flex justify-content-between" style="font-size:0.75rem;"><span>2 · {{ __("Delegación") }}</span><code>EN</code></div>' +
+            '<div class="d-flex justify-content-between" style="font-size:0.75rem;"><span>3 · {{ __("Código de obra") }} (3 {{ __("dígitos") }})</span><code>123</code></div>' +
+            '<div class="d-flex justify-content-between" style="font-size:0.75rem;"><span>4 · {{ __("Zona") }} (1 {{ __("letra") }})</span><code>L</code></div>' +
+            '<div class="d-flex justify-content-between" style="font-size:0.75rem;"><span>5 · {{ __("Sistema") }} <em>({{ __("usa el nº") }})</em></span><code>3</code></div>' +
+            '<div class="d-flex justify-content-between" style="font-size:0.75rem;"><span>6 · {{ __("Versión") }}</span><code>2</code></div>' +
+            '<div class="d-flex justify-content-between" style="font-size:0.75rem;"><span>7 · {{ __("Nº de planos") }} <em>({{ __("opcional") }})</em></span><code>1</code></div>' +
+            '<div class="d-flex justify-content-between" style="font-size:0.75rem;"><span>8 · {{ __("Desglose") }} <em>({{ __("opcional") }})</em></span><code>(1)</code></div>' +
+            '<hr style="margin:6px 0;">' +
+            '<div style="font-size:0.72rem; color:#6b7280;">' +
+            '{{ __("Formato") }}: {{ __("año") }} · {{ __("delegación") }} · {{ __("obra") }} · {{ __("zona") }} · {{ __("sistema") }} . {{ __("versión") }} - {{ __("planos") }} ({{ __("desglose") }})<br>' +
+            '{{ __("Cuadros 1-6 obligatorios; los 2 últimos son opcionales.") }}' +
+            '</div>' +
+            '</div>';
+
+        if (typeof bootstrap !== 'undefined' && typeof bootstrap.Popover !== 'undefined' && document.getElementById('referencia-help')) {
+            var referenciaHelpPopover = new bootstrap.Popover(document.getElementById('referencia-help'), {
+                html: true,
+                placement: 'right',
+                trigger: 'click',
+                customClass: 'referencia-help-popover',
+                sanitize: false,
+                title: '<div class="d-flex align-items-center justify-content-between w-100" style="gap: 16px;">{{ __("Referencia") }}<button type="button" class="btn-close position-static flex-shrink-0" id="referencia-help-close" aria-label="Cerrar"></button></div>',
+                content: referenciaHelpContent
+            });
+
+            $(document).on('click', '#referencia-help-close', function() {
+                referenciaHelpPopover.hide();
+            });
+        }
+
+        $(document).on('input', '.master-box[type="text"]', function() {
+            const index = Number($(this).data('master-index'));
+            if (index === 2) {
+                let cleaned = this.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+                // Quitar la letra del final si ya viene tecleada
+                if (delegLetter && cleaned.slice(-1) === delegLetter) {
+                    cleaned = cleaned.slice(0, -1);
+                }
+                cleaned = cleaned.slice(0, 5);
+                delegCodeValue = cleaned;
+                this.value = delegLetter ? cleaned + delegLetter : cleaned;
+                // Cursor justo antes de la letra para que no se pueda borrar
+                if (delegLetter) {
+                    try { this.setSelectionRange(cleaned.length, cleaned.length); } catch (err) {}
+                }
+            }
+            if (index === 3) {
+                const cleaned = this.value.replace(/\D/g, '').slice(0, 3);
+                if (this.value !== cleaned) this.value = cleaned;
+            }
+            if (index === 4) {
+                const cleaned = this.value.toUpperCase().replace(/[^A-Z]/g, '');
+                if (this.value !== cleaned) this.value = cleaned;
+            }
+            if (index === 6 || index === 7 || index === 8) {
+                const cleaned = this.value.replace(/\D/g, '').slice(0, 1);
+                if (this.value !== cleaned) this.value = cleaned;
+            }
+            const val = $(this).val();
+            const maxLen = index === 3 ? 3 : 1;
+            const next = $('.master-box[data-master-index="' + (index + 1) + '"]');
+            if (index === 2) {
+                if (delegCodeValue.length >= 5 && next.length) {
+                    next.focus().select();
+                }
+            } else if (val.length >= maxLen && next.length) {
+                next.focus().select();
+            }
+            updateMasterHidden();
+            renderUltimasRefs();
+        });
+
+        $('.master-box[data-master-index="2"]').on('change', function() {
+            const next = $('.master-box[data-master-index="' + (Number($(this).data('master-index')) + 1) + '"]');
+            if ($(this).val() && next.length) {
+                next.focus().select();
+            }
+            updateMasterHidden();
+            renderUltimasRefs();
+        });
+
+        $('.master-sys-btn').on('click', function() {
+            $('.master-sys-dd').toggleClass('show');
+        });
+
+        $('.master-sys-item').on('click', function(e) {
+            e.preventDefault();
+            const val = $(this).data('value');
+            const label = $(this).attr('data-label') || '';
+            const name = $(this).attr('data-name') || '';
+            $('.master-box[data-master-index="5"]').val(val || '');
+            $('.master-sys-value').text(label);
+            $('.master-sys-btn').attr('title', name);
+            $('.master-sys-dd').toggleClass('show', false);
+            const next = $('.master-box[data-master-index="6"]');
+            if (val && next.length) {
+                next.focus().select();
+            }
+            updateMasterHidden();
+        });
+
+        $('.empresa-input').on('click', function() {
+            $('.empresa-dd').addClass('show');
+        });
+
+        $('.empresa-input').on('input', function() {
+            const term = $(this).val().trim().toLowerCase();
+            const clearItem = $('.empresa-item[data-value=""]').first();
+            const noMatch = $('.empresa-no-match');
+            let anyVisible = false;
+
+            $('.empresa-dd .empresa-item:not(.empresa-no-match)').each(function() {
+                if (term === '') {
+                    $(this).show();
+                    anyVisible = true;
+                } else {
+                    const hay = String($(this).data('tosearch') || '').indexOf(term) !== -1;
+                    $(this).toggle(hay);
+                    if (hay) {
+                        anyVisible = true;
+                    }
+                }
+            });
+
+            clearItem.toggle(term === '');
+            noMatch.toggle(term !== '' && !anyVisible);
+
+            const selected = $('#empresa_id').val();
+            if (selected && $('.empresa-dd .empresa-item[data-value="' + selected + '"]').is(':hidden')) {
+                $('#empresa_id').val('');
+            }
+            $('.empresa-dd').addClass('show');
+        });
+
+        $('.empresa-item:not(.empresa-no-match)').on('click', function(e) {
+            e.preventDefault();
+            const val = $(this).data('value');
+            $('#empresa_id').val(val || '');
+            $('#empresa_input').val(val || '');
+            $('.empresa-dd').removeClass('show');
+        });
+
+        $(document).on('click', function(e) {
+            if (!$(e.target).closest('.master-sys-dd').length) {
+                $('.master-sys-dd').removeClass('show');
+            }
+            if (!$(e.target).closest('.empresa-dd').length) {
+                $('.empresa-dd').removeClass('show');
+            }
+        });
+
+        $(document).on('keydown', '.master-box[type="text"]', function(e) {
+            if (e.key === 'Backspace' && $(this).val() === '') {
+                const prev = $('.master-box[data-master-index="' + (Number($(this).data('master-index')) - 1) + '"]');
+                if (prev.length) {
+                    prev.focus().select();
+                    e.preventDefault();
+                }
+            }
+        });
 
         function updateSelects(projectIdOverride = null) {
             var projectId, selectedProject;
@@ -447,7 +982,10 @@
             // ✅ Ajustar visibilidad del input tras repintar
             toggleCustomTaskName();
             const shouldShowTaskAssign = toggleTaskAssignSelector(selectedProject);
+            toggleMasterContainer(selectedProject);
             applyProjectTypeLayout(selectedProject, shouldShowTaskAssign);
+            renderMilestoneDescription();
+            renderObraNumberBox();
         }
 
         $('#project_id').on('change', updateSelects);
@@ -458,13 +996,19 @@
                 selectedProject = JSON.parse(selectedProject);
             }
             const shouldShowTaskAssign = toggleTaskAssignSelector(selectedProject);
+            toggleMasterContainer(selectedProject);
             applyProjectTypeLayout(selectedProject, shouldShowTaskAssign);
+            renderMilestoneDescription();
+            renderObraNumberBox();
         });
 
         // Si ya hay proyecto preseleccionado, disparar updateSelects con el ID
         @if ($selectedProjectId)
             updateSelects('{{ $selectedProjectId }}');
         @endif
+
+        renderMilestoneDescription();
+        renderObraNumberBox();
 
 
 
@@ -533,8 +1077,7 @@
     (function() {
         // ✅ Detectar si este Create Task viene del cambio de estado 1->2
         const fromStatusChange =
-            "{{ $fromMilestoneBoard ? 1 : 0 }}" === "1" ||
-            "{{ $fromMyMilestoneBoard ? 1 : 0 }}" === "1";
+            "{{ $fromMilestoneBoard ? 1 : 0 }}" === "1";
 
         if (!fromStatusChange) return;
 
@@ -578,5 +1121,188 @@
     .estimated_date>p {
         font-size: 14px;
         text-align: center;
+    }
+
+    .master-box {
+        width: 44px;
+        min-width: 44px;
+        max-width: 44px;
+        height: 38px;
+        padding: 0.4rem 0.25rem;
+        font-size: 0.8rem;
+        font-weight: 500;
+        line-height: 1;
+        text-align: center;
+    }
+
+    .master-num {
+        width: 50px;
+        min-width: 50px;
+        max-width: 50px;
+        height: 38px;
+        font-size: 0.8rem;
+        font-weight: 500;
+        letter-spacing: 1px;
+    }
+
+    .master-sys-dd {
+        position: relative;
+        display: inline-block;
+    }
+
+    .master-sys-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: auto;
+        min-width: 52px;
+        max-width: none;
+        height: 38px;
+        border: 1px solid #ced4da;
+        border-radius: 0.25rem;
+        background-color: #fff;
+        color: #212529;
+        font-size: 0.8rem;
+        font-weight: 500;
+        appearance: none;
+        -webkit-appearance: none;
+        padding: 0.25rem 1.25rem 0.25rem 0.5rem;
+        background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'><path d='M1 1l4 4 4-4' stroke='%236c757d' stroke-width='1.5' fill='none' stroke-linecap='round'/></svg>");
+        background-repeat: no-repeat;
+        background-position: right 0.45rem center;
+        cursor: pointer;
+    }
+
+    .master-sys-btn:hover,
+    .master-sys-btn:focus {
+        border-color: #6c757d;
+        box-shadow: none;
+    }
+
+    .master-sys-value:empty::before {
+        content: "0";
+        color: #adb5bd;
+        font-weight: 400;
+    }
+
+    .master-sys-menu {
+        display: none;
+        position: absolute;
+        top: calc(100% + 4px);
+        left: 0;
+        z-index: 1500;
+        min-width: 240px;
+        max-width: 320px;
+        max-height: 250px;
+        overflow-y: auto;
+        padding: 0.25rem 0;
+        background-color: #fff;
+        border: 1px solid #e4e7e9;
+        border-radius: 0.25rem;
+        box-shadow: 0 0.3rem 0.8rem rgba(0, 0, 0, 0.15);
+        text-align: left;
+    }
+
+    .master-sys-dd.show .master-sys-menu {
+        display: block;
+    }
+
+    .master-sys-item {
+        display: block;
+        padding: 0.4rem 0.75rem;
+        font-size: 0.8rem;
+        font-weight: 500;
+        color: #293240;
+        text-decoration: none;
+        cursor: pointer;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .master-sys-item:hover {
+        background-color: #eff0f2;
+        color: #293240;
+    }
+
+    .empresa-dd {
+        position: relative;
+        display: inline-block;
+    }
+
+    .empresa-input {
+        width: min(250px, 100%);
+        min-width: 180px;
+        max-width: none;
+        height: 38px;
+        border: 1px solid #ced4da;
+        border-radius: 0.25rem;
+        background-color: #fff;
+        color: #212529;
+        font-size: 0.8rem;
+        font-weight: 500;
+        padding: 0.25rem 1.75rem 0.25rem 0.5rem;
+        background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'><path d='M1 1l4 4 4-4' stroke='%236c757d' stroke-width='1.5' fill='none' stroke-linecap='round'/></svg>");
+        background-repeat: no-repeat;
+        background-position: right 0.6rem center;
+    }
+
+    .empresa-input:hover,
+    .empresa-input:focus {
+        border-color: #6c757d;
+        box-shadow: none;
+        outline: none;
+    }
+
+    .empresa-menu {
+        display: none;
+        position: absolute;
+        top: calc(100% + 4px);
+        left: 0;
+        z-index: 1500;
+        min-width: 200px;
+        max-height: 250px;
+        overflow-y: auto;
+        padding: 0.25rem 0;
+        background-color: #fff;
+        border: 1px solid #e4e7e9;
+        border-radius: 0.25rem;
+        box-shadow: 0 0.3rem 0.8rem rgba(0, 0, 0, 0.15);
+        text-align: left;
+    }
+
+    .empresa-dd.show .empresa-menu {
+        display: block;
+    }
+
+    .empresa-item {
+        display: block;
+        padding: 0.4rem 0.75rem;
+        font-size: 0.8rem;
+        font-weight: 500;
+        color: #293240;
+        text-decoration: none;
+        cursor: pointer;
+    }
+
+    .empresa-item:hover {
+        background-color: #eff0f2;
+        color: #293240;
+    }
+
+    .empresa-no-match {
+        color: #dc3545;
+        font-style: italic;
+        cursor: default;
+    }
+
+    .empresa-no-match:hover {
+        background-color: transparent;
+        color: #dc3545;
+    }
+
+    .master-box[data-master-index]:not([data-master-index="1"])::placeholder {
+        color: #adb5bd;
+        font-weight: 400;
     }
 </style>

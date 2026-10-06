@@ -19,6 +19,7 @@ use Carbon\CarbonPeriod;
 use App\Models\Project;
 use App\Models\Milestone;
 use Illuminate\Support\Facades\App;
+use App\Services\AverageTimeService;
 
 
 class HomeController extends Controller
@@ -52,167 +53,9 @@ class HomeController extends Controller
         return redirect('/home');
     }
 
-    public function getAllAverageTimes($workspaceID)
+    public function getAllAverageTimes(int $workspaceID): array
     {
-        // Obtener todos los milestones de todos los proyectos dentro del workspace
-        $milestones = DB::table('milestones')
-            ->join('projects', 'projects.id', '=', 'milestones.project_id')
-            ->where('projects.workspace', '=', $workspaceID)
-            ->select(
-                'projects.start_date as project_start_date',
-                'projects.end_date as project_end_date',
-                'milestones.start_date',
-                'milestones.end_date',
-                'milestones.id',
-                'milestones.title',
-                'milestones.task_start_date',
-                'milestones.finalization_date',
-                'milestones.planned_end_date' // Añadir el campo planned_end_date
-            )
-            ->get();
-
-        $groupedMilestones = [];
-
-        foreach ($milestones as $milestone) {
-            $year = date('Y', strtotime($milestone->project_start_date));
-
-            // Set the locale for Carbon based on the application's locale
-            $locale = App::getLocale();
-            Carbon::setLocale($locale);
-
-            $month = Carbon::parse($milestone->start_date)->translatedFormat('F'); // Nombre del mes traducido
-            $quarter = 'Q' . ceil(date('n', strtotime($milestone->start_date)) / 3); // Trimestre
-
-            $creation_date = Carbon::parse($milestone->start_date);
-            $estimated_date = Carbon::parse($milestone->end_date);
-            $task_start_date = Carbon::parse($milestone->task_start_date);
-            $finalization_date = $milestone->finalization_date ? Carbon::parse($milestone->finalization_date) : Carbon::now();
-            $planned_end_date = Carbon::parse($milestone->planned_end_date); // Fecha estimada por el usuario
-
-            // Cálculos de tiempo
-            $deliveryTime = $creation_date->diffInDays($finalization_date);
-            $startUpTime = $creation_date->diffInDays($task_start_date);
-            $delayTime = max(0, $estimated_date->diffInDays($finalization_date, false)); // Evita valores negativos
-            $workingTime = $deliveryTime - $startUpTime - $delayTime;
-            $avgEstimatedByUser = $creation_date->diffInDays($planned_end_date); // Tiempo medio estimado por el usuario
-
-            // Inicializar la estructura del año si no existe
-            if (!isset($groupedMilestones[$year])) {
-                $groupedMilestones[$year] = [
-                    'months' => [],
-                    'quarters' => [],
-                    'yearly' => [
-                        'total' => 0,
-                        'sumDelivery' => 0,
-                        'sumStartUp' => 0,
-                        'sumWorking' => 0,
-                        'sumDelay' => 0,
-                        'sumEstimatedByUser' => 0, // Suma de tiempos estimados por el usuario
-                        'averageDelivery' => 0,
-                        'averageStartUp' => 0,
-                        'averageWorking' => 0,
-                        'averageDelay' => 0,
-                        'avgEstimatedByUser' => 0, // Promedio de tiempos estimados por el usuario
-                    ]
-                ];
-            }
-
-            // ---- AGRUPACIÓN POR MESES ----
-            if (!isset($groupedMilestones[$year]['months'][$month])) {
-                $groupedMilestones[$year]['months'][$month] = [
-                    'total' => 0,
-                    'sumDelivery' => 0,
-                    'sumStartUp' => 0,
-                    'sumWorking' => 0,
-                    'sumDelay' => 0,
-                    'sumEstimatedByUser' => 0, // Suma de tiempos estimados por el usuario
-                    'averageDelivery' => 0,
-                    'averageStartUp' => 0,
-                    'averageWorking' => 0,
-                    'averageDelay' => 0,
-                    'avgEstimatedByUser' => 0, // Promedio de tiempos estimados por el usuario
-                ];
-            }
-
-            // Acumular valores
-            $groupedMilestones[$year]['months'][$month]['total']++;
-            $groupedMilestones[$year]['months'][$month]['sumDelivery'] += $deliveryTime;
-            $groupedMilestones[$year]['months'][$month]['sumStartUp'] += $startUpTime;
-            $groupedMilestones[$year]['months'][$month]['sumWorking'] += $workingTime;
-            $groupedMilestones[$year]['months'][$month]['sumDelay'] += $delayTime;
-            $groupedMilestones[$year]['months'][$month]['sumEstimatedByUser'] += $avgEstimatedByUser; // Acumular tiempo estimado por el usuario
-
-            // ---- AGRUPACIÓN POR TRIMESTRES ----
-            if (!isset($groupedMilestones[$year]['quarters'][$quarter])) {
-                $groupedMilestones[$year]['quarters'][$quarter] = [
-                    'total' => 0,
-                    'sumDelivery' => 0,
-                    'sumStartUp' => 0,
-                    'sumWorking' => 0,
-                    'sumDelay' => 0,
-                    'sumEstimatedByUser' => 0, // Suma de tiempos estimados por el usuario
-                    'averageDelivery' => 0,
-                    'averageStartUp' => 0,
-                    'averageWorking' => 0,
-                    'averageDelay' => 0,
-                    'avgEstimatedByUser' => 0, // Promedio de tiempos estimados por el usuario
-                ];
-            }
-
-            // Acumular valores
-            $groupedMilestones[$year]['quarters'][$quarter]['total']++;
-            $groupedMilestones[$year]['quarters'][$quarter]['sumDelivery'] += $deliveryTime;
-            $groupedMilestones[$year]['quarters'][$quarter]['sumStartUp'] += $startUpTime;
-            $groupedMilestones[$year]['quarters'][$quarter]['sumWorking'] += $workingTime;
-            $groupedMilestones[$year]['quarters'][$quarter]['sumDelay'] += $delayTime;
-            $groupedMilestones[$year]['quarters'][$quarter]['sumEstimatedByUser'] += $avgEstimatedByUser; // Acumular tiempo estimado por el usuario
-
-            // ---- AGRUPACIÓN POR AÑO (YEARLY) ----
-            $groupedMilestones[$year]['yearly']['total']++;
-            $groupedMilestones[$year]['yearly']['sumDelivery'] += $deliveryTime;
-            $groupedMilestones[$year]['yearly']['sumStartUp'] += $startUpTime;
-            $groupedMilestones[$year]['yearly']['sumWorking'] += $workingTime;
-            $groupedMilestones[$year]['yearly']['sumDelay'] += $delayTime;
-            $groupedMilestones[$year]['yearly']['sumEstimatedByUser'] += $avgEstimatedByUser; // Acumular tiempo estimado por el usuario
-        }
-
-        // Calcular promedios
-        foreach ($groupedMilestones as $year => &$yearData) {
-            foreach ($yearData['months'] as $month => &$monthData) {
-                if ($monthData['total'] > 0) {
-                    $monthData['averageDelivery'] = round($monthData['sumDelivery'] / $monthData['total']);
-                    $monthData['averageStartUp'] = round($monthData['sumStartUp'] / $monthData['total']);
-                    $monthData['averageWorking'] = round($monthData['sumWorking'] / $monthData['total']);
-                    $monthData['averageDelay'] = round($monthData['sumDelay'] / $monthData['total']);
-                    $monthData['avgEstimatedByUser'] = round($monthData['sumEstimatedByUser'] / $monthData['total']); // Calcular promedio de tiempo estimado por el usuario
-                }
-                unset($monthData['sumDelivery'], $monthData['sumStartUp'], $monthData['sumWorking'], $monthData['sumDelay'], $monthData['sumEstimatedByUser'], $monthData['total']);
-            }
-
-            foreach ($yearData['quarters'] as $quarter => &$quarterData) {
-                if ($quarterData['total'] > 0) {
-                    $quarterData['averageDelivery'] = round($quarterData['sumDelivery'] / $quarterData['total']);
-                    $quarterData['averageStartUp'] = round($quarterData['sumStartUp'] / $quarterData['total']);
-                    $quarterData['averageWorking'] = round($quarterData['sumWorking'] / $quarterData['total']);
-                    $quarterData['averageDelay'] = round($quarterData['sumDelay'] / $quarterData['total']);
-                    $quarterData['avgEstimatedByUser'] = round($quarterData['sumEstimatedByUser'] / $quarterData['total']); // Calcular promedio de tiempo estimado por el usuario
-                }
-                unset($quarterData['sumDelivery'], $quarterData['sumStartUp'], $quarterData['sumWorking'], $quarterData['sumDelay'], $quarterData['sumEstimatedByUser'], $quarterData['total']);
-            }
-
-            // Calcular promedios anuales
-            if ($yearData['yearly']['total'] > 0) {
-                $yearData['yearly']['averageDelivery'] = round($yearData['yearly']['sumDelivery'] / $yearData['yearly']['total']);
-                $yearData['yearly']['averageStartUp'] = round($yearData['yearly']['sumStartUp'] / $yearData['yearly']['total']);
-                $yearData['yearly']['averageWorking'] = round($yearData['yearly']['sumWorking'] / $yearData['yearly']['total']);
-                $yearData['yearly']['averageDelay'] = round($yearData['yearly']['sumDelay'] / $yearData['yearly']['total']);
-                $yearData['yearly']['avgEstimatedByUser'] = round($yearData['yearly']['sumEstimatedByUser'] / $yearData['yearly']['total']); // Calcular promedio de tiempo estimado por el usuario
-            }
-            unset($yearData['yearly']['sumDelivery'], $yearData['yearly']['sumStartUp'], $yearData['yearly']['sumWorking'], $yearData['yearly']['sumDelay'], $yearData['yearly']['sumEstimatedByUser'], $yearData['yearly']['total']);
-        }
-       // \Log::debug("Milestones organizados por año: " . json_encode($groupedMilestones, JSON_PRETTY_PRINT));
-
-        return $groupedMilestones;
+        return app(AverageTimeService::class)->getAllAverageTimes($workspaceID);
     }
 
     public function index($slug = '')
@@ -250,6 +93,184 @@ class HomeController extends Controller
                 ->where('milestones.milestone_assigned_to_user', Auth::user()->id)
                 ->where('milestones.status', 3)
                 ->count();
+
+            $activeMilestones = Milestone::join('projects', 'projects.id', '=', 'milestones.project_id')
+                ->where('projects.workspace', $currentWorkspace->id)
+                ->whereIn('milestones.status', [1, 2])
+                ->where('milestones.is_waiting', 0)
+                ->where(function($q) {
+                    $q->whereNotNull('milestones.milestone_assigned_to_user')
+                      ->where('milestones.milestone_assigned_to_user', '!=', '');
+                })
+                ->count();
+
+            $totalMilestonesGlobal = Milestone::join('projects', 'projects.id', '=', 'milestones.project_id')
+                ->where('projects.workspace', $currentWorkspace->id)
+                ->count();
+
+            $reviewMilestones = Milestone::join('projects', 'projects.id', '=', 'milestones.project_id')
+                ->where('projects.workspace', $currentWorkspace->id)
+                ->where('milestones.status', 3)
+                ->count();
+
+            $unassignedMilestones = Milestone::join('projects', 'projects.id', '=', 'milestones.project_id')
+                ->where('projects.workspace', $currentWorkspace->id)
+                ->where(function($q) {
+                    $q->where('milestone_assigned_to_user', '')->orWhereNull('milestone_assigned_to_user');
+                })
+                ->count();
+
+            $finishedMilestones = Milestone::join('projects', 'projects.id', '=', 'milestones.project_id')
+                ->where('projects.workspace', $currentWorkspace->id)
+                ->where('milestones.status', 4)
+                ->count();
+
+            $pausedMilestones = Milestone::join('projects', 'projects.id', '=', 'milestones.project_id')
+                ->where('projects.workspace', $currentWorkspace->id)
+                ->where('milestones.is_waiting', 1)
+                ->count();
+
+            // My activity - user's milestones by status
+            $myEnPlazoMilestones = Milestone::join('projects', 'projects.id', '=', 'milestones.project_id')
+                ->where('projects.workspace', $currentWorkspace->id)
+                ->whereRaw("FIND_IN_SET(?, milestones.milestone_assigned_to_user)", [$userObj->id])
+                ->whereIn('milestones.status', [1, 2])
+                ->where('milestones.is_waiting', 0)
+                ->where('milestones.end_date', '>=', now()->toDateString())
+                ->count();
+
+            $myFueraPlazoMilestones = Milestone::join('projects', 'projects.id', '=', 'milestones.project_id')
+                ->where('projects.workspace', $currentWorkspace->id)
+                ->whereRaw("FIND_IN_SET(?, milestones.milestone_assigned_to_user)", [$userObj->id])
+                ->whereIn('milestones.status', [1, 2])
+                ->where('milestones.is_waiting', 0)
+                ->where('milestones.end_date', '<', now()->toDateString())
+                ->count();
+
+            $myEnRevisionMilestones = Milestone::join('projects', 'projects.id', '=', 'milestones.project_id')
+                ->where('projects.workspace', $currentWorkspace->id)
+                ->whereRaw("FIND_IN_SET(?, milestones.milestone_assigned_to_user)", [$userObj->id])
+                ->where('milestones.status', 3)
+                ->count();
+
+            $myFinalizadosMilestones = Milestone::join('projects', 'projects.id', '=', 'milestones.project_id')
+                ->where('projects.workspace', $currentWorkspace->id)
+                ->whereRaw("FIND_IN_SET(?, milestones.milestone_assigned_to_user)", [$userObj->id])
+                ->where('milestones.status', 4)
+                ->count();
+
+            $myEnPausaMilestones = Milestone::join('projects', 'projects.id', '=', 'milestones.project_id')
+                ->where('projects.workspace', $currentWorkspace->id)
+                ->whereRaw("FIND_IN_SET(?, milestones.milestone_assigned_to_user)", [$userObj->id])
+                ->where('milestones.is_waiting', 1)
+                ->count();
+
+            // My activity - user's milestones by priority
+            $myAltaPriorityMilestones = Milestone::join('projects', 'projects.id', '=', 'milestones.project_id')
+                ->where('projects.workspace', $currentWorkspace->id)
+                ->whereRaw("FIND_IN_SET(?, milestones.milestone_assigned_to_user)", [$userObj->id])
+                ->where('milestones.priority', 'alta')
+                ->count();
+
+            $myMediaPriorityMilestones = Milestone::join('projects', 'projects.id', '=', 'milestones.project_id')
+                ->where('projects.workspace', $currentWorkspace->id)
+                ->whereRaw("FIND_IN_SET(?, milestones.milestone_assigned_to_user)", [$userObj->id])
+                ->where('milestones.priority', 'media')
+                ->count();
+
+            $myBajaPriorityMilestones = Milestone::join('projects', 'projects.id', '=', 'milestones.project_id')
+                ->where('projects.workspace', $currentWorkspace->id)
+                ->whereRaw("FIND_IN_SET(?, milestones.milestone_assigned_to_user)", [$userObj->id])
+                ->where('milestones.priority', 'baja')
+                ->count();
+
+            // My tasks (assigned to user) in milestones of this workspace
+            $myTaskTotal = Task::join('milestones', 'milestones.id', '=', 'tasks.milestone_id')
+                ->join('projects', 'projects.id', '=', 'milestones.project_id')
+                ->where('projects.workspace', $currentWorkspace->id)
+                ->whereRaw("FIND_IN_SET(?, tasks.assign_to)", [$userObj->id])
+                ->whereIn('milestones.status', [2, 3])
+                ->count();
+
+            // Subquery: latest review state per task (max id per task_id)
+            $latestReview = DB::table('task_review_states')
+                ->select('task_id', 'state_code')
+                ->whereIn('id', function ($q) {
+                    $q->selectRaw('MAX(id)')->from('task_review_states')->groupBy('task_id');
+                });
+
+            $myTaskReviewed = Task::join('milestones', 'milestones.id', '=', 'tasks.milestone_id')
+                ->join('projects', 'projects.id', '=', 'milestones.project_id')
+                ->joinSub($latestReview, 'latest_review', function ($join) {
+                    $join->on('latest_review.task_id', '=', 'tasks.id');
+                })
+                ->where('projects.workspace', $currentWorkspace->id)
+                ->whereRaw("FIND_IN_SET(?, tasks.assign_to)", [$userObj->id])
+                ->whereIn('milestones.status', [2, 3])
+                ->where('latest_review.state_code', 'reviewed')
+                ->count();
+
+            $myTaskChanges = Task::join('milestones', 'milestones.id', '=', 'tasks.milestone_id')
+                ->join('projects', 'projects.id', '=', 'milestones.project_id')
+                ->joinSub($latestReview, 'latest_review', function ($join) {
+                    $join->on('latest_review.task_id', '=', 'tasks.id');
+                })
+                ->where('projects.workspace', $currentWorkspace->id)
+                ->whereRaw("FIND_IN_SET(?, tasks.assign_to)", [$userObj->id])
+                ->whereIn('milestones.status', [2, 3])
+                ->where('latest_review.state_code', 'changes')
+                ->count();
+
+            $today = max(
+                Carbon::now()->toDateString(),
+                DB::table('timesheets')->where('created_by', $userObj->id)->max('date')
+            );
+            $monthStart = Carbon::parse($today)->startOfMonth()->toDateString();
+
+            $myMonthSeconds = DB::table('timesheets')
+                ->join('tasks', 'tasks.id', '=', 'timesheets.task_id')
+                ->join('milestones', 'milestones.id', '=', 'tasks.milestone_id')
+                ->join('projects', 'projects.id', '=', 'milestones.project_id')
+                ->where('projects.workspace', $currentWorkspace->id)
+                ->where('timesheets.created_by', $userObj->id)
+                ->whereBetween('timesheets.date', [$monthStart, $today])
+                ->sum(DB::raw('TIME_TO_SEC(timesheets.time)'));
+
+            $myMonthHours = $myMonthSeconds > 0
+                ? sprintf('%02d:%02d', floor($myMonthSeconds / 3600), floor(($myMonthSeconds % 3600) / 60))
+                : '00:00';
+
+            $myMonthTimesheets = DB::table('timesheets')
+                ->join('tasks', 'tasks.id', '=', 'timesheets.task_id')
+                ->join('milestones', 'milestones.id', '=', 'tasks.milestone_id')
+                ->join('projects', 'projects.id', '=', 'milestones.project_id')
+                ->leftJoin('task_types', 'task_types.id', '=', 'tasks.type_id')
+                ->where('projects.workspace', $currentWorkspace->id)
+                ->where('timesheets.created_by', $userObj->id)
+                ->whereBetween('timesheets.date', [$monthStart, $today])
+                ->orderBy('timesheets.date')
+                ->get([
+                    'timesheets.date',
+                    'timesheets.time',
+                    'timesheets.created_at',
+                    'timesheets.updated_at',
+                    'projects.name as project_name',
+                    'milestones.title as milestone_title',
+                    'task_types.name as task_name',
+                ]);
+
+            $totalTaskByType = Task::join('milestones', 'tasks.milestone_id', '=', 'milestones.id')
+                ->join('projects', 'milestones.project_id', '=', 'projects.id')
+                ->where('projects.workspace', $currentWorkspace->id)
+                ->where('milestones.status', '!=', 4)
+                ->where('milestones.is_waiting', '!=', 1)
+                ->join('project_types', 'projects.type', '=', 'project_types.id')
+                ->select('project_types.name', DB::raw('count(tasks.id) as count'))
+                ->groupBy('project_types.id', 'project_types.name')
+                ->pluck('count', 'name')
+                ->toArray();
+
+            $totalTask = array_sum($totalTaskByType);
             /*$totalProject = UserProject::join("projects", "projects.id", "=", "user_projects.project_id")
                 ->where("user_id", "=", $userObj->id)
                 ->where('projects.workspace', '=', $currentWorkspace->id)->count();*/
@@ -257,12 +278,6 @@ class HomeController extends Controller
             if ($currentWorkspace->permission == 'Owner' || $currentWorkspace->permission == 'Member') {
 
                 $totalBugs = UserProject::join("bug_reports", "bug_reports.project_id", "=", "user_projects.project_id")
-                    ->join("projects", "projects.id", "=", "user_projects.project_id")
-                    ->where("user_id", "=", $userObj->id)
-                    ->where('projects.workspace', '=', $currentWorkspace->id)->count();
-
-                //TASK FOR THE ACTUAL USER
-                $totalTask = UserProject::join("tasks", "tasks.project_id", "=", "user_projects.project_id")
                     ->join("projects", "projects.id", "=", "user_projects.project_id")
                     ->where("user_id", "=", $userObj->id)
                     ->where('projects.workspace', '=', $currentWorkspace->id)->count();
@@ -305,11 +320,6 @@ class HomeController extends Controller
                     ->where("user_id", "=", $userObj->id)
                     ->where('projects.workspace', '=', $currentWorkspace->id)
                     ->where('bug_reports.assign_to', '=', $userObj->id)->count();
-
-                $totalTask = UserProject::join("tasks", "tasks.project_id", "=", "user_projects.project_id")
-                    ->join("projects", "projects.id", "=", "user_projects.project_id")
-                    ->where("user_id", "=", $userObj->id)->where('projects.workspace', '=', $currentWorkspace->id)
-                    ->whereRaw("find_in_set('" . $userObj->id . "',tasks.assign_to)")->count();
 
                 $totalMilestones = UserProject::join("milestones", "milestones.project_id", "=", "user_projects.project_id")
                     ->join("projects", "projects.id", "=", "user_projects.project_id")
@@ -428,7 +438,27 @@ class HomeController extends Controller
                 'totalWorkspaceMilestones',
                 'notAssignedMilestones',
                 'assignedMilestones',
-                'forReviewMilestones'
+                'forReviewMilestones',
+                'activeMilestones',
+                'totalMilestonesGlobal',
+                'reviewMilestones',
+                'unassignedMilestones',
+                'finishedMilestones',
+                'pausedMilestones',
+                'myEnPlazoMilestones',
+                'myFueraPlazoMilestones',
+                'myEnRevisionMilestones',
+                'myFinalizadosMilestones',
+                'myEnPausaMilestones',
+                'myAltaPriorityMilestones',
+                'myMediaPriorityMilestones',
+                'myBajaPriorityMilestones',
+                'totalTaskByType',
+                'myTaskTotal',
+                'myTaskReviewed',
+                'myTaskChanges',
+                'myMonthHours',
+                'myMonthTimesheets'
             ));
 
             // }

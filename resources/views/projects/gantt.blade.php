@@ -122,7 +122,12 @@
         </script>
         <script src="{{asset('assets/custom/js/frappe-gantt.js')}}"></script>
         <script>
-            var tasks = JSON.parse('{!! addslashes(json_encode($tasks)) !!}');
+            var tasks = @json($tasks);
+            function escHtml(str) {
+                var div = document.createElement('div');
+                div.textContent = str || '';
+                return div.innerHTML;
+            }
             var gantt_chart = new Gantt(".gantt-target", tasks, {
                 custom_popup_html: function(task) {
                     var status_class = 'success';
@@ -132,11 +137,11 @@
                         status_class = 'danger'
                     }
                     return `<div class="details-container">
-                                <div class="title">${task.name} <span class="badge badge-${status_class} float-right">${task.extra.priority}</span></div>
+                                <div class="title">${escHtml(task.name)} <span class="badge badge-${status_class} float-right">${escHtml(task.extra.priority)}</span></div>
                                 <div class="subtitle">
                                     <b>${task.progress}%</b> {{ __('Progress')}} <br>
-                                    <b>${task.extra.comments}</b> {{ __('Comments')}} <br>
-                                    <b>{{ __('Duration')}}</b> ${task.extra.duration}
+                                    <b>${escHtml(task.extra.comments)}</b> {{ __('Comments')}} <br>
+                                    <b>{{ __('Duration')}}</b> ${escHtml(task.extra.duration)}
                                 </div>
                             </div>
                           `;

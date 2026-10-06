@@ -6,70 +6,14 @@
         filter: grayscale(100%) brightness(0.9);
         position: relative;
     }
-
-    .phasesDiv {
-        min-width: 60%;
-        height: 55%;
-        border-radius: 6px;
-        align-content: center;
-        background-color: #493d3f;
-        font-size: 12.5px;
-        display: inline-block;
-        color: white;
-        padding: 6px;
-        font-weight: 600;
-    }
-
-    .stageDiv {
-        min-width: 60%;
-        border-radius: 6px;
-        align-content: center;
-        background-color: rgb(25 24 24 / 35%);
-        font-size: 12px;
-        display: inline-block;
-        color: white;
-        padding: 5px 8px;
-        font-weight: 600;
-        margin-top: 4px;
-    }
-
-    .centerPhaseLabel {
-        justify-content: center;
-        align-items: center;
-        align-content: center;
-        display: flex;
-    }
-
-    .dateDiv {
-        flex: 1 1 0%;
-        min-width: 0;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-    }
-
-    .fatherDateDivAlign {
-        display: flex;
-        justify-content: space-around;
-        align-items: flex-start;
-        align-content: center;
-        width: 100%;
-        gap: 5px;
-    }
-
-    .adjustTextCalendar {
-        white-space: nowrap;
-    }
 </style>
 
-{{-- aqui esta el dedeo --}}
-{{-- @dump($milestone) --}}
-
-<div class="card 
-        {{ empty($milestone['assined_to_user']) ? 'notAsignedMilestone' : '' }} 
+<div class="card milestone-card
+        {{ empty($milestone['assined_to_user']) ? 'notAsignedMilestone' : '' }}
         {{ !empty($milestone['is_waiting']) && $milestone['is_waiting'] == 1 ? 'waitingMilestone' : '' }}
         {{ $extraClass ?? '' }}"
     id="{{ $milestone['id'] }}" data-status="{{ $status->id }}" data-project-id="{{ $milestone['project_id'] }}"
+    data-project-type-id="{{ $milestone['project_type_id'] ?? '' }}"
     data-project-name="{{ $milestone['project_name'] ?? '' }}"
     data-project-type="{{ strtolower($milestone['project_type'] ?? '') }}"
     data-project-type-label="{{ __($milestone['project_type'] ?? '') }}"
@@ -86,430 +30,352 @@
     data-workspace-name="{{ $milestone['workspace_name'] ?? '' }}"
     data-workspace-slug="{{ $milestone['workspace_slug'] ?? $currentWorkspace->slug }}">
 
-
-    {{-- ========================= --}}
-    {{--   HEADER DEL MILESTONE   --}}
-    {{-- ========================= --}}
-    <div class="card-header border-0 pb-0 col-sm-12">
-        <div class="d-flex">
-            <div class="col-sm-9 text-center tooltipCus" data-title="{{ __('Milestone') }}">
-                <b class="mileTitle cursor-pointer" id="milestoneTitleForNotification"
-                    data-header="{{ $milestone['title'] }}" data-milestone-id="{{ $milestone['id'] }}"
-                    data-is-waiting="{{ $milestone['is_waiting'] }}"
-                    data-project-slug="{{ $milestone['workspace_slug'] ?? $currentWorkspace->slug }}">
-                    {{ $milestone['title'] }}
-                </b>
-
-                {{-- Mostrar Phase si es proyecto tipo 3 o 5 --}}
-                @if (in_array((int) $milestone['project_type_id'], [3, 5], true) && !empty($milestone['phases']))
-                    <div class="centerPhaseLabel" style="margin-top: 5px;">
-                        @foreach ($milestone['phases'] as $phase)
-                            <span
-                                class="phasesDiv">{{ __(\App\Models\MilestonePhases::translationKey($phase)) }}</span>
-                        @endforeach
-                    </div>
-
-                    @if (!empty($milestone['stage']))
-                        <div class="centerPhaseLabel">
-                            <span class="stageDiv">{{ $milestone['stage'] }}</span>
-                        </div>
-                    @endif
-                @endif
-            </div>
-
-            <div class="col-sm-2 pt-1 text-center">
-                <a href="#" id="milestoneReqName" data-milestone-id="{{ $milestone['id'] }}"
-                    data-technician-id="{{ $milestone['assign_to'] }}"
-                    data-project-name="{{ $milestone['project_name'] }}">
-
-                    {{-- Avatar del usuario que lo solicitó --}}
-                    <img alt="image" class="user-groupTasks tooltipCus"
-                        title="{{ __('Requested by') }} {{ $milestone['sales']->name ?? 'N/A' }}"
-                        style="margin-top:-10px;"
-                        @if ($milestone['sales']->avatar) src="{{ asset($milestone['sales']->avatar) }}"
-                         @else
-                             avatar="{{ $milestone['sales']->name }}" @endif>
-
-                    {{-- Avatar del usuario asignado --}}
-                    @if (isset($milestone['asiggned_user_data']))
-                        <img alt="image" class="user-groupTasks tooltipCus"
-                            title="{{ __('Assigned to') }} {{ $milestone['asiggned_user_data']->name }}"
-                            style="margin-top:-10px;"
-                            @if ($milestone['asiggned_user_data']->avatar) src="{{ asset($milestone['asiggned_user_data']->avatar) }}"
-                             @else
-                                 avatar="{{ $milestone['asiggned_user_data']->name }}" @endif>
-                    @endif
-                </a>
-            </div>
-        </div>
-
-        <hr class="border border-2 opacity-50">
-
-        {{-- Menú de opciones --}}
-        <div class="card-header-right col-sm-1 text-end">
-            <div class="btn-group card-option">
-                @if ($currentWorkspace->permission == 'Owner' || $currentWorkspace->permission == 'Member')
-
-                    <button type="button" class="btn dropdown-toggle" data-bs-toggle="dropdown">
-                        <i class="feather icon-more-vertical"></i>
-                    </button>
-
-                    <div class="dropdown-menu dropdown-menu-end">
-
-                        {{-- ALWAYS AVAILABLE: VIEW --}}
-                        <a href="#" class="dropdown-item" data-ajax-popup="true"
-                            data-title="{{ __('Order form details') }}"
-                            data-url="{{ route('projects.milestone.show', [$currentWorkspace->slug, $milestone['id']]) }}">
-                            <i class="ti ti-eye"></i> {{ __('View') }}
-                        </a>
-
-                        @if ($milestone['is_waiting'])
-                            {{-- ====================================================== --}}
-                            {{--   MILESTONE EN ESPERA → SOLO MOSTRAR "RESUME"         --}}
-                            {{-- ====================================================== --}}
-
-                            <a href="#" class="dropdown-item"
-                                onclick="event.preventDefault(); document.getElementById('resume-milestone-{{ $milestone['id'] }}').submit();">
-                                <i class="fa-solid fa-play"></i>
-                                {{ __('Resume Milestone') }}
-                            </a>
-
-                            <form id="resume-milestone-{{ $milestone['id'] }}"
-                                action="{{ route('projects.milestone.resume', [$currentWorkspace->slug, $milestone['id']]) }}"
-                                method="POST" style="display:none;">
-                                @csrf
-                            </form>
-                        @else
-                            {{-- ================================================================= --}}
-                            {{--   MILESTONE NORMAL → TODAS LAS OPCIONES + PAUSAR                 --}}
-                            {{-- ================================================================= --}}
-
-                            {{-- Asignar --}}
-                            <a href="#" class="dropdown-item" data-ajax-popup="true"
-                                data-title="{{ __('Assign Milestone') }}"
-                                data-url="{{ route('projects.milestone.assign', [$currentWorkspace->slug, $milestone['id']]) }}">
-                                <i class="fa-solid fa-user-plus"></i>
-                                {{ __('Assign Milestone') }}
-                            </a>
-
-                            {{-- Crear Task --}}
-                            @if ($status->id != 1)
-                                @php
-                                    $isMyMilestoneBoardUrl = strpos(request()->url(), 'my-milestone-board') !== false;
-                                    $taskCreateRoute = $isMyMilestoneBoardUrl
-                                        ? route('my_milestone.tasks.create', $currentWorkspace->slug)
-                                        : route('tasks.create', $currentWorkspace->slug);
-
-                                    // Agregar parámetros a la ruta
-                                    $taskCreateRoute .=
-                                        '?project_id=' .
-                                        $milestone['project_id'] .
-                                        '&projectName=' .
-                                        urlencode($milestone['project_name'] ?? '') .
-                                        '&milestoneTitle=' .
-                                        urlencode($milestone['title']) .
-                                        '&milestone_id=' .
-                                        $milestone['id'] .
-                                        '&fromMyMilestoneBoard=' .
-                                        ($isMyMilestoneBoardUrl ? 1 : 0);
-                                @endphp
-                                <a href="#" class="dropdown-item" data-ajax-popup="true"
-                                    data-title="{{ __('Add Task') }}" data-url="{{ $taskCreateRoute }}">
-                                    <i class="fas fa-tasks"></i>
-                                    {{ __('Add Task') }}
-                                </a>
-                            @endif
-
-                            {{-- Pausar --}}
-                            <a href="#" class="dropdown-item"
-                                onclick="event.preventDefault(); openPauseMilestoneModal({{ $milestone['id'] }}, '{{ $currentWorkspace->slug }}');">
-                                <i class="fa-regular fa-circle-pause"></i>
-                                {{ __('Wait Milestone') }}
-                            </a>
-
-                            <form id="wait-milestone-{{ $milestone['id'] }}"
-                                action="{{ route('projects.milestone.wait', [$currentWorkspace->slug, $milestone['id']]) }}"
-                                method="POST" style="display:none;">
-                                @csrf
-                            </form>
-
-                            {{-- Editar / Borrar --}}
-                            @if (
-                                $currentWorkspace->permission == 'Owner' ||
-                                    ($currentWorkspace->permission == 'Member' && Auth::user()->type == 'user'))
-                                {{-- Edit --}}
-                                <a href="#" class="dropdown-item" data-ajax-popup="true" data-size="lg"
-                                    data-title="{{ __('Edit Milestone') }}"
-                                    data-url="{{ route('projects.milestone.edit', [$currentWorkspace->slug, $milestone['id']]) }}">
-                                    <i class="ti ti-edit"></i>{{ __('Edit') }}
-                                </a>
-
-                                {{-- Delete --}}
-                                <a href="#" class="dropdown-item bs-pass-para"
-                                    data-confirm="{{ __('Are You Sure?') }}"
-                                    data-text="{{ __('This action cannot be undone.') }}"
-                                    data-confirm-yes="delete-form-{{ $milestone['id'] }}">
-                                    <i class="ti ti-trash"></i> {{ __('Delete') }}
-                                </a>
-
-                                <form id="delete-form-{{ $milestone['id'] }}" method="POST"
-                                    action="{{ route('projects.milestone.destroy', [$currentWorkspace->slug, $milestone['id']]) }}"
-                                    style="display:none;">
-                                    @csrf
-                                    @method('DELETE')
-                                </form>
-                            @endif
-                        @endif
-                    </div>
-
-                @endif
-            </div>
-        </div>
-    </div>
-
     {{-- ================================== --}}
-    {{--      BODY - LISTA DE TAREAS        --}}
+    {{--  1. PRIORITY BADGE                --}}
     {{-- ================================== --}}
-    <div class="card-body pt-1">
-        <div class="row">
-            @if ($milestone['tasks'])
-                <div class="col-sm-12 p-3">
-                    @foreach ($milestone['tasks'] as $task)
-                        <div class="taskList tooltipCusTask p-target mb-2 col-sm-12 marginText" role="button"
-                            data-task-id="{{ $task['id'] }}"
-                            data-task-name="{{ $task['display_name'] ?? $task['name'] }}"
-                            data-milestone-id="{{ $milestone['id'] }}"
-                            data-project-id="{{ $milestone['project_id'] }}"
-                            data-project-name="{{ $milestone['project_name'] }}"
-                            data-technician-name="{{ $task['technician']->id }}"
-                            data-url="{{ route('create.timesheet.from.orders', [$currentWorkspace->slug, $project_id]) }}"
-                            data-ajax-timesheet-popup="true">
-
-                            <i class="ms-2 me-2 fa-solid fa-hourglass-start fa-xs" style="color:black;"></i>
-                            {{ __($task['display_name'] ?? $task['name']) }}
-
-                            <div class="tooltipTaskContent">
-                                <strong>{{ $task['technician']->name }}</strong><br />
-                                <small>{{ __('Imputed hours') }}: {{ $task['logged_hours'] }}</small>
-                            </div>
-                        </div>
-                    @endforeach
-                </div>
-            @else
-                <div class="text-muted text-center m-2" style="width:80%;">
-                    {{ __('No tasks in progress') }}...
-                </div>
-            @endif
-        </div>
-
-        {{-- ================================ --}}
-        {{--    FOOTER DEL MILESTONE          --}}
-        {{-- ================================ --}}
-        <div class="card mb-0">
-            <div class="card-body p-2">
-                <div class="row">
-
-                    <div class="foot-milestone">
-                        {{-- Proyecto --}}
-                        <div class="col-6 text-center">
-                            <div class="tooltipCus" style="display: flex; flex-direction:column; align-items:center;"
-                                data-title="{{ __('Project') }}">
-                                <img class="img-fluid p-1 adjustImg"
-                                    src="{{ asset('assets/img/' . $milestone['project_type'] . '.png') }}">
-                                <b style="font-size:12px;">{{ $milestone['project_name'] }}</b>
-                                <span class="text-muted">
-                                    <b>{{ $milestone['project_ref'] }}</b>
-                                </span>
-                                {{-- Workspace --}}
-                                @if (strpos(request()->url(), 'my-milestone-board') !== false)
-                                    <small class="text-muted d-block mt-1" style="font-size:10px;">
-                                        <i class="fa-solid fa-layer-group"></i> {{ $milestone['workspace_name'] }}
-                                    </small>
-                                @endif
-                            </div>
-                        </div>
-
-                        {{-- finalization_date (fecha finalización) --}}
-                        {{-- planned_end_date (fecha prevista) --}}
-
-                        <div class="fatherDateDivAlign">
-                            {{-- Fecha deseada --}}
-                            <div class="dateDiv text-center tooltipCus"
-                                data-title="{{ __('Desired delivery date') }}">
-
-                                @php
-                                    if ($milestone['finalization_date'] == null) {
-                                        $currentDate = new DateTime();
-                                        $estimatedDate = new DateTime($milestone['end_date']);
-                                        $isOverdue = $currentDate > $estimatedDate;
-                                    } else {
-                                        $estimatedDate = new DateTime($milestone['end_date']);
-                                        $finalDate = new DateTime($milestone['finalization_date']);
-                                        $isOverdue = $finalDate > $estimatedDate;
-                                    }
-                                    $statusNumber = (int) $status->id;
-
-                                    if ($statusNumber <= 2) {
-                                        $iconColor = $isOverdue ? '#db8d33' : 'black';
-                                    } else {
-                                        $iconColor = $isOverdue ? 'red' : '#53b446';
-                                    }
-                                @endphp
-
-                                <i class="fa-solid fa-calendar-check fa-2xl m-1 calendarAlert"
-                                    style="color:{{ $iconColor }};"></i>
-
-                                <div class="adjustTextCalendar">
-                                    <b style="font-size:12px;">
-                                        {{ \App\Models\Utility::dateFormat($milestone['end_date']) }}
-                                    </b>
-                                </div>
-                            </div>
-                            {{-- Fecha prevista --}}
-                            <div class="dateDiv text-center tooltipCus"
-                                data-title="{{ __('Planned delivery date') }}">
-                                @if ($milestone['planned_end_date'] != null && $milestone['planned_end_date'] != '0000-00-00')
-                                    @php
-                                        if ($milestone['finalization_date'] == null) {
-                                            $currentDate = new DateTime();
-                                            $estimatedDate = new DateTime($milestone['planned_end_date']);
-                                            $isOverdue = $currentDate > $estimatedDate;
-                                        } else {
-                                            $estimatedDate = new DateTime($milestone['planned_end_date']);
-                                            $finalDate = new DateTime($milestone['finalization_date']);
-                                            $isOverdue = $finalDate > $estimatedDate;
-                                        }
-                                        $statusNumber = (int) $status->id;
-
-                                        if ($statusNumber <= 2) {
-                                            $iconColor = $isOverdue ? '#db8d33' : 'black';
-                                        } else {
-                                            $iconColor = $isOverdue ? 'red' : '#53b446';
-                                        }
-                                    @endphp
-
-                                    <i class="fa-solid fa-calendar-check fa-2xl m-1 calendarAlert"
-                                        style="color:{{ $iconColor }};"></i>
-
-                                    <div class="adjustTextCalendar">
-                                        <b style="font-size:12px;">
-                                            {{ \App\Models\Utility::dateFormat($milestone['planned_end_date']) }}
-                                        </b>
-                                    </div>
-                                @else
-                                    <i class="fa-solid fa-calendar-check fa-2xl m-1 calendarAlert"
-                                        style="color:lightgrey"></i>
-                                @endif
-                            </div>
-                            {{-- Fecha completada --}}
-                            <div class="dateDiv text-center tooltipCus" data-title="{{ __('Completed date') }}">
-                                @if ($milestone['finalization_date'] != null && $milestone['finalization_date'] != '0000-00-00')
-                                    @php
-                                        $estimatedDate = new DateTime($milestone['planned_end_date']);
-                                        $requestedDate = new DateTime($milestone['end_date']);
-                                        $completedDate = new DateTime($milestone['finalization_date']);
-
-                                        if ($estimatedDate < $completedDate && $requestedDate < $completedDate) {
-                                            $iconColor = $isOverdue ? '#db8d33' : 'black';
-                                        } else {
-                                            $iconColor = $isOverdue ? 'red' : '#53b446';
-                                        }
-                                    @endphp
-
-                                    <i class="fa-solid fa-calendar-check fa-2xl m-1 calendarAlert"
-                                        style="color:{{ $iconColor }};"></i>
-
-                                    <div class="adjustTextCalendar">
-                                        <b style="font-size:12px;">
-                                            {{ \App\Models\Utility::dateFormat($milestone['finalization_date']) }}
-                                        </b>
-                                    </div>
-                                @else
-                                    <i class="fa-solid fa-calendar-check fa-2xl m-1 calendarAlert"
-                                        style="color:lightgrey"></i>
-                                @endif
-                            </div>
-                        </div>
-                    </div>
-
-                </div>
-            </div>
-        </div>
-
-    </div>
     @if ($milestone['priority'] && $milestone['priority'] !== '')
         @php
             $priorityLower = strtolower($milestone['priority']);
             if ($priorityLower === 'baja' || $priorityLower === 'low') {
-                $borderLeft = '#0080008a';
-                $borderRight = 'green';
-                $borderTop = 'green';
-                $bgColor = '#008000fa';
-                $priorityLabel = __('low');
+                $pClass = 'priority-low';
+                $pLabel = 'Prioridad: baja';
             } elseif ($priorityLower === 'media' || $priorityLower === 'medium') {
-                $borderLeft = '#ff8c008a';
-                $borderRight = '#ff8c00';
-                $borderTop = '#ff8c00';
-                $bgColor = '#ff8c00fa';
-                $priorityLabel = __('medium');
+                $pClass = 'priority-medium';
+                $pLabel = 'Prioridad: media';
             } elseif ($priorityLower === 'alta' || $priorityLower === 'high') {
-                $borderLeft = '#aa182c';
-                $borderRight = '#aa182c';
-                $borderTop = '#aa182c';
-                $bgColor = '#aa182c';
-                $priorityLabel = __('high');
+                $pClass = 'priority-high';
+                $pLabel = 'Prioridad: alta';
             } else {
-                $borderLeft = '#0080008a';
-                $borderRight = 'green';
-                $borderTop = 'green';
-                $bgColor = '#008000fa';
-                $priorityLabel = $milestone['priority'];
+                $pClass = 'priority-low';
+                $pLabel = 'Prioridad: ' . $milestone['priority'];
             }
         @endphp
-        <div style="display: flex; justify-content: center;">
-            <span
-                style="
-                                                        border-left: 2px solid {{ $borderLeft }};
-                                                        border-right: 2px solid {{ $borderRight }};
-                                                        border-top: 2px solid {{ $borderTop }};
-                                                        border-top-left-radius: 10px;
-                                                        border-top-right-radius: 10px;
-                                                        padding: 5px 10px 5px 10px;
-                                                        background-color: {{ $bgColor }};
-                                                        color: white;
-                                                        font-weight: 600;
-                                                    ">{{ __('Priority') }}:
-                {{ $priorityLabel }}</span>
+        <div class="priority-badge {{ $pClass }}">{{ $pLabel }}</div>
+    @endif
+
+    {{-- ================================== --}}
+    {{--  2. PROJECT IMAGE                 --}}
+    {{-- ================================== --}}
+    <img class="milestone-image"
+         src="{{ asset('assets/img/' . $milestone['project_type'] . '.png') }}"
+         alt="{{ $milestone['project_name'] }}">
+
+    {{-- ================================== --}}
+    {{--  3. PROJECT NAME                  --}}
+    {{-- ================================== --}}
+    <div class="milestone-project">{{ $milestone['project_name'] }}</div>
+
+    {{-- ================================== --}}
+    {{--  4. TITLE                         --}}
+    {{-- ================================== --}}
+    <div class="milestone-title milestone-title-tooltip"
+         data-ajax-popup="true"
+         data-title="{{ __('Order form details') }}"
+         data-url="{{ route('projects.milestone.show', [$currentWorkspace->slug, $milestone['id']]) }}"
+         data-tooltip-title="{{ __('Milestone') }}">
+        {{ $milestone['title'] }}
+    </div>
+
+    {{-- ================================== --}}
+    {{--  5. PHASE + STAGE                 --}}
+    {{-- ================================== --}}
+    @if (in_array((int) $milestone['project_type_id'], [3, 5], true) && (!empty($milestone['phases']) || !empty($milestone['stage'])))
+        <div class="milestone-meta">
+            @if (!empty($milestone['phases']))
+                @foreach ($milestone['phases'] as $phase)
+                    <span><span class="phase-dot"></span> {{ __(\App\Models\MilestonePhases::translationKey($phase)) }}</span>
+                @endforeach
+            @endif
+            @if (!empty($milestone['stage']))
+                <span><span class="stage-dot"></span> {{ $milestone['stage'] }}</span>
+            @endif
         </div>
     @endif
-    {{-- @dump($milestone) --}}
+
+    {{-- ================================== --}}
+    {{--  6. CALENDAR                      --}}
+    {{-- ================================== --}}
+    @php
+        $statusNumber = (int) $status->id;
+
+        if (!function_exists('dateParts')) {
+            function dateParts($dateStr) {
+                if (!$dateStr || $dateStr === '0000-00-00') return null;
+                $dt = new DateTime($dateStr);
+                return [$dt->format('d'), $dt->format('M y')];
+            }
+        }
+
+        // --- Desired date ---
+        $desiredParts = dateParts($milestone['end_date'] ?? '');
+        if ($desiredParts !== null) {
+            [$desiredDay, $desiredMonth] = $desiredParts;
+            $target = new DateTime($milestone['end_date']);
+            if (!$milestone['finalization_date'] || $milestone['finalization_date'] === '0000-00-00') {
+                $isOverdue = new DateTime() > $target;
+            } else {
+                $isOverdue = new DateTime($milestone['finalization_date']) > $target;
+            }
+            $desiredClass = $statusNumber <= 2
+                ? ($isOverdue ? 'badge-warning' : 'badge-default')
+                : ($isOverdue ? 'badge-danger' : 'badge-success');
+        } else {
+            $desiredDay = null;
+            $desiredClass = 'badge-na';
+        }
+
+        // --- Proposed date ---
+        $proposedParts = dateParts($milestone['planned_end_date'] ?? '');
+        if ($proposedParts !== null) {
+            [$proposedDay, $proposedMonth] = $proposedParts;
+            $target = new DateTime($milestone['planned_end_date']);
+            if (!$milestone['finalization_date'] || $milestone['finalization_date'] === '0000-00-00') {
+                $isOverdue = new DateTime() > $target;
+            } else {
+                $isOverdue = new DateTime($milestone['finalization_date']) > $target;
+            }
+            $proposedClass = $statusNumber <= 2
+                ? ($isOverdue ? 'badge-warning' : 'badge-default')
+                : ($isOverdue ? 'badge-danger' : 'badge-success');
+        } else {
+            $proposedDay = null;
+            $proposedClass = 'badge-na';
+        }
+
+        // --- Completed date ---
+        $completedParts = dateParts($milestone['finalization_date'] ?? '');
+        if ($completedParts !== null) {
+            [$completedDay, $completedMonth] = $completedParts;
+            $completed = new DateTime($milestone['finalization_date']);
+            $isOverdue = $completed > new DateTime($milestone['end_date'])
+                      && $completed > new DateTime($milestone['planned_end_date']);
+            $completedClass = $statusNumber <= 2
+                ? ($isOverdue ? 'badge-warning' : 'badge-default')
+                : ($isOverdue ? 'badge-danger' : 'badge-success');
+        } else {
+            $completedDay = null;
+            $completedClass = 'badge-na';
+        }
+    @endphp
+    <div class="milestone-calendar">
+        <div class="calendar-col">
+            <span class="calendar-label">{{ __('Desired') }}</span>
+            @if ($desiredDay !== null)
+                <span class="calendar-badge {{ $desiredClass }}">
+                    <span class="badge-day">{{ $desiredDay }}</span>
+                    <span class="badge-month">{{ $desiredMonth }}</span>
+                </span>
+            @else
+                <span class="calendar-badge badge-na">—</span>
+            @endif
+        </div>
+        <div class="calendar-col">
+            <span class="calendar-label">{{ __('Proposed') }}</span>
+            @if ($proposedDay !== null)
+                <span class="calendar-badge {{ $proposedClass }}">
+                    <span class="badge-day">{{ $proposedDay }}</span>
+                    <span class="badge-month">{{ $proposedMonth }}</span>
+                </span>
+            @else
+                <span class="calendar-badge badge-na">—</span>
+            @endif
+        </div>
+        <div class="calendar-col">
+            <span class="calendar-label">{{ __('Completed') }}</span>
+            @if ($completedDay !== null)
+                <span class="calendar-badge {{ $completedClass }}">
+                    <span class="badge-day">{{ $completedDay }}</span>
+                    <span class="badge-month">{{ $completedMonth }}</span>
+                </span>
+            @else
+                <span class="calendar-badge badge-na">—</span>
+            @endif
+        </div>
+    </div>
+
+    {{-- ================================== --}}
+    {{--  7. TASK LIST                     --}}
+    {{-- ================================== --}}
+    @php $taskCount = count($milestone['tasks'] ?? []); @endphp
+    <div class="milestone-task-list" id="taskList-{{ $milestone['id'] }}">
+        @if ($taskCount > 0)
+            <div class="milestone-task-box" id="box-{{ $milestone['id'] }}">
+                <div class="milestone-task-inner">
+                    @foreach ($milestone['tasks'] as $i => $task)
+                        @php
+                            $reviewState = $task['review_state'] ?? null;
+                            $reviewClass = match ($reviewState) {
+                                'reviewed' => 'task-reviewed',
+                                'changes'  => 'task-changes',
+                                default    => '',
+                            };
+                        @endphp
+                        <div class="milestone-task tooltipCusTask {{ $i > 1 ? 'milestone-task-extra' : '' }} {{ $reviewClass }} {{ ($status->id == 1 && (int) ($milestone['project_type_id'] ?? 0) === 3) ? 'task-inactive' : '' }}" role="button"
+                             data-task-id="{{ $task['id'] }}"
+                             data-task-name="{{ $task['display_name'] ?? $task['name'] }}"
+                             data-milestone-id="{{ $milestone['id'] }}"
+                             data-project-id="{{ $milestone['project_id'] }}"
+                             data-project-name="{{ $milestone['project_name'] }}"
+                             data-technician-name="{{ $task['technician']->id }}"
+                             data-url="{{ route('create.timesheet.from.orders', [$currentWorkspace->slug, $project_id]) }}"
+                             data-ajax-timesheet-popup="true"
+                             data-tooltip-content="{{ $task['technician']->name }} - {{ __('Imputed hours') }}: {{ $task['logged_hours'] }}">
+                            <i class="ms-2 me-2 fa-solid fa-hourglass-start fa-xs"></i>
+                            <span class="milestone-task-title">{{ __($task['display_name'] ?? $task['name']) }}</span>
+                            @if ($reviewState === 'changes' && in_array((int) $status->id, [2, 3], true))
+                                <button type="button" class="task-ack-btn"
+                                        data-task-id="{{ $task['id'] }}"
+                                        data-task-name="{{ $task['display_name'] ?? $task['name'] }}"
+                                        data-review-comment="{{ $task['review_comment'] ?? '' }}"
+                                        data-review-user="{{ $task['review_user'] ?? '' }}">
+                                    {{ __('Revisar') }}
+                                </button>
+                            @endif
+                        </div>
+                    @endforeach
+                </div>
+                @if ($taskCount > 2)
+                    <span class="milestone-dropdown-toggle" data-target="taskList-{{ $milestone['id'] }}">&#9660;</span>
+                @endif
+            </div>
+        @else
+            <div class="empty-state">
+                <i class="fa-solid fa-clipboard-list icon"></i>
+                <span class="title">{{ __('No tasks in progress') }}...</span>
+            </div>
+        @endif
+    </div>
+
+    {{-- ================================== --}}
+    {{--  9. FOOTER AVATARS                --}}
+    {{-- ================================== --}}
+    <div class="milestone-footer">
+        <div class="milestone-avatars" id="milestoneReqName"
+             data-technician-id="{{ $milestone['asiggned_user_data']->id ?? '' }}"
+             data-project-name="{{ $milestone['project_name'] }}"
+             data-milestone-id="{{ $milestone['id'] }}">
+            <img alt="image" class="user-groupTasks tooltipCus"
+                 title="{{ __('Requested by') }} {{ $milestone['sales']->name ?? 'N/A' }}"
+                 @if ($milestone['sales']->avatar)
+                     src="{{ asset($milestone['sales']->avatar) }}"
+                 @else
+                     avatar="{{ $milestone['sales']->name }}"
+                 @endif>
+            @if (isset($milestone['asiggned_user_data']))
+                <img alt="image" class="user-groupTasks tooltipCus"
+                     title="{{ __('Assigned to') }} {{ $milestone['asiggned_user_data']->name }}"
+                     @if ($milestone['asiggned_user_data']->avatar)
+                         src="{{ asset($milestone['asiggned_user_data']->avatar) }}"
+                     @else
+                         avatar="{{ $milestone['asiggned_user_data']->name }}"
+                     @endif>
+            @endif
+        </div>
+    </div>
+
+    @include('projects.partials.milestone_extra_info', ['milestone' => $milestone, 'status' => $status])
+
+    {{-- ================================== --}}
+    {{--  10. THREE-DOT MENU               --}}
+    {{-- ================================== --}}
+    <div class="card-header-right">
+        <div class="btn-group card-option">
+            @if ($currentWorkspace->permission == 'Owner' || $currentWorkspace->permission == 'Member')
+                <button type="button" class="btn dropdown-toggle" data-bs-toggle="dropdown">
+                    <i class="feather icon-more-vertical"></i>
+                </button>
+                <div class="dropdown-menu dropdown-menu-end">
+                    <a href="#" class="dropdown-item" data-ajax-popup="true"
+                       data-title="{{ __('Order form details') }}"
+                       data-url="{{ route('projects.milestone.show', [$currentWorkspace->slug, $milestone['id']]) }}">
+                        <i class="ti ti-eye"></i> {{ __('View') }}
+                    </a>
+                    @if ($milestone['is_waiting'])
+                        <a href="#" class="dropdown-item"
+                           onclick="event.preventDefault(); document.getElementById('resume-milestone-{{ $milestone['id'] }}').submit();">
+                            <i class="fa-solid fa-play"></i> {{ __('Resume Milestone') }}
+                        </a>
+                        <form id="resume-milestone-{{ $milestone['id'] }}"
+                              action="{{ route('projects.milestone.resume', [$currentWorkspace->slug, $milestone['id']]) }}"
+                              method="POST" style="display:none;">
+                            @csrf
+                        </form>
+                    @else
+                        <a href="#" class="dropdown-item" data-ajax-popup="true"
+                           data-title="{{ __('Assign Milestone') }}"
+                           data-url="{{ route('projects.milestone.assign', [$currentWorkspace->slug, $milestone['id']]) }}">
+                            <i class="fa-solid fa-user-plus"></i> {{ __('Assign Milestone') }}
+                        </a>
+                        @if ($status->id != 1 || ((int) ($milestone['project_type_id'] ?? 0) === 3 && $status->id == 1))
+                            @php
+                                $isMyMilestoneBoardUrl = strpos(request()->url(), 'my-milestone-board') !== false;
+                                $taskCreateRoute = $isMyMilestoneBoardUrl
+                                    ? route('my_milestone.tasks.create', $currentWorkspace->slug)
+                                    : route('tasks.create', $currentWorkspace->slug);
+                                $taskCreateRoute .= '?project_id=' . $milestone['project_id'] . '&projectName=' . urlencode($milestone['project_name'] ?? '') . '&milestoneTitle=' . urlencode($milestone['title']) . '&milestone_id=' . $milestone['id'] . '&fromMyMilestoneBoard=' . ($isMyMilestoneBoardUrl ? 1 : 0);
+                            @endphp
+                            <a href="#" class="dropdown-item" data-ajax-popup="true"
+                               data-title="{{ __('Add Task') }}" data-url="{{ $taskCreateRoute }}">
+                                <i class="fas fa-tasks"></i> {{ __('Add Task') }}
+                            </a>
+                        @endif
+                        <a href="#" class="dropdown-item"
+                           onclick="event.preventDefault(); openPauseMilestoneModal({{ $milestone['id'] }}, '{{ $currentWorkspace->slug }}');">
+                            <i class="fa-regular fa-circle-pause"></i> {{ __('Wait Milestone') }}
+                        </a>
+                        <form id="wait-milestone-{{ $milestone['id'] }}"
+                              action="{{ route('projects.milestone.wait', [$currentWorkspace->slug, $milestone['id']]) }}"
+                              method="POST" style="display:none;">
+                            @csrf
+                        </form>
+                        @if ($currentWorkspace->permission == 'Owner' || ($currentWorkspace->permission == 'Member' && Auth::user()->type == 'user'))
+                            <a href="#" class="dropdown-item" data-ajax-popup="true" data-size="lg"
+                               data-title="{{ __('Edit Milestone') }}"
+                               data-url="{{ route('projects.milestone.edit', [$currentWorkspace->slug, $milestone['id']]) }}">
+                                <i class="ti ti-edit"></i>{{ __('Edit') }}
+                            </a>
+                            <a href="#" class="dropdown-item bs-pass-para"
+                               data-confirm="{{ __('Are You Sure?') }}"
+                               data-text="{{ __('This action cannot be undone.') }}"
+                               data-confirm-yes="delete-form-{{ $milestone['id'] }}">
+                                <i class="ti ti-trash"></i> {{ __('Delete') }}
+                            </a>
+                            <form id="delete-form-{{ $milestone['id'] }}" method="POST"
+                                  action="{{ route('projects.milestone.destroy', [$currentWorkspace->slug, $milestone['id']]) }}"
+                                  style="display:none;">
+                                @csrf
+                                @method('DELETE')
+                            </form>
+                        @endif
+                    @endif
+                </div>
+            @endif
+        </div>
+    </div>
 </div>
 
 <span class="empty-container" data-placeholder="Empty"></span>
-<!-- Modal para pausa de milestone con comentario -->
+
+{{-- Modal para pausa de milestone con comentario --}}
 <div class="modal fade" id="pauseMilestoneModal" tabindex="-1" role="dialog"
-    aria-labelledby="pauseMilestoneModalLabel" aria-hidden="true">
+     aria-labelledby="pauseMilestoneModalLabel" aria-hidden="true">
     <div class="modal-dialog" role="document">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="pauseMilestoneModalLabel">{{ __('Pause Milestone') }}</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <form id="pauseMilestoneForm" method="POST" style="display:none;">
-                @csrf
-            </form>
+            <form id="pauseMilestoneForm" method="POST" style="display:none;">@csrf</form>
             <div class="modal-body">
                 <div class="form-group">
                     <label for="pauseComment">{{ __('Pause Reason / Note') }}</label>
                     <textarea class="form-control" id="pauseComment" name="pause_comment" rows="4"
-                        placeholder="{{ __('Enter the reason for pausing this milestone...') }}"></textarea>
+                              placeholder="{{ __('Enter the reason for pausing this milestone...') }}"></textarea>
                 </div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary"
-                    data-bs-dismiss="modal">{{ __('Cancel') }}</button>
-                <button type="button" class="btn btn-primary"
-                    onclick="submitPauseMilestone()">{{ __('Pause') }}</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ __('Cancel') }}</button>
+                <button type="button" class="btn btn-primary" onclick="submitPauseMilestone()">{{ __('Pause') }}</button>
             </div>
         </div>
     </div>
@@ -517,14 +383,9 @@
 
 <script>
     function openPauseMilestoneModal(milestoneId, slug) {
-        // Guardar el ID y slug en el modal para usarlos después
         document.getElementById('pauseMilestoneModal').dataset.milestoneId = milestoneId;
         document.getElementById('pauseMilestoneModal').dataset.slug = slug;
-
-        // Limpiar el textarea
         document.getElementById('pauseComment').value = '';
-
-        // Mostrar el modal
         $('#pauseMilestoneModal').modal('show');
     }
 
@@ -532,29 +393,346 @@
         const milestoneId = document.getElementById('pauseMilestoneModal').dataset.milestoneId;
         const slug = document.getElementById('pauseMilestoneModal').dataset.slug;
         const comment = document.getElementById('pauseComment').value;
-
-        // Crear el formulario dinámicamente
         const form = document.createElement('form');
         form.method = 'POST';
-        form.action = '{{ route('projects.milestone.wait', [':slug', ':id']) }}'.replace(':slug', slug).replace(':id',
-            milestoneId);
-
+        form.action = '{{ route('projects.milestone.wait', [':slug', ':id']) }}'.replace(':slug', slug).replace(':id', milestoneId);
         const csrfInput = document.createElement('input');
         csrfInput.type = 'hidden';
         csrfInput.name = '_token';
         csrfInput.value = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
         form.appendChild(csrfInput);
-
         const commentInput = document.createElement('input');
         commentInput.type = 'hidden';
         commentInput.name = 'pause_comment';
         commentInput.value = comment;
         form.appendChild(commentInput);
-
         document.body.appendChild(form);
         form.submit();
-
-        // Cerrar el modal
         $('#pauseMilestoneModal').modal('hide');
     }
+
+    function bindMilestoneDropdownToggles(scope) {
+        var containers = scope && scope.querySelectorAll ?
+            scope.querySelectorAll('.milestone-dropdown-toggle') :
+            document.querySelectorAll('.milestone-dropdown-toggle');
+        containers.forEach(function(toggle) {
+            if (toggle.getAttribute('data-bound') === '1') return;
+            toggle.setAttribute('data-bound', '1');
+            toggle.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                var taskList = document.getElementById(toggle.getAttribute('data-target'));
+                if (!taskList) return;
+                var inner = taskList.querySelector('.milestone-task-inner');
+                if (!inner) return;
+                var isExpanded = taskList.classList.toggle('expanded');
+                inner.style.maxHeight = isExpanded ? (inner.scrollHeight + 'px') : '52px';
+            });
+        });
+    }
+
+    window.bindMilestoneTaskTooltip = function(taskEl) {
+        if (!taskEl || taskEl.getAttribute('data-tooltip-bound') === '1') return;
+        taskEl.setAttribute('data-tooltip-bound', '1');
+        taskEl.addEventListener('mouseenter', function() {
+            var content = this.getAttribute('data-tooltip-content');
+            if (!content) return;
+            if (window.__milestoneActiveTooltip) window.__milestoneActiveTooltip.remove();
+            var tooltip = document.createElement('div');
+            tooltip.className = 'tooltipTaskContent visible';
+            tooltip.textContent = content;
+            document.body.appendChild(tooltip);
+            var rect = this.getBoundingClientRect();
+            var top = rect.top - tooltip.offsetHeight - 6;
+            var left = rect.left + (rect.width - tooltip.offsetWidth) / 2;
+            tooltip.style.top = Math.max(4, top) + 'px';
+            tooltip.style.left = Math.max(4, left) + 'px';
+            window.__milestoneActiveTooltip = tooltip;
+        });
+        taskEl.addEventListener('mouseleave', function() {
+            if (window.__milestoneActiveTooltip) {
+                window.__milestoneActiveTooltip.remove();
+                window.__milestoneActiveTooltip = null;
+            }
+        });
+    };
+
+    // --- Shared helpers (definidos una vez; usados por milestoneboard y my_milestone_board) ---
+    if (typeof window.replaceMilestoneExtraInfo !== 'function') {
+        window.replaceMilestoneExtraInfo = function(card, html) {
+            if (!html) return;
+            var existing = card.querySelector('.milestone-extra-info');
+            if (existing) {
+                existing.outerHTML = html;
+            } else {
+                card.insertAdjacentHTML('beforeend', html);
+            }
+        };
+    }
+
+    if (typeof window.moveMilestoneCardToStatus !== 'function') {
+        window.moveMilestoneCardToStatus = function(card, statusId) {
+            var currentStatus = card.getAttribute('data-status');
+            if (String(statusId) === String(currentStatus)) return;
+            var oldBox = card.closest('.kanban-box');
+            var newBox = document.querySelector(".kanban-box[data-status='" + statusId + "']");
+            if (!oldBox || !newBox) return;
+            card.setAttribute('data-status', statusId);
+            newBox.appendChild(card);
+            [oldBox, newBox].forEach(function(box) {
+                var cardList = box.closest('.card-list');
+                if (!cardList) return;
+                var countEl = cardList.querySelector('.count');
+                var total = box.querySelectorAll(':scope > .card').length;
+                if (countEl) countEl.textContent = total;
+                var emptyStateEl = box.querySelector('.noNotificationsContainer');
+                if (emptyStateEl) emptyStateEl.style.display = total > 0 ? 'none' : '';
+            });
+        };
+    }
+
+    if (typeof window.getTargetExtraInfo !== 'function') {
+        window.getTargetExtraInfo = function(card, statusId) {
+            var s = parseInt(statusId);
+            var isWaiting = card.getAttribute('data-is-waiting') === '1';
+
+            if (isWaiting) {
+                return '<div class="milestone-extra-info milestone-extra-info--paused">'
+                    + '<i class="far fa-pause-circle"></i>'
+                    + '<span>{{ __("Encargo pausado") }}</span>'
+                    + '<a href="#" class="milestone-resume-btn" onclick="event.preventDefault();document.getElementById(\'resume-milestone-' + card.id + '\').submit();">{{ __("Activar") }}</a>'
+                    + '</div>';
+            }
+
+            if (s === 1) {
+                return '<div class="milestone-extra-info">'
+                    + '<i class="fa-solid fa-arrows-alt"></i>'
+                    + '<span>{{ __("Arrastrar a en curso") }}<br>{{ __("para empezar el encargo") }}</span>'
+                    + '</div>';
+            }
+
+            if (s === 2) {
+                var tasks = card.querySelectorAll('.milestone-task');
+                var hasChanges = !!card.querySelector('.task-changes');
+                if (hasChanges) {
+                    return '<div class="milestone-extra-info milestone-extra-info--changes">'
+                        + '<i class="fa-solid fa-triangle-exclamation"></i>'
+                        + '<span>{{ __("There are tasks pending correction") }}<br>{{ __("before moving to review") }}</span>'
+                        + '</div>';
+                }
+                var statusClass2 = '';
+                var statusIcon2 = 'fa-solid fa-arrow-circle-right';
+                var statusLabel2 = '{{ __("Puede pasar a revisión") }}';
+                if (tasks.length === 0) {
+                    statusClass2 = 'milestone-extra-info--no-tasks';
+                    statusIcon2 = 'fa-solid fa-exclamation-triangle';
+                    statusLabel2 = '{{ __("No puede pasar a revisión.") }}<br>{{ __("Se necesita añadir tareas") }}';
+                } else {
+                    var allHaveHours = true;
+                    for (var i = 0; i < tasks.length; i++) {
+                        var tip = tasks[i].getAttribute('data-tooltip-content') || '';
+                        if (/[: ]00:00\s*$/.test(tip)) {
+                            allHaveHours = false;
+                            break;
+                        }
+                    }
+                    if (!allHaveHours) {
+                        statusClass2 = 'milestone-extra-info--hours';
+                        statusIcon2 = 'far fa-clock';
+                        statusLabel2 = '{{ __("Imputar las horas") }}<br>{{ __("para pasar a revisión") }}';
+                    }
+                }
+                return '<div class="milestone-extra-info milestone-extra-info--ready ' + statusClass2 + '">'
+                    + '<i class="' + statusIcon2 + '"></i>'
+                    + '<span>' + statusLabel2 + '</span>'
+                    + '</div>';
+            }
+
+            if (s === 3) {
+                return '<div class="milestone-extra-info milestone-extra-info--orange">'
+                    + '<i class="fa-solid fa-magnifying-glass"></i>'
+                    + '<span>{{ __("Encargo en revisión") }}</span>'
+                    + '</div>';
+            }
+
+            if (s === 4) {
+                var completed = card.getAttribute('data-completed-date') || '';
+                var desired   = card.getAttribute('data-desired-delivery-date') || '';
+                var isLate = false;
+                if (desired && desired !== '0000-00-00') {
+                    if (completed && completed !== '0000-00-00') {
+                        isLate = new Date(completed) > new Date(desired);
+                    } else {
+                        isLate = new Date() > new Date(desired);
+                    }
+                }
+                var cls  = 'milestone-extra-info milestone-extra-info--check' + (isLate ? ' milestone-check-late' : '');
+                var lbl  = isLate ? '{{ __("Entregado fuera de plazo") }}' : '{{ __("Entregado en plazo") }}';
+                return '<div class="' + cls + '">'
+                    + '<i class="far fa-check-circle"></i>'
+                    + '<span>' + lbl + '</span>'
+                    + '</div>';
+            }
+
+            return null;
+        };
+    }
+
+    if (typeof window.milestoneBoardAppendTask !== 'function') {
+        window.milestoneBoardAppendTask = function(response) {
+            if (!response || !response.milestone_id) return;
+
+            var card = document.getElementById(String(response.milestone_id));
+            if (!card) return;
+
+            var taskListEl = document.getElementById('taskList-' + response.milestone_id);
+            if (!taskListEl) return;
+
+            var reviewClass = response.review_state === 'reviewed' ? 'task-reviewed' : (response.review_state === 'changes' ? 'task-changes' : '');
+            var inactiveClass = (String(response.status) === '1' && String(response.project_type_id) === '3') ? 'task-inactive' : '';
+            var extraClass = response.task_count > 2 ? 'milestone-task-extra' : '';
+            var technicianName = response.technician_name || '';
+            var tooltipContent = technicianName + ' - {{ __("Imputed hours") }}: ' + (response.logged_hours || '00:00');
+            var timesheetBaseUrl = '{{ route('create.timesheet.from.orders', [$currentWorkspace->slug, ':PID']) }}';
+
+            var taskEl = document.createElement('div');
+            taskEl.className = 'milestone-task tooltipCusTask ' + extraClass + ' ' + reviewClass + ' ' + inactiveClass;
+            taskEl.setAttribute('role', 'button');
+            taskEl.setAttribute('data-task-id', response.task_id);
+            taskEl.setAttribute('data-task-name', response.display_name || '');
+            taskEl.setAttribute('data-milestone-id', response.milestone_id);
+            taskEl.setAttribute('data-project-id', response.project_id);
+            taskEl.setAttribute('data-technician-name', response.technician_id);
+            taskEl.setAttribute('data-url', timesheetBaseUrl.replace(':PID', response.project_id));
+            taskEl.setAttribute('data-ajax-timesheet-popup', 'true');
+            taskEl.setAttribute('data-tooltip-content', tooltipContent);
+
+            var icon = document.createElement('i');
+            icon.className = 'ms-2 me-2 fa-solid fa-hourglass-start fa-xs';
+            var nameSpan = document.createElement('span');
+            nameSpan.className = 'milestone-task-title';
+            nameSpan.textContent = response.display_name || '';
+
+            taskEl.appendChild(icon);
+            taskEl.appendChild(nameSpan);
+
+            // Quitar el estado vacío si existía
+            var emptyState = taskListEl.querySelector('.empty-state');
+            if (emptyState) emptyState.remove();
+
+            var taskBox = taskListEl.querySelector('.milestone-task-box');
+            if (!taskBox) {
+                taskBox = document.createElement('div');
+                taskBox.className = 'milestone-task-box';
+                taskBox.id = 'box-' + response.milestone_id;
+                var inner = document.createElement('div');
+                inner.className = 'milestone-task-inner';
+                taskBox.appendChild(inner);
+                taskListEl.appendChild(taskBox);
+            }
+            var innerEl = taskBox.querySelector('.milestone-task-inner');
+            innerEl.appendChild(taskEl);
+
+            // Mostrar/ocultar toggle de colapso según el nº de tareas
+            var toggle = taskListEl.querySelector('.milestone-dropdown-toggle');
+            if (response.task_count > 2) {
+                if (!toggle) {
+                    toggle = document.createElement('span');
+                    toggle.className = 'milestone-dropdown-toggle';
+                    toggle.setAttribute('data-target', 'taskList-' + response.milestone_id);
+                    toggle.innerHTML = '&#9660;';
+                    taskListEl.appendChild(toggle);
+                }
+            } else if (toggle) {
+                toggle.remove();
+            }
+
+            // Refrescar el aviso inferior de la tarjeta
+            window.replaceMilestoneExtraInfo(card, response.milestone_extra_info);
+
+            // Si el status del encargo cambió, mover la tarjeta a la columna correcta
+            window.moveMilestoneCardToStatus(card, response.status);
+
+            // Re-enlazar eventos del nuevo elemento
+            if (typeof window.bindMilestoneTaskClick === 'function') window.bindMilestoneTaskClick(taskEl);
+            if (typeof window.bindMilestoneTaskTooltip === 'function') window.bindMilestoneTaskTooltip(taskEl);
+            if (typeof window.bindMilestoneDropdownToggles === 'function') window.bindMilestoneDropdownToggles(taskListEl);
+        };
+    }
+
+    if (typeof window.milestoneBoardUpdateTaskHours !== 'function') {
+        window.milestoneBoardUpdateTaskHours = function(response) {
+            if (!response || !response.milestone_id) return;
+
+            var card = document.getElementById(String(response.milestone_id));
+            if (!card) return;
+
+            // Actualizar el tooltip de la tarea con las horas imputadas
+            if (response.task_id) {
+                var taskEl = card.querySelector('.milestone-task[data-task-id="' + response.task_id + '"]');
+                if (taskEl) {
+                    var technicianName = response.technician_name || '';
+                    taskEl.setAttribute('data-tooltip-content', technicianName + ' - {{ __("Imputed hours") }}: ' + (response.logged_hours || '00:00'));
+                }
+            }
+
+            // Refrescar el aviso inferior de la tarjeta
+            window.replaceMilestoneExtraInfo(card, response.milestone_extra_info);
+
+            // Si el status del encargo cambió, mover la tarjeta a la columna correcta
+            window.moveMilestoneCardToStatus(card, response.status);
+        };
+    }
+
+    if (typeof window.updateTaskReviewState !== 'function') {
+        window.updateTaskReviewState = function(response) {
+            if (!response || !response.task_id) return;
+
+            var taskEl = document.querySelector('.milestone-task[data-task-id="' + response.task_id + '"]');
+            if (!taskEl) return;
+
+            // 1. Actualizar clases de estado
+            taskEl.classList.remove('task-reviewed', 'task-changes');
+            if (response.review_state !== 'cleared') {
+                taskEl.classList.add('task-' + response.review_state); // 'task-reviewed' o 'task-changes'
+            }
+
+            // 2. Mostrar/ocultar/crear botón "Revisar"
+            var ackBtn = taskEl.querySelector('.task-ack-btn');
+            if (response.show_revisar_btn) {
+                if (!ackBtn) {
+                    // Crear botón dinámicamente si no existe
+                    ackBtn = document.createElement('button');
+                    ackBtn.type = 'button';
+                    ackBtn.className = 'task-ack-btn';
+                    ackBtn.setAttribute('data-task-id', response.task_id);
+                    ackBtn.setAttribute('data-task-name', taskEl.getAttribute('data-task-name') || '');
+                    // review-comment y review-user vienen en la respuesta AJAX para 'changes'
+                    if (response.review_state === 'changes') {
+                        ackBtn.setAttribute('data-review-comment', response.review_comment || '');
+                        ackBtn.setAttribute('data-review-user', response.review_user || '');
+                    }
+                    ackBtn.textContent = '{{ __("Revisar") }}';
+                    taskEl.appendChild(ackBtn);
+                }
+                ackBtn.style.display = '';
+            } else if (ackBtn) {
+                ackBtn.style.display = 'none';
+            }
+
+            // 3. Actualizar extra-info del milestone
+            var card = taskEl.closest('.milestone-card') || taskEl.closest('.card');
+            if (card && response.milestone_extra_info) {
+                window.replaceMilestoneExtraInfo(card, response.milestone_extra_info);
+            }
+
+            // 4. Re-bind tooltip si existe
+            if (typeof window.bindMilestoneTaskTooltip === 'function') {
+                window.bindMilestoneTaskTooltip(taskEl);
+            }
+        };
+    }
+
+    bindMilestoneDropdownToggles(document);
+    document.querySelectorAll('.milestone-task[data-tooltip-content]').forEach(window.bindMilestoneTaskTooltip);
 </script>

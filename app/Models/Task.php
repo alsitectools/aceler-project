@@ -11,6 +11,9 @@ class Task extends Model
         'project_id',
         'milestone_id',
         'type_id',
+        'description',
+        'referencia',
+        'empresa',
         'assign_to',
         'start_date',
         'estimated_date',
@@ -135,6 +138,11 @@ class Task extends Model
         $hours = floor($totalSeconds / 3600);
         $minutes = floor(($totalSeconds % 3600) / 60);
         return sprintf('%02d:%02d', $hours, $minutes);
+    }
+
+    public function reviewState()
+    {
+        return $this->hasOne(TaskReviewState::class, 'task_id', 'id')->latestOfMany();
     }
 
        public function customTask()

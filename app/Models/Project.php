@@ -40,6 +40,7 @@ class Project extends Model
     public function users()
     {
         return $this->belongsToMany('App\Models\User', 'user_projects', 'project_id', 'user_id')
+            ->wherePivot('is_active', 1)
             ->withPivot('is_active')
             ->orderBy('users.id', 'ASC');
     }
@@ -47,6 +48,7 @@ class Project extends Model
     {
         return $this->belongsToMany('App\Models\User', 'user_projects', 'project_id', 'user_id')
             ->where('users.type', 'user')
+            ->wherePivot('is_active', 1)
             ->withPivot('is_active')
             ->orderBy('users.id', 'ASC');
     }
@@ -64,6 +66,7 @@ class Project extends Model
     {
         return $this->belongsToMany('App\Models\User', 'user_projects', 'project_id', 'user_id')
             ->where('users.type', 'client')
+            ->wherePivot('is_active', 1)
             ->withPivot('is_active')
             ->orderBy('users.id', 'ASC');
     }
@@ -77,6 +80,7 @@ class Project extends Model
     {
         return $this->belongsToMany('App\Models\User', 'user_projects', 'project_id', 'user_id')
             ->where('users.type', 'client')
+            ->wherePivot('is_active', 1)
             ->withPivot('is_active')
             ->pluck('client_id')
             ->orderBy('users.id', 'ASC');
@@ -103,7 +107,7 @@ class Project extends Model
 
     public function updateProjectStatus()
     {
-        $this->loadMissing(['milestones:id,project_id,status,is_waiting']);
+        $this->loadMissing(['milestones:id,project_id,status']);
 
         // 1) Sin encargos => OnHold
         if ($this->milestones->isEmpty()) {
@@ -111,30 +115,16 @@ class Project extends Model
             return $this->save();
         }
 
-        // 2) Todos Done => Finished
+        // 2) Todos los encargos en Done(4) => Finished
         $allDone = $this->milestones->every(fn($m) => (int)$m->status === 4);
         if ($allDone) {
             $this->status = 'Finished';
             return $this->save();
         }
 
-        // Encargos NO terminados
-        $notDone = $this->milestones->filter(fn($m) => (int)$m->status !== 4);
-
-        // 3) Si los NO terminados están todos en ToDo(1) => OnHold
-        $allNotDoneAreTodo = $notDone->every(fn($m) => (int)$m->status === 1);
-        if ($allNotDoneAreTodo) {
-            $this->status = 'OnHold';
-            return $this->save();
-        }
-
-        // 4) Activo real = status 2/3 y NO en pausa
-        $hasActiveNotPaused = $notDone->contains(function ($m) {
-            return in_array((int)$m->status, [2, 3], true) && (int)$m->is_waiting === 0;
-        });
-
-        // 5) Si no hay activo real (porque están pausados) => OnHold
-        $this->status = $hasActiveNotPaused ? 'Ongoing' : 'OnHold';
+        // 3) Cualquier encargo en status 2, 3 o 4 (no todos 4) => Ongoing
+        $hasAdvanced = $this->milestones->contains(fn($m) => in_array((int)$m->status, [2, 3, 4], true));
+        $this->status = $hasAdvanced ? 'Ongoing' : 'OnHold';
 
         return $this->save();
     }
@@ -229,7 +219,7 @@ class Project extends Model
                     $taskEnd = $task->end_date ? Carbon::parse($task->end_date) : null;
 
                     // Obtener el nombre correcto especialmente si es custom
-                    
+
                     $taskName = $task->type ? $task->type->name : '';
                     if ($task->type->name === 'custom') {
                         $customTask = CustomTasks::where('id_task', $task->id)->first();
@@ -492,6 +482,57 @@ class Project extends Model
         return $result;
     }
 
+    private static function buildPopupTasksByDate($days, $userId)
+    {
+        $firstDay = Carbon::parse($days['first_day'])->toDateString();
+        $seventhDay = Carbon::parse($days['seventh_day'])->toDateString();
+
+        $rows = Timesheet::where('timesheets.created_by', $userId)
+            ->whereBetween('timesheets.date', [$firstDay, $seventhDay])
+            ->join('tasks', 'tasks.id', '=', 'timesheets.task_id')
+            ->join('milestones', 'milestones.id', '=', 'tasks.milestone_id')
+            ->join('projects', 'projects.id', '=', 'timesheets.project_id')
+            ->leftJoin('task_types', 'task_types.id', '=', 'tasks.type_id')
+            ->whereIn('milestones.status', [2, 3, 4])
+            ->select([
+                'timesheets.date',
+                'timesheets.time',
+                'timesheets.task_id',
+                'task_types.name as task_type_name',
+                'milestones.status as milestone_status',
+                'milestones.title as milestone_name',
+                'projects.name as project_name',
+            ])
+            ->get();
+
+        $tasksByDate = [];
+        foreach ($rows as $ts) {
+            $date = Carbon::parse($ts->date)->toDateString();
+            $time = Carbon::parse($ts->time)->format('H:i');
+
+            if ($time === '00:00') {
+                continue;
+            }
+
+            $taskName = trim($ts->task_type_name ?? '');
+            if (strtolower($taskName) === 'custom') {
+                $customTask = CustomTasks::where('id_task', $ts->task_id)->first();
+                $taskName = $customTask && !empty($customTask->name) ? $customTask->name : __('Custom');
+            } else {
+                $taskName = !empty($taskName) ? __($taskName) : __('N/A');
+            }
+
+            $tasksByDate[$date][] = [
+                'task_name' => $taskName,
+                'hours' => $time,
+                'milestone_status' => (int) $ts->milestone_status,
+                'milestone_name' => $ts->milestone_name,
+                'project_name' => $ts->project_name,
+            ];
+        }
+
+        return $tasksByDate;
+    }
 
     public static function getProjectAssignedTimesheetHTML($currentWorkspace, $timesheets = [], $days = [], $project_id = null, $seeAsOwner = false, $showAllWorkspaces = false)
     {
@@ -585,6 +626,8 @@ class Project extends Model
             }
         }
 
+        $popupTasksByDate = self::buildPopupTasksByDate($days, $userId);
+
         $htmlContent = view('projects.timesheet-week', compact(
             'currentWorkspace',
             'timesheetArray',
@@ -595,7 +638,8 @@ class Project extends Model
             'allProjects',
             'workHoursWeek',
             'holidayDates',
-            'intensiveHoursByDate'
+            'intensiveHoursByDate',
+            'popupTasksByDate'
         ))->render();
 
         return compact('htmlContent', 'totalrecords');

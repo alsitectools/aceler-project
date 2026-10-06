@@ -125,4 +125,6 @@ return [
     'Write_message' => 'Write message',
     'Submit'=> 'Submit',
     'Milestone_Board'=> 'Milestone board',
+    'Mostrar correo' => 'Show email',
+    'Ocultar correo' => 'Hide email',
 ];

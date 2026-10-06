@@ -18,6 +18,30 @@ class Workspace extends Model
         'delegation_id'
     ];
 
+    protected static $nameTranslations = [
+        'en' => [
+            'Digitalización y mejora continua' => 'Digitalization and continuous improvement',
+        ],
+    ];
+
+    public function getDisplayNameAttribute()
+    {
+        $locale = session('locale', app()->getLocale());
+        if ($locale === 'es') {
+            return $this->name;
+        }
+        return static::$nameTranslations[$locale][$this->name] ?? $this->name;
+    }
+
+    public static function translateName($name, $locale = null)
+    {
+        $locale = $locale ?? session('locale', app()->getLocale());
+        if ($locale === 'es') {
+            return $name;
+        }
+        return static::$nameTranslations[$locale][$name] ?? $name;
+    }
+
     public static function create($data)
     {
         $data['slug'] =  $data['name'];

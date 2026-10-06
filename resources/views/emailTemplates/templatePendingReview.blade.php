@@ -3,13 +3,14 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>Aceler Project Notification</title>
+    <title>{{ $emailSubject ?? 'Notificación en Aceler Project' }}</title>
 </head>
 
 <body style="font-family: Arial, Helvetica, sans-serif; color:#333; line-height:1.6;">
 
     <!-- ===== ESPAÑOL ===== -->
-    <div style="background-color:#f8f8f8; padding:15px; border-left:4px solid #AA182C; margin-bottom:20px; border-radius:4px;">
+    <div
+        style="background-color:#f8f8f8; padding:15px; border-left:4px solid #AA182C; margin-bottom:20px; border-radius:4px;">
         <p style="margin:0; font-size:14px; color:#666;">
             <strong>ℹ️ Notificación:</strong> Una hoja de encargo está pendiente de revisión
         </p>
@@ -31,7 +32,7 @@
         🔼 <strong>Prioridad:</strong>
         <span style="padding:4px 8px; background:#f2f2f2; border-radius:4px;">
             @if ($priority == null || $priority == '')
-                Sin prioridad.
+                Sin prioridad
             @else
                 {{ ucfirst($priority) }}
             @endif
@@ -63,7 +64,8 @@
     <hr style="margin:30px 0; border:none; border-top:1px solid #ddd;">
 
     <!-- ===== ENGLISH ===== -->
-    <div style="background-color:#f8f8f8; padding:15px; border-left:4px solid #AA182C; margin-bottom:20px; border-radius:4px;">
+    <div
+        style="background-color:#f8f8f8; padding:15px; border-left:4px solid #AA182C; margin-bottom:20px; border-radius:4px;">
         <p style="margin:0; font-size:14px; color:#666;">
             <strong>ℹ️ Notification:</strong> A work order is pending review
         </p>
@@ -85,9 +87,9 @@
         🔼 <strong>Priority:</strong>
         <span style="padding:4px 8px; background:#f2f2f2; border-radius:4px;">
             @if ($priority == null || $priority == '')
-                No priority.
+                No priority
             @else
-                {{ ucfirst($priority) }}
+                {{ ['alta' => 'High', 'media' => 'Medium', 'baja' => 'Low'][strtolower($priority)] ?? ucfirst($priority) }}
             @endif
         </span>
     </p>

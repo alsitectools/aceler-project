@@ -47,9 +47,113 @@
     .ctr {
         display: flex;
         align-items: center;
-
-
     }
+
+    /* ============================================================
+       Modern Summary Cards Layout
+       ============================================================ */
+    .tabs.ctr {
+        display: grid;
+        grid-template-columns: auto 1fr;
+        gap: 20px;
+        align-items: start;
+        padding: 24px 28px;
+        background: #fff;
+        border-radius: 16px;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.06), 0 8px 24px rgba(0,0,0,0.10);
+        border: 1px solid #e5e7eb;
+        height: 100%;
+        transition: box-shadow 0.2s ease;
+        min-width: 0;
+    }
+    .tabs.ctr:hover {
+        box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+    }
+    .tabs.ctr:has(.projectIcon) { border-color: #a1cd80; }
+    .tabs.ctr:has(.milestoneIcon) { border-color: rgb(174 154 247); }
+    .tabs.ctr:has(.taskIcon) { border-color: #72c8d4; }
+
+    .card-header-inner {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        justify-content: flex-start;
+        gap: 8px;
+        min-width: 0;
+        margin-bottom: 0;
+        align-self: stretch;
+        padding-right: 12px;
+        border-right: 1px solid #e5e7eb;
+    }
+
+    .statusContainer {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        min-width: 180px;
+        width: 100%;
+    }
+
+    .stat-row {
+        display: grid;
+        grid-template-columns: auto 1fr auto;
+        column-gap: 12px;
+        align-items: center;
+        min-width: 0;
+        width: 100%;
+    }
+
+    .stat-dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        flex-shrink: 0;
+        margin-left: 0;
+    }
+
+    .stat-label {
+        color: #111827;
+        font-weight: 500;
+        font-size: 14px;
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        text-align: left;
+        padding-right: 8px;
+    }
+
+.stat-value {
+        font-size: 14px;
+        font-weight: 600;
+        color: #6b7280;
+        background: #fff;
+        /* border: 1px solid #e5e7eb; */
+        border-radius: 8px;
+        /* padding: 2px 10px; */
+        min-width: 44px;
+        text-align: right;
+        white-space: nowrap;
+    }
+
+.stat-dot--pending { background: #ff0000a3; }
+    .stat-dot--review { background: #9ca3af; }
+    .stat-dot--active { background: #22c55e; }
+    .stat-dot--info { background: #53b446e0; }
+    .stat-dot--warning { background: #f59e0b; }
+    .stat-dot--change { background: #ff0000a3; }
+    .stat-dot--info1 { background: #3b82f6; }
+
+    /* Activity card: Prioridad de mis encargos */
+    .stat-dot--sin-asignar { background: #a62330; }
+    .stat-dot--por-revisar { background: #DB8D33; }
+    .stat-dot--activo { background: #68bd5c; }
+    .stat-dot--en-pausa { background: #9ca3af; }
+
+    /* Global Projects card */
+    .stat-dot--en-espera { background: #FFA21D; }
+    .stat-dot--en-curso { background: #6C757D; }
+    .stat-dot--finalizado { background: #6FD943; }
 
     .titleTecAndCom {
         padding-left: 10px;
@@ -57,9 +161,11 @@
     }
 
     .tabIcon {
-        margin-left: 30px;
-        width: 50px;
-        height: 50px;
+        margin-left: 0;
+        width: 38px;
+        height: 38px;
+        flex-shrink: 0;
+        position: relative;
         background-color: #AA182C;
         display: flex;
         justify-content: center;
@@ -68,14 +174,33 @@
         filter: drop-shadow(0px 1px 3px rgba(0, 0, 0, 0.2));
     }
 
+    .tabIcon-badge {
+        position: absolute;
+        bottom: 0;
+        right: 1px;
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 12px;
+        background: #AA182C;
+        color: #fff;
+    }
+
+    .projectIcon .tabIcon-badge { background: #a1cd80; }
+    .milestoneIcon .tabIcon-badge { background: rgb(174 154 247); }
+    .taskIcon .tabIcon-badge { background: #72c8d4; }
+
     .icons {
-        width: 35px;
-        height: 32px;
+        width: 22px;
+        height: 20px;
         filter: invert(1);
     }
 
     .projectIcon {
-        background-color: #8dd656;
+        background-color: #a1cd80;
     }
 
     .milestoneIcon {
@@ -87,22 +212,38 @@
     }
 
     .tabTexts {
-        margin-left: 20px;
-        font-size: 22px;
+        margin-left: 0;
+        font-size: 18px;
         font-weight: 800;
-        text-wrap: nowrap;
+        color: #111827;
+        line-height: 1.2;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 160px;
     }
 
     .tabNumCounter {
+        margin-left: 0;
+        margin-top: 8px;
         background-color: white;
         display: flex;
         align-items: center;
-        width: 40px;
-        height: 35px;
         justify-content: center;
+        width: 34px;
+        height: 30px;
+        font-size: 15px;
+        color: #AA182C;
+        font-weight: 700;
+        border: 1px solid #AA182C;
         border-radius: 7px;
         box-shadow: 2px 2px 5px 0px rgb(0 0 0 / 30%);
+        flex-shrink: 0;
     }
+
+    .projectIcon ~ .tabNumCounter { color: #a1cd80; border-color: #a1cd80; }
+    .milestoneIcon ~ .tabNumCounter { color: rgb(174 154 247); border-color: rgb(174 154 247); }
+    .taskIcon ~ .tabNumCounter { color: #72c8d4; border-color: #72c8d4; }
 
     .mst {
         width: 90% !important;
@@ -206,11 +347,26 @@
         display: flex;
         align-items: center;
         justify-content: flex-start;
-        /* Ensure alignment */
         gap: 20px;
-        /* Add consistent spacing */
         padding: 16 15px;
-        /* Add padding for content separation */
+        position: relative;
+        padding-right: 32px;
+    }
+    .email-icon-fixed {
+        position: absolute;
+        /* top: 50%; */
+        right: 12px;
+        /* transform: translateY(-50%); */
+        font-size: 16px;
+        cursor: pointer;
+        color: #6c757d;
+        transition: color 0.2s, transform 0.2s;
+        line-height: 1;
+        z-index: 1;
+    }
+    .email-icon-fixed:hover {
+        color: #8f1425;
+        transform: scale(1.15);
     }
 
     .ppcontainer {
@@ -251,11 +407,10 @@
         display: flex;
         flex-direction: column;
         align-items: flex-start;
-        margin-left: 11%;
         height: 100%;
-        width: 27%;
+        width: 100%;
         justify-content: center;
-        gap: 8px;
+        gap: 0px;
 
     }
 
@@ -337,6 +492,26 @@
         align-items: center;
     }
 
+    .divStatisticsButtons .btn.btn-primary.active {
+        background: #AA182C !important;
+        color: #fff !important;
+        border-color: #AA182C !important;
+        box-shadow: 0 0 0 2px rgba(170, 24, 44, 0.4) !important;
+    }
+
+    .divStatisticsButtons .btn-primary:not(.active) {
+        background: #6c757d;
+        border-color: #6c757d;
+        transition: background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .divStatisticsButtons .btn-primary:not(.active):hover {
+        background: #5a6268 !important;
+        border-color: #5a6268 !important;
+        color: #fff !important;
+        box-shadow: 0 0 0 2px rgba(90, 98, 104, 0.3) !important;
+    }
+
     .formControlModified {
         cursor: pointer;
         width: 10% !important;
@@ -414,12 +589,11 @@
             border: 1px solid magenta;
         } */
         .tabIcon {
-            margin-left: 11px;
+            margin-left: 0;
         }
 
         .tabTexts {
-            font-size: 17px;
-
+            font-size: 16px;
         }
 
         .status {
@@ -438,7 +612,7 @@
         }
 
         .statusContainer {
-            margin-left: 4%;
+            margin-left: 0;
         }
 
         .milestoneIcon {
@@ -454,7 +628,253 @@
         }
 
         .milestoneIcon {
-            margin-left: 7px;
+            margin-left: 0;
+        }
+    }
+
+    /* Summary toggle track */
+    .summary-wrapper {
+        position: relative;
+        width: 100%;
+        height: 200px;
+        overflow: hidden;
+    }
+
+    .view-selector {
+        display: inline-flex;
+        padding: 4px;
+        background: #f4f5f7;
+        border-radius: 14px;
+        border: 1px solid #e5e7eb;
+        gap: 4px;
+        margin-top: 4px;
+        float: right;
+        margin-bottom: 10px;
+    }
+
+    .view-segment {
+        border: none;
+        background: transparent;
+        border-radius: 10px;
+        padding: 10px 18px;
+        height: 38px;
+        font-size: 13px;
+        font-weight: 600;
+        color: #5b6472;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        transition: background 1.3s cubic-bezier(0.4, 0, 0.2, 1),
+                    color 1.3s cubic-bezier(0.4, 0, 0.2, 1),
+                    box-shadow 1.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .view-segment:hover:not(.active) {
+        background: #eceef3;
+    }
+
+    .view-segment.active {
+        background: #AA182C;
+        color: white;
+        box-shadow: 0 4px 12px rgba(170, 24, 44, 0.25);
+    }
+
+    .view-segment i {
+        font-size: 14px;
+    }
+
+    .summary-track {
+        display: flex;
+        width: 199.9%;
+        height: 100%;
+        will-change: transform;
+    }
+
+    .summary-page {
+        width: 50%;
+        flex-shrink: 0;
+        display: flex;
+        align-items: stretch;
+        transform: translateX(0) scale(1);
+        opacity: 1;
+        transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+                    opacity 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+        will-change: transform, opacity;
+        margin-bottom: 20px;
+    }
+
+    .summary-page:first-child {
+        z-index: 2;
+    }
+
+    .summary-page:last-child {
+        z-index: 1;
+    }
+
+    .summary-page:first-child.page-out {
+        opacity: 0;
+        transform: translateX(-20%) scale(0.85);
+        pointer-events: none;
+    }
+
+    .summary-page:last-child.page-out {
+        opacity: 0;
+        transform: translateX(20%) scale(0.85);
+        pointer-events: none;
+    }
+
+    .summary-page:first-child.page-in-start {
+        opacity: 0;
+        transform: translateX(-20%) scale(0.85);
+        transition: none;
+        pointer-events: none;
+    }
+
+    .summary-page:last-child.page-in-start {
+        opacity: 0;
+        transform: translateX(20%) scale(0.85);
+        transition: none;
+        pointer-events: none;
+    }
+
+    .summary-page .summary {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        justify-content: space-between;
+        align-items: stretch;
+        margin: 0;
+    }
+
+    .summary-wrapper.expanded .summary-track {
+        transform: translateX(-50%);
+    }
+
+    .empty-card {
+        background: #fff !important;
+        border: 1px solid #e5e7eb !important;
+        border-radius: 16px !important;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.04), 0 4px 12px rgba(0,0,0,0.03) !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        height: 100% !important;
+    }
+    .empty-card-content {
+        text-align: center;
+        padding: 1rem;
+    }
+    .empty-label {
+        color: #6c757d;
+        font-weight: 500;
+        font-size: 14px;
+    }
+
+    .tabTexts--long {
+        font-size: 14px;
+        line-height: 1.4;
+        margin-left: 0;
+        margin-right: 0;
+        text-align: left;
+        white-space: normal;
+        overflow-wrap: break-word;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        max-width: 110px;
+    }
+
+    .tabs.ctr[data-card="3"] .card-header-inner > .tabTexts:not(.tabNumCounter) {
+        white-space: normal;
+        line-height: 1.4;
+        font-size: 14px;
+        max-width: 50px;
+    }
+
+    @media screen and (max-width: 999px) {
+        .tabs.ctr {
+            padding: 16px 16px;
+            gap: 6px;
+        }
+
+        .card-header-inner {
+            max-width: 55px;
+            padding-right: 4px;
+        }
+
+        .tabIcon {
+            margin-left: 0;
+            width: 34px;
+            height: 34px;
+        }
+
+        .icons {
+            width: 22px;
+            height: 20px;
+        }
+
+        .tabTexts {
+            margin-left: 0;
+            font-size: 13px;
+            max-width: 50px;
+        }
+
+        .tabTexts--long {
+            font-size: 11px;
+            max-width: 50px;
+        }
+
+        .tabNumCounter {
+            width: 30px;
+            height: 26px;
+        }
+
+        .tabIcon-badge {
+            width: 13px;
+            height: 13px;
+            font-size: 10px;
+        }
+
+        .statusContainer {
+            min-width: 120px;
+        }
+
+        .stat-dot {
+            margin-left: 0;
+        }
+
+        .tabs.ctr .stat-label {
+            font-size: 11px;
+        }
+
+        .tabs.ctr .stat-value {
+            font-size: 12px;
+        }
+
+        .tabs.ctr[data-card="3"] .card-header-inner > .tabTexts:not(.tabNumCounter) {
+            max-width: 32px;
+            font-size: 11px;
+        }
+    }
+
+    @media screen and (min-width: 1000px) and (max-width: 1280px) {
+        .tabs.ctr .stat-label {
+            font-size: 12px;
+        }
+
+        .tabs.ctr[data-card="3"] .card-header-inner {
+            padding-right: 6px;
+        }
+
+        .tabs.ctr[data-card="3"] .card-header-inner > .tabTexts:not(.tabNumCounter) {
+            max-width: 44px;
+        }
+    }
+
+    @media screen and (min-width: 1281px) {
+        .tabs.ctr[data-card="3"] .card-header-inner {
+            min-width: 110px;
         }
     }
 </style>
@@ -561,103 +981,278 @@
                 <div class="col-lg-12 col-md-12">
                     <!-- <div class="row"> -->
                     <div class="page-header-title">
-                        <h4 class="m-b-10">{{ __('Resume of') }} {{ $currentWorkspace->name }}</h4>
+                        <h4 class="m-b-10">{{ __('Resume of') }} {{ $currentWorkspace->display_name }}</h4>
                     </div>
-                    <div class="summary">
-                        <div class="tabs ctr">
-                            <div class="tabIcon projectIcon">
-                                <img class="icons"
-                                    src="{{ asset('assets/custom/libs/@fontawesome/fontawesome-free/svgs/solid/project-diagram.svg') }}"
-                                    alt="logo" />
+                    <div class="view-selector" id="viewSelector">
+                        <button type="button" class="view-segment active" data-view="global">
+                            <i class="fas fa-chart-column"></i>
+                            <span>{{ __('Resumen global') }}</span>
+                        </button>
+                        <button type="button" class="view-segment" data-view="activity">
+                            <i class="fas fa-user"></i>
+                            <span>{{ 'Mi actividad' }}</span>
+                        </button>
+                    </div>
+                    <div class="summary-wrapper" id="summaryWrapper">
+                        <div class="summary-track" id="summaryTrack">
+                            <div class="summary-page">
+                                <div class="summary">
+                                    <div class="tabs ctr">
+                                        <div class="card-header-inner">
+                                            <div class="tabIcon projectIcon">
+                                                <img class="icons"
+                                                    src="{{ asset('assets/custom/libs/@fontawesome/fontawesome-free/svgs/solid/project-diagram.svg') }}"
+                                                    alt="logo" />
 
-                            </div>
-                            <div class="tabTexts">
-                                {{ __('Projects') }}
-                            </div>
-                            <div class="tabTexts tabNumCounter">
-                                <span>
-                                    {{ $totalProject ?? 0 }}
-                                </span>
+                                            </div>
+                                            <div class="tabTexts">
+                                                {{ __('Projects') }}
+                                            </div>
+                                            <div class="tabTexts tabNumCounter">
+                                                <span>
+                                                    {{ $totalProject ?? 0 }}
+                                                </span>
 
-                            </div>
-                            <div class="statusContainer">
-                                <div class="status hold ctr">
-                                    <span class="statusText">{{ __('OnHold') }}</span>
-                                    <div class="statusNumContainer">
-                                        <span class="statusNum">{{ $projectProcess['OnHold'] ?? 0 }}</span>
+                                            </div>
+                                        </div>
+                                        <div class="statusContainer">
+<div class="stat-row">
+                                            <span class="stat-dot stat-dot--en-curso"></span>
+                                            <span class="stat-label">{{ __('En curso') }}</span>
+                                            <span class="stat-value">{{ $projectProcess['Ongoing'] ?? 0 }}</span>
+                                        </div>
+                                        <div class="stat-row">
+                                            <span class="stat-dot stat-dot--en-espera"></span>
+                                            <span class="stat-label">{{ __('En espera') }}</span>
+                                            <span class="stat-value">{{ $projectProcess['OnHold'] ?? 0 }}</span>
+                                        </div>
+                                        <div class="stat-row">
+                                            <span class="stat-dot stat-dot--finalizado"></span>
+                                            <span class="stat-label">{{ __('Finished') }}</span>
+                                            <span class="stat-value">{{ $projectProcess['Finished'] ?? 0 }}</span>
+                                        </div>
+
+                                        </div>
+                                    </div>
+                                    <div class="tabs ctr">
+                                        <div class="card-header-inner">
+                                            <div class="tabIcon milestoneIcon">
+                                                <img class="icons"
+                                                    src="{{ asset('assets/custom/libs/@fontawesome/fontawesome-free/svgs/solid/file-alt.svg') }}"
+                                                    alt="logo" />
+
+                                            </div>
+                                            <div class="tabTexts">
+                                                {{ __('Milestones') }}
+                                            </div>
+                                            <div class="tabTexts tabNumCounter">
+                                                <span>
+                                                    {{ $totalMilestonesGlobal ?? 0 }}
+                                                </span>
+                                            </div>
+                                        </div>
+                                        <div class="statusContainer">
+                                            <div class="stat-row">
+                                                <span class="stat-dot stat-dot--activo"></span>
+                                                <span class="stat-label">{{ __('Active') }}</span>
+                                                <span class="stat-value">{{ $activeMilestones ?? 0 }}</span>
+                                            </div>
+                                            <div class="stat-row">
+                                                <span class="stat-dot stat-dot--por-revisar"></span>
+                                                <span class="stat-label">{{ __('Under Review') }}</span>
+                                                <span class="stat-value">{{ $reviewMilestones ?? 0 }}</span>
+                                            </div>
+                                            <div class="stat-row">
+                                                <span class="stat-dot stat-dot--finalizado"></span>
+                                                <span class="stat-label">{{ __('Finished') }}</span>
+                                                <span class="stat-value">{{ $finishedMilestones ?? 0 }}</span>
+                                            </div>
+                                            <div class="stat-row">
+                                                <span class="stat-dot stat-dot--sin-asignar"></span>
+                                                <span class="stat-label">{{ __('Unassigned') }}</span>
+                                                <span class="stat-value">{{ $unassignedMilestones ?? 0 }}</span>
+                                            </div>
+                                            <div class="stat-row">
+                                                <span class="stat-dot stat-dot--en-pausa"></span>
+                                                <span class="stat-label">{{ __('Paused') }}</span>
+                                                <span class="stat-value">{{ $pausedMilestones ?? 0 }}</span>
+                                            </div>
+
+                                        </div>
+                                    </div>
+                                    <div class="tabs ctr">
+                                        <div class="card-header-inner">
+                                            <div class="tabIcon taskIcon">
+                                                <img class="icons"
+                                                    src="{{ asset('assets/custom/libs/@fontawesome/fontawesome-free/svgs/solid/tasks.svg') }}"
+                                                    alt="logo" />
+
+                                            </div>
+                                            <div class="tabTexts">
+                                                {{ __('Global tasks') }}
+                                            </div>
+                                            <div class="tabTexts tabNumCounter">
+                                                <span>
+                                                    {{ $totalTask ?? 0 }}
+                                                </span>
+
+                                            </div>
+                                        </div>
+                                        <div class="statusContainer">
+                                            @foreach ($totalTaskByType ?? [] as $type => $count)
+                                                <div class="stat-row">
+                                                    <span class="stat-dot stat-dot--info1"></span>
+                                                    <span class="stat-label">{{ __($type) }}</span>
+                                                    <span class="stat-value">{{ $count }}</span>
+                                                </div>
+                                            @endforeach
+                                        </div>
                                     </div>
                                 </div>
-                                <div class="status progressstat ctr">
-                                    <span class="statusText">{{ __('Ongoing') }}</span>
-                                    <div class="statusNumContainer">
-                                        <span class="statusNum">{{ $projectProcess['Ongoing'] ?? 0 }}</span>
+                            </div>
+                            <div class="summary-page">
+                                <div class="summary">
+                                    <div class="tabs ctr" data-card="1">
+                                        <div class="card-header-inner">
+                                            <div class="tabIcon projectIcon">
+                                                <img class="icons"
+                                                    src="{{ asset('assets/custom/libs/@fontawesome/fontawesome-free/svgs/solid/clipboard-list.svg') }}"
+                                                    alt="logo" />
+                                                <span class="tabIcon-badge"><i class="fas fa-user"></i></span>
+                                            </div>
+                                            <div class="tabTexts">
+                                                {{ __('Mis encargos asignados') }}
+                                            </div>
+                                            <div class="tabTexts tabNumCounter">
+                                                <span>
+                                                    {{ ($myEnPlazoMilestones + $myFueraPlazoMilestones + $myEnRevisionMilestones + $myFinalizadosMilestones + $myEnPausaMilestones) ?? 0 }}
+                                                </span>
+                                            </div>
+                                        </div>
+                                        <div class="statusContainer">
+                                            @if ((int) ($myEnPlazoMilestones ?? 0) > 0)
+                                            <div class="stat-row">
+                                                <span class="stat-dot stat-dot--active"></span>
+                                                <span class="stat-label">{{ __('En plazo') }}</span>
+                                                <span class="stat-value">{{ $myEnPlazoMilestones ?? 0 }}</span>
+                                            </div>
+                                            @endif
+                                            @if ((int) ($myFueraPlazoMilestones ?? 0) > 0)
+                                            <div class="stat-row">
+                                                <span class="stat-dot stat-dot--pending"></span>
+                                                <span class="stat-label">{{ __('Fuera de plazo') }}</span>
+                                                <span class="stat-value">{{ $myFueraPlazoMilestones ?? 0 }}</span>
+                                            </div>
+                                            @endif
+                                            @if ((int) ($myEnRevisionMilestones ?? 0) > 0)
+                                            <div class="stat-row">
+                                                <span class="stat-dot stat-dot--por-revisar"></span>
+                                                <span class="stat-label">{{ __('En revisión') }}</span>
+                                                <span class="stat-value">{{ $myEnRevisionMilestones ?? 0 }}</span>
+                                            </div>
+                                            @endif
+                                            @if ((int) ($myFinalizadosMilestones ?? 0) > 0)
+                                            <div class="stat-row">
+                                                <span class="stat-dot stat-dot--active"></span>
+                                                <span class="stat-label">{{ __('Finalizados') }}</span>
+                                                <span class="stat-value">{{ $myFinalizadosMilestones ?? 0 }}</span>
+                                            </div>
+                                            @endif
+                                            @if ((int) ($myEnPausaMilestones ?? 0) > 0)
+                                            <div class="stat-row">
+                                                <span class="stat-dot stat-dot--en-pausa"></span>
+                                                <span class="stat-label">{{ __('En pausa') }}</span>
+                                                <span class="stat-value">{{ $myEnPausaMilestones ?? 0 }}</span>
+                                            </div>
+                                            @endif
+                                        </div>
+                                    </div>
+                                    <div class="tabs ctr" data-card="2">
+                                        <div class="card-header-inner">
+                                            <div class="tabIcon milestoneIcon">
+                                                <img class="icons"
+                                                    src="{{ asset('assets/custom/libs/@fontawesome/fontawesome-free/svgs/solid/flag.svg') }}"
+                                                    alt="logo" />
+                                                <span class="tabIcon-badge"><i class="fas fa-user"></i></span>
+                                            </div>
+                                            <div class="tabTexts">
+                                                {{ __('Prioridad de mis encargos') }}
+                                            </div>
+                                            <div class="tabTexts tabNumCounter">
+                                                <span>
+                                                    {{ ($myAltaPriorityMilestones + $myMediaPriorityMilestones + $myBajaPriorityMilestones) ?? 0 }}
+                                                </span>
+                                            </div>
+                                        </div>
+                                        <div class="statusContainer">
+                                            @if ((int) ($myAltaPriorityMilestones ?? 0) > 0)
+                                            <div class="stat-row">
+                                                <span class="stat-dot stat-dot--pending"></span>
+                                                <span class="stat-label">{{ __('Alta') }}</span>
+                                                <span class="stat-value">{{ $myAltaPriorityMilestones ?? 0 }}</span>
+                                            </div>
+                                            @endif
+                                            @if ((int) ($myMediaPriorityMilestones ?? 0) > 0)
+                                            <div class="stat-row">
+                                                <span class="stat-dot stat-dot--warning"></span>
+                                                <span class="stat-label">{{ __('Media') }}</span>
+                                                <span class="stat-value">{{ $myMediaPriorityMilestones ?? 0 }}</span>
+                                            </div>
+                                            @endif
+                                            @if ((int) ($myBajaPriorityMilestones ?? 0) > 0)
+                                            <div class="stat-row">
+                                                <span class="stat-dot stat-dot--info"></span>
+                                                <span class="stat-label">{{ __('Baja') }}</span>
+                                                <span class="stat-value">{{ $myBajaPriorityMilestones ?? 0 }}</span>
+                                            </div>
+                                            @endif
+                                        </div>
+                                    </div>
+                                    <div class="tabs ctr" data-card="3">
+                                        <div class="card-header-inner">
+                                            <div class="tabIcon taskIcon">
+                                                <img class="icons"
+                                                     src="{{ asset('assets/custom/libs/@fontawesome/fontawesome-free/svgs/solid/tasks.svg') }}"
+                                                     alt="logo" />
+                                                <span class="tabIcon-badge"><i class="fas fa-user"></i></span>
+                                            </div>
+                                            <div class="tabTexts">{{ __('Mis tareas') }}</div>
+                                            <div class="tabTexts tabNumCounter">
+                                                <span>{{ $myTaskTotal ?? 0 }}</span>
+                                            </div>
+                                        </div>
+                                        <div class="statusContainer">
+                                            @if ((int) ($myTaskTotal ?? 0) > 0)
+                                            <div class="stat-row">
+                                                <span class="stat-dot stat-dot--active"></span>
+                                                <span class="stat-label">{{ __('En curso + Revisión') }}</span>
+                                                <span class="stat-value">{{ $myTaskTotal ?? 0 }}</span>
+                                            </div>
+                                            @endif
+                                            @if ((int) ($myTaskReviewed ?? 0) > 0)
+                                            <div class="stat-row">
+                                                <span class="stat-dot stat-dot--review"></span>
+                                                <span class="stat-label">{{ __('Revisadas') }}</span>
+                                                <span class="stat-value">{{ $myTaskReviewed ?? 0 }}</span>
+                                            </div>
+                                            @endif
+                                            @if ((int) ($myTaskChanges ?? 0) > 0)
+                                            <div class="stat-row">
+                                                <span class="stat-dot stat-dot--change"></span>
+                                                <span class="stat-label">{{ __('Cambio solicitado') }}</span>
+                                                <span class="stat-value">{{ $myTaskChanges ?? 0 }}</span>
+                                            </div>
+                                            @endif
+                                            <div class="stat-row" id="monthHoursRow"
+                                                title="{{ __('Only in the current workspace') }}"
+                                                style="cursor:pointer;">
+                                                <span class="stat-dot stat-dot--active"></span>
+                                                <span class="stat-label">{{ __('Hours imputed this month') }}</span>
+                                                <span class="stat-value">{{ $myMonthHours ?? '00:00' }}</span>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
-                                <div class="status ended ctr">
-                                    <span class="statusText">{{ __('Finished') }}</span>
-                                    <div class="statusNumContainer">
-                                        <span class="statusNum">{{ $projectProcess['Finished'] ?? 0 }}</span>
-                                    </div>
-                                </div>
-
-                            </div>
-                        </div>
-                        <div class="tabs ctr">
-                            <div class="tabIcon milestoneIcon">
-                                <img class="icons"
-                                    src="{{ asset('assets/custom/libs/@fontawesome/fontawesome-free/svgs/solid/file-alt.svg') }}"
-                                    alt="logo" />
-
-                            </div>
-                            <div class="tabTexts">
-                                {{ __('Milestones') }}
-                            </div>
-                            {{-- <div class="tabTexts tabNumCounter">
-                                <span>
-                                    {{ $totalProject ?? 0 }}
-                                </span>
-
-                            </div> --}}
-                            <div class="statusContainer milestoneTab">
-                                <div class="status hold ctr mst">
-                                    {{-- Hojas de encargo asignados a ti  --}}
-                                    <span class="statusText">{{ __('Not assigned') }}</span>
-                                    <div class="statusNumContainer">
-                                        <span class="statusNum">{{ $notAssignedMilestones ?? 0 }}</span>
-                                    </div>
-                                </div>
-                                <div class="status progressstat ctr mst">
-                                    {{-- hojas de encargo asignadas a ti pendientes de revision (status 3) --}}
-                                    <span class="statusText">{{ __('Pending review') }}</span>
-                                    <div class="statusNumContainer">
-                                        <span class="statusNum">{{ $forReviewMilestones ?? 0 }}</span>
-                                    </div>
-                                </div>
-                                <div class="status ended ctr mst">
-                                    {{-- Hojas de encargo sin asignar  --}}
-                                    <span class="statusText">{{ __('Assigned to you') }}</span>
-                                    <div class="statusNumContainer">
-                                        <span class="statusNum">{{ $assignedMilestones ?? 0 }}</span>
-                                    </div>
-                                </div>
-
-                            </div>
-                        </div>
-                        <div class="tabs ctr">
-                            <div class="tabIcon taskIcon">
-                                <img class="icons"
-                                    src="{{ asset('assets/custom/libs/@fontawesome/fontawesome-free/svgs/solid/tasks.svg') }}"
-                                    alt="logo" />
-
-                            </div>
-                            <div class="tabTexts">
-                                {{ __('Your tasks') }}
-                            </div>
-                            <div class="tabTexts tabNumCounter">
-                                <span>
-                                    {{ $totalTask ?? 0 }}
-                                </span>
-
                             </div>
                         </div>
                     </div>
@@ -693,15 +1288,20 @@
                                         @endforeach
                                     </div>
 
-                                    <button onclick="updateChart('monthly')"
+                                    <button onclick="updateChart('monthly')" data-view="monthly"
                                         class="marginRight1 btn btn-primary">{{ __('Monthly') }}
                                     </button>
-                                    <button onclick="updateChart('quarterly')"
+                                    <button onclick="updateChart('quarterly')" data-view="quarterly"
                                         class="marginRight1 btn btn-primary">{{ __('Quarterly') }}</button>
-                                    <button onclick="updateChart('yearly')"
+                                    <button onclick="updateChart('yearly')" data-view="yearly"
                                         class="btn btn-primary">{{ __('Yearly') }}</button>
                                 </div>
                                 <canvas id="myChart" style="height: 400px; width:100%"></canvas>
+                                <div id="chartEmptyMessage"
+                                    style="display:none; min-height:400px; align-items:center; justify-content:center;"
+                                    class="text-center text-muted">
+                                    {{ __('No finalized milestones in this period') }}
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -724,9 +1324,18 @@
                                                     @if ($comercial->avatar) src="{{ asset($comercial->avatar) }}" @else avatar="{{ $comercial->name }}" @endif>
                                             </div>
                                             <div class="textContent">
-                                                <span class="fullName">{{ $comercial->name }}</span>
-                                                <span class="emailName">{{ $comercial->email }}</span>
+                                                 <div class="email-reveal-wrapper">
+                                                    <div class="d-flex align-items-center gap-2" style="justify-content: center">
+                                                        <span class="fullName">{{ $comercial->name }}</span>
+                                                    </div>
+                                                    <div class="email-reveal-email"></div>
+                                                 </div>
                                             </div>
+                                            <i class="bi bi-envelope-fill email-reveal-icon tooltipCus email-icon-fixed"
+                                               data-title="{{ __('messages.Mostrar correo') }}"
+                                               data-show-text="{{ __('messages.Mostrar correo') }}"
+                                               data-hide-text="{{ __('messages.Ocultar correo') }}"
+                                               data-user-id="{{ $comercial->id }}"></i>
                                         </div>
                                     @endforEach
                                 </div>
@@ -750,9 +1359,18 @@
                                                     @if ($technician->avatar) src="{{ asset($technician->avatar) }}" @else avatar="{{ $technician->name }}" @endif>
                                             </div>
                                             <div class="textContent">
-                                                <span class="fullName">{{ $technician->name }}</span>
-                                                <span class="emailName">{{ $technician->email }}</span>
+                                                 <div class="email-reveal-wrapper">
+                                                    <div class="d-flex align-items-center gap-2" style="justify-content: center">
+                                                        <span class="fullName">{{ $technician->name }}</span>
+                                                    </div>
+                                                    <div class="email-reveal-email"></div>
+                                                 </div>
                                             </div>
+                                            <i class="bi bi-envelope-fill email-reveal-icon tooltipCus email-icon-fixed"
+                                               data-title="{{ __('messages.Mostrar correo') }}"
+                                               data-show-text="{{ __('messages.Mostrar correo') }}"
+                                               data-hide-text="{{ __('messages.Ocultar correo') }}"
+                                               data-user-id="{{ $technician->id }}"></i>
                                         </div>
                                     @endforEach
 
@@ -773,6 +1391,64 @@
                         </div>
         @endif
     </section>
+
+    <div class="modal fade" id="monthHoursModal" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">{{ __('Hours imputed this month') }}</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body" style="overflow-x:auto;">
+                    @if (($myMonthTimesheets ?? collect())->count() > 0)
+                    <table class="table table-sm table-striped mb-0">
+                        <thead>
+                            <tr>
+                                <th>{{ __('Date') }}</th>
+                                <th>{{ __('Project') }}</th>
+                                <th>{{ __('Hito') }}</th>
+                                <th>{{ __('Task') }}</th>
+                                <th>{{ __('Hours') }}</th>
+                                <th>{{ __('Creado') }}</th>
+                                <th>{{ __('Editado') }}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach ($myMonthTimesheets as $ts)
+                            <tr>
+                                <td>{{ $ts->date }}</td>
+                                <td>{{ $ts->project_name }}</td>
+                                <td>{{ $ts->milestone_title }}</td>
+                                <td>{{ $ts->task_name ?? '-' }}</td>
+                                <td>{{ substr($ts->time, 0, 5) }}</td>
+                                <td>{{ \Carbon\Carbon::parse($ts->created_at)->format('d-m H:i:s') }}</td>
+                                <td>
+                                    {{ \Carbon\Carbon::parse($ts->updated_at)->format('d-m H:i:s') }}
+                                    @if ($ts->created_at != $ts->updated_at)
+                                    <span class="text-warning" title="{{ __('Edited') }}">⚠️</span>
+                                    @endif
+                                </td>
+                            </tr>
+                            @endforeach
+                        </tbody>
+                        <tfoot>
+                            <tr>
+                                <th colspan="4" class="text-end">{{ __('Total') }}</th>
+                                <th>{{ $myMonthHours ?? '00:00' }}</th>
+                                <th colspan="2"></th>
+                            </tr>
+                        </tfoot>
+                    </table>
+                    @else
+                    <p class="text-center text-muted mb-0">{{ __('No data') }}</p>
+                    @endif
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ __('Close') }}</button>
+                </div>
+            </div>
+        </div>
+    </div>
 @endsection
 @push('scripts')
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
@@ -787,282 +1463,36 @@
                     "max-height": 300
                 }).niceScroll();
             }
-
-            $("#yearDropdown").click(function() {
-                $("#yearList").toggle();
-            });
-
-            // Cuando se selecciona un año, actualiza el input y la vista actual sin cambiar la modalidad
-            $(".yearOption").click(function() {
-                let selectedYear = $(this).data("year");
-
-                $("#yearSelect").val(selectedYear); // Actualiza el input oculto
-                $("#yearDisplay").text(selectedYear); // Muestra el año seleccionado
-                $("#yearList").hide(); // Oculta la lista de años
-
-                updateYear(); // Actualiza la gráfica sin cambiar la vista
-            });
-
-            // Ocultar la lista si se hace clic fuera de ella
-            $(document).click(function(event) {
-                if (!$(event.target).closest("#yearDropdown, #yearList").length) {
-                    $("#yearList").hide();
-                }
-            });
         });
     </script>
     <script>
-        // all average data 
-        var averageTimes = @json($averageTimes);
-        let selectedYear = document.getElementById('yearSelect').value;
-        //updateChartData(averageTimes[selectedYear]); // Inicializa con el primer año
-
-        function updateYear() {
-            let selectedYear = $("#yearSelect").val();
-
-            if (!averageTimes[selectedYear]) {
-                console.log(`No hay datos para el año ${selectedYear}`);
-                return;
+        document.addEventListener('DOMContentLoaded', function() {
+            var monthHoursRow = document.getElementById('monthHoursRow');
+            var monthHoursModal = document.getElementById('monthHoursModal');
+            if (monthHoursRow && monthHoursModal) {
+                monthHoursRow.addEventListener('click', function() {
+                    bootstrap.Modal.getOrCreateInstance(monthHoursModal).show();
+                });
             }
-
-            // Mantiene la vista activa cuando cambia el año
-            updateChart(currentView);
-        }
-
-        function updateChart(view) {
-            let selectedYear = $("#yearSelect").val();
-
-            if (!averageTimes[selectedYear]) {
-                console.log(`No hay datos para el año ${selectedYear}`);
-                return;
-            }
-
-            let data = averageTimes[selectedYear];
-
-            // Mantiene la vista seleccionada
-            currentView = view;
-
-            if (view === 'monthly') {
-                console.log("Datos mensuales:", data.months);
-                updateChartData(data.months, "{{ __('Month') }}");
-            } else if (view === 'quarterly') {
-                console.log("Datos trimestrales:", data.quarters);
-                updateChartData(data.quarters, "{{ __('Quarter') }}");
-
-            } else if (view === 'yearly') {
-                console.log("Datos anuales:", data.yearly);
-                updateYearlyChart(data.yearly);
-            }
-        }
-
-        function updateYearlyChart(data) {
-            if (!window.chart) {
-                console.log("Error: El gráfico aún no ha sido inicializado.");
-                return;
-            }
-
-            if (!data) {
-                console.log("No hay datos disponibles para la vista anual.");
-                return;
-            }
-            console.log("Datos anuales recibidos en la funcion del chart:", data);
-            let selectedYear = $("#yearSelect").val(); // Obtener el año seleccionado
-
-            let labels = [selectedYear]; // Mostrar el año actual en el eje X
-            let tiempo_inicio = [data.averageStartUp || 0];
-            let tiempo_bueno = [data.averageWorking || 0];
-            let retraso = [data.averageDelay || 0];
-            let estimado_usuario = [data.avgEstimatedByUser || 0]; // Nuevo punto lila
-
-            // Mantener las barras apiladas
-            window.chart.config.type = 'bar';
-            window.chart.options.scales.x.stacked = true;
-            window.chart.options.scales.y.stacked = true;
-
-            window.chart.data.labels = labels;
-            window.chart.data.datasets[0].data = tiempo_inicio;
-            window.chart.data.datasets[1].data = tiempo_bueno;
-            window.chart.data.datasets[2].data = retraso;
-            // window.chart.data.datasets[3].data = estimado_usuario; // Actualizar datos
-
-            window.chart.options.plugins.title.text = `{{ __('Annual average') }} (${selectedYear})`;
-            window.chart.update();
-        }
-
-        function updateChartData(data, labelType) {
-            if (!window.chart) {
-                console.log("Error: El gráfico aún no ha sido inicializado.");
-                return;
-            }
-
-            if (!data) {
-                console.log("No hay datos disponibles para la vista seleccionada.");
-                return;
-            }
-
-            // Ordenar etiquetas correctamente
-            const monthOrder = ["January", "February", "March", "April", "May", "June", "July", "August", "September",
-                "October", "November", "December"
-            ];
-            const quarterOrder = ["Q1", "Q2", "Q3", "Q4"];
-
-            let labels = Object.keys(data);
-
-            if (labelType === "Meses") {
-                labels.sort((a, b) => monthOrder.indexOf(a) - monthOrder.indexOf(b));
-            } else if (labelType === "Trimestres") {
-                labels.sort((a, b) => quarterOrder.indexOf(a) - quarterOrder.indexOf(b));
-            }
-
-            let tiempo_inicio = [];
-            let tiempo_bueno = [];
-            let retraso = [];
-            // let estimado_usuario = []; // Nuevo punto lila
-
-            labels.forEach(periodo => {
-                let periodoData = data[periodo] || {};
-                tiempo_inicio.push(periodoData.averageStartUp || 0);
-                tiempo_bueno.push(periodoData.averageWorking || 0);
-                retraso.push(periodoData.averageDelay || 0);
-                // estimado_usuario.push(periodoData.avgEstimatedByUser || 0); // Nuevo punto lila
-            });
-
-            window.chart.config.type = 'bar';
-            window.chart.options.scales.x.stacked = true;
-            window.chart.options.scales.y.stacked = true;
-
-            window.chart.data.labels = labels;
-            window.chart.data.datasets[0].data = tiempo_inicio;
-            window.chart.data.datasets[1].data = tiempo_bueno;
-            window.chart.data.datasets[2].data = retraso;
-            // window.chart.data.datasets[3].data = estimado_usuario; // Actualizar datos
-
-            window.chart.options.plugins.title.text = `{{ __('Average per') }} ${labelType}`;
-            window.chart.update();
-        }
-
-        document.addEventListener("DOMContentLoaded", function() {
-            const ctx = document.getElementById('myChart').getContext('2d');
-
-            window.chart = new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: [],
-                    datasets: [{
-                            label: "{{ __('Starting time') }}",
-                            data: [],
-                            backgroundColor: 'rgba(211, 211, 211, 0.8)',
-                            hidden: false
-                        },
-                        {
-                            label: "{{ __('On time') }}",
-                            data: [],
-                            backgroundColor: 'rgba(201, 237, 185, 0.8)',
-                            hidden: false
-                        },
-                        {
-                            label: "{{ __('Delay') }}",
-                            data: [],
-                            backgroundColor: 'rgba(224, 108, 113, 0.8)',
-                            hidden: false
-                        },
-                        // {
-                        //     label: "{{ __('Planned end date') }}",
-                        //     data: [],
-                        //     backgroundColor: 'rgba(186, 85, 211, 0.8)',
-                        //     hidden: false
-                        // }
-                    ]
-                },
-                options: {
-                    responsive: true,
-                    plugins: {
-                        legend: {
-                            position: 'top',
-                            align: 'end',
-                            labels: {
-                                generateLabels: function(chart) {
-                                    let labels = Chart.defaults.plugins.legend.labels.generateLabels(
-                                        chart);
-
-                                    labels.push({
-                                        text: "{{ __('Show values') }}",
-                                        fillStyle: 'black',
-                                        strokeStyle: 'black',
-                                        hidden: !chart.options.plugins.datalabels.display,
-                                        datasetIndex: -1
-                                    });
-
-                                    return labels;
-                                }
-                            },
-                            onClick: function(e, legendItem, legend) {
-                                if (legendItem.datasetIndex === -1) {
-                                    let currentDisplay = legend.chart.options.plugins.datalabels
-                                        .display;
-                                    legend.chart.options.plugins.datalabels.display = !currentDisplay;
-
-                                    legend.options.labels.generateLabels(legend.chart);
-                                    legend.chart.update();
-                                } else {
-                                    let dataset = legend.chart.data.datasets[legendItem.datasetIndex];
-                                    dataset.hidden = !dataset.hidden;
-                                    legend.chart.update();
-                                }
-                            }
-                        },
-                        title: {
-                            display: true,
-                        },
-                        datalabels: {
-                            anchor: 'center',
-                            align: 'center',
-                            // formatter: function(value, context) {
-                            //     // Obtener todos los valores apilados en esta posición
-                            //     const stackedValues = context.chart.data.datasets.map(ds => ds.data[
-                            //         context.dataIndex] || 0);
-
-                            //     const maxValue = Math.max(...stackedValues);
-                            //     const minValue = Math.min(...stackedValues);
-
-                            //     // Si la diferencia entre el más grande y el más pequeño es < 200, no mostrar la etiqueta
-                            //     if ((maxValue - minValue) < 50) return '';
-
-                            //     return value; // En caso contrario, mostrar el valor
-                            // },
-                            display: true,
-                            color: 'black',
-                            font: {
-                                weight: 'bold',
-                                size: 12
-                            }
-                        }
-                    },
-                    scales: {
-                        x: {
-                            stacked: true
-                        },
-                        y: {
-                            stacked: true,
-                            title: {
-                                display: true,
-                                text: "{{ __('Days') }}"
-                            }
-                        }
-                    },
-                    elements: {
-                        bar: {
-                            borderRadius: 8
-                        }
-                    }
-                },
-                plugins: [ChartDataLabels]
-            });
-
-            let selectedYear = document.getElementById('yearSelect').value;
-            updateChart('monthly');
         });
     </script>
+    <script>
+        // Datos y textos para el gráfico de Statistics (home-statistics.js)
+        window.averageTimes = @json($averageTimes);
+        window.statisticsI18n = {
+            startingTime: @json(__('Starting time')),
+            onTime: @json(__('On time')),
+            delay: @json(__('Delay')),
+            showValues: @json(__('Show values')),
+            days: @json(__('Days')),
+            averagePer: @json(__('Average per')),
+            annualAverage: @json(__('Annual average')),
+            month: @json(__('Month')),
+            quarter: @json(__('Quarter')),
+            noData: @json(__('No finalized milestones in this period'))
+        };
+    </script>
+    <script src="{{ asset('assets/custom/js/home-statistics.js') }}"></script>
     <script>
         function filterList(inputId, containerId) {
             const input = document.getElementById(inputId);
@@ -1072,10 +1502,8 @@
 
             for (let i = 0; i < items.length; i++) {
                 const name = items[i].getElementsByClassName('fullName')[0];
-                const email = items[i].getElementsByClassName('emailName')[0];
-                const emailPrefix = email.innerHTML.split('@')[0].toLowerCase();
-                if (filter === "" || name.innerHTML.toLowerCase().indexOf(filter) > -1 || emailPrefix.indexOf(filter) > -
-                    1) {
+                const txt = name ? name.textContent.toLowerCase() : '';
+                if (filter === "" || txt.indexOf(filter) > -1) {
                     items[i].style.display = "";
                 } else {
                     items[i].style.display = "none";
@@ -1089,6 +1517,86 @@
 
         document.getElementById('filterTechnicians').addEventListener('input', function() {
             filterList('filterTechnicians', 'contentTec');
+        });
+    </script>
+<script>
+        const sleep = ms => new Promise(r => setTimeout(r, ms));
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const wrapper = document.getElementById('summaryWrapper');
+            const track = document.getElementById('summaryTrack');
+            const viewSelector = document.getElementById('viewSelector');
+            if (!wrapper || !track) return;
+
+            const workspaceId = '{{ $currentWorkspace->id ?? "default" }}';
+            const storageKey = 'summaryView_' + workspaceId;
+
+            const page1 = track.querySelector('.summary-page:first-child');
+            const page2 = track.querySelector('.summary-page:last-child');
+            const viewSegments = document.querySelectorAll('#viewSelector .view-segment');
+
+            async function activateView(view) {
+                const currentView = localStorage.getItem(storageKey) || 'global';
+                if (view === currentView) return;
+
+                viewSegments.forEach(btn => {
+                    btn.classList.toggle('active', btn.dataset.view === view);
+                });
+
+                const expanding = view === 'activity';
+
+                if (expanding) {
+                    page1.classList.remove('page-out', 'page-in-start');
+                    page1.classList.add('page-out');
+                    await sleep(350);
+
+                    page2.classList.remove('page-out', 'page-in-start');
+                    page2.classList.add('page-in-start');
+                    wrapper.classList.add('expanded');
+                    track.offsetHeight;
+                    page2.classList.remove('page-in-start');
+                    await sleep(350);
+                } else {
+                    page2.classList.remove('page-out', 'page-in-start');
+                    page2.classList.add('page-out');
+                    await sleep(350);
+
+                    page1.classList.remove('page-out', 'page-in-start');
+                    page1.classList.add('page-in-start');
+                    wrapper.classList.remove('expanded');
+                    track.offsetHeight;
+                    page1.classList.remove('page-in-start');
+                    await sleep(350);
+                }
+
+                localStorage.setItem(storageKey, view);
+            }
+
+            // Initialize view
+            const savedView = localStorage.getItem(storageKey) || 'global';
+            viewSegments.forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.view === savedView);
+            });
+
+            if (savedView === 'activity') {
+                wrapper.classList.add('expanded');
+            } else {
+                wrapper.classList.remove('expanded');
+            }
+            track.offsetHeight;
+
+            document.querySelectorAll('#summaryWrapper .card-header-inner > .tabTexts:not(.tabNumCounter)').forEach(el => {
+                if (el.scrollWidth > el.clientWidth) {
+                    el.classList.add('tabTexts--long');
+                }
+            });
+
+            // Segment click handlers
+            viewSegments.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    activateView(this.dataset.view);
+                });
+            });
         });
     </script>
 @endpush
