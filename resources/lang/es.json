@@ -1336,7 +1336,7 @@
  "Phase": "Fase",
  "Phases": "Fases",
  "Debes seleccionar una fase": "Debes seleccionar una fase",
- "Click the following button to export all Jobside projects to Axapta": "Haz clic en el siguiente botón para exportar todos los proyectos de Obra a Axapta",
+ "Click the following button to export the Jobsite projects of your current delegation to Axapta": "Haz clic en el siguiente botón para exportar a Axapta los proyectos de Obra de tu delegación actual",
  "Export to Axapta": "Exportar a Axapta",
  "Enter your employee number": "Introduce tu número de empleado",
  "Employee number": "Número de empleado",

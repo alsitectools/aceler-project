@@ -564,7 +564,7 @@ class ProjectController extends Controller
                 ->withInput();
         }
         $post['name'] = $name;
-        $post['ref_mo'] = $request->ref_mo;
+        $post['ref_mo'] = $request->filled('ref_mo') ? $request->ref_mo : null;
         $post['type'] = $request->project_type;
         $post['clipo'] = $clipo;
         $post['start_date'] = $post['end_date'] = date('Y-m-d');
@@ -575,7 +575,9 @@ class ProjectController extends Controller
         $objProject = Project::create($post);
 
         // Verificación y actualización de MasterObra si existe
-        $mo_id = MasterObra::where('ref_mo', $request->ref_mo)->first();
+        $mo_id = !empty($request->ref_mo)
+            ? MasterObra::where('ref_mo', $request->ref_mo)->first()
+            : null;
 
         if ($mo_id) {
             $objMO = MasterObra::where('id', $mo_id->id)->first();
@@ -860,12 +862,15 @@ class ProjectController extends Controller
         //el export no debe ser por suma del total, sino por dia, es decir, cada dia imputado tendra unas puntuaciones, cada linea es un dia imputado
         \Log::info("=== EXPORT AXAPTA - DELTA MODE ===");
 
-        // Obtener todos los proyectos de tipo = 1
-        $projects = Project::where('type', 1)->get();
+        // Solo proyectos tipo Obra (type = 1) de la delegación/workspace actual del usuario
+        $user = Auth::user();
+        $projects = Project::where('type', 1)
+            ->where('workspace', $user->currant_workspace)
+            ->get();
 
         if ($projects->isEmpty()) {
-            \Log::warning("No hay proyectos de tipo 1");
-            return response()->json(['error' => 'No projects found'], 404);
+            \Log::warning("No hay proyectos de tipo 1 en el workspace actual: {$user->currant_workspace}");
+            return response()->json(['message' => 'No hay proyectos tipo Obra en la delegación actual'], 200);
         }
 
         $fileContent = '';

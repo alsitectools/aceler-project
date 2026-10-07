@@ -422,7 +422,7 @@
                         <i class="bi bi-info-circle"
                             style="color: #FFD43B;font-size: 30px;margin-left: 15px;margin-right: -63px;"></i>
                         <p class="text-muted infoWorkspace">
-                            {{ __('Click the following button to export all Jobside projects to Axapta') }}
+                            {{ __('Click the following button to export the Jobsite projects of your current delegation to Axapta') }}
                         </p>
                     </div>
                     <div style="display: flex;justify-content: center;">
@@ -1102,6 +1102,8 @@
                             link.click();
                             document.body.removeChild(link);
                             window.URL.revokeObjectURL(link.href);
+                        } else if (response.message) {
+                            alert(response.message);
                         } else {
                             console.error("Error en la respuesta:", response.error);
                             alert('Error: ' + (response.error || 'Error desconocido'));

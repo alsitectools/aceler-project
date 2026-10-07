@@ -52,6 +52,15 @@
     #user-select {
         display: none;
     }
+
+    #ref_mo .col-form-label {
+        display: flex;
+        align-items: center;
+    }
+
+    #ref_mo .col-form-label .form-check {
+        margin-bottom: 0;
+    }
 </style>
 @if ($currentWorkspace)
     <div class="modal-body">
@@ -351,7 +360,16 @@
                                 </select>
                             </div>
                             <div class="form-group col-md-6" id="ref_mo" style="display: none;">
-                                <label for="search_mo" class="col-form-label">{{ __('Search MO') }}</label>
+                                <div class="col-form-label">
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="radio" name="mo_mode" id="mo_mode_con" value="con" checked>
+                                        <label class="form-check-label" for="mo_mode_con">M.O</label>
+                                    </div>
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="radio" name="mo_mode" id="mo_mode_sin" value="sin">
+                                        <label class="form-check-label" for="mo_mode_sin">Sin M.O</label>
+                                    </div>
+                                </div>
                                 <input type="text" class="form-control" name="ref_mo" id="searchMo"
                                     placeholder="Masterobras" autocomplete="off">
                                 <div class="list-group" id="ref_mo_list" style="width: 48%"></div>
