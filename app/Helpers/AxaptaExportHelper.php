@@ -4,6 +4,7 @@ namespace App\Helpers;
 
 use App\Models\Delegation;
 use App\Models\ExportLedgerLine;
+use App\Models\MasterObra;
 use App\Models\Milestone;
 use App\Models\Project;
 use App\Models\Task;
@@ -267,12 +268,47 @@ class AxaptaExportHelper
     }
 
     /**
+     * Delegación efectiva de un proyecto: ref_delegation si tiene valor;
+     * si no, el business_unit de su master obra.
+     */
+    public static function resolveProjectDelegationId($project): ?string
+    {
+        if (!$project) {
+            return null;
+        }
+
+        $delegationId = trim((string) ($project->ref_delegation ?? ''));
+
+        if ($delegationId !== '') {
+            return $delegationId;
+        }
+
+        $businessUnit = MasterObra::where('project_id', $project->id)
+            ->whereNotNull('business_unit')
+            ->where('business_unit', '!=', '')
+            ->value('business_unit');
+
+        if (empty($businessUnit) && !empty($project->ref_mo)) {
+            $businessUnit = MasterObra::where('ref_mo', $project->ref_mo)
+                ->whereNotNull('business_unit')
+                ->where('business_unit', '!=', '')
+                ->value('business_unit');
+        }
+
+        $businessUnit = trim((string) ($businessUnit ?? ''));
+
+        return $businessUnit !== '' ? $businessUnit : null;
+    }
+
+    /**
      * Obtiene datos del proyecto y workspace para la exportación
      */
     public static function getProjectExportData($project)
     {
         $workspace = Workspace::find($project->workspace);
-        $delegationId = $project->ref_delegation ?? $workspace?->delegation_id ?? '0';
+        $delegationId = self::resolveProjectDelegationId($project)
+            ?? $workspace?->delegation_id
+            ?? '0';
 
         $delegation = Delegation::find($delegationId);
         $empresa = $delegation?->empresa ?? '';

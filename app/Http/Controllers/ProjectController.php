@@ -862,15 +862,15 @@ class ProjectController extends Controller
         //el export no debe ser por suma del total, sino por dia, es decir, cada dia imputado tendra unas puntuaciones, cada linea es un dia imputado
         \Log::info("=== EXPORT AXAPTA - DELTA MODE ===");
 
-        // Solo proyectos tipo Obra (type = 1) de la delegación/workspace actual del usuario
+        // Export global: todos los proyectos tipo Obra (type = 1) de todas las workspaces/delegaciones
         $user = Auth::user();
         $projects = Project::where('type', 1)
-            ->where('workspace', $user->currant_workspace)
+            // ->where('workspace', $user->currant_workspace) // restricción desactivada: export global
             ->get();
 
         if ($projects->isEmpty()) {
-            \Log::warning("No hay proyectos de tipo 1 en el workspace actual: {$user->currant_workspace}");
-            return response()->json(['message' => 'No hay proyectos tipo Obra en la delegación actual'], 200);
+            \Log::warning("No hay proyectos de tipo 1 para exportar");
+            return response()->json(['message' => 'No hay proyectos tipo Obra para exportar'], 200);
         }
 
         $fileContent = '';
@@ -891,8 +891,9 @@ class ProjectController extends Controller
             'puntos' => 10,
         ];
 
-        // Contador global para regId
-        $regId = 0;
+        // Contador global para regId - sembrado con el total de líneas ya exportadas
+        // para que siga siendo consecutivo entre archivos
+        $regId = (int) ExportLedgerLine::count();
         // Almacenar líneas a exportar
         $linesToExport = [];
         // Almacenar registros para ledger
