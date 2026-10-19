@@ -565,13 +565,22 @@
 
                                                                 @if ($project->status == 'Finished')
                                                                     <span data-title="{{ __('Status') }}"
-                                                                        class="badge rounded-pill bg-success p-2 tooltipCus">{{ __('Finished') }}</span>
+                                                                        class="badge rounded-pill bg-success p-2 tooltipCus project-status-badge"
+                                                                        data-project-id="{{ $project->id }}"
+                                                                        data-current-status="Finished" style="cursor: pointer;"
+                                                                        onclick="event.stopPropagation(); openProjectStatusModal(this);">{{ __('Finished') }}</span>
                                                                 @elseif($project->status == 'Ongoing')
                                                                     <span data-title="{{ __('Status') }}"
-                                                                        class="badge rounded-pill bg-secondary p-2 tooltipCus">{{ __('Ongoing') }}</span>
+                                                                        class="badge rounded-pill bg-secondary p-2 tooltipCus project-status-badge"
+                                                                        data-project-id="{{ $project->id }}"
+                                                                        data-current-status="Ongoing" style="cursor: pointer;"
+                                                                        onclick="event.stopPropagation(); openProjectStatusModal(this);">{{ __('Ongoing') }}</span>
                                                                 @else
                                                                     <span data-title="{{ __('Status') }}"
-                                                                        class="badge rounded-pill bg-warning p-2 tooltipCus">{{ __('OnHold') }}</span>
+                                                                        class="badge rounded-pill bg-warning p-2 tooltipCus project-status-badge"
+                                                                        data-project-id="{{ $project->id }}"
+                                                                        data-current-status="OnHold" style="cursor: pointer;"
+                                                                        onclick="event.stopPropagation(); openProjectStatusModal(this);">{{ __('OnHold') }}</span>
                                                                 @endif
                                                             </div>
                                                             @auth('web')
@@ -953,6 +962,29 @@
         });
     </script>
 @endif
+
+<!-- Modal: cambiar estado del proyecto desde la burbuja -->
+<div class="modal fade" id="projectStatusModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-sm modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">{{ __('Status') }}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="d-grid gap-2">
+                    <button type="button" class="btn btn-outline-secondary ps-option"
+                        data-status="Ongoing">{{ __('Ongoing') }}</button>
+                    <button type="button" class="btn btn-outline-warning ps-option"
+                        data-status="OnHold">{{ __('OnHold') }}</button>
+                    <button type="button" class="btn btn-outline-success ps-option"
+                        data-status="Finished">{{ __('Finished') }}</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 @push('scripts')
     <script src="{{ asset('assets/custom/js/isotope.pkgd.min.js') }}"></script>
     <script>
@@ -974,6 +1006,7 @@
                     name: '[data-project-name]'
                 }
             });
+            window._projGrid = $grid;
 
             $('#btnSortProjectsAlpha').on('click', function() {
                 var $btn = $(this);
@@ -1052,5 +1085,76 @@
                 }
             });
         });
+    </script>
+    <script>
+        (function() {
+            var statusUrlTpl = '{{ route('projects.status.update', [$currentWorkspace->slug, '__ID__']) }}';
+            var statusMeta = {
+                Ongoing: { label: @json(__('Ongoing')), cls: 'bg-secondary' },
+                OnHold: { label: @json(__('OnHold')), cls: 'bg-warning' },
+                Finished: { label: @json(__('Finished')), cls: 'bg-success' }
+            };
+
+            window.openProjectStatusModal = function(el) {
+                window._psProjectId = el.getAttribute('data-project-id');
+                window._psCurrent = el.getAttribute('data-current-status');
+                window._psBadge = el;
+                document.querySelectorAll('#projectStatusModal .ps-option').forEach(function(btn) {
+                    var isCurrent = btn.getAttribute('data-status') === window._psCurrent;
+                    btn.disabled = isCurrent;
+                    btn.classList.toggle('fw-bold', isCurrent);
+                });
+                bootstrap.Modal.getOrCreateInstance(document.getElementById('projectStatusModal')).show();
+            };
+
+            document.addEventListener('click', function(e) {
+                var btn = e.target.closest('#projectStatusModal .ps-option');
+                if (!btn || btn.disabled) return;
+
+                var newStatus = btn.getAttribute('data-status');
+                var projectId = window._psProjectId;
+
+                fetch(statusUrlTpl.replace('__ID__', projectId), {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                    },
+                    body: JSON.stringify({ status: newStatus })
+                })
+                .then(function(r) {
+                    return r.json().then(function(data) {
+                        return { ok: r.ok, data: data };
+                    });
+                })
+                .then(function(res) {
+                    if (!res.ok || !res.data.success) {
+                        alert(res.data.message || 'Error updating status');
+                        return;
+                    }
+                    var badge = window._psBadge;
+                    var meta = statusMeta[res.data.status];
+                    badge.classList.remove('bg-success', 'bg-secondary', 'bg-warning');
+                    badge.classList.add(meta.cls);
+                    badge.textContent = meta.label;
+                    badge.setAttribute('data-current-status', res.data.status);
+
+                    var card = badge.closest('.card');
+                    if (card) {
+                        card.classList.remove(window._psCurrent);
+                        card.classList.add(res.data.status);
+                    }
+                    if (window._projGrid) {
+                        window._projGrid.isotope('layout');
+                    }
+                    bootstrap.Modal.getOrCreateInstance(document.getElementById('projectStatusModal')).hide();
+                })
+                .catch(function(err) {
+                    console.error(err);
+                    alert('Error updating status');
+                });
+            });
+        })();
     </script>
 @endpush

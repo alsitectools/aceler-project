@@ -1778,6 +1778,36 @@ class ProjectController extends Controller
         return redirect()->back()->with('success', __('Project Updated Successfully!'));
     }
 
+    /**
+     * Cambia el estado del proyecto desde la burbuja de la tarjeta.
+     * Autorización: miembro del proyecto (user_projects) en la workspace actual, igual que update().
+     */
+    public function updateProjectStatus(Request $request, $slug, $projectID)
+    {
+        $request->validate([
+            'status' => 'required|in:Ongoing,OnHold,Finished',
+        ]);
+
+        $objUser = Auth::user();
+        $currentWorkspace = Utility::getWorkspaceBySlug($slug);
+
+        $project = Project::select('projects.*')
+            ->join('user_projects', 'projects.id', '=', 'user_projects.project_id')
+            ->where('user_projects.user_id', '=', $objUser->id)
+            ->where('projects.workspace', '=', $currentWorkspace->id)
+            ->where('projects.id', '=', $projectID)
+            ->first();
+
+        if (!$project) {
+            return response()->json(['success' => false, 'message' => __('Project not found!')], 404);
+        }
+
+        $project->status = $request->status;
+        $project->save();
+
+        return response()->json(['success' => true, 'status' => $project->status]);
+    }
+
     public function destroy($slug, $projectID)
     {
         $objUser = Auth::user();

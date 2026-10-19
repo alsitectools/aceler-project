@@ -662,6 +662,7 @@ Route::post('/{slug}/milestone-board/milestone_project', [ProjectController::cla
 // Route::post('/{slug}/projects', [ProjectController::class, 'store'])->name('projects.store')->middleware(['auth', 'XSS']);
 Route::get('/{slug}/projects/{id}/edit', [ProjectController::class, 'edit'])->name('projects.edit')->middleware(['auth', 'XSS']);
 Route::post('/{slug}/projects/{id}/update', [ProjectController::class, 'update'])->name('projects.update')->middleware(['auth', 'XSS']);
+Route::post('/{slug}/projects/{id}/status', [ProjectController::class, 'updateProjectStatus'])->name('projects.status.update')->middleware(['auth', 'XSS']);
 Route::delete('/{slug}/projects/{id}', [ProjectController::class, 'destroy'])->name('projects.destroy')->middleware(['auth', 'XSS']);
 
 Route::get('/{slug}/projects/copy/{id}', [ProjectController::class, 'copyproject'])->name('project.copy')->middleware(['auth', 'XSS']);
