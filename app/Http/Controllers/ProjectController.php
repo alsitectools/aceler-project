@@ -1189,7 +1189,7 @@ class ProjectController extends Controller
         }
 
         $year = date('y');
-        $letter = trim((string) ($project->ref_mo ?? '')) !== '' ? 'O' : 'X';
+        $letter = $this->referenceLetter($project);
 
         $obra = '';
         if ($milestone && $milestone->obra_number !== null) {
@@ -2933,6 +2933,41 @@ class ProjectController extends Controller
 
         $milestones = Milestone::all();
 
+        // Siguiente sufijo de referencia consecutivo (.1, .2, ...) para encargos
+        // de proyectos sin M.O. (tipo 1 con letra X). Se recalcula en taskStore;
+        // aquí solo sirve para que el formulario lo muestre antes de guardar.
+        $milestones->load('project:id,type,ref_mo,ref_delegation');
+        $tasksByMilestone = Task::whereIn('milestone_id', $milestones->pluck('id'))
+            ->get(['milestone_id', 'referencia'])
+            ->groupBy('milestone_id');
+
+        foreach ($milestones as $ms) {
+            $ms->sinmo_next_suffix = 0;
+
+            $p = $ms->project;
+
+            if (!$p || (int) $p->type !== 1 || $this->referenceLetter($p) !== 'X') {
+                continue;
+            }
+
+            if ($ms->obra_number === null) {
+                continue;
+            }
+
+            $base = $this->buildAutomaticExportReference($ms, $p);
+
+            if ($base === '') {
+                continue;
+            }
+
+            $rows = $tasksByMilestone->get($ms->id);
+            $ms->sinmo_next_suffix = $this->sinMoNextSuffixFromRefs(
+                $rows ? $rows->pluck('referencia') : collect(),
+                $rows ? $rows->count() : 0,
+                $base
+            );
+        }
+
         $users = User::orderBy('name', 'asc')->get();
 
         $delegations = Delegation::select('id')->orderBy('id')->get();
@@ -2950,10 +2985,11 @@ class ProjectController extends Controller
             ->whereNotNull('tasks.referencia')
             ->where('tasks.referencia', '!=', '')
             ->orderBy('tasks.id', 'desc')
-            ->get(['tasks.referencia', 'milestones.obra_number', 'projects.ref_delegation'])
+            ->get(['tasks.referencia', 'milestones.obra_number', 'projects.ref_delegation', 'projects.ref_mo'])
             ->map(function ($t) {
                 return [
                     'deleg' => strtoupper(trim((string) ($t->ref_delegation ?? ''))),
+                    'letter' => $this->referenceLetter($t),
                     'code' => $t->obra_number !== null
                         ? str_pad((string) (int) $t->obra_number, 3, '0', STR_PAD_LEFT)
                         : null,
@@ -2999,7 +3035,7 @@ class ProjectController extends Controller
             return redirect()->back()->with('error', 'Proyecto no encontrado o no pertenece al espacio de trabajo actual.');
         }
 
-        $selectedMilestone = Milestone::select('id', 'milestone_assigned_to_user', 'status')
+        $selectedMilestone = Milestone::select('id', 'milestone_assigned_to_user', 'status', 'project_id', 'obra_number')
             ->find($request->milestone_id);
 
         // Encargo "por hacer" de un proyecto tipo 3 (I+D): la tarea se añade pero el
@@ -3063,10 +3099,34 @@ class ProjectController extends Controller
         $task->start_date = date('Y-m-d');
         $task->estimated_date = $request->estimated_date;
         $task->assign_to = $assigneeId;
-        $task->referencia = $this->applyMilestoneObraNumberToReference(
-            $request->referencia ?? null,
-            $request->milestone_id
-        );
+        // Referencia: en proyectos sin M.O. (tipo 1, letra X) el servidor la construye
+        // entera con el sufijo consecutivo del encargo (.1, .2, ...), sin depender de
+        // lo que envíe el formulario. El resto de casos mantienen el comportamiento previo.
+        $sinMoBase = '';
+        $sinMoSuffix = 0;
+
+        if ((int) $project->type === 1 && $this->referenceLetter($project) === 'X'
+            && $selectedMilestone && $selectedMilestone->obra_number !== null) {
+            $sinMoBase = $this->buildAutomaticExportReference($selectedMilestone, $project);
+
+            if ($sinMoBase !== '' && $selectedMilestone) {
+                $msTaskCount = Task::where('milestone_id', $selectedMilestone->id)->count();
+                $sinMoSuffix = $this->sinMoNextSuffixFromRefs(
+                    Task::where('milestone_id', $selectedMilestone->id)->whereNotNull('referencia')->pluck('referencia'),
+                    $msTaskCount,
+                    $sinMoBase
+                );
+            }
+        }
+
+        if ($sinMoBase !== '') {
+            $task->referencia = $sinMoSuffix > 0 ? $sinMoBase . '.' . $sinMoSuffix : $sinMoBase;
+        } else {
+            $task->referencia = $this->applyMilestoneObraNumberToReference(
+                $request->referencia ?? null,
+                $request->milestone_id
+            );
+        }
         $task->empresa = $request->empresa ?? null;
         $task->save();
 
@@ -4294,21 +4354,23 @@ class ProjectController extends Controller
     }
 
     /**
-     * Devuelve el siguiente código de obra (3 dígitos) de la delegación de forma atómica.
-     * Cada delegación tiene su propio contador con un máximo de 999 obras.
+     * Devuelve el siguiente código de obra (3 dígitos) de la delegación y serie (O/X) de forma atómica.
+     * Cada delegación tiene su propio contador por serie (con M.O / sin M.O) con un máximo de 999 obras.
      */
-    private function assignObraNumber($delegationId)
+    private function assignObraNumber($delegationId, $letter)
     {
         $maxObras = 999;
 
         $row = DB::table('obra_counters')
             ->where('delegation_id', $delegationId)
+            ->where('letter', $letter)
             ->lockForUpdate()
             ->first();
 
         if (!$row) {
             DB::table('obra_counters')->insert([
                 'delegation_id'  => $delegationId,
+                'letter'         => $letter,
                 'current_number' => 0,
                 'created_at'     => now(),
                 'updated_at'     => now(),
@@ -4316,6 +4378,7 @@ class ProjectController extends Controller
 
             $row = DB::table('obra_counters')
                 ->where('delegation_id', $delegationId)
+                ->where('letter', $letter)
                 ->lockForUpdate()
                 ->first();
         }
@@ -4331,9 +4394,49 @@ class ProjectController extends Controller
 
         DB::table('obra_counters')
             ->where('delegation_id', $delegationId)
+            ->where('letter', $letter)
             ->update(['current_number' => $nextNumber, 'updated_at' => now()]);
 
         return $nextNumber;
+    }
+
+    /**
+     * Letra de la referencia de un proyecto: O si tiene ref_mo (con M.O), X si no (sin M.O).
+     */
+    private function referenceLetter($project): string
+    {
+        return trim((string) ($project->ref_mo ?? '')) !== '' ? 'O' : 'X';
+    }
+
+    /**
+     * Siguiente sufijo consecutivo (.1, .2, ...) para la referencia automática sin M.O.
+     * Devuelve 0 cuando el encargo no tiene tasks (referencia base, sin sufijo).
+     * Nunca duplica: parte del mayor sufijo existente, por lo que solo reutiliza
+     * el número si se borró la última task con ese sufijo.
+     */
+    private function sinMoNextSuffixFromRefs($taskRefs, int $taskCount, string $base): int
+    {
+        if ($taskCount <= 0 || $base === '') {
+            return 0;
+        }
+
+        $max = 0;
+
+        foreach ($taskRefs as $ref) {
+            $ref = trim((string) $ref);
+
+            if ($ref === '' || strpos($ref, $base) !== 0) {
+                continue;
+            }
+
+            $rest = substr($ref, strlen($base));
+
+            if ($rest !== '' && preg_match('/^\.(\d+)$/', $rest, $m)) {
+                $max = max($max, (int) $m[1]);
+            }
+        }
+
+        return $max + 1;
     }
 
     /**
@@ -4364,7 +4467,7 @@ class ProjectController extends Controller
             return $referencia;
         }
 
-        $letter = trim((string) $project->ref_mo) !== '' ? 'O' : 'X';
+        $letter = $this->referenceLetter($project);
         $prefix = date('y') . strtoupper($delegationId) . $letter;
         $referencia = (string) $referencia;
 
@@ -4495,12 +4598,12 @@ class ProjectController extends Controller
         $milestone->priority = $request->priority === '' ? null : $request->priority;
         $milestone->save();
 
-        // Código de obra automático por delegación (001-999) para proyectos tipo 1
+        // Código de obra automático por delegación y serie O/X (001-999) para proyectos tipo 1
         if ((int) $project->type === 1) {
             try {
                 $delegationId = $this->resolveMilestoneDelegationId($project);
                 if ($delegationId !== '') {
-                    $milestone->obra_number = $this->assignObraNumber($delegationId);
+                    $milestone->obra_number = $this->assignObraNumber($delegationId, $this->referenceLetter($project));
                     $milestone->save();
                 } else {
                     \Log::warning('Milestone created without obra_number: delegation could not be resolved', [

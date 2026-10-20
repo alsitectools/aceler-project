@@ -129,8 +129,8 @@
                         <input type="text" class="form-control master-box text-center" maxlength="2" data-master-index="1" readonly placeholder="YY">
                         <input type="text" class="form-control master-box text-center" maxlength="6" data-master-index="2" placeholder="EN" autocomplete="off">
                         <input type="text" class="form-control master-box master-num text-center" maxlength="3" data-master-index="3" inputmode="numeric" placeholder="000" readonly>
-                        <input type="text" class="form-control master-box master-letter text-center" maxlength="1" data-master-index="4" placeholder="A">
-                        <div class="master-sys-dd">
+                        <input type="text" class="form-control master-box master-letter ref-manual text-center" maxlength="1" data-master-index="4" placeholder="A">
+                        <div class="master-sys-dd ref-manual">
                             <button type="button" class="master-sys-btn text-center" aria-expanded="false">
                                 <span class="master-sys-value"></span>
                             </button>
@@ -142,11 +142,11 @@
                             </div>
                             <input type="hidden" class="master-box" data-master-index="5" value="">
                         </div>
-                        <span class="mx-1">.</span>
-                        <input type="text" class="form-control master-box text-center" maxlength="1" data-master-index="6" inputmode="numeric" placeholder="0">
-                        <span class="mx-1">-</span>
-                        <input type="text" class="form-control master-box text-center" maxlength="1" data-master-index="7" inputmode="numeric" placeholder="0">
-                        <input type="text" class="form-control master-box text-center" maxlength="1" data-master-index="8" inputmode="numeric" placeholder="0">
+                        <span class="mx-1 ref-manual">.</span>
+                        <input type="text" class="form-control master-box ref-manual text-center" maxlength="1" data-master-index="6" inputmode="numeric" placeholder="0">
+                        <span class="mx-1 ref-manual">-</span>
+                        <input type="text" class="form-control master-box ref-manual text-center" maxlength="1" data-master-index="7" inputmode="numeric" placeholder="0">
+                        <input type="text" class="form-control master-box ref-manual text-center" maxlength="1" data-master-index="8" inputmode="numeric" placeholder="0">
                     </div>
                     <input type="hidden" id="task-referencia" name="referencia" value="">
                     <div class="mt-2 p-2" style="background:#f8f9fa; border-radius:6px; font-size:0.85rem;">
@@ -155,7 +155,7 @@
                             <span class="text-muted">—</span>
                         </div>
                     </div>
-                    <div class="mt-2 p-2" style="background:#fff; border:1px dashed #dee2e6; border-radius:6px; font-size:0.85rem;">
+                    <div class="mt-2 p-2" id="ultimas-refs-block" style="background:#fff; border:1px dashed #dee2e6; border-radius:6px; font-size:0.85rem;">
                         <span class="text-muted" style="font-size:0.72rem; text-transform:uppercase; letter-spacing:.5px;">{{ __('Últimas 5 referencias') }}</span>
                         <div class="font-monospace" style="letter-spacing:0.5px;" id="ultimas-refs">
                             <span class="text-muted">—</span>
@@ -335,9 +335,19 @@
                 const delegation = String(selectedProject.ref_delegation || '').trim().toUpperCase();
                 delegLetter = String(selectedProject.ref_mo || '').trim() !== '' ? 'O' : 'X';
                 delegCodeValue = delegation;
+                const isSinMo = delegLetter === 'X';
                 const delegBox = $('.master-box[data-master-index="2"]');
                 delegBox.val(delegation ? delegation + delegLetter : '');
-                delegBox.prop('readonly', delegation !== '');
+                delegBox.prop('readonly', isSinMo || delegation !== '');
+                $('.ref-manual').toggleClass('d-none', isSinMo);
+                $('#referencia-help').toggleClass('d-none', isSinMo);
+                $('#ultimas-refs-block').toggleClass('d-none', isSinMo);
+                if (isSinMo) {
+                    $('.ref-manual.master-box, .ref-manual .master-box').val('');
+                    $('.master-sys-value').text('');
+                    $('.master-sys-btn').attr('title', '');
+                    updateMasterHidden();
+                }
                 renderUltimasRefs();
             } else {
                 delegLetter = '';
@@ -449,7 +459,8 @@
                     selectedMilestone.obra_number !== null &&
                     selectedMilestone.obra_number !== undefined;
 
-                let fixedBoxes = [1, 2, 3, 4, 5, 6];
+                const isSinMoRef = delegLetter === 'X';
+                let fixedBoxes = isSinMoRef ? [1, 2, 3] : [1, 2, 3, 4, 5, 6];
                 if (!hasObraNumber) {
                     fixedBoxes = fixedBoxes.filter(function(idx) { return idx !== 3; });
                 }
@@ -462,10 +473,11 @@
 
                 if (missing) {
                     event.preventDefault();
+                    const sinMoMsg = 'Complete el año y la delegación de la referencia.';
                     if (typeof show_toastr === 'function') {
-                        show_toastr('Error', '{{ __("Complete los cuadros obligatorios de la referencia (año, delegación, código, zona, sistema y versión).") }}', 'error');
+                        show_toastr('Error', isSinMoRef ? sinMoMsg : '{{ __("Complete los cuadros obligatorios de la referencia (año, delegación, código, zona, sistema y versión).") }}', 'error');
                     } else {
-                        alert('{{ __("Complete los cuadros obligatorios de la referencia.") }}');
+                        alert(isSinMoRef ? sinMoMsg : '{{ __("Complete los cuadros obligatorios de la referencia.") }}');
                     }
                     return false;
                 }
@@ -487,6 +499,8 @@
                 var $submitBtn = taskCreateForm.find('button[type="submit"]');
                 $submitBtn.prop('disabled', true);
 
+                var createdMsId = getSelectedMilestoneId();
+
                 $.ajax({
                     url: taskCreateForm.attr('action'),
                     type: 'POST',
@@ -505,6 +519,18 @@
                         if (modalEl) {
                             var modal = bootstrap.Modal.getOrCreateInstance(modalEl);
                             modal.hide();
+                        }
+
+                        // Tras crear la task, el siguiente sufijo del encargo avanza
+                        // (la página no se recarga, así que hay que actualizar el dato en cliente).
+                        if (delegLetter === 'X' && createdMsId && typeof milestonesData !== 'undefined') {
+                            var createdMs = milestonesData.find(function(m) {
+                                return String(m.id) === String(createdMsId);
+                            });
+                            if (createdMs) {
+                                createdMs.sinmo_next_suffix = Math.max(1, Number(createdMs.sinmo_next_suffix || 0) + 1);
+                                updateMasterHidden();
+                            }
                         }
 
                         if (window.milestoneBoardAppendTask) {
@@ -659,6 +685,20 @@
             let ref = (a || '') + (b || '') + (c || '') + (d || '') + (e || '');
             if (f) ref += '.' + f;
             if (g || h) ref += '-' + (g || '') + (h ? '(' + h + ')' : '');
+
+            // Sufijo consecutivo del encargo (.1, .2, ...) solo en proyectos sin M.O.
+            // El servidor es quien manda al guardar; esto es la vista previa.
+            let sinMoSuffix = 0;
+            if (delegLetter === 'X' && c) {
+                const msId = getSelectedMilestoneId();
+                const ms = (typeof milestonesData !== 'undefined' ? milestonesData : []).find(function(m) {
+                    return String(m.id) === String(msId);
+                });
+                sinMoSuffix = ms && Number(ms.sinmo_next_suffix) > 0 ? Number(ms.sinmo_next_suffix) : 0;
+            }
+            if (sinMoSuffix) {
+                ref += '.' + sinMoSuffix;
+            }
             $('#task-referencia').val(ref);
 
             const filled = [a, b, c, d, e, f, g, h].map(function(v) { return (v || '').trim() !== ''; });
@@ -677,6 +717,9 @@
                 html += '-' + cell(6);
                 if (filled[7]) html += '(' + cell(7) + ')';
             }
+            if (sinMoSuffix && html) {
+                html += '.' + sinMoSuffix;
+            }
 
             const preview = document.getElementById('referencia-preview');
             if (preview) {
@@ -694,6 +737,12 @@
             let items = refsData.filter(function(r) {
                 return !deleg || r.deleg === deleg;
             });
+            const letter = String(delegLetter || '').trim();
+            if (letter) {
+                items = items.filter(function(r) {
+                    return r.letter === letter;
+                });
+            }
             if (code) {
                 const padded = code.padStart(3, '0');
                 items = items.filter(function(r) {
