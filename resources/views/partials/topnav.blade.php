@@ -201,6 +201,27 @@
             max-height: 0px;
         }
     }
+
+    /* Selector de delegaciones (píldora) junto a la campana */
+    .dash-header .drp-workspace {
+        display: flex;
+        align-items: center;
+    }
+
+    .dash-header .drp-workspace .workspace-dropdown-container {
+        width: auto;
+    }
+
+    .dash-header .workspace-name-header {
+        width: auto;
+        min-width: 110px;
+        margin-bottom: 0;
+        white-space: nowrap;
+    }
+
+    .dash-header .workspace-dropdown {
+        min-width: 240px;
+    }
 </style>
 <header class="dash-header {{ isset($cust_theme_bg) && $cust_theme_bg == 'on' ? 'transprent-bg' : '' }}">
     <div class="header-wrapper p-0 me-1">
@@ -275,6 +296,39 @@
                                 class="bg-danger dash-h-badge message-counter custom_messanger_counter">{{ $unseenCounter }}<span
                                     class="sr-only"></span>
                             </span></a>
+                    </li>
+                @endif
+
+                @if (Auth::user()->workspaces()->isNotEmpty())
+                    <li class="dash-h-item drp-workspace">
+                        <div class="workspace-dropdown-container">
+                            <button class="workspace-name-header" id="workspaceButton">
+                                <span
+                                    id="workspaceName">{{ $currentWorkspace?->display_name ?? __('Select workspace') }}</span>
+                                <i class="fa-solid fa-chevron-down workspace-dropdown-icon"></i>
+                            </button>
+                            <div class="workspace-dropdown" id="workspaceDropdown">
+                                <div class="workspace-search">
+                                    <input type="text" id="workspaceSearchInput"
+                                        placeholder="{{ __('Search workspace...') }}">
+                                </div>
+                                <div class="workspace-list" id="workspaceList">
+                                    @forelse(Auth::user()->workspaces() as $ws)
+                                        <div class="workspace-item @if (isset($currentWorkspace) && $ws->workspace_id == $currentWorkspace->id) active @endif"
+                                            data-workspace-id="{{ $ws->workspace_id }}"
+                                            data-workspace-name="{{ $ws->name }}"
+                                            data-workspace-display-name="{{ \App\Models\Workspace::translateName($ws->name) }}"
+                                            data-workspace-url="{{ route('change-workspace', $ws->workspace_id) }}">
+                                            {{ \App\Models\Workspace::translateName($ws->name) }}
+                                        </div>
+                                    @empty
+                                        <div style="padding: 12px 16px; color: #999; font-size: 13px;">
+                                            {{ __('No workspaces available') }}
+                                        </div>
+                                    @endforelse
+                                </div>
+                            </div>
+                        </div>
                     </li>
                 @endif
 

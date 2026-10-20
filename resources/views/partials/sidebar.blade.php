@@ -116,6 +116,11 @@
         width: 100%;
     }
 
+    /* Espacio que ocupaba la píldora de delegaciones (mt-2 8 + botón 38 + margen 15) */
+    .workspace-pill-spacer {
+        height: 61px;
+    }
+
     .workspace-dropdown {
         display: none;
         position: absolute;
@@ -556,37 +561,11 @@
         </div>
         <div class="navbar-content">
             <ul class="dash-navbar ">
-                @if ($userWorkspaces->isNotEmpty())
-                    <div class="workspace-dropdown-container mt-2">
-                        <button class="workspace-name-header" id="workspaceButton">
-                            <span id="workspaceName">{{ $currentWorkspace?->display_name ?? __('Select workspace') }}</span>
-                            <i class="fa-solid fa-chevron-down workspace-dropdown-icon"></i>
-                        </button>
-                        <div class="workspace-dropdown" id="workspaceDropdown">
-                            <div class="workspace-search">
-                                <input type="text" id="workspaceSearchInput"
-                                    placeholder="{{ __('Search workspace...') }}">
-                            </div>
-                            <div class="workspace-list" id="workspaceList">
-                                @forelse(Auth::user()->workspaces() as $ws)
-                                    <div class="workspace-item @if ($ws->workspace_id == $currentWorkspace->id) active @endif"
-                                        data-workspace-id="{{ $ws->workspace_id }}"
-                                        data-workspace-name="{{ $ws->name }}"
-                                        data-workspace-display-name="{{ \App\Models\Workspace::translateName($ws->name) }}"
-                                        data-workspace-url="{{ route('change-workspace', $ws->workspace_id) }}">
-                                        {{ \App\Models\Workspace::translateName($ws->name) }}
-                                    </div>
-                                @empty
-                                    <div style="padding: 12px 16px; color: #999; font-size: 13px;">
-                                        {{ __('No workspaces available') }}
-                                    </div>
-                                @endforelse
-                            </div>
-                        </div>
-                    </div>
-                @endif
+                {{-- La píldora de delegaciones vive ahora en la cabecera (topnav);
+                     se conserva el espacio para que el menú no cambie de sitio --}}
+                <div class="workspace-pill-spacer" aria-hidden="true"></div>
                 <li
-                    class="dash-item  dash-hasmenu {{ Request::route()->getName() == 'home' || Request::route()->getName() == null || Request::route()->getName() == 'client.home' ? 'active' : '' }}">
+                    class="dash-item icons-collapsible dash-hasmenu {{ Request::route()->getName() == 'home' || Request::route()->getName() == null || Request::route()->getName() == 'client.home' ? 'active' : '' }}">
                     <a href="{{ route('home') }}" class="dash-link menu-element">
                         <span class="dash-micon"><i class="fa-solid fa-bookmark"></i></span>
                         <span class="dash-mtext">{{ __('Resume') }}</span>
@@ -594,7 +573,7 @@
                 </li>
                 @if (isset($currentWorkspace) && $currentWorkspace)
                     <li
-                        class="dash-item  {{ (Request::route()->getName() == 'projects.index' || Request::segment(2) == 'projects') && Request::route()->getName() != 'projects.milestone.board' ? 'active' : '' }}">
+                        class="dash-item icons-collapsible {{ (Request::route()->getName() == 'projects.index' || Request::segment(2) == 'projects') && Request::route()->getName() != 'projects.milestone.board' ? 'active' : '' }}">
                         <a href="{{ route('projects.index', $currentWorkspace->slug) }}"
                             class="dash-link  menu-element">
                             <span class="dash-micon"><i class="fa-solid fa-diagram-project"></i></span><span
@@ -603,13 +582,13 @@
 
                     </li>
                     <li
-                        class="dash-item {{ Request::route()->getName() == 'projects.milestone.board' ? 'active' : '' }}">
+                        class="dash-item icons-collapsible {{ Request::route()->getName() == 'projects.milestone.board' ? 'active' : '' }}">
                         <a href="{{ route('projects.milestone.board', [$currentWorkspace->slug, -1]) }}"
                             class="dash-link  menu-element">
                             <span class="dash-micon"><i class="fa-solid fa-file-lines"></i></span><span
                                 class="dash-mtext">{{ __('Order Forms') }}</span></a>
                     </li>
-                    <li class="dash-item {{ Request::route()->getName() == 'gantt.diagram' ? 'active' : '' }}">
+                    <li class="dash-item icons-collapsible {{ Request::route()->getName() == 'gantt.diagram' ? 'active' : '' }}">
                         <a href="{{ route('gantt.diagram') }}" class="dash-link menu-element">
                             <span class="dash-micon"
                                 style="position: relative; display: inline-flex; align-items: center; justify-content: center; overflow:hidden;">
@@ -618,7 +597,7 @@
                             <span class="dash-mtext">{{ __('Gantt Diagram') }}</span>
                         </a>
                     </li>
-                    <li class="dash-item {{ Request::route()->getName() == 'my_summary' ? 'active' : '' }}">
+                    <li class="dash-item icons-collapsible {{ Request::route()->getName() == 'my_summary' ? 'active' : '' }}">
                         <a href="{{ route('my_summary') }}" class="dash-link menu-element">
                             <span class="dash-micon"
                                 style="position: relative; display: inline-flex; align-items: center; justify-content: center; overflow:hidden;">
@@ -631,7 +610,7 @@
                     </li>
 
                     {{-- si mostramos todos los proyectos enviamos -1 o proyecto en especifico --}}
-                    <li class="dash-item {{ Request::route()->getName() == 'my_projects' ? 'active' : '' }}">
+                    <li class="dash-item icons-collapsible {{ Request::route()->getName() == 'my_projects' ? 'active' : '' }}">
                         <a href="{{ route('my_projects', $currentWorkspace->slug) }}" class="dash-link menu-element">
                             <span class="dash-micon"
                                 style="position: relative; display: inline-flex; align-items: center; justify-content: center; overflow:hidden;">
@@ -642,7 +621,7 @@
                             <span class="dash-mtext">{{ __('My Projects') }}</span>
                         </a>
                     </li>
-                    <li class="dash-item ">
+                    <li class="dash-item icons-collapsible">
                         <a href="{{ route('projects.my_milestone_board') }}" class="dash-link menu-element">
                             <span class="dash-micon"
                                 style="position: relative; display: inline-flex; align-items: center; justify-content: center; overflow:hidden;">
@@ -653,7 +632,7 @@
                             <span class="dash-mtext">{{ __('My Order Forms') }}</span>
                         </a>
                     </li>
-                    <li class="dash-item ">
+                    <li class="dash-item icons-collapsible">
                         <a href="{{ route('projects.my_tasks') }}" class="dash-link menu-element">
                             <span class="dash-micon"
                                 style="position: relative; display: inline-flex; align-items: center; justify-content: center; overflow:hidden;">
@@ -664,7 +643,7 @@
                             <span class="dash-mtext">{{ __('My Tasks') }}</span>
                         </a>
                     </li>
-                    <li class="dash-item  {{ Request::route()->getName() == 'timesheet.index' ? 'active' : '' }}">
+                    <li class="dash-item icons-collapsible {{ Request::route()->getName() == 'timesheet.index' ? 'active' : '' }}">
                         <a href="{{ route('timesheet.index', $currentWorkspace->slug) }}"
                             class="dash-link  menu-element">
                             <span class="dash-micon"
@@ -674,7 +653,7 @@
                                     style="position: absolute; bottom: -2px; right: -1px; font-size: 15px; color: #525a69; background: #fcf9f9; border-radius: 50%; padding: 2px;"></i>
                             </span><span class="dash-mtext">{{ __('My Timesheet') }}</span></a>
                     </li>
-                    <li class="dash-item  {{ Request::route()->getName() == 'calender.index' ? 'active' : '' }}">
+                    <li class="dash-item icons-collapsible {{ Request::route()->getName() == 'calender.index' ? 'active' : '' }}">
                         <a href="{{ route('calender.google.calendar', $currentWorkspace->slug) }}"
                             class="dash-link  menu-element"><span class="dash-micon"
                                 style="position: relative; display: inline-flex; align-items: center; justify-content: center; overflow:hidden;"><i
@@ -740,6 +719,13 @@
                 </li>
             @endif
             </ul>
+        </div>
+        <div class="menu-icons-row">
+            <button type="button" id="aCeler-menu-toggle" class="menu-icons-btn"
+                title="Colapsar menú / Expandir menú" aria-label="Colapsar menú / Expandir menú"
+                aria-expanded="true">
+                <i class="fa-solid fa-angles-left"></i>
+            </button>
         </div>
     </div>
 </nav>

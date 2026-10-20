@@ -1,0 +1,72 @@
+/* aCeler — menú "Resumen → Mi calendario" colapsable a sólo icono
+   El icono no se mueve; sólo desaparece el texto de los items
+   .icons-collapsible. Configuración y el resto conservan etiqueta. */
+
+@media (min-width: 1025px) {
+    body.aCeler-menu-icons .dash-sidebar .dash-item.icons-collapsible .dash-mtext {
+        display: none;
+    }
+}
+
+/* Espacio para la fila del botón (el último item debe quedar libre) */
+.dash-sidebar .navbar-content {
+    padding-bottom: 52px;
+}
+
+/* Fila del botón: anclada al fondo del nav (no depende del flex del wrapper) */
+.dash-sidebar .menu-icons-row {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 5;
+    border-top: 1px solid rgba(69, 90, 100, 0.12);
+}
+
+.dash-sidebar .menu-icons-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    padding: 13px 0;
+    background: transparent;
+    border: 0;
+    color: #525b69;
+    font-size: 14px;
+    line-height: 1;
+    cursor: pointer;
+    transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.dash-sidebar .menu-icons-btn i {
+    transition: transform 0.2s ease;
+}
+
+.dash-sidebar .menu-icons-btn:hover {
+    background: rgba(170, 24, 44, 0.06);
+    color: #aa182c;
+}
+
+.dash-sidebar .menu-icons-btn:focus-visible {
+    outline: none;
+    box-shadow: inset 0 0 0 3px rgba(170, 24, 44, 0.25);
+}
+
+body.aCeler-menu-icons .dash-sidebar .menu-icons-btn i {
+    transform: rotate(180deg);
+}
+
+/* Móvil/tablet: offcanvas siempre con texto, sin botón de colapso */
+@media (max-width: 1024px) {
+    .dash-sidebar .menu-icons-row {
+        display: none;
+    }
+}
+
+/* ── Accesibilidad: sin animación para quien la pida ──────────── */
+@media (prefers-reduced-motion: reduce) {
+    .dash-sidebar .menu-icons-btn,
+    .dash-sidebar .menu-icons-btn i {
+        transition: none !important;
+    }
+}

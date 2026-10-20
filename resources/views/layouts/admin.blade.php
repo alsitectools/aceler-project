@@ -129,6 +129,8 @@
         <link rel="stylesheet" href="{{ asset('assets/css/style.css') }}" id="main-style-link">
     @endif
 
+    <link rel="stylesheet" href="{{ asset('assets/custom/css/menu-icons.css') }}">
+
     <meta name="url" content="{{ url('') . '/' . config('chatify.routes.prefix') }}"
         data-user="{{ Auth::user()->id }}">
     <script src='https://unpkg.com/nprogress@0.2.0/nprogress.js'></script>
@@ -436,6 +438,14 @@
 
 <body class="{{ $color }}">
 
+    <script>
+        try {
+            if (localStorage.getItem('acelerMenuIconsOnly') === '1') {
+                document.body.classList.add('aCeler-menu-icons');
+            }
+        } catch (e) {}
+    </script>
+
     <!-- [ Pre-loader ] start -->
     <div class="loader-bg">
         <div class="loader-track">
@@ -613,6 +623,25 @@
     <script src="{{ asset('assets/js/plugins/datepicker-full.min.js') }}"></script>
     <script src="{{ asset('assets/js/plugins/feather.min.js') }}"></script>
     <script src="{{ asset('assets/js/dash.js') }}"></script>
+    <script>
+        (function() {
+            var KEY = 'acelerMenuIconsOnly';
+            var btn = document.getElementById('aCeler-menu-toggle');
+            document.querySelectorAll('.dash-item.icons-collapsible .dash-link').forEach(function(a) {
+                var t = a.querySelector('.dash-mtext');
+                if (t && !a.getAttribute('title')) {
+                    a.setAttribute('title', t.textContent.trim());
+                }
+            });
+            if (!btn) return;
+            btn.addEventListener('click', function() {
+                var on = document.body.classList.toggle('aCeler-menu-icons');
+                try { localStorage.setItem(KEY, on ? '1' : '0'); } catch (e) {}
+                btn.setAttribute('aria-expanded', String(!on));
+            });
+            btn.setAttribute('aria-expanded', String(!document.body.classList.contains('aCeler-menu-icons')));
+        })();
+    </script>
     <script src="{{ asset('assets/custom/libs/summernote/summernote-bs4.js') }}"></script>
     <script>
         $('.summernote').summernote({
