@@ -18,6 +18,12 @@
 @if ($projects && $currentWorkspace)
     <form id="taskCreateForm" method="post" action="@auth('web'){{ $formAction }}@endauth">
         @csrf
+        {{-- Flag del flujo drag&drop del board: taskStore lo usa para desactivar
+             isPendingType3 y pasar el encargo a "en curso" al crear la primera task.
+             Sin este input el parámetro se perdía (solo venía en la query del GET). --}}
+        @if ($fromMilestoneBoard)
+            <input type="hidden" name="fromMilestoneBoard" value="{{ $fromMilestoneBoard }}">
+        @endif
         <div class="modal-body">
             <!-- DEBUG INFO -->
             <script>
