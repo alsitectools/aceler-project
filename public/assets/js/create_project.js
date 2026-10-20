@@ -27,6 +27,7 @@ window.initCreateProjectSearch = function () {
     let loading = false;
     let searchQuery = '';
     let noMoreResults = false;
+    let currentIsJobsite = false;
 
     function removeAllLoadingSpinners() {
         $('.loading-spinner-container').remove();
@@ -133,11 +134,38 @@ case 'clients':
         refMoList.empty();
     }
 
+    function isSinMo() {
+        return $('input[name="mo_mode"]:checked').val() === 'sin';
+    }
+
+    function applyMoMode() {
+        const withMo = currentIsJobsite && !isSinMo();
+        const blockClipo = currentIsJobsite && isSinMo();
+
+        if (withMo) {
+            refMoInput.prop('required', true).prop('disabled', false);
+        } else {
+            refMoInput.val("").prop('required', false).prop('disabled', true);
+            refMoList.empty().hide();
+        }
+
+        if (blockClipo) {
+            clientInput.val("").prop('disabled', true);
+            clipoList.empty().hide();
+            removeAllLoadingSpinners();
+        } else {
+            clientInput.prop('disabled', false);
+        }
+
+        project_nameInput.prop('readonly', withMo);
+    }
+
     function resetInputs(isJobsite) {
+        currentIsJobsite = isJobsite;
         project_nameInput.val("");
-        refMoInput.val("").prop('required', isJobsite).prop('disabled', !isJobsite);
+        refMoInput.val("");
         clientInput.val("");
-        project_nameInput.prop('readonly', isJobsite);
+        applyMoMode();
     }
 
     const debounce = (func, delay) => {
@@ -260,8 +288,13 @@ case 'clients':
 
     $(document).on('change.createProjectSearch', '#project_type', function () {
         const isJobsite = $(this).find('option:selected').data('type') === 'Jobsite';
+        $('input[name="mo_mode"][value="con"]').prop('checked', true);
         resetInputs(isJobsite);
         $('#ref_mo, #clipo').toggle(isJobsite);
+    });
+
+    $(document).on('change.createProjectSearch', 'input[name="mo_mode"]', function () {
+        applyMoMode();
     });
 
     function showAlert(message, type) {

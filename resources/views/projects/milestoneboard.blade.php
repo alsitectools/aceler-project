@@ -1388,6 +1388,20 @@
                             return;
                         }
 
+                        // ✅ Guardado correcto del ASSIGN (1->2): limpiar flags y NO revertir.
+                        // Sin esta rama, el bloque de abajo reutilizaría los mismos datos
+                        // (milestone-id/previous-status) y revierte igualmente el cambio.
+                        if (isAssignFlow && assignSaved) {
+                            $(this).removeData('assign-flow');
+                            $(this).removeData('assign-saved');
+                            $(this).removeData('milestone-id');
+                            $(this).removeData('previous-status');
+                            $(this).removeData('previous-container');
+                            $(this).removeData('original-index');
+                            $(this).removeData('moved-el-id');
+                            return;
+                        }
+
                         // ============================
                         // ✅ TU LÓGICA EXISTENTE (revert por cancelación del popup de review, etc.)
                         // ============================

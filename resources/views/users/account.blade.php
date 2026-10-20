@@ -422,7 +422,7 @@
                         <i class="bi bi-info-circle"
                             style="color: #FFD43B;font-size: 30px;margin-left: 15px;margin-right: -63px;"></i>
                         <p class="text-muted infoWorkspace">
-                            {{ __('Click the following button to export all Jobside projects to Axapta') }}
+                            {{ __('Click the following button to export the Jobsite projects of all delegations to Axapta') }}
                         </p>
                     </div>
                     <div style="display: flex;justify-content: center;">
@@ -1078,6 +1078,10 @@
 
         <script>
             $('#exportAxapta').on('click', function() {
+                const $btn = $(this);
+                if ($btn.prop('disabled')) return;
+                const originalText = $btn.text();
+                $btn.prop('disabled', true).text('{{ __("Exporting...") }}');
                 operationUrl = '<?php echo url('/projects/export-axapta'); ?>';
                 $.ajax({
                     type: 'POST',
@@ -1102,6 +1106,8 @@
                             link.click();
                             document.body.removeChild(link);
                             window.URL.revokeObjectURL(link.href);
+                        } else if (response.message) {
+                            alert(response.message);
                         } else {
                             console.error("Error en la respuesta:", response.error);
                             alert('Error: ' + (response.error || 'Error desconocido'));
@@ -1111,6 +1117,9 @@
                         console.error("Error AJAX:", error);
                         console.error("Response:", xhr.responseText);
                         alert('Error al descargar el archivo: ' + error);
+                    },
+                    complete: function() {
+                        $btn.prop('disabled', false).text(originalText);
                     }
                 });
             });

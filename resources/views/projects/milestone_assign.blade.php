@@ -488,6 +488,12 @@
             headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}' }
         });
 
+        // ✅ Guardado correcto: marcarlo para que el board NO revierta el drag
+        // (el handler de hidden.bs.modal de milestoneboard compara assign-saved
+        // para distinguir "cancelado" de "guardado"; si no se marca, siempre
+        // dispara el revert y entra en carrera con el cambio de status a 2).
+        $('#commonModal').data('assign-saved', true);
+
         // ✅ Si NO viene de drag&drop, recarga normal
         if (!fromStatusChange) {
             window.location.reload();
