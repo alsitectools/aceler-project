@@ -9,6 +9,17 @@
     transition: width 0.2s ease, left 0.2s ease, margin-left 0.2s ease;
 }
 
+/* Las etiquetas nunca se parten: la altura de las filas es constante
+   durante la animación (evita el salto al descolapsar). El link es
+   display:block, así que overflow:hidden corta el desborde momentáneo. */
+.dash-sidebar .dash-mtext {
+    white-space: nowrap;
+}
+
+.dash-sidebar .dash-link {
+    overflow: hidden;
+}
+
 /* ── Estado colapsado (sólo escritorio; en ≤1024 el offcanvas no se toca) ── */
 @media (min-width: 1025px) {
     /* Raíl: 70px. El logo se queda donde está: el m-header ocupa 70px dentro
@@ -67,11 +78,6 @@
 
     body.aCeler-menu-icons .dash-header:not(.transprent-bg):not(.dash-mob-header)~.dash-container {
         margin-left: calc(70px + 15px);
-    }
-
-    /* El título de página baja ~28px para no quedar bajo el borde del logo */
-    body.aCeler-menu-icons .page-header {
-        padding-top: 28px;
     }
 }
 
