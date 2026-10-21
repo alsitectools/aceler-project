@@ -9,15 +9,19 @@
     transition: width 0.2s ease, left 0.2s ease, margin-left 0.2s ease;
 }
 
-/* Las etiquetas nunca se parten: la altura de las filas es constante
-   durante la animación (evita el salto al descolapsar). El link es
-   display:block, así que overflow:hidden corta el desborde momentáneo. */
-.dash-sidebar .dash-mtext {
-    white-space: nowrap;
+/* Geometría de fila fija: flex + centrado → fila = padding + 35px del
+   icono en ambos estados; el icono no se recoloca al alternar (fin del
+   efecto de subida). El mtext recorta el texto limpio durante la animación. */
+.dash-sidebar .dash-link {
+    display: flex;
+    align-items: center;
+    overflow: hidden;
 }
 
-.dash-sidebar .dash-link {
+.dash-sidebar .dash-mtext {
+    white-space: nowrap;
     overflow: hidden;
+    min-width: 0;
 }
 
 /* ── Estado colapsado (sólo escritorio; en ≤1024 el offcanvas no se toca) ── */
