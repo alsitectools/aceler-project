@@ -108,25 +108,28 @@ body:not(.aCeler-menu-icons) .dash-sidebar.light-sidebar .ajustarImg {
 .dash-sidebar.light-sidebar .dash-navbar>.dash-item.active>.dash-link,
 .dash-sidebar.light-sidebar .dash-navbar>.dash-item:active>.dash-link,
 .dash-sidebar.light-sidebar .dash-navbar>.dash-item:focus>.dash-link {
-    background: rgba(255, 255, 255, 0.15);
-    color: #ffffff;
-    box-shadow: none;
+    background: rgba(255, 255, 255, 0.15) !important;
+    color: #ffffff !important;
+    box-shadow: none !important;
 }
 
 .dash-sidebar.light-sidebar .dash-navbar>.dash-item:hover>.dash-link {
-    background: rgba(255, 255, 255, 0.12);
-    color: #ffffff;
-    box-shadow: none;
+    background: rgba(255, 255, 255, 0.12) !important;
+    color: #ffffff !important;
+    box-shadow: none !important;
 }
 
 .dash-sidebar.light-sidebar .dash-item.active>.dash-link,
 .dash-sidebar.light-sidebar .dash-item:hover>.dash-link {
-    color: #ffffff;
+    color: #ffffff !important;
 }
 
 .dash-sidebar.light-sidebar .dash-item.active>.dash-link i,
-.dash-sidebar.light-sidebar .dash-item:hover>.dash-link i {
-    color: #ffffff;
+.dash-sidebar.light-sidebar .dash-item:hover>.dash-link i,
+.dash-sidebar.light-sidebar .dash-item.active>.dash-link svg,
+.dash-sidebar.light-sidebar .dash-item:hover>.dash-link svg {
+    color: #ffffff !important;
+    stroke: #ffffff !important;
 }
 
 /* Activo/hover theme-5 (degradado rojo → overlay blanco) */
@@ -134,9 +137,9 @@ body.theme-5 .dash-sidebar.light-sidebar .dash-navbar>.dash-item.active>.dash-li
 body.theme-5 .dash-sidebar.light-sidebar .dash-navbar>.dash-item:active>.dash-link,
 body.theme-5 .dash-sidebar.light-sidebar .dash-navbar>.dash-item:focus>.dash-link,
 body.theme-5 .dash-sidebar.light-sidebar .dash-navbar>.dash-item:hover>.dash-link {
-    background: rgba(255, 255, 255, 0.15);
-    color: #ffffff;
-    box-shadow: none;
+    background: rgba(255, 255, 255, 0.15) !important;
+    color: #ffffff !important;
+    box-shadow: none !important;
 }
 
 body.theme-5 .dash-sidebar.light-sidebar .dash-navbar>.dash-item.active>.dash-link .dash-micon i,
@@ -146,29 +149,39 @@ body.theme-5 .dash-sidebar.light-sidebar .dash-navbar>.dash-item:active>.dash-li
 body.theme-5 .dash-sidebar.light-sidebar .dash-navbar>.dash-item:focus>.dash-link .dash-micon i,
 body.theme-5 .dash-sidebar.light-sidebar .dash-navbar>.dash-item:focus>.dash-link .dash-micon svg,
 body.theme-5 .dash-sidebar.light-sidebar .dash-navbar>.dash-item:hover>.dash-link .dash-micon i,
-body.theme-5 .dash-sidebar.light-sidebar .dash-navbar>.dash-item:hover>.dash-link .dash-micon svg {
-    color: #ffffff;
+body.theme-5 .dash-sidebar.light-sidebar .dash-navbar>.dash-item:hover>.dash-link .dash-micon svg,
+body.theme-5 .dash-sidebar .dash-navbar>.dash-item.active>.dash-link .dash-micon i,
+body.theme-5 .dash-sidebar .dash-navbar>.dash-item.active>.dash-link .dash-micon svg,
+body.theme-5 .dash-sidebar .dash-navbar>.dash-item:active>.dash-link .dash-micon i,
+body.theme-5 .dash-sidebar .dash-navbar>.dash-item:active>.dash-link .dash-micon svg,
+body.theme-5 .dash-sidebar .dash-navbar>.dash-item:focus>.dash-link .dash-micon i,
+body.theme-5 .dash-sidebar .dash-navbar>.dash-item:focus>.dash-link .dash-micon svg,
+body.theme-5 .dash-sidebar .dash-navbar>.dash-item:hover>.dash-link .dash-micon i,
+body.theme-5 .dash-sidebar .dash-navbar>.dash-item:hover>.dash-link .dash-micon svg {
+    color: #ffffff !important;
+    stroke: #ffffff !important;
 }
 
 /* ── Raíl colapsado (menu-icons): estados en blanco ────────────── */
 body.aCeler-menu-icons .dash-sidebar.light-sidebar .dash-navbar>.dash-item.active>.dash-link,
 body.aCeler-menu-icons .dash-sidebar.light-sidebar .dash-navbar>.dash-item:focus>.dash-link {
-    background: rgba(255, 255, 255, 0.15);
-    color: #ffffff;
-    box-shadow: none;
+    background: rgba(255, 255, 255, 0.15) !important;
+    color: #ffffff !important;
+    box-shadow: none !important;
 }
 
 body.aCeler-menu-icons .dash-sidebar.light-sidebar .dash-navbar>.dash-item:hover>.dash-link {
-    background: rgba(255, 255, 255, 0.12);
-    color: #ffffff;
-    box-shadow: none;
+    background: rgba(255, 255, 255, 0.12) !important;
+    color: #ffffff !important;
+    box-shadow: none !important;
 }
 
 body.aCeler-menu-icons .dash-sidebar.light-sidebar .dash-navbar>.dash-item.active>.dash-link .dash-micon i,
 body.aCeler-menu-icons .dash-sidebar.light-sidebar .dash-navbar>.dash-item.active>.dash-link .dash-micon svg,
 body.aCeler-menu-icons .dash-sidebar.light-sidebar .dash-navbar>.dash-item:hover>.dash-link .dash-micon i,
 body.aCeler-menu-icons .dash-sidebar.light-sidebar .dash-navbar>.dash-item:hover>.dash-link .dash-micon svg {
-    color: #ffffff;
+    color: #ffffff !important;
+    stroke: #ffffff !important;
 }
 
 /* Botón de colapso y su fila */

@@ -75,13 +75,21 @@
     }
 
     /* La vista se ajusta: el contenido gana el ancho del raíl.
-       La cabecera NO se toca (el logo la besa en x295, igual que expandido). */
+       La cabecera (y con ella el saludo de perfil con la foto) sigue al raíl. */
     body.aCeler-menu-icons .dash-container {
         margin-left: 70px;
     }
 
     body.aCeler-menu-icons .dash-header:not(.transprent-bg):not(.dash-mob-header)~.dash-container {
         margin-left: calc(70px + 15px);
+    }
+
+    body.aCeler-menu-icons .dash-header {
+        left: 70px;
+    }
+
+    body.aCeler-menu-icons .dash-header:not(.transprent-bg):not(.dash-mob-header) {
+        left: calc(70px + 40px);
     }
 }
 
