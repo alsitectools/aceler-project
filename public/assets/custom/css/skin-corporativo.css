@@ -99,8 +99,14 @@ body:not(.aCeler-menu-icons) .dash-sidebar.light-sidebar .ajustarImg {
 }
 
 /* Badge de usuario en los iconos (estilos inline: requiere !important) */
+/* Más pequeño, en la esquina inferior derecha y con aro del rojo del sidebar
+   que lo recorta del icono principal. Igual expandido y colapsado: sin saltos. */
 .dash-sidebar.light-sidebar .user-badge-sub {
-    background: transparent !important;
+    bottom: 1px !important;
+    right: 1px !important;
+    font-size: 10px !important;
+    padding: 2px !important;
+    background: #AA182C !important;
     color: rgba(255, 255, 255, 0.85) !important;
 }
 

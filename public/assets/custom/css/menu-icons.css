@@ -16,6 +16,14 @@
     display: flex;
     align-items: center;
     overflow: hidden;
+    /* El icono se desliza al centrarse en el raíl, al ritmo del ancho */
+    transition: margin 0.2s ease, padding 0.2s ease;
+}
+
+/* El icono no encoge mientras el sidebar anima su ancho: si encogiera, la
+   insignia de persona (anclada a su borde derecho) se desplazaría. */
+.dash-sidebar .dash-link .dash-micon {
+    flex-shrink: 0;
 }
 
 .dash-sidebar .dash-mtext {
@@ -44,14 +52,20 @@
         filter: none;
     }
 
+    /* Icono centrado en el raíl y fondo activo/hover con el mismo hueco a ambos
+       lados (link 11–59px, icono 17–52px). Sin padding derecho para que la
+       insignia de persona no se recorte. */
+    body.aCeler-menu-icons .dash-sidebar.light-sidebar .dash-navbar>.dash-item>.dash-link {
+        margin-left: 6px;
+        margin-right: 11px;
+        padding-left: 6px;
+        padding-right: 0;
+    }
+
     body.aCeler-menu-icons .dash-sidebar .dash-link .dash-micon {
         margin-right: 0;
         background: transparent;
         box-shadow: none;
-    }
-
-    body.aCeler-menu-icons .dash-sidebar .user-badge-sub {
-        display: none;
     }
 
     /* Activo/hover: sin bloque rojo (theme-5), sólo icono rojo corporativo */
@@ -84,8 +98,11 @@
         margin-left: calc(70px + 15px);
     }
 
+    /* Sin el tope de custom.css (100% - 255px): con él, el borde derecho se
+       desplazaba y con él la delegación, las notificaciones y el idioma. */
     body.aCeler-menu-icons .dash-header {
         left: 70px;
+        max-width: none;
     }
 
     body.aCeler-menu-icons .dash-header:not(.transprent-bg):not(.dash-mob-header) {
