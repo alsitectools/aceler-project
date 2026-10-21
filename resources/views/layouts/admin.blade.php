@@ -130,6 +130,7 @@
     @endif
 
     <link rel="stylesheet" href="{{ asset('assets/custom/css/menu-icons.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/custom/css/skin-corporativo.css') }}">
 
     <meta name="url" content="{{ url('') . '/' . config('chatify.routes.prefix') }}"
         data-user="{{ Auth::user()->id }}">

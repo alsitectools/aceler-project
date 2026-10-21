@@ -1,0 +1,195 @@
+/* aCeler — skin corporativa
+   Sidebar rojo corporativo (#AA182C) + logo blanco; sin fondos extra
+   (cabecera y zona del logo transparentes, colores originales).
+   Aplica también en modo transprent-bg (pisa el background: transparent de style.css).
+   Carga tras menu-icons.css: anula por orden + especificidad los estados
+   theme-5, customizer y colapso del menú. */
+
+/* ── Sidebar: fondo corporativo ───────────────────────────────── */
+.dash-sidebar.light-sidebar,
+.dash-sidebar.light-sidebar.transprent-bg {
+    background: #AA182C;
+}
+
+.dash-sidebar.light-sidebar .dash-caption {
+    color: rgba(255, 255, 255, 0.55);
+}
+
+/* Logo blanco con silueta (wordmark PNG) + sombra para la cola que desborda */
+.dash-sidebar.light-sidebar .ajustarImg {
+    filter: brightness(0) invert(1) drop-shadow(0 1px 2px rgba(0, 0, 0, 0.35));
+}
+
+/* Logo: wordmark blanco (expandido, centrado y contenido) + mini "A" y "aCeler" en el raíl */
+.logo-mini,
+.logo-mini-text {
+    display: none;
+}
+
+.dash-sidebar.light-sidebar .logo-mini,
+.dash-sidebar.light-sidebar .logo-mini-text {
+    filter: brightness(0) invert(1) drop-shadow(0 1px 2px rgba(0, 0, 0, 0.35));
+}
+
+body:not(.aCeler-menu-icons) .dash-sidebar.light-sidebar .m-header {
+    justify-content: center;
+}
+
+body:not(.aCeler-menu-icons) .dash-sidebar.light-sidebar .ajustarImg {
+    width: 100%;
+    max-width: 200px;
+}
+
+@media (min-width: 1025px) {
+    body.aCeler-menu-icons .dash-sidebar.light-sidebar .ajustarImg {
+        display: none;
+    }
+
+    body.aCeler-menu-icons .dash-sidebar.light-sidebar .logo-mini {
+        display: block;
+        height: 30px;
+        width: auto;
+    }
+
+    body.aCeler-menu-icons .dash-sidebar.light-sidebar .logo-mini-text {
+        display: block;
+        width: 50px;
+        height: auto;
+        margin-top: 3px;
+    }
+
+    body.aCeler-menu-icons .dash-sidebar.light-sidebar .m-header {
+        justify-content: center;
+        padding: 8px 0;
+    }
+}
+
+/* Links: texto blanco, sin "cards" */
+.dash-sidebar.light-sidebar .dash-link {
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.dash-sidebar.light-sidebar .dash-link:active,
+.dash-sidebar.light-sidebar .dash-link:focus,
+.dash-sidebar.light-sidebar .dash-link:hover {
+    color: #ffffff;
+}
+
+.dash-sidebar.light-sidebar .dash-link.menu-element {
+    background: transparent;
+    filter: none;
+}
+
+/* Iconos: planos y blancos (sin chip blanco ni sombra) */
+.dash-sidebar.light-sidebar .dash-link .dash-micon {
+    background: transparent;
+    box-shadow: none;
+}
+
+.dash-sidebar.light-sidebar .dash-link .dash-micon i,
+.dash-sidebar.light-sidebar .dash-link .dash-micon svg {
+    color: rgba(255, 255, 255, 0.85);
+    stroke: rgba(255, 255, 255, 0.85);
+    fill: rgba(255, 255, 255, 0.25);
+}
+
+.dash-sidebar.light-sidebar .dash-link .dash-micon .material-icons-two-tone {
+    background: transparent;
+    color: rgba(255, 255, 255, 0.85);
+}
+
+/* Badge de usuario en los iconos (estilos inline: requiere !important) */
+.dash-sidebar.light-sidebar .user-badge-sub {
+    background: transparent !important;
+    color: rgba(255, 255, 255, 0.85) !important;
+}
+
+/* Activo/hover (skin genérica, para temas que no sean theme-5) */
+.dash-sidebar.light-sidebar .dash-navbar>.dash-item.active>.dash-link,
+.dash-sidebar.light-sidebar .dash-navbar>.dash-item:active>.dash-link,
+.dash-sidebar.light-sidebar .dash-navbar>.dash-item:focus>.dash-link {
+    background: rgba(255, 255, 255, 0.15);
+    color: #ffffff;
+    box-shadow: none;
+}
+
+.dash-sidebar.light-sidebar .dash-navbar>.dash-item:hover>.dash-link {
+    background: rgba(255, 255, 255, 0.12);
+    color: #ffffff;
+    box-shadow: none;
+}
+
+.dash-sidebar.light-sidebar .dash-item.active>.dash-link,
+.dash-sidebar.light-sidebar .dash-item:hover>.dash-link {
+    color: #ffffff;
+}
+
+.dash-sidebar.light-sidebar .dash-item.active>.dash-link i,
+.dash-sidebar.light-sidebar .dash-item:hover>.dash-link i {
+    color: #ffffff;
+}
+
+/* Activo/hover theme-5 (degradado rojo → overlay blanco) */
+body.theme-5 .dash-sidebar.light-sidebar .dash-navbar>.dash-item.active>.dash-link,
+body.theme-5 .dash-sidebar.light-sidebar .dash-navbar>.dash-item:active>.dash-link,
+body.theme-5 .dash-sidebar.light-sidebar .dash-navbar>.dash-item:focus>.dash-link,
+body.theme-5 .dash-sidebar.light-sidebar .dash-navbar>.dash-item:hover>.dash-link {
+    background: rgba(255, 255, 255, 0.15);
+    color: #ffffff;
+    box-shadow: none;
+}
+
+body.theme-5 .dash-sidebar.light-sidebar .dash-navbar>.dash-item.active>.dash-link .dash-micon i,
+body.theme-5 .dash-sidebar.light-sidebar .dash-navbar>.dash-item.active>.dash-link .dash-micon svg,
+body.theme-5 .dash-sidebar.light-sidebar .dash-navbar>.dash-item:active>.dash-link .dash-micon i,
+body.theme-5 .dash-sidebar.light-sidebar .dash-navbar>.dash-item:active>.dash-link .dash-micon svg,
+body.theme-5 .dash-sidebar.light-sidebar .dash-navbar>.dash-item:focus>.dash-link .dash-micon i,
+body.theme-5 .dash-sidebar.light-sidebar .dash-navbar>.dash-item:focus>.dash-link .dash-micon svg,
+body.theme-5 .dash-sidebar.light-sidebar .dash-navbar>.dash-item:hover>.dash-link .dash-micon i,
+body.theme-5 .dash-sidebar.light-sidebar .dash-navbar>.dash-item:hover>.dash-link .dash-micon svg {
+    color: #ffffff;
+}
+
+/* ── Raíl colapsado (menu-icons): estados en blanco ────────────── */
+body.aCeler-menu-icons .dash-sidebar.light-sidebar .dash-navbar>.dash-item.active>.dash-link,
+body.aCeler-menu-icons .dash-sidebar.light-sidebar .dash-navbar>.dash-item:focus>.dash-link {
+    background: rgba(255, 255, 255, 0.15);
+    color: #ffffff;
+    box-shadow: none;
+}
+
+body.aCeler-menu-icons .dash-sidebar.light-sidebar .dash-navbar>.dash-item:hover>.dash-link {
+    background: rgba(255, 255, 255, 0.12);
+    color: #ffffff;
+    box-shadow: none;
+}
+
+body.aCeler-menu-icons .dash-sidebar.light-sidebar .dash-navbar>.dash-item.active>.dash-link .dash-micon i,
+body.aCeler-menu-icons .dash-sidebar.light-sidebar .dash-navbar>.dash-item.active>.dash-link .dash-micon svg,
+body.aCeler-menu-icons .dash-sidebar.light-sidebar .dash-navbar>.dash-item:hover>.dash-link .dash-micon i,
+body.aCeler-menu-icons .dash-sidebar.light-sidebar .dash-navbar>.dash-item:hover>.dash-link .dash-micon svg {
+    color: #ffffff;
+}
+
+/* Botón de colapso y su fila */
+.dash-sidebar.light-sidebar .menu-icons-btn {
+    color: rgba(255, 255, 255, 0.85);
+}
+
+.dash-sidebar.light-sidebar .menu-icons-btn:hover {
+    background: rgba(255, 255, 255, 0.12);
+    color: #ffffff;
+}
+
+.dash-sidebar.light-sidebar .menu-icons-btn:focus-visible {
+    box-shadow: inset 0 0 0 3px rgba(255, 255, 255, 0.4);
+}
+
+.dash-sidebar.light-sidebar .menu-icons-row {
+    border-top-color: rgba(255, 255, 255, 0.18);
+}
+
+/* Scrollbar del sidebar */
+.dash-sidebar.light-sidebar .simplebar-scrollbar:before {
+    background: rgba(255, 255, 255, 0.35);
+}

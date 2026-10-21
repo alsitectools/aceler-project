@@ -556,6 +556,8 @@
         <div class="m-header">
             <a href="{{ route('home') }}" class="mt-2">
                 <img class="ajustarImg" src="{{ asset('assets/img/acerlerRemastered.png') }}" alt="logo" />
+                <img class="logo-mini" src="{{ asset('assets/img/alsina-a-mark.png') }}" alt="aCeler" />
+                <img class="logo-mini-text" src="{{ asset('assets/img/alsina-aceler-mark.png') }}" alt="" />
             </a>
 
         </div>
