@@ -1,19 +1,85 @@
 /* aCeler — menú "Resumen → Mi calendario" colapsable a sólo icono
-   El icono no se mueve; sólo desaparece el texto de los items
-   .icons-collapsible. Configuración y el resto conservan etiqueta. */
+   Estado body.aCeler-menu-icons: el sidebar se estrecha a raíl de 70px
+   y la vista (cabecera + contenido) se ajusta. Persistencia en localStorage. */
 
+/* ── Transiciones de layout ──────────────────────────────────── */
+.dash-sidebar,
+.dash-header,
+.dash-container {
+    transition: width 0.2s ease, left 0.2s ease, margin-left 0.2s ease;
+}
+
+/* ── Estado colapsado (sólo escritorio; en ≤1024 el offcanvas no se toca) ── */
 @media (min-width: 1025px) {
-    body.aCeler-menu-icons .dash-sidebar .dash-item.icons-collapsible .dash-mtext {
+    /* Raíl: 70px. El logo se queda donde está: el m-header ocupa 70px dentro
+       del nav y la imagen (fondo transparente) desborda a la derecha hasta
+       x295, donde empieza la cabecera — sin caja blanca propia. */
+    body.aCeler-menu-icons .dash-sidebar {
+        width: 70px;
+    }
+
+    /* Sólo icono: el texto no cabe en el raíl */
+    body.aCeler-menu-icons .dash-sidebar .dash-mtext {
         display: none;
+    }
+
+    /* Sin "cards" en el raíl: items planos, icono en su sitio */
+    body.aCeler-menu-icons .dash-sidebar .dash-link.menu-element {
+        background: transparent;
+        filter: none;
+    }
+
+    body.aCeler-menu-icons .dash-sidebar .dash-link .dash-micon {
+        margin-right: 0;
+        background: transparent;
+        box-shadow: none;
+    }
+
+    body.aCeler-menu-icons .dash-sidebar .user-badge-sub {
+        display: none;
+    }
+
+    /* Activo/hover: sin bloque rojo (theme-5), sólo icono rojo corporativo */
+    body.aCeler-menu-icons .dash-sidebar.light-sidebar .dash-navbar>.dash-item.active>.dash-link,
+    body.aCeler-menu-icons .dash-sidebar.light-sidebar .dash-navbar>.dash-item:focus>.dash-link {
+        background: transparent;
+        box-shadow: none;
+        color: inherit;
+    }
+
+    body.aCeler-menu-icons .dash-sidebar.light-sidebar .dash-navbar>.dash-item:hover>.dash-link {
+        background: rgba(170, 24, 44, 0.06);
+        box-shadow: none;
+    }
+
+    body.aCeler-menu-icons .dash-sidebar.light-sidebar .dash-navbar>.dash-item.active>.dash-link .dash-micon i,
+    body.aCeler-menu-icons .dash-sidebar.light-sidebar .dash-navbar>.dash-item.active>.dash-link .dash-micon svg,
+    body.aCeler-menu-icons .dash-sidebar.light-sidebar .dash-navbar>.dash-item:hover>.dash-link .dash-micon i,
+    body.aCeler-menu-icons .dash-sidebar.light-sidebar .dash-navbar>.dash-item:hover>.dash-link .dash-micon svg {
+        color: #aa182c;
+    }
+
+    /* La vista se ajusta: el contenido gana el ancho del raíl.
+       La cabecera NO se toca (el logo la besa en x295, igual que expandido). */
+    body.aCeler-menu-icons .dash-container {
+        margin-left: 70px;
+    }
+
+    body.aCeler-menu-icons .dash-header:not(.transprent-bg):not(.dash-mob-header)~.dash-container {
+        margin-left: calc(70px + 15px);
+    }
+
+    /* El título de página baja ~28px para no quedar bajo el borde del logo */
+    body.aCeler-menu-icons .page-header {
+        padding-top: 28px;
     }
 }
 
-/* Espacio para la fila del botón (el último item debe quedar libre) */
+/* ── Botón de colapso al pie del sidebar ─────────────────────── */
 .dash-sidebar .navbar-content {
     padding-bottom: 52px;
 }
 
-/* Fila del botón: anclada al fondo del nav (no depende del flex del wrapper) */
 .dash-sidebar .menu-icons-row {
     position: absolute;
     left: 0;
@@ -65,6 +131,9 @@ body.aCeler-menu-icons .dash-sidebar .menu-icons-btn i {
 
 /* ── Accesibilidad: sin animación para quien la pida ──────────── */
 @media (prefers-reduced-motion: reduce) {
+    .dash-sidebar,
+    .dash-header,
+    .dash-container,
     .dash-sidebar .menu-icons-btn,
     .dash-sidebar .menu-icons-btn i {
         transition: none !important;

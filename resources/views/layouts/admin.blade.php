@@ -627,7 +627,7 @@
         (function() {
             var KEY = 'acelerMenuIconsOnly';
             var btn = document.getElementById('aCeler-menu-toggle');
-            document.querySelectorAll('.dash-item.icons-collapsible .dash-link').forEach(function(a) {
+            document.querySelectorAll('.dash-sidebar .dash-link').forEach(function(a) {
                 var t = a.querySelector('.dash-mtext');
                 if (t && !a.getAttribute('title')) {
                     a.setAttribute('title', t.textContent.trim());
