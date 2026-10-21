@@ -34,6 +34,13 @@
 
 /* ── Estado colapsado (sólo escritorio; en ≤1024 el offcanvas no se toca) ── */
 @media (min-width: 1025px) {
+    /* Sin el tope de custom.css (100% - 255px) en ningún estado: el ancho ya lo
+       dan left + right. Con el tope, el borde derecho (delegación, notificaciones,
+       idioma) se desplazaba mientras left anima, al colapsar y al expandir. */
+    .dash-header {
+        max-width: none;
+    }
+
     /* Raíl: 70px. El logo se queda donde está: el m-header ocupa 70px dentro
        del nav y la imagen (fondo transparente) desborda a la derecha hasta
        x295, donde empieza la cabecera — sin caja blanca propia. */
@@ -98,11 +105,8 @@
         margin-left: calc(70px + 15px);
     }
 
-    /* Sin el tope de custom.css (100% - 255px): con él, el borde derecho se
-       desplazaba y con él la delegación, las notificaciones y el idioma. */
     body.aCeler-menu-icons .dash-header {
         left: 70px;
-        max-width: none;
     }
 
     body.aCeler-menu-icons .dash-header:not(.transprent-bg):not(.dash-mob-header) {
