@@ -698,6 +698,7 @@
 /* =============================================
    MILESTONE CARD COMPACTA (sidebar colapsado)
    Layout horizontal y contenido reducido para que quepan 3 cards por columna.
+   .gu-mirror: copia que dragula pega en <body> al arrastrar (fuera de .kanban-box).
    ============================================= */
 @media (min-width: 1200px) {
     body.aCeler-menu-icons .kanban-box {
@@ -705,7 +706,7 @@
         padding-bottom: 12px;
     }
 
-    body.aCeler-menu-icons .kanban-box .milestone-card {
+    body.aCeler-menu-icons :is(.kanban-box .milestone-card, .milestone-card.gu-mirror) {
         display: grid;
         grid-template-columns: 84px minmax(0, 1fr);
         column-gap: 12px;
@@ -721,19 +722,32 @@
         height: auto;
         margin-bottom: 12px;
         text-align: left;
+        /* La card es baja: el menú de los 3 puntos tiene que poder salir de ella */
+        overflow: visible;
     }
 
-    body.aCeler-menu-icons .kanban-box .milestone-card .card-header-right {
+    /* Con el menú abierto, la card queda por encima de la siguiente */
+    body.aCeler-menu-icons :is(.kanban-box .milestone-card, .milestone-card.gu-mirror):has(.dropdown-menu.show) {
+        z-index: 20;
+    }
+
+    /* El menú sale sobre otras cards blancas: borde y sombra para distinguirlo */
+    body.aCeler-menu-icons :is(.kanban-box .milestone-card, .milestone-card.gu-mirror) .card-header-right .dropdown-menu {
+        border: 1px solid #e0e0e0;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
+    }
+
+    body.aCeler-menu-icons :is(.kanban-box .milestone-card, .milestone-card.gu-mirror) .card-header-right {
         top: 2px;
         right: 2px;
     }
 
-    body.aCeler-menu-icons .kanban-box .milestone-card .card-header-right .btn-group .dropdown-toggle {
+    body.aCeler-menu-icons :is(.kanban-box .milestone-card, .milestone-card.gu-mirror) .card-header-right .btn-group .dropdown-toggle {
         margin-top: 6px;
         padding: 2px 6px;
     }
 
-    body.aCeler-menu-icons .kanban-box .milestone-card .priority-badge {
+    body.aCeler-menu-icons :is(.kanban-box .milestone-card, .milestone-card.gu-mirror) .priority-badge {
         grid-area: badge;
         justify-self: center;
         width: 40%;
@@ -741,7 +755,7 @@
         font-size: 9px;
     }
 
-    body.aCeler-menu-icons .kanban-box .milestone-card .milestone-image {
+    body.aCeler-menu-icons :is(.kanban-box .milestone-card, .milestone-card.gu-mirror) .milestone-image {
         grid-area: img;
         align-self: center;
         justify-self: center;
@@ -750,7 +764,7 @@
         margin: 0;
     }
 
-    body.aCeler-menu-icons .kanban-box .milestone-card .milestone-project {
+    body.aCeler-menu-icons :is(.kanban-box .milestone-card, .milestone-card.gu-mirror) .milestone-project {
         grid-area: project;
         justify-self: center;
         max-width: 80px;
@@ -759,14 +773,14 @@
         font-size: 9px;
     }
 
-    body.aCeler-menu-icons .kanban-box .milestone-card .milestone-title {
+    body.aCeler-menu-icons :is(.kanban-box .milestone-card, .milestone-card.gu-mirror) .milestone-title {
         grid-area: title;
         font-size: 12px;
         margin: 6px 0 4px;
         padding: 0 26px 0 0;
     }
 
-    body.aCeler-menu-icons .kanban-box .milestone-card .milestone-meta {
+    body.aCeler-menu-icons :is(.kanban-box .milestone-card, .milestone-card.gu-mirror) .milestone-meta {
         grid-area: meta;
         justify-content: flex-start;
         column-gap: 8px;
@@ -775,14 +789,14 @@
         font-size: 9px;
     }
 
-    body.aCeler-menu-icons .kanban-box .milestone-card .phase-dot,
-    body.aCeler-menu-icons .kanban-box .milestone-card .stage-dot {
+    body.aCeler-menu-icons :is(.kanban-box .milestone-card, .milestone-card.gu-mirror) .phase-dot,
+    body.aCeler-menu-icons :is(.kanban-box .milestone-card, .milestone-card.gu-mirror) .stage-dot {
         width: 6px;
         height: 6px;
         margin-right: 2px;
     }
 
-    body.aCeler-menu-icons .kanban-box .milestone-card .milestone-calendar {
+    body.aCeler-menu-icons :is(.kanban-box .milestone-card, .milestone-card.gu-mirror) .milestone-calendar {
         grid-area: calendar;
         gap: 6px;
         margin-bottom: 4px;
@@ -790,22 +804,22 @@
         padding: 0 8px 0 0;
     }
 
-    body.aCeler-menu-icons .kanban-box .milestone-card .calendar-col {
+    body.aCeler-menu-icons :is(.kanban-box .milestone-card, .milestone-card.gu-mirror) .calendar-col {
         flex: 1 1 0;
         min-width: 0;
         font-size: 8px;
     }
 
-    body.aCeler-menu-icons .kanban-box .milestone-card .calendar-col .calendar-badge {
+    body.aCeler-menu-icons :is(.kanban-box .milestone-card, .milestone-card.gu-mirror) .calendar-col .calendar-badge {
         width: 100%;
     }
 
-    body.aCeler-menu-icons .kanban-box .milestone-card .calendar-label {
+    body.aCeler-menu-icons :is(.kanban-box .milestone-card, .milestone-card.gu-mirror) .calendar-label {
         margin-bottom: 1px;
     }
 
     /* Día y mes en una sola línea para ganar altura */
-    body.aCeler-menu-icons .kanban-box .milestone-card .calendar-badge {
+    body.aCeler-menu-icons :is(.kanban-box .milestone-card, .milestone-card.gu-mirror) .calendar-badge {
         flex-direction: row;
         gap: 3px;
         min-width: 0;
@@ -815,22 +829,22 @@
         font-size: 9px;
     }
 
-    body.aCeler-menu-icons .kanban-box .milestone-card .calendar-badge .badge-day {
+    body.aCeler-menu-icons :is(.kanban-box .milestone-card, .milestone-card.gu-mirror) .calendar-badge .badge-day {
         font-size: 10px;
     }
 
-    body.aCeler-menu-icons .kanban-box .milestone-card .calendar-badge .badge-month {
+    body.aCeler-menu-icons :is(.kanban-box .milestone-card, .milestone-card.gu-mirror) .calendar-badge .badge-month {
         font-size: 8px;
     }
 
-    body.aCeler-menu-icons .kanban-box .milestone-card .milestone-task-list {
+    body.aCeler-menu-icons :is(.kanban-box .milestone-card, .milestone-card.gu-mirror) .milestone-task-list {
         grid-area: tasks;
         margin: 0;
         padding: 0 8px 0 0;
     }
 
-    body.aCeler-menu-icons .kanban-box .milestone-card .milestone-task-box,
-    body.aCeler-menu-icons .kanban-box .milestone-card .empty-state {
+    body.aCeler-menu-icons :is(.kanban-box .milestone-card, .milestone-card.gu-mirror) .milestone-task-box,
+    body.aCeler-menu-icons :is(.kanban-box .milestone-card, .milestone-card.gu-mirror) .empty-state {
         margin: 0;
         padding: 4px 8px;
         min-height: 0;
@@ -840,28 +854,28 @@
 
     /* Dos tareas completas visibles: se ocultan las extra en vez de recortar por altura
        (una tarea con botón "Revisar" es más alta). !important porque el toggle fija max-height inline */
-    body.aCeler-menu-icons .kanban-box .milestone-card .milestone-task-inner {
+    body.aCeler-menu-icons :is(.kanban-box .milestone-card, .milestone-card.gu-mirror) .milestone-task-inner {
         max-height: none !important;
     }
 
-    body.aCeler-menu-icons .kanban-box .milestone-card .milestone-task-list:not(.expanded) .milestone-task-extra {
+    body.aCeler-menu-icons :is(.kanban-box .milestone-card, .milestone-card.gu-mirror) .milestone-task-list:not(.expanded) .milestone-task-extra {
         display: none;
     }
 
-    body.aCeler-menu-icons .kanban-box .milestone-card .milestone-task {
+    body.aCeler-menu-icons :is(.kanban-box .milestone-card, .milestone-card.gu-mirror) .milestone-task {
         font-size: 10px;
         padding: 1px 0;
         gap: 4px;
     }
 
-    body.aCeler-menu-icons .kanban-box .milestone-card .milestone-task .fa-hourglass-start {
+    body.aCeler-menu-icons :is(.kanban-box .milestone-card, .milestone-card.gu-mirror) .milestone-task .fa-hourglass-start {
         margin-left: 0 !important;
         margin-right: 2px !important;
     }
 
     /* Centrado explícito: la card compacta alinea a la izquierda y el toggle
        puede estar dentro de la caja o en la lista (cuando se añade por AJAX) */
-    body.aCeler-menu-icons .kanban-box .milestone-card .milestone-dropdown-toggle {
+    body.aCeler-menu-icons :is(.kanban-box .milestone-card, .milestone-card.gu-mirror) .milestone-dropdown-toggle {
         display: block;
         width: fit-content;
         margin: 0 auto;
@@ -869,34 +883,34 @@
         font-size: 9px;
     }
 
-    body.aCeler-menu-icons .kanban-box .milestone-card .empty-state .icon {
+    body.aCeler-menu-icons :is(.kanban-box .milestone-card, .milestone-card.gu-mirror) .empty-state .icon {
         font-size: 13px;
     }
 
-    body.aCeler-menu-icons .kanban-box .milestone-card .empty-state .title {
+    body.aCeler-menu-icons :is(.kanban-box .milestone-card, .milestone-card.gu-mirror) .empty-state .title {
         font-size: 10px;
     }
 
-    body.aCeler-menu-icons .kanban-box .milestone-card .milestone-footer {
+    body.aCeler-menu-icons :is(.kanban-box .milestone-card, .milestone-card.gu-mirror) .milestone-footer {
         grid-area: avatars;
         margin: 0;
         padding: 4px 10px 0;
     }
 
-    body.aCeler-menu-icons .kanban-box .milestone-card .milestone-footer::before {
+    body.aCeler-menu-icons :is(.kanban-box .milestone-card, .milestone-card.gu-mirror) .milestone-footer::before {
         display: none;
     }
 
-    body.aCeler-menu-icons .kanban-box .milestone-card .milestone-avatars {
+    body.aCeler-menu-icons :is(.kanban-box .milestone-card, .milestone-card.gu-mirror) .milestone-avatars {
         gap: 2px;
     }
 
-    body.aCeler-menu-icons .kanban-box .milestone-card .milestone-avatars .user-groupTasks {
+    body.aCeler-menu-icons :is(.kanban-box .milestone-card, .milestone-card.gu-mirror) .milestone-avatars .user-groupTasks {
         width: 22px;
         height: 22px;
     }
 
-    body.aCeler-menu-icons .kanban-box .milestone-card .milestone-extra-info {
+    body.aCeler-menu-icons :is(.kanban-box .milestone-card, .milestone-card.gu-mirror) .milestone-extra-info {
         grid-area: extra;
         width: auto;
         margin: 4px 10px 0;
@@ -906,15 +920,15 @@
         font-size: 9px;
     }
 
-    body.aCeler-menu-icons .kanban-box .milestone-card .milestone-extra-info i {
+    body.aCeler-menu-icons :is(.kanban-box .milestone-card, .milestone-card.gu-mirror) .milestone-extra-info i {
         font-size: 11px;
     }
 
-    body.aCeler-menu-icons .kanban-box .milestone-card .milestone-extra-info span {
+    body.aCeler-menu-icons :is(.kanban-box .milestone-card, .milestone-card.gu-mirror) .milestone-extra-info span {
         min-height: 0;
     }
 
-    body.aCeler-menu-icons .kanban-box .milestone-card .milestone-resume-btn {
+    body.aCeler-menu-icons :is(.kanban-box .milestone-card, .milestone-card.gu-mirror) .milestone-resume-btn {
         font-size: 9px;
         padding: 1px 6px;
     }
