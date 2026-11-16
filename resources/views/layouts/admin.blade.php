@@ -131,6 +131,8 @@
 
     <link rel="stylesheet" href="{{ asset('assets/custom/css/menu-icons.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/custom/css/skin-corporativo.css') }}">
+    {{-- Cabecera (espacio, notificaciones, idioma, usuario) dentro del sidebar en escritorio --}}
+    <link rel="stylesheet" href="{{ asset('assets/custom/css/sidebar-header.css') }}?v={{ filemtime(public_path('assets/custom/css/sidebar-header.css')) }}">
 
     <meta name="url" content="{{ url('') . '/' . config('chatify.routes.prefix') }}"
         data-user="{{ Auth::user()->id }}">
@@ -485,9 +487,12 @@
             processing: "{{ __('Processing...') }}"
         }
     </script>
-    @include('partials.sidebar')
-
+    {{-- La cabecera va antes que el sidebar: así el sidebar coloca en sus huecos el espacio de
+         trabajo, las notificaciones, el idioma y el usuario nada más leerse, antes de pintar
+         (en escritorio la cabecera está oculta; ver partials/sidebar.blade.php) --}}
     @include('partials.topnav')
+
+    @include('partials.sidebar')
     <div class="dash-container">
         <div class="dash-content">
             <!-- [ breadcrumb ] start -->

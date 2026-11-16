@@ -147,6 +147,25 @@
             }
         }
 
+        // La semana guardada solo se recupera al recargar o al volver a esta misma página
+        // (tras imputar horas el formulario vuelve aquí con redirect()->back()).
+        // Si se entra desde el menú u otra página, se abre la semana actual.
+        function shouldRestoreSavedWeek() {
+            var navEntry = performance.getEntriesByType ? performance.getEntriesByType('navigation')[0] : null;
+            var navType = navEntry ? navEntry.type :
+                (performance.navigation && performance.navigation.type === 1 ? 'reload' : 'navigate');
+
+            if (navType === 'reload' || navType === 'back_forward') {
+                return true;
+            }
+
+            try {
+                return !!document.referrer && new URL(document.referrer).pathname === window.location.pathname;
+            } catch (e) {
+                return false;
+            }
+        }
+
         function formatWeekRange(rangeStr) {
             // Espera: "YYYY-MM-DD - YYYY-MM-DD" => "DD-MM-YYYY → DD-MM-YYYY"
             if (!rangeStr) {
@@ -260,7 +279,7 @@
 
         $(function() {
             // Restaurar semana seleccionada tras recarga (fallback: hoy)
-            var savedWeekStart = loadSelectedWeekStart();
+            var savedWeekStart = shouldRestoreSavedWeek() ? loadSelectedWeekStart() : null;
             var initialDate = savedWeekStart || moment().format('YYYY-MM-DD');
             $('#weekPicker').val(initialDate);
 

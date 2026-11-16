@@ -1106,6 +1106,11 @@
                             link.click();
                             document.body.removeChild(link);
                             window.URL.revokeObjectURL(link.href);
+
+                            // Encargos o líneas que no se han exportado y avisos
+                            if (response.notice) {
+                                alert(response.notice);
+                            }
                         } else if (response.message) {
                             alert(response.message);
                         } else {
@@ -1114,6 +1119,10 @@
                         }
                     },
                     error: function(xhr, status, error) {
+                        if (xhr.status === 403 && xhr.responseJSON && xhr.responseJSON.message) {
+                            alert(xhr.responseJSON.message);
+                            return;
+                        }
                         console.error("Error AJAX:", error);
                         console.error("Response:", xhr.responseText);
                         alert('Error al descargar el archivo: ' + error);

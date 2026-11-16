@@ -41,6 +41,56 @@
         max-width: none;
     }
 
+    /* Sidebar abierto más estrecho (style.css/custom.css lo fijan a 255px).
+       Cambiar sólo --aceler-sidebar-w para ajustar el ancho. */
+    body:not(.aCeler-menu-icons) {
+        --aceler-sidebar-w: 220px;
+    }
+
+    body:not(.aCeler-menu-icons) .dash-sidebar {
+        width: var(--aceler-sidebar-w);
+    }
+
+    body:not(.aCeler-menu-icons) .dash-sidebar .main-logo {
+        min-width: var(--aceler-sidebar-w);
+        max-width: var(--aceler-sidebar-w);
+    }
+
+    body:not(.aCeler-menu-icons) .dash-container {
+        margin-left: var(--aceler-sidebar-w);
+    }
+
+    body:not(.aCeler-menu-icons) .dash-header:not(.transprent-bg):not(.dash-mob-header)~.dash-container {
+        margin-left: calc(var(--aceler-sidebar-w) + 15px);
+    }
+
+    body:not(.aCeler-menu-icons) .dash-header {
+        left: var(--aceler-sidebar-w);
+    }
+
+    body:not(.aCeler-menu-icons) .dash-header:not(.transprent-bg):not(.dash-mob-header) {
+        left: calc(var(--aceler-sidebar-w) + 40px);
+    }
+
+    body:not(.aCeler-menu-icons) .dash-footer {
+        margin-left: var(--aceler-sidebar-w);
+        width: calc(100% - var(--aceler-sidebar-w));
+    }
+
+    /* Con 220px el texto largo ("Diagrama de Gantt") se cortaba: menos aire
+       lateral en cada opción (customizer.css: margen 15/15, padding 7/10,
+       icono +15) para ganar ~25px de texto sin bajar la fuente. */
+    body:not(.aCeler-menu-icons) .dash-sidebar.light-sidebar .dash-navbar>.dash-item>.dash-link {
+        margin-left: 8px;
+        margin-right: 8px;
+        padding-left: 5px;
+        padding-right: 6px;
+    }
+
+    body:not(.aCeler-menu-icons) .dash-sidebar .dash-link .dash-micon {
+        margin-right: 10px;
+    }
+
     /* Raíl: 70px. El logo se queda donde está: el m-header ocupa 70px dentro
        del nav y la imagen (fondo transparente) desborda a la derecha hasta
        x295, donde empieza la cabecera — sin caja blanca propia. */

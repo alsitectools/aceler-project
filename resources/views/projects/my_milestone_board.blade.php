@@ -11,6 +11,7 @@
 
 <head>
     <link rel="stylesheet" href="{{ asset('assets/css/milestoneboard.css') }}">
+    <script src="{{ asset('assets/custom/js/board-height.js') }}?v={{ filemtime(public_path('assets/custom/js/board-height.js')) }}"></script>
 </head>
 <style>
     .showCompletedProjectGroup {
@@ -66,10 +67,11 @@
         flex-direction: column;
     }
 
+    /* Alto de las columnas: lo calcula board-height.js para llegar hasta abajo (600px si no) */
     .fixedHeight {
-        min-height: 600px;
-        max-height: 600px;
-        height: 600px;
+        min-height: var(--board-col-h, 600px);
+        max-height: var(--board-col-h, 600px);
+        height: var(--board-col-h, 600px);
         overflow: hidden;
         overflow-y: auto;
         scrollbar-color: #aa182c #ffff0000;
@@ -415,6 +417,8 @@
             </div>
         </div>
     </div>
+    {{-- Alto de columnas/diagrama calculado antes del primer pintado (board-height.js) --}}
+    <script>window.acelerFitHeights && window.acelerFitHeights();</script>
 @endsection
 
 @include('projects.file_preview')
@@ -768,11 +772,11 @@
 
                         // Si se permite el movimiento y es de status 3 a 4, se genera una notificación
 
-                        if (oldStatus == 3 && newStatus == 4) {
+                        // Sin título solo se omite la notificación: el cambio de estado se guarda igualmente más abajo
+                        if (oldStatus == 3 && newStatus == 4 && milestoneTitle) {
                             console.log('Generando notificacion de milestone completado');
                             let msg = milestoneTitle;
                             let ntipe = 3;
-                            if (!msg) return;
 
                             fetch("{{ route('notifications.add') }}", {
                                     method: "POST",
@@ -1391,7 +1395,8 @@
                                 milestone_id: this.getAttribute('data-milestone-id'),
                                 project_id: this.getAttribute('data-project-id'),
                                 user_id: this.getAttribute('data-technician-name'),
-                                date: new Date().toISOString().split('T')[0],
+                                // Fecha local (toISOString usa UTC y de madrugada daría el día anterior)
+                                date: new Date().toLocaleDateString('en-CA'),
                             };
 
                             $.ajax({

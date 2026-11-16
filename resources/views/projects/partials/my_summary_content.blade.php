@@ -248,7 +248,7 @@
                     <div class="my-summary-project-card-left">
                         @if ($summary->project_type_name)
                             <img class="my-summary-type-icon"
-                                src="{{ asset('assets/img/' . $summary->project_type_name . '.png') }}"
+                                src="{{ asset('assets/img/types/' . $summary->project_type_name . '.svg') }}"
                                 alt="{{ $summary->project_type_name }}">
                         @endif
                         <div class="my-summary-hours-block">
@@ -282,7 +282,7 @@
                     <div class="my-summary-project-card-left">
                         @if ($summary->project_type_name)
                             <img class="my-summary-type-icon"
-                                src="{{ asset('assets/img/' . $summary->project_type_name . '.png') }}"
+                                src="{{ asset('assets/img/types/' . $summary->project_type_name . '.svg') }}"
                                 alt="{{ $summary->project_type_name }}">
                         @endif
                         <div class="my-summary-hours-block">

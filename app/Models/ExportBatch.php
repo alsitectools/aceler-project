@@ -9,5 +9,5 @@ class ExportBatch extends Model
 {
     protected $table = 'export_batches';
     public $timestamps = false;
-    protected $fillable = ['file_name','created_by','created_at'];
+    protected $fillable = ['file_name','created_by','created_at','rejected_at'];
 }

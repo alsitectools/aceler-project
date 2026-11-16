@@ -134,7 +134,8 @@
 </style>
 
 <head>
-    <link rel="stylesheet" href="{{ asset('assets/css/timesheet_week.css') }}">
+    {{-- ?v= con la fecha del archivo: llega por AJAX y sin versión el navegador servía la copia cacheada --}}
+    <link rel="stylesheet" href="{{ asset('assets/css/timesheet_week.css') }}?v={{ @filemtime(public_path('assets/css/timesheet_week.css')) }}">
 </head>
 <div class="card-body table-border-style">
     <div class="table-responsive">
@@ -276,6 +277,18 @@
                                                                                                                 ) &&
                                                                                                                 !$isFuture &&
                                                                                                                 !$isHoliday;
+
+                                                                                                            // Día posterior a la finalización del encargo: solo lectura
+                                                                                                            $isLocked = !empty($dateSubArray['locked']);
+                                                                                                            $isAllowed = $isAllowed && !$isLocked;
+
+                                                                                                            // Estado visual de la celda (ver .ts-cell en timesheet_week.css)
+                                                                                                            $hasHours = $dateSubArray['time'] !== '00:00';
+                                                                                                            $offReason = $isLocked ? 'locked' : ($isHoliday ? 'holiday' : ($isFuture ? 'future' : ($isAllowed ? null : 'nonworkday')));
+                                                                                                            $cellClasses = 'ts-cell'
+                                                                                                                . ($hasHours ? ' ts-cell--filled' : '')
+                                                                                                                . ($date->isSameDay($today) ? ' ts-cell--today' : '')
+                                                                                                                . ($offReason ? ' ts-cell--off ts-cell--' . $offReason : '');
                                                                                                         @endphp
 
                                                                                                         <div
@@ -286,22 +299,26 @@
 
                                                                                                         @if (Auth::user()->id == $dateSubArray['user_id'])
                                                                                                             <div role="button"
-                                                                                                                class="form-control week inputsTask {{ $isAllowed ? '' : 'disabled-day' }}"
-                                                                                                                title="{{ $isHoliday ? __('This day is marked as holiday and cannot be edited') : ($isFuture ? __('This day is in the future and cannot be edited') : __('Click to Add/Edit Timesheet')) }}"
+                                                                                                                class="form-control week inputsTask {{ $cellClasses }} {{ $isAllowed ? '' : 'disabled-day' }}"
+                                                                                                                title="{{ $isLocked ? __('The order form is finished: this day cannot be edited') : ($isHoliday ? __('This day is marked as holiday and cannot be edited') : ($isFuture ? __('This day is in the future and cannot be edited') : ($isAllowed ? __('Click to Add/Edit Timesheet') : __('This day is not available or is in the future')))) }}"
                                                                                                                 data-ajax-timesheet-popup="{{ $isAllowed ? 'true' : 'false' }}"
                                                                                                                 data-type="{{ $dateSubArray['type'] }}"
                                                                                                                 data-user-id="{{ $dateSubArray['user_id'] }}"
                                                                                                                 data-project-id="{{ $dateSubArray['project_id'] }}"
                                                                                                                 data-task-id="{{ $dateSubArray['task_id'] }}"
                                                                                                                 data-date="{{ $dateSubArray['date'] }}"
-                                                                                                                data-url="{{ $dateSubArray['url'] }}"
-                                                                                                                style="{{ $isAllowed ? '' : 'background-color: #a293933d; cursor: not-allowed; border: 2px solid #ced4da; color:black' }}">
-                                                                                                                {{ $dateSubArray['time'] != '00:00' ? $dateSubArray['time'] : '00:00' }}
+                                                                                                                data-url="{{ $dateSubArray['url'] }}">
+                                                                                                                @if ($offReason === 'locked')
+                                                                                                                    <i class="fa-solid fa-lock ts-cell-icon"></i>
+                                                                                                                @elseif ($offReason === 'holiday')
+                                                                                                                    <i class="fa-solid fa-umbrella-beach ts-cell-icon"></i>
+                                                                                                                @endif
+                                                                                                                {{ $hasHours ? $dateSubArray['time'] : '—' }}
                                                                                                             </div>
                                                                                                         @else
                                                                                                             <div
-                                                                                                                class="form-control week">
-                                                                                                                {{ $dateSubArray['time'] != '00:00' ? $dateSubArray['time'] : '00:00' }}
+                                                                                                                class="form-control week ts-cell ts-cell--readonly {{ $hasHours ? 'ts-cell--filled' : '' }}">
+                                                                                                                {{ $hasHours ? $dateSubArray['time'] : '—' }}
                                                                                                             </div>
                                                                                                         @endif
                                                                                                     </div>
@@ -458,6 +475,18 @@
                                                                                                                 ) &&
                                                                                                                 !$isFuture &&
                                                                                                                 !$isHoliday;
+
+                                                                                                            // Día posterior a la finalización del encargo: solo lectura
+                                                                                                            $isLocked = !empty($dateSubArray['locked']);
+                                                                                                            $isAllowed = $isAllowed && !$isLocked;
+
+                                                                                                            // Estado visual de la celda (ver .ts-cell en timesheet_week.css)
+                                                                                                            $hasHours = $dateSubArray['time'] !== '00:00';
+                                                                                                            $offReason = $isLocked ? 'locked' : ($isHoliday ? 'holiday' : ($isFuture ? 'future' : ($isAllowed ? null : 'nonworkday')));
+                                                                                                            $cellClasses = 'ts-cell'
+                                                                                                                . ($hasHours ? ' ts-cell--filled' : '')
+                                                                                                                . ($date->isSameDay($today) ? ' ts-cell--today' : '')
+                                                                                                                . ($offReason ? ' ts-cell--off ts-cell--' . $offReason : '');
                                                                                                         @endphp
 
                                                                                                         <div
@@ -468,8 +497,8 @@
 
                                                                                                         @if (Auth::user()->id == $dateSubArray['user_id'])
                                                                                                             <div role="button"
-                                                                                                                class="form-control week inputsTask {{ $isAllowed ? '' : 'disabled' }}"
-                                                                                                                title="{{ $isHoliday ? __('This day is marked as holiday and cannot be edited') : ($isAllowed ? __('Click to Add/Edit Timesheet') : __('This day is not available or is in the future')) }}"
+                                                                                                                class="form-control week inputsTask {{ $cellClasses }} {{ $isAllowed ? '' : 'disabled' }}"
+                                                                                                                title="{{ $isLocked ? __('The order form is finished: this day cannot be edited') : ($isHoliday ? __('This day is marked as holiday and cannot be edited') : ($isAllowed ? __('Click to Add/Edit Timesheet') : __('This day is not available or is in the future'))) }}"
                                                                                                                 data-ajax-timesheet-popup="{{ $isAllowed ? 'true' : 'false' }}"
                                                                                                                 data-type="{{ $dateSubArray['type'] }}"
                                                                                                                 data-user-id="{{ $dateSubArray['user_id'] }}"
@@ -477,14 +506,18 @@
                                                                                                                 data-task-id="{{ $dateSubArray['task_id'] }}"
                                                                                                                 data-date="{{ $dateSubArray['date'] }}"
                                                                                                                 data-url="{{ $dateSubArray['url'] }}"
-                                                                                                                data-milestone-id="{{ $timesheet['milestone_id'] }}"
-                                                                                                                style="{{ $isAllowed ? '' : 'background-color: #a293933d; cursor: not-allowed;border: 2px solid #ced4da; color:black' }}">
-                                                                                                                {{ $dateSubArray['time'] != '00:00' ? $dateSubArray['time'] : '00:00' }}
+                                                                                                                data-milestone-id="{{ $timesheet['milestone_id'] }}">
+                                                                                                                @if ($offReason === 'locked')
+                                                                                                                    <i class="fa-solid fa-lock ts-cell-icon"></i>
+                                                                                                                @elseif ($offReason === 'holiday')
+                                                                                                                    <i class="fa-solid fa-umbrella-beach ts-cell-icon"></i>
+                                                                                                                @endif
+                                                                                                                {{ $hasHours ? $dateSubArray['time'] : '—' }}
                                                                                                             </div>
                                                                                                         @else
                                                                                                             <div
-                                                                                                                class="form-control week">
-                                                                                                                {{ $dateSubArray['time'] != '00:00' ? $dateSubArray['time'] : '00:00' }}
+                                                                                                                class="form-control week ts-cell ts-cell--readonly {{ $hasHours ? 'ts-cell--filled' : '' }}">
+                                                                                                                {{ $hasHours ? $dateSubArray['time'] : '—' }}
                                                                                                             </div>
                                                                                                         @endif
                                                                                                     </div>
@@ -578,6 +611,9 @@
                     } elseif ($workedHoursFormatted > $expectedHour) {
                         $dayColor = '#b2e2f2'; // Azul (horas extras)
                     }
+
+                    // Jornada esperada junto a lo imputado ("7:30 / 8:00") en días laborables
+                    $showExpected = $isWorkday && !$isHoliday && $expectedHour > 0;
                 @endphp
 
                 <div class="footer-cell" data-date="{{ $perioddate }}"
@@ -588,8 +624,11 @@
                         role="button" data-date="{{ $perioddate }}" data-date-formatted="{{ $dateFormatted }}"
                         data-is-holiday="{{ $isHoliday ? '1' : '0' }}"
                         data-tasks="{{ json_encode($popupTasksByDate[$perioddate] ?? []) }}"
-                        title="{{ __('Click to view day details') }}">
-                        {{ $totaldatetime != '00:00' ? $totaldatetime : '00:00' }}
+                        title="{{ $showExpected ? __('Logged') . ' ' . $totaldatetime . ' / ' . __('Expected') . ' ' . substr($expectedHourRaw, 0, 5) . ' · ' : '' }}{{ __('Click to view day details') }}">
+                        <span class="ts-day-worked">{{ $totaldatetime }}</span>
+                        @if ($showExpected)
+                            <span class="ts-day-expected">/ {{ substr($expectedHourRaw, 0, 5) }}</span>
+                        @endif
                     </div>
                 </div>
             @endforeach
@@ -601,6 +640,34 @@
                 </div>
             </div>
 
+        </div>
+
+        @php
+            // Los totales por día suman todas las horas del usuario (todos los espacios de trabajo);
+            // las filas solo muestran el espacio actual. Si no cuadran, se avisa de la diferencia.
+            $toMinutes = function ($time) {
+                $parts = explode(':', (string) $time);
+                return ((int) ($parts[0] ?? 0)) * 60 + (int) ($parts[1] ?? 0);
+            };
+            $dayTotalsMinutes = array_sum(array_map($toMinutes, $combinedData));
+            $hiddenMinutes = $dayTotalsMinutes - $toMinutes($calculatedTotalTaskTime);
+        @endphp
+
+        @if (!empty($allProjects) && $hiddenMinutes > 0)
+            <div class="ts-hidden-hours-notice">
+                <i class="fa-solid fa-circle-info"></i>
+                {{ __('Day totals include :hours h logged in other workspaces or projects that are not shown here.', ['hours' => sprintf('%d:%02d', intdiv($hiddenMinutes, 60), $hiddenMinutes % 60)]) }}
+            </div>
+        @endif
+
+        <div class="ts-legend">
+            <span><i class="ts-legend-swatch" style="background:#e06c71"></i>{{ __('No hours') }}</span>
+            <span><i class="ts-legend-swatch" style="background:#fcf75e"></i>{{ __('Partial') }}</span>
+            <span><i class="ts-legend-swatch" style="background:#89e186"></i>{{ __('Complete') }}</span>
+            <span><i class="ts-legend-swatch" style="background:#b2e2f2"></i>{{ __('Overtime') }}</span>
+            <span><i class="ts-legend-swatch" style="background:rgba(145, 221, 207, 0.4)"></i>{{ __('Holiday') }}</span>
+            <span><i class="ts-legend-swatch" style="background:#d3d3d3"></i>{{ __('Non-working or future day') }}</span>
+            <span><i class="fa-solid fa-lock"></i> {{ __('Order form finished') }}</span>
         </div>
     </div>
 </div>

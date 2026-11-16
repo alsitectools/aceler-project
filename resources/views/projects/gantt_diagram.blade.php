@@ -41,6 +41,7 @@
 @endsection
 
 @section('content')
+    <script src="{{ asset('assets/custom/js/board-height.js') }}?v={{ filemtime(public_path('assets/custom/js/board-height.js')) }}"></script>
     <section class="section" id="ganttSection">
         {{-- Filter row --}}
         <div class="row mb-3 gantt-filters" id="ganttFilters">
@@ -300,6 +301,8 @@
             </div>
         </div>
     </section>
+    {{-- Alto del diagrama calculado antes del primer pintado (board-height.js) --}}
+    <script>window.acelerFitHeights && window.acelerFitHeights();</script>
 @endsection
 
 @push('css-page')
@@ -1284,7 +1287,8 @@
             background: #fff;
             box-shadow: 0 4px 20px rgba(15, 23, 42, .05);
             position: relative;
-            height: 560px;
+            /* Alto: lo calcula board-height.js para llegar hasta abajo (560px si no) */
+            height: var(--gantt-h, 560px);
             scrollbar-color: #aa182c #f1f5f9;
         }
 

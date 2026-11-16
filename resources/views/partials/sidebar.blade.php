@@ -313,6 +313,18 @@
         background: #CCCCCC;
     }
 
+    /* Aviso en "Mi hoja de horas": hay días de esta semana sin imputar */
+    .missing-hours-dot {
+        position: absolute;
+        top: 3px;
+        right: 3px;
+        width: 9px;
+        height: 9px;
+        border-radius: 50%;
+        background: #ffd43b;
+        border: 2px solid #AA182C;
+    }
+
     .two {
         right: 12%;
         opacity: 1;
@@ -550,7 +562,14 @@
         }
     }
 </style>
-<nav style="padding-top: 5px; padding-left: 5px;"
+@php
+    // Pestañas Equipo / Mi actividad: grupo de la página actual ('' si no es de ninguno)
+    $sbRoute = optional(Request::route())->getName();
+    $sbScopePage = in_array($sbRoute, ['my_summary', 'my_projects', 'projects.my_milestone_board', 'projects.my_tasks', 'timesheet.index', 'calender.index', 'calender.google.calendar'], true)
+        ? 'mine'
+        : (in_array($sbRoute, ['home', 'client.home', 'projects.index', 'projects.show', 'projects.milestone.board', 'gantt.diagram'], true) ? 'team' : '');
+@endphp
+<nav style="padding-top: 5px; padding-left: 5px;" data-scope-page="{{ $sbScopePage }}"
     class="vistaPortatil dash-sidebar light-sidebar {{ isset($cust_theme_bg) && $cust_theme_bg == 'on' ? 'transprent-bg' : '' }}">
     <div class="navbar-wrapper">
         <div class="m-header">
@@ -559,14 +578,32 @@
                 <img class="logo-mini" src="{{ asset('assets/img/alsina-a-mark.png') }}" alt="aCeler" />
                 <img class="logo-mini-text" src="{{ asset('assets/img/alsina-aceler-mark.png') }}" alt="" />
             </a>
-
+            {{-- Detalle oculto: gorro navideño sobre la "A" al escribir "navidad" en el buscador --}}
+            <span class="sb-xmas-hat" aria-hidden="true">
+                <svg viewBox="0 0 64 56" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M8 44 C14 22 30 6 50 8 C44 16 46 26 52 34 C40 36 22 40 8 44 Z" fill="#E11D2E"/>
+                    <path d="M18 34 C26 24 36 16 46 13" stroke="#B3141F" stroke-width="2.5" fill="none" stroke-linecap="round" opacity=".55"/>
+                    <rect x="2" y="40" width="54" height="12" rx="6" fill="#FFFFFF"/>
+                    <circle cx="52" cy="8" r="7" fill="#FFFFFF"/>
+                </svg>
+            </span>
+        </div>
+        {{-- Escritorio: aquí se coloca el selector de espacio de trabajo de la cabecera
+             (lo mueve el script del final; en móvil se queda en la cabecera) --}}
+        <div class="sb-slot sb-slot-workspace" id="sbSlotWorkspace"></div>
+        {{-- Pestañas: qué opciones del menú se ven (script del final; se recuerda en el navegador) --}}
+        <div class="sb-scope-tabs" role="tablist">
+            <button type="button" class="sb-scope-tab" role="tab" data-scope="team" title="{{ __('Team') }}">
+                <i class="fa-solid fa-users"></i><span>{{ __('Team') }}</span>
+            </button>
+            <button type="button" class="sb-scope-tab" role="tab" data-scope="mine" title="{{ __('My activity') }}">
+                <i class="fa-solid fa-user"></i><span>{{ __('My activity') }}</span>
+                <span class="sb-scope-dot" aria-hidden="true"></span>
+            </button>
         </div>
         <div class="navbar-content">
             <ul class="dash-navbar ">
-                {{-- La píldora de delegaciones vive ahora en la cabecera (topnav);
-                     se conserva el espacio para que el menú no cambie de sitio --}}
-                <div class="workspace-pill-spacer" aria-hidden="true"></div>
-                <li
+                <li data-scope="team"
                     class="dash-item icons-collapsible dash-hasmenu {{ Request::route()->getName() == 'home' || Request::route()->getName() == null || Request::route()->getName() == 'client.home' ? 'active' : '' }}">
                     <a href="{{ route('home') }}" class="dash-link menu-element">
                         <span class="dash-micon"><i class="fa-solid fa-bookmark"></i></span>
@@ -574,7 +611,7 @@
                     </a>
                 </li>
                 @if (isset($currentWorkspace) && $currentWorkspace)
-                    <li
+                    <li data-scope="team"
                         class="dash-item icons-collapsible {{ (Request::route()->getName() == 'projects.index' || Request::segment(2) == 'projects') && Request::route()->getName() != 'projects.milestone.board' ? 'active' : '' }}">
                         <a href="{{ route('projects.index', $currentWorkspace->slug) }}"
                             class="dash-link  menu-element">
@@ -583,14 +620,14 @@
                     </li>
 
                     </li>
-                    <li
+                    <li data-scope="team"
                         class="dash-item icons-collapsible {{ Request::route()->getName() == 'projects.milestone.board' ? 'active' : '' }}">
                         <a href="{{ route('projects.milestone.board', [$currentWorkspace->slug, -1]) }}"
                             class="dash-link  menu-element">
                             <span class="dash-micon"><i class="fa-solid fa-file-lines"></i></span><span
                                 class="dash-mtext">{{ __('Order Forms') }}</span></a>
                     </li>
-                    <li class="dash-item icons-collapsible {{ Request::route()->getName() == 'gantt.diagram' ? 'active' : '' }}">
+                    <li data-scope="team" class="dash-item icons-collapsible {{ Request::route()->getName() == 'gantt.diagram' ? 'active' : '' }}">
                         <a href="{{ route('gantt.diagram') }}" class="dash-link menu-element">
                             <span class="dash-micon"
                                 style="position: relative; display: inline-flex; align-items: center; justify-content: center; overflow:hidden;">
@@ -599,7 +636,7 @@
                             <span class="dash-mtext">{{ __('Gantt Diagram') }}</span>
                         </a>
                     </li>
-                    <li class="dash-item icons-collapsible {{ Request::route()->getName() == 'my_summary' ? 'active' : '' }}">
+                    <li data-scope="mine" class="dash-item icons-collapsible {{ Request::route()->getName() == 'my_summary' ? 'active' : '' }}">
                         <a href="{{ route('my_summary') }}" class="dash-link menu-element">
                             <span class="dash-micon"
                                 style="position: relative; display: inline-flex; align-items: center; justify-content: center; overflow:hidden;">
@@ -612,7 +649,7 @@
                     </li>
 
                     {{-- si mostramos todos los proyectos enviamos -1 o proyecto en especifico --}}
-                    <li class="dash-item icons-collapsible {{ Request::route()->getName() == 'my_projects' ? 'active' : '' }}">
+                    <li data-scope="mine" class="dash-item icons-collapsible {{ Request::route()->getName() == 'my_projects' ? 'active' : '' }}">
                         <a href="{{ route('my_projects', $currentWorkspace->slug) }}" class="dash-link menu-element">
                             <span class="dash-micon"
                                 style="position: relative; display: inline-flex; align-items: center; justify-content: center; overflow:hidden;">
@@ -623,7 +660,7 @@
                             <span class="dash-mtext">{{ __('My Projects') }}</span>
                         </a>
                     </li>
-                    <li class="dash-item icons-collapsible">
+                    <li data-scope="mine" class="dash-item icons-collapsible {{ Request::route()->getName() == 'projects.my_milestone_board' ? 'active' : '' }}">
                         <a href="{{ route('projects.my_milestone_board') }}" class="dash-link menu-element">
                             <span class="dash-micon"
                                 style="position: relative; display: inline-flex; align-items: center; justify-content: center; overflow:hidden;">
@@ -634,7 +671,7 @@
                             <span class="dash-mtext">{{ __('My Order Forms') }}</span>
                         </a>
                     </li>
-                    <li class="dash-item icons-collapsible">
+                    <li data-scope="mine" class="dash-item icons-collapsible {{ Request::route()->getName() == 'projects.my_tasks' ? 'active' : '' }}">
                         <a href="{{ route('projects.my_tasks') }}" class="dash-link menu-element">
                             <span class="dash-micon"
                                 style="position: relative; display: inline-flex; align-items: center; justify-content: center; overflow:hidden;">
@@ -645,17 +682,28 @@
                             <span class="dash-mtext">{{ __('My Tasks') }}</span>
                         </a>
                     </li>
-                    <li class="dash-item icons-collapsible {{ Request::route()->getName() == 'timesheet.index' ? 'active' : '' }}">
+                    @php
+                        // Aviso: días laborables pasados de esta semana sin ninguna hora imputada
+                        $missingHoursDays = \App\Models\UserTimetable::pastDaysWithoutHoursThisWeek((int) Auth::id());
+                        $missingHoursTitle = $missingHoursDays
+                            ? __('My Timesheet') . ' · ' . __('Days this week without hours') . ': '
+                                . collect($missingHoursDays)->map(fn($d) => \Carbon\Carbon::parse($d)->isoFormat('ddd DD'))->implode(', ')
+                            : null;
+                    @endphp
+                    <li data-scope="mine" class="dash-item icons-collapsible {{ Request::route()->getName() == 'timesheet.index' ? 'active' : '' }}">
                         <a href="{{ route('timesheet.index', $currentWorkspace->slug) }}"
-                            class="dash-link  menu-element">
+                            class="dash-link  menu-element" @if ($missingHoursTitle) title="{{ $missingHoursTitle }}" @endif>
                             <span class="dash-micon"
                                 style="position: relative; display: inline-flex; align-items: center; justify-content: center; overflow:hidden;">
                                 <i class="fa-solid fa-clock"></i>
                                 <i class="fa-solid fa-user user-badge-sub"
                                     style="position: absolute; bottom: -2px; right: -1px; font-size: 15px; color: #525a69; background: #fcf9f9; border-radius: 50%; padding: 2px;"></i>
+                                @if ($missingHoursDays)
+                                    <span class="missing-hours-dot" role="status" aria-label="{{ $missingHoursTitle }}"></span>
+                                @endif
                             </span><span class="dash-mtext">{{ __('My Timesheet') }}</span></a>
                     </li>
-                    <li class="dash-item icons-collapsible {{ Request::route()->getName() == 'calender.index' ? 'active' : '' }}">
+                    <li data-scope="mine" class="dash-item icons-collapsible {{ Request::route()->getName() == 'calender.index' ? 'active' : '' }}">
                         <a href="{{ route('calender.google.calendar', $currentWorkspace->slug) }}"
                             class="dash-link  menu-element"><span class="dash-micon"
                                 style="position: relative; display: inline-flex; align-items: center; justify-content: center; overflow:hidden;"><i
@@ -722,6 +770,11 @@
             @endif
             </ul>
         </div>
+        {{-- Escritorio: notificaciones, idioma (y chat) + menú de usuario de la cabecera --}}
+        <div class="sb-bottom">
+            <ul class="sb-slot sb-slot-tools list-unstyled" id="sbSlotTools"></ul>
+            <ul class="sb-slot sb-slot-user list-unstyled" id="sbSlotUser"></ul>
+        </div>
         <div class="menu-icons-row">
             <button type="button" id="aCeler-menu-toggle" class="menu-icons-btn"
                 title="Colapsar menú / Expandir menú" aria-label="Colapsar menú / Expandir menú"
@@ -731,8 +784,6 @@
         </div>
     </div>
 </nav>
-<!-- Agrega jQuery -->
-<script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {
@@ -828,6 +879,206 @@
         });
     });
 
+    // ------------------------------------------------------------------
+    // Cabecera dentro del sidebar (escritorio, >= 1025px).
+    // Se mueven al sidebar los MISMOS elementos de la cabecera (topnav): selector de espacio
+    // de trabajo, chat, notificaciones, idioma y menú de usuario. Al moverlos conservan sus
+    // eventos (cambiar espacio, borrar notificaciones, idioma, cerrar sesión...).
+    // En móvil vuelven a la cabecera, que sigue teniendo el botón del menú.
+    // Se ejecuta justo después de la cabecera (layouts/admin.blade.php), antes de que el
+    // navegador pinte, para que no se vean aparecer; DOMContentLoaded queda de respaldo.
+    // ------------------------------------------------------------------
+    window.acelerPlaceHeader = function() {
+        if (window.__sbHeaderInit) return;
+        var header = document.querySelector('.dash-header');
+        var slotWs = document.getElementById('sbSlotWorkspace');
+        var slotTools = document.getElementById('sbSlotTools');
+        var slotUser = document.getElementById('sbSlotUser');
+        if (!header || !slotWs || !slotTools || !slotUser) return;
+        window.__sbHeaderInit = true;
+
+        var parts = [];
+        var add = function(el, slot, extraClass) {
+            if (!el) return;
+            var marker = document.createComment('sb-origin');
+            el.parentNode.insertBefore(marker, el);
+            parts.push({ el: el, slot: slot, marker: marker, extraClass: extraClass || '' });
+        };
+
+        add(header.querySelector('.drp-workspace'), slotWs);
+        header.querySelectorAll('.ms-auto .dash-h-item:not(.drp-workspace)').forEach(function(li) {
+            // Chat, notificaciones e idioma: sus menús se abren a la derecha del sidebar
+            add(li, slotTools, 'dropend');
+        });
+        add(header.querySelector('.drp-company'), slotUser, 'dropend');
+
+        var desktop = window.matchMedia('(min-width: 1025px)');
+        var place = function() {
+            var inSidebar = desktop.matches;
+            parts.forEach(function(p) {
+                if (inSidebar) {
+                    p.slot.appendChild(p.el);
+                } else {
+                    p.marker.parentNode.insertBefore(p.el, p.marker.nextSibling);
+                }
+                if (p.extraClass) p.el.classList.toggle(p.extraClass, inSidebar);
+                // En la cabecera los menús se alinean a la derecha; en el sidebar, no
+                p.el.querySelectorAll(':scope > .dropdown-menu').forEach(function(menu) {
+                    if (inSidebar && menu.classList.contains('dropdown-menu-end')) {
+                        menu.classList.remove('dropdown-menu-end');
+                        menu.setAttribute('data-sb-was-end', '1');
+                    } else if (!inSidebar && menu.getAttribute('data-sb-was-end') === '1') {
+                        menu.classList.add('dropdown-menu-end');
+                    }
+                });
+            });
+            document.body.classList.toggle('aCeler-header-in-sidebar', inSidebar);
+            userNameOnly(inSidebar);
+            fitWorkspaceName();
+        };
+
+        // En el sidebar solo el nombre del usuario (sin "Hola,"); en la cabecera, el saludo original
+        var userNameOnly = function(inSidebar) {
+            var span = document.querySelector('.drp-company .dash-head-link .hide-mob');
+            var img = document.querySelector('.drp-company .theme-avtar');
+            if (!span) return;
+            if (!span.hasAttribute('data-sb-greeting')) span.setAttribute('data-sb-greeting', span.textContent);
+            var name = (img && img.getAttribute('alt')) || span.getAttribute('data-sb-greeting');
+            span.textContent = inSidebar ? name.trim() : span.getAttribute('data-sb-greeting');
+            span.setAttribute('title', name.trim());
+        };
+
+        // Nombre del espacio de trabajo: si no cabe, la letra baja hasta 10px; si aun así
+        // no cabe, pasa a dos líneas a 11px (y solo entonces "…")
+        var fitWorkspaceName = function() {
+            var nameEl = document.querySelector('.sb-slot-workspace #workspaceName');
+            if (!nameEl) return;
+            nameEl.style.fontSize = '';
+            nameEl.classList.remove('is-two-lines');
+            if (!document.body.classList.contains('aCeler-header-in-sidebar') ||
+                document.body.classList.contains('aCeler-menu-icons')) return;
+            var size = parseFloat(window.getComputedStyle(nameEl).fontSize) || 12.5;
+            while (nameEl.scrollWidth > nameEl.clientWidth + 1 && size > 10) {
+                size -= 0.5;
+                nameEl.style.fontSize = size + 'px';
+            }
+            if (nameEl.scrollWidth > nameEl.clientWidth + 1) {
+                nameEl.style.fontSize = '11px';
+                nameEl.classList.add('is-two-lines');
+            }
+            nameEl.setAttribute('title', nameEl.textContent.trim());
+        };
+        window.addEventListener('resize', fitWorkspaceName);
+        // Al expandir el sidebar (cambia la clase del body) se vuelve a ajustar cuando
+        // termina la animación de ancho (0.2s), para medir con el ancho final
+        // Al colapsar/expandir, notificaciones e idioma cambian de fila a columna: solo
+        // entonces aparecen con un fundido (no en cada carga de página)
+        var wasCollapsed = document.body.classList.contains('aCeler-menu-icons');
+        new MutationObserver(function() {
+            var collapsed = document.body.classList.contains('aCeler-menu-icons');
+            if (collapsed !== wasCollapsed) {
+                wasCollapsed = collapsed;
+                slotTools.classList.remove('sb-fade');
+                void slotTools.offsetWidth;
+                slotTools.classList.add('sb-fade');
+            }
+            window.setTimeout(fitWorkspaceName, 260);
+        }).observe(document.body, { attributes: true, attributeFilter: ['class'] });
+
+        place();
+        if (desktop.addEventListener) desktop.addEventListener('change', place);
+        else if (desktop.addListener) desktop.addListener(place);
+
+        // Los menús (dropend) se colocan junto a su botón, que puede ocupar media fila:
+        // se separan lo justo para que empiecen 10px a la derecha del borde del sidebar.
+        document.addEventListener('show.bs.dropdown', function(e) {
+            var li = e.target && e.target.closest ? e.target.closest('.sb-slot > li') : null;
+            if (!li) return;
+            var menu = li.querySelector(':scope > .dropdown-menu');
+            var sidebar = document.querySelector('.dash-sidebar');
+            if (!menu || !sidebar) return;
+            var gap = sidebar.getBoundingClientRect().right - e.target.getBoundingClientRect().right + 10;
+            menu.style.setProperty('--sb-gap', Math.max(8, Math.round(gap)) + 'px');
+        });
+    };
+    // ------------------------------------------------------------------
+    // Pestañas "Equipo" / "Mi actividad": solo se ven las opciones del grupo elegido
+    // (las que no son de ningún grupo, como Configuración, se ven siempre).
+    // - Si la página actual es de un grupo, se abre en ese grupo.
+    // - Si no, se usa el último elegido (se recuerda en el navegador).
+    // Se aplica aquí, antes de pintar, para que no se vea el cambio.
+    // ------------------------------------------------------------------
+    (function() {
+        var nav = document.querySelector('.dash-sidebar');
+        var tabs = document.querySelectorAll('.sb-scope-tab');
+        if (!nav || !tabs.length) return;
+        var KEY = 'aceler.sidebar.scope';
+
+        var apply = function(scope, remember) {
+            nav.setAttribute('data-scope', scope);
+            tabs.forEach(function(t) {
+                var on = t.getAttribute('data-scope') === scope;
+                t.classList.toggle('active', on);
+                t.setAttribute('aria-selected', on ? 'true' : 'false');
+            });
+            if (remember) {
+                try { window.localStorage.setItem(KEY, scope); } catch (e) {}
+            }
+        };
+
+        var saved = null;
+        try { saved = window.localStorage.getItem(KEY); } catch (e) {}
+        var page = nav.getAttribute('data-scope-page');
+        apply(page || (saved === 'mine' ? 'mine' : 'team'), !!page);
+
+        tabs.forEach(function(t) {
+            t.addEventListener('click', function() { apply(t.getAttribute('data-scope'), true); });
+        });
+
+        // Aviso de horas sin imputar: también sobre la pestaña "Mi actividad"
+        if (document.querySelector('.dash-navbar li[data-scope="mine"] .missing-hours-dot')) {
+            nav.classList.add('sb-mine-warning');
+        }
+    })();
+
+    // La cabecera se incluye ANTES que el sidebar (layouts/admin.blade.php): ya está en el
+    // DOM, así que se coloca aquí mismo, sin que el navegador llegue a pintar los huecos vacíos.
+    window.acelerPlaceHeader();
+    document.addEventListener('DOMContentLoaded', window.acelerPlaceHeader);
+
+    // Detalle oculto: "navidad" en el buscador de proyectos pone un gorro al logo y hace nevar
+    (function() {
+        var snow = null;
+        var makeSnow = function() {
+            snow = document.createElement('div');
+            snow.className = 'aceler-snow';
+            snow.setAttribute('aria-hidden', 'true');
+            var flakes = window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 60;
+            for (var i = 0; i < flakes; i++) {
+                var f = document.createElement('span');
+                f.className = 'aceler-snowflake';
+                f.textContent = Math.random() < 0.35 ? '❄' : '•';
+                f.style.left = (Math.random() * 100) + 'vw';
+                f.style.fontSize = (8 + Math.random() * 12).toFixed(1) + 'px';
+                f.style.opacity = (0.55 + Math.random() * 0.45).toFixed(2);
+                f.style.setProperty('--fall', (7 + Math.random() * 8).toFixed(1) + 's');
+                f.style.setProperty('--sway', (2.5 + Math.random() * 3).toFixed(1) + 's');
+                f.style.setProperty('--drift', (Math.random() * 60 - 30).toFixed(0) + 'px');
+                // Retraso negativo: la nieve ya está repartida por la pantalla al aparecer
+                f.style.animationDelay = '-' + (Math.random() * 15).toFixed(1) + 's, -' + (Math.random() * 5).toFixed(1) + 's';
+                snow.appendChild(f);
+            }
+            document.body.appendChild(snow);
+        };
+
+        document.addEventListener('input', function(e) {
+            if (!e.target || e.target.id !== 'searchInput') return;
+            var on = /navidad/i.test(e.target.value || '');
+            document.body.classList.toggle('aceler-xmas', on);
+            if (on && !snow) makeSnow();
+        });
+    })();
+
     //when the user clicks on create timetable redirect it to timetable creation
     /*$(document).ready(function() {
         $('.buttonAlertCreate').click(function() {
@@ -838,3 +1089,5 @@
         });
     });*/
 </script>
+<!-- Agrega jQuery (al final: un script externo antes de colocar la cabecera dejaba pintar el sidebar a medias) -->
+<script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
