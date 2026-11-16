@@ -277,7 +277,7 @@
                         <div class="float-end"><i class="ti ti-chevron-right"></i></div>
                     </a>
 
-                    @if ($user->is_exporter === 1)
+                    @if ($user->is_exporter)
                         <a href="#v-pills-axapta"
                             class="list-group-item list-group-item-action border-0">{{ __('Export to Axapta') }}
                             <div class="float-end"><i class="ti ti-chevron-right"></i></div>
@@ -409,7 +409,7 @@
         </div>
 
         <!-- Axapta Exporter-->
-        @if ($user->is_exporter === 1)
+        @if ($user->is_exporter)
             <div class="card divTimetable" id="v-pills-axapta">
                 <div class="card-header buttonColocation">
                     <h5>{{ __('Export to Axapta') }}</h5>
