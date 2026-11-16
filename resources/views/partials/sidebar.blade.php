@@ -592,12 +592,26 @@
              (lo mueve el script del final; en móvil se queda en la cabecera) --}}
         <div class="sb-slot sb-slot-workspace" id="sbSlotWorkspace"></div>
         {{-- Pestañas: qué opciones del menú se ven (script del final; se recuerda en el navegador) --}}
+        {{-- Textos de los tooltips (title) de lo que se mueve de la cabecera al sidebar --}}
+        <span id="sbTooltipText" hidden data-workspace="{{ __('Workspace') }}" data-notifications="{{ __('Notifications') }}"
+            data-language="{{ __('Language') }}" data-switch="{{ __('Switch to') }}" data-home="{{ __('Home') }}"></span>
         <div class="sb-scope-tabs" role="tablist">
-            <button type="button" class="sb-scope-tab" role="tab" data-scope="team" title="{{ __('Team') }}">
+            <button type="button" class="sb-scope-tab" role="tab" data-scope="team">
                 <i class="fa-solid fa-users"></i><span>{{ __('Team') }}</span>
             </button>
-            <button type="button" class="sb-scope-tab" role="tab" data-scope="mine" title="{{ __('My activity') }}">
+            <button type="button" class="sb-scope-tab" role="tab" data-scope="mine">
                 <i class="fa-solid fa-user"></i><span>{{ __('My activity') }}</span>
+                <span class="sb-scope-dot" aria-hidden="true"></span>
+            </button>
+            {{-- Sidebar colapsado: un solo botón (flechas de ida y vuelta) que alterna el grupo;
+                 la insignia indica el grupo actual --}}
+            <button type="button" class="sb-scope-swap" data-label-team="{{ __('Team') }}"
+                data-label-mine="{{ __('My activity') }}" aria-label="{{ __('Team') }} / {{ __('My activity') }}">
+                <i class="fa-solid fa-right-left sb-swap-arrows"></i>
+                <span class="sb-swap-badge" aria-hidden="true">
+                    <i class="fa-solid fa-users" data-scope-icon="team"></i>
+                    <i class="fa-solid fa-user" data-scope-icon="mine"></i>
+                </span>
                 <span class="sb-scope-dot" aria-hidden="true"></span>
             </button>
         </div>
@@ -945,7 +959,6 @@
             if (!span.hasAttribute('data-sb-greeting')) span.setAttribute('data-sb-greeting', span.textContent);
             var name = (img && img.getAttribute('alt')) || span.getAttribute('data-sb-greeting');
             span.textContent = inSidebar ? name.trim() : span.getAttribute('data-sb-greeting');
-            span.setAttribute('title', name.trim());
         };
 
         // Nombre del espacio de trabajo: si no cabe, la letra baja hasta 10px; si aun así
@@ -983,11 +996,48 @@
                 slotTools.classList.add('sb-fade');
             }
             window.setTimeout(fitWorkspaceName, 260);
+            window.acelerRailTitles();
         }).observe(document.body, { attributes: true, attributeFilter: ['class'] });
 
         place();
         if (desktop.addEventListener) desktop.addEventListener('change', place);
         else if (desktop.addListener) desktop.addListener(place);
+
+        // Tooltips (title) de lo que viene de la cabecera: en el raíl solo se ve el icono
+        var tipText = document.getElementById('sbTooltipText');
+        // El texto va a data-rail-title: acelerRailTitles() lo pone como title solo con el
+        // sidebar colapsado (abierto ya se lee el texto). Un title propio del HTML (p. ej. el
+        // aviso de horas sin imputar) se respeta y se ve siempre.
+        var setTitle = function(el, text) {
+            if (el && text && !el.getAttribute('title')) el.setAttribute('data-rail-title', text.trim());
+        };
+        if (tipText) {
+            var wsName = document.getElementById('workspaceName');
+            setTitle(document.getElementById('workspaceButton'),
+                tipText.dataset.workspace + (wsName ? ': ' + wsName.textContent.trim() : ''));
+            setTitle(document.querySelector('.drp-notification > .dash-head-link'), tipText.dataset.notifications);
+            var lang = document.querySelector('.drp-language .drp-text');
+            setTitle(document.querySelector('.drp-language > .dash-head-link'),
+                tipText.dataset.language + (lang ? ': ' + lang.textContent.trim() : ''));
+            var avatar = document.querySelector('.drp-company .theme-avtar');
+            setTitle(document.querySelector('.drp-company > .dash-head-link'), avatar && avatar.getAttribute('alt'));
+            var chat = document.querySelector('.sb-slot-tools a[href*="chats"]');
+            setTitle(chat, 'Chat');
+            // Logo (lleva al inicio) y opciones del menú: el layout también lo hace, pero así
+            // no depende del orden de los scripts
+            setTitle(document.querySelector('.dash-sidebar .m-header > a'), 'aCeler · ' + tipText.dataset.home);
+            document.querySelectorAll('.dash-sidebar .dash-navbar .dash-link').forEach(function(a) {
+                var label = a.querySelector('.dash-mtext');
+                setTitle(a, label && label.textContent);
+            });
+            // El botón de colapsar trae su title del HTML: también solo en el raíl
+            var toggle = document.getElementById('aCeler-menu-toggle');
+            if (toggle && toggle.getAttribute('title')) {
+                toggle.setAttribute('data-rail-title', toggle.getAttribute('title'));
+                toggle.removeAttribute('title');
+            }
+        }
+        window.acelerRailTitles();
 
         // Los menús (dropend) se colocan junto a su botón, que puede ocupar media fila:
         // se separan lo justo para que empiecen 10px a la derecha del borde del sidebar.
@@ -1001,6 +1051,17 @@
             menu.style.setProperty('--sb-gap', Math.max(8, Math.round(gap)) + 'px');
         });
     };
+    // Tooltips solo con el sidebar colapsado (escritorio): los elementos guardan su texto en
+    // data-rail-title y aquí se pone o se quita el title según el estado.
+    window.acelerRailTitles = function() {
+        var rail = document.body.classList.contains('aCeler-menu-icons') &&
+            window.matchMedia('(min-width: 1025px)').matches;
+        document.querySelectorAll('[data-rail-title]').forEach(function(el) {
+            if (rail) el.setAttribute('title', el.getAttribute('data-rail-title'));
+            else el.removeAttribute('title');
+        });
+    };
+
     // ------------------------------------------------------------------
     // Pestañas "Equipo" / "Mi actividad": solo se ven las opciones del grupo elegido
     // (las que no son de ningún grupo, como Configuración, se ven siempre).
@@ -1024,6 +1085,19 @@
             if (remember) {
                 try { window.localStorage.setItem(KEY, scope); } catch (e) {}
             }
+            // Tooltip del botón de cambio (raíl): grupo actual y a cuál cambia
+            var sw = document.querySelector('.sb-scope-swap');
+            var tip = document.getElementById('sbTooltipText');
+            if (sw) {
+                var labelTeam = sw.getAttribute('data-label-team');
+                var labelMine = sw.getAttribute('data-label-mine');
+                var current = scope === 'mine' ? labelMine : labelTeam;
+                var other = scope === 'mine' ? labelTeam : labelMine;
+                var text = current + ' · ' + ((tip && tip.dataset.switch) || '→') + ' ' + other;
+                sw.setAttribute('data-rail-title', text);
+                sw.setAttribute('aria-label', text);
+                window.acelerRailTitles();
+            }
         };
 
         var saved = null;
@@ -1034,6 +1108,36 @@
         tabs.forEach(function(t) {
             t.addEventListener('click', function() { apply(t.getAttribute('data-scope'), true); });
         });
+
+        // Sidebar colapsado: botón de flechas que alterna el grupo, con animación
+        // (giro de las flechas, rebote de la insignia, fundido del menú y tooltip breve)
+        var swap = document.querySelector('.sb-scope-swap');
+        if (swap) {
+            var menu = document.querySelector('.dash-navbar');
+            var restart = function(el, cls) {
+                if (!el) return;
+                el.classList.remove(cls);
+                void el.offsetWidth;
+                el.classList.add(cls);
+            };
+            swap.addEventListener('click', function() {
+                var next = nav.getAttribute('data-scope') === 'mine' ? 'team' : 'mine';
+                apply(next, true);
+                restart(swap, 'is-swapping');
+                restart(menu, 'sb-list-swap');
+
+                var old = swap.querySelector('.sb-swap-tip');
+                if (old) old.remove();
+                var tip = document.createElement('span');
+                tip.className = 'sb-swap-tip';
+                tip.textContent = swap.getAttribute(next === 'mine' ? 'data-label-mine' : 'data-label-team');
+                swap.appendChild(tip);
+                window.setTimeout(function() { tip.remove(); }, 1500);
+            });
+            swap.addEventListener('animationend', function(e) {
+                if (e.target === swap.querySelector('.sb-swap-arrows')) swap.classList.remove('is-swapping');
+            });
+        }
 
         // Aviso de horas sin imputar: también sobre la pestaña "Mi actividad"
         if (document.querySelector('.dash-navbar li[data-scope="mine"] .missing-hours-dot')) {

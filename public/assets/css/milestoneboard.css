@@ -1137,3 +1137,50 @@
         padding: 1px 6px;
     }
 }
+
+/* =============================================
+   COLUMNAS DEL TABLERO EN GRIS (estilo Trello)
+   Toda la columna (cabecera + cuerpo) en gris claro para que las cards blancas
+   destaquen. Tablón de encargos y Mis encargos (.card-list > .card-header + .kanban-box).
+   ============================================= */
+.kanban-wrapper .card.card-list {
+    background: #eceef1;
+    border: none;
+    box-shadow: none;
+}
+
+.kanban-wrapper .card.card-list > .card-header {
+    background: #eceef1;
+    /* Franja blanca entre la cabecera y las cards, para separarlas sin añadir color */
+    border-bottom: 2px solid #fff;
+}
+
+.kanban-wrapper .card.card-list > .kanban-box {
+    background: #eceef1;
+    padding-top: 16px !important;
+}
+
+/* Las cards sobre gris: sombra suave en vez de la marcada sobre blanco */
+.kanban-wrapper .card.card-list .milestone-card {
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.08);
+}
+
+/* La pista de la barra de scroll de cada columna, también gris (era blanca) */
+.kanban-wrapper .card.card-list > .kanban-box::-webkit-scrollbar-track {
+    background: #eceef1;
+}
+
+/* ===== Leyenda de los tablones: etiquetas de fecha (el resto está en custom/css/aceler-help.css) ===== */
+.board-legend-item .calendar-badge {
+    flex: none;
+    flex-direction: row;
+    width: 52px;
+    min-width: 0;
+    min-height: 18px;
+    padding: 2px 0;
+    white-space: nowrap;
+    border-radius: 4px;
+    font-size: 10px;
+    font-weight: 700;
+    text-align: center;
+}

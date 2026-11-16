@@ -120,104 +120,6 @@
         border: 3px solid #a62330 !important;
     }
 
-    .legendIcon {
-        width: 20px;
-        margin-left: 8px;
-        cursor: pointer;
-        transition: transform 0.1s ease-in-out;
-    }
-
-    .legend {
-        opacity: 0;
-        background-color: #f9fbfa;
-        border: 2px solid transparent;
-        border-radius: 15px;
-        width: 394px;
-        height: 735px;
-        position: absolute;
-        top: 4.5%;
-        left: 21rem;
-        display: flex;
-        z-index: 3;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        filter: drop-shadow(1px 1px 5px #b1b1b1);
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        pointer-events: none;
-    }
-    .legend-close {
-        position: absolute;
-        top: 10px;
-        right: 14px;
-        background: none;
-        border: none;
-        font-size: 24px;
-        cursor: pointer;
-        color: #666;
-        line-height: 1;
-        padding: 0;
-        z-index: 4;
-        pointer-events: auto;
-    }
-
-    .legend.visible {
-        pointer-events: auto;
-
-    }
-
-
-    .colorExample {
-        width: 20px;
-        height: 20px;
-        border-radius: 100%;
-        position: absolute;
-        right: 2rem;
-    }
-
-    i.lIcons {
-        margin-right: 0.9rem !important;
-        color: black;
-        margin-top: -6px !important;
-    }
-
-    .colorText {
-        position: absolute;
-        left: 2.5rem;
-    }
-
-    .lEntry {
-        border-radius: 10px;
-        display: flex;
-        width: 92%;
-        height: 3rem;
-        margin-bottom: 10px;
-        align-items: center;
-        justify-content: space-around;
-        align-content: center;
-        font-size: 13px;
-        font-weight: 600;
-    }
-
-
-
-    .lDetail {
-        border: 2px solid gray;
-        gap: 47px;
-        text-align: center;
-        height: 7rem;
-        background-color: #80808030;
-        color: #6b6b6b;
-    }
-
-    .lTitle {
-        position: absolute;
-        top: 1rem;
-        font-size: 20px;
-        font-weight: 600;
-        color: black;
-    }
-
     .lastBreadCrumb {
         /* background-color: #AA182C !important; */
         /* width: 80%; */
@@ -263,46 +165,7 @@
                 href="{{ route('projects.index', $currentWorkspace->slug) }}">{{ __('Projects') }}</a></li>
     @endif
     <li class="breadcrumb-item">{{ __('My Order Forms Board') }}</li>
-    <img class="legendIcon" src="{{ asset('assets/img/questionCircle.svg') }}" />
-    <div class="legend">
-        <button type="button" class="legend-close" onclick="this.closest('.legend').style.opacity='0'; this.closest('.legend').style.pointerEvents='none';">&times;</button>
-        <span class="lTitle">{{ __('Color legend') }}</span>
-        <hr style="backgroundColor: #e0e1e1; width: 100%; height: 2px;">
-        <div class="lEntry" style="border:2px solid #000000 ;height: 5rem !important; text-align: center; "
-            style="display: flex; ">
-            <span>{{ __('Comparison with the delivery date desired by the manager') }}</span>
-            <i class="fa-solid fa-calendar-check fa-2xl m-1 calendarAlert lIcons"></i>
-        </div>
-        <div class="lEntry" style="border:2px solid #000000 ;height: 5rem !important; text-align: center;">
-            <span>{{ __('Comparison with the estimated delivery date') }}</span>
-            <i class="ms-2 me-2 fa-solid fa-hourglass-start lIcons" style=" font-size:22px;"></i>
-        </div>
-        <hr style="backgroundColor: #e0e1e1; width: 100%; height: 2px;">
-        <div class="lEntry" style="border:2px solid #000000 ;  border-left: 12px solid black;">
-            <span class="colorText">{{ __('Undelivered, still on schedule') }}</span>
-            <div class="colorExample" style="background-color: #000000; border:1.5px solid #000000 ;"></div>
-        </div>
-        <div class="lEntry" style="border:2px solid #db8d33;  border-left: 12px solid #db8d33;">
-            <span class="colorText">{{ __('Undelivered,out of date') }}</span>
-            <div class="colorExample" style="background-color: #db8d33; border:1.5px solid #db8d33"></div>
-        </div>
-        <div class="lEntry" style="border:2px solid #53b446;  border-left: 12px solid #53b446;">
-            <span class="colorText">{{ __('Delivered on schedule') }}</span>
-            <div class="colorExample" style="background-color: #53b446; border:1.5px solid #53b446"></div>
-        </div>
-
-        <div class="lEntry" style="border:2px solid #ff0000;  border-left: 12px solid #ff0000;">
-            <span class="colorText">{{ __('Delivered, out of date') }}</span>
-            <div class="colorExample" style="background-color: #ff0000; border:1.5px solid #ff0000"></div>
-        </div>
-        <div class="lEntry" style="border:2px solid #a62330; gap:47px; border-left: 12px solid #a62330;">
-            <span class="colorText">{{ __('Order pending of assignment') }}</span>
-            <div class="colorExample" style="background-color: #a62330; border:1.5px solid #a62330; "></div>
-        </div>
-        <div class="lEntry lDetail">
-            <span>{{ __('In this section you will find only the job sheets assigned to you or created by you.') }}</span>
-        </div>
-    </div>
+    @include('projects.partials.board_legend', ['detail' => __('In this section you will find only the job sheets assigned to you or created by you.')])
 @endsection
 
 @section('action-button')
@@ -1431,40 +1294,6 @@
 
                 document.addEventListener('DOMContentLoaded', function() {
                     document.querySelectorAll('.milestone-task, .taskList').forEach(window.bindMilestoneTaskClick);
-                });
-            </script>
-            <!-- Script encargado de mostrar/ocultar la leyenda de colores -->
-            <script>
-                document.addEventListener('DOMContentLoaded', function() {
-                    const legendIcon = document.querySelector('.legendIcon');
-                    const legend = document.querySelector('.legend');
-
-                    // Configuración inicial
-                    legend.style.opacity = '0';
-                    legend.style.transform = 'translateY(-10px)';
-                    legend.style.visibility = 'hidden';
-
-                    legendIcon.addEventListener('click', function() {
-                        const isVisible = legend.style.visibility === 'visible';
-
-                        if (isVisible) {
-                            legend.style.opacity = '0';
-                            legend.style.transform = 'translateY(-10px)';
-                            setTimeout(() => {
-                                legend.style.visibility = 'hidden';
-                            }, 300); // Coincide con la duración de la transición
-                        } else {
-                            legend.style.visibility = 'visible';
-                            legend.style.opacity = '1';
-                            legend.style.transform = 'translateY(0)';
-                        }
-
-                        // Agregar animación de click al ícono
-                        this.style.transform = 'scale(0.9)';
-                        setTimeout(() => {
-                            this.style.transform = 'scale(1)';
-                        }, 100);
-                    });
                 });
             </script>
 

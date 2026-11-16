@@ -53,7 +53,7 @@
         /* Columna: el menú (ul) se apila dentro y hace scroll si no cabe */
         display: flex !important;
         flex-direction: column;
-        padding-top: 8px !important;
+        padding-top: 14px !important;
         padding-bottom: 8px;
         overflow-y: auto;
         overflow-x: hidden;
@@ -609,7 +609,8 @@ body.aceler-xmas .aceler-snow {
     flex-shrink: 0;
     justify-content: center;
     gap: 18px;
-    height: 34px;
+    /* 42px (igual abierto y colapsado): en el raíl, la insignia del botón de cambio no toca la línea */
+    height: 42px;
     margin: 0 8px 4px;
     padding: 0 12px;
     border-bottom: 1px solid rgba(255, 255, 255, 0.15);
@@ -699,13 +700,143 @@ body.aceler-xmas .aceler-snow {
     }
 }
 
-/* ---------- Sidebar colapsado: sin pestañas ----------
-   En el raíl no se muestran los iconos "Equipo" / "Mi actividad": se ven solo las opciones
-   de la pestaña que estaba elegida. Las pestañas siguen ocupando su sitio (invisibles) para
-   que el menú no suba de golpe al colapsar. */
+/* ---------- Botón de cambio Equipo <-> Mi actividad (sidebar colapsado) ----------
+   En el raíl no caben las pestañas: se ocultan y aparece un botón con dos flechas de ida y
+   vuelta. La insignia indica el grupo actual. Al pulsar (script de partials/sidebar.blade.php):
+   las flechas giran media vuelta, la insignia rebota con el icono nuevo, el menú aparece con
+   un fundido y un tooltip breve dice a qué grupo se ha cambiado. Ocupa el mismo hueco que
+   las pestañas, así que nada se mueve al colapsar. */
+.sb-scope-swap {
+    display: none;
+}
+
 @media (min-width: 1025px) {
     body.aCeler-menu-icons .sb-scope-tabs {
-        visibility: hidden;
-        border-bottom-color: transparent;
+        justify-content: center;
+    }
+
+    body.aCeler-menu-icons .sb-scope-tab {
+        display: none;
+    }
+
+    body.aCeler-menu-icons .sb-scope-swap {
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 40px;
+        height: 30px;
+        margin: 2px 0;
+        padding: 0;
+        border: none;
+        border-radius: 9px;
+        background: transparent;
+        color: #fff;
+        font-size: 15px;
+        cursor: pointer;
+        transition: background-color 0.15s ease;
+    }
+
+    body.aCeler-menu-icons .sb-scope-swap:hover,
+    body.aCeler-menu-icons .sb-scope-swap:focus-visible {
+        background: rgba(255, 255, 255, 0.14);
+        outline: none;
+    }
+
+    .sb-swap-arrows {
+        display: inline-block;
+    }
+
+    /* Insignia: grupo actual */
+    .sb-swap-badge {
+        position: absolute;
+        right: -1px;
+        bottom: -3px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        background: #fff;
+        color: #AA182C;
+        font-size: 8px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+    }
+
+    .dash-sidebar[data-scope="team"] .sb-swap-badge [data-scope-icon="mine"],
+    .dash-sidebar[data-scope="mine"] .sb-swap-badge [data-scope-icon="team"] {
+        display: none;
+    }
+
+    /* Aviso de horas sin imputar mientras se ve "Equipo" */
+    .sb-scope-swap .sb-scope-dot {
+        top: 3px;
+        right: 4px;
+    }
+
+    .dash-sidebar.sb-mine-warning[data-scope="team"] .sb-scope-swap .sb-scope-dot {
+        display: block;
+    }
+
+    /* Animación al cambiar */
+    .sb-scope-swap.is-swapping .sb-swap-arrows {
+        animation: sbSwapSpin 0.4s ease;
+    }
+
+    .sb-scope-swap.is-swapping .sb-swap-badge {
+        animation: sbSwapBadge 0.4s ease;
+    }
+
+    .dash-navbar.sb-list-swap {
+        animation: sbSwapList 0.3s ease;
+    }
+
+    .sb-swap-tip {
+        position: absolute;
+        top: 50%;
+        left: calc(100% + 12px);
+        z-index: 60;
+        padding: 4px 9px;
+        border-radius: 6px;
+        background: #1f2937;
+        color: #fff;
+        font-size: 11.5px;
+        font-weight: 600;
+        white-space: nowrap;
+        pointer-events: none;
+        transform: translateY(-50%);
+        animation: sbSwapTip 1.5s ease forwards;
+    }
+
+    @keyframes sbSwapSpin {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(180deg); }
+    }
+
+    @keyframes sbSwapBadge {
+        0% { transform: scale(1); }
+        40% { transform: scale(0.3); }
+        75% { transform: scale(1.18); }
+        100% { transform: scale(1); }
+    }
+
+    @keyframes sbSwapList {
+        from { opacity: 0; transform: translateY(-4px); }
+        to { opacity: 1; transform: none; }
+    }
+
+    @keyframes sbSwapTip {
+        0% { opacity: 0; transform: translate(-4px, -50%); }
+        15%, 75% { opacity: 1; transform: translate(0, -50%); }
+        100% { opacity: 0; transform: translate(0, -50%); }
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .sb-scope-swap.is-swapping .sb-swap-arrows,
+    .sb-scope-swap.is-swapping .sb-swap-badge,
+    .dash-navbar.sb-list-swap {
+        animation: none;
     }
 }

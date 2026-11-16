@@ -7,6 +7,9 @@
         <a href="{{ route('home') }}">{{ __('Home') }}</a>
     </li>
     <li class="breadcrumb-item"> {{ __('My Projects') }}</li>
+    @include('projects.partials.projects_help', [
+        'detail' => __('Here you see the projects you take part in, from all your workspaces.'),
+    ])
 @endsection
 @php
 

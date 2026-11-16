@@ -508,8 +508,17 @@
     height: 18px;
 }
 
-.pl-menu .dropdown-item:hover {
+/* La plantilla (style.css) pone fondo rojo y texto blanco al pasar el ratón o con el foco:
+   aquí fondo gris claro y texto oscuro (si no, el texto blanco no se ve sobre el gris) */
+.pl-menu .dropdown-item:hover,
+.pl-menu .dropdown-item:focus {
     background: #f3f4f6;
+    color: #1f2937;
+    outline: none;
+}
+
+.pl-menu .dropdown-item:focus-visible {
+    box-shadow: inset 0 0 0 2px rgba(170, 24, 44, 0.25);
 }
 
 .pl-menu .dropdown-item .pl-ck {
@@ -521,6 +530,8 @@
 }
 
 .pl-menu .dropdown-item.active,
+.pl-menu .dropdown-item.active:hover,
+.pl-menu .dropdown-item.active:focus,
 .pl-menu .dropdown-item:active {
     background: rgba(170, 24, 44, 0.07);
     color: #AA182C;

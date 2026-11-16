@@ -633,12 +633,8 @@
         (function() {
             var KEY = 'acelerMenuIconsOnly';
             var btn = document.getElementById('aCeler-menu-toggle');
-            document.querySelectorAll('.dash-sidebar .dash-link').forEach(function(a) {
-                var t = a.querySelector('.dash-mtext');
-                if (t && !a.getAttribute('title')) {
-                    a.setAttribute('title', t.textContent.trim());
-                }
-            });
+            // Los tooltips de las opciones del menú los gestiona el sidebar (solo con el
+            // sidebar colapsado): ver acelerRailTitles en partials/sidebar.blade.php
             if (!btn) return;
             btn.addEventListener('click', function() {
                 var on = document.body.classList.toggle('aCeler-menu-icons');
