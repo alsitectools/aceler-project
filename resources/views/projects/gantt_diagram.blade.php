@@ -3046,7 +3046,9 @@
                         svg.setAttribute('onload', 'window.scrollTo(' + scrollX + ', 0);');
                     }
 
-                    const xml = '<?xml version="1.0" encoding="UTF-8"?>\n' +
+                    // Cabecera XML partida en trozos: con short_open_tag activado (staging), PHP leería
+                    // el "menor que" seguido de interrogación como inicio de código y rompería la vista
+                    const xml = '<' + '?xml version="1.0" encoding="UTF-8"?' + '>\n' +
                         new XMLSerializer().serializeToString(svg);
                     const blob = new Blob([xml], {
                         type: 'image/svg+xml;charset=utf-8'
