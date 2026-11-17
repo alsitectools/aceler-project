@@ -4,6 +4,12 @@
  * Todo va bajo .ua para ganar a los estilos antiguos de la vista y de custom-login.css.
  */
 
+/* La fila de la cabecera (miga de pan) tiene margen -12px y el contenedor solo 10px de relleno a la derecha
+   (style.css): sobresalía 2px, salía una barra horizontal y, por ella, 15px de scroll vertical innecesario. */
+body:has(.ua) .page-header .page-block > .row {
+    margin-right: -10px;
+}
+
 .ua {
     --ua-border: #e8eaee;
     --ua-muted: #6b7280;

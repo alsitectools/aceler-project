@@ -14,6 +14,7 @@
         </li>
     @endif
     <li class="breadcrumb-item"> {{ __('Timesheet') }}</li>
+    @include('projects.partials.timesheet_help')
 @endsection
 @section('action-button')
     <div class="d-flex justify-content-end align-items-center row1">
@@ -58,6 +59,8 @@
                         <i class="fa-solid fa-chevron-right"></i>
                     </button>
                 </div>
+                <button type="button" id="currentWeekBtn" class="btn btn-outline-primary weekTodayBtn"
+                    title="{{ __('Go to the current week') }}">{{ __('Today') }}</button>
                 <input type="date" id="weekPicker" class="weekPickerHidden" tabindex="-1" aria-hidden="true">
 
                 <input type="hidden" id="weeknumber" value="0">
@@ -279,8 +282,11 @@
 
         $(function() {
             // Restaurar semana seleccionada tras recarga (fallback: hoy)
+            // ?date=YYYY-MM-DD (p. ej. desde el calendario) abre la semana de ese día
+            var urlDate = new URLSearchParams(window.location.search).get('date');
+            var linkedDate = urlDate && moment(urlDate, 'YYYY-MM-DD', true).isValid() ? urlDate : null;
             var savedWeekStart = shouldRestoreSavedWeek() ? loadSelectedWeekStart() : null;
-            var initialDate = savedWeekStart || moment().format('YYYY-MM-DD');
+            var initialDate = linkedDate || savedWeekStart || moment().format('YYYY-MM-DD');
             $('#weekPicker').val(initialDate);
 
             // Importantísimo: setea el offset antes del primer AJAX
@@ -330,6 +336,15 @@
             $('#weekPicker').val(targetWeekStart.format('YYYY-MM-DD'));
             saveSelectedWeekStart(targetWeekStart.format('YYYY-MM-DD'));
 
+            ajaxFilterTimesheetTableView();
+        });
+
+        // Volver a la semana actual
+        $(document).on('click', '#currentWeekBtn', function() {
+            var today = moment().format('YYYY-MM-DD');
+            $('#weekPicker').val(today);
+            saveSelectedWeekStart(moment().startOf('isoWeek').format('YYYY-MM-DD'));
+            setWeekFromDate(today);
             ajaxFilterTimesheetTableView();
         });
 
@@ -420,7 +435,7 @@
 
             var dateFormatted = $(this).data('date-formatted');
             var dateValue = $(this).data('date');
-            var hoursValue = $(this).text().trim();
+            var hoursValue = String($(this).data('hours') || $(this).text().trim());
             var tasksData = $(this).data('tasks') || [];
             var isHoliday = String($(this).data('is-holiday')) === '1';
 
@@ -584,6 +599,11 @@
 
     .weekly-dates-div #weekRangeDisplay.weekPickerBtn {
         cursor: pointer;
+    }
+
+    .weekly-dates-div .weekTodayBtn {
+        height: 38px;
+        white-space: nowrap;
     }
 
     /* Input date oculto: se usa solo para abrir el calendario */

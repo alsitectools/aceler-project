@@ -9,6 +9,7 @@
     var averageTimes = window.averageTimes || {};
     var i18n = window.statisticsI18n || {};
     var currentView = 'monthly';
+    var currentCount = 0;
     var chart = null;
 
     function init() {
@@ -22,19 +23,22 @@
                 datasets: [{
                         label: i18n.startingTime,
                         data: [],
-                        backgroundColor: 'rgba(211, 211, 211, 0.8)',
+                        backgroundColor: '#cbd5e1',
+                        maxBarThickness: 56,
                         hidden: false
                     },
                     {
                         label: i18n.onTime,
                         data: [],
-                        backgroundColor: 'rgba(201, 237, 185, 0.8)',
+                        backgroundColor: '#5cc45a',
+                        maxBarThickness: 56,
                         hidden: false
                     },
                     {
                         label: i18n.delay,
                         data: [],
-                        backgroundColor: 'rgba(224, 108, 113, 0.8)',
+                        backgroundColor: '#e06c71',
+                        maxBarThickness: 56,
                         hidden: false
                     }
                 ]
@@ -43,9 +47,12 @@
                 responsive: true,
                 plugins: {
                     legend: {
-                        position: 'top',
-                        align: 'end',
+                        position: 'bottom',
+                        align: 'center',
                         labels: {
+                            boxWidth: 12,
+                            boxHeight: 12,
+                            color: '#6b7280',
                             generateLabels: function(ch) {
                                 var labels = Chart.defaults.plugins.legend.labels.generateLabels(ch);
 
@@ -102,7 +109,7 @@
                 },
                 elements: {
                     bar: {
-                        borderRadius: 8
+                        borderRadius: 4
                     }
                 }
             },
@@ -162,18 +169,20 @@
             btn.classList.toggle('active', btn.getAttribute('data-view') === view);
         });
 
-        var empty = false;
-        if (view === 'monthly') {
-            empty = Object.keys(data.months || {}).length === 0;
-        } else if (view === 'quarterly') {
-            empty = Object.keys(data.quarters || {}).length === 0;
-        } else if (view === 'yearly') {
-            var y = data.yearly || {};
-            empty = !(y.averageStartUp || y.averageWorking || y.averageDelay);
-        }
+        // Sin nada que dibujar en dos casos distintos:
+        //  - no hay encargos finalizados en el periodo, o
+        //  - sí los hay, pero su tiempo medio es 0 días (p. ej. finalizados el mismo día en que se crearon).
+        // Antes del segundo caso salía un eje vacío con «0 · noviembre».
+        var periods = view === 'monthly' ? data.months : (view === 'quarterly' ? data.quarters : { year: data.yearly });
+        var list = Object.keys(periods || {}).map(function(key) { return periods[key] || {}; });
+        var finishedCount = list.reduce(function(acc, p) { return acc + (p.count || 0); }, 0);
+        var hasValues = list.some(function(p) {
+            return (p.averageStartUp || 0) + (p.averageWorking || 0) + (p.averageDelay || 0) > 0;
+        });
+        currentCount = finishedCount;
 
-        toggleEmptyState(empty);
-        if (empty) {
+        toggleEmptyState(!hasValues, finishedCount);
+        if (!hasValues) {
             clearChart();
             return;
         }
@@ -187,12 +196,25 @@
         }
     };
 
-    function toggleEmptyState(empty) {
+    function toggleEmptyState(empty, finishedCount) {
         var canvas = document.getElementById('myChart');
         var message = document.getElementById('chartEmptyMessage');
 
         if (canvas) canvas.style.display = empty ? 'none' : 'block';
-        if (message) message.style.display = empty ? 'flex' : 'none';
+        if (message) {
+            message.style.display = empty ? 'flex' : 'none';
+            var title = message.querySelector('b');
+            var text = message.querySelector('span');
+            // Con encargos finalizados pero a 0 días se dice cuántos hay y por qué no hay barras
+            if (title && i18n.zeroTitle) {
+                title.textContent = finishedCount > 0
+                    ? i18n.zeroTitle.replace(':n', finishedCount)
+                    : i18n.noData;
+            }
+            if (text && i18n.zeroText) {
+                text.textContent = finishedCount > 0 ? i18n.zeroText : (i18n.noDataHint || text.textContent);
+            }
+        }
         if (!empty && chart) chart.resize();
     }
 
@@ -242,7 +264,7 @@
         chart.data.datasets[1].data = working;
         chart.data.datasets[2].data = delay;
 
-        chart.options.plugins.title.text = i18n.averagePer + ' ' + i18n[mode];
+        chart.options.plugins.title.text = i18n.averagePer + ' ' + i18n[mode] + countSuffix();
         chart.update();
     }
 
@@ -260,8 +282,13 @@
         chart.data.datasets[1].data = [data.averageWorking || 0];
         chart.data.datasets[2].data = [data.averageDelay || 0];
 
-        chart.options.plugins.title.text = i18n.annualAverage + ' (' + selectedYear + ')';
+        chart.options.plugins.title.text = i18n.annualAverage + ' (' + selectedYear + ')' + countSuffix();
         chart.update();
+    }
+
+    // «· 8 encargos finalizados» junto al título del gráfico
+    function countSuffix() {
+        return currentCount > 0 && i18n.finishedCount ? ' · ' + i18n.finishedCount.replace(':n', currentCount) : '';
     }
 
     document.addEventListener('DOMContentLoaded', init);

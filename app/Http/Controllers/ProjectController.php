@@ -186,6 +186,11 @@ class ProjectController extends Controller
                 'hours' => (float) $summary->decimal_total_time,
                 'formatted_time' => $summary->formatted_total_time,
                 'project_url' => $summary->project_url,
+                // Mismos datos que las tarjetas (tipo con su icono y espacio de trabajo) para el gráfico de barras horizontales
+                'type' => $summary->project_type_name ? __($summary->project_type_name) : null,
+                'type_icon' => $summary->project_type_name ? asset('assets/img/types/' . $summary->project_type_name . '.svg') : null,
+                'workspace_id' => (int) $summary->workspace_id,
+                'workspace' => $summary->workspace_display_name ?? $summary->workspace_name,
             ];
         })->values();
 
@@ -1866,7 +1871,9 @@ class ProjectController extends Controller
                 'scoreHtml' => view('projects.partials.my_summary_score', compact(
                     'userScore',
                     'selectedFilters',
-                    'dateRange'
+                    'dateRange',
+                    'totalImputedTime',
+                    'projectSummaries'
                 ))->render(),
                 'myDayHtml' => view('projects.partials.my_summary_day', compact(
                     'currentWorkspace',
@@ -5281,15 +5288,44 @@ MilestoneFile::create([
             'yearly' => $now->copy()->subYear(),
         ];
 
+        // Tareas asignadas creadas entre dos fechas: [total, de encargos ya hechos (status 4)]
+        $countCreatedTasks = function (Carbon $from, Carbon $to) use ($user) {
+            $rows = Task::leftJoin('milestones', 'milestones.id', '=', 'tasks.milestone_id')
+                ->whereNotNull('tasks.project_id')
+                ->where(function ($query) use ($user) {
+                    $query->whereRaw("find_in_set(?, tasks.assign_to)", [(string) $user->id])
+                        ->orWhere('tasks.assign_to', (string) $user->id);
+                })
+                ->where('tasks.created_at', '>=', $from->copy()->startOfDay())
+                ->where('tasks.created_at', '<', $to)
+                ->selectRaw('COUNT(*) as total, SUM(CASE WHEN milestones.status = 4 THEN 1 ELSE 0 END) as done')
+                ->first();
+
+            return [(int) ($rows->total ?? 0), (int) ($rows->done ?? 0)];
+        };
+
+        // Horas imputadas por el usuario entre dos fechas, por proyecto (minutos)
+        $loggedMinutesByProject = function (Carbon $from, Carbon $to) use ($user) {
+            return Timesheet::join('projects', 'projects.id', '=', 'timesheets.project_id')
+                ->where('timesheets.created_by', $user->id)
+                ->whereBetween('timesheets.date', [$from->toDateString(), $to->toDateString()])
+                ->groupBy('timesheets.project_id', 'projects.name', 'projects.ref_delegation')
+                ->selectRaw("timesheets.project_id, projects.name as project_name, projects.ref_delegation,
+                    SUM(TIME_TO_SEC(timesheets.time)) DIV 60 as minutes,
+                    COUNT(DISTINCT timesheets.date) as days")
+                ->orderByDesc('minutes')
+                ->get();
+        };
+
         $diagramDataByPeriod = [];
         foreach ($periods as $periodKey => $startDate) {
             $periodTasks = Task::with([
-                'milestone:id,title',
+                'milestone:id,title,status',
                 'type:id,name',
                 'customTask:id,id_task,name',
             ])
                 ->leftJoin('projects', 'projects.id', '=', 'tasks.project_id')
-                ->select('tasks.*', 'projects.name as project_name')
+                ->select('tasks.*', 'projects.name as project_name', 'projects.ref_delegation as project_delegation')
                 ->whereNotNull('tasks.project_id')
                 ->where(function ($query) use ($user) {
                     $query->whereRaw("find_in_set(?, assign_to)", [(string) $user->id])
@@ -5312,11 +5348,20 @@ MilestoneFile::create([
                     $projectCounters[$projectId] = [
                         'project_id' => $projectId,
                         'project_name' => $taskModel->project_name ?: __('N/A'),
+                        'delegation' => trim((string) ($taskModel->project_delegation ?? '')),
                         'tasks_done' => 0,
+                        'states' => [1 => 0, 2 => 0, 3 => 0, 4 => 0],
+                        'milestones' => [],
                     ];
                 }
 
                 $projectCounters[$projectId]['tasks_done']++;
+                // Estado del encargo de la tarea (1 por hacer · 2 en curso · 3 revisión · 4 hecho); sin encargo cuenta como «por hacer»
+                $milestoneStatus = (int) optional($taskModel->milestone)->status;
+                $projectCounters[$projectId]['states'][$milestoneStatus >= 1 && $milestoneStatus <= 4 ? $milestoneStatus : 1]++;
+                if ($taskModel->milestone_id) {
+                    $projectCounters[$projectId]['milestones'][$taskModel->milestone_id] = true;
+                }
 
                 $createdAt = $taskModel->created_at ? Carbon::parse($taskModel->created_at) : null;
                 $taskTypeName = optional($taskModel->type)->name;
@@ -5362,6 +5407,17 @@ MilestoneFile::create([
             $tasksSeries = $diagramRows->pluck('tasks_done')->map(fn($value) => (int) ($value ?? 0))->toArray();
             $totalTasks = array_sum($tasksSeries);
 
+            // Periodo anterior de la misma duración, para comparar
+            $previousStart = $startDate->copy()->sub($startDate->diff($now));
+            [$createdPrev, $donePrev] = $countCreatedTasks($previousStart, $startDate->copy()->startOfDay());
+            $doneNow = array_sum(array_map(fn($row) => $row['states'][4] ?? 0, $projectCounters));
+
+            $hoursRows = $loggedMinutesByProject($startDate, $now);
+            $hoursPrevMinutes = (int) $loggedMinutesByProject($previousStart, $startDate->copy()->subDay())->sum('minutes');
+            $daysWithHours = Timesheet::where('created_by', $user->id)
+                ->whereBetween('date', [$startDate->toDateString(), $now->toDateString()])
+                ->distinct()->count('date');
+
             $diagramDataByPeriod[$periodKey] = [
                 'project_ids' => $diagramRows->pluck('project_id')->map(fn($id) => (int) $id)->toArray(),
                 'labels' => $diagramRows->pluck('project_name')->toArray(),
@@ -5370,6 +5426,30 @@ MilestoneFile::create([
                 'unit' => 'tasks',
                 'total_formatted' => (string) $totalTasks,
                 'range_label' => $startDate->format('d/m/Y') . ' - ' . $now->format('d/m/Y'),
+                // Vista en diagrama: barras por estado del encargo y horas imputadas por proyecto
+                'projects' => $diagramRows->map(fn($row) => [
+                    'id' => (int) $row['project_id'],
+                    'name' => $row['project_name'],
+                    'delegation' => $row['delegation'],
+                    'milestones' => count($row['milestones']),
+                    'total' => (int) $row['tasks_done'],
+                    'states' => array_values($row['states']),
+                ])->values()->toArray(),
+                'hours' => $hoursRows->map(fn($row) => [
+                    'id' => (int) $row->project_id,
+                    'name' => $row->project_name ?: __('N/A'),
+                    'delegation' => trim((string) ($row->ref_delegation ?? '')),
+                    'minutes' => (int) $row->minutes,
+                ])->values()->toArray(),
+                'summary' => [
+                    'created' => $totalTasks,
+                    'created_prev' => $createdPrev,
+                    'done' => $doneNow,
+                    'done_prev' => $donePrev,
+                    'minutes' => (int) $hoursRows->sum('minutes'),
+                    'minutes_prev' => $hoursPrevMinutes,
+                    'days_with_hours' => $daysWithHours,
+                ],
             ];
         }
 

@@ -11,7 +11,8 @@ class AverageTimeService
 {
     public function getAllAverageTimes(int $workspaceId): array
     {
-        return Cache::remember("average_times_{$workspaceId}", 600, function () use ($workspaceId) {
+        // v2: cada periodo incluye ya «count» (encargos finalizados); clave nueva para no servir la caché antigua sin él
+        return Cache::remember("average_times_v2_{$workspaceId}", 600, function () use ($workspaceId) {
             return $this->computeAverageTimes($workspaceId);
         });
     }
@@ -130,7 +131,8 @@ class AverageTimeService
             $period['averageDelay'] = 0;
         }
 
-        unset($period['count'], $period['sumStartUp'], $period['sumWorking'], $period['sumDelay']);
+        // Se conserva «count»: la vista distingue «sin finalizados» de «finalizados con tiempo medio 0 días»
+        unset($period['sumStartUp'], $period['sumWorking'], $period['sumDelay']);
 
         return $period;
     }

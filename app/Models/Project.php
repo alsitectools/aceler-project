@@ -429,6 +429,7 @@ class Project extends Model
         return [
             'task_id' => $task->id,
             'task_name' => $taskType ? $taskType->name : 'unknown',
+            'referencia' => $task->referencia ?? '',
             'dateArray' => $dateArray,
             'totaltime' => $calculatedtasktime,
         ];

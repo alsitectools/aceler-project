@@ -162,7 +162,7 @@
                         </div>
                     </div>
                     <div class="mt-2 p-2" id="ultimas-refs-block" style="background:#fff; border:1px dashed #dee2e6; border-radius:6px; font-size:0.85rem;">
-                        <span class="text-muted" style="font-size:0.72rem; text-transform:uppercase; letter-spacing:.5px;">{{ __('Últimas 5 referencias') }}</span>
+                        <span class="text-muted" id="ultimas-refs-title" style="font-size:0.72rem; text-transform:uppercase; letter-spacing:.5px;">{{ __('Últimas referencias de este encargo') }}</span>
                         <div class="font-monospace" style="letter-spacing:0.5px;" id="ultimas-refs">
                             <span class="text-muted">—</span>
                         </div>
@@ -266,9 +266,21 @@
 <style>
     .referencia-help-popover {
         --bs-popover-zindex: 1080 !important;
-        --bs-popover-max-width: 340px !important;
+        --bs-popover-max-width: 360px !important;
         z-index: 1080 !important;
     }
+    .ref-help { padding: 2px 0; font-size: 0.78rem; color: #374151; }
+    .ref-help-example { background: #f8f9fa; border-radius: 6px; padding: 6px 8px; margin-bottom: 8px; font-size: 0.95rem; }
+    .ref-help-example code { font-size: 0.95rem; font-weight: 600; padding: 0; }
+    .ref-help-example span { color: #9ca3af; }
+    .ref-help-label { font-size: 0.65rem; font-weight: 700; text-transform: uppercase; letter-spacing: .5px; color: #6b7280; margin: 8px 0 3px; }
+    .ref-help-example .ref-help-label { margin: 0 0 2px; }
+    .ref-help-label i { font-size: 0.6rem; margin-right: 2px; }
+    .ref-help-row { display: grid; grid-template-columns: 34px 1fr; gap: 8px; align-items: baseline; padding: 2px 0; }
+    .ref-help-row code { font-weight: 700; font-size: 0.8rem; text-align: right; padding: 0; }
+    .ref-help-row small { display: block; color: #6b7280; font-size: 0.72rem; line-height: 1.25; }
+    .ref-help-tip { display: flex; gap: 6px; margin-top: 8px; padding: 6px 8px; background: #fff8e6; border-radius: 6px; font-size: 0.72rem; color: #6b5a1e; line-height: 1.3; }
+    .ref-help-tip i { margin-top: 2px; }
 </style>
 
 <script>
@@ -757,9 +769,13 @@
             }
             const top = items.slice(0, 5);
 
+            // Con número de obra la lista es la del encargo; sin él, la de toda la delegación
+            $('#ultimas-refs-title').text(code ? '{{ __("Últimas referencias de este encargo") }}'
+                                               : '{{ __("Últimas referencias de la delegación") }}');
+
             if (!top.length) {
                 container.html('<span class="text-muted">' +
-                    (code ? '{{ __("Sin referencias para este número de obra") }}'
+                    (code ? '{{ __("Este encargo aún no tiene tareas con referencia. Será la primera.") }}'
                           : '{{ __("Sin referencias para esta delegación") }}') +
                     '</span>');
                 return;
@@ -785,36 +801,45 @@
         setInterval(setMasterYearBox, 60000);
 
         // Popover de ayuda para la referencia (cuadraditos)
+        // Cada parte del ejemplo lleva el color de su fila en la lista de abajo
+        var refHelpRow = function(color, value, name, hint) {
+            return '<div class="ref-help-row">' +
+                '<code style="color:' + color + ';">' + value + '</code>' +
+                '<span><b>' + name + '</b>' + (hint ? '<small>' + hint + '</small>' : '') + '</span>' +
+                '</div>';
+        };
         var referenciaHelpContent = '' +
-            '<div style="padding: 4px 2px;">' +
-            '<p class="mb-1" style="font-weight:600; font-size:0.85rem;">{{ __("Cómo rellenar la referencia") }}</p>' +
-            '<div style="font-size:0.8rem; background:#f8f9fa; border-radius:6px; padding:6px 8px; margin-bottom:8px;">' +
-            '<div style="font-size:0.65rem; text-transform:uppercase; letter-spacing:.5px; color:#6b7280;">{{ __("Ejemplo") }}</div>' +
-            '<code style="color:#0d6efd; font-size:0.85rem;">26</code>' +
-            '<code style="color:#198754; font-size:0.85rem;">EN</code>' +
-            '<code style="color:#dc3545; font-size:0.85rem;">123</code>' +
-            '<code style="color:#fd7e14; font-size:0.85rem;">L</code>' +
-            '<code style="color:#6f42c1; font-size:0.85rem;">3</code>' +
-            '<span style="color:#6b7280;">.</span>' +
-            '<code style="color:#0dcaf0; font-size:0.85rem;">2</code>' +
-            '<span style="color:#6b7280;">-</span>' +
-            '<code style="color:#6610f2; font-size:0.85rem;">1</code>' +
-            '<span style="color:#6b7280;">(</span>' +
-            '<code style="color:#d63384; font-size:0.85rem;">1</code>' +
-            '<span style="color:#6b7280;">)</span>' +
+            '<div class="ref-help">' +
+            '<div class="ref-help-example">' +
+            '<div class="ref-help-label">{{ __("Ejemplo") }}</div>' +
+            '<code style="color:#6b7280;">26</code>' +
+            '<code style="color:#6b7280;">ENO</code>' +
+            '<code style="color:#6b7280;">011</code>' +
+            '<code style="color:#fd7e14;">A</code>' +
+            '<code style="color:#6f42c1;">3</code>' +
+            '<span>.</span>' +
+            '<code style="color:#0d6efd;">1</code>' +
+            '<span>-</span>' +
+            '<code style="color:#198754;">2</code>' +
+            '<span>(</span><code style="color:#d63384;">1</code><span>)</span>' +
             '</div>' +
-            '<div class="d-flex justify-content-between" style="font-size:0.75rem;"><span>1 · {{ __("Año") }} ({{ __("auto") }})</span><code>26</code></div>' +
-            '<div class="d-flex justify-content-between" style="font-size:0.75rem;"><span>2 · {{ __("Delegación") }}</span><code>EN</code></div>' +
-            '<div class="d-flex justify-content-between" style="font-size:0.75rem;"><span>3 · {{ __("Código de obra") }} (3 {{ __("dígitos") }})</span><code>123</code></div>' +
-            '<div class="d-flex justify-content-between" style="font-size:0.75rem;"><span>4 · {{ __("Zona") }} (1 {{ __("letra") }})</span><code>L</code></div>' +
-            '<div class="d-flex justify-content-between" style="font-size:0.75rem;"><span>5 · {{ __("Sistema") }} <em>({{ __("usa el nº") }})</em></span><code>3</code></div>' +
-            '<div class="d-flex justify-content-between" style="font-size:0.75rem;"><span>6 · {{ __("Versión") }}</span><code>2</code></div>' +
-            '<div class="d-flex justify-content-between" style="font-size:0.75rem;"><span>7 · {{ __("Nº de planos") }} <em>({{ __("opcional") }})</em></span><code>1</code></div>' +
-            '<div class="d-flex justify-content-between" style="font-size:0.75rem;"><span>8 · {{ __("Desglose") }} <em>({{ __("opcional") }})</em></span><code>(1)</code></div>' +
-            '<hr style="margin:6px 0;">' +
-            '<div style="font-size:0.72rem; color:#6b7280;">' +
-            '{{ __("Formato") }}: {{ __("año") }} · {{ __("delegación") }} · {{ __("obra") }} · {{ __("zona") }} · {{ __("sistema") }} . {{ __("versión") }} - {{ __("planos") }} ({{ __("desglose") }})<br>' +
-            '{{ __("Cuadros 1-6 obligatorios; los 2 últimos son opcionales.") }}' +
+
+            '<div class="ref-help-label"><i class="fa-solid fa-lock"></i> {{ __("Se rellena sola") }}</div>' +
+            refHelpRow('#6b7280', '26', '{{ __("Año") }}', '{{ __("el año en curso") }}') +
+            refHelpRow('#6b7280', 'ENO', '{{ __("Delegación") }}', '{{ __("la del proyecto; la O indica que la obra tiene Master Obras") }}') +
+            refHelpRow('#6b7280', '011', '{{ __("Número del encargo") }}', '{{ __("cada encargo de la obra tiene el suyo") }}') +
+
+            '<div class="ref-help-label"><i class="fa-solid fa-pen"></i> {{ __("La rellenas tú") }}</div>' +
+            refHelpRow('#fd7e14', 'A', '{{ __("Zona") }}', '{{ __("una letra, A-Z") }}') +
+            refHelpRow('#6f42c1', '3', '{{ __("Sistema") }}', '{{ __("elígelo en la lista; se guarda su número") }}') +
+            refHelpRow('#0d6efd', '1', '{{ __("Versión") }}', '{{ __("un dígito, 0-9") }}') +
+
+            '<div class="ref-help-label">{{ __("Opcionales") }}</div>' +
+            refHelpRow('#198754', '2', '{{ __("Nº de planos") }}', '{{ __("un dígito; se añade detrás de un guion") }}') +
+            refHelpRow('#d63384', '(1)', '{{ __("Desglose") }}', '{{ __("un dígito; aparece entre paréntesis") }}') +
+
+            '<div class="ref-help-tip"><i class="fa-regular fa-lightbulb"></i>' +
+            '<span>{{ __("Mira «Últimas referencias de este encargo» debajo para seguir la numeración de las tareas anteriores. Si no rellenas zona, sistema y versión no se puede crear la tarea.") }}</span>' +
             '</div>' +
             '</div>';
 

@@ -516,6 +516,215 @@
             justify-content: flex-start;
         }
     }
+
+    /* =============================================
+       Rediseño compacto (solo visual: mismos filtros, enlaces y datos)
+       ============================================= */
+    .my-day-header {
+        align-items: center;
+        margin-bottom: 10px;
+    }
+
+    .my-day-title-wrap h3 {
+        font-size: 1.15rem;
+        color: #4a1421;
+    }
+
+    .my-day-count {
+        padding: 3px 11px;
+        font-size: 12px;
+        border-color: #f3c7cd;
+    }
+
+    .my-day-filter-wrapper.is-open {
+        margin-bottom: 12px;
+    }
+
+    .my-day-filter-button {
+        min-height: 32px;
+        padding: 6px 12px;
+        border-color: #e5e7eb;
+        color: #374151;
+        font-size: 12.5px;
+        font-weight: 500;
+    }
+
+    .my-day-filter-button:hover {
+        background: #fff;
+        border-color: #f3c7cd;
+        color: #aa182c;
+    }
+
+    .my-day-filter-button.is-active {
+        background: #fbeaec;
+        border-color: #f3c7cd;
+        color: #aa182c;
+        font-weight: 600;
+    }
+
+    .my-day-grid {
+        grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr));
+        gap: 12px;
+    }
+
+    .my-day-card {
+        gap: 10px;
+        padding: 14px 16px;
+        border-color: #eceef2;
+        border-radius: 12px;
+        box-shadow: none;
+        background: #fff;
+    }
+
+    a.my-day-card:hover {
+        transform: none;
+        border-color: #f3c7cd;
+        box-shadow: 0 4px 14px rgba(170, 24, 44, 0.07);
+    }
+
+    .my-day-card-title {
+        font-size: 0.95rem;
+    }
+
+    .my-day-card-project {
+        margin-top: 2px;
+        font-size: 0.82rem;
+    }
+
+    .my-day-status-pill {
+        padding: 2px 10px;
+        font-size: 11px;
+        font-weight: 600;
+        text-transform: none;
+        letter-spacing: 0;
+        background: #eef2ff;
+        color: #4338ca;
+        border-color: transparent;
+    }
+
+    .my-day-status-pill--todo {
+        background: #f3f4f6;
+        color: #6b7280;
+    }
+
+    /* Datos del encargo en líneas cortas: icono pequeño, etiqueta y valor seguidos */
+    .my-day-meta-list {
+        gap: 4px;
+    }
+
+    .my-day-meta-item {
+        align-items: center;
+        gap: 8px;
+    }
+
+    .my-day-meta-icon {
+        width: 16px;
+        height: auto;
+        background: transparent;
+        color: #c4c8cf;
+        font-size: 12px;
+    }
+
+    .my-day-meta-item > div {
+        display: flex;
+        align-items: baseline;
+        gap: 6px;
+        flex-wrap: wrap;
+        min-width: 0;
+    }
+
+    .my-day-meta-label {
+        font-size: 11.5px;
+        font-weight: 500;
+        text-transform: none;
+        letter-spacing: 0;
+    }
+
+    .my-day-meta-value {
+        margin-top: 0;
+        font-size: 12.5px;
+    }
+
+    .my-day-meta-value--warning {
+        color: #b7791f;
+    }
+
+    .my-day-due-rel {
+        font-size: 11.5px;
+        font-weight: 500;
+        opacity: .85;
+    }
+
+    .my-day-task-block {
+        gap: 4px;
+        padding-top: 8px;
+    }
+
+    .my-day-task-heading {
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: .04em;
+        color: #9ca3af;
+    }
+
+    /* Todas las tareas, en filas finas; si son muchas, scroll dentro de la tarjeta */
+    .my-day-task-list {
+        gap: 0;
+        max-height: 150px;
+        overflow-y: auto;
+        scrollbar-width: thin;
+    }
+
+    .my-day-task-item {
+        padding: 4px 0;
+        border: 0;
+        border-radius: 0;
+        background: transparent;
+        border-bottom: 1px solid #f4f5f7;
+    }
+
+    .my-day-task-item:last-child {
+        border-bottom: 0;
+    }
+
+    .my-day-task-name {
+        font-size: 12.5px;
+        font-weight: 500;
+        color: #374151;
+    }
+
+    .my-day-task-date {
+        font-size: 11.5px;
+        color: #9ca3af;
+    }
+
+    /* Sin encargos: una franja compacta en vez de un bloque grande */
+    .my-day-empty-card {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        padding: 14px 18px;
+        text-align: left;
+    }
+
+    .my-day-empty-card .my-day-empty-icon {
+        margin: 0 !important;
+        font-size: 22px;
+        color: #c4c8cf;
+    }
+
+    .my-day-empty-card h3 {
+        margin: 0;
+        font-size: 14px;
+        font-weight: 600;
+        color: #374151;
+    }
+
+    .my-day-empty-card p {
+        margin: 2px 0 0;
+        font-size: 12.5px;
+    }
 </style>
 
 <div class="my-day-shell">
@@ -634,10 +843,12 @@
     @if ($myDayMilestones->isEmpty())
         <div class="my-day-empty-card">
             <div class="my-day-empty-icon mx-auto mb-3">
-                <i class="fa-solid fa-triangle-exclamation"></i>
+                <i class="fa-regular fa-folder-open"></i>
             </div>
-            <h3>{{ __('No active milestones assigned to you') }}</h3>
-            <p>{{ __('There are no milestones matching the selected period') }}</p>
+            <div>
+                <h3>{{ __('No active milestones assigned to you') }}</h3>
+                <p>{{ __('There are no milestones matching the selected period') }}</p>
+            </div>
         </div>
     @else
         <div class="my-day-grid">
@@ -663,8 +874,12 @@
                         }
 
                         $dueDate = $dueDateCarbon->format('d-m-Y');
+                        // Contexto de la entrega a partir de la misma fecha
+                        $dueRelative = $daysUntilDue == 0 ? __('today')
+                            : ($daysUntilDue < 0 ? __(':n days ago', ['n' => abs((int) $daysUntilDue)]) : __('in :n days', ['n' => (int) $daysUntilDue]));
                     } else {
                         $dueDate = __('No due date');
+                        $dueRelative = null;
                     }
                 @endphp
 
@@ -705,7 +920,11 @@
                         </span>
                         <div>
                             <span class="my-day-meta-label">{{ __('Expected delivery') }}</span>
-                            <span class="my-day-meta-value {{ $dueDateClass }}">{{ $dueDate }}</span>
+                            <span class="my-day-meta-value {{ $dueDateClass }}">{{ $dueDate }}
+                                @if ($dueRelative)
+                                    <span class="my-day-due-rel">· {{ $dueRelative }}</span>
+                                @endif
+                            </span>
                         </div>
                     </div>
 
