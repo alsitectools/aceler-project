@@ -1100,6 +1100,10 @@ Route::post('/{slug}/milestone/{id}/delete-puntuaciones', [ProjectController::cl
 Route::post('/projects/export-axapta', [ProjectController::class, 'exportProjectsToAxapta'])
   ->middleware('auth')
   ->name('projects.export.axapta');
+// Resumen antes de exportar (simulación: no escribe nada)
+Route::get('/projects/export-axapta/preview', [ProjectController::class, 'exportAxaptaPreview'])
+  ->middleware('auth')
+  ->name('projects.export.axapta.preview');
 
 //MY TASKS VIEW
 Route::get('/my-tasks', [ProjectController::class, 'myTasks'])->name('projects.my_tasks');

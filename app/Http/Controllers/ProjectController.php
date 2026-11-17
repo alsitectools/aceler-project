@@ -855,6 +855,43 @@ class ProjectController extends Controller
     }
 
     /**
+     * Resumen para el perfil antes de exportar: lo que saldría ahora (simulación, no escribe nada),
+     * lo que no se puede exportar y por qué, y los últimos lotes enviados.
+     */
+    public function exportAxaptaPreview()
+    {
+        if (!Auth::user() || !Auth::user()->is_exporter) {
+            return response()->json(['message' => __('You do not have permission to export to Axapta.')], 403);
+        }
+
+        $export = AxaptaExportHelper::buildExport(
+            fn($milestone, $project) => $this->buildAutomaticExportReference($milestone, $project)
+        );
+
+        $pendingHours = array_sum(array_map(fn($row) => (float) $row['hours_decimal'], $export['ledger']));
+
+        $batches = ExportBatch::orderByDesc('id')->limit(6)->get()->map(function ($batch) {
+            $lines = ExportLedgerLine::where('batch_id', $batch->id);
+
+            return [
+                'id' => $batch->id,
+                'date' => $batch->created_at ? Carbon::parse($batch->created_at)->format('d/m/Y H:i') : '',
+                'lines' => (clone $lines)->count(),
+                'hours' => AxaptaExportHelper::secondsToTimeFormat((int) round(((float) (clone $lines)->sum('hours_decimal')) * 3600)),
+                'rejected' => !empty($batch->rejected_at),
+            ];
+        });
+
+        return response()->json([
+            'pending_lines' => count($export['lines']),
+            'pending_hours' => AxaptaExportHelper::secondsToTimeFormat((int) round($pendingHours * 3600)),
+            'skipped' => $export['skipped'],
+            'warnings' => $export['warnings'],
+            'batches' => $batches,
+        ]);
+    }
+
+    /**
      * Texto para el usuario con lo que no se ha exportado y los avisos
      */
     private function axaptaExportNotice(array $skipped, array $warnings): string
@@ -2947,6 +2984,14 @@ class ProjectController extends Controller
                     $milestone->finalization_date = date('Y-m-d');
                     $milestone->save();
                     $this->syncMilestoneTaskEndDates($milestone, $milestone->finalization_date);
+
+                    // Encargos de obra sin puntuación de la revisión: puntos automáticos (horas + puntos por tipo de tarea).
+                    // Si falla no debe impedir el cambio de estado.
+                    try {
+                        \App\Helpers\MilestonePointsHelper::ensureAutomatic($milestone);
+                    } catch (\Throwable $e) {
+                        \Log::error('Puntos automáticos del encargo ' . $milestone->id . ': ' . $e->getMessage());
+                    }
 
                     $project = Project::find($milestone->project_id);
                     if (isset($project)) {

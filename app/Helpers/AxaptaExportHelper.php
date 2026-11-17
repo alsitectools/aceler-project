@@ -7,6 +7,7 @@ use App\Models\ExportLedgerLine;
 use App\Models\MasterObra;
 use App\Models\Milestone;
 use App\Models\Project;
+use App\Models\PuntuacionTarea;
 use App\Models\Task;
 use App\Models\Timesheet;
 use App\Models\User;
@@ -24,6 +25,14 @@ use Illuminate\Support\Str;
  * por tarea y día, y cada export solo manda lo que ha cambiado desde entonces
  * (líneas negativas para lo que se ha quitado). Los lotes marcados como
  * rechazados (export_batches.rejected_at) no cuentan como enviados.
+ *
+ * Fórmula (en segundos, como el fichero original: HrDecimal = h + m/60 + s/3600):
+ *   Imputado(k, d) = Σ (h·3600 + m·60 + s) de las imputaciones del empleado en la tarea k el día d
+ *   Enviado(k, d)  = Σ round(horas_decimales · 3600) de lo ya exportado para esa tarea y día
+ *   Δ(k, d)        = Imputado − Enviado  →  Horas = Δ en HH:MM:SS · HrDecimal = Δ / 3600
+ * Puntos: la puntuación de la tarea (puntuacion_tarea.cantidad_puntaje, 2 decimales), como en el
+ * fichero original (un valor fijo por referencia). Si no tiene, los puntos automáticos del encargo
+ * (horas imputadas + puntos por tipo de tarea, ver MilestonePointsHelper). Vacío si no hay horas.
  */
 class AxaptaExportHelper
 {
@@ -49,13 +58,39 @@ class AxaptaExportHelper
 
     private static ?array $rejectedBatchIds = null;
     private static array $taskCache = [];
+    private static array $pointsCache = [];
 
     /**
-     * Convierte formato HH:MM a horas decimales
+     * "HH:MM[:SS]" a horas decimales: h + m/60 + s/3600 (misma fórmula que el fichero original de Axapta)
      */
     public static function timeToDecimal($timeValue): float
     {
-        return self::timeToMinutes($timeValue) / 60;
+        return self::timeToSeconds($timeValue) / 3600;
+    }
+
+    /**
+     * "HH:MM[:SS]" a segundos: h·3600 + m·60 + s
+     */
+    public static function timeToSeconds($timeValue): int
+    {
+        if (!$timeValue || strpos((string) $timeValue, ':') === false) {
+            return 0;
+        }
+
+        $parts = explode(':', (string) $timeValue);
+
+        return ((int) ($parts[0] ?? 0)) * 3600 + ((int) ($parts[1] ?? 0)) * 60 + (int) ($parts[2] ?? 0);
+    }
+
+    /**
+     * Segundos a "HH:MM:SS" (con signo si es negativo)
+     */
+    public static function secondsToTimeFormat(int $seconds): string
+    {
+        $abs = abs($seconds);
+        $time = sprintf('%02d:%02d:%02d', intdiv($abs, 3600), intdiv($abs % 3600, 60), $abs % 60);
+
+        return $seconds < 0 ? '-' . $time : $time;
     }
 
     /**
@@ -241,6 +276,30 @@ class AxaptaExportHelper
         return $query;
     }
 
+    /**
+     * Puntos de la tarea para Axapta: su puntuación guardada (puntuacion_tarea.cantidad_puntaje: la de la
+     * revisión o la automática al pasar a Hecho), igual en todas las tareas del encargo. Si no tiene
+     * (p. ej. encargos cerrados antes de existir los puntos automáticos), se calculan al momento con la
+     * misma regla (MilestonePointsHelper), sin guardarlos. null si no hay forma de calcularlos (campo vacío).
+     */
+    private static function taskPoints($taskId): ?float
+    {
+        if (!$taskId) {
+            return null;
+        }
+        if (!array_key_exists($taskId, self::$pointsCache)) {
+            $value = PuntuacionTarea::where('id_tarea', $taskId)->value('cantidad_puntaje');
+            if ($value === null) {
+                $task = self::task($taskId);
+                $milestone = $task ? Milestone::find($task->milestone_id) : null;
+                $value = $milestone ? MilestonePointsHelper::automaticPoints($milestone) : null;
+            }
+            self::$pointsCache[$taskId] = $value !== null ? (float) $value : null;
+        }
+
+        return self::$pointsCache[$taskId];
+    }
+
     private static function task($taskId): ?Task
     {
         if (!$taskId) {
@@ -254,9 +313,11 @@ class AxaptaExportHelper
     }
 
     /**
-     * Horas actuales del empleado en el encargo: [ "taskId|Y-m-d" => minutos ]
+     * Imputado(k, d): segundos del empleado por tarea y día = Σ (h·3600 + m·60 + s) de sus imputaciones.
+     * [ "taskId|Y-m-d" => segundos ]. En la app hay un solo registro por tarea, día y persona,
+     * así que cada clave es una imputación (como cada línea del fichero original).
      */
-    public static function desiredMinutesByTaskDate($milestoneId, $userId): array
+    public static function desiredSecondsByTaskDate($milestoneId, $userId): array
     {
         $rows = Timesheet::whereIn('task_id', function ($query) use ($milestoneId) {
             $query->select('id')->from('tasks')->where('milestone_id', $milestoneId);
@@ -266,21 +327,23 @@ class AxaptaExportHelper
 
         $map = [];
         foreach ($rows as $row) {
-            $minutes = self::timeToMinutes($row->time);
-            if ($minutes === 0) {
+            $seconds = self::timeToSeconds($row->time);
+            if ($seconds === 0) {
                 continue;
             }
             $key = $row->task_id . '|' . date('Y-m-d', strtotime($row->date));
-            $map[$key] = ($map[$key] ?? 0) + $minutes;
+            $map[$key] = ($map[$key] ?? 0) + $seconds;
         }
 
         return $map;
     }
 
     /**
-     * Lo ya enviado del encargo y empleado: [minutos por "taskId|Y-m-d", última línea por clave]
+     * Enviado(k, d): segundos ya exportados por tarea y día = Σ round(horas_decimales · 3600) de cada línea
+     * (cada línea se redondea al segundo antes de sumar: el ledger guarda 4 decimales y así no se acumula error).
+     * Devuelve [segundos por "taskId|Y-m-d", última línea por clave].
      */
-    public static function exportedMinutesByTaskDate($milestoneId, string $employeeNumber): array
+    public static function exportedSecondsByTaskDate($milestoneId, string $employeeNumber): array
     {
         $rows = self::validLedger()
             ->where('milestone_id', $milestoneId)
@@ -289,15 +352,15 @@ class AxaptaExportHelper
             ->orderBy('id')
             ->get();
 
-        $minutes = [];
+        $seconds = [];
         $last = [];
         foreach ($rows as $row) {
             $key = $row->task_id . '|' . date('Y-m-d', strtotime($row->work_date));
-            $minutes[$key] = ($minutes[$key] ?? 0) + (int) round(((float) $row->hours_decimal) * 60);
+            $seconds[$key] = ($seconds[$key] ?? 0) + (int) round(((float) $row->hours_decimal) * 3600);
             $last[$key] = $row;
         }
 
-        return [$minutes, $last];
+        return [$seconds, $last];
     }
 
     /**
@@ -323,6 +386,7 @@ class AxaptaExportHelper
     {
         self::$rejectedBatchIds = null;
         self::$taskCache = [];
+        self::$pointsCache = [];
 
         $state = [
             'lines' => [],
@@ -358,8 +422,8 @@ class AxaptaExportHelper
                     continue;
                 }
 
-                [$exported, $lastRows] = self::exportedMinutesByTaskDate($milestone->id, $employeeNumber);
-                $desired = self::desiredMinutesByTaskDate($milestone->id, $user->id);
+                [$exported, $lastRows] = self::exportedSecondsByTaskDate($milestone->id, $employeeNumber);
+                $desired = self::desiredSecondsByTaskDate($milestone->id, $user->id);
 
                 self::appendDeltaLines($state, $project, $projectData, $milestone, $employeeNumber, $desired, $exported, $lastRows, $fallbackRef, $label);
             }
@@ -393,7 +457,7 @@ class AxaptaExportHelper
                     }
                 }
 
-                [$exported, $lastRows] = self::exportedMinutesByTaskDate($pair->milestone_id, $pair->employee_number);
+                [$exported, $lastRows] = self::exportedSecondsByTaskDate($pair->milestone_id, $pair->employee_number);
                 $label = $project->name . ' / ' . ($milestone->title ?? "encargo {$pair->milestone_id} (borrado)");
 
                 self::appendDeltaLines($state, $project, $projectData, $milestone, $pair->employee_number, [], $exported, $lastRows, $fallbackRef, $label);
@@ -432,8 +496,9 @@ class AxaptaExportHelper
         $milestoneId = $milestone->id ?? null;
 
         foreach ($keys as $key) {
-            $deltaMinutes = ($desired[$key] ?? 0) - ($exported[$key] ?? 0);
-            if ($deltaMinutes === 0) {
+            // Δ(k, d) = Imputado(k, d) − Enviado(k, d), en segundos; sin diferencia no hay línea
+            $deltaSeconds = ($desired[$key] ?? 0) - ($exported[$key] ?? 0);
+            if ($deltaSeconds === 0) {
                 continue;
             }
 
@@ -443,14 +508,17 @@ class AxaptaExportHelper
             $dayLabel = "$label, " . date('d/m/Y', strtotime($workDate));
 
             // Una corrección negativa repite los datos con los que se envió la línea original
-            if ($deltaMinutes < 0 && $previous) {
+            if ($deltaSeconds < 0 && $previous) {
                 $delegacion = (string) $previous->delegacion;
                 $empresa = (string) $previous->empresa;
                 $masterobrasid = (string) $previous->masterobrasid;
                 $ref = (string) $previous->ref;
+                $puntos = (float) $previous->puntos > 0 ? (float) $previous->puntos : null;
             } else {
                 $delegacion = $projectData->delegacion;
                 $masterobrasid = $projectData->masterobrasid;
+                // Puntos: la puntuación de la tarea (la misma en todas las tareas del encargo, se calcula al revisarlo)
+                $puntos = self::taskPoints($taskId);
 
                 [$empresa, $error] = self::resolveEmpresa($task->empresa ?? null, $delegacion);
                 if ($error) {
@@ -482,7 +550,7 @@ class AxaptaExportHelper
 
             $state['lineaPorEncargo'][$milestoneId] = ($state['lineaPorEncargo'][$milestoneId] ?? 0) + 1;
             $regId = $state['regId']++;
-            $hours = round($deltaMinutes / 60, 4);
+            $hours = round($deltaSeconds / 3600, 4);
 
             $state['lines'][] = self::formatLine([
                 'regId' => $regId,
@@ -494,11 +562,11 @@ class AxaptaExportHelper
                 'obra' => '',
                 'descripcion' => $descripcion,
                 'op' => config('axapta.op', '210'),
-                'horas' => self::minutesToTimeFormat($deltaMinutes),
+                'horas' => self::secondsToTimeFormat($deltaSeconds),
                 'ref' => $ref,
                 'linea' => $state['lineaPorEncargo'][$milestoneId],
-                'hrDecimal' => number_format($deltaMinutes / 60, 7, '.', ''),
-                'puntos' => '',
+                'hrDecimal' => number_format($deltaSeconds / 3600, 7, '.', ''), // h + m/60 + s/3600
+                'puntos' => $puntos !== null ? number_format($puntos, 2, '.', '') : '',
             ]);
 
             $state['ledger'][] = [
@@ -514,7 +582,7 @@ class AxaptaExportHelper
                 'ref' => $ref,
                 'op' => config('axapta.op', '210'),
                 'hours_decimal' => $hours,
-                'puntos' => 0,
+                'puntos' => $puntos !== null ? round($puntos, 4) : 0,
                 'hr_decimal' => $hours,
                 'created_at' => now(),
             ];

@@ -6,6 +6,7 @@
 @section('links')
     <li class="breadcrumb-item"><a href="{{ route('home') }}">{{ __('Home') }}</a></li>
     <li class="breadcrumb-item"> {{ __('User Profile') }}</li>
+    @include('users.partials.account_help')
 @endsection
 @php
 
@@ -262,98 +263,130 @@
             display: none;
         }
     </style>
-    <div class="row">
-        <div class="col-xl-3">
-            <div class="card sticky-top">
-                <div class="list-group list-group-flush" id="useradd-sidenav">
-
-                    <a href="#v-pills-profile"
-                        class="list-group-item list-group-item-action border-0">{{ __('Add another workspace') }}
-                        <div class="float-end"><i class="ti ti-chevron-right"></i></div>
-                    </a>
-
-                    <a href="#v-pills-timetable"
-                        class="list-group-item list-group-item-action border-0">{{ __('Timetable') }}
-                        <div class="float-end"><i class="ti ti-chevron-right"></i></div>
-                    </a>
-
-                    @if ($user->is_exporter)
-                        <a href="#v-pills-axapta"
-                            class="list-group-item list-group-item-action border-0">{{ __('Export to Axapta') }}
-                            <div class="float-end"><i class="ti ti-chevron-right"></i></div>
-                        </a>
-                    @endif
+    @php
+        // Espacios agrupados por país (para el buscador) y los del usuario
+        $uaMineIds = $anotherWorkspaces;
+        // Una fila por país con varios espacios (los de más espacios primero); los países con un solo
+        // espacio (o sin país) van juntos en «Otros países»
+        $uaGroups = $workspaces->groupBy(fn($w) => trim((string) ($w->country ?? '')));
+        $uaRows = $uaGroups->filter(fn($list, $country) => $country !== '' && $list->count() > 1)
+            ->sortBy(fn($list, $country) => sprintf('%03d', 999 - $list->count()) . $country);
+        $uaOthers = $uaGroups->reject(fn($list, $country) => $country !== '' && $list->count() > 1)
+            ->flatten(1)->sortBy(fn($w) => mb_strtolower($w->display_name))->values();
+        if ($uaOthers->isNotEmpty()) {
+            $uaRows = $uaRows->put(__('Other countries'), $uaOthers);
+        }
+        $uaRole = $user->is_exporter ? __('Axapta exporter') : ($user->type === 'admin' ? __('Administrator') : __('User'));
+    @endphp
+    <link rel="stylesheet" href="{{ asset('assets/css/user_account.css') }}?v={{ filemtime(public_path('assets/css/user_account.css')) }}">
+    <div class="ua">
+        {{-- ================= Menú lateral ================= --}}
+        <aside class="ua-nav">
+            <div class="ua-who">
+                @include('projects.partials.pd_avatar', ['user' => $user, 'size' => 38])
+                <div class="ua-who-text">
+                    <b title="{{ $user->name }}">{{ $user->name }}</b>
+                    <small>{{ $uaRole }}</small>
                 </div>
             </div>
-        </div>
-        <div class="col-xl-9">
+            <nav class="ua-nav-list" id="uaNav">
+                <button type="button" class="ua-nav-item is-active" data-ua-target="workspaces">
+                    <i class="fa-solid fa-layer-group"></i><span>{{ __('Workspaces') }}</span>
+                    <b class="ua-badge" id="uaMineBadge">{{ count($uaMineIds) }}</b>
+                </button>
+                <button type="button" class="ua-nav-item" data-ua-target="timetable">
+                    <i class="fa-regular fa-clock"></i><span>{{ __('Timetable') }}</span>
+                    <b class="ua-badge" id="uaWeeklyBadge">—</b>
+                </button>
+                @if ($user->is_exporter)
+                    <button type="button" class="ua-nav-item" data-ua-target="axapta">
+                        <i class="fa-solid fa-file-export"></i><span>{{ __('Export to Axapta') }}</span>
+                        <b class="ua-badge" id="uaPendingBadge" hidden></b>
+                    </button>
+                @endif
+            </nav>
+        </aside>
 
-            <div class="card" id="v-pills-profile">
-                <div class="card-header buttonColocation">
-                    <h5>{{ __('Add another workspace') }}</h5>
-                    <button style="margin-right: 1%;" class="btn btn-sm btn-primary toggle-section buttonColapse"
-                        data-target="#workspace-content">-</button>
-                </div>
-                <div class="card-body collapse-section" id="workspace-content">
-                    <div class="col-12 d-flex">
-                        <div class="col-12">
-                            <div class="d-flex mt-4">
-                                <div style="display: flex; flex-direction: column; width: 100%;">
-                                    <strong for="name" class="form-label mb-4">{{ __('Add new workspace') }}</strong>
-                                    <div class="workspace-search-wrapper">
-                                        <input type="text" id="workspaceSearch"
-                                            placeholder="{{ __('Search workspaces...') }}" class="form-control mb-3">
-                                        <div class="workspace-chips" id="workspaceChips">
-                                            @foreach ($workspaces as $workspace)
-                                                @if (in_array($workspace->id, $anotherWorkspaces))
-                                                    <div class="workspace-chip" data-workspace-id="{{ $workspace->id }}">
-                                                        {{ $workspace->display_name }}
-                                                        <span class="workspace-chip-close">✕</span>
-                                                    </div>
-                                                @endif
-                                            @endforeach
-                                        </div>
-                                        <div class="workspace-list">
-                                            @foreach ($workspaces as $workspace)
-                                                <div class="workspace-item"
-                                                    style="{{ in_array($workspace->id, $anotherWorkspaces) ? 'display:none;' : '' }}"
-                                                    data-name="{{ strtolower($workspace->name) }}|{{ strtolower($workspace->display_name) }}"
-                                                    data-workspace-id="{{ $workspace->id }}">
-                                                    {{ $workspace->display_name }}
-                                                </div>
-                                            @endforeach
-                                        </div>
-                                        <div class="alignCenterItems">
-                                            <button id="saveWorkspaces" class="btn btn-sm btn-primary saveButton"
-                                                style="margin-top: 1%;">
-                                                {{ __('Save') }}
-                                            </button>
-                                        </div>
+        <div class="ua-main">
+            {{-- ================= Espacios de trabajo ================= --}}
+            <section class="ua-card ua-section is-active" id="v-pills-profile" data-ua-section="workspaces">
+                <header class="ua-card-head">
+                    <div>
+                        <h3>{{ __('Workspaces') }}</h3>
+                        <p>{{ __('The ones you can choose in the workspace selector of the side menu.') }}</p>
+                    </div>
+                </header>
+                <div class="ua-card-body" id="workspace-content">
+                    <div class="workspace-search-wrapper">
+                        <div class="ua-sub">{{ __('My workspaces') }}</div>
+                        <div class="workspace-chips ua-mine" id="workspaceChips">
+                            @foreach ($workspaces as $workspace)
+                                @if (in_array($workspace->id, $uaMineIds))
+                                    <div class="workspace-chip" data-workspace-id="{{ $workspace->id }}" title="{{ $workspace->country }}">{{ $workspace->display_name }}@if ((int) $workspace->id === (int) $currentWorkspace->id) <span class="ua-current">{{ __('Current') }}</span>@endif <span class="workspace-chip-close" title="{{ __('Remove') }}">✕</span></div>
+                                @endif
+                            @endforeach
+                        </div>
+
+                        <div class="ua-sub ua-sub-add">{{ __('Add workspace') }}</div>
+                        <label class="ua-search">
+                            <i class="fa-solid fa-magnifying-glass"></i>
+                            <input type="text" id="workspaceSearch" placeholder="{{ __('Search by name or country...') }}" autocomplete="off">
+                        </label>
+                        <div class="workspace-list ua-groups">
+                            @foreach ($uaRows as $country => $list)
+                                <div class="ua-group">
+                                    <div class="ua-group-title">{{ $country }} <small class="ua-group-count"></small></div>
+                                    <div class="ua-group-items">
+                                        @foreach ($list as $workspace)
+                                            @php
+                                                // En «Otros países», el país en pequeño si el nombre del espacio no lo dice ya
+                                                $uaHint = $loop->parent->last && $uaOthers->isNotEmpty() && $workspace->country
+                                                    && mb_strtolower(trim($workspace->country)) !== mb_strtolower(trim($workspace->display_name))
+                                                    ? $workspace->country : '';
+                                            @endphp
+                                            <div class="workspace-item"
+                                                style="{{ in_array($workspace->id, $uaMineIds) ? 'display:none;' : '' }}"
+                                                title="{{ $workspace->country }}"
+                                                @if ($uaHint) data-hint="{{ $uaHint }}" @endif
+                                                data-name="{{ mb_strtolower($workspace->name) }}|{{ mb_strtolower($workspace->display_name) }}|{{ mb_strtolower((string) $workspace->country) }}"
+                                                data-workspace-id="{{ $workspace->id }}"><i class="fa-solid fa-plus" aria-hidden="true"></i>{{ $workspace->display_name }}</div>
+                                        @endforeach
                                     </div>
                                 </div>
-                            </div>
+                            @endforeach
+                            <p class="ua-empty" id="uaNoResults" hidden>{{ __('No workspaces match the search.') }}</p>
+                        </div>
+
+                        {{-- Guardar a la izquierda (a la derecha lo tapaba el botón de CofrAI); activo solo con cambios --}}
+                        <div class="ua-card-foot">
+                            <button id="saveWorkspaces" class="ua-btn ua-btn-primary" disabled><i class="fa-solid fa-check"></i>{{ __('Save changes') }}</button>
+                            <span class="ua-changes" id="uaWsChanges"></span>
+                            <button type="button" class="ua-btn ua-btn-ghost" id="uaWsDiscard" hidden>{{ __('Discard') }}</button>
                         </div>
                     </div>
-                </div> <!-- end col -->
-            </div> <!-- end row -->
-        </div>
-
-        <!-- timetable-->
-        <div class="card divTimetable" id="v-pills-timetable">
-            <div class="card-header buttonColocation">
-                <h5>{{ __('Timetable') }}</h5>
-                <button class="btn btn-sm btn-primary toggle-section buttonColapse"
-                    data-target="#timetable-content">-</button>
-            </div>
-            <div class="mb-3 highlight-error" id="timetableErrorMessage" style="display: none;">
-                <div class="bg-danger" style="display: inline-block; padding: 8px; margin: 5px; border-radius: 40%;">
-                    <i class="fa-solid fa-circle-xmark text-white"></i>
                 </div>
-                <span
-                    class="text-danger">{{ __('Make sure you have a day selected and the hours imputed correctly.') }}</span>
-            </div>
-            <div class="card-body collapse-section timetable-content" id="timetable-content"
-                style="display: flex; flex-direction: row;">
+            </section>
+
+            {{-- ================= Horario ================= --}}
+            <section class="ua-card ua-section" id="v-pills-timetable" data-ua-section="timetable">
+                <header class="ua-card-head">
+                    <div>
+                        <h3>{{ __('Weekly timetable') }}</h3>
+                        <p>{{ __('Your days in the timesheet are coloured according to it.') }}</p>
+                    </div>
+                    <div class="ua-card-tools">
+                        <button type="button" class="ua-btn" id="uaCopyMonday" title="{{ __('Copy Monday hours to the other active days') }}">
+                            <i class="fa-regular fa-copy"></i>{{ __('Copy Monday to active days') }}
+                        </button>
+                        <button id="saveTimetable" class="ua-btn ua-btn-primary">{{ __('Save') }}</button>
+                    </div>
+                </header>
+                <div class="ua-alert" id="timetableErrorMessage" style="display: none;">
+                    <i class="fa-solid fa-circle-xmark"></i>
+                    <span>{{ __('Make sure you have a day selected and the hours imputed correctly.') }}</span>
+                </div>
+                <div class="ua-card-body">
+                    <div class="timetable-content ua-days" id="timetable-content">
                 @foreach (['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'] as $day)
                     <div class="dayToggle">
                         <p>{{ __($day) }}</p>
@@ -399,40 +432,74 @@
                                 </div>
                             </div>
                         </div>
+                        <span class="ua-bar" aria-hidden="true"><span></span></span>
                         <input id="{{ strtolower($day) }}Input" type="hidden" class="inputToggle">
                     </div>
                 @endforeach
-            </div>
-            <div class="alignCenterItems">
-                <button id="saveTimetable" class="btn btn-sm btn-primary saveButton">{{ __('Save') }}</button>
-            </div>
+                    </div>
+                    <div class="ua-total">
+                        <span>{{ __('Weekly total') }}</span>
+                        <b id="uaWeeklyTotal">—</b>
+                    </div>
+
+                    <div class="ua-sub ua-sub-add">{{ __('Exceptions') }}</div>
+                    <div class="ua-exceptions">
+                        @forelse ($intensiveSummary as $period)
+                            <span class="ua-chip is-red"><i class="fa-solid fa-sun"></i>{{ __('Intensive workday') }} · {{ \Carbon\Carbon::parse($period['from'])->format('d/m') }}–{{ \Carbon\Carbon::parse($period['to'])->format('d/m') }} · {{ $period['hours'] }} h</span>
+                        @empty
+                            <span class="ua-chip"><i class="fa-solid fa-sun"></i>{{ __('No intensive workday') }}</span>
+                        @endforelse
+                        <span class="ua-chip"><i class="fa-solid fa-umbrella-beach"></i>{{ trans_choice(':count holiday|:count holidays', $holidayCount, ['count' => $holidayCount]) }}</span>
+                        <a class="ua-chip is-link" href="{{ route('calender.index', $currentWorkspace->slug) }}"><i class="fa-regular fa-calendar"></i>{{ __('Manage in my calendar') }}</a>
+                    </div>
+                </div>
+            </section>
+
+            {{-- ================= Exportar a Axapta ================= --}}
+            @if ($user->is_exporter)
+                <section class="ua-card ua-section" id="v-pills-axapta" data-ua-section="axapta">
+                    <header class="ua-card-head">
+                        <div>
+                            <h3>{{ __('Export hours to Axapta') }}</h3>
+                            <p>{{ __('Finished order forms of Jobsite projects from all delegations.') }}</p>
+                        </div>
+                        <div class="ua-card-tools">
+                            <button id="exportAxapta" class="ua-btn ua-btn-primary">{{ __('Export') }}</button>
+                        </div>
+                    </header>
+                    <div class="ua-card-body" id="axapta-content">
+                        <div class="ua-kpis">
+                            <div class="ua-kpi">
+                                <small>{{ __('Pending to send') }}</small>
+                                <div><b id="uaPendingLines">…</b> <span>{{ __('lines') }}</span> · <span id="uaPendingHours">…</span> h</div>
+                            </div>
+                            <div class="ua-kpi is-warn" id="uaSkippedKpi">
+                                <small>{{ __('Cannot be exported') }}</small>
+                                <div><b id="uaSkippedCount">…</b> <span>{{ __('order forms') }}</span></div>
+                            </div>
+                        </div>
+                        <div class="ua-issues" id="uaIssues" hidden>
+                            <div class="ua-issues-head">
+                                <b>{{ __('Check before exporting') }}</b>
+                                <button type="button" class="ua-link" id="uaIssuesToggle" data-show="{{ __('See list') }}" data-hide="{{ __('Hide list') }}">{{ __('See list') }}</button>
+                            </div>
+                            <ul class="ua-issues-list" id="uaIssuesList" hidden></ul>
+                        </div>
+
+                        <div class="ua-sub ua-sub-add">{{ __('Latest batches') }}</div>
+                        <table class="ua-table">
+                            <thead>
+                                <tr><th>{{ __('Date') }}</th><th>{{ __('Lines') }}</th><th>{{ __('Hours') }}</th><th>{{ __('Status') }}</th></tr>
+                            </thead>
+                            <tbody id="uaBatches">
+                                <tr><td colspan="4" class="ua-muted">{{ __('Loading...') }}</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+            @endif
         </div>
-
-        <!-- Axapta Exporter-->
-        @if ($user->is_exporter)
-            <div class="card divTimetable" id="v-pills-axapta">
-                <div class="card-header buttonColocation">
-                    <h5>{{ __('Export to Axapta') }}</h5>
-                    <button class="btn btn-sm btn-primary toggle-section buttonColapse"
-                        data-target="#axapta-content">-</button>
-                </div>
-
-                <div class="collapse-section card-body" id="axapta-content">
-                    <div style="display: flex;justify-content: flex-start;">
-                        <i class="bi bi-info-circle"
-                            style="color: #FFD43B;font-size: 30px;margin-left: 15px;margin-right: -63px;"></i>
-                        <p class="text-muted infoWorkspace">
-                            {{ __('Click the following button to export the Jobsite projects of all delegations to Axapta') }}
-                        </p>
-                    </div>
-                    <div style="display: flex;justify-content: center;">
-                        <button id="exportAxapta" class="btn btn-sm btn-primary" style="width: 15%">
-                            {{ __('Export') }}
-                        </button>
-                    </div>
-                </div>
-            </div>
-        @endif
+    </div>
     @endsection
     @push('scripts')
         <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
@@ -1053,27 +1120,162 @@
             });
         </script>
         <script>
-            $(document).on('click', '.list-group-item', function() {
-                $('.list-group-item').removeClass('active');
-                $('.list-group-item').removeClass('text-primary');
-                setTimeout(() => {
-                    $(this).addClass('active').removeClass('text-primary');
-                }, 10);
-            });
+            // ===== Perfil: secciones, grupos de espacios, total semanal y resumen de Axapta =====
+            (function() {
+                // --- Secciones del menú lateral (una visible a la vez; respeta los anclajes antiguos #v-pills-…) ---
+                const navItems = document.querySelectorAll('#uaNav .ua-nav-item');
+                const sections = document.querySelectorAll('.ua-section');
+                const legacyHash = { 'v-pills-profile': 'workspaces', 'v-pills-timetable': 'timetable', 'v-pills-axapta': 'axapta' };
 
-            var type = window.location.hash.substr(1);
-            $('.list-group-item').removeClass('active');
-            $('.list-group-item').removeClass('text-primary');
-            if (type != '') {
-                $('a[href="#' + type + '"]').addClass('active').removeClass('text-primary');
-            } else {
-                $('.list-group-item:eq(0)').addClass('active').removeClass('text-primary');
-            }
+                function show(name) {
+                    if (!document.querySelector('.ua-section[data-ua-section="' + name + '"]')) name = 'workspaces';
+                    navItems.forEach((b) => b.classList.toggle('is-active', b.dataset.uaTarget === name));
+                    sections.forEach((s) => s.classList.toggle('is-active', s.dataset.uaSection === name));
+                    try { history.replaceState(null, '', '#' + name); } catch (e) {}
+                    if (name === 'axapta' && window.uaLoadAxaptaPreview && !window.__uaAxaptaLoaded) window.uaLoadAxaptaPreview();
+                }
+                navItems.forEach((b) => b.addEventListener('click', () => show(b.dataset.uaTarget)));
+                window.uaShowSection = show; // lo usa la visita guiada (users/partials/account_help)
+                const hash = window.location.hash.replace('#', '');
+                show(legacyHash[hash] || hash || 'workspaces');
 
-            var scrollSpy = new bootstrap.ScrollSpy(document.body, {
-                target: '#useradd-sidenav',
-                offset: 300
-            })
+                // --- Espacios: ocultar los países sin resultados y contar cambios sin guardar ---
+                const wsWrap = document.querySelector('#workspace-content .workspace-search-wrapper');
+                if (wsWrap) {
+                    const chips = wsWrap.querySelector('#workspaceChips');
+                    const initial = new Set(Array.from(chips.querySelectorAll('.workspace-chip')).map((c) => c.dataset.workspaceId));
+                    const changes = document.getElementById('uaWsChanges');
+                    const badge = document.getElementById('uaMineBadge');
+                    const noResults = document.getElementById('uaNoResults');
+                    const saveBtn = document.getElementById('saveWorkspaces');
+                    const discard = document.getElementById('uaWsDiscard');
+                    const newLabel = @json(__('New'));
+                    const refresh = () => {
+                        let anyVisible = false;
+                        wsWrap.querySelectorAll('.ua-group').forEach((g) => {
+                            const visibleCount = Array.from(g.querySelectorAll('.workspace-item')).filter((i) => i.style.display !== 'none').length;
+                            g.hidden = visibleCount === 0;
+                            const count = g.querySelector('.ua-group-count');
+                            if (count) count.textContent = visibleCount;
+                            anyVisible = anyVisible || visibleCount > 0;
+                        });
+                        if (noResults) noResults.hidden = anyVisible;
+                        const chipEls = Array.from(chips.querySelectorAll('.workspace-chip'));
+                        const now = new Set(chipEls.map((c) => c.dataset.workspaceId));
+                        // Etiqueta «Nuevo» en los espacios añadidos que aún no se han guardado
+                        chipEls.forEach((c) => {
+                            if (initial.has(c.dataset.workspaceId) || c.querySelector('.ua-new')) return;
+                            const tag = document.createElement('span');
+                            tag.className = 'ua-new';
+                            tag.textContent = newLabel;
+                            c.insertBefore(tag, c.querySelector('.workspace-chip-close'));
+                        });
+                        const added = [...now].filter((id) => !initial.has(id)).length;
+                        const removed = [...initial].filter((id) => !now.has(id)).length;
+                        const dirty = added + removed > 0;
+                        if (badge) badge.textContent = now.size;
+                        if (changes) {
+                            const parts = [];
+                            if (added) parts.push(@json(__('Added')) + ': ' + added);
+                            if (removed) parts.push(@json(__('Removed')) + ': ' + removed);
+                            changes.textContent = parts.length ? parts.join(' · ') + ' — ' + @json(__('unsaved changes')) : '';
+                        }
+                        if (saveBtn && !document.body.classList.contains('ua-saving')) saveBtn.disabled = !dirty;
+                        if (discard) discard.hidden = !dirty;
+                    };
+                    // Guardar desactiva el botón mientras guarda: que refresh() no lo vuelva a activar
+                    if (saveBtn) saveBtn.addEventListener('click', () => document.body.classList.add('ua-saving'), true);
+                    // Descartar: volver a lo guardado (la página se recarga con los espacios actuales)
+                    if (discard) discard.addEventListener('click', () => window.location.reload());
+                    // El script original añade y quita etiquetas y oculta elementos: se observa el resultado
+                    // (solo etiquetas y lista: el pie, donde escribe refresh(), queda fuera para no crear un bucle)
+                    const mo = new MutationObserver(() => setTimeout(refresh, 0));
+                    mo.observe(chips, { childList: true });
+                    const list = wsWrap.querySelector('.workspace-list');
+                    if (list) mo.observe(list, { subtree: true, attributes: true, attributeFilter: ['style'] });
+                    refresh();
+                }
+
+                // --- Horario: barras, total semanal y «copiar lunes» ---
+                const days = document.getElementById('timetable-content');
+                const toHours = (v) => { const m = /^(\d{1,2}):(\d{2})/.exec(v || ''); return m ? (+m[1]) + (+m[2]) / 60 : 0; };
+                const fmt = (h) => { const t = Math.round(h * 60); return String(Math.floor(t / 60)).padStart(2, '0') + ':' + String(t % 60).padStart(2, '0'); };
+                function refreshTimetable() {
+                    if (!days) return;
+                    let total = 0;
+                    days.querySelectorAll('.dayToggle').forEach((d) => {
+                        const on = d.querySelector('.dayCheckbox')?.checked;
+                        const h = on ? toHours(d.querySelector('.inputToggle')?.value) : 0;
+                        total += h;
+                        d.classList.toggle('is-off', !on);
+                        const bar = d.querySelector('.ua-bar > span');
+                        if (bar) bar.style.width = Math.min(100, h / 12 * 100) + '%';
+                    });
+                    const label = total > 0 ? fmt(total) + ' h' : '—';
+                    const t = document.getElementById('uaWeeklyTotal'); if (t) t.textContent = label;
+                    const b = document.getElementById('uaWeeklyBadge'); if (b) b.textContent = total > 0 ? fmt(total).replace(/:00$/, '') + ' h' : '—';
+                }
+                if (days) {
+                    // Los valores los pone el script original (carga por AJAX, selectores): se observa el texto mostrado
+                    new MutationObserver(() => setTimeout(refreshTimetable, 0)).observe(days, { subtree: true, childList: true, characterData: true, attributes: true, attributeFilter: ['class'] });
+                    days.addEventListener('change', () => setTimeout(refreshTimetable, 0));
+                    refreshTimetable();
+                }
+                const copy = document.getElementById('uaCopyMonday');
+                if (copy && days) {
+                    copy.addEventListener('click', () => {
+                        const monday = document.getElementById('mondayInput');
+                        const value = monday && document.getElementById('mondayCheckbox')?.checked ? monday.value : '';
+                        if (!value || typeof syncTimeSelectorFromValue !== 'function') return;
+                        days.querySelectorAll('.dayToggle').forEach((d) => {
+                            if (d.contains(monday) || !d.querySelector('.dayCheckbox')?.checked) return;
+                            syncTimeSelectorFromValue(d, value);
+                        });
+                        refreshTimetable();
+                    });
+                }
+
+                // --- Axapta: resumen antes de exportar (simulación) e historial de lotes ---
+                const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+                window.uaLoadAxaptaPreview = function() {
+                    const lines = document.getElementById('uaPendingLines');
+                    if (!lines) return;
+                    window.__uaAxaptaLoaded = true;
+                    $.ajax({
+                        url: @json(route('projects.export.axapta.preview')),
+                        type: 'GET',
+                        success: function(r) {
+                            lines.textContent = r.pending_lines;
+                            document.getElementById('uaPendingHours').textContent = String(r.pending_hours || '').replace(/:\d{2}$/, ''); // HH:MM
+                            const skipped = r.skipped || [], warnings = r.warnings || [];
+                            document.getElementById('uaSkippedCount').textContent = skipped.length;
+                            document.getElementById('uaSkippedKpi').classList.toggle('is-ok', skipped.length === 0);
+                            const badge = document.getElementById('uaPendingBadge');
+                            if (badge) { badge.hidden = !r.pending_lines; badge.textContent = r.pending_lines; }
+                            const issues = document.getElementById('uaIssues');
+                            const list = document.getElementById('uaIssuesList');
+                            issues.hidden = !(skipped.length || warnings.length);
+                            list.innerHTML = skipped.map((s) => '<li class="is-skip">' + esc(s) + '</li>').join('') +
+                                warnings.map((w) => '<li class="is-warn">' + esc(w) + '</li>').join('');
+                            const body = document.getElementById('uaBatches');
+                            body.innerHTML = (r.batches || []).length ? r.batches.map((b) =>
+                                '<tr><td>' + esc(b.date) + '</td><td>' + esc(b.lines) + '</td><td>' + esc(String(b.hours || '').replace(/:\d{2}$/, '')) + '</td><td><span class="ua-state ' + (b.rejected ? 'is-rejected' : 'is-sent') + '"><i></i>' +
+                                esc(b.rejected ? @json(__('Rejected')) : @json(__('Sent'))) + '</span></td></tr>').join('')
+                                : '<tr><td colspan="4" class="ua-muted">' + esc(@json(__('No exports yet.'))) + '</td></tr>';
+                        },
+                        error: function() {
+                            lines.textContent = '—';
+                            document.getElementById('uaBatches').innerHTML = '<tr><td colspan="4" class="ua-muted">' + esc(@json(__('The summary could not be loaded.'))) + '</td></tr>';
+                        }
+                    });
+                };
+                const toggle = document.getElementById('uaIssuesToggle');
+                if (toggle) toggle.addEventListener('click', () => {
+                    const list = document.getElementById('uaIssuesList');
+                    list.hidden = !list.hidden;
+                    toggle.textContent = list.hidden ? toggle.dataset.show : toggle.dataset.hide;
+                });
+            })();
         </script>
 
         <script>
@@ -1129,6 +1331,7 @@
                     },
                     complete: function() {
                         $btn.prop('disabled', false).text(originalText);
+                        if (window.uaLoadAxaptaPreview) window.uaLoadAxaptaPreview();
                     }
                 });
             });

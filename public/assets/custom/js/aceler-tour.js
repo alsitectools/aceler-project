@@ -19,6 +19,7 @@
  *   quede por encima del oscurecido (las cards crean su propia capa).
  * - keepScroll: contenedor con scroll que intro.js no debe mover en ese paso (vuelve a keepScrollTop, 0 por defecto).
  * - spanTo: otro elemento; el paso resalta la zona que va de «element» a «spanTo» como un solo bloque.
+ * - show: función que hace visible el elemento antes del paso (p. ej. abrir su pestaña o sección).
  * Los botones con [data-tour-start] lanzan el recorrido.
  */
 (function () {
@@ -146,7 +147,9 @@
             hideToast();
             if (cfg.beforeStart) cfg.beforeStart();
             loadIntro(cfg.assets).then(() => {
-                const raw = (cfg.buildSteps() || []).filter((s) => !('element' in s) || visible(s.element));
+                // Un paso con «show» vive en una parte de la vista que aún no se ve (p. ej. otra pestaña):
+                // se acepta si el elemento existe y se muestra justo antes de llegar a él
+                const raw = (cfg.buildSteps() || []).filter((s) => !('element' in s) || (s.show ? !!s.element : visible(s.element)));
                 if (!raw.length) return;
                 raw.forEach((s) => (s.lift || []).filter(Boolean).forEach((el) => { el.classList.add('aceler-tour-lift'); lifted.push(el); }));
                 // spanTo: resaltar como una sola zona desde «element» hasta «spanTo» (p. ej. varias columnas de una fila).
@@ -182,8 +185,9 @@
                 });
                 tour.onbeforechange(function (target) {
                     closeMenu();
-                    const s = raw.find((r) => r.spanEl && r.spanEl === target);
-                    if (s) placeSpan(s);
+                    const step = raw.find((r) => r.element === target || (r.spanEl && r.spanEl === target));
+                    if (step && step.show) step.show();
+                    if (step && step.spanEl) placeSpan(step);
                     return true;
                 });
                 tour.onafterchange(function () {
