@@ -18,6 +18,7 @@
  * - lift: [elementos] → se les quita el z-index mientras dura el recorrido para que lo resaltado
  *   quede por encima del oscurecido (las cards crean su propia capa).
  * - keepScroll: contenedor con scroll que intro.js no debe mover en ese paso (vuelve a keepScrollTop, 0 por defecto).
+ * - spanTo: otro elemento; el paso resalta la zona que va de «element» a «spanTo» como un solo bloque.
  * Los botones con [data-tour-start] lanzan el recorrido.
  */
 (function () {
@@ -58,6 +59,7 @@
         let toast = null;
         let openMenu = null;
         let lifted = [];
+        let spans = [];
 
         // --- aviso de primera visita (se crea aquí para no repetir el marcado en cada vista) ---
         function buildToast() {
@@ -102,6 +104,37 @@
             lifted.forEach((el) => el.classList.remove('aceler-tour-lift'));
             lifted = [];
         }
+        // Capa de un paso con spanTo: rodea a «element» y «spanTo». Va dentro del contenedor con scroll más cercano
+        // (no en el body ni en el «offsetParent»: intro.js pone y quita position:relative a lo que resalta, y la
+        // referencia cambiaría entre pasos). Así la capa se mueve siempre con el contenido.
+        function spanHost(el) {
+            for (let p = el.parentElement; p && p !== document.body; p = p.parentElement) {
+                const o = getComputedStyle(p).overflowY;
+                if (o === 'auto' || o === 'scroll') return p;
+            }
+            return document.body;
+        }
+        function placeSpan(s) {
+            if (s.keepScroll) s.keepScroll.scrollTop = s.keepScrollTop || 0;
+            const host = s.spanHost || (s.spanHost = spanHost(s.element));
+            if (host !== document.body && getComputedStyle(host).position === 'static') host.classList.add('aceler-tour-span-host');
+            if (s.spanEl.parentElement !== host) host.appendChild(s.spanEl);
+            const h = host.getBoundingClientRect();
+            const a = s.element.getBoundingClientRect();
+            const b = s.spanTo.getBoundingClientRect();
+            const left = Math.min(a.left, b.left), top = Math.min(a.top, b.top);
+            Object.assign(s.spanEl.style, {
+                left: (left - h.left - host.clientLeft + host.scrollLeft) + 'px',
+                top: (top - h.top - host.clientTop + host.scrollTop) + 'px',
+                width: (Math.max(a.right, b.right) - left) + 'px',
+                height: (Math.max(a.bottom, b.bottom) - top) + 'px',
+            });
+        }
+        function removeSpans() {
+            spans.forEach((el) => el.remove());
+            spans = [];
+            document.querySelectorAll('.aceler-tour-span-host').forEach((el) => el.classList.remove('aceler-tour-span-host'));
+        }
         function bubble(step, i, total) {
             return '<div class="board-tour-step">' + escapeHtml(String(T.stepOf || ':current / :total').replace(':current', i + 1).replace(':total', total)) + '</div>' +
                 '<strong class="board-tour-title">' + escapeHtml(step.title) + '</strong>' +
@@ -116,9 +149,19 @@
                 const raw = (cfg.buildSteps() || []).filter((s) => !('element' in s) || visible(s.element));
                 if (!raw.length) return;
                 raw.forEach((s) => (s.lift || []).filter(Boolean).forEach((el) => { el.classList.add('aceler-tour-lift'); lifted.push(el); }));
+                // spanTo: resaltar como una sola zona desde «element» hasta «spanTo» (p. ej. varias columnas de una fila).
+                // Se usa una capa invisible del tamaño de esa zona, que se recoloca al llegar al paso.
+                raw.forEach((s) => {
+                    if (!s.spanTo || !visible(s.spanTo)) return;
+                    s.spanEl = document.createElement('div');
+                    s.spanEl.className = 'aceler-tour-span';
+                    document.body.appendChild(s.spanEl);
+                    placeSpan(s);
+                    spans.push(s.spanEl);
+                });
                 const steps = raw.map((s, i) => {
                     const out = { intro: bubble(s, i, raw.length), position: s.position || 'bottom' };
-                    if (s.element) out.element = s.element;
+                    if (s.element) out.element = s.spanEl || s.element;
                     return out;
                 });
 
@@ -137,7 +180,12 @@
                     tooltipClass: 'board-tour-tooltip',
                     highlightClass: 'board-tour-highlight',
                 });
-                tour.onbeforechange(function () { closeMenu(); return true; });
+                tour.onbeforechange(function (target) {
+                    closeMenu();
+                    const s = raw.find((r) => r.spanEl && r.spanEl === target);
+                    if (s) placeSpan(s);
+                    return true;
+                });
                 tour.onafterchange(function () {
                     const idx = this._currentStep;
                     const step = raw[idx];
@@ -158,9 +206,9 @@
                         tour.refresh();
                     }, 120);
                 });
-                tour.onexit(function () { closeMenu(); unlift(); });
+                tour.onexit(function () { closeMenu(); unlift(); removeSpans(); });
                 tour.start();
-            }).catch(() => { unlift(); });
+            }).catch(() => { unlift(); removeSpans(); });
         }
 
         if (cfg.dot) cfg.dot.hidden = !!storage.get(cfg.seenKey);

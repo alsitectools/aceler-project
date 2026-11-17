@@ -9,6 +9,7 @@
     <li class="breadcrumb-item"><a href="{{ route('projects.index', $currentWorkspace->slug) }}">{{ __('Projects') }}</a>
     </li>
     <li class="breadcrumb-item lastBreadCrumb">{{ $project->name }}</li>
+    @include('projects.partials.project_detail_help')
 @endsection
 @php
     use Carbon\Carbon;
@@ -1067,137 +1068,218 @@
     }
 </style>
 @section('content')
-    <div class="row">
-        <!-- [ sample-page ] start -->
-        <div class="col-sm-12">
-            <div class="row">
-                <div class="col-xxl-12">
-                    <div class="card bg-primary widthAdjustDiv">
-                        <div class="card-body pb-2">
-                            <div class="projectHeaderMain">
-                                <h3 class="text-white projectTitleH3"> {{ $project->name }}</h3>
-                                <nav class="projectSubnav projectSubnav--header"
-                                    aria-label="{{ __('Project navigation') }}">
-                                    <a href="{{ route('projects.milestone.board', [$currentWorkspace->slug, $project->id]) }}"
-                                        class="projectSubnavItem">
-                                        <i class="fa-solid fa-file-lines"></i>
-                                        <span>{{ __('Order forms') }}</span>
+    @php
+        // ===== Datos de la cabecera y los indicadores =====
+        $pdTypeName = $project->type ? optional($project->typeRel)->name : null;
+        $pdMilestones = $project->milestones ?? collect();
+        $pdStatusCounts = $pdMilestones->countBy(fn($m) => (int) $m->status);
+        $pdTotalOrders = $pdMilestones->count();
+        $pdStatuses = [
+            1 => ['label' => __('To Do'), 'color' => '#cbd5e1'],
+            2 => ['label' => __('Ongoing'), 'color' => '#60a5fa'],
+            3 => ['label' => __('For Review'), 'color' => '#fbbf24'],
+            4 => ['label' => __('Finished'), 'color' => '#22c55e'],
+        ];
+        // Horas imputadas: llegan en decimal (2.75) → 2:45
+        $pdHoursRaw = (float) ($totalHours ?? 0);
+        $pdHoursH = (int) floor($pdHoursRaw);
+        $pdHoursM = (int) round(($pdHoursRaw - $pdHoursH) * 60);
+        if ($pdHoursM === 60) { $pdHoursH++; $pdHoursM = 0; }
+        $pdHours = $pdHoursH . ':' . str_pad($pdHoursM, 2, '0', STR_PAD_LEFT);
+        $pdMembersCount = (int) $project->technicians->count() + (int) $project->salesManager->count();
+        $pdMembers = ($project->users ?? collect())->take(3);
+        $pdProjectStatus = [
+            'Finished' => ['Finished', 'is-finished'],
+            'Ongoing' => ['Ongoing', 'is-ongoing'],
+        ][$project->status] ?? ['OnHold', 'is-onhold'];
+        $pdCanEditOrders = $currentWorkspace->permission == 'Member' || $currentWorkspace->permission == 'Owner';
+
+        // ===== Equipo: quien creó encargos y quien imputó horas, una sola vez por persona =====
+        $pdTeam = [];
+        foreach ($milestoneCreators as $u) {
+            $pdTeam[$u->id] = ['user' => $u, 'orders' => (int) $u->milestones_count, 'hours' => null];
+        }
+        foreach ($usersWithHours as $u) {
+            $pdTeam[$u->id] = $pdTeam[$u->id] ?? ['user' => $u, 'orders' => null, 'hours' => null];
+            $pdTeam[$u->id]['hours'] = $u->total_time ?: null;
+        }
+
+        // ===== Actividad: icono y color por tipo =====
+        $pdActivityTypes = [
+            'Upload File' => ['fa-file-arrow-up', 'is-green'],
+            'has uploaded a review file' => ['fa-file-circle-check', 'is-amber'],
+            'Create Milestone' => ['fa-plus', 'is-red'],
+            'Create Timesheet' => ['fa-clock', 'is-blue'],
+            'has delete a file' => ['fa-trash', 'is-red'],
+            'has created a new project' => ['fa-diagram-project', 'is-green'],
+            'has updated a milestone' => ['fa-pen', 'is-indigo'],
+            'has updated the milestone status to' => ['fa-right-left', 'is-blue'],
+            'has deleted a milestone' => ['fa-trash', 'is-red'],
+        ];
+        $pdDayLabel = function ($date) {
+            if ($date->isToday()) return __('Today');
+            if ($date->isYesterday()) return __('Yesterday');
+            return $date->locale(app()->getLocale())->translatedFormat('j M Y');
+        };
+    @endphp
+
+    <div class="pd">
+        {{-- ================= Cabecera ================= --}}
+        <div class="pd-hero">
+            <div class="pd-hero-icon">
+                @if ($pdTypeName)
+                    <img src="{{ asset('assets/img/types/' . $pdTypeName . '.svg') }}" alt="{{ __($pdTypeName) }}">
+                @else
+                    <i class="fa-solid fa-diagram-project"></i>
+                @endif
+            </div>
+            <div class="pd-hero-main">
+                <h1 class="pd-title">
+                    <span class="pd-title-text" title="{{ $project->name }}">{{ $project->name }}</span>
+                    <span class="pd-status-pill {{ $pdProjectStatus[1] }}"><i></i>{{ __($pdProjectStatus[0]) }}</span>
+                    @if (!$project->is_active)
+                        <span class="pd-status-pill is-locked" title="{{ __('Locked') }}"><i class="fa-solid fa-lock"></i>{{ ucfirst(__('Locked')) }}</span>
+                    @endif
+                </h1>
+                <div class="pd-meta">
+                    @if ($pdTypeName)
+                        <span class="pd-meta-type pl-type-{{ $project->type }}">{{ __($pdTypeName) }}</span>
+                    @endif
+                    @if (!empty($project->ref_mo))
+                        <span class="pd-meta-mo" title="{{ __('Reference M.O') }}">MO {{ $project->ref_mo }}</span>
+                    @endif
+                    @if ($project->delegation)
+                        <span title="{{ __('Delegation') }}"><i class="fa-solid fa-location-dot"></i>{{ \Illuminate\Support\Str::title($project->delegation->delegation_name) }} · {{ \Illuminate\Support\Str::upper($project->ref_delegation) }}</span>
+                    @endif
+                    <span title="{{ __('Workspace') }}"><i class="fa-solid fa-layer-group"></i>{{ $currentWorkspace->country }} / {{ $currentWorkspace->display_name }}</span>
+                    <span title="{{ __('Creation date') }}"><i class="fa-regular fa-calendar"></i>{{ __('Created on :date', ['date' => App\Models\Utility::dateFormat($project->start_date)]) }}</span>
+                    <span title="{{ __('Members') }}">
+                        @if ($pdMembers->count())
+                            <span class="pd-avatars">
+                                @foreach ($pdMembers as $member)
+                                    @include('projects.partials.pd_avatar', ['user' => $member, 'size' => 24])
+                                @endforeach
+                            </span>
+                        @else
+                            <i class="fa-solid fa-users"></i>
+                        @endif
+                        {{ trans_choice(':count member|:count members', $pdMembersCount, ['count' => $pdMembersCount]) }}
+                    </span>
+                </div>
+            </div>
+            <div class="pd-hero-actions">
+                <a href="{{ route('projects.milestone.board', [$currentWorkspace->slug, $project->id]) }}" class="pd-btn">
+                    <i class="fa-solid fa-table-columns"></i><span>{{ __('Order forms board') }}</span>
+                </a>
+                <a href="{{ route('projects.timesheet.index', [$currentWorkspace->slug, $project->id]) }}" class="pd-btn">
+                    <i class="fa-solid fa-list-check"></i><span>{{ __('Timesheet') }}</span>
+                </a>
+                @if ($pdCanEditOrders)
+                    <a href="#" class="pd-btn pd-btn-primary addmMilestoneButton" data-ajax-popup="true"
+                        data-title="{{ __('Create Order Form') }}"
+                        data-url="{{ route('projects.milestone', [$currentWorkspace->slug, $project->id]) }}">
+                        <i class="fa-solid fa-plus"></i><span>{{ __('New order') }}</span>
+                    </a>
+                @endif
+                @if ($project->is_active)
+                    @auth('web')
+                        @if ($objUser->type == 'admin')
+                            <div class="dropdown">
+                                <button type="button" class="pd-icon-btn" data-bs-toggle="dropdown" aria-expanded="false" title="{{ __('Action') }}">
+                                    <i class="fa-solid fa-ellipsis"></i>
+                                </button>
+                                <div class="dropdown-menu dropdown-menu-end pd-menu">
+                                    <a href="#" class="dropdown-item" data-ajax-popup="true" data-title="{{ __('Edit Project') }}"
+                                        data-url="{{ route('projects.edit', [$currentWorkspace->slug, $project->id]) }}">
+                                        <i class="ti ti-edit"></i>{{ __('Edit') }}
                                     </a>
-                                    <div class="divisorLineNav"></div>
-                                    <a href="{{ route('projects.timesheet.index', [$currentWorkspace->slug, $project->id]) }}"
-                                        class="projectSubnavItem">
-                                        <i class="fas fa-tasks"></i>
-                                        <span>{{ __('Timesheet') }}</span>
+                                    <a href="#" class="dropdown-item text-danger bs-pass-para" data-confirm="{{ __('Are You Sure?') }}"
+                                        data-text="{{ __('This action can not be undone. Do you want to continue?') }}"
+                                        data-confirm-yes="delete-form-{{ $project->id }}">
+                                        <i class="ti ti-trash"></i>{{ __('Delete') }}
                                     </a>
-                                </nav>
-                            </div>
-                            <div>
-                                <div class="projectDivSubtitle">
-                                    <div title="{{ __('Workspace') }}" id="workspaceNameTitle">
-                                        <i class="fa-regular fa-building"></i>
-                                        {{ $currentWorkspace->country }} / {{ $currentWorkspace->display_name }}
-                                    </div>
-                                    <div id="membersCountTitle" title="{{ __('Members') }}">
-                                        <i class="fas fa-users"></i>
-                                        {{ (int) $project->technicians->count() + (int) $project->salesManager->count() }}
-                                    </div>
-
-                                    <div id="creationDateTitle" title="{{ __('Creation date') }}">
-                                        <i class="fas fa-calendar-day"></i>
-                                        {{ App\Models\Utility::dateFormat($project->start_date) }}
-                                    </div>
-
-                                    <div id="projectTypeTitle" title="{{ __('Project type') }}">
-                                        <i class="fa-solid fa-diagram-project"></i>
-                                        {{ $project->ref_mo != '' ? $project->ref_mo : __($project->typeName()) }}
-                                    </div>
-
-                                    <div class="badge-container">
-                                        @if ($project->status == 'Finished')
-                                            <span class="badge bg-success p-2 px-3 rounded"
-                                                style=" padding: 8px 12px !important;">
-                                                {{ __('Finished') }}
-                                            </span>
-                                        @elseif($project->status == 'Ongoing')
-                                            <span class="badge bg-secondary p-2 px-3 rounded"
-                                                style=" padding: 8px 12px !important;">
-                                                {{ __('Ongoing') }}
-                                            </span>
-                                        @else
-                                            <span class="badge bg-warning p-2 px-3 rounded "
-                                                style=" padding: 8px 12px !important;">{{ __('OnHold') }}</span>
-                                        @endif
-                                    </div>
-
-                                    <div title="{{ __('Hours charged') }}">
-                                        <i class="fa-regular fa-clock"></i>
-                                        {{ __('Hours charged') }}: {{ $totalHours ? $totalHours : '00:00' }}h
-                                    </div>
-
-                                    <div title="{{ __('Order forms createds') }}">
-                                        <i class="fa-regular fa-file-lines"></i>
-                                        {{ __('Order forms') }}: {{ $totalMilestones ? $totalMilestones : '0' }}
-                                    </div>
                                 </div>
-
-                                @if (!$project->is_active)
-                                    <button class="btn btn-light d"> <a href="#" class=""
-                                            title="{{ __('Locked') }}">
-                                            <i data-feather="lock"> </i>
-                                        </a></button>
-                                @else
-                                    @auth('web')
-                                        @if ($objUser->type == 'admin')
-                                            <div class="d-flex align-items-center ">
-
-                                                <a href="#" class=""
-                                                    data-url="{{ route('projects.edit', [$currentWorkspace->slug, $project->id]) }}"
-                                                    data-ajax-popup="true" data-title="{{ __('Edit Project') }}"
-                                                    data-toggle="popover" title="{{ __('Edit') }}">
-                                                    <button class="btn btn-light d-flex align-items-between me-3">
-                                                        <i class="ti ti-edit"> </i>
-                                                    </button>
-                                                </a>
-                                                <a href="#" class="bs-pass-para" data-confirm="{{ __('Are You Sure?') }}"
-                                                    data-text="{{ __('This action can not be undone. Do you want to continue?') }}"
-                                                    data-confirm-yes="delete-form-{{ $project->id }}" data-toggle="popover"
-                                                    title="{{ __('Delete') }}">
-                                                    <button class="btn btn-light d">
-                                                        <i class="ti ti-trash"> </i>
-                                                    </button>
-                                                </a>
-                                            </div>
-                                            <form id="delete-form-{{ $project->id }}"
-                                                action="{{ route('projects.destroy', [$currentWorkspace->slug, $project->id]) }}"
-                                                method="POST" style="display: none;">
-                                                @csrf
-                                                @method('DELETE')
-                                            </form>
-
-                                            <form id="leave-form-{{ $project->id }}"
-                                                action="{{ route('projects.leave', [$currentWorkspace->slug, $project->id]) }}"
-                                                method="POST" style="display: none;">
-                                                @csrf
-                                                @method('DELETE')
-                                            </form>
-                                        @endif
-                                    @endauth
-                                @endif
                             </div>
-                        </div>
-                    </div>
+                            <form id="delete-form-{{ $project->id }}"
+                                action="{{ route('projects.destroy', [$currentWorkspace->slug, $project->id]) }}"
+                                method="POST" style="display: none;">
+                                @csrf
+                                @method('DELETE')
+                            </form>
+                            <form id="leave-form-{{ $project->id }}"
+                                action="{{ route('projects.leave', [$currentWorkspace->slug, $project->id]) }}"
+                                method="POST" style="display: none;">
+                                @csrf
+                                @method('DELETE')
+                            </form>
+                        @endif
+                    @endauth
+                @endif
+            </div>
+        </div>
 
-                    <div class="col-lg-12 widthAdjustDiv">
-                        @if ($currentWorkspace->permission == 'Member' || $currentWorkspace->permission == 'Owner')
-                            <div class="card">
-                                <div class="card-header">
-                                    <div class="d-flex justify-content-between align-items-center">
-                                        <div>
-                                            <h5 class="mb-0 d-flex align-items-center" style="gap: 8px;">
-                                                <span>{{ __('Order forms') }} ({{ count($project->milestones) }})</span>
-                                            </h5>
-                                        </div>
-                                        <div class="orderFormsHeaderActions">
+        {{-- ================= Indicadores ================= --}}
+        <div class="pd-kpis">
+            <div class="pd-kpi pd-kpi-wide">
+                <div class="pd-kpi-label"><i class="fa-regular fa-file-lines"></i>{{ __('Order forms by status') }}</div>
+                <div class="pd-kpi-value">{{ $pdTotalOrders }} <small>{{ trans_choice('order form|order forms', $pdTotalOrders) }}</small></div>
+                <div class="pd-stack">
+                    @foreach ($pdStatuses as $statusId => $st)
+                        @if (($pdStatusCounts[$statusId] ?? 0) > 0)
+                            <span style="flex: {{ $pdStatusCounts[$statusId] }}; background: {{ $st['color'] }}" title="{{ $st['label'] }}: {{ $pdStatusCounts[$statusId] }}"></span>
+                        @endif
+                    @endforeach
+                </div>
+                <div class="pd-kpi-legend">
+                    @foreach ($pdStatuses as $statusId => $st)
+                        <span><i style="background: {{ $st['color'] }}"></i>{{ $st['label'] }} {{ $pdStatusCounts[$statusId] ?? 0 }}</span>
+                    @endforeach
+                </div>
+            </div>
+            <div class="pd-kpi">
+                <div class="pd-kpi-label"><i class="fa-regular fa-clock"></i>{{ __('Hours charged') }}</div>
+                <div class="pd-kpi-value">{{ $pdHours }} <small>h</small></div>
+                <div class="pd-kpi-hint">{{ trans_choice(':count person|:count people', count($usersWithHours), ['count' => count($usersWithHours)]) }}</div>
+            </div>
+            @foreach ([
+                ['fa-flag-checkered', __('Average delivery time'), $averageDelivery, __('from creation to completion')],
+                ['fa-briefcase', __('Average working time'), $averageWorkingTime, __('time actually working')],
+                ['fa-play', __('Average start-up time'), $averageStartUpTime, __('until the first task starts')],
+            ] as [$icon, $label, $value, $hint])
+                <div class="pd-kpi">
+                    <div class="pd-kpi-label"><i class="fa-solid {{ $icon }}"></i>{{ $label }}</div>
+                    @if ($pdTotalOrders > 0)
+                        <div class="pd-kpi-value">{{ $value }} <small>{{ trans_choice('day|days', (int) $value) }}</small></div>
+                    @else
+                        <div class="pd-kpi-value is-empty">—</div>
+                    @endif
+                    <div class="pd-kpi-hint">{{ $hint }}</div>
+                </div>
+            @endforeach
+            <div class="pd-kpi">
+                <div class="pd-kpi-label"><i class="fa-solid fa-triangle-exclamation"></i>{{ __('Average delay time') }}</div>
+                @if ($pdTotalOrders === 0)
+                    <div class="pd-kpi-value is-empty">—</div>
+                @elseif ((int) $averageDelayTime === 0)
+                    <div class="pd-kpi-value is-good">{{ __('No delay') }}</div>
+                @else
+                    <div class="pd-kpi-value is-bad">{{ $averageDelayTime }} <small>{{ trans_choice('day|days', (int) $averageDelayTime) }}</small></div>
+                @endif
+                <div class="pd-kpi-hint">{{ __('compared with the desired delivery') }}</div>
+            </div>
+        </div>
+
+        {{-- ================= Encargos ================= --}}
+        @if ($pdCanEditOrders)
+            <section class="pd-card pd-orders">
+                <header class="pd-card-head">
+                    <h3>{{ __('Order forms') }}</h3>
+                    <span class="pd-count">{{ count($project->milestones) }}</span>
+                    <div class="pd-card-tools orderFormsHeaderActions">
+                        <label class="pd-search">
+                            <i class="fa-solid fa-magnifying-glass"></i>
+                            <input type="search" id="pdOrderSearch" placeholder="{{ __('Search order form') }}" autocomplete="off">
+                        </label>
                                             <div class="project-order-header-tools">
                                                 <button type="button" id="orderFormsColumnsToggleBtn"
                                                     class="project-order-column-toggle-btn"
@@ -1209,28 +1291,27 @@
                                                             d="M8 3.2c3.3 0 5.8 2.3 6.9 4.8-1.1 2.5-3.6 4.8-6.9 4.8S2.2 10.5 1.1 8C2.2 5.5 4.7 3.2 8 3.2Zm0 1.2c-2.6 0-4.7 1.7-5.8 3.6 1.1 1.9 3.2 3.6 5.8 3.6s4.7-1.7 5.8-3.6c-1.1-1.9-3.2-3.6-5.8-3.6Zm0 1.4a2.2 2.2 0 1 1 0 4.4 2.2 2.2 0 0 1 0-4.4Zm0 1.2a1 1 0 1 0 0 2 1 1 0 0 0 0-2Z">
                                                         </path>
                                                     </svg>
+                                                    <span class="pd-col-label">{{ __('Columns') }}</span>
                                                     <span class="project-order-column-toggle-count"
                                                         id="orderFormsColumnsToggleCount">0/0</span>
                                                 </button>
                                             </div>
                                             @if ($project->type == 3 || $project->type == 5)
-                                                <a href="#" class="btn btn-primary" data-ajax-popup="true"
+                                                <a href="#" class="pd-btn pd-btn-tool" data-ajax-popup="true"
                                                     data-size="md" title="{{ __('Edit Phases') }}"
                                                     data-url="{{ route('projects.stages.popup', [$currentWorkspace->slug, $project->id]) }}"
-                                                    data-toggle="popover"><i class="fa-solid fa-layer-group me-2"></i>
+                                                    data-toggle="popover"><i class="fa-solid fa-layer-group"></i><span>{{ __('Phases') }}</span>
                                                 </a>
                                             @endif
-                                            <a href="#" class="btn btn-primary addmMilestoneButton"
-                                                title="{{ __('Create Order Form') }}" data-ajax-popup="true"
-                                                data-url="{{ route('projects.milestone', [$currentWorkspace->slug, $project->id]) }}"
-                                                data-toggle="popover"><i class="fa-solid fa-plus me-2"
-                                                    style="color: #ffffff; font-size: 15px;"></i><i
-                                                    class="fa-solid fa-file-lines" style="color: #ffffff;"></i></a>
-
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="card-body">
+                    </div>
+                </header>
+                <nav class="pd-tabs" id="pdOrderTabs" role="tablist">
+                    <button type="button" class="pd-tab is-active" data-status-id="*">{{ __('All items') }} <b>{{ $pdTotalOrders }}</b></button>
+                    @foreach ($pdStatuses as $statusId => $st)
+                        <button type="button" class="pd-tab" data-status-id="{{ $statusId }}"><i style="background: {{ $st['color'] }}"></i>{{ $st['label'] }} <b>{{ $pdStatusCounts[$statusId] ?? 0 }}</b></button>
+                    @endforeach
+                </nav>
+                <div class="pd-card-body">
                                     <div class="project-order-table-shell">
                                         <div class="project-order-table-inner">
                                         <div class="project-order-header-row">
@@ -1434,6 +1515,7 @@
                                                     data-requested-by="{{ mb_strtolower(trim(optional($milestone->getRequestedBy())->name ?? '')) }}"
                                                     data-assigned-to="{{ mb_strtolower(trim(optional($milestone->getAssignedToUser())->name ?? '')) }}"
                                                     data-status="{{ mb_strtolower(trim($statusText)) }}"
+                                                    data-status-id="{{ (int) $milestone->status }}"
                                                     data-created-date="{{ !empty($milestone->start_date) && $milestone->start_date !== '0000-00-00' ? \Carbon\Carbon::parse($milestone->start_date)->format('Y-m-d') : '' }}"
                                                     data-desired-date="{{ !empty($milestone->end_date) && $milestone->end_date !== '0000-00-00' ? \Carbon\Carbon::parse($milestone->end_date)->format('Y-m-d') : '' }}"
                                                     data-expected-date="{{ !empty($milestone->planned_end_date) && $milestone->planned_end_date !== '0000-00-00' ? \Carbon\Carbon::parse($milestone->planned_end_date)->format('Y-m-d') : '' }}"
@@ -1447,52 +1529,36 @@
                                                     <div class="project-order-td" data-col-key="requested_by"
                                                         data-filter-value="{{ trim(optional($milestone->getRequestedBy())->name ?? '') !== '' ? trim(optional($milestone->getRequestedBy())->name) : __('N/A') }}">
                                                         @if ($milestone->getRequestedBy() != null)
-                                                            <img class="fix_img"
-                                                                title="{{ $milestone->getRequestedBy()->name }}"
-                                                                 @if ($milestone->getRequestedBy()->avatar) src="{{ asset($milestone->getRequestedBy()->avatar) }}" @else avatar="{{ $milestone->getRequestedBy()->name }}" @endif>
+                                                            @include('projects.partials.pd_avatar', ['user' => $milestone->getRequestedBy()])
                                                         @endif
                                                     </div>
                                                     <div class="project-order-td" data-col-key="assigned_to"
                                                         data-filter-value="{{ trim(optional($milestone->getAssignedToUser())->name ?? '') !== '' ? trim(optional($milestone->getAssignedToUser())->name) : __('N/A') }}">
                                                         @if ($milestone->getAssignedToUser() != null)
-                                                            <img class="fix_img"
-                                                                title="{{ $milestone->getAssignedToUser()->name }}"
-                                                                 @if ($milestone->getAssignedToUser()->avatar) src="{{ asset($milestone->getAssignedToUser()->avatar) }}" @else avatar="{{ $milestone->getAssignedToUser()->name }}" @endif>
+                                                            @include('projects.partials.pd_avatar', ['user' => $milestone->getAssignedToUser()])
                                                         @else
-                                                            ...
+                                                            <span class="pd-nobody">—</span>
                                                         @endif
                                                     </div>
                                                     <div class="project-order-td" data-col-key="status"
                                                         data-filter-value="{{ $statusText }}">
-                                                        @if ($milestone->status == 3)
-                                                            <label
-                                                                class="badge bg-warning p-2 px-3 rounded">{{ __('For Review') }}</label>
-                                                        @elseif ($milestone->status == 4)
-                                                            <label
-                                                                class="badge bg-success p-2 px-3 rounded">{{ __('Finished') }}</label>
-                                                        @else
-                                                            <label
-                                                                class="badge p-2 px-3 rounded {{ $milestone->status == 1 ? 'bg-info' : 'bg-secondary' }}">
-                                                                {{ $milestone->status == 1 ? __('To Do') : __('Ongoing') }}
-                                                            </label>
-                                                        @endif
+                                                        <span class="pd-status pd-status-{{ (int) $milestone->status }}"><i></i>{{ $statusText }}</span>
                                                     </div>
                                                     <div class="project-order-td" data-col-key="created"
                                                         data-filter-value="{{ $dateFilterLabel($milestone->start_date) }}"
                                                         data-filter-sort-value="{{ $dateFilterSortValue($milestone->start_date) }}">
-                                                        {{ $milestone->start_date ? Carbon::parse($milestone->start_date)->format('d-m-Y') : '...' }}
+                                                        <span class="pd-date-plain">{{ $milestone->start_date ? Carbon::parse($milestone->start_date)->format('d-m-Y') : '—' }}</span>
                                                     </div>
                                                     <div class="project-order-td" data-col-key="desired_delivery"
                                                         data-filter-value="{{ $dateFilterLabel($milestone->end_date) }}"
                                                         data-filter-sort-value="{{ $dateFilterSortValue($milestone->end_date) }}">
-                                                        {{ $milestone->end_date ? Carbon::parse($milestone->end_date)->format('d-m-Y') : '...' }}
+                                                        <span class="pd-date {{ $milestone->end_date ? '' : 'is-na' }}">{{ $milestone->end_date ? Carbon::parse($milestone->end_date)->format('d-m-Y') : '—' }}</span>
                                                     </div>
                                                     <div class="project-order-td" data-col-key="expected_delivery"
                                                         data-filter-value="{{ $dateFilterLabel($milestone->planned_end_date) }}"
                                                         data-filter-sort-value="{{ $dateFilterSortValue($milestone->planned_end_date) }}">
-                                                        {{ $milestone->planned_end_date && $milestone->planned_end_date !== '0000-00-00'
-                                                            ? \Carbon\Carbon::parse($milestone->planned_end_date)->format('d-m-Y')
-                                                            : '...' }}
+                                                        @php $pdPlanned = $milestone->planned_end_date && $milestone->planned_end_date !== '0000-00-00'; @endphp
+                                                        <span class="pd-date {{ $pdPlanned ? '' : 'is-na' }}">{{ $pdPlanned ? \Carbon\Carbon::parse($milestone->planned_end_date)->format('d-m-Y') : '—' }}</span>
                                                     </div>
                                                     @php
                                                         $expectedDate = null;
@@ -1528,10 +1594,9 @@
                                                         }
                                                     @endphp
                                                     <div class="project-order-td" data-col-key="task_started"
-                                                        style="color: {{ $startColor }}"
-                                                        data-filter-value="{{ $dateFilterLabel($milestone->task_start_date) }}"
+                                                                                                                data-filter-value="{{ $dateFilterLabel($milestone->task_start_date) }}"
                                                         data-filter-sort-value="{{ $taskStartDate ? $taskStartDate->format('Y-m') : '' }}">
-                                                        {{ $taskStartDate ? $taskStartDate->format('d-m-Y') : '...' }}
+                                                        <span class="pd-date {{ $taskStartDate ? ($startColor ? 'is-warn' : '') : 'is-na' }}">{{ $taskStartDate ? $taskStartDate->format('d-m-Y') : '—' }}</span>
                                                     </div>
                                                     @php
                                                         $completionDate =
@@ -1552,22 +1617,21 @@
                                                         }
                                                     @endphp
                                                     <div class="project-order-td" data-col-key="completion"
-                                                        style="color: {{ $completionColor }}"
-                                                        data-filter-value="{{ $dateFilterLabel($milestone->finalization_date) }}"
+                                                                                                                data-filter-value="{{ $dateFilterLabel($milestone->finalization_date) }}"
                                                         data-filter-sort-value="{{ $completionDate ? $completionDate->format('Y-m') : '' }}">
-                                                        {{ $completionDate ? $completionDate->format('d-m-Y') : '...' }}
+                                                        <span class="pd-date {{ $completionDate ? ($completionColor === '#53b446' ? 'is-ok' : ($completionColor ? 'is-late' : '')) : 'is-na' }}">{{ $completionDate ? $completionDate->format('d-m-Y') : '—' }}</span>
                                                     </div>
                                                     <div class="project-order-td" data-col-key="action">
                                                         <div class="col-auto">
                                                             <a href="#"
-                                                                class="action-btn btn-info mx-1  btn btn-sm d-inline-flex align-items-center"
+                                                                class="pd-row-btn"
                                                                 data-ajax-popup="true" data-size="lg"
                                                                 data-toggle="popover" title="{{ __('Edit') }}"
                                                                 data-title="{{ __('Edit Milestone') }}"
                                                                 data-url="{{ route('projects.milestone.edit', [$currentWorkspace->slug, $milestone->id]) }}"><i
                                                                     class="ti ti-edit"></i></a>
                                                             <a href="#"
-                                                                class="action-btn bg-danger mx-1  btn btn-sm d-inline-flex align-items-center bs-pass-para"
+                                                                class="pd-row-btn is-danger bs-pass-para"
                                                                 data-confirm="{{ __('Are You Sure?') }}"
                                                                 data-toggle="popover" title="{{ __('Delete') }}"
                                                                 data-text="{{ __('This action can not be undone. Do you want to continue?') }}"
@@ -1591,349 +1655,29 @@
                                             </p>
                                         </div>
                                     </div>
-                                </div>
-
-                            </div>
-                        @endif
-                    </div>
-                    {{-- ======================================================================================== --}}
-                    {{-- Fila 1: Usuarios --}}
-                    <div class="row">
-                        {{-- Usuarios que han creado un encargo --}}
-                        <div class="col-md-6">
-                            <div class="card min-h">
-                                <div class="card-header">
-                                    <div class="d-flex justify-content-between align-items-center">
-                                        <div>
-                                            {{-- Usuarios que han creado milestones --}}
-                                            <h5 class="mb-0">{{ __('Users who created Order forms') }}
-                                                ({{ count($milestoneCreators) }})
-                                            </h5>
-                                        </div>
-
-                                        <div class="float-end">
-                                            <p class="text-muted d-sm-flex align-items-center mb-0">
-                                                @if (\Auth::user()->type == 'admin')
-                                                    <a href="#" class="btn btn-sm btn-primary "
-                                                        data-ajax-popup="true" data-title="{{ __('Invite') }}"
-                                                        data-toggle="popover" title="{{ __('Invite') }}"
-                                                        data-url="{{ route('projects.invite.popup', [$currentWorkspace->slug, $project->id]) }}">
-                                                        <i class="ti ti-brand-telegram"></i>
-                                                    </a>
-                                                @endif
-                                            </p>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div class="card-body pb-1">
-                                    <div class="px-3 top-10-scroll" style="max-height: 300px;">
-                                        @foreach ($milestoneCreators as $user)
-                                            <ul class="list-group list-group-flush">
-                                                <li class="list-group-item px-0">
-                                                    <div class="row align-items-center justify-content-between">
-                                                        <div class="col-sm-auto mb-3 mb-sm-0">
-                                                             <div class="d-flex align-items-start px-2">
-                                                                 <div>
-                                                                 <a href="#" class=" text-start">
-                                                                     <img class="fix_img"
-                                                                         @if ($user->avatar) src="{{ asset($user->avatar) }}"
-                                                 @else avatar="{{ $user->name }}" @endif>
-                                                                 </a>
-                                                                 </div>
-                                                                 <div class="px-2">
-                                                                  <div class="email-reveal-wrapper">
-                                                                      <div class="d-flex align-items-center gap-2">
-                                                                          <h5 class="m-0">{{ $user->name }}</h5>
-                                                                          <i class="bi bi-envelope-fill email-reveal-icon tooltipCus" data-title="{{ __('messages.Mostrar correo') }}" data-show-text="{{ __('messages.Mostrar correo') }}" data-hide-text="{{ __('messages.Ocultar correo') }}" data-user-id="{{ $user->id }}"></i>
-                                                                      </div>
-                                                                      <small class="email-reveal-email"></small>
-                                                                  </div>
-                                                                     <small class="text-muted">
-                                                                         <span class="text-primary">
-                                                                             {{ $user->milestones_count }}
-                                                                             {{ __('Order forms') }}
-                                                                         </span>
-                                                                     </small>
-                                                                 </div>
-                                                            </div>
-                                                        </div>
-
-                                                        <div class="col-sm-auto text-sm-end d-flex align-items-center">
-                                                            @auth('web')
-                                                                @if (\Auth::user()->type == 'admin')
-                                                                    <a href="#"
-                                                                        class="action-btn btn-primary mx-1  btn btn-sm d-inline-flex align-items-center"
-                                                                        data-ajax-popup="true" data-size="lg"
-                                                                        data-toggle="popover" title="{{ __('Permission') }}"
-                                                                        data-title="{{ __('Edit Permission') }}"
-                                                                        data-url="{{ route('projects.user.permission', [$currentWorkspace->slug, $project->id, $user->id]) }}">
-                                                                        <i class="ti ti-lock"></i>
-                                                                    </a>
-                                                                    <a href="#"
-                                                                        class="action-btn btn-danger btn btn-sm d-inline-flex align-items-center bs-pass-para"
-                                                                        data-confirm="{{ __('Are You Sure?') }}"
-                                                                        data-toggle="popover" title="{{ __('Delete') }}"
-                                                                        data-text="{{ __('This action can not be undone. Do you want to continue?') }}"
-                                                                        data-confirm-yes="delete-user-{{ $user->id }}">
-                                                                        <i class="ti ti-trash ml-1"></i>
-                                                                    </a>
-                                                                    <form id="delete-user-{{ $user->id }}"
-                                                                        action="{{ route('projects.user.delete', [$currentWorkspace->slug, $project->id, $user->id]) }}"
-                                                                        method="POST" style="display: none;">
-                                                                        @csrf
-                                                                        @method('DELETE')
-                                                                    </form>
-                                                                @endif
-                                                            @endauth
-                                                        </div>
-                                                    </div>
-                                                </li>
-                                            </ul>
-                                        @endforeach
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        {{-- Usuarios que han imputado horas --}}
-                        <div class="col-md-6 widthAdjustMediumDiv">
-                            <div class="card min-h">
-                                <div class="card-header">
-                                    <div class="d-flex justify-content-between align-items-center">
-                                        <div>
-                                            <h5 class="mb-0">{{ __('Users with imputed hours') }}
-                                                ({{ count($usersWithHours) }})
-                                            </h5>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="card-body pb-1">
-                                    <div class="px-3 top-10-scroll" style="max-height: 300px;">
-                                        @foreach ($usersWithHours as $user)
-                                            <ul class="list-group list-group-flush">
-                                                <li class="list-group-item px-0">
-                                                    <div class="row align-items-center justify-content-between">
-                                                        <div class="col-sm-auto mb-3 mb-sm-0">
-                                                             <div class="d-flex align-items-start px-2">
-                                                                 <div>
-                                                                 <a href="#" class="text-start">
-                                                                     <img class="fix_img"
-                                                                         @if ($user->avatar) src="{{ asset($user->avatar) }}"
-                                                 @else avatar="{{ $user->name }}" @endif>
-                                                                 </a>
-                                                                 </div>
-                                                                 <div class="px-2">
-                                                                  <div class="email-reveal-wrapper">
-                                                                      <div class="d-flex align-items-center gap-2">
-                                                                          <h5 class="m-0">{{ $user->name }}</h5>
-                                                                          <i class="bi bi-envelope-fill email-reveal-icon tooltipCus" data-title="{{ __('messages.Mostrar correo') }}" data-show-text="{{ __('messages.Mostrar correo') }}" data-hide-text="{{ __('messages.Ocultar correo') }}" data-user-id="{{ $user->id }}"></i>
-                                                                      </div>
-                                                                      <small class="email-reveal-email"></small>
-                                                                  </div>
-                                                                     <small class="text-muted">
-                                                                         <span class="text-primary">
-                                                                             {{ $user->total_time ? substr($user->total_time, 0, 5) : '00:00' }}h
-                                                                         </span>
-                                                                     </small>
-                                                                 </div>
-                                                            </div>
-                                                        </div>
-                                                        {{-- Si quieres añadir acciones de admin como antes --}}
-                                                        <div class="col-sm-auto text-sm-end d-flex align-items-center">
-                                                            @auth('web')
-                                                                @if (\Auth::user()->type == 'admin')
-                                                                    {{-- Aquí podrías añadir botones de acciones si quieres --}}
-                                                                @endif
-                                                            @endauth
-                                                        </div>
-                                                    </div>
-                                                </li>
-                                            </ul>
-                                        @endforeach
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
+                    <div class="pd-orders-empty" id="pdOrdersEmpty" hidden>
+                        <i class="fa-regular fa-file-lines"></i>
+                        <span>{{ __('There are no order forms in this status.') }}</span>
                     </div>
                 </div>
-                <div class="col-xxl-12">
-                    {{-- Fila 2: Averages y Activity --}}
-                    <div class="row">
-                        <div class="col-md-6 d-flex flex-column">
-                            <div class="row flex-grow-1">
-                                <div class="col-md-6 mb-4 d-flex flex-column">
-                                    <div class="card min-h flex-grow-1 mb-0">
-                                        <div class="card-header">
-                                            <div class="d-flex justify-content-between align-items-center">
-                                                <div>
-                                                    <h5 class="mb-0">
-                                                        {{ __('Average delivery time') }}
-                                                    </h5>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div
-                                            class="card-body alignMiddle d-flex align-items-center justify-content-center w-100 flex-grow-1">
-                                            <span class="size40AndBold">
-                                                {{ $averageDelivery }}
-                                            </span>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="col-md-6 mb-4 d-flex flex-column">
-                                    <div class="card min-h flex-grow-1 mb-0">
-                                        <div class="card-header">
-                                            <div class="d-flex justify-content-between align-items-center">
-                                                <div>
-                                                    <h5 class="mb-0">
-                                                        {{ __('Average working time') }}
-                                                    </h5>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div
-                                            class="card-body alignMiddle d-flex align-items-center justify-content-center w-100 flex-grow-1">
-                                            <span class="size40AndBold">
-                                                {{ $averageWorkingTime }}
-                                            </span>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="col-md-6 mb-4 d-flex flex-column">
-                                    <div class="card min-h flex-grow-1 mb-0">
-                                        <div class="card-header">
-                                            <div class="d-flex justify-content-between align-items-center">
-                                                <div>
-                                                    <h5 class="mb-0">
-                                                        {{ __('Average start-up time') }}
-                                                    </h5>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div
-                                            class="card-body alignMiddle d-flex align-items-center justify-content-center w-100 flex-grow-1">
-                                            <span class="size40AndBold">
-                                                {{ $averageStartUpTime }}
-                                            </span>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="col-md-6 mb-4 d-flex flex-column">
-                                    <div class="card min-h flex-grow-1 mb-0">
-                                        <div class="card-header">
-                                            <div class="d-flex justify-content-between align-items-center">
-                                                <div>
-                                                    <h5 class="mb-0">
-                                                        {{ __('Average delay time') }}
-                                                    </h5>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div
-                                            class="card-body alignMiddle d-flex align-items-center justify-content-center w-100 flex-grow-1">
-                                            <span class="size40AndBold">
-                                                {{ $averageDelayTime }}
-                                            </span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-6 mb-4 d-flex flex-column">
-                            <div class="card flex-grow-1 mb-0">
-                                <div class="card-header">
-                                    <div class="d-flex justify-content-between align-items-center">
-                                        <div>
-                                            <h5 class="mb-0">{{ __('Activity') }}</h5>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="card-body p-3 activityContainer">
-                                    <div class="timeline timeline-one-side" data-timeline-content="axis"
-                                        data-timeline-axis-style="dashed">
-                                        @if ($currentWorkspace->permission == 'Owner' || $currentWorkspace->permission == 'Member')
-                                            @foreach ($project->activities as $activity)
-                                                {{-- @dump($activity) --}}
-                                                <div class="timeline-block px-2 pt-3"
-                                                    style="display: flex; align-items: center;">
-                                                    @if ($activity->log_type == 'Upload File')
-                                                        <span
-                                                            class="timeline-step timeline-step-sm border border-success text-white">
-                                                            <i class="fas fa-file"></i></span>
-                                                    @elseif($activity->log_type == 'has uploaded a review file')
-                                                        <span
-                                                            class="timeline-step timeline-step-sm border border-warning text-white">
-                                                            <i class="fas fa-file"></i></span>
-                                                    @elseif($activity->log_type == 'Create Milestone')
-                                                        <span
-                                                            class="timeline-step timeline-step-sm border border-success text-white">
-                                                            <i class="fas fa-cubes"></i></span>
-                                                    @elseif($activity->log_type == 'Create Timesheet')
-                                                        <span
-                                                            class="timeline-step timeline-step-sm border border-success text-white">
-                                                            <i class="fas fa-clock-o"></i></span>
-                                                    @elseif($activity->log_type == 'has delete a file')
-                                                        <span
-                                                            class="timeline-step timeline-step-sm border border-primary text-white"
-                                                            style="border-color: #aa182c !important;">
-                                                            <i class="fas fa-file"></i></span>
-                                                    @elseif($activity->log_type == 'has created a new project')
-                                                        <span
-                                                            class="timeline-step timeline-step-sm border border-success text-white">
-                                                            <i class="fa-solid fa-diagram-project"></i></span>
-                                                    @elseif($activity->log_type == 'has updated a milestone')
-                                                        <span
-                                                            class="timeline-step timeline-step-sm border border-info text-white">
-                                                            <i class="fas fa-cubes"></i></span>
-                                                    @elseif($activity->log_type == 'has updated the milestone status to')
-                                                        <span
-                                                            class="timeline-step timeline-step-sm border border-info text-white">
-                                                            <i class="fas fa-cubes"></i></span>
-                                                    @elseif($activity->log_type == 'has deleted a milestone')
-                                                        <span
-                                                            class="timeline-step timeline-step-sm border border-primary text-white"
-                                                            style="border-color: #aa182c !important;">
-                                                            <i class="fas fa-cubes"></i></span>
-                                                    @endif
-                                                    <div class="last_notification_text">
-                                                        <!-- Person who did the notification -->
-                                                        <p> {!! $activity->getRemark() !!} : </p>
-                                                        <br>
-                                                        <div class="notification_time_main">
-                                                            <p style="text-align:center; text-wrap:nowrap;"
-                                                                title="{{ $activity->created_at }}">
-                                                                {{ $activity->created_at->diffForHumans() }}</p>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            @endforeach
-                                        @endif
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+            </section>
+        @endif
 
-                    {{-- Fila 3: Files --}}
-                    <div class="row">
-                        <div class="col-md-12">
-                            <div class="card files-section">
-                                <div class="card-header">
-                                    <div class="d-flex justify-content-between align-items-center">
-                                        <div>
-                                            <h5 class="mb-0 d-flex align-items-center files-title" style="gap: 8px;">
-                                                <span>{{ __('Files') }}</span>
-                                                <button type="button" class="btn btn-sm btn-primary files-upload-toggle"
-                                                    id="toggleUploadSectionBtn" title="{{ __('Upload Files') }}"
-                                                    aria-expanded="false" aria-controls="files-upload-row">
-                                                    <i class="fa-solid fa-file-arrow-up"></i>
-                                                </button>
-                                            </h5>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="card-body p-3 col-md-12 files-body" style="min-height: 374px;">
+        {{-- ================= Archivos + equipo y actividad ================= --}}
+        <div class="pd-grid">
+            <div class="pd-main-col">
+            <section class="pd-card files-section">
+                <header class="pd-card-head">
+                    <h3>{{ __('Files') }}</h3>
+                    <span class="pd-count">{{ count($projectFiles ?? []) + collect($milestoneFiles ?? [])->sum(fn($m) => count($m['files'] ?? [])) }}</span>
+                    <div class="pd-card-tools">
+                        <button type="button" class="pd-btn files-upload-toggle" id="toggleUploadSectionBtn"
+                            aria-expanded="false" aria-controls="files-upload-row">
+                            <i class="fa-solid fa-arrow-up-from-bracket"></i><span>{{ __('Upload file') }}</span>
+                        </button>
+                    </div>
+                </header>
+                <div class="pd-card-body files-body">
                                     <div class="author-box-name form-control-label mb-4"></div>
                                     <div class="row g-4">
                                         <div class="col-12 d-none" id="files-upload-row">
@@ -2029,6 +1773,7 @@
                                                                     <i
                                                                         class="fa-regular fa-folder-open me-2 text-dark folder-toggle-icon"></i>
                                                                     <h6>{{ $milestone['title'] }}</h6>
+                                                                    <span class="pd-folder-count">{{ count($milestone['files'] ?? []) }}</span>
                                                                 </div>
                                                             </div>
 
@@ -2098,21 +1843,135 @@
                                             </div>
                                         </div>
                                     </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
                 </div>
+            </section>
+
+                {{-- Equipo --}}
+                <section class="pd-card">
+                    <header class="pd-card-head">
+                        <h3>{{ __('Team') }}</h3>
+                        <span class="pd-count">{{ count($pdTeam) }}</span>
+                        @if (\Auth::user()->type == 'admin')
+                            <div class="pd-card-tools">
+                                <a href="#" class="pd-icon-btn" data-ajax-popup="true" data-title="{{ __('Invite') }}"
+                                    title="{{ __('Invite') }}"
+                                    data-url="{{ route('projects.invite.popup', [$currentWorkspace->slug, $project->id]) }}">
+                                    <i class="fa-solid fa-user-plus"></i>
+                                </a>
+                            </div>
+                        @endif
+                    </header>
+                    <div class="pd-team top-10-scroll">
+                        @forelse ($pdTeam as $member)
+                            @php $user = $member['user']; @endphp
+                            <div class="pd-person">
+                                @include('projects.partials.pd_avatar', ['user' => $user, 'size' => 36])
+                                <div class="pd-person-main email-reveal-wrapper">
+                                    <div class="pd-person-name">
+                                        <span title="{{ $user->name }}">{{ $user->name }}</span>
+                                        <i class="fa-regular fa-envelope email-reveal-icon tooltipCus" data-title="{{ __('messages.Mostrar correo') }}" data-show-text="{{ __('messages.Mostrar correo') }}" data-hide-text="{{ __('messages.Ocultar correo') }}" data-user-id="{{ $user->id }}"></i>
+                                    </div>
+                                    <small class="email-reveal-email"></small>
+                                    <div class="pd-chips">
+                                        @if ($member['orders'])
+                                            <span class="pd-chip is-red"><i class="fa-regular fa-file-lines"></i>{{ trans_choice(':count order form created|:count order forms created', $member['orders'], ['count' => $member['orders']]) }}</span>
+                                        @endif
+                                        @if ($member['hours'])
+                                            <span class="pd-chip"><i class="fa-regular fa-clock"></i>{{ $member['hours'] }} h</span>
+                                        @endif
+                                    </div>
+                                </div>
+                                @auth('web')
+                                    @if (\Auth::user()->type == 'admin')
+                                        <div class="dropdown pd-person-actions">
+                                            <button type="button" class="pd-icon-btn is-small" data-bs-toggle="dropdown" aria-expanded="false" title="{{ __('Action') }}">
+                                                <i class="fa-solid fa-ellipsis"></i>
+                                            </button>
+                                            <div class="dropdown-menu dropdown-menu-end pd-menu">
+                                                <a href="#" class="dropdown-item" data-ajax-popup="true" data-size="lg"
+                                                    data-title="{{ __('Edit Permission') }}"
+                                                    data-url="{{ route('projects.user.permission', [$currentWorkspace->slug, $project->id, $user->id]) }}">
+                                                    <i class="ti ti-lock"></i>{{ __('Permission') }}
+                                                </a>
+                                                <a href="#" class="dropdown-item text-danger bs-pass-para" data-confirm="{{ __('Are You Sure?') }}"
+                                                    data-text="{{ __('This action can not be undone. Do you want to continue?') }}"
+                                                    data-confirm-yes="delete-user-{{ $user->id }}">
+                                                    <i class="ti ti-trash"></i>{{ __('Delete') }}
+                                                </a>
+                                            </div>
+                                            <form id="delete-user-{{ $user->id }}"
+                                                action="{{ route('projects.user.delete', [$currentWorkspace->slug, $project->id, $user->id]) }}"
+                                                method="POST" style="display: none;">
+                                                @csrf
+                                                @method('DELETE')
+                                            </form>
+                                        </div>
+                                    @endif
+                                @endauth
+                            </div>
+                        @empty
+                            <p class="pd-empty-text">{{ __('Nobody has created order forms or logged hours yet.') }}</p>
+                        @endforelse
+                    </div>
+                </section>
             </div>
-            <!-- [ sample-page ] end -->
+
+            <div class="pd-activity-col">
+                {{-- Actividad --}}
+                <section class="pd-card pd-activity-card">
+                    <header class="pd-card-head">
+                        <h3>{{ __('Activity') }}</h3>
+                        @if ($pdCanEditOrders && count($project->activities))
+                            <span class="pd-count">{{ count($project->activities) }}</span>
+                        @endif
+                    </header>
+                    <div class="pd-activity">
+                        @if ($pdCanEditOrders && count($project->activities))
+                            @php $pdLastDay = null; $pdActivityVisible = 8; @endphp
+                            @foreach ($project->activities as $activity)
+                                @php
+                                    [$pdIcon, $pdTone] = $pdActivityTypes[$activity->log_type] ?? ['fa-circle-info', 'is-gray'];
+                                    $pdDay = $pdDayLabel($activity->created_at);
+                                    $pdExtra = $loop->index >= $pdActivityVisible ? ' is-extra' : '';
+                                    // getRemark() empieza por el nombre de la persona: se quita y se muestra debajo
+                                    $pdRemark = $activity->getRemark();
+                                    $pdWho = $activity->user ? e($activity->user->name) : '';
+                                    if ($pdWho !== '' && str_starts_with($pdRemark, $pdWho . ' ')) {
+                                        $pdRemark = substr($pdRemark, strlen($pdWho) + 1);
+                                        $pdRemark = mb_strtoupper(mb_substr($pdRemark, 0, 1)) . mb_substr($pdRemark, 1);
+                                    }
+                                    $pdWhoShort = $activity->user ? implode(' ', array_slice(preg_split('/\s+/', trim($activity->user->name)), 0, 2)) : '';
+                                @endphp
+                                @if ($pdDay !== $pdLastDay)
+                                    <div class="pd-day{{ $pdExtra }}">{{ $pdDay }}</div>
+                                    @php $pdLastDay = $pdDay; @endphp
+                                @endif
+                                <div class="pd-event{{ $pdExtra }}">
+                                    <span class="pd-event-icon {{ $pdTone }}"><i class="fa-solid {{ $pdIcon }}"></i></span>
+                                    <div class="pd-event-main">
+                                        <div class="pd-event-text">{!! $pdRemark !!}</div>
+                                        <div class="pd-event-time" title="{{ $activity->created_at }}">@if ($pdWhoShort){{ $pdWhoShort }} · @endif{{ $activity->created_at->diffForHumans() }}</div>
+                                    </div>
+                                </div>
+                            @endforeach
+                        @else
+                            <p class="pd-empty-text">{{ __('There is no activity yet.') }}</p>
+                        @endif
+                    </div>
+                    @if ($pdCanEditOrders && count($project->activities) > 8)
+                        <button type="button" class="pd-more" id="pdActivityMore"
+                            data-less="{{ __('Show less') }}">{{ __('See all activity (:count)', ['count' => count($project->activities)]) }}</button>
+                    @endif
+                </section>
+            </div>
         </div>
-        <!-- [ Main Content ] end -->
     </div>
     @include('projects.file_preview')
 @endsection
 
 @push('css-page')
     <link rel="stylesheet" href="{{ asset('assets/custom/css/dropzone.min.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/project_detail.css') }}?v={{ filemtime(public_path('assets/css/project_detail.css')) }}">
 @endpush
 @push('scripts')
     <script src="{{ asset('assets/js/plugins/apexcharts.min.js') }}"></script>
@@ -2562,6 +2421,7 @@
 
             function closeFilterMenu() {
                 filterMenu.hidden = true;
+                if (activeFilterButton) activeFilterButton.setAttribute('aria-expanded', 'false');
                 activeFilterButton = null;
             }
 
@@ -2694,7 +2554,9 @@
                 filterMenu.dataset.filterKey = filterKey;
                 filterMenu.dataset.columnIndex = String(columnIndex);
                 filterMenu.hidden = false;
+                if (activeFilterButton && activeFilterButton !== button) activeFilterButton.setAttribute('aria-expanded', 'false');
                 activeFilterButton = button;
+                button.setAttribute('aria-expanded', 'true'); // mantiene el embudo visible mientras su menú está abierto
                 positionMenu(filterMenu, button);
             }
 
@@ -2897,25 +2759,6 @@
 
             applyColumnVisibility();
             applyFilters();
-
-            rows.forEach(function(row) {
-                row.addEventListener('click', function(event) {
-                    if (event.target.closest('button, a, input, label, form')) return;
-                    var url = row.getAttribute('data-url');
-                    var title = row.getAttribute('data-title');
-                    if (!url) return;
-                    $.ajax({
-                        url: url,
-                        cache: false,
-                        success: function(data) {
-                            $('#commonModal .body').html(data);
-                            $('#commonModal .modal-title').html(title);
-                            bootstrap.Modal.getOrCreateInstance(document.getElementById('commonModal')).show();
-                            commonLoader();
-                        }
-                    });
-                });
-            });
         });
     </script>
     <script>
@@ -3269,6 +3112,56 @@
             toggleUploadBtn.addEventListener('click', function() {
                 const isVisible = !uploadRow.classList.contains('d-none');
                 setUploadVisible(!isVisible);
+            });
+        });
+    </script>
+    <script>
+        // Pestañas de estado y buscador de encargos. Usan sus propias clases para ocultar filas,
+        // así se combinan con los filtros por columna (que usan style.display) sin pisarse.
+        document.addEventListener('DOMContentLoaded', function() {
+            const tabs = document.getElementById('pdOrderTabs');
+            const search = document.getElementById('pdOrderSearch');
+            const empty = document.getElementById('pdOrdersEmpty');
+            const rows = Array.from(document.querySelectorAll('#orderFormsTableBody .project-order-body-row'));
+            if (!tabs || !rows.length) return;
+
+            let status = '*';
+            const norm = (v) => (v || '').toString().normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim();
+
+            function apply() {
+                const q = norm(search ? search.value : '');
+                let shown = 0;
+                rows.forEach(function(row) {
+                    const tabOk = status === '*' || row.dataset.statusId === status;
+                    const searchOk = !q || norm(row.dataset.name).includes(q);
+                    row.classList.toggle('pd-hidden-by-tab', !tabOk);
+                    row.classList.toggle('pd-hidden-by-search', !searchOk);
+                    if (tabOk && searchOk) shown++;
+                });
+                if (empty) empty.hidden = shown > 0;
+            }
+
+            tabs.addEventListener('click', function(e) {
+                const tab = e.target.closest('.pd-tab');
+                if (!tab) return;
+                tabs.querySelectorAll('.pd-tab').forEach((t) => t.classList.toggle('is-active', t === tab));
+                status = tab.dataset.statusId;
+                apply();
+            });
+            if (search) search.addEventListener('input', apply);
+        });
+    </script>
+    <script>
+        // Actividad: se ven los 8 últimos eventos; «Ver toda la actividad» despliega el resto (y lo vuelve a plegar)
+        document.addEventListener('DOMContentLoaded', function() {
+            const more = document.getElementById('pdActivityMore');
+            const list = document.querySelector('.pd .pd-activity');
+            if (!more || !list) return;
+            const label = more.textContent;
+            more.addEventListener('click', function() {
+                const open = list.classList.toggle('show-all');
+                more.textContent = open ? more.dataset.less : label;
+                if (!open) list.scrollTop = 0;
             });
         });
     </script>

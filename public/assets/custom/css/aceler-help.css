@@ -370,3 +370,15 @@
 .board-tour-click.is-left .board-tour-mouse i { left: 0; }
 .board-tour-click.is-right .board-tour-mouse i { right: 0; }
 .board-tour-note { margin: 6px 0 0; font-size: 11px; color: #9ca3af; }
+
+/* Zona resaltada que abarca varios elementos (pasos con spanTo): invisible, solo marca el recuadro */
+.aceler-tour-span {
+    position: absolute;
+    pointer-events: none;
+    background: transparent;
+}
+
+/* Contenedor que aloja esa zona mientras dura el recorrido */
+.aceler-tour-span-host {
+    position: relative;
+}
