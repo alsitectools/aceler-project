@@ -60,7 +60,7 @@
                                     text: i18n.showValues,
                                     fillStyle: 'black',
                                     strokeStyle: 'black',
-                                    hidden: !ch.options.plugins.datalabels.display,
+                                    hidden: ch.$showValues === false,
                                     datasetIndex: -1
                                 });
 
@@ -69,8 +69,7 @@
                         },
                         onClick: function(e, legendItem, legend) {
                             if (legendItem.datasetIndex === -1) {
-                                var currentDisplay = legend.chart.options.plugins.datalabels.display;
-                                legend.chart.options.plugins.datalabels.display = !currentDisplay;
+                                legend.chart.$showValues = legend.chart.$showValues === false;
 
                                 legend.options.labels.generateLabels(legend.chart);
                                 legend.chart.update();
@@ -87,11 +86,27 @@
                     datalabels: {
                         anchor: 'center',
                         align: 'center',
-                        display: true,
-                        color: 'black',
+                        clamp: true,
+                        // Solo se escribe el valor si cabe en su tramo: con tramos finos los números
+                        // se montaban unos sobre otros. El tooltip sigue enseñando todos los valores.
+                        display: function(ctx) {
+                            var chart = ctx.chart;
+                            if (chart.$showValues === false) return false;
+                            var value = Number(ctx.dataset.data[ctx.dataIndex]);
+                            if (!value) return false;
+                            var el = chart.getDatasetMeta(ctx.datasetIndex).data[ctx.dataIndex];
+                            if (!el) return false;
+                            var height = Math.abs(el.base - el.y);
+                            var width = el.width || 0;
+                            return height >= 16 && width >= 18;
+                        },
+                        color: function(ctx) {
+                            // Texto blanco sobre verde/rojo, oscuro sobre el gris claro
+                            return ctx.datasetIndex === 0 ? '#334155' : '#ffffff';
+                        },
                         font: {
                             weight: 'bold',
-                            size: 12
+                            size: 11
                         }
                     }
                 },

@@ -2150,7 +2150,8 @@
             const lists = Array.from(document.querySelectorAll('.hs .modifiedDivTecAndCom'));
             if (!lists.length) return;
             const top = Math.min(...lists.map((l) => l.getBoundingClientRect().top + window.scrollY));
-            let h = Math.max(100, Math.floor(window.innerHeight - top - 28));
+            // 72px libres abajo: ahí va la burbuja del chatbot (44px + 16px de margen), así no tapa la última fila
+            let h = Math.max(100, Math.floor(window.innerHeight - top - 72));
             lists.forEach((l) => { l.style.maxHeight = h + 'px'; });
             const over = document.documentElement.scrollHeight - window.innerHeight;
             if (over > 0 && h > 100) {
