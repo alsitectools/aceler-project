@@ -313,18 +313,6 @@
         background: #CCCCCC;
     }
 
-    /* Aviso en "Mi hoja de horas": hay días de esta semana sin imputar */
-    .missing-hours-dot {
-        position: absolute;
-        top: 3px;
-        right: 3px;
-        width: 9px;
-        height: 9px;
-        border-radius: 50%;
-        background: #ffd43b;
-        border: 2px solid #AA182C;
-    }
-
     .two {
         right: 12%;
         opacity: 1;
@@ -696,25 +684,14 @@
                             <span class="dash-mtext">{{ __('My Tasks') }}</span>
                         </a>
                     </li>
-                    @php
-                        // Aviso: días laborables pasados de esta semana sin ninguna hora imputada
-                        $missingHoursDays = \App\Models\UserTimetable::pastDaysWithoutHoursThisWeek((int) Auth::id());
-                        $missingHoursTitle = $missingHoursDays
-                            ? __('My Timesheet') . ' · ' . __('Days this week without hours') . ': '
-                                . collect($missingHoursDays)->map(fn($d) => \Carbon\Carbon::parse($d)->isoFormat('ddd DD'))->implode(', ')
-                            : null;
-                    @endphp
                     <li data-scope="mine" class="dash-item icons-collapsible {{ Request::route()->getName() == 'timesheet.index' ? 'active' : '' }}">
                         <a href="{{ route('timesheet.index', $currentWorkspace->slug) }}"
-                            class="dash-link  menu-element" @if ($missingHoursTitle) title="{{ $missingHoursTitle }}" @endif>
+                            class="dash-link  menu-element">
                             <span class="dash-micon"
                                 style="position: relative; display: inline-flex; align-items: center; justify-content: center; overflow:hidden;">
                                 <i class="fa-solid fa-clock"></i>
                                 <i class="fa-solid fa-user user-badge-sub"
                                     style="position: absolute; bottom: -2px; right: -1px; font-size: 15px; color: #525a69; background: #fcf9f9; border-radius: 50%; padding: 2px;"></i>
-                                @if ($missingHoursDays)
-                                    <span class="missing-hours-dot" role="status" aria-label="{{ $missingHoursTitle }}"></span>
-                                @endif
                             </span><span class="dash-mtext">{{ __('My Timesheet') }}</span></a>
                     </li>
                     <li data-scope="mine" class="dash-item icons-collapsible {{ Request::route()->getName() == 'calender.index' ? 'active' : '' }}">
@@ -1139,11 +1116,6 @@
             swap.addEventListener('animationend', function(e) {
                 if (e.target === swap.querySelector('.sb-swap-arrows')) swap.classList.remove('is-swapping');
             });
-        }
-
-        // Aviso de horas sin imputar: también sobre la pestaña "Mi actividad"
-        if (document.querySelector('.dash-navbar li[data-scope="mine"] .missing-hours-dot')) {
-            nav.classList.add('sb-mine-warning');
         }
     })();
 

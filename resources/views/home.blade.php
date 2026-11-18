@@ -1128,6 +1128,48 @@
         color: #9ca3af;
     }
 
+    /* Estadísticas: barras de recorrido (inicio → en plazo → retraso), animadas al cargar */
+    .hsj { margin-top: 2px; }
+    .hsj[hidden], .hsj-kpis[hidden] { display: none; }
+    .hs .divStatisticsButtons { flex-wrap: wrap; row-gap: 8px; }
+    .hsj-kpis { display: flex; gap: 8px; margin-left: auto; }
+    .hsj-kpi { display: flex; align-items: baseline; gap: 8px; padding: 6px 12px; border-radius: 9px; background: #f7f8fa; white-space: nowrap; }
+    .hsj-kpi span { font-size: 12px; color: #6b7280; }
+    .hsj-kpi b { font-size: 16px; font-weight: 600; color: #1f2937; font-variant-numeric: tabular-nums; white-space: nowrap; }
+    .hsj-kpi b small { font-size: 12px; font-weight: 400; color: #9ca3af; }
+    .hsj-kpi.is-delay b { color: #c0392b; }
+    .hsj-head { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; padding-bottom: 8px; border-bottom: 1px solid #f0f1f4; }
+    .hsj-title { font-size: 13px; font-weight: 600; color: #374151; }
+    .hsj-legend { display: flex; align-items: center; flex-wrap: wrap; gap: 14px; font-size: 12px; color: #6b7280; }
+    .hsj-legend > span { display: inline-flex; align-items: center; gap: 6px; }
+    .hsj-legend i { width: 10px; height: 10px; border-radius: 2px; }
+    .hsj-toggle { display: inline-flex; align-items: center; gap: 6px; margin: 0; cursor: pointer; }
+    .hsj-toggle input { accent-color: #AA182C; }
+    /* Hasta ~6 periodos sin scroll; con los 12 meses, la lista tiene su propio scroll (la página no) */
+    .hsj-rows { max-height: 236px; overflow-y: auto; scrollbar-width: thin; scrollbar-color: #d1d5db transparent; }
+    .hsj-row { display: grid; grid-template-columns: 96px minmax(0, 1fr) 150px; align-items: center; gap: 12px; padding: 7px 4px 7px 0; border-bottom: 1px solid #f4f5f7; }
+    .hsj-row:last-child { border-bottom: 0; }
+    .hsj-label { font-size: 13.5px; color: #374151; text-transform: capitalize; }
+    .hsj-track { display: flex; gap: 2px; height: 24px; border-radius: 6px; background: #f3f4f6; overflow: hidden; }
+    .hsj-seg { position: relative; width: 0; height: 100%; display: flex; align-items: center; justify-content: center; overflow: hidden;
+        color: #fff; font-size: 11px; font-weight: 600; white-space: nowrap; transition: width .9s cubic-bezier(.22, 1, .36, 1), filter .15s; }
+    .hsj-seg:first-child { border-radius: 6px 0 0 6px; }
+    .hsj-seg:last-child { border-radius: 0 6px 6px 0; }
+    .hsj-seg:hover { filter: brightness(.92); }
+    .hsj-seg--s { background: #b4b2a9; color: #3f3f3c; }
+    .hsj-seg--p { background: #5cb85c; }
+    .hsj-seg--r { background: #e24b4a; }
+    .hsj-seg--r.is-live { animation: hsjPulse 1.8s ease-in-out infinite; }
+    @keyframes hsjPulse { 0%, 100% { opacity: 1; } 50% { opacity: .7; } }
+    .hsj.no-values .hsj-seg { color: transparent !important; }
+    .hsj-same { display: flex; align-items: center; height: 100%; padding-left: 10px; font-size: 12px; color: #6b7280; }
+    .hsj-total { text-align: right; font-size: 13px; color: #374151; white-space: nowrap; }
+    .hsj-total b { font-weight: 600; font-variant-numeric: tabular-nums; }
+    .hsj-total small { color: #9ca3af; font-size: 12px; }
+    @media (prefers-reduced-motion: reduce) { .hsj-seg { transition: none; } .hsj-seg--r.is-live { animation: none; } }
+    @media (max-width: 1100px) { .hsj-kpis { margin-left: 0; flex-wrap: wrap; } }
+    @media (max-width: 700px) { .hsj-row { grid-template-columns: 70px minmax(0, 1fr) 90px; } }
+
     .hs .divStatisticsButtons {
         position: relative;
         gap: 0;
@@ -1253,8 +1295,14 @@
         padding: 10px 16px;
     }
 
+    /* Solo se fija el alto: el ancho sale de la proporción de la imagen (antes 22px de ancho
+       con 23px de alto la estrechaban) */
     .hs .hs-team .comercialTecIcons {
-        width: 22px;
+        width: auto;
+        height: 20px;
+        margin-bottom: 0;
+        object-fit: contain;
+        flex-shrink: 0;
         opacity: .7;
     }
 
@@ -1368,7 +1416,7 @@
 
     .hs .email-reveal-email {
         font-size: 12px;
-        cursor: copy;
+        cursor: pointer;
     }
 
     .hs .email-reveal-email::after {
@@ -1897,8 +1945,27 @@
                                         class="marginRight1 btn btn-primary">{{ __('Quarterly') }}</button>
                                     <button onclick="updateChart('yearly')" data-view="yearly"
                                         class="btn btn-primary">{{ __('Yearly') }}</button>
+                                    {{-- Cifras resumen en la misma fila que los botones: no restan alto a las listas del equipo --}}
+                                    <div class="hsj-kpis" id="hsjKpis" hidden>
+                                        <div class="hsj-kpi"><span>{{ __('Finished order forms') }}</span><b class="hsj-num" data-kpi="count">0</b></div>
+                                        <div class="hsj-kpi"><span>{{ __('Average time') }}</span><b><span class="hsj-num" data-kpi="avg">0</span> <small>{{ __('days') }}</small></b></div>
+                                        <div class="hsj-kpi is-delay"><span>{{ __('Average delay') }}</span><b><span class="hsj-num" data-kpi="delay">0</span> <small>{{ __('days') }}</small></b></div>
+                                    </div>
                                 </div>
-                                <canvas id="myChart" style="height: 400px; width:100%"></canvas>
+                                {{-- Barras de recorrido: cada periodo es una barra horizontal inicio → en plazo → retraso
+                                     (home-statistics.js la pinta y la anima) --}}
+                                <div id="hsJourney" class="hsj" hidden>
+                                    <div class="hsj-head">
+                                        <span class="hsj-title" id="hsjTitle"></span>
+                                        <span class="hsj-legend">
+                                            <span><i style="background:#b4b2a9"></i>{{ __('Starting time') }}</span>
+                                            <span><i style="background:#5cb85c"></i>{{ __('On time') }}</span>
+                                            <span><i style="background:#e24b4a"></i>{{ __('Delay') }}</span>
+                                            <label class="hsj-toggle"><input type="checkbox" id="hsjValues" checked>{{ __('Show values') }}</label>
+                                        </span>
+                                    </div>
+                                    <div class="hsj-rows" id="hsjRows" role="list"></div>
+                                </div>
                                 {{-- Sin datos: una franja compacta en lugar de un eje vacío a toda pantalla --}}
                                 <div id="chartEmptyMessage" class="hs-empty" style="display:none;">
                                     <i class="fa-regular fa-chart-bar"></i>
@@ -2099,7 +2166,11 @@
             noDataHint: @json(__('The chart appears as soon as an order form is finished. Try another year or view.')),
             zeroTitle: @json(__(':n finished order forms, with an average time of 0 days')),
             zeroText: @json(__('They were finished the same day they were created, so there are no days to draw. The chart will show them when they take at least one day.')),
-            finishedCount: @json(__(':n finished order forms'))
+            finishedCount: @json(__(':n finished order forms')),
+            orders: @json(__(':n order forms')),
+            ordersOne: @json(__(':n order form')),
+            daysUnit: @json(__('days')),
+            sameDay: @json(__('Finished the same day'))
         };
     </script>
     <script src="{{ asset('assets/custom/js/home-statistics.js') }}?v={{ @filemtime(public_path('assets/custom/js/home-statistics.js')) }}"></script>
@@ -2146,19 +2217,24 @@
 
         // Las listas de comerciales y técnicos/as ocupan lo que queda de ventana: la página no hace scroll
         // (si no cabe ni un mínimo razonable, se deja el scroll de la página)
+        // Mínimo de las listas: hasta 200px (3-4 personas). Si la página no cabe, primero encoge la lista
+        // de periodos de Estadísticas (home-statistics.js) y solo después la página hace scroll.
         function fitTeamLists() {
             const lists = Array.from(document.querySelectorAll('.hs .modifiedDivTecAndCom'));
             if (!lists.length) return;
+            // En pantallas bajas el mínimo baja un poco (768px → ~150px; 1080px → 200px)
+            const TEAM_LIST_MIN = Math.round(Math.min(200, Math.max(140, window.innerHeight * 0.19)));
             const top = Math.min(...lists.map((l) => l.getBoundingClientRect().top + window.scrollY));
             // 72px libres abajo: ahí va la burbuja del chatbot (44px + 16px de margen), así no tapa la última fila
-            let h = Math.max(100, Math.floor(window.innerHeight - top - 72));
+            let h = Math.max(TEAM_LIST_MIN, Math.floor(window.innerHeight - top - 72));
             lists.forEach((l) => { l.style.maxHeight = h + 'px'; });
             const over = document.documentElement.scrollHeight - window.innerHeight;
-            if (over > 0 && h > 100) {
-                h = Math.max(100, h - over - 1);
+            if (over > 0 && h > TEAM_LIST_MIN) {
+                h = Math.max(TEAM_LIST_MIN, h - over - 1);
                 lists.forEach((l) => { l.style.maxHeight = h + 'px'; });
             }
         }
+        window.fitTeamLists = fitTeamLists; // la usa home-statistics.js al cambiar de vista (cambia el alto)
         window.addEventListener('load', fitTeamLists);
         window.addEventListener('resize', fitTeamLists);
         // Cambiar entre «Resumen global» y «Mi actividad» cambia el alto de las tarjetas: se recalcula al terminar la animación

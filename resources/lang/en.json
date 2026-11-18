@@ -1672,5 +1672,12 @@
     ":count new error report|:count new error reports": ":count new error report|:count new error reports",
     "No error reports yet.": "No error reports yet.",
     "The user sees the status and this answer in «My reports».": "The user sees the status and this answer in «My reports».",
-    "Problems reported by users with «Report a problem». Open one to see the details, change its status and answer.": "Problems reported by users with «Report a problem». Open one to see the details, change its status and answer."
+    "Problems reported by users with «Report a problem». Open one to see the details, change its status and answer.": "Problems reported by users with «Report a problem». Open one to see the details, change its status and answer.",
+    "Finished order forms": "Finished order forms",
+    "Average time": "Average time",
+    "Average delay": "Average delay",
+    "days": "days",
+    ":n order forms": ":n order forms",
+    "Finished the same day": "Finished the same day",
+    ":n order form": ":n order form"
 }

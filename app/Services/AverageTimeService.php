@@ -11,8 +11,9 @@ class AverageTimeService
 {
     public function getAllAverageTimes(int $workspaceId): array
     {
-        // v2: cada periodo incluye ya «count» (encargos finalizados); clave nueva para no servir la caché antigua sin él
-        return Cache::remember("average_times_v2_{$workspaceId}", 600, function () use ($workspaceId) {
+        // v3: año/mes por fecha de finalización del encargo y retraso contra la entrega prevista;
+        // clave nueva para no servir la caché calculada con el criterio anterior
+        return Cache::remember("average_times_v3_{$workspaceId}", 600, function () use ($workspaceId) {
             return $this->computeAverageTimes($workspaceId);
         });
     }
@@ -21,44 +22,39 @@ class AverageTimeService
     {
         Carbon::setLocale(App::getLocale());
 
+        // Solo encargos finalizados del espacio de trabajo
         $milestones = DB::table('milestones')
             ->join('projects', 'projects.id', '=', 'milestones.project_id')
             ->where('projects.workspace', '=', $workspaceId)
-            ->whereNotNull('projects.start_date')
+            ->whereNotNull('milestones.finalization_date')
+            ->where('milestones.finalization_date', '!=', '0000-00-00')
             ->select(
-                'projects.start_date as project_start_date',
                 'milestones.start_date',
                 'milestones.end_date',
+                'milestones.planned_end_date',
                 'milestones.task_start_date',
                 'milestones.finalization_date'
             )
             ->get();
 
         $grouped = [];
+        $validDate = fn($d) => !empty($d) && $d !== '0000-00-00' && !str_starts_with((string) $d, '0000-00-00');
 
         foreach ($milestones as $milestone) {
-            $year = date('Y', strtotime($milestone->project_start_date));
-
-            if (!isset($grouped[$year])) {
-                $grouped[$year] = [
-                    'months' => [],
-                    'quarters' => [],
-                    'yearly' => $this->newPeriod(),
-                ];
-            }
-
-            if (!$milestone->finalization_date || $milestone->finalization_date === '0000-00-00') {
+            if (!$validDate($milestone->finalization_date) || !$validDate($milestone->start_date)) {
                 continue;
             }
 
-            $creationDate = Carbon::parse($milestone->start_date);
-            $taskStartDate = $milestone->task_start_date && $milestone->task_start_date !== '0000-00-00'
-                ? Carbon::parse($milestone->task_start_date)
+            $creationDate = Carbon::parse($milestone->start_date)->startOfDay();
+            $taskStartDate = $validDate($milestone->task_start_date)
+                ? Carbon::parse($milestone->task_start_date)->startOfDay()
                 : $creationDate;
-            $estimatedDate = $milestone->end_date && $milestone->end_date !== '0000-00-00'
-                ? Carbon::parse($milestone->end_date)
-                : $creationDate;
-            $finalizationDate = Carbon::parse($milestone->finalization_date);
+            // Fecha objetivo: la entrega prevista y, si no hay, la deseada (igual que la columna
+            // «Completado» de la tabla de Encargos). Sin ninguna, la de creación.
+            $estimatedDate = $validDate($milestone->planned_end_date)
+                ? Carbon::parse($milestone->planned_end_date)->startOfDay()
+                : ($validDate($milestone->end_date) ? Carbon::parse($milestone->end_date)->startOfDay() : $creationDate);
+            $finalizationDate = Carbon::parse($milestone->finalization_date)->startOfDay();
 
             $deliveryTime = $creationDate->diffInDays($finalizationDate);
             $startUpTime = $taskStartDate->lt($creationDate)
@@ -67,8 +63,19 @@ class AverageTimeService
             $delayTime = max(0, $estimatedDate->diffInDays($finalizationDate, false));
             $workingTime = max(0, $deliveryTime - $startUpTime - $delayTime);
 
-            $month = Carbon::parse($milestone->start_date)->translatedFormat('F');
-            $quarter = 'Q' . ceil(date('n', strtotime($milestone->start_date)) / 3);
+            // Año, mes y trimestre: los de la finalización del encargo («encargos finalizados en marzo»).
+            // Antes el año salía del inicio del proyecto y el mes de la creación del encargo.
+            $year = $finalizationDate->format('Y');
+            if (!isset($grouped[$year])) {
+                $grouped[$year] = [
+                    'months' => [],
+                    'quarters' => [],
+                    'yearly' => $this->newPeriod(),
+                ];
+            }
+
+            $month = $finalizationDate->translatedFormat('F');
+            $quarter = 'Q' . ceil((int) $finalizationDate->format('n') / 3);
 
             if (!isset($grouped[$year]['months'][$month])) {
                 $grouped[$year]['months'][$month] = $this->newPeriod();

@@ -2095,5 +2095,12 @@
     ":count new error report|:count new error reports": ":count informe de errores nuevo|:count informes de errores nuevos",
     "No error reports yet.": "Todavía no hay informes de errores.",
     "The user sees the status and this answer in «My reports».": "El usuario ve el estado y esta respuesta en «Mis reportes».",
-    "Problems reported by users with «Report a problem». Open one to see the details, change its status and answer.": "Fallos que los usuarios han enviado con «Reportar un problema». Abre uno para ver el detalle, cambiar su estado y responder."
+    "Problems reported by users with «Report a problem». Open one to see the details, change its status and answer.": "Fallos que los usuarios han enviado con «Reportar un problema». Abre uno para ver el detalle, cambiar su estado y responder.",
+    "Finished order forms": "Encargos finalizados",
+    "Average time": "Tiempo medio",
+    "Average delay": "Retraso medio",
+    "days": "días",
+    ":n order forms": ":n encargos",
+    "Finished the same day": "Terminados el mismo día",
+    ":n order form": ":n encargo"
 }
