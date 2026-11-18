@@ -784,6 +784,8 @@
             @endif
             </ul>
         </div>
+        {{-- «Reportar un problema»: enlace sobre la línea del pie y su formulario --}}
+        @include('partials.problem_report')
         {{-- Escritorio: notificaciones, idioma (y chat) + menú de usuario de la cabecera --}}
         <div class="sb-bottom">
             <ul class="sb-slot sb-slot-tools list-unstyled" id="sbSlotTools"></ul>

@@ -155,7 +155,6 @@
         border-bottom: 2px solid #ff8a0066;
         border-right: 2px solid #ff8a0066;
     }
-
     .notification-slide-out {
         transform: translateX(100%);
         opacity: 0;
@@ -242,6 +241,17 @@
                         <img class="theme-avtar"
                             @if (\Auth::user()->avatar) src="{{ asset(Auth::user()->avatar) }}" @else avatar="{{ Auth::user()->name }}" @endif
                             alt="{{ Auth::user()->name }}">
+                        @php
+                            // Soporte: banderita en la foto si hay informes de errores nuevos (se gestionan en el perfil)
+                            $aprNewReports = (Auth::guard('web')->check() && (Auth::user()->is_support ?? false))
+                                ? \App\Models\ProblemReport::newCount() : 0;
+                        @endphp
+                        @if (Auth::guard('web')->check() && (Auth::user()->is_support ?? false))
+                            <span class="apr-avatar-flag" @if (!$aprNewReports) hidden @endif
+                                title="{{ trans_choice(':count new error report|:count new error reports', $aprNewReports, ['count' => $aprNewReports]) }}">
+                                <i class="fa-solid fa-flag" aria-hidden="true"></i>
+                            </span>
+                        @endif
 
                         <span class="hide-mob ms-2">{{ __('Hi') }}, {{ Auth::user()->name }} </span>
                         <i class="ti ti-chevron-down drp-arrow nocolor hide-mob"></i>
@@ -269,6 +279,20 @@
                             <i class="ti ti-user"></i>
                             <span>{{ __('My Profile') }}</span>
                         </a>
+                        @auth('web')
+                            @if (Auth::user()->is_support ?? false)
+                                <a href="{{ route('users.my.account') }}#reports" class="dropdown-item">
+                                    <i class="ti ti-flag"></i>
+                                    <span>{{ __('Error reports') }}</span>
+                                    <b class="apr-menu-count" data-reports-new-count @if (!$aprNewReports) hidden @endif>{{ $aprNewReports }}</b>
+                                </a>
+                            @endif
+                            {{-- En móvil no se ve el enlace del pie del menú: va aquí --}}
+                            <a href="#" class="dropdown-item apr-mobile-item" data-problem-report-open>
+                                <i class="ti ti-flag"></i>
+                                <span>{{ __('Report a problem') }}</span>
+                            </a>
+                        @endauth
                         <a href="#" class="dropdown-item "
                             onclick="event.preventDefault();document.getElementById('logout-form1').submit();">
                             <i class="ti ti-power"></i>

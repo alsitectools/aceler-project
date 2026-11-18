@@ -277,6 +277,12 @@
             $uaRows = $uaRows->put(__('Other countries'), $uaOthers);
         }
         $uaRole = $user->is_exporter ? __('Axapta exporter') : ($user->type === 'admin' ? __('Administrator') : __('User'));
+        // Informes de errores («Reportar un problema»): solo soporte (users.is_support)
+        $uaIsSupport = (bool) ($user->is_support ?? false);
+        $uaReports = $uaIsSupport
+            ? \App\Models\ProblemReport::with(['user:id,name,email', 'workspace:id,name', 'handler:id,name'])->orderByDesc('id')->limit(500)->get()
+            : collect();
+        $uaReportsNew = $uaReports->where('status', 'received')->count();
     @endphp
     <link rel="stylesheet" href="{{ asset('assets/css/user_account.css') }}?v={{ filemtime(public_path('assets/css/user_account.css')) }}">
     <div class="ua">
@@ -302,6 +308,12 @@
                     <button type="button" class="ua-nav-item" data-ua-target="axapta">
                         <i class="fa-solid fa-file-export"></i><span>{{ __('Export to Axapta') }}</span>
                         <b class="ua-badge" id="uaPendingBadge" hidden></b>
+                    </button>
+                @endif
+                @if ($uaIsSupport)
+                    <button type="button" class="ua-nav-item" data-ua-target="reports">
+                        <i class="fa-regular fa-flag"></i><span>{{ __('Error reports') }}</span>
+                        <b class="ua-badge ua-badge-new" data-reports-new-count title="{{ __('New error reports') }}" @if (!$uaReportsNew) hidden @endif>{{ $uaReportsNew }}</b>
                     </button>
                 @endif
             </nav>
@@ -495,6 +507,21 @@
                                 <tr><td colspan="5" class="ua-muted">{{ __('Loading...') }}</td></tr>
                             </tbody>
                         </table>
+                    </div>
+                </section>
+            @endif
+
+            {{-- ================= Informes de errores (solo soporte) ================= --}}
+            @if ($uaIsSupport)
+                <section class="ua-card ua-section" id="v-pills-reports" data-ua-section="reports">
+                    <header class="ua-card-head">
+                        <div>
+                            <h3>{{ __('Error reports') }}</h3>
+                            <p>{{ __('Problems reported by users with «Report a problem». Open one to see the details, change its status and answer.') }}</p>
+                        </div>
+                    </header>
+                    <div class="ua-card-body">
+                        @include('problem_reports.partials.inbox', ['reports' => $uaReports])
                     </div>
                 </section>
             @endif

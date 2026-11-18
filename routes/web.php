@@ -1110,5 +1110,14 @@ Route::get('/projects/export-axapta/batches/{batchId}/download', [ProjectControl
   ->whereNumber('batchId')
   ->name('projects.export.axapta.download');
 
+// «Reportar un problema» (pie del menú): enviar, ver los propios y bandeja de soporte (users.is_support)
+Route::middleware('auth')->prefix('problem-reports')->name('problem_reports.')->group(function () {
+  Route::post('/', [\App\Http\Controllers\ProblemReportController::class, 'store'])->name('store');
+  Route::get('/mine', [\App\Http\Controllers\ProblemReportController::class, 'mine'])->name('mine');
+  Route::get('/', [\App\Http\Controllers\ProblemReportController::class, 'index'])->name('index');
+  Route::post('/{id}', [\App\Http\Controllers\ProblemReportController::class, 'update'])->whereNumber('id')->name('update');
+  Route::get('/{id}/screenshot', [\App\Http\Controllers\ProblemReportController::class, 'screenshot'])->whereNumber('id')->name('screenshot');
+});
+
 //MY TASKS VIEW
 Route::get('/my-tasks', [ProjectController::class, 'myTasks'])->name('projects.my_tasks');
