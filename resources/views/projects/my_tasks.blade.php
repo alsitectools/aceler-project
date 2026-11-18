@@ -235,6 +235,39 @@
             scrollbar-gutter: stable;
         }
 
+        /* barras finas y discretas en Firefox (en Chrome/Edge estas propiedades anularían las de abajo) */
+        @supports not selector(::-webkit-scrollbar) {
+            .my-tasks-table-scroll {
+                scrollbar-width: thin;
+                scrollbar-color: #d1d5db transparent;
+            }
+        }
+
+        /* barras finas y discretas (Chrome / Edge): se oscurecen al pasar el ratón */
+        .my-tasks-table-scroll::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        .my-tasks-table-scroll::-webkit-scrollbar-track,
+        .my-tasks-table-scroll::-webkit-scrollbar-corner {
+            background: transparent;
+        }
+
+        .my-tasks-table-scroll::-webkit-scrollbar-thumb {
+            background: #d9dce1;
+            border: 2px solid #fff;
+            border-radius: 8px;
+        }
+
+        .my-tasks-table-scroll:hover::-webkit-scrollbar-thumb {
+            background: #b9bec6;
+        }
+
+        .my-tasks-table-scroll::-webkit-scrollbar-button {
+            display: none;
+        }
+
         .my-tasks-table-inner {
             min-width: 100%;
             width: max-content;
@@ -1217,48 +1250,64 @@
             color: #1f2937;
         }
 
+        /* Filtros rápidos en pestañas subrayadas, como .pd-tabs de Encargos (project_detail.css) */
         .my-tasks-quick {
-            display: inline-flex;
-            flex-wrap: wrap;
-            gap: 6px;
+            display: flex;
+            gap: 22px;
+            padding: 0 36px;
+            border-bottom: 1px solid #f0f1f4;
+            overflow-x: auto;
+            /* la raya de la pestaña activa sobresale 1px: sin esto Windows pinta una barra vertical */
+            overflow-y: hidden;
+            scrollbar-width: none;
+        }
+
+        .my-tasks-quick::-webkit-scrollbar {
+            display: none;
         }
 
         .my-tasks-quick-btn {
             display: inline-flex;
             align-items: center;
             gap: 6px;
-            height: 32px;
-            padding: 0 11px;
-            border: 1px solid #e5e7eb;
-            border-radius: 999px;
-            background: #fff;
-            font-size: 12.5px;
-            color: #374151;
+            margin-bottom: -1px;
+            padding: 10px 0;
+            border: 0;
+            border-bottom: 2px solid transparent;
+            background: none;
+            color: #6b7280;
+            font-size: 13px;
+            white-space: nowrap;
+            cursor: pointer;
+        }
+
+        .my-tasks-quick-btn i {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
         }
 
         .my-tasks-quick-btn b {
-            padding: 0 6px;
-            border-radius: 999px;
-            background: #f3f4f6;
-            font-size: 11px;
+            font-weight: 500;
+            color: #9ca3af;
         }
 
-        .my-tasks-quick-btn[data-quick="late"] b { color: #c0392b; }
-        .my-tasks-quick-btn[data-quick="changes"] b { color: #dc3545; }
-
         .my-tasks-quick-btn:hover {
-            border-color: #f3c7cd;
+            color: #1f2937;
         }
 
         .my-tasks-quick-btn.is-active {
-            background: #fbeaec;
-            border-color: #f3c7cd;
+            border-bottom-color: var(--mt-accent);
             color: var(--mt-accent);
             font-weight: 600;
         }
 
         .my-tasks-quick-btn.is-active b {
-            background: #fff;
+            color: var(--mt-accent);
+        }
+
+        #tableViewCard .card-header {
+            border-bottom: 0;
         }
 
         #tableViewCard .card-header .my-tasks-header-tools {
@@ -1408,6 +1457,148 @@
 
         .my-tasks-sort-btn.is-sorted.is-desc .my-tasks-sort-icon {
             clip-path: inset(50% 0 0 0);
+        }
+
+        /* ===== Mismo aspecto que la tabla de Encargos (detalle de proyecto, project_detail.css) =====
+           Lista limpia: cabecera blanca en gris, filas separadas por una línea, estado con punto
+           y fechas en etiqueta gris (verde = a tiempo, roja = vencida, naranja = esta semana). */
+        .my-tasks-header-row {
+            background: #fff;
+            border-bottom: 1px solid #f0f1f4;
+            gap: 4px;
+        }
+
+        .my-tasks-th {
+            padding: 12px 8px;
+            color: #9ca3af;
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: .02em;
+        }
+
+        /* el título de estas columnas es más largo que su contenido: ancho para que no sobresalga */
+        .my-tasks-th[data-col-key="status"],
+        .my-tasks-td[data-col-key="status"] { width: 185px; min-width: 185px; }
+
+        .my-tasks-th[data-col-key="start_date"],
+        .my-tasks-td[data-col-key="start_date"] { width: 160px; min-width: 160px; }
+
+        .my-tasks-th[data-col-key="finalization_date"],
+        .my-tasks-td[data-col-key="finalization_date"] { width: 205px; min-width: 205px; }
+
+        .my-tasks-filter-btn {
+            width: 22px;
+            height: 22px;
+            border: 0;
+            border-radius: 6px;
+            color: #c4c8cf;
+        }
+
+        .my-tasks-filter-btn:hover {
+            background: #f1f2f4;
+            color: #4b5563;
+        }
+
+        .my-tasks-filter-btn.is-active,
+        .my-tasks-filter-btn.is-active:hover {
+            background: #fbe9ec;
+            color: #AA182C;
+        }
+
+        .my-tasks-th:has(.my-tasks-filter-btn.is-active) {
+            color: #AA182C;
+        }
+
+        .my-tasks-body-rows {
+            gap: 0;
+            padding-top: 0;
+        }
+
+        .my-tasks-body-row {
+            gap: 4px;
+            border: 0;
+            border-bottom: 1px solid #f4f5f7;
+            border-radius: 0;
+            background: #fff;
+            transition: background-color .15s ease;
+        }
+
+        .my-tasks-body-row:hover {
+            border-color: #f4f5f7;
+            background: #fafafb;
+            color: inherit;
+            transform: none;
+        }
+
+        .my-tasks-body-row.is-late {
+            box-shadow: none;
+        }
+
+        .my-tasks-td {
+            padding: 14px 8px;
+            font-size: 15px;
+            color: #374151;
+        }
+
+        .my-tasks-td[data-col-key="project"] .my-tasks-main,
+        .my-tasks-td[data-col-key="milestone"] .my-tasks-main {
+            font-weight: 600;
+            color: #1f2937;
+        }
+
+        /* Estado del encargo: punto de color + texto, como en Encargos */
+        .my-tasks-status {
+            gap: 7px;
+            padding: 0;
+            border-radius: 0;
+            background: none !important;
+            color: #374151 !important;
+            font-size: 15px;
+            font-weight: 400;
+        }
+
+        .my-tasks-status i {
+            width: 9px;
+            height: 9px;
+            border-radius: 50%;
+            background: #9ca3af;
+        }
+
+        .my-tasks-status--1 i { background: #cbd5e1; }
+        .my-tasks-status--2 i { background: #60a5fa; }
+        .my-tasks-status--3 i { background: #fbbf24; }
+        .my-tasks-status--4 i { background: #22c55e; }
+
+        /* Fechas en etiqueta */
+        .my-tasks-td .task-date {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 5px;
+            background: #e9eaec;
+            color: #4b5563;
+            font-size: 14px;
+            font-weight: 700;
+        }
+
+        .my-tasks-td .task-date.on-time { background: #53b446e0; color: #fff; }
+        .my-tasks-td .task-date.overdue,
+        .my-tasks-td[data-col-key="estimated_date"] .task-date.is-late { background: #ff0000a3; color: #fff; }
+        .my-tasks-td[data-col-key="estimated_date"] .task-date.is-soon { background: #db8d33; color: #fff; }
+
+        .my-tasks-rel.is-late { color: #c0392b; }
+        .my-tasks-rel.is-soon { color: #b7791f; }
+
+        /* Sin fecha / sin dato: texto suave, sin etiqueta punteada */
+        .my-tasks-td[data-col-key="start_date"] .my-tasks-placeholder,
+        .my-tasks-td[data-col-key="estimated_date"] .my-tasks-placeholder,
+        .my-tasks-td[data-col-key="finalization_date"] .my-tasks-placeholder,
+        .my-tasks-td[data-col-key="status"] .my-tasks-placeholder {
+            padding: 0;
+            border: 0;
+            background: none;
+            color: #c4c8cf !important;
+            font-size: 14px;
+            font-weight: 400;
         }
 
         /* pie de la tabla: cuántas se ven y qué hace el clic */
@@ -1724,21 +1915,13 @@
                                     <p>{!! __('<strong>Click the green or red badge</strong> next to the task name to read the comment and confirm the change.') !!}</p>
                                 </div>
                             </div>
-                            @unless ($taskCollection->isEmpty())
-                                <label class="my-tasks-search" for="myTasksSearch">
-                                    <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
-                                    <input type="search" id="myTasksSearch" placeholder="{{ __('Search project, order form or task…') }}" autocomplete="off">
-                                </label>
-                                {{-- Filtros rápidos (se suman a los embudos de cada columna) --}}
-                                <div class="my-tasks-quick" id="myTasksQuickFilters" role="group" aria-label="{{ __('Quick filters') }}">
-                                    <button type="button" class="my-tasks-quick-btn" data-quick="open">{{ __('Not finished') }} <b data-quick-count="open">0</b></button>
-                                    <button type="button" class="my-tasks-quick-btn" data-quick="late">{{ __('Overdue tasks') }} <b data-quick-count="late">0</b></button>
-                                    <button type="button" class="my-tasks-quick-btn" data-quick="changes">{{ __('Change requested') }} <b data-quick-count="changes">0</b></button>
-                                    <button type="button" class="my-tasks-quick-btn" data-quick="finished">{{ __('Finished tasks') }} <b data-quick-count="finished">0</b></button>
-                                    <button type="button" class="my-tasks-quick-btn" data-quick="all">{{ __('All tasks') }} <b data-quick-count="all">0</b></button>
-                                </div>
-                            @endunless
                             <div class="my-tasks-header-tools">
+                                @unless ($taskCollection->isEmpty())
+                                    <label class="my-tasks-search" for="myTasksSearch">
+                                        <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+                                        <input type="search" id="myTasksSearch" placeholder="{{ __('Search project, order form or task…') }}" autocomplete="off">
+                                    </label>
+                                @endunless
                                 <button type="button" id="myTasksColumnsToggleBtn" class="my-tasks-column-toggle-btn" aria-label="{{ __('Show or hide table columns') }}" title="{{ __('Show or hide table columns') }}" aria-expanded="false">
                                     <svg class="my-tasks-column-toggle-icon" viewBox="0 0 16 16" aria-hidden="true">
                                         <path d="M8 3.2c3.3 0 5.8 2.3 6.9 4.8-1.1 2.5-3.6 4.8-6.9 4.8S2.2 10.5 1.1 8C2.2 5.5 4.7 3.2 8 3.2Zm0 1.2c-2.6 0-4.7 1.7-5.8 3.6 1.1 1.9 3.2 3.6 5.8 3.6s4.7-1.7 5.8-3.6c-1.1-1.9-3.2-3.6-5.8-3.6Zm0 1.4a2.2 2.2 0 1 1 0 4.4 2.2 2.2 0 0 1 0-4.4Zm0 1.2a1 1 0 1 0 0 2 1 1 0 0 0 0-2Z"></path>
@@ -1747,6 +1930,17 @@
                                 </button>
                             </div>
                         </div>
+
+                        @unless ($taskCollection->isEmpty())
+                            {{-- Filtros rápidos en pestañas, como en Encargos (se suman a los embudos de cada columna) --}}
+                            <nav class="my-tasks-quick" id="myTasksQuickFilters" role="group" aria-label="{{ __('Quick filters') }}">
+                                <button type="button" class="my-tasks-quick-btn" data-quick="all">{{ __('All tasks') }} <b data-quick-count="all">0</b></button>
+                                <button type="button" class="my-tasks-quick-btn" data-quick="open"><i style="background:#60a5fa"></i>{{ __('Not finished') }} <b data-quick-count="open">0</b></button>
+                                <button type="button" class="my-tasks-quick-btn" data-quick="late"><i style="background:#e06c71"></i>{{ __('Overdue tasks') }} <b data-quick-count="late">0</b></button>
+                                <button type="button" class="my-tasks-quick-btn" data-quick="changes"><i style="background:#fbbf24"></i>{{ __('Change requested') }} <b data-quick-count="changes">0</b></button>
+                                <button type="button" class="my-tasks-quick-btn" data-quick="finished"><i style="background:#22c55e"></i>{{ __('Finished tasks') }} <b data-quick-count="finished">0</b></button>
+                            </nav>
+                        @endunless
 
                         <div class="card-body">
                             @if ($taskCollection->isEmpty())
@@ -2021,7 +2215,7 @@
                                                 </div>
                                                 <div class="my-tasks-td" data-col-key="status" data-cell-value="{{ $statusLabel }}">
                                                     @if ($milestoneStatus >= 1 && $milestoneStatus <= 4)
-                                                        <span class="my-tasks-status my-tasks-status--{{ $milestoneStatus }}">{{ $statusLabel }}</span>
+                                                        <span class="my-tasks-status my-tasks-status--{{ $milestoneStatus }}"><i aria-hidden="true"></i>{{ $statusLabel }}</span>
                                                     @else
                                                         <span class="{{ $placeholderClass }}">{{ $naText }}</span>
                                                     @endif
@@ -2762,22 +2956,48 @@ function moveToReview(meta) {
             });
 
             // La tabla ocupa el alto que queda en la ventana (antes, una caja fija de 350 px)
+            // Ancho: la tabla se encoge lo justo para caber y así solo queda la barra vertical.
+            // Si ni con el mínimo cabe (pantallas muy estrechas o columnas muy largas), aparece la horizontal.
+            function fitTableWidth() {
+                const scroll = document.querySelector('.my-tasks-table-scroll');
+                const inner = scroll && scroll.querySelector('.my-tasks-table-inner');
+                if (!inner || !scroll.offsetParent) return;
+                inner.style.zoom = '1';
+                inner.style.minWidth = '0';
+                // scrollWidth: la cabecera puede ser algo más ancha que las filas
+                const natural = Math.max(inner.offsetWidth, inner.scrollWidth);
+                inner.style.minWidth = '';
+                const available = scroll.clientWidth;
+                if (!natural || !available) { inner.style.zoom = ''; return; }
+                let zoom = Math.max(0.6, Math.min(0.9, (available - 2) / natural));
+                inner.style.zoom = String(Math.floor(zoom * 1000) / 1000);
+                // El texto no encoge exactamente en proporción: se afina hasta que deje de sobresalir
+                for (let n = 0; n < 4 && zoom > 0.6 && scroll.scrollWidth > scroll.clientWidth; n++) {
+                    zoom = Math.max(0.6, zoom * (scroll.clientWidth - 2) / scroll.scrollWidth);
+                    inner.style.zoom = String(Math.floor(zoom * 1000) / 1000);
+                }
+            }
+
             function fitTableHeight() {
                 const scroll = document.querySelector('.my-tasks-table-scroll');
                 if (!scroll || !scroll.offsetParent) return;
+                fitTableWidth();
                 const top = scroll.getBoundingClientRect().top + window.scrollY;
                 const foot = document.querySelector('.my-tasks-table-foot');
                 const below = (foot ? foot.offsetHeight : 0) + 40;
-                let h = Math.max(320, window.innerHeight - top - below);
+                // mínimo 220 px: en pantallas bajas (768 px) la tabla cabe sin que la página haga scroll
+                let h = Math.max(220, window.innerHeight - top - below);
                 scroll.style.maxHeight = h + 'px';
                 // Lo que aún sobresale de la ventana (márgenes del layout) se descuenta de la tabla
                 const over = document.documentElement.scrollHeight - window.innerHeight;
-                if (over > 0 && h > 320) {
-                    h = Math.max(320, h - over - 2);
+                if (over > 0 && h > 220) {
+                    h = Math.max(220, h - over - 2);
                     scroll.style.maxHeight = h + 'px';
                 }
             }
             window.addEventListener('resize', fitTableHeight);
+            // con las fuentes ya cargadas los anchos cambian: se recalcula al terminar de cargar
+            window.addEventListener('load', fitTableHeight);
 
             function isDateFilterKey(filterKey) {
                 return ['start_date', 'estimated_date', 'finalization_date'].includes(filterKey);
