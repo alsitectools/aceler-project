@@ -1609,5 +1609,13 @@
     "Average time of the finished order forms of the workspace: starting time, on time and delay, in days.": "Average time of the finished order forms of the workspace: starting time, on time and delay, in days.",
     "Year and period": "Year and period",
     "Choose the year and whether to see it by months, quarters or the whole year. «Show values» writes the days on each bar.": "Choose the year and whether to see it by months, quarters or the whole year. «Show values» writes the days on each bar.",
-    "Sales managers and technicians of the workspace. Search by name; the envelope shows the email, and clicking it copies it.": "Sales managers and technicians of the workspace. Search by name; the envelope shows the email, and clicking it copies it."
+    "Sales managers and technicians of the workspace. Search by name; the envelope shows the email, and clicking it copies it.": "Sales managers and technicians of the workspace. Search by name; the envelope shows the email, and clicking it copies it.",
+    "Turn off snow": "Turn off snow",
+    "Turn on snow": "Turn on snow",
+    "File": "File",
+    "Download the file of this batch again": "Download the file of this batch again",
+    "Not available": "Not available",
+    "Batches exported before this option, or older than the retention period, have no saved file.": "Batches exported before this option, or older than the retention period, have no saved file.",
+    "This batch was already exported. Import it into Axapta only if it was not imported before; otherwise the hours will be duplicated.": "This batch was already exported. Import it into Axapta only if it was not imported before; otherwise the hours will be duplicated.",
+    "The file of this batch is no longer available.": "The file of this batch is no longer available."
 }

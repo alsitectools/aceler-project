@@ -18,6 +18,11 @@ return [
     // Código de operación de cada línea
     'op' => '210',
 
+    // Meses que se guarda la copia del .fil de cada lote para poder redescargarlo desde el perfil.
+    // Pasado ese tiempo el comando axapta:prune-batch-files borra solo el archivo (el lote y sus
+    // líneas se conservan). 0 = no borrar nunca.
+    'batch_file_retention_months' => (int) env('AXAPTA_BATCH_FILE_RETENTION_MONTHS', 6),
+
     // Empresa por defecto de cada delegación (la más usada en Axapta)
     'empresa_por_delegacion' => [
         'AB' => 'IN1',

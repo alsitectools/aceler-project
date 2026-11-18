@@ -520,6 +520,15 @@
                     @endif
                 </li>
 
+                {{-- Nieve de Navidad: solo se ve en temporada (1 dic – 6 ene); el script del sidebar la muestra y la gestiona --}}
+                <li class="dash-h-item drp-snow" id="acelerSnowItem" hidden>
+                    <button type="button" class="dash-head-link arrow-none me-0" id="acelerSnowToggle" aria-pressed="true"
+                        data-off-text="{{ __('Turn off snow') }}" data-on-text="{{ __('Turn on snow') }}"
+                        title="{{ __('Turn off snow') }}" aria-label="{{ __('Turn off snow') }}">
+                        <i class="ti ti-snowflake nocolor" aria-hidden="true"></i>
+                    </button>
+                </li>
+
                 <li class="dropdown dash-h-item drp-language">
                     <a class="dash-head-link dropdown-toggle arrow-none me-0" data-bs-toggle="dropdown"
                         href="#" role="button" aria-haspopup="false" aria-expanded="false">

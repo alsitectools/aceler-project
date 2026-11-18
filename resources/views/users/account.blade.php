@@ -489,10 +489,10 @@
                         <div class="ua-sub ua-sub-add">{{ __('Latest batches') }}</div>
                         <table class="ua-table">
                             <thead>
-                                <tr><th>{{ __('Date') }}</th><th>{{ __('Lines') }}</th><th>{{ __('Hours') }}</th><th>{{ __('Status') }}</th></tr>
+                                <tr><th>{{ __('Date') }}</th><th>{{ __('Lines') }}</th><th>{{ __('Hours') }}</th><th>{{ __('Status') }}</th><th class="ua-th-file">{{ __('File') }}</th></tr>
                             </thead>
                             <tbody id="uaBatches">
-                                <tr><td colspan="4" class="ua-muted">{{ __('Loading...') }}</td></tr>
+                                <tr><td colspan="5" class="ua-muted">{{ __('Loading...') }}</td></tr>
                             </tbody>
                         </table>
                     </div>
@@ -1260,15 +1260,29 @@
                             const body = document.getElementById('uaBatches');
                             body.innerHTML = (r.batches || []).length ? r.batches.map((b) =>
                                 '<tr><td>' + esc(b.date) + '</td><td>' + esc(b.lines) + '</td><td>' + esc(String(b.hours || '').replace(/:\d{2}$/, '')) + '</td><td><span class="ua-state ' + (b.rejected ? 'is-rejected' : 'is-sent') + '"><i></i>' +
-                                esc(b.rejected ? @json(__('Rejected')) : @json(__('Sent'))) + '</span></td></tr>').join('')
-                                : '<tr><td colspan="4" class="ua-muted">' + esc(@json(__('No exports yet.'))) + '</td></tr>';
+                                esc(b.rejected ? @json(__('Rejected')) : @json(__('Sent'))) + '</span></td><td class="ua-td-file">' +
+                                (b.download_url
+                                    ? '<a class="ua-batch-dl" href="' + esc(b.download_url) + '" title="' + esc(@json(__('Download the file of this batch again'))) + '" aria-label="' + esc(@json(__('Download the file of this batch again'))) + '"><i class="fa-solid fa-download" aria-hidden="true"></i></a>'
+                                    : '<span class="ua-muted" title="' + esc(@json(__('Batches exported before this option, or older than the retention period, have no saved file.'))) + '">' + esc(@json(__('Not available'))) + '</span>') +
+                                '</td></tr>').join('')
+                                : '<tr><td colspan="5" class="ua-muted">' + esc(@json(__('No exports yet.'))) + '</td></tr>';
                         },
                         error: function() {
                             lines.textContent = '—';
-                            document.getElementById('uaBatches').innerHTML = '<tr><td colspan="4" class="ua-muted">' + esc(@json(__('The summary could not be loaded.'))) + '</td></tr>';
+                            document.getElementById('uaBatches').innerHTML = '<tr><td colspan="5" class="ua-muted">' + esc(@json(__('The summary could not be loaded.'))) + '</td></tr>';
                         }
                     });
                 };
+
+                // Redescargar un lote: es el mismo archivo (mismos RegId). Si se vuelve a importar
+                // en Axapta un lote que ya entró, las horas se duplican: se avisa antes.
+                document.addEventListener('click', (e) => {
+                    const link = e.target.closest('.ua-batch-dl');
+                    if (!link) return;
+                    if (!window.confirm(@json(__('This batch was already exported. Import it into Axapta only if it was not imported before; otherwise the hours will be duplicated.')))) {
+                        e.preventDefault();
+                    }
+                });
                 const toggle = document.getElementById('uaIssuesToggle');
                 if (toggle) toggle.addEventListener('click', () => {
                     const list = document.getElementById('uaIssuesList');

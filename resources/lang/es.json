@@ -2032,5 +2032,13 @@
     "Average time of the finished order forms of the workspace: starting time, on time and delay, in days.": "Tiempo medio de los encargos finalizados del espacio de trabajo: tiempo de inicio, en plazo y retraso, en días.",
     "Year and period": "Año y periodo",
     "Choose the year and whether to see it by months, quarters or the whole year. «Show values» writes the days on each bar.": "Elige el año y si verlo por meses, trimestres o el año entero. «Mostrar valores» escribe los días en cada barra.",
-    "Sales managers and technicians of the workspace. Search by name; the envelope shows the email, and clicking it copies it.": "Comerciales y técnicos/as del espacio de trabajo. Busca por nombre; el sobre muestra el correo y, al pulsarlo, se copia."
+    "Sales managers and technicians of the workspace. Search by name; the envelope shows the email, and clicking it copies it.": "Comerciales y técnicos/as del espacio de trabajo. Busca por nombre; el sobre muestra el correo y, al pulsarlo, se copia.",
+    "Turn off snow": "Quitar nieve",
+    "Turn on snow": "Poner nieve",
+    "File": "Archivo",
+    "Download the file of this batch again": "Volver a descargar el archivo de este lote",
+    "Not available": "No disponible",
+    "Batches exported before this option, or older than the retention period, have no saved file.": "Los lotes exportados antes de esta opción, o más antiguos que el periodo de conservación, no tienen el archivo guardado.",
+    "This batch was already exported. Import it into Axapta only if it was not imported before; otherwise the hours will be duplicated.": "Este lote ya se exportó. Súbelo a Axapta solo si no se llegó a importar; si no, las horas se duplicarán.",
+    "The file of this batch is no longer available.": "El archivo de este lote ya no está disponible."
 }

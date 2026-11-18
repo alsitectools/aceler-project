@@ -596,6 +596,53 @@ body.aceler-xmas .aceler-snow {
     to { opacity: 1; }
 }
 
+/* El usuario ha quitado la nieve con el botón ❄ (el gorro se queda) */
+body.aceler-xmas.aceler-nosnow .aceler-snow {
+    display: none;
+}
+
+/* Botón ❄ para quitar / poner la nieve: solo visible en temporada (lo muestra el script) */
+.drp-snow[hidden] {
+    display: none !important;
+}
+
+.drp-snow .dash-head-link {
+    border: 0;
+    cursor: pointer;
+}
+
+.dash-header .drp-snow .dash-head-link {
+    background: transparent;
+}
+
+.drp-snow .dash-head-link[aria-pressed="false"] > i {
+    opacity: 0.45;
+}
+
+/* En el sidebar, cuadrado y sin estirarse: la campana y el idioma se reparten el resto */
+.sb-slot-tools > li.drp-snow {
+    flex: 0 0 auto;
+}
+
+.sb-slot .drp-snow .dash-head-link {
+    width: 34px;
+    padding: 0;
+}
+
+/* Con el copo a la vista, la campana también va cuadrada para que el idioma no se corte */
+.sb-slot-tools:has(> .drp-snow:not([hidden])) > li.drp-notification {
+    flex: 0 0 auto;
+}
+
+.sb-slot-tools:has(> .drp-snow:not([hidden])) > li.drp-notification > .dash-head-link {
+    width: 40px;
+    padding: 0;
+}
+
+body.aCeler-menu-icons .sb-slot .drp-snow .dash-head-link {
+    width: 44px;
+}
+
 /* ---------- Pestañas "Equipo" / "Mi actividad" ----------
    El script de partials/sidebar.blade.php pone data-scope en el sidebar; aquí se ocultan
    las opciones del otro grupo (las que no tienen data-scope se ven siempre). */

@@ -1104,6 +1104,11 @@ Route::post('/projects/export-axapta', [ProjectController::class, 'exportProject
 Route::get('/projects/export-axapta/preview', [ProjectController::class, 'exportAxaptaPreview'])
   ->middleware('auth')
   ->name('projects.export.axapta.preview');
+// Redescargar el .fil de un lote ya exportado (no crea ni marca nada)
+Route::get('/projects/export-axapta/batches/{batchId}/download', [ProjectController::class, 'downloadAxaptaBatch'])
+  ->middleware('auth')
+  ->whereNumber('batchId')
+  ->name('projects.export.axapta.download');
 
 //MY TASKS VIEW
 Route::get('/my-tasks', [ProjectController::class, 'myTasks'])->name('projects.my_tasks');

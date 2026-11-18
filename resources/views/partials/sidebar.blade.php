@@ -1175,11 +1175,61 @@
             document.body.appendChild(snow);
         };
 
+        // Del 1 de diciembre al 6 de enero (Reyes), ambos incluidos, se activa solo, sin escribir nada
+        var today = new Date();
+        var month = today.getMonth(); // 0 = enero, 11 = diciembre
+        var isSeason = month === 11 || (month === 0 && today.getDate() <= 6);
+
+        // El usuario puede quitar la nieve (el gorro se queda). Se recuerda en este navegador
+        // y por temporada: quien la quite este año la vuelve a ver la Navidad siguiente.
+        var seasonYear = month === 0 ? today.getFullYear() - 1 : today.getFullYear();
+        var snowKey = 'aceler.snow.off.' + seasonYear;
+        var snowOff = false;
+        try { snowOff = localStorage.getItem(snowKey) === '1'; } catch (e) {}
+
+        var setXmas = function(on) {
+            document.body.classList.toggle('aceler-xmas', on);
+            document.body.classList.toggle('aceler-nosnow', snowOff);
+            if (on && !snowOff && !snow) makeSnow();
+        };
+
+        var syncSnowButton = function() {
+            var btn = document.getElementById('acelerSnowToggle');
+            if (!btn) return;
+            var text = snowOff ? btn.dataset.onText : btn.dataset.offText;
+            btn.setAttribute('aria-pressed', snowOff ? 'false' : 'true');
+            btn.setAttribute('title', text);
+            btn.setAttribute('aria-label', text);
+        };
+
+        var initSnowButton = function() {
+            var item = document.getElementById('acelerSnowItem');
+            if (!item || !isSeason) return;
+            item.hidden = false;
+            syncSnowButton();
+        };
+
+        document.addEventListener('click', function(e) {
+            var btn = e.target.closest && e.target.closest('#acelerSnowToggle');
+            if (!btn) return;
+            snowOff = !snowOff;
+            try {
+                if (snowOff) localStorage.setItem(snowKey, '1');
+                else localStorage.removeItem(snowKey);
+            } catch (err) {}
+            setXmas(document.body.classList.contains('aceler-xmas'));
+            syncSnowButton();
+        });
+
+        if (isSeason) setXmas(true);
+        // El botón está en la cabecera, que puede pintarse después de este script
+        initSnowButton();
+        document.addEventListener('DOMContentLoaded', initSnowButton);
+
         document.addEventListener('input', function(e) {
             if (!e.target || e.target.id !== 'searchInput') return;
-            var on = /navidad/i.test(e.target.value || '');
-            document.body.classList.toggle('aceler-xmas', on);
-            if (on && !snow) makeSnow();
+            // En temporada sigue activo aunque se borre el texto; fuera de ella, el truco de siempre
+            setXmas(isSeason || /navidad/i.test(e.target.value || ''));
         });
     })();
 

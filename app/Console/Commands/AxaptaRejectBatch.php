@@ -24,7 +24,7 @@ class AxaptaRejectBatch extends Command
     public function handle(): int
     {
         $this->table(['Id', 'Fichero', 'Fecha', 'Líneas', 'Horas', 'Rechazado'],
-            ExportBatch::orderBy('id')->get()->map(fn($b) => [
+            ExportBatch::select(ExportBatch::LIST_COLUMNS)->orderBy('id')->get()->map(fn($b) => [
                 $b->id,
                 $b->file_name,
                 $b->created_at,

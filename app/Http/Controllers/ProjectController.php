@@ -827,12 +827,13 @@ class ProjectController extends Controller
 
         $fileContent = implode("\r\n", $export['lines']) . "\r\n";
 
-        $batch = DB::transaction(function () use ($export) {
+        $batch = DB::transaction(function () use ($export, $fileContent) {
+            // Se guarda una copia comprimida del .fil exacto para poder redescargarlo desde el perfil
             $batch = ExportBatch::create([
                 'file_name' => "Exp_TiemposAX_" . now()->format('Y-m-d-H-i-s') . ".fil",
                 'created_by' => Auth::id(),
                 'created_at' => now(),
-            ]);
+            ] + ExportBatch::packFile($fileContent));
 
             foreach ($export['ledger'] as $record) {
                 $record['batch_id'] = $batch->id;
@@ -875,17 +876,21 @@ class ProjectController extends Controller
 
         $pendingHours = array_sum(array_map(fn($row) => (float) $row['hours_decimal'], $export['ledger']));
 
-        $batches = ExportBatch::orderByDesc('id')->limit(6)->get()->map(function ($batch) {
-            $lines = ExportLedgerLine::where('batch_id', $batch->id);
+        // Sin leer la copia del archivo: solo si existe
+        $batches = ExportBatch::select(ExportBatch::LIST_COLUMNS)
+            ->selectRaw('file_content IS NOT NULL AS has_file')
+            ->orderByDesc('id')->limit(6)->get()->map(function ($batch) {
+                $lines = ExportLedgerLine::where('batch_id', $batch->id);
 
-            return [
-                'id' => $batch->id,
-                'date' => $batch->created_at ? Carbon::parse($batch->created_at)->format('d/m/Y H:i') : '',
-                'lines' => (clone $lines)->count(),
-                'hours' => AxaptaExportHelper::secondsToTimeFormat((int) round(((float) (clone $lines)->sum('hours_decimal')) * 3600)),
-                'rejected' => !empty($batch->rejected_at),
-            ];
-        });
+                return [
+                    'id' => $batch->id,
+                    'date' => $batch->created_at ? Carbon::parse($batch->created_at)->format('d/m/Y H:i') : '',
+                    'lines' => (clone $lines)->count(),
+                    'hours' => AxaptaExportHelper::secondsToTimeFormat((int) round(((float) (clone $lines)->sum('hours_decimal')) * 3600)),
+                    'rejected' => !empty($batch->rejected_at),
+                    'download_url' => $batch->has_file ? route('projects.export.axapta.download', $batch->id) : null,
+                ];
+            });
 
         return response()->json([
             'pending_lines' => count($export['lines']),
@@ -893,6 +898,32 @@ class ProjectController extends Controller
             'skipped' => $export['skipped'],
             'warnings' => $export['warnings'],
             'batches' => $batches,
+        ]);
+    }
+
+    /**
+     * Redescarga el .fil de un lote ya exportado: el mismo archivo, byte a byte (mismos RegId).
+     * No crea ni marca nada; si el lote no tiene copia (anterior a esta función o ya caducada), 404.
+     */
+    public function downloadAxaptaBatch($batchId)
+    {
+        if (!Auth::user() || !Auth::user()->is_exporter) {
+            abort(403, __('You do not have permission to export to Axapta.'));
+        }
+
+        $batch = ExportBatch::findOrFail((int) $batchId);
+        $content = $batch->unpackFile();
+        if ($content === null) {
+            abort(404, __('The file of this batch is no longer available.'));
+        }
+
+        \Log::info("Export Axapta: redescarga del lote {$batch->id}", ['user_id' => Auth::id()]);
+
+        return response($content, 200, [
+            'Content-Type' => 'application/octet-stream',
+            'Content-Disposition' => 'attachment; filename="' . basename($batch->file_name) . '"',
+            'Content-Length' => strlen($content),
+            'Cache-Control' => 'no-store',
         ]);
     }
 
