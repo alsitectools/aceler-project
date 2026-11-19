@@ -130,10 +130,13 @@
 </div>
 
 @if ($hasProjects)
+    {{-- «Activos» (en curso + en espera) es la pestaña por defecto: los finalizados van aparte.
+         La pestaña elegida se recuerda (project_list_script). El buscador sigue encontrando todos. --}}
     <div class="pl-tabs" data-facet="status" role="tablist">
-        <button type="button" class="pl-tab active" data-value="*">{{ __('All statuses') }} <span class="pl-n"></span></button>
+        <button type="button" class="pl-tab" data-value="pl-active">{{ __('Active projects') }} <span class="pl-n"></span></button>
         <button type="button" class="pl-tab" data-value="Ongoing"><span class="pl-dot pl-dot-ongoing"></span>{{ __('Ongoing') }} <span class="pl-n"></span></button>
         <button type="button" class="pl-tab" data-value="OnHold"><span class="pl-dot pl-dot-onhold"></span>{{ __('OnHold') }} <span class="pl-n"></span></button>
         <button type="button" class="pl-tab" data-value="Finished"><span class="pl-dot pl-dot-finished"></span>{{ __('Finished') }} <span class="pl-n"></span></button>
+        <button type="button" class="pl-tab" data-value="*">{{ __('All statuses') }} <span class="pl-n"></span></button>
     </div>
 @endif

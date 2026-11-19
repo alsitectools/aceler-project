@@ -206,6 +206,27 @@
             $('#weeknumber').val(weekOffset);
         }
 
+        // Día elegido en el calendario (?date=YYYY-MM-DD): se resalta su columna en la hoja para saber
+        // a qué día se iban a imputar las horas. Se mantiene al recargar la semana (filtros, guardar…).
+        function markPickedDay() {
+            var date = window.__tsPickedDate;
+            if (!date) return;
+            var grid = document.getElementById('timesheet-table-view');
+            if (!grid) return;
+            grid.querySelectorAll('.is-picked').forEach(function(el) { el.classList.remove('is-picked'); });
+            var head = grid.querySelector('.tsg-head .tsg-day[data-date="' + date + '"]');
+            if (!head) return; // la semana cargada no incluye ese día
+            head.classList.add('is-picked');
+            if (!head.querySelector('.tsg-picked-tag')) {
+                var tag = document.createElement('span');
+                tag.className = 'tsg-picked-tag';
+                tag.innerHTML = '<i class="fa-regular fa-calendar-check" aria-hidden="true"></i>' + @json(__('Chosen'));
+                tag.title = @json(__('Day chosen in the calendar'));
+                head.appendChild(tag);
+            }
+            grid.querySelectorAll('.tsg-cell[data-date="' + date + '"]').forEach(function(c) { c.classList.add('is-picked'); });
+        }
+
         function ajaxFilterTimesheetTableView() {
 
             var mainEle = $('#timesheet-table-view');
@@ -271,6 +292,7 @@
                     }
 
                     mainEle.html(data.html);
+                    markPickedDay();
                 },
                 error: function() {
                     // Ocultar spinner y mostrar texto en caso de error
@@ -285,6 +307,7 @@
             // ?date=YYYY-MM-DD (p. ej. desde el calendario) abre la semana de ese día
             var urlDate = new URLSearchParams(window.location.search).get('date');
             var linkedDate = urlDate && moment(urlDate, 'YYYY-MM-DD', true).isValid() ? urlDate : null;
+            window.__tsPickedDate = linkedDate; // markPickedDay() lo resalta al cargar la semana
             var savedWeekStart = shouldRestoreSavedWeek() ? loadSelectedWeekStart() : null;
             var initialDate = linkedDate || savedWeekStart || moment().format('YYYY-MM-DD');
             $('#weekPicker').val(initialDate);

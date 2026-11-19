@@ -562,21 +562,27 @@ thead {
     flex: 1;
 }
 
+/* Contraer / expandir todo: en gris, y en rojo el que coincide con el estado actual */
 .tsg-link {
     border: 0;
     background: none;
     padding: 4px 2px;
     font-size: 12.5px;
     font-weight: 600;
+    color: var(--tsg-muted);
+}
+
+.tsg-link:hover {
+    color: #4b5563;
+}
+
+.tsg-link.is-active,
+.tsg-link.is-active:hover {
     color: var(--tsg-brand);
 }
 
 .tsg-link i {
     margin-right: 5px;
-}
-
-.tsg-link--muted {
-    color: var(--tsg-muted);
 }
 
 /* --- cabecera de días (fija) --- */
@@ -633,6 +639,37 @@ thead {
 .tsg-day.is-today .tsg-day-name,
 .tsg-day.is-today .tsg-day-num {
     color: var(--tsg-brand);
+}
+
+/* Día elegido en el calendario (?date=): ámbar, para no confundirlo con «hoy» (rojo) */
+.tsg-day.is-picked {
+    position: relative;
+    background: #fff7e6;
+    box-shadow: inset 0 -3px 0 #f59e0b, inset 0 0 0 2px #f59e0b;
+    border-radius: 8px;
+}
+
+.tsg-picked-tag {
+    position: absolute;
+    top: -9px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 1px 8px;
+    border-radius: 999px;
+    background: #f59e0b;
+    color: #fff;
+    font-size: 10.5px;
+    font-weight: 600;
+    white-space: nowrap;
+    animation: tsgPickedIn .4s ease;
+}
+
+@keyframes tsgPickedIn {
+    from { opacity: 0; transform: translate(-50%, -4px); }
+    to { opacity: 1; transform: translate(-50%, 0); }
 }
 
 .tsg-day.is-off .tsg-day-num {
@@ -863,6 +900,12 @@ thead {
 .tsg-cell.is-today {
     border: 2px solid var(--tsg-brand);
     box-shadow: 0 0 0 3px rgba(170, 24, 44, .07);
+}
+
+.tsg-cell.is-picked {
+    border: 2px solid #f59e0b;
+    background-color: #fffbeb;
+    box-shadow: 0 0 0 3px rgba(245, 158, 11, .15);
 }
 
 .tsg-cell.is-off,

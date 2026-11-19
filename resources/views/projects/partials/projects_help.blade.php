@@ -96,7 +96,7 @@
         'newTitle' => __('New project'),
         'newText' => __('Create a new project in the current workspace.'),
         'tabsTitle' => __('Status tabs'),
-        'tabsText' => __('Show only the projects in one status. The number is how many there are with the current filters.'),
+        'tabsText' => __('By default you see the active projects (ongoing and on hold); the finished ones have their own tab. The number is how many there are with the current filters, and your choice is remembered.'),
         'rowTitle' => __('Project row'),
         'rowText' => __('Click anywhere on the row to open the project.'),
         'metaTitle' => __('Project data'),

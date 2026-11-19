@@ -2,7 +2,7 @@
     Isotope + orden + filtros (pestañas de estado y desplegables) del listado de proyectos.
     Lo usan Proyectos y Mis proyectos dentro de @push('scripts').
     Cada filtro activo es una clase que la fila (.pl-row) debe tener:
-      status: Ongoing | OnHold | Finished   type: type-N   del: del-xx   ws: workspace-slug
+      status: Ongoing | OnHold | Finished (o «pl-active» = Ongoing u OnHold)   type: type-N   del: del-xx   ws: workspace-slug
 --}}
 <script>
     $(document).ready(function() {
@@ -33,12 +33,29 @@
         paintSortControl(currentSort);
 
         // ---------- Filtros ----------
-        var state = { status: '*', type: '*', del: '*', ws: '*' };
+        // Estado: por defecto «Activos» (en curso + en espera); se recuerda la última pestaña elegida
+        var STATUS_KEY = 'aceler.projects.statusTab';
+        var statusValues = $('.pl-tabs .pl-tab').map(function() { return String($(this).data('value')); }).get();
+        var initialStatus = statusValues.indexOf('pl-active') !== -1 ? 'pl-active' : '*';
+        try {
+            var savedStatus = window.localStorage.getItem(STATUS_KEY);
+            if (savedStatus && statusValues.indexOf(savedStatus) !== -1) initialStatus = savedStatus;
+        } catch (e) {}
+        var state = { status: initialStatus, type: '*', del: '*', ws: '*' };
+        $('.pl-tabs .pl-tab').removeClass('active').filter(function() {
+            return String($(this).data('value')) === initialStatus;
+        }).addClass('active');
+
+        // ¿La fila tiene ese valor? «pl-active» = en curso o en espera
+        function hasValue(el, value) {
+            if (value === 'pl-active') return el.classList.contains('Ongoing') || el.classList.contains('OnHold');
+            return el.classList.contains(value);
+        }
 
         function matches(el, skipFacet) {
             for (var facet in state) {
                 if (facet === skipFacet || state[facet] === '*') continue;
-                if (!el.classList.contains(state[facet])) return false;
+                if (!hasValue(el, state[facet])) return false;
             }
             return true;
         }
@@ -72,7 +89,7 @@
                 $(this).find('[data-value]').each(function() {
                     var value = $(this).data('value');
                     var n = rows.filter(function(r) {
-                        return matches(r, facet) && (value === '*' || r.classList.contains(value));
+                        return matches(r, facet) && (value === '*' || hasValue(r, value));
                     }).length;
                     $(this).find('.pl-n').text(n);
                     $(this).toggleClass('pl-zero', n === 0);
@@ -136,9 +153,10 @@
 
         // Pestañas de estado
         $('.pl-tabs').on('click', '.pl-tab', function() {
-            state.status = $(this).data('value');
+            state.status = String($(this).data('value'));
             $('.pl-tabs .pl-tab').removeClass('active');
             $(this).addClass('active');
+            try { window.localStorage.setItem(STATUS_KEY, state.status); } catch (e) {}
             apply();
         });
 

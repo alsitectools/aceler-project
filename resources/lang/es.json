@@ -2102,5 +2102,9 @@
     "days": "días",
     ":n order forms": ":n encargos",
     "Finished the same day": "Terminados el mismo día",
-    ":n order form": ":n encargo"
+    ":n order form": ":n encargo",
+    "Active projects": "Activos",
+    "By default you see the active projects (ongoing and on hold); the finished ones have their own tab. The number is how many there are with the current filters, and your choice is remembered.": "Por defecto ves los proyectos activos (en curso y en espera); los finalizados tienen su propia pestaña. El número es cuántos hay con los filtros actuales, y se recuerda la que elijas.",
+    "Chosen": "Elegido",
+    "Day chosen in the calendar": "Día elegido en el calendario"
 }

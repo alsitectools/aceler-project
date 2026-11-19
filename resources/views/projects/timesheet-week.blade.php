@@ -153,8 +153,9 @@
             <i class="fa-solid fa-check"></i>{{ __('Hide finished') }}
         </button>
         <span class="tsg-tools-sp"></span>
-        <button type="button" class="tsg-link" data-tsg-all="collapse"><i class="fa-solid fa-angles-up"></i>{{ __('Collapse all') }}</button>
-        <button type="button" class="tsg-link tsg-link--muted" data-tsg-all="expand"><i class="fa-solid fa-angles-down"></i>{{ __('Expand all') }}</button>
+        {{-- En rojo el que corresponde al estado actual (todo contraído / todo expandido); con una mezcla, ninguno --}}
+        <button type="button" class="tsg-link" data-tsg-all="collapse" aria-pressed="false"><i class="fa-solid fa-angles-up"></i>{{ __('Collapse all') }}</button>
+        <button type="button" class="tsg-link" data-tsg-all="expand" aria-pressed="false"><i class="fa-solid fa-angles-down"></i>{{ __('Expand all') }}</button>
     </div>
 
     {{-- Cabecera de días (fija al hacer scroll) --}}
@@ -335,6 +336,18 @@
         }
         function saveCollapsed() {
             store.set('collapsed', Array.from(document.querySelectorAll('.tsg-group.is-collapsed')).map((g) => g.dataset.tsgGroup));
+            syncAllButtons();
+        }
+        // «Contraer todo» en rojo si todo está contraído; «Expandir todo» si todo está expandido
+        function syncAllButtons() {
+            const groups = Array.from(document.querySelectorAll('.tsg-group'));
+            const closed = groups.filter((g) => g.classList.contains('is-collapsed')).length;
+            const state = !groups.length ? '' : (closed === groups.length ? 'collapse' : (closed === 0 ? 'expand' : ''));
+            document.querySelectorAll('.tsg [data-tsg-all]').forEach((b) => {
+                const on = b.dataset.tsgAll === state;
+                b.classList.toggle('is-active', on);
+                b.setAttribute('aria-pressed', on ? 'true' : 'false');
+            });
         }
 
         function applyFilters() {
@@ -370,6 +383,7 @@
         // --- estado guardado ---
         const collapsed = store.get('collapsed', []);
         root.querySelectorAll('.tsg-group').forEach((g) => setCollapsed(g, collapsed.indexOf(g.dataset.tsgGroup) !== -1));
+        syncAllButtons();
         const filters = store.get('filters', {});
         root.querySelectorAll('[data-tsg-filter]').forEach((b) => b.setAttribute('aria-pressed', filters[b.dataset.tsgFilter] ? 'true' : 'false'));
         applyFilters();

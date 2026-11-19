@@ -1679,5 +1679,9 @@
     "days": "days",
     ":n order forms": ":n order forms",
     "Finished the same day": "Finished the same day",
-    ":n order form": ":n order form"
+    ":n order form": ":n order form",
+    "Active projects": "Active",
+    "By default you see the active projects (ongoing and on hold); the finished ones have their own tab. The number is how many there are with the current filters, and your choice is remembered.": "By default you see the active projects (ongoing and on hold); the finished ones have their own tab. The number is how many there are with the current filters, and your choice is remembered.",
+    "Chosen": "Chosen",
+    "Day chosen in the calendar": "Day chosen in the calendar"
 }
