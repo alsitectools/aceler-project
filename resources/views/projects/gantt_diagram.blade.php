@@ -1073,8 +1073,10 @@
         }
 
         /* === LAYOUT === */
+        /* Alto mínimo para que la ventana de detalle de una barra (hasta ~240px) quepa entera
+           aunque el diagrama tenga solo una o dos filas */
         .gantt-container .gantt {
-            min-height: 200px;
+            min-height: 250px;
         }
 
         /* Read-only: no drag */
@@ -1193,8 +1195,10 @@
             overflow: hidden;
         }
 
+        /* Pantalla completa: ocupa toda la altura, sin el tope del modo normal */
         #ganttSection.gantt-fullscreen #ganttLayout {
             height: calc(100vh - 80px);
+            max-height: none;
         }
 
         #ganttSection.gantt-fullscreen .gantt-container {
@@ -1299,8 +1303,11 @@
             background: #fff;
             box-shadow: 0 4px 20px rgba(15, 23, 42, .05);
             position: relative;
-            /* Alto: lo calcula board-height.js para llegar hasta abajo (560px si no) */
-            height: var(--gantt-h, 560px);
+            /* Crece con el diagrama hasta llegar abajo de la pantalla (tope que calcula
+               board-height.js; 560px si no) y a partir de ahí hace scroll por dentro.
+               Con pocas filas el recuadro acaba en la última, sin panel blanco debajo. */
+            height: auto;
+            max-height: var(--gantt-h, 560px);
             scrollbar-color: #aa182c #f1f5f9;
         }
 
@@ -2630,6 +2637,8 @@
                 // un hueco en blanco. Se recorta al fondo de la cuadrícula (antes de la línea de hoy y
                 // del sidebar, que toman el alto del SVG).
                 trimGanttHeight();
+                // Sin ese hueco, la ventana de las últimas filas se cortaba: se recoloca para que quepa
+                fitGanttPopupInside(ganttChart);
 
                 // #3 - Draw today line
                 drawTodayLine();
@@ -2654,6 +2663,73 @@
                 const current = parseFloat(svg.getAttribute('height')) || 0;
                 if (bottom > 0 && current > bottom + 2) {
                     svg.setAttribute('height', bottom + 2);
+                }
+            }
+
+            // Ventana de detalle de una barra: Frappe la pone siempre a la derecha de la barra y a su
+            // altura, dentro de .gantt-container (que recorta lo que sobresale). Después de colocarla:
+            // - si no cabe por abajo, sube lo justo (la flechita sigue apuntando a la barra);
+            // - si no cabe por la derecha de lo visible, pasa al lado izquierdo de la barra.
+            function fitGanttPopupInside(chart) {
+                if (!chart || typeof chart.show_popup !== 'function' || chart.__popupFit) return;
+                chart.__popupFit = true;
+                const original = chart.show_popup.bind(chart);
+                chart.show_popup = function(options) {
+                    original(options);
+                    try {
+                        placeGanttPopup(chart, options);
+                    } catch (e) {
+                        console.warn('Gantt popup:', e);
+                    }
+                };
+            }
+
+            function placeGanttPopup(chart, options) {
+                const wrap = chart.popup_wrapper;
+                const box = chart.$container;
+                const target = options && options.target_element;
+                if (!wrap || !box || !target || typeof target.getBBox !== 'function') return;
+
+                const bar = target.getBBox();
+                const w = wrap.offsetWidth;
+                const h = wrap.offsetHeight;
+                const gap = 6;
+
+                // Vertical: dentro del alto visible del diagrama
+                let top = bar.y;
+                const maxTop = box.clientHeight - h - gap;
+                if (top > maxTop) top = Math.max(gap, maxTop);
+
+                // Horizontal: a la derecha de la barra si cabe en lo visible; si no, a su izquierda
+                let side = 'right';
+                let left = bar.x + bar.width + 10;
+                const visibleLeft = box.scrollLeft + gap;
+                const visibleRight = box.scrollLeft + box.clientWidth - gap;
+                if (left + w > visibleRight) {
+                    const leftOfBar = bar.x - w - 10;
+                    if (leftOfBar >= visibleLeft) {
+                        left = leftOfBar;
+                        side = 'left';
+                    } else {
+                        left = Math.max(visibleLeft, visibleRight - w);
+                        side = 'over';
+                    }
+                }
+
+                wrap.style.top = Math.round(top) + 'px';
+                wrap.style.left = Math.round(left) + 'px';
+
+                const pointer = wrap.querySelector('.pointer');
+                if (pointer) {
+                    pointer.style.display = side === 'over' ? 'none' : '';
+                    pointer.style.top = Math.round(Math.min(Math.max(bar.y - top + 2, 4), h - 14)) + 'px';
+                    if (side === 'left') {
+                        pointer.style.left = (w + 7) + 'px';
+                        pointer.style.transform = 'rotateZ(-90deg)';
+                    } else {
+                        pointer.style.left = '-7px';
+                        pointer.style.transform = 'rotateZ(90deg)';
+                    }
                 }
             }
 
