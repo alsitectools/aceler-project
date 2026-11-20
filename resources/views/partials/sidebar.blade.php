@@ -1031,15 +1031,130 @@
         });
     };
     // Tooltips solo con el sidebar colapsado (escritorio): los elementos guardan su texto en
-    // data-rail-title y aquí se pone o se quita el title según el estado.
+    // data-rail-title y se enseña un tooltip negro propio a la derecha del icono (el title del
+    // navegador no se puede pintar de negro). Abierto, no hay tooltip: el texto ya se lee.
     window.acelerRailTitles = function() {
         var rail = document.body.classList.contains('aCeler-menu-icons') &&
             window.matchMedia('(min-width: 1025px)').matches;
+        document.body.classList.toggle('sb-rail-tips', rail);
         document.querySelectorAll('[data-rail-title]').forEach(function(el) {
-            if (rail) el.setAttribute('title', el.getAttribute('data-rail-title'));
-            else el.removeAttribute('title');
+            el.removeAttribute('title');
         });
+        if (!rail && window.acelerRailTipHide) window.acelerRailTipHide();
     };
+
+    (function() {
+        if (window.acelerRailTipHide) return;
+        var tip = null, current = null, timer = null;
+        var hide = function() {
+            clearTimeout(timer);
+            current = null;
+            if (tip) tip.classList.remove('is-on');
+        };
+        // Pequeña espera: al pasar el ratón de largo por el menú no van saltando tooltips
+        var show = function(el) {
+            clearTimeout(timer);
+            current = el;
+            timer = setTimeout(function() { if (current === el) reveal(el); }, 250);
+        };
+        // Dos fuentes: data-rail-title (menú colapsado, a la derecha) y data-aceler-tip (cualquier
+        // pantalla que lo quiera, p. ej. el Gantt; debajo, o a la derecha con data-aceler-tip-pos="right")
+        var reveal = function(el) {
+            var rail = el.hasAttribute('data-rail-title') && !el.hasAttribute('data-aceler-tip');
+            var text = rail ? el.getAttribute('data-rail-title') : el.getAttribute('data-aceler-tip');
+            if (!text) return hide();
+            if (!tip) {
+                tip = document.createElement('div');
+                tip.className = 'sb-rail-tip';
+                tip.setAttribute('role', 'tooltip');
+                document.body.appendChild(tip);
+            }
+            tip.textContent = text;
+            var r = el.getBoundingClientRect();
+            var below = !rail && el.getAttribute('data-aceler-tip-pos') !== 'right';
+            tip.classList.toggle('is-below', below);
+            if (below) {
+                tip.style.top = Math.round(r.bottom + 6) + 'px';
+                tip.style.left = Math.round(r.left + r.width / 2) + 'px';
+                tip.classList.add('is-on');
+                // Que no se salga por los lados de la ventana
+                var tr = tip.getBoundingClientRect();
+                var shift = tr.right > window.innerWidth - 8 ? window.innerWidth - 8 - tr.right : (tr.left < 8 ? 8 - tr.left : 0);
+                if (shift) tip.style.left = Math.round(r.left + r.width / 2 + shift) + 'px';
+            } else {
+                tip.style.left = Math.round(r.right + 8) + 'px';
+                tip.style.top = Math.round(r.top + r.height / 2) + 'px';
+                tip.classList.add('is-on');
+            }
+        };
+        var target = function(e) {
+            var t = e.target && e.target.closest ? e.target : null;
+            if (!t) return null;
+            var generic = t.closest('[data-aceler-tip]');
+            if (generic) return generic;
+            if (!document.body.classList.contains('sb-rail-tips')) return null;
+            var el = t.closest('[data-rail-title]');
+            // Solo los del menú lateral (y su cabecera movida dentro)
+            return el && el.closest('.dash-sidebar') ? el : null;
+        };
+        document.addEventListener('mouseover', function(e) {
+            var el = target(e);
+            if (el && el !== current) show(el);
+            else if (!el && current) hide();
+        });
+        document.addEventListener('focusin', function(e) {
+            var el = target(e);
+            if (el) show(el);
+        });
+        document.addEventListener('focusout', hide);
+        document.addEventListener('mousedown', hide);
+        window.addEventListener('scroll', hide, true);
+        window.acelerRailTipHide = hide;
+
+        // Toda la aplicación usa estos tooltips: acelerTipify(contenedor) pasa sus title a
+        // data-aceler-tip, también los que se pongan después por JS. Deja en paz lo que tiene
+        // su propio tooltip o lo necesita así: tooltips/popovers de Bootstrap ya creados,
+        // data-toggle="tooltip", tooltipCus, SVG, las opciones del menú (data-rail-title, solo con
+        // el menú plegado), opciones de un select, iframes y campos con pattern (el navegador usa
+        // el title en el aviso de validación). Para excluir algo a mano: data-no-aceler-tip.
+        var skipTip = function(el) {
+            var tag = el.tagName;
+            if (tag === 'OPTION' || tag === 'OPTGROUP' || tag === 'IFRAME' || tag === 'LINK' || tag === 'STYLE') return true;
+            if (el.hasAttribute('pattern') || el.hasAttribute('data-rail-title') || el.hasAttribute('data-bs-original-title')) return true;
+            if ((el.getAttribute('data-bs-toggle') || el.getAttribute('data-toggle')) === 'tooltip') return true;
+            if (el.classList && el.classList.contains('tooltipCus')) return true;
+            return !!el.closest('svg, [data-no-aceler-tip]');
+        };
+        window.acelerTipify = function(root) {
+            if (!root || root.__acelerTips) return;
+            for (var p = root.parentElement; p; p = p.parentElement) if (p.__acelerTips) return; // ya cubierto
+            root.__acelerTips = true;
+            var convert = function(el) {
+                if (!el.getAttribute || !el.hasAttribute('title')) return;
+                if (skipTip(el)) return;
+                var t = (el.getAttribute('title') || '').trim();
+                el.removeAttribute('title');
+                if (!t) { el.removeAttribute('data-aceler-tip'); return; }
+                el.setAttribute('data-aceler-tip', t);
+                if (!el.getAttribute('aria-label') && !el.textContent.trim()) el.setAttribute('aria-label', t);
+            };
+            convert(root);
+            root.querySelectorAll('[title]').forEach(convert);
+            new MutationObserver(function(list) {
+                list.forEach(function(m) {
+                    if (m.type === 'attributes') convert(m.target);
+                    else m.addedNodes.forEach(function(n) {
+                        if (n.nodeType !== 1) return;
+                        convert(n);
+                        if (n.querySelectorAll) n.querySelectorAll('[title]').forEach(convert);
+                    });
+                });
+            }).observe(root, { subtree: true, childList: true, attributes: true, attributeFilter: ['title'] });
+        };
+        var tipifyPage = function() { window.acelerTipify(document.body); };
+        if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', tipifyPage);
+        else tipifyPage();
+    })();
 
     // ------------------------------------------------------------------
     // Pestañas "Equipo" / "Mi actividad": solo se ven las opciones del grupo elegido

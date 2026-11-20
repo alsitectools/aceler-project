@@ -3887,6 +3887,5 @@ function moveToReview(meta) {
             applyTableFilters();
             toggleViewMode();
             fitTableHeight();
-        })();
-    </script>
+        })();    </script>
 @endpush

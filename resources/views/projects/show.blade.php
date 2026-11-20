@@ -3163,6 +3163,5 @@
                 more.textContent = open ? more.dataset.less : label;
                 if (!open) list.scrollTop = 0;
             });
-        });
-    </script>
+        });    </script>
 @endpush

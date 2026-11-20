@@ -336,13 +336,25 @@
                 max-width: none;
                 min-width: 0;
             }
+            /* Interruptores: ocupan solo lo que necesitan y van en la misma fila que los filtros
+               (antes se repartían el ancho con los filtros y, sin sitio, se partían en dos líneas) */
             #ganttFilters .gantt-toggle-col {
+                flex: 0 0 auto;
                 display: flex;
                 align-items: center;
-                justify-content: center;
-                flex-wrap: wrap;
-                gap: 55px;
+                justify-content: flex-end;
+                flex-wrap: nowrap;
+                gap: 18px;
+                min-height: 36px;
             }
+            #ganttFilters #exitFullscreenWrapper {
+                flex: 0 0 auto;
+            }
+        }
+
+        #ganttFilters .gantt-switch {
+            white-space: nowrap;
+            margin-bottom: 0;
         }
 
         /* === B — FORM CONTROLS === */
@@ -2384,7 +2396,9 @@
                     const label = document.createElement('span');
                     label.className = 'gantt-sidebar-label';
                     label.textContent = item.name.trim();
-                    label.title = item.name.trim();
+                    // Tooltip discreto (el del menú lateral) a la derecha: el nombre completo si se corta
+                    label.setAttribute('data-aceler-tip', item.name.trim());
+                    label.setAttribute('data-aceler-tip-pos', 'right');
                     row.appendChild(label);
 
                     // Single click handler on the row
@@ -2612,6 +2626,11 @@
                     language: '{{ $currantLang }}'
                 });
 
+                // Frappe deja el SVG ~120px más alto que la última fila: al final del diagrama quedaba
+                // un hueco en blanco. Se recorta al fondo de la cuadrícula (antes de la línea de hoy y
+                // del sidebar, que toman el alto del SVG).
+                trimGanttHeight();
+
                 // #3 - Draw today line
                 drawTodayLine();
                 // #17 - Draw project separators
@@ -2625,6 +2644,17 @@
 
                 // #13 - Scroll to today (deferred to ensure SVG layout is complete)
                 setTimeout(scrollToToday, 300);
+            }
+
+            function trimGanttHeight() {
+                const svg = document.querySelector('.gantt-target svg');
+                const grid = svg && svg.querySelector('.grid-background');
+                if (!grid) return;
+                const bottom = (parseFloat(grid.getAttribute('y')) || 0) + (parseFloat(grid.getAttribute('height')) || 0);
+                const current = parseFloat(svg.getAttribute('height')) || 0;
+                if (bottom > 0 && current > bottom + 2) {
+                    svg.setAttribute('height', bottom + 2);
+                }
             }
 
             // #3 - Today vertical line
@@ -3136,5 +3166,6 @@
             loadFiltersFromURL();
             fetchAndRender();
         })();
+        // Los title de esta pantalla pasan a los tooltips discretos de toda la app (acelerTipify, sidebar.blade.php)
     </script>
 @endpush

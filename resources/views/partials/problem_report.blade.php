@@ -30,7 +30,8 @@
     $aprUrls = ['store' => route('problem_reports.store'), 'mine' => route('problem_reports.mine')];
 @endphp
 
-<a href="#" class="sb-report" data-problem-report-open title="{{ __('Report a problem') }}" aria-label="{{ __('Report a problem') }}">
+{{-- data-rail-title: el tooltip solo sale con el menú colapsado (acelerRailTitles en sidebar.blade.php) --}}
+<a href="#" class="sb-report" data-problem-report-open data-rail-title="{{ __('Report a problem') }}" aria-label="{{ __('Report a problem') }}">
     <i class="fa-regular fa-flag" aria-hidden="true"></i><span>{{ __('Report a problem') }}</span>
 </a>
 
