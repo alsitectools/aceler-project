@@ -783,7 +783,8 @@
                                         workspace_id: {{ $currentWorkspace->id }},
                                         msg: msg,
                                         ntipe: ntipe,
-                                        milestoneAssignedTo: -2
+                                        milestoneAssignedTo: -2,
+                                        milestone_id: cardId
                                     })
                                 })
                                 .then(response => response.json())

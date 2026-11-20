@@ -121,20 +121,22 @@
         height: 61px;
     }
 
+    /* ---------- Menú de espacios de trabajo ---------- */
     .workspace-dropdown {
         display: none;
         position: absolute;
         top: 100%;
         left: 0;
-        right: 0;
-        background-color: #ffffff;
-        min-width: 100%;
-        max-width: 95vw;
-        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
-        border-radius: 8px;
-        z-index: 1000;
-        margin-top: -8px;
-        border: 1px solid #e0e0e0;
+        width: 320px;
+        max-width: calc(100vw - 24px);
+        margin-top: 6px;
+        overflow: hidden;
+        border-radius: 14px;
+        background: #fff;
+        box-shadow: 0 18px 50px rgba(15, 23, 42, .22), 0 0 0 1px rgba(15, 23, 42, .06);
+        z-index: 1065;
+        color: #1f2937;
+        text-align: left;
         box-sizing: border-box;
     }
 
@@ -143,54 +145,185 @@
     }
 
     .workspace-search {
-        padding: 12px;
-        border-bottom: 1px solid #e0e0e0;
+        padding: 12px 14px 10px;
     }
 
-    .workspace-search input {
-        width: 100%;
-        padding: 8px 12px;
-        border: 1px solid #ddd;
-        border-radius: 6px;
-        font-size: 13px;
-        box-sizing: border-box;
+    .workspace-dropdown .ws-title {
+        margin: 0 0 8px;
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: .05em;
+        text-transform: uppercase;
+        color: #94a3b8;
     }
 
-    .workspace-search input:focus {
-        outline: none;
+    .workspace-dropdown .ws-search-box {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        height: 34px;
+        margin: 0;
+        padding: 0 10px;
+        border: 1px solid #e2e8f0;
+        border-radius: 9px;
+        color: #94a3b8;
+        cursor: text;
+    }
+
+    .workspace-dropdown .ws-search-box:focus-within {
         border-color: #aa182c;
-        box-shadow: 0 0 0 3px rgba(170, 24, 44, 0.1);
+        box-shadow: 0 0 0 3px rgba(170, 24, 44, .1);
+    }
+
+    .workspace-dropdown .ws-search-box input {
+        flex: 1;
+        min-width: 0;
+        padding: 0;
+        border: 0;
+        outline: 0;
+        box-shadow: none;
+        background: transparent;
+        color: #1f2937;
+        font-size: 13px;
+    }
+
+    .workspace-dropdown .ws-search-box kbd {
+        padding: 0 5px;
+        border: 1px solid #e2e8f0;
+        border-radius: 5px;
+        background: #fff;
+        color: #94a3b8;
+        font-family: inherit;
+        font-size: 10.5px;
+        box-shadow: none;
     }
 
     .workspace-list {
-        max-height: 300px;
+        max-height: min(360px, calc(100vh - 220px));
         overflow-y: auto;
-        padding: 8px 0;
+        padding: 0 0 6px;
+        scrollbar-width: thin;
+    }
+
+    .workspace-dropdown .ws-grp {
+        padding: 8px 14px 4px;
+        border-top: 1px solid #f1f5f9;
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: .05em;
+        text-transform: uppercase;
+        color: #94a3b8;
+    }
+
+    .workspace-dropdown .ws-grp[hidden] {
+        display: none;
     }
 
     .workspace-item {
-        padding: 10px 16px;
+        display: flex;
+        align-items: center;
+        gap: 11px;
+        padding: 8px 14px;
         cursor: pointer;
-        transition: background-color 0.2s ease;
-        border-left: 3px solid transparent;
-        color: #333;
-        font-size: 13px;
+        color: #334155;
+        font-size: 13.5px;
+        transition: background-color .15s ease;
     }
 
-    .workspace-item:hover {
-        background-color: #f5f5f5;
-        border-left-color: #aa182c;
+    .workspace-item:hover,
+    .workspace-item.is-kb {
+        background: #f8fafc;
+    }
+
+    .workspace-item.is-kb {
+        box-shadow: inset 3px 0 0 #aa182c;
     }
 
     .workspace-item.active {
-        background-color: #f0f0f0;
-        border-left-color: #aa182c;
-        font-weight: 600;
+        background: #fdf2f4;
+    }
+
+    .workspace-item.active .ws-name {
         color: #aa182c;
+        font-weight: 600;
     }
 
     .workspace-item.hidden {
         display: none;
+    }
+
+    .workspace-item .ws-text {
+        display: flex;
+        flex-direction: column;
+        min-width: 0;
+        line-height: 1.25;
+    }
+
+    .workspace-item .ws-name {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .workspace-item .ws-text small {
+        margin-top: 1px;
+        font-size: 11.5px;
+        color: #94a3b8;
+    }
+
+    .workspace-item .ws-check {
+        margin-left: auto;
+        font-size: 16px;
+        color: #aa182c;
+    }
+
+    .workspace-dropdown .ws-empty {
+        padding: 14px;
+        text-align: center;
+        font-size: 13px;
+        color: #94a3b8;
+    }
+
+    .workspace-dropdown .ws-empty[hidden] {
+        display: none;
+    }
+
+    /* Iniciales de color de cada espacio en la lista (el botón conserva su icono) */
+    .ws-badge {
+        flex: 0 0 auto;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 30px;
+        height: 30px;
+        border-radius: 8px;
+        font-size: 11px;
+        font-weight: 800;
+        letter-spacing: .02em;
+        line-height: 1;
+    }
+
+    .ws-tone-0 { background: #fdf2f4; color: #aa182c; }
+    .ws-tone-1 { background: #eef2ff; color: #4338ca; }
+    .ws-tone-2 { background: #ecfdf5; color: #047857; }
+    .ws-tone-3 { background: #fff7ed; color: #c2410c; }
+    .ws-tone-4 { background: #f0f9ff; color: #0369a1; }
+
+    .workspace-name-header .ws-btn-text {
+        display: flex;
+        flex-direction: column;
+        min-width: 0;
+        line-height: 1.2;
+        text-align: left;
+    }
+
+    .workspace-name-header .ws-btn-country {
+        font-size: 11px;
+        font-weight: 400;
+        opacity: .8;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
     }
 
     .workspace-dropdown-icon {
@@ -789,85 +922,111 @@
             return;
         }
 
-        const workspaceItems = workspaceList.querySelectorAll('.workspace-item');
+        const workspaceItems = Array.from(workspaceList.querySelectorAll('.workspace-item'));
         const dropdownIcon = workspaceButton.querySelector('.workspace-dropdown-icon');
+        const emptyMsg = document.getElementById('workspaceEmpty');
+        let kbIndex = -1;
 
-        // Toggle dropdown cuando se hace click en el botón
-        workspaceButton.addEventListener('click', function(e) {
-            e.preventDefault();
-            workspaceDropdown.classList.toggle('active');
-            dropdownIcon.classList.toggle('rotate');
-        });
+        // Sin tildes ni mayúsculas: «peru» encuentra «Perú», «espana» encuentra «España»
+        const norm = (v) => (v || '').toString().normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim();
+        const visibleItems = () => workspaceItems.filter((i) => !i.classList.contains('hidden'));
 
-        // Cerrar dropdown cuando se hace click fuera
-        document.addEventListener('click', function(e) {
-            if (!e.target.closest('.workspace-dropdown-container')) {
-                workspaceDropdown.classList.remove('active');
-                dropdownIcon.classList.remove('rotate');
+        const setOpen = function(open) {
+            workspaceDropdown.classList.toggle('active', open);
+            if (dropdownIcon) dropdownIcon.classList.toggle('rotate', open);
+            workspaceButton.setAttribute('aria-expanded', open ? 'true' : 'false');
+            // Dentro del sidebar se separa de su borde lo mismo que los demás menús (notificaciones,
+            // idioma, usuario: 10px de --sb-gap más el desplazamiento de Bootstrap ≈ 12px)
+            const sidebar = workspaceButton.closest('.dash-sidebar');
+            const box = workspaceDropdown.offsetParent;
+            if (open && sidebar && box) {
+                const left = sidebar.getBoundingClientRect().right - box.getBoundingClientRect().left + 12;
+                workspaceDropdown.style.left = Math.round(left) + 'px';
+            } else if (!sidebar) {
+                workspaceDropdown.style.left = '';
+            }
+            if (open) {
+                // Con el teclado o el ratón se puede escribir directamente para buscar
+                setTimeout(function() { workspaceSearchInput.focus(); }, 30);
+            } else {
                 workspaceSearchInput.value = '';
                 filterWorkspaces('');
             }
+        };
+
+        const highlight = function(i) {
+            const items = visibleItems();
+            workspaceItems.forEach((it) => it.classList.remove('is-kb'));
+            if (!items.length) { kbIndex = -1; return; }
+            kbIndex = (i + items.length) % items.length;
+            items[kbIndex].classList.add('is-kb');
+            items[kbIndex].scrollIntoView({ block: 'nearest' });
+        };
+
+        const go = function(item) {
+            const url = item.getAttribute('data-workspace-url');
+            document.getElementById('workspaceName').textContent = item.getAttribute('data-workspace-display-name');
+            setOpen(false);
+            if (url) window.location.href = url;
+        };
+
+        workspaceButton.addEventListener('click', function(e) {
+            e.preventDefault();
+            setOpen(!workspaceDropdown.classList.contains('active'));
         });
 
-        // Búsqueda de workspaces
+        // Cerrar al pulsar fuera
+        document.addEventListener('click', function(e) {
+            if (!e.target.closest('.workspace-dropdown-container') && workspaceDropdown.classList.contains('active')) {
+                setOpen(false);
+            }
+        });
+
         workspaceSearchInput.addEventListener('input', function() {
-            const searchTerm = this.value.toLowerCase();
-            filterWorkspaces(searchTerm);
+            filterWorkspaces(norm(this.value));
         });
 
-        // Cambiar workspace cuando se selecciona uno
-        workspaceItems.forEach(item => {
-            item.addEventListener('click', function() {
-                const workspaceDisplayName = this.getAttribute('data-workspace-display-name');
-                const workspaceUrl = this.getAttribute('data-workspace-url');
-
-                // Actualizar el nombre mostrado
-                document.getElementById('workspaceName').textContent = workspaceDisplayName;
-
-                // Cerrar el dropdown
-                workspaceDropdown.classList.remove('active');
-                dropdownIcon.classList.remove('rotate');
-                workspaceSearchInput.value = '';
-                filterWorkspaces('');
-
-                // Navegar al workspace usando la URL correcta generada con route()
-                if (workspaceUrl) {
-                    window.location.href = workspaceUrl;
-                }
-            });
+        workspaceItems.forEach(function(item) {
+            item.addEventListener('click', function() { go(item); });
         });
 
-        // Función para filtrar workspaces
-        function filterWorkspaces(searchTerm) {
-            const items = workspaceList.querySelectorAll('.workspace-item');
-            items.forEach(item => {
-                const originalName = item.getAttribute('data-workspace-name') || '';
-                const displayName = item.getAttribute('data-workspace-display-name') || '';
-
-                if (!originalName && !displayName) {
-                    item.classList.add('hidden');
-                    return;
-                }
-
-                const matches = originalName.toLowerCase().includes(searchTerm) ||
-                                displayName.toLowerCase().includes(searchTerm);
-
-                if (matches) {
-                    item.classList.remove('hidden');
-                } else {
-                    item.classList.add('hidden');
-                }
+        // Busca por nombre (original o traducido) y por país; oculta los grupos que se quedan vacíos
+        function filterWorkspaces(term) {
+            workspaceItems.forEach(function(item) {
+                const text = norm([
+                    item.getAttribute('data-workspace-name'),
+                    item.getAttribute('data-workspace-display-name'),
+                    item.getAttribute('data-workspace-country')
+                ].join(' '));
+                item.classList.toggle('hidden', !!term && !text.includes(term));
             });
+            workspaceList.querySelectorAll('.ws-grp').forEach(function(g) {
+                g.hidden = !workspaceItems.some((i) => !i.classList.contains('hidden') && i.dataset.wsGroup === g.dataset.wsGroup);
+            });
+            if (emptyMsg) emptyMsg.hidden = visibleItems().length > 0;
+            // Al buscar se marca el primero (Intro entra en él); sin búsqueda no hay ninguno marcado
+            if (term) {
+                highlight(0);
+            } else {
+                workspaceItems.forEach((it) => it.classList.remove('is-kb'));
+                kbIndex = -1;
+            }
         }
 
-        // Permitir navegación con Enter cuando se busca
-        workspaceSearchInput.addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                const visibleItems = Array.from(document.querySelectorAll(
-                    '.workspace-item:not(.hidden)'));
-                if (visibleItems.length === 1) {
-                    visibleItems[0].click();
-                }
+        // Teclado: ↑ ↓ para moverse, Intro para entrar, Esc para cerrar
+        workspaceDropdown.addEventListener('keydown', function(e) {
+            if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+                e.preventDefault();
+                if (kbIndex < 0) highlight(e.key === 'ArrowDown' ? 0 : -1);
+                else highlight(kbIndex + (e.key === 'ArrowDown' ? 1 : -1));
+            } else if (e.key === 'Enter') {
+                const items = visibleItems();
+                const target = items[kbIndex] || (items.length === 1 ? items[0] : null);
+                if (target) { e.preventDefault(); go(target); }
+            } else if (e.key === 'Escape') {
+                e.preventDefault();
+                setOpen(false);
+                workspaceButton.focus();
             }
         });
     });
@@ -936,7 +1095,8 @@
             var img = document.querySelector('.drp-company .theme-avtar');
             if (!span) return;
             if (!span.hasAttribute('data-sb-greeting')) span.setAttribute('data-sb-greeting', span.textContent);
-            var name = (img && img.getAttribute('alt')) || span.getAttribute('data-sb-greeting');
+            // El avatar es un <span> con iniciales (data-name) o, en versiones antiguas, un <img> (alt)
+            var name = (img && (img.getAttribute('data-name') || img.getAttribute('alt'))) || span.getAttribute('data-sb-greeting');
             span.textContent = inSidebar ? name.trim() : span.getAttribute('data-sb-greeting');
         };
 

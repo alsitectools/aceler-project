@@ -516,6 +516,14 @@
         min-width: 100%;
     }
 
+    /* Encargo abierto desde un aviso de la campana (?milestone=ID) */
+    .project-order-body-row.pd-row-flash {
+        border-color: #b6122e;
+        box-shadow: 0 0 0 3px rgba(182, 18, 46, .18);
+        background: #fff0f4;
+        transition: box-shadow .3s ease, background .3s ease;
+    }
+
     .project-order-body-row:hover {
         border-color: #b6122e;
         background: #fff0f4;
@@ -3163,5 +3171,31 @@
                 more.textContent = open ? more.dataset.less : label;
                 if (!open) list.scrollTop = 0;
             });
-        });    </script>
+        });
+    </script>
+    <script>
+        // ?milestone=ID (al abrir un aviso de la campana): se resalta ese encargo en la tabla y se abre su detalle
+        document.addEventListener('DOMContentLoaded', function() {
+            const params = new URLSearchParams(window.location.search);
+            const id = parseInt(params.get('milestone'), 10);
+            if (!id) return;
+            params.delete('milestone');
+            const clean = window.location.pathname + (params.toString() ? '?' + params.toString() : '') + window.location.hash;
+            window.history.replaceState(null, '', clean);
+
+            const suffix = '/' + id + '/show';
+            const row = Array.from(document.querySelectorAll('#orderFormsTableBody .project-order-body-row'))
+                .find(function(r) { return (r.getAttribute('data-url') || '').endsWith(suffix); });
+            if (!row) return;
+            // Que se vea aunque una pestaña o el buscador lo estuvieran ocultando
+            const allTab = document.querySelector('#pdOrderTabs .pd-tab[data-status-id="*"]');
+            if (allTab && row.classList.contains('pd-hidden-by-tab')) allTab.click();
+            setTimeout(function() {
+                row.scrollIntoView({ block: 'center', behavior: 'smooth' });
+                row.classList.add('pd-row-flash');
+                setTimeout(function() { row.classList.remove('pd-row-flash'); }, 2600);
+                row.click();
+            }, 150);
+        });
+    </script>
 @endpush

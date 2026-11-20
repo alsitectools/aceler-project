@@ -1054,6 +1054,12 @@ Route::post(
   '/{slug}/Notification/{notificationId}/Delete',
   [UserController::class, 'delete_notification']
 )->name('notifications.delete');
+
+// Campana: abrir un aviso (lo marca como leído y lleva a su encargo) y marcar todos como leídos
+Route::get('/notifications/{id}/open', [\App\Http\Controllers\NotificationController::class, 'open'])
+  ->whereNumber('id')->name('notifications.open')->middleware(['auth', 'XSS']);
+Route::post('/notifications/read-all', [\App\Http\Controllers\NotificationController::class, 'readAll'])
+  ->name('notifications.read_all')->middleware(['auth', 'XSS']);
 //=============================================Webhook===================================================
 Route::resource('/{slug}/webhook', WebhookController::class)->middleware(['auth', 'XSS']);
 Route::post('webhooks/response/get', [WebhookController::class, 'WebhookResponse'])->name('webhooks.response.get');

@@ -226,8 +226,26 @@
         white-space: normal;
     }
 
+    .sb-slot-workspace .ws-btn-text {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .sb-slot-workspace .ws-btn-text #workspaceName {
+        flex: none;
+    }
+
+    /* Si el nombre necesita dos líneas no cabe también el país */
+    .sb-slot-workspace .ws-btn-text:has(#workspaceName.is-two-lines) .ws-btn-country {
+        display: none;
+    }
+
+    /* El menú de espacios sale a la derecha del menú lateral, como los demás menús */
     .sb-slot-workspace .workspace-dropdown {
-        margin-top: 6px;
+        top: 0;
+        left: calc(100% + 10px);
+        right: auto;
+        margin-top: 0;
         color: #1f2937;
     }
 
@@ -428,6 +446,7 @@
     }
 
     body.aCeler-menu-icons .sb-slot-workspace #workspaceName,
+    body.aCeler-menu-icons .sb-slot-workspace .ws-btn-text,
     body.aCeler-menu-icons .sb-slot-workspace .workspace-dropdown-icon {
         display: none;
     }
@@ -437,8 +456,6 @@
         top: 0;
         left: calc(100% + 10px);
         right: auto;
-        width: 260px;
-        min-width: 260px;
         margin-top: 0;
     }
 
@@ -464,6 +481,18 @@
     body.aCeler-menu-icons .sb-slot-user .dash-head-link {
         width: 44px;
         height: auto;
+    }
+
+    /* Idioma plegado: se ve el código (ES, EN…) en vez del globo, así se sabe cuál está puesto */
+    body.aCeler-menu-icons .sb-slot .drp-language .drp-code {
+        display: inline;
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: .04em;
+    }
+
+    body.aCeler-menu-icons .sb-slot .drp-language .dash-head-link > .ti-world {
+        display: none;
     }
 
     body.aCeler-menu-icons .sb-slot .drp-text,

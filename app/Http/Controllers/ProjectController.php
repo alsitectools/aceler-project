@@ -6591,13 +6591,21 @@ MilestoneFile::create([
         \Log::info('DESPUÉS DEL VALIDATE');
         $milestoneId = $request->milestone_id ?? null;
 
+        // El encargo (y su proyecto) se guardan en la notificación para poder abrirlo desde la campana
+        $linkedMilestone = $milestoneId ? Milestone::select('id', 'project_id')->find((int) $milestoneId) : null;
+        $relatedId = $linkedMilestone ? (int) $linkedMilestone->id : 0;
+        $relatedProjectId = $linkedMilestone ? (int) $linkedMilestone->project_id : 0;
+
         if ($request->milestoneAssignedTo != -2) {
             // Crear notificación para el usuario indicado en milestoneAssignedTo
             $notification = new Notification();
             $notification->workspace_id = $request->workspace_id;
             $notification->user_id      = $request->milestoneAssignedTo;
+            $notification->project_id   = $relatedProjectId;
+            $notification->related_id   = $relatedId;
             $notification->type         = $request->ntipe;
             $notification->data         = $request->msg;
+            $notification->is_read      = 0;
             $notification->save();
 
             $usersNotified = 1;
@@ -6631,8 +6639,11 @@ MilestoneFile::create([
                 $notification = new Notification();
                 $notification->workspace_id = $request->workspace_id;
                 $notification->user_id      = $userId;
+                $notification->project_id   = $relatedProjectId;
+                $notification->related_id   = $relatedId;
                 $notification->type         = $request->ntipe;
                 $notification->data         = $request->msg;
+                $notification->is_read      = 0;
                 $notification->save();
             }
             $usersNotified = count($userIds);

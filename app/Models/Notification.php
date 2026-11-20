@@ -36,6 +36,92 @@ class Notification extends Model
         return $this->belongsTo(User::class, 'user_id');
     }
 
+    // Avisos de la campana (tipos 1-5). El texto se guarda en español, p. ej.
+    //   4: "<encargo> en <proyecto>. La fecha de entrega prevista es <dd-mm-aaaa>"
+    //   5: "<encargo> en el proyecto <proyecto>"
+    //   2: "<encargo> en <proyecto>" (a veces también con la fecha)
+    //   3: "<encargo>"   1: "<proyecto>"
+    const DUE_SEPARATOR = '. La fecha de entrega prevista es ';
+
+    /**
+     * Partes del aviso para pintarlo: kind (review|assign|created|finished|project),
+     * title (encargo, o proyecto si es de tipo 1), project y due (fecha prevista).
+     * Se usa la última « en » porque el nombre del encargo también puede llevarla.
+     */
+    public function parts(): array
+    {
+        $data = trim((string) $this->data);
+        $type = (string) $this->type;
+        $kind = ['1' => 'project', '2' => 'created', '3' => 'finished', '4' => 'assign', '5' => 'review'][$type] ?? 'created';
+        $due = '';
+        if (($pos = strpos($data, self::DUE_SEPARATOR)) !== false) {
+            $due = trim(substr($data, $pos + strlen(self::DUE_SEPARATOR)));
+            $data = substr($data, 0, $pos);
+        }
+
+        $title = $data;
+        $project = '';
+        if ($type === '5' && ($pos = strrpos($data, ' en el proyecto ')) !== false) {
+            $title = substr($data, 0, $pos);
+            $project = substr($data, $pos + strlen(' en el proyecto '));
+        } elseif (in_array($type, ['2', '4'], true) && ($pos = strrpos($data, ' en ')) !== false) {
+            $title = substr($data, 0, $pos);
+            $project = substr($data, $pos + 4);
+        }
+
+        return ['kind' => $kind, 'title' => trim($title), 'project' => trim($project), 'due' => $due];
+    }
+
+    /**
+     * A dónde lleva el aviso: la página del proyecto con el encargo abierto (?milestone=id).
+     * Los avisos nuevos guardan el encargo en related_id; en los antiguos se busca por nombre
+     * (el más reciente que coincida). Devuelve null si ya no existe.
+     */
+    public function targetUrl(): ?string
+    {
+        $parts = $this->parts();
+        $milestone = null;
+        $project = null;
+
+        if ((int) $this->related_id > 0 && $this->type !== '1') {
+            $milestone = Milestone::select('id', 'project_id')->find((int) $this->related_id);
+        }
+
+        if (!$milestone && $parts['kind'] !== 'project' && $parts['title'] !== '') {
+            $query = Milestone::select('milestones.id', 'milestones.project_id')
+                ->join('projects', 'projects.id', '=', 'milestones.project_id')
+                ->where('milestones.title', $parts['title'])
+                ->orderByDesc('milestones.id');
+            if ($parts['project'] !== '') {
+                $query->where('projects.name', $parts['project']);
+            } elseif ((int) $this->workspace_id > 0) {
+                $query->where('projects.workspace', (int) $this->workspace_id);
+            }
+            $milestone = $query->first();
+        }
+
+        if ($milestone) {
+            $project = Project::select('id', 'workspace')->find((int) $milestone->project_id);
+        } elseif ($parts['kind'] === 'project' && $parts['title'] !== '') {
+            $project = Project::select('id', 'workspace')
+                ->where('name', $parts['title'])
+                ->when((int) $this->workspace_id > 0, fn ($q) => $q->where('workspace', (int) $this->workspace_id))
+                ->orderByDesc('id')
+                ->first();
+        }
+
+        if (!$project) {
+            return null;
+        }
+        $workspace = Workspace::select('id', 'slug')->find((int) $project->workspace);
+        if (!$workspace) {
+            return null;
+        }
+
+        $url = route('projects.show', [$workspace->slug, $project->id]);
+        return $milestone ? $url . '?milestone=' . (int) $milestone->id : $url;
+    }
+
 
     public function toHtml(){
 
