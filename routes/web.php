@@ -1054,6 +1054,12 @@ Route::post(
   '/{slug}/Notification/{notificationId}/Delete',
   [UserController::class, 'delete_notification']
 )->name('notifications.delete');
+
+// Campana: abrir un aviso (lo marca como leído y lleva a su encargo) y marcar todos como leídos
+Route::get('/notifications/{id}/open', [\App\Http\Controllers\NotificationController::class, 'open'])
+  ->whereNumber('id')->name('notifications.open')->middleware(['auth', 'XSS']);
+Route::post('/notifications/read-all', [\App\Http\Controllers\NotificationController::class, 'readAll'])
+  ->name('notifications.read_all')->middleware(['auth', 'XSS']);
 //=============================================Webhook===================================================
 Route::resource('/{slug}/webhook', WebhookController::class)->middleware(['auth', 'XSS']);
 Route::post('webhooks/response/get', [WebhookController::class, 'WebhookResponse'])->name('webhooks.response.get');
@@ -1100,6 +1106,24 @@ Route::post('/{slug}/milestone/{id}/delete-puntuaciones', [ProjectController::cl
 Route::post('/projects/export-axapta', [ProjectController::class, 'exportProjectsToAxapta'])
   ->middleware('auth')
   ->name('projects.export.axapta');
+// Resumen antes de exportar (simulación: no escribe nada)
+Route::get('/projects/export-axapta/preview', [ProjectController::class, 'exportAxaptaPreview'])
+  ->middleware('auth')
+  ->name('projects.export.axapta.preview');
+// Redescargar el .fil de un lote ya exportado (no crea ni marca nada)
+Route::get('/projects/export-axapta/batches/{batchId}/download', [ProjectController::class, 'downloadAxaptaBatch'])
+  ->middleware('auth')
+  ->whereNumber('batchId')
+  ->name('projects.export.axapta.download');
+
+// «Reportar un problema» (pie del menú): enviar, ver los propios y bandeja de soporte (users.is_support)
+Route::middleware('auth')->prefix('problem-reports')->name('problem_reports.')->group(function () {
+  Route::post('/', [\App\Http\Controllers\ProblemReportController::class, 'store'])->name('store');
+  Route::get('/mine', [\App\Http\Controllers\ProblemReportController::class, 'mine'])->name('mine');
+  Route::get('/', [\App\Http\Controllers\ProblemReportController::class, 'index'])->name('index');
+  Route::post('/{id}', [\App\Http\Controllers\ProblemReportController::class, 'update'])->whereNumber('id')->name('update');
+  Route::get('/{id}/screenshot', [\App\Http\Controllers\ProblemReportController::class, 'screenshot'])->whereNumber('id')->name('screenshot');
+});
 
 //MY TASKS VIEW
 Route::get('/my-tasks', [ProjectController::class, 'myTasks'])->name('projects.my_tasks');

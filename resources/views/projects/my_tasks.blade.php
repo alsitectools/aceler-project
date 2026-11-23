@@ -11,6 +11,7 @@
 @section('links')
     <li class="breadcrumb-item"><a href="{{ route('home') }}">{{ __('Home') }}</a></li>
     <li class="breadcrumb-item">{{ __('My Tasks') }}</li>
+    @include('projects.partials.my_tasks_help')
 @endsection
 
 @push('css-page')
@@ -232,6 +233,39 @@
             max-height: 350px;
             overflow: auto;
             scrollbar-gutter: stable;
+        }
+
+        /* barras finas y discretas en Firefox (en Chrome/Edge estas propiedades anularían las de abajo) */
+        @supports not selector(::-webkit-scrollbar) {
+            .my-tasks-table-scroll {
+                scrollbar-width: thin;
+                scrollbar-color: #d1d5db transparent;
+            }
+        }
+
+        /* barras finas y discretas (Chrome / Edge): se oscurecen al pasar el ratón */
+        .my-tasks-table-scroll::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        .my-tasks-table-scroll::-webkit-scrollbar-track,
+        .my-tasks-table-scroll::-webkit-scrollbar-corner {
+            background: transparent;
+        }
+
+        .my-tasks-table-scroll::-webkit-scrollbar-thumb {
+            background: #d9dce1;
+            border: 2px solid #fff;
+            border-radius: 8px;
+        }
+
+        .my-tasks-table-scroll:hover::-webkit-scrollbar-thumb {
+            background: #b9bec6;
+        }
+
+        .my-tasks-table-scroll::-webkit-scrollbar-button {
+            display: none;
         }
 
         .my-tasks-table-inner {
@@ -1141,6 +1175,643 @@
             width: 100%;
             transform: rotateY(180deg);
         }
+
+        /* =============================================
+           MIS TAREAS · resumen compacto, buscador, filtros rápidos, estado del encargo y orden por fecha
+           ============================================= */
+        .my-tasks-hero--compact {
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px 14px;
+            padding: 12px 16px;
+        }
+
+        .my-tasks-hero--compact .my-tasks-kpi {
+            display: flex;
+            gap: 8px;
+            margin: 0 0 0 auto;
+        }
+
+        .my-tasks-hero--compact .my-tasks-kpi-card {
+            display: inline-flex;
+            align-items: baseline;
+            gap: 6px;
+            padding: 6px 12px;
+            border-radius: 10px;
+            border-color: #eceef2;
+        }
+
+        .my-tasks-hero--compact .my-tasks-kpi-value {
+            font-size: 17px;
+        }
+
+        .my-tasks-hero--compact .my-tasks-kpi-label {
+            text-transform: none;
+            letter-spacing: 0;
+            font-size: 12.5px;
+        }
+
+        .my-tasks-kpi-go {
+            font-size: 9px;
+            color: var(--mt-accent);
+        }
+
+        .my-tasks-hero--compact .my-tasks-controls {
+            margin-top: 0;
+        }
+
+        .my-tasks-search {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            height: 34px;
+            width: 260px;
+            max-width: 100%;
+            margin: 0;
+            padding: 0 10px;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            color: #9ca3af;
+            background: #fff;
+        }
+
+        .my-tasks-search:focus-within {
+            border-color: var(--mt-accent);
+        }
+
+        .my-tasks-search input {
+            flex: 1;
+            min-width: 0;
+            border: 0;
+            outline: 0;
+            background: transparent;
+            font-size: 13px;
+            color: #1f2937;
+        }
+
+        /* Filtros rápidos en pestañas subrayadas, como .pd-tabs de Encargos (project_detail.css) */
+        .my-tasks-quick {
+            display: flex;
+            gap: 22px;
+            padding: 0 36px;
+            border-bottom: 1px solid #f0f1f4;
+            overflow-x: auto;
+            /* la raya de la pestaña activa sobresale 1px: sin esto Windows pinta una barra vertical */
+            overflow-y: hidden;
+            scrollbar-width: none;
+        }
+
+        .my-tasks-quick::-webkit-scrollbar {
+            display: none;
+        }
+
+        .my-tasks-quick-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            margin-bottom: -1px;
+            padding: 10px 0;
+            border: 0;
+            border-bottom: 2px solid transparent;
+            background: none;
+            color: #6b7280;
+            font-size: 13px;
+            white-space: nowrap;
+            cursor: pointer;
+        }
+
+        .my-tasks-quick-btn i {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+        }
+
+        .my-tasks-quick-btn b {
+            font-weight: 500;
+            color: #9ca3af;
+        }
+
+        .my-tasks-quick-btn:hover {
+            color: #1f2937;
+        }
+
+        .my-tasks-quick-btn.is-active {
+            border-bottom-color: var(--mt-accent);
+            color: var(--mt-accent);
+            font-weight: 600;
+        }
+
+        .my-tasks-quick-btn.is-active b {
+            color: var(--mt-accent);
+        }
+
+        #tableViewCard .card-header {
+            border-bottom: 0;
+        }
+
+        #tableViewCard .card-header .my-tasks-header-tools {
+            margin-left: auto;
+        }
+
+        .my-tasks-active-filters {
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin: 0 36px 10px;
+            padding: 8px 12px;
+            border-radius: 10px;
+            background: #fcfcfd;
+            border: 1px solid #f0f1f4;
+            font-size: 12.5px;
+            color: #6b7280;
+        }
+
+        .my-tasks-active-filters > i {
+            color: var(--mt-accent);
+        }
+
+        .my-tasks-active-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            margin-right: 6px;
+            padding: 2px 4px 2px 10px;
+            border: 1px solid #e5e7eb;
+            border-radius: 999px;
+            background: #fff;
+            color: #374151;
+        }
+
+        .my-tasks-active-chip button {
+            border: 0;
+            background: none;
+            padding: 0 4px;
+            font-size: 15px;
+            line-height: 1;
+            color: #9ca3af;
+        }
+
+        .my-tasks-active-chip button:hover {
+            color: #c0392b;
+        }
+
+        /* estado del encargo */
+        .my-tasks-th[data-col-key="status"],
+        .my-tasks-td[data-col-key="status"] { flex: 1 1 auto; width: 165px; min-width: 165px; display: flex; align-items: center; }
+
+        /* fechas: etiqueta + orden + embudo en la cabecera; la estimada lleva además «hace X días» */
+        .my-tasks-th[data-col-key="start_date"],
+        .my-tasks-td[data-col-key="start_date"] { width: 150px; min-width: 150px; }
+
+        .my-tasks-th[data-col-key="estimated_date"],
+        .my-tasks-td[data-col-key="estimated_date"] { width: 200px; min-width: 200px; }
+
+        .my-tasks-th[data-col-key="finalization_date"],
+        .my-tasks-td[data-col-key="finalization_date"] { width: 175px; min-width: 175px; }
+
+        .my-tasks-th[data-col-key="project"],
+        .my-tasks-td[data-col-key="project"] { width: 210px; min-width: 210px; }
+
+        .my-tasks-th[data-col-key="milestone"],
+        .my-tasks-td[data-col-key="milestone"] { width: 180px; min-width: 180px; }
+
+        .my-tasks-status {
+            display: inline-flex;
+            align-items: center;
+            padding: 2px 10px;
+            border-radius: 999px;
+            font-size: 12px;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
+        .my-tasks-status--1 { background: #f3f4f6; color: #6b7280; }
+        .my-tasks-status--2 { background: #eef2ff; color: #4338ca; }
+        .my-tasks-status--3 { background: #fff7e6; color: #b7791f; }
+        .my-tasks-status--4 { background: #e9f8ee; color: #2f9e44; }
+
+        /* «No requerido» discreto */
+        .my-tasks-nr {
+            color: #c4c8cf;
+            cursor: help;
+        }
+
+        /* fecha estimada con contexto y marca de vencida */
+        .my-tasks-td[data-col-key="estimated_date"] {
+            gap: 6px;
+            white-space: nowrap;
+        }
+
+        .my-tasks-td[data-col-key="estimated_date"] .is-late {
+            color: #c0392b;
+            font-weight: 600;
+        }
+
+        .my-tasks-td[data-col-key="estimated_date"] .is-soon {
+            color: #b7791f;
+            font-weight: 600;
+        }
+
+        .my-tasks-rel {
+            font-size: 11.5px;
+            color: #9ca3af;
+            font-weight: 400 !important;
+        }
+
+        .my-tasks-body-row.is-late {
+            box-shadow: inset 3px 0 0 #e06c71;
+        }
+
+        /* orden por fecha */
+        .my-tasks-sort-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 0;
+            border: 0;
+            background: none;
+            font: inherit;
+            letter-spacing: inherit;
+            text-transform: inherit;
+            color: inherit;
+            cursor: pointer;
+        }
+
+        .my-tasks-sort-icon {
+            width: 12px;
+            height: 12px;
+            fill: #c4c8cf;
+        }
+
+        .my-tasks-sort-btn:hover .my-tasks-sort-icon,
+        .my-tasks-sort-btn.is-sorted {
+            color: var(--mt-accent);
+        }
+
+        .my-tasks-sort-btn.is-sorted .my-tasks-sort-icon {
+            fill: var(--mt-accent);
+            clip-path: inset(0 0 50% 0);
+        }
+
+        .my-tasks-sort-btn.is-sorted.is-desc .my-tasks-sort-icon {
+            clip-path: inset(50% 0 0 0);
+        }
+
+        /* ===== Mismo aspecto que la tabla de Encargos (detalle de proyecto, project_detail.css) =====
+           Lista limpia: cabecera blanca en gris, filas separadas por una línea, estado con punto
+           y fechas en etiqueta gris (verde = a tiempo, roja = vencida, naranja = esta semana). */
+        .my-tasks-header-row {
+            background: #fff;
+            border-bottom: 1px solid #f0f1f4;
+            gap: 4px;
+        }
+
+        .my-tasks-th {
+            padding: 12px 8px;
+            color: #9ca3af;
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: .02em;
+        }
+
+        /* el título de estas columnas es más largo que su contenido: ancho para que no sobresalga */
+        .my-tasks-th[data-col-key="status"],
+        .my-tasks-td[data-col-key="status"] { width: 185px; min-width: 185px; }
+
+        .my-tasks-th[data-col-key="start_date"],
+        .my-tasks-td[data-col-key="start_date"] { width: 160px; min-width: 160px; }
+
+        .my-tasks-th[data-col-key="finalization_date"],
+        .my-tasks-td[data-col-key="finalization_date"] { width: 205px; min-width: 205px; }
+
+        .my-tasks-filter-btn {
+            width: 22px;
+            height: 22px;
+            border: 0;
+            border-radius: 6px;
+            color: #c4c8cf;
+        }
+
+        .my-tasks-filter-btn:hover {
+            background: #f1f2f4;
+            color: #4b5563;
+        }
+
+        .my-tasks-filter-btn.is-active,
+        .my-tasks-filter-btn.is-active:hover {
+            background: #fbe9ec;
+            color: #AA182C;
+        }
+
+        .my-tasks-th:has(.my-tasks-filter-btn.is-active) {
+            color: #AA182C;
+        }
+
+        .my-tasks-body-rows {
+            gap: 0;
+            padding-top: 0;
+        }
+
+        .my-tasks-body-row {
+            gap: 4px;
+            border: 0;
+            border-bottom: 1px solid #f4f5f7;
+            border-radius: 0;
+            background: #fff;
+            transition: background-color .15s ease;
+        }
+
+        .my-tasks-body-row:hover {
+            border-color: #f4f5f7;
+            background: #fafafb;
+            color: inherit;
+            transform: none;
+        }
+
+        .my-tasks-body-row.is-late {
+            box-shadow: none;
+        }
+
+        .my-tasks-td {
+            padding: 14px 8px;
+            font-size: 15px;
+            color: #374151;
+        }
+
+        .my-tasks-td[data-col-key="project"] .my-tasks-main,
+        .my-tasks-td[data-col-key="milestone"] .my-tasks-main {
+            font-weight: 600;
+            color: #1f2937;
+        }
+
+        /* Estado del encargo: punto de color + texto, como en Encargos */
+        .my-tasks-status {
+            gap: 7px;
+            padding: 0;
+            border-radius: 0;
+            background: none !important;
+            color: #374151 !important;
+            font-size: 15px;
+            font-weight: 400;
+        }
+
+        .my-tasks-status i {
+            width: 9px;
+            height: 9px;
+            border-radius: 50%;
+            background: #9ca3af;
+        }
+
+        .my-tasks-status--1 i { background: #cbd5e1; }
+        .my-tasks-status--2 i { background: #60a5fa; }
+        .my-tasks-status--3 i { background: #fbbf24; }
+        .my-tasks-status--4 i { background: #22c55e; }
+
+        /* Fechas en etiqueta */
+        .my-tasks-td .task-date {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 5px;
+            background: #e9eaec;
+            color: #4b5563;
+            font-size: 14px;
+            font-weight: 700;
+        }
+
+        .my-tasks-td .task-date.on-time { background: #53b446e0; color: #fff; }
+        .my-tasks-td .task-date.overdue,
+        .my-tasks-td[data-col-key="estimated_date"] .task-date.is-late { background: #ff0000a3; color: #fff; }
+        .my-tasks-td[data-col-key="estimated_date"] .task-date.is-soon { background: #db8d33; color: #fff; }
+
+        .my-tasks-rel.is-late { color: #c0392b; }
+        .my-tasks-rel.is-soon { color: #b7791f; }
+
+        /* Sin fecha / sin dato: texto suave, sin etiqueta punteada */
+        .my-tasks-td[data-col-key="start_date"] .my-tasks-placeholder,
+        .my-tasks-td[data-col-key="estimated_date"] .my-tasks-placeholder,
+        .my-tasks-td[data-col-key="finalization_date"] .my-tasks-placeholder,
+        .my-tasks-td[data-col-key="status"] .my-tasks-placeholder {
+            padding: 0;
+            border: 0;
+            background: none;
+            color: #c4c8cf !important;
+            font-size: 14px;
+            font-weight: 400;
+        }
+
+        /* pie de la tabla: cuántas se ven y qué hace el clic */
+        .my-tasks-table-foot {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+            padding: 10px 36px 4px;
+            font-size: 12.5px;
+            color: #6b7280;
+        }
+
+        .my-tasks-table-foot-hint {
+            margin-left: auto;
+            color: #9ca3af;
+        }
+
+        /* =============================================
+           VISTA EN DIAGRAMA · barras horizontales por proyecto
+           ============================================= */
+        .my-tasks-diag-head {
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .my-tasks-diag-range {
+            font-size: 12px;
+            color: #9ca3af;
+        }
+
+        .my-tasks-diag-sp {
+            flex: 1;
+        }
+
+        #diagramPeriod {
+            display: inline-flex;
+            gap: 6px;
+        }
+
+        .my-tasks-metric {
+            display: inline-flex;
+            border: 1px solid #e5e7eb;
+            border-radius: 9px;
+            overflow: hidden;
+        }
+
+        .my-tasks-metric button {
+            border: 0;
+            background: #fff;
+            padding: 6px 14px;
+            font-size: 12.5px;
+            color: #374151;
+        }
+
+        .my-tasks-metric button.is-active {
+            background: #1f2937;
+            color: #fff;
+            font-weight: 600;
+        }
+
+        .my-tasks-diag-sum {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+
+        .my-tasks-diag-stat {
+            border: 1px solid #eef0f3;
+            border-radius: 10px;
+            padding: 8px 12px;
+        }
+
+        .my-tasks-diag-stat small {
+            display: block;
+            font-size: 10.5px;
+            font-weight: 700;
+            color: #9ca3af;
+            text-transform: uppercase;
+            letter-spacing: .05em;
+        }
+
+        .my-tasks-diag-stat b {
+            font-size: 20px;
+            color: #1f2937;
+        }
+
+        .my-tasks-diag-delta {
+            margin-left: 6px;
+            font-size: 11.5px;
+            color: #9ca3af;
+        }
+
+        .my-tasks-diag-delta.is-up { color: #2f9e44; }
+        .my-tasks-diag-delta.is-down { color: #c0392b; }
+
+        .my-tasks-diag-hint {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin: 0 0 6px;
+            font-size: 12px;
+            color: #6b7280;
+        }
+
+        .my-tasks-diag-row {
+            display: grid;
+            grid-template-columns: minmax(180px, 280px) 1fr 130px;
+            gap: 14px;
+            align-items: center;
+            width: 100%;
+            padding: 7px 8px;
+            border: 0;
+            border-radius: 8px;
+            background: transparent;
+            text-align: left;
+        }
+
+        button.my-tasks-diag-row {
+            cursor: pointer;
+        }
+
+        button.my-tasks-diag-row:hover,
+        button.my-tasks-diag-row:focus-visible {
+            background: #fdf7f8;
+            outline: 0;
+        }
+
+        .my-tasks-diag-name {
+            min-width: 0;
+            font-size: 13px;
+            font-weight: 600;
+            color: #1f2937;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .my-tasks-diag-name small {
+            display: block;
+            font-weight: 400;
+            font-size: 11px;
+            color: #9ca3af;
+        }
+
+        .my-tasks-diag-track {
+            display: flex;
+            height: 20px;
+            border-radius: 6px;
+            background: #f6f7f9;
+            overflow: hidden;
+        }
+
+        .my-tasks-diag-track i {
+            display: block;
+            height: 100%;
+        }
+
+        .my-tasks-diag-s1 { background: #cbd5e1; }
+        .my-tasks-diag-s2 { background: #6b7fe0; }
+        .my-tasks-diag-s3 { background: #f0b429; }
+        .my-tasks-diag-s4 { background: #4cbb6c; }
+        .my-tasks-diag-sh { background: #AA182C; }
+
+        .my-tasks-diag-val {
+            text-align: right;
+            font-size: 13px;
+            font-weight: 700;
+            color: #1f2937;
+            white-space: nowrap;
+        }
+
+        .my-tasks-diag-val small {
+            margin-left: 4px;
+            font-weight: 400;
+            color: #9ca3af;
+        }
+
+        .my-tasks-diag-legend {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 6px 16px;
+            margin-top: 10px;
+            font-size: 12px;
+            color: #6b7280;
+        }
+
+        .my-tasks-diag-legend span {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .my-tasks-diag-legend i {
+            width: 10px;
+            height: 10px;
+            border-radius: 3px;
+            display: inline-block;
+        }
+
+        @media (max-width: 900px) {
+            .my-tasks-diag-sum {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+
+            .my-tasks-diag-row {
+                grid-template-columns: 140px 1fr 90px;
+            }
+        }
     </style>
 @endpush
 
@@ -1174,39 +1845,48 @@
         $stageColumnIndex = $showStageColumn ? 2 : null;
         $phaseColumnIndex = $showPhaseColumn ? 2 + ((int) $showStageColumn) : null;
         $taskColumnIndex = 2 + $visibleOptionalColumns;
-        $startDateColumnIndex = 3 + $visibleOptionalColumns;
-        $estimatedDateColumnIndex = 4 + $visibleOptionalColumns;
-        $finalizationDateColumnIndex = 5 + $visibleOptionalColumns;
+        $statusColumnIndex = 3 + $visibleOptionalColumns;
+        $startDateColumnIndex = 4 + $visibleOptionalColumns;
+        $estimatedDateColumnIndex = 5 + $visibleOptionalColumns;
+        $finalizationDateColumnIndex = 6 + $visibleOptionalColumns;
+        // Estado del encargo (milestones.status): 1 por hacer · 2 en curso · 3 en revisión · 4 hecho
+        $milestoneStatusLabels = [1 => __('To Do'), 2 => __('In Progress'), 3 => __('Review'), 4 => __('Done')];
+        $sortIcon = '<svg class="my-tasks-sort-icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 2.5 11.5 6h-7L8 2.5Zm0 11L4.5 10h7L8 13.5Z"></path></svg>';
     @endphp
 
     <section class="section">
         <div class="row">
             <div class="col-12">
                 <div class="my-tasks-wrap mt-3">
-                    <div class="my-tasks-hero">
+                    {{-- Resumen compacto: título, cifras y vista en una sola franja --}}
+                    <div class="my-tasks-hero my-tasks-hero--compact">
                         <div class="my-tasks-title-row">
                             <h4 class="mb-0">{{ __('Task Overview') }}</h4>
                             <img class="my-tasks-help-icon" id="taskOverviewHelpIcon" src="{{ asset('assets/img/questionCircle.svg') }}"
                                 alt="{{ __('Task Overview info') }}" title="{{ __('Task Overview info') }}" />
                             <div class="my-tasks-help-popup" id="taskOverviewHelpPopup">
+                                <p>{{ __('Quick view of your assigned work and upcoming delivery dates.') }}</p>
                                 <p>{!! __('In <strong>Diagram View</strong>, the tasks shown respect the task\'s creation date.') !!}</p>
                                 <p>{!! __('<strong>N/A</strong> means there is no value for that field.') !!}</p>
                             </div>
                         </div>
-                        <p>{{ __('Quick view of your assigned work and upcoming delivery dates.') }}</p>
 
                         <div class="my-tasks-kpi">
                             <div class="my-tasks-kpi-card">
-                                <div class="my-tasks-kpi-label">{{ __('Total assigned') }}</div>
                                 <div class="my-tasks-kpi-value">{{ $taskCollection->count() }}</div>
+                                <div class="my-tasks-kpi-label">{{ __('Total assigned') }}</div>
                             </div>
-                            <div class="my-tasks-kpi-card" data-logged-range="weekly" role="button" tabindex="0">
-                                <div class="my-tasks-kpi-label">{{ __('Logged this week') }}</div>
+                            <div class="my-tasks-kpi-card" data-logged-range="weekly" role="button" tabindex="0"
+                                title="{{ __('See the tasks you logged') }}">
                                 <div class="my-tasks-kpi-value">{{ $loggedTasksThisWeekCount ?? 0 }}</div>
+                                <div class="my-tasks-kpi-label">{{ __('Logged this week') }}</div>
+                                <i class="fa-solid fa-chevron-right my-tasks-kpi-go" aria-hidden="true"></i>
                             </div>
-                            <div class="my-tasks-kpi-card" data-logged-range="thirty_days" role="button" tabindex="0">
-                                <div class="my-tasks-kpi-label">{{ __('Logged in 30 days') }}</div>
+                            <div class="my-tasks-kpi-card" data-logged-range="thirty_days" role="button" tabindex="0"
+                                title="{{ __('See the tasks you logged') }}">
                                 <div class="my-tasks-kpi-value">{{ $loggedTasksLastThirtyDaysCount ?? 0 }}</div>
+                                <div class="my-tasks-kpi-label">{{ __('Logged in 30 days') }}</div>
+                                <i class="fa-solid fa-chevron-right my-tasks-kpi-go" aria-hidden="true"></i>
                             </div>
                         </div>
 
@@ -1218,13 +1898,6 @@
                                 <button type="button" class="my-tasks-segmented-btn" data-view-mode="diagram">
                                     {{ __('Diagram view') }}
                                 </button>
-                            </div>
-
-                            <div class="my-tasks-period" id="diagramPeriod" style="display: none;">
-                                <button type="button" class="my-tasks-period-btn is-active" data-period="weekly">{{ __('Last week') }}</button>
-                                <button type="button" class="my-tasks-period-btn" data-period="monthly">{{ __('Last month') }}</button>
-                                <button type="button" class="my-tasks-period-btn" data-period="quarterly">{{ __('Last quarter') }}</button>
-                                <button type="button" class="my-tasks-period-btn" data-period="yearly">{{ __('Last year') }}</button>
                             </div>
                         </div>
                     </div>
@@ -1243,6 +1916,12 @@
                                 </div>
                             </div>
                             <div class="my-tasks-header-tools">
+                                @unless ($taskCollection->isEmpty())
+                                    <label class="my-tasks-search" for="myTasksSearch">
+                                        <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+                                        <input type="search" id="myTasksSearch" placeholder="{{ __('Search project, order form or task…') }}" autocomplete="off">
+                                    </label>
+                                @endunless
                                 <button type="button" id="myTasksColumnsToggleBtn" class="my-tasks-column-toggle-btn" aria-label="{{ __('Show or hide table columns') }}" title="{{ __('Show or hide table columns') }}" aria-expanded="false">
                                     <svg class="my-tasks-column-toggle-icon" viewBox="0 0 16 16" aria-hidden="true">
                                         <path d="M8 3.2c3.3 0 5.8 2.3 6.9 4.8-1.1 2.5-3.6 4.8-6.9 4.8S2.2 10.5 1.1 8C2.2 5.5 4.7 3.2 8 3.2Zm0 1.2c-2.6 0-4.7 1.7-5.8 3.6 1.1 1.9 3.2 3.6 5.8 3.6s4.7-1.7 5.8-3.6c-1.1-1.9-3.2-3.6-5.8-3.6Zm0 1.4a2.2 2.2 0 1 1 0 4.4 2.2 2.2 0 0 1 0-4.4Zm0 1.2a1 1 0 1 0 0 2 1 1 0 0 0 0-2Z"></path>
@@ -1252,6 +1931,17 @@
                             </div>
                         </div>
 
+                        @unless ($taskCollection->isEmpty())
+                            {{-- Filtros rápidos en pestañas, como en Encargos (se suman a los embudos de cada columna) --}}
+                            <nav class="my-tasks-quick" id="myTasksQuickFilters" role="group" aria-label="{{ __('Quick filters') }}">
+                                <button type="button" class="my-tasks-quick-btn" data-quick="all">{{ __('All tasks') }} <b data-quick-count="all">0</b></button>
+                                <button type="button" class="my-tasks-quick-btn" data-quick="open"><i style="background:#60a5fa"></i>{{ __('Not finished') }} <b data-quick-count="open">0</b></button>
+                                <button type="button" class="my-tasks-quick-btn" data-quick="late"><i style="background:#e06c71"></i>{{ __('Overdue tasks') }} <b data-quick-count="late">0</b></button>
+                                <button type="button" class="my-tasks-quick-btn" data-quick="changes"><i style="background:#fbbf24"></i>{{ __('Change requested') }} <b data-quick-count="changes">0</b></button>
+                                <button type="button" class="my-tasks-quick-btn" data-quick="finished"><i style="background:#22c55e"></i>{{ __('Finished tasks') }} <b data-quick-count="finished">0</b></button>
+                            </nav>
+                        @endunless
+
                         <div class="card-body">
                             @if ($taskCollection->isEmpty())
                             <div class="text-center py-4">
@@ -1259,6 +1949,13 @@
                                 <p class="text-muted mb-0">{{ __('You currently do not have assigned tasks.') }}</p>
                             </div>
                         @else
+                            {{-- Embudos de columna aplicados: se ven y se quitan desde aquí --}}
+                            <div class="my-tasks-active-filters" id="myTasksActiveFilters" hidden>
+                                <i class="fa-solid fa-filter" aria-hidden="true"></i>
+                                <span class="my-tasks-active-label">{{ __('Column filters') }}:</span>
+                                <span id="myTasksActiveFiltersList"></span>
+                                <button type="button" class="my-tasks-filter-link" id="myTasksClearFilters">{{ __('Clear all') }}</button>
+                            </div>
                             <div class="my-tasks-table-shell">
                                 <div class="my-tasks-table-scroll">
                                 <div class="my-tasks-table-inner">
@@ -1317,9 +2014,19 @@
                                                 </button>
                                             </div>
                                         </div>
+                                        <div class="my-tasks-th" data-col-key="status">
+                                            <div class="my-tasks-th-content">
+                                                <span>{{ __('Order form status') }}</span>
+                                                <button type="button" class="my-tasks-filter-btn" data-filter-key="status" data-filter-label="{{ __('Order form status') }}" data-column-index="{{ $statusColumnIndex }}" aria-label="{{ __('Filter Order form status') }}">
+                                                    <svg class="my-tasks-filter-icon" viewBox="0 0 16 16" aria-hidden="true">
+                                                        <path d="M2 3.25A1.25 1.25 0 0 1 3.25 2h9.5A1.25 1.25 0 0 1 14 3.25c0 .3-.11.6-.31.82L9.5 8.45v3.3a1 1 0 0 1-.55.9l-2 1A1 1 0 0 1 5.5 12.75V8.45L2.31 4.07A1.25 1.25 0 0 1 2 3.25Z"></path>
+                                                    </svg>
+                                                </button>
+                                            </div>
+                                        </div>
                                         <div class="my-tasks-th" data-col-key="start_date">
                                             <div class="my-tasks-th-content">
-                                                <span>{{ __('Start date') }}</span>
+                                                <button type="button" class="my-tasks-sort-btn" data-sort-key="start" title="{{ __('Sort') }}">{{ __('Start date') }}{!! $sortIcon !!}</button>
                                                 <button type="button" class="my-tasks-filter-btn" data-filter-key="start_date" data-filter-label="{{ __('Start date') }}" data-column-index="{{ $startDateColumnIndex }}" aria-label="{{ __('Filter Start date') }}">
                                                     <svg class="my-tasks-filter-icon" viewBox="0 0 16 16" aria-hidden="true">
                                                         <path d="M2 3.25A1.25 1.25 0 0 1 3.25 2h9.5A1.25 1.25 0 0 1 14 3.25c0 .3-.11.6-.31.82L9.5 8.45v3.3a1 1 0 0 1-.55.9l-2 1A1 1 0 0 1 5.5 12.75V8.45L2.31 4.07A1.25 1.25 0 0 1 2 3.25Z"></path>
@@ -1329,7 +2036,7 @@
                                         </div>
                                         <div class="my-tasks-th" data-col-key="estimated_date">
                                             <div class="my-tasks-th-content">
-                                                <span>{{ __('Estimated date') }}</span>
+                                                <button type="button" class="my-tasks-sort-btn" data-sort-key="estimated" title="{{ __('Sort') }}">{{ __('Estimated date') }}{!! $sortIcon !!}</button>
                                                 <button type="button" class="my-tasks-filter-btn" data-filter-key="estimated_date" data-filter-label="{{ __('Estimated date') }}" data-column-index="{{ $estimatedDateColumnIndex }}" aria-label="{{ __('Filter Estimated date') }}">
                                                     <svg class="my-tasks-filter-icon" viewBox="0 0 16 16" aria-hidden="true">
                                                         <path d="M2 3.25A1.25 1.25 0 0 1 3.25 2h9.5A1.25 1.25 0 0 1 14 3.25c0 .3-.11.6-.31.82L9.5 8.45v3.3a1 1 0 0 1-.55.9l-2 1A1 1 0 0 1 5.5 12.75V8.45L2.31 4.07A1.25 1.25 0 0 1 2 3.25Z"></path>
@@ -1339,7 +2046,7 @@
                                         </div>
                                         <div class="my-tasks-th" data-col-key="finalization_date">
                                             <div class="my-tasks-th-content">
-                                                <span>{{ __('Finalization date') }}</span>
+                                                <button type="button" class="my-tasks-sort-btn" data-sort-key="finalization" title="{{ __('Sort') }}">{{ __('Finalization date') }}{!! $sortIcon !!}</button>
                                                 <button type="button" class="my-tasks-filter-btn" data-filter-key="finalization_date" data-filter-label="{{ __('Finalization date') }}" data-column-index="{{ $finalizationDateColumnIndex }}" aria-label="{{ __('Filter Finalization date') }}">
                                                     <svg class="my-tasks-filter-icon" viewBox="0 0 16 16" aria-hidden="true">
                                                         <path d="M2 3.25A1.25 1.25 0 0 1 3.25 2h9.5A1.25 1.25 0 0 1 14 3.25c0 .3-.11.6-.31.82L9.5 8.45v3.3a1 1 0 0 1-.55.9l-2 1A1 1 0 0 1 5.5 12.75V8.45L2.31 4.07A1.25 1.25 0 0 1 2 3.25Z"></path>
@@ -1411,8 +2118,28 @@
                                                 $reviewUser = $task->reviewState && $task->reviewState->mark_user_id
                                                     ? optional(\App\Models\User::find($task->reviewState->mark_user_id))->name
                                                     : null;
+
+                                                // Filtros rápidos, orden y fecha relativa
+                                                $isFinished = (bool) $finalizationDate;
+                                                $isLate = !$isFinished && $estimatedDate && $estimatedDate->copy()->startOfDay()->lt($today);
+                                                $isSoon = !$isFinished && !$isLate && $estimatedDate && $estimatedDate->copy()->startOfDay()->lte($weekEnd);
+                                                $relativeText = null;
+                                                if (!$isFinished && $estimatedDate) {
+                                                    $daysDiff = (int) $today->diffInDays($estimatedDate->copy()->startOfDay(), false);
+                                                    $relativeText = $daysDiff === 0 ? __('today')
+                                                        : ($daysDiff < 0 ? __(':n days ago', ['n' => abs($daysDiff)]) : __('in :n days', ['n' => $daysDiff]));
+                                                }
+                                                $milestoneStatus = (int) optional($task->milestone)->status;
+                                                $statusLabel = $milestoneStatusLabels[$milestoneStatus] ?? $naText;
                                             @endphp
-                                            <div class="my-tasks-body-row {{ $reviewState ? 'task-row-' . $reviewState : '' }}"
+                                            <div class="my-tasks-body-row {{ $reviewState ? 'task-row-' . $reviewState : '' }} {{ $isLate ? 'is-late' : '' }}"
+                                                data-finished="{{ $isFinished ? '1' : '0' }}"
+                                                data-late="{{ $isLate ? '1' : '0' }}"
+                                                data-review="{{ $reviewState ?? '' }}"
+                                                data-sort-start="{{ $task->start_date ? \Carbon\Carbon::parse($task->start_date)->format('Y-m-d') : '' }}"
+                                                data-sort-estimated="{{ $estimatedDate ? $estimatedDate->format('Y-m-d') : '' }}"
+                                                data-sort-finalization="{{ $finalizationDate ? $finalizationDate->format('Y-m-d') : '' }}"
+                                                data-search="{{ mb_strtolower($projectName . ' ' . $milestoneTitle . ' ' . $displayTypeName . ' ' . ($task->referencia ?? '')) }}"
                                                 data-task-id="{{ $task->id }}"
                                                 data-task-name="{{ $displayTypeName }}"
                                                 data-milestone-id="{{ $task->milestone_id }}"
@@ -1434,7 +2161,7 @@
                                                 <div class="my-tasks-td" data-col-key="project">
                                                     <div class="my-tasks-main my-tasks-truncate-project {{ $projectClass }}" title="{{ $projectName }}">{{ $projectName }}</div>
                                                 </div>
-                                                <div class="my-tasks-td my-tasks-td-milestone" data-col-key="milestone">
+                                                <div class="my-tasks-td my-tasks-td-milestone" data-col-key="milestone" data-cell-value="{{ $milestoneTitle }}">
                                                     <div class="my-tasks-main my-tasks-truncate-milestone {{ $milestoneClass }}" title="{{ $milestoneTitle }}">{{ $milestoneTitle }}</div>
                                                     <button type="button" class="my-tasks-review-card-btn"
                                                         data-milestone-id="{{ $task->milestone_id }}"
@@ -1444,16 +2171,24 @@
                                                     </button>
                                                 </div>
                                                 @if ($showStageColumn)
-                                                <div class="my-tasks-td" data-col-key="stage">
-                                                    <span class="{{ $stageClass }}">{{ $stageName }}</span>
+                                                <div class="my-tasks-td" data-col-key="stage" data-cell-value="{{ $stageName }}">
+                                                    @if ($stageName === $notApplicableStagePhaseText)
+                                                        <span class="my-tasks-nr" title="{{ $notApplicableStagePhaseText }}">—</span>
+                                                    @else
+                                                        <span class="{{ $stageClass }}">{{ $stageName }}</span>
+                                                    @endif
                                                 </div>
                                                 @endif
                                                 @if ($showPhaseColumn)
-                                                <div class="my-tasks-td" data-col-key="phase">
-                                                    <span class="{{ $phaseClass }}">{{ $phaseName }}</span>
+                                                <div class="my-tasks-td" data-col-key="phase" data-cell-value="{{ $phaseName }}">
+                                                    @if ($phaseName === $notApplicableStagePhaseText)
+                                                        <span class="my-tasks-nr" title="{{ $notApplicableStagePhaseText }}">—</span>
+                                                    @else
+                                                        <span class="{{ $phaseClass }}">{{ $phaseName }}</span>
+                                                    @endif
                                                 </div>
                                                 @endif
-                                                <div class="my-tasks-td" data-col-key="task">
+                                                <div class="my-tasks-td" data-col-key="task" data-cell-value="{{ $displayTypeName }}">
                                                     <div class="my-tasks-truncate-task" title="{{ $displayTypeName }}">
                                                         @if ($reviewState === 'changes')
                                                             <span class="me-2 badge task-review-badge task-badge-changes"
@@ -1478,11 +2213,21 @@
                                                         <span class="{{ $taskTypeClass }}">{{ $displayTypeName }}</span>
                                                     </div>
                                                 </div>
+                                                <div class="my-tasks-td" data-col-key="status" data-cell-value="{{ $statusLabel }}">
+                                                    @if ($milestoneStatus >= 1 && $milestoneStatus <= 4)
+                                                        <span class="my-tasks-status my-tasks-status--{{ $milestoneStatus }}"><i aria-hidden="true"></i>{{ $statusLabel }}</span>
+                                                    @else
+                                                        <span class="{{ $placeholderClass }}">{{ $naText }}</span>
+                                                    @endif
+                                                </div>
                                                 <div class="my-tasks-td" data-col-key="start_date">
                                                     <span class="{{ $startDateClass }}">{{ $startDateText }}</span>
                                                 </div>
-                                                <div class="my-tasks-td" data-col-key="estimated_date">
-                                                    <span class="{{ $estimatedDateClass }}">{{ $estimatedDateText }}</span>
+                                                <div class="my-tasks-td" data-col-key="estimated_date" data-cell-value="{{ $estimatedDateText }}">
+                                                    <span class="{{ $estimatedDateClass }} {{ $isLate ? 'is-late' : ($isSoon ? 'is-soon' : '') }}">{{ $estimatedDateText }}</span>
+                                                    @if ($relativeText)
+                                                        <small class="my-tasks-rel {{ $isLate ? 'is-late' : ($isSoon ? 'is-soon' : '') }}">{{ $relativeText }}</small>
+                                                    @endif
                                                 </div>
                                                 <div class="my-tasks-td" data-col-key="finalization_date">
                                                     <span class="{{ $finalizationRenderClass }}">{{ $finalizationDateText }}</span>
@@ -1497,28 +2242,43 @@
                                 </div>
                             </div>
                         </div>
+                        <div class="my-tasks-table-foot">
+                            <span id="myTasksVisibleCount"></span>
+                            <span class="my-tasks-table-foot-hint">
+                                <i class="fa-solid fa-computer-mouse" aria-hidden="true"></i>
+                                {{ __('Click a row: log hours') }} · {{ __('Right click: review') }}
+                            </span>
+                        </div>
                         @endif
                         </div>
                     </div>
 
-                    <div class="card my-tasks-card mt-3" id="diagramViewCard" style="display: none;">
-                        <div class="backgroundWhite card-body">
-                            <div class="my-tasks-visual-header">
-                                <div>
-                                    <h5 class="my-tasks-visual-title">{{ __('Tasks By Project') }}</h5>
-                                </div>
-                                <div class="my-tasks-visual-total">
-                                    <span id="diagramRangeLabel" class="label">{{ __('Last year') }}</span>
-                                    <span id="diagramTotalValue" class="value">0</span>
-                                </div>
+                    {{-- Vista en diagrama: barras horizontales por proyecto (tareas por estado del encargo u horas imputadas) --}}
+                    <div class="card my-tasks-card" id="diagramViewCard" style="display: none;">
+                        <div class="card-header my-tasks-diag-head">
+                            <h5 class="mb-0">{{ __('By project') }}</h5>
+                            <span class="my-tasks-diag-range" id="diagramRangeLabel"></span>
+                            <span class="my-tasks-diag-sp"></span>
+                            <div class="my-tasks-period" id="diagramPeriod">
+                                <button type="button" class="my-tasks-period-btn is-active" data-period="weekly">{{ __('Week') }}</button>
+                                <button type="button" class="my-tasks-period-btn" data-period="monthly">{{ __('Month') }}</button>
+                                <button type="button" class="my-tasks-period-btn" data-period="quarterly">{{ __('Quarter') }}</button>
+                                <button type="button" class="my-tasks-period-btn" data-period="yearly">{{ __('Year') }}</button>
                             </div>
-                            <div class="my-tasks-chart-wrap">
-                                <canvas id="myTasksProjectChart"></canvas>
-                                <div id="myTasksChartEmpty" class="my-tasks-chart-empty">
-                                    <h6 class="mb-2">{{ __('No tasks created in this period') }}</h6>
-                                    <p class="mb-0">{{ __('Try another period to view projects with recently created tasks.') }}</p>
-                                </div>
+                            <div class="my-tasks-metric" id="diagramMetric" role="group" aria-label="{{ __('Measure') }}">
+                                <button type="button" class="is-active" data-metric="tasks">{{ __('Tasks') }}</button>
+                                <button type="button" data-metric="hours">{{ __('Hours') }}</button>
                             </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="my-tasks-diag-sum" id="diagramSummary"></div>
+                            <div class="my-tasks-diag-hint" id="diagramHint"></div>
+                            <div class="my-tasks-diag-bars" id="diagramBars"></div>
+                            <div id="myTasksChartEmpty" class="my-tasks-chart-empty">
+                                <h6 class="mb-2" id="diagramEmptyTitle">{{ __('No tasks created in this period') }}</h6>
+                                <p class="mb-0">{{ __('Try another period.') }}</p>
+                            </div>
+                            <div class="my-tasks-diag-legend" id="diagramLegend"></div>
                         </div>
                     </div>
 
@@ -2077,11 +2837,167 @@ function moveToReview(meta) {
                 return '<span class="' + cssClasses.filter(Boolean).join(' ') + '">' + escapeHtml(text) + '</span>';
             }
 
+            // Valor de la celda para los embudos: data-cell-value si lo tiene (así el texto extra de la celda,
+            // como «Revisar card», la fecha relativa o el «—» de «No requerido», no cambia las opciones del filtro)
             function getTableCellValue(row, columnIndex) {
                 const cell = row.children[columnIndex];
+                if (cell && cell.dataset.cellValue !== undefined) {
+                    return cell.dataset.cellValue || "{{ __('N/A') }}";
+                }
                 const value = cell ? cell.textContent.replace(/\s+/g, ' ').trim() : '';
                 return value || "{{ __('N/A') }}";
             }
+
+            // --- filtros rápidos, buscador y orden por fecha ---
+            const quickButtons = Array.from(document.querySelectorAll('#myTasksQuickFilters [data-quick]'));
+            const searchInput = document.getElementById('myTasksSearch');
+            const sortButtons = Array.from(document.querySelectorAll('.my-tasks-sort-btn'));
+            const bodyRowsContainer = taskTable ? taskTable.querySelector('.my-tasks-body-rows') : null;
+            const quickStorageKey = 'aceler.myTasks.quick';
+            const quickMatchers = {
+                open: (row) => row.dataset.finished !== '1',
+                late: (row) => row.dataset.late === '1',
+                changes: (row) => row.dataset.review === 'changes',
+                finished: (row) => row.dataset.finished === '1',
+                all: () => true,
+            };
+            let quickFilter = 'open';
+            try {
+                const saved = localStorage.getItem(quickStorageKey);
+                if (saved && quickMatchers[saved]) quickFilter = saved;
+            } catch (e) {}
+            let sortState = { key: null, dir: 1 };
+            taskTableRows.forEach((row, i) => { row.dataset.originalIndex = String(i); });
+
+            function updateQuickCounts() {
+                Object.keys(quickMatchers).forEach(function(key) {
+                    const el = document.querySelector('#myTasksQuickFilters [data-quick-count="' + key + '"]');
+                    if (el) el.textContent = taskTableRows.filter(quickMatchers[key]).length;
+                });
+                quickButtons.forEach(function(btn) {
+                    const active = btn.dataset.quick === quickFilter;
+                    btn.classList.toggle('is-active', active);
+                    btn.setAttribute('aria-pressed', active ? 'true' : 'false');
+                });
+            }
+
+            // Embudos aplicados, visibles encima de la tabla
+            function renderActiveFilters() {
+                const box = document.getElementById('myTasksActiveFilters');
+                const list = document.getElementById('myTasksActiveFiltersList');
+                if (!box || !list) return;
+                const items = tableFilterButtons
+                    .filter((button) => isColumnFiltered(button.dataset.filterKey))
+                    .map(function(button) {
+                        const values = Array.from(tableFilterState[button.dataset.filterKey]);
+                        const shown = values.length ? values.slice(0, 2).join(', ') + (values.length > 2 ? ' +' + (values.length - 2) : '') : "{{ __('none') }}";
+                        return '<span class="my-tasks-active-chip">' + escapeHtml(button.dataset.filterLabel) + ': ' + escapeHtml(shown) +
+                            '<button type="button" data-clear-filter="' + escapeHtml(button.dataset.filterKey) + '" aria-label="{{ __('Remove filter') }}">&times;</button></span>';
+                    });
+                list.innerHTML = items.join('');
+                box.hidden = items.length === 0;
+            }
+
+            function applySort() {
+                if (!bodyRowsContainer) return;
+                const key = sortState.key;
+                const rows = taskTableRows.slice().sort(function(a, b) {
+                    if (!key) return Number(a.dataset.originalIndex) - Number(b.dataset.originalIndex);
+                    const attr = 'sort' + key.charAt(0).toUpperCase() + key.slice(1);
+                    const va = a.dataset[attr] || '', vb = b.dataset[attr] || '';
+                    // Sin fecha, siempre al final
+                    if (!va && !vb) return Number(a.dataset.originalIndex) - Number(b.dataset.originalIndex);
+                    if (!va) return 1;
+                    if (!vb) return -1;
+                    return va === vb ? Number(a.dataset.originalIndex) - Number(b.dataset.originalIndex) : (va < vb ? -1 : 1) * sortState.dir;
+                });
+                rows.forEach((row) => bodyRowsContainer.appendChild(row));
+                sortButtons.forEach(function(btn) {
+                    const on = btn.dataset.sortKey === key;
+                    btn.classList.toggle('is-sorted', on);
+                    btn.classList.toggle('is-desc', on && sortState.dir === -1);
+                });
+            }
+
+            sortButtons.forEach(function(btn) {
+                btn.addEventListener('click', function(event) {
+                    event.stopPropagation();
+                    // asc → desc → orden original
+                    if (sortState.key !== btn.dataset.sortKey) sortState = { key: btn.dataset.sortKey, dir: 1 };
+                    else if (sortState.dir === 1) sortState.dir = -1;
+                    else sortState = { key: null, dir: 1 };
+                    applySort();
+                });
+            });
+
+            quickButtons.forEach(function(btn) {
+                btn.addEventListener('click', function() {
+                    quickFilter = btn.dataset.quick;
+                    try { localStorage.setItem(quickStorageKey, quickFilter); } catch (e) {}
+                    applyTableFilters();
+                });
+            });
+
+            if (searchInput) {
+                searchInput.addEventListener('input', function() { applyTableFilters(); });
+            }
+
+            document.addEventListener('click', function(event) {
+                const clear = event.target.closest('[data-clear-filter]');
+                if (clear) {
+                    tableFilterState[clear.dataset.clearFilter] = null;
+                    applyTableFilters();
+                    return;
+                }
+                if (event.target.closest('#myTasksClearFilters')) {
+                    Object.keys(tableFilterState).forEach((key) => { tableFilterState[key] = null; });
+                    applyTableFilters();
+                }
+            });
+
+            // La tabla ocupa el alto que queda en la ventana (antes, una caja fija de 350 px)
+            // Ancho: la tabla se encoge lo justo para caber y así solo queda la barra vertical.
+            // Si ni con el mínimo cabe (pantallas muy estrechas o columnas muy largas), aparece la horizontal.
+            function fitTableWidth() {
+                const scroll = document.querySelector('.my-tasks-table-scroll');
+                const inner = scroll && scroll.querySelector('.my-tasks-table-inner');
+                if (!inner || !scroll.offsetParent) return;
+                inner.style.zoom = '1';
+                inner.style.minWidth = '0';
+                // scrollWidth: la cabecera puede ser algo más ancha que las filas
+                const natural = Math.max(inner.offsetWidth, inner.scrollWidth);
+                inner.style.minWidth = '';
+                const available = scroll.clientWidth;
+                if (!natural || !available) { inner.style.zoom = ''; return; }
+                let zoom = Math.max(0.6, Math.min(0.9, (available - 2) / natural));
+                inner.style.zoom = String(Math.floor(zoom * 1000) / 1000);
+                // El texto no encoge exactamente en proporción: se afina hasta que deje de sobresalir
+                for (let n = 0; n < 4 && zoom > 0.6 && scroll.scrollWidth > scroll.clientWidth; n++) {
+                    zoom = Math.max(0.6, zoom * (scroll.clientWidth - 2) / scroll.scrollWidth);
+                    inner.style.zoom = String(Math.floor(zoom * 1000) / 1000);
+                }
+            }
+
+            function fitTableHeight() {
+                const scroll = document.querySelector('.my-tasks-table-scroll');
+                if (!scroll || !scroll.offsetParent) return;
+                fitTableWidth();
+                const top = scroll.getBoundingClientRect().top + window.scrollY;
+                const foot = document.querySelector('.my-tasks-table-foot');
+                const below = (foot ? foot.offsetHeight : 0) + 40;
+                // mínimo 220 px: en pantallas bajas (768 px) la tabla cabe sin que la página haga scroll
+                let h = Math.max(220, window.innerHeight - top - below);
+                scroll.style.maxHeight = h + 'px';
+                // Lo que aún sobresale de la ventana (márgenes del layout) se descuenta de la tabla
+                const over = document.documentElement.scrollHeight - window.innerHeight;
+                if (over > 0 && h > 220) {
+                    h = Math.max(220, h - over - 2);
+                    scroll.style.maxHeight = h + 'px';
+                }
+            }
+            window.addEventListener('resize', fitTableHeight);
+            // con las fuentes ya cargadas los anchos cambian: se recalcula al terminar de cargar
+            window.addEventListener('load', fitTableHeight);
 
             function isDateFilterKey(filterKey) {
                 return ['start_date', 'estimated_date', 'finalization_date'].includes(filterKey);
@@ -2155,9 +3071,13 @@ function moveToReview(meta) {
                 }
 
                 let visibleRows = 0;
+                const quickMatch = quickMatchers[quickFilter] || quickMatchers.all;
+                const query = searchInput ? searchInput.value.trim().toLowerCase() : '';
 
                 taskTableRows.forEach(function(row) {
-                    const isVisible = tableFilterButtons.every(function(button) {
+                    const isVisible = quickMatch(row)
+                        && (!query || (row.dataset.search || '').indexOf(query) !== -1)
+                        && tableFilterButtons.every(function(button) {
                         const filterKey = button.dataset.filterKey;
                         const activeValues = tableFilterState[filterKey];
 
@@ -2178,7 +3098,15 @@ function moveToReview(meta) {
                     filteredEmptyState.classList.toggle('is-visible', visibleRows === 0);
                 }
 
+                const countEl = document.getElementById('myTasksVisibleCount');
+                if (countEl) {
+                    countEl.textContent = "{{ __(':shown of :total tasks') }}"
+                        .replace(':shown', visibleRows).replace(':total', taskTableRows.length);
+                }
+
                 updateFilterButtonStates();
+                updateQuickCounts();
+                renderActiveFilters();
             }
 
             function closeFilterMenu() {
@@ -2663,142 +3591,162 @@ function moveToReview(meta) {
 
                 tableViewCard.style.display = isDiagramMode ? 'none' : 'block';
                 diagramViewCard.style.display = isDiagramMode ? 'block' : 'none';
-                periodContainer.style.display = isDiagramMode ? 'inline-flex' : 'none';
 
                 if (isDiagramMode) {
                     renderDiagram(selectedPeriod);
                 }
             }
 
+            // --- vista en diagrama: barras horizontales por proyecto ---
+            let selectedMetric = 'tasks';
+            const metricButtons = Array.from(document.querySelectorAll('#diagramMetric [data-metric]'));
+            const diagramBars = document.getElementById('diagramBars');
+            const diagramSummary = document.getElementById('diagramSummary');
+            const diagramHint = document.getElementById('diagramHint');
+            const diagramLegend = document.getElementById('diagramLegend');
+            const diagramEmptyTitle = document.getElementById('diagramEmptyTitle');
+            const diagT = {
+                states: [@json(__('To Do')), @json(__('In Progress')), @json(__('Review')), @json(__('Done'))],
+                created: @json(__('Tasks created')),
+                finished: @json(__('Finished tasks')),
+                hours: @json(__('Hours logged')),
+                projects: @json(__('Projects')),
+                days: @json(__('Days with hours')),
+                perDay: @json(__('Average per day')),
+                vsPrev: @json(__('vs. previous period')),
+                task: @json(__('task')),
+                tasks: @json(__('tasks')),
+                orderForm: @json(__('order form')),
+                orderForms: @json(__('order forms')),
+                hintTasks: @json(__('Click a project to see its tasks in the table')),
+                hintHours: @json(__('Hours from your timesheet in the chosen period. Click a project to see its tasks.')),
+                legendHours: @json(__('Each bar: hours of the project compared with the one with most hours · % of the period total')),
+                emptyTasks: @json(__('No tasks created in this period')),
+                emptyHours: @json(__('No hours logged in this period')),
+                seeInTable: @json(__('Click: see in the table')),
+            };
+
+            const fmtMinutes = (m) => Math.floor((m || 0) / 60) + ':' + String(Math.round(m || 0) % 60).padStart(2, '0');
+
+            function deltaHtml(now, prev, isMinutes) {
+                const diff = (now || 0) - (prev || 0);
+                if (!diff) return '<span class="my-tasks-diag-delta" title="' + escapeHtml(diagT.vsPrev) + '">=</span>';
+                const text = isMinutes ? fmtMinutes(Math.abs(diff)) : Math.abs(diff);
+                return '<span class="my-tasks-diag-delta ' + (diff > 0 ? 'is-up' : 'is-down') + '" title="' + escapeHtml(diagT.vsPrev) + '">' +
+                    (diff > 0 ? '▲ ' : '▼ ') + text + '</span>';
+            }
+
+            function stat(label, value, extra) {
+                return '<div class="my-tasks-diag-stat"><small>' + escapeHtml(label) + '</small><b>' + value + '</b>' + (extra || '') + '</div>';
+            }
+
+            function subLine(delegation, extra) {
+                const parts = [delegation, extra].filter(Boolean);
+                return parts.length ? '<small>' + escapeHtml(parts.join(' · ')) + '</small>' : '';
+            }
+
             function renderDiagram(period) {
-                const source = diagramDataByPeriod[period] || {
-                    project_ids: [],
-                    labels: [],
-                    series: [],
-                    project_tasks: {},
-                    total_formatted: '0'
-                };
+                const source = diagramDataByPeriod[period] || {};
+                const s = source.summary || {};
+                const isHours = selectedMetric === 'hours';
+                const projects = Array.isArray(source.projects) ? source.projects : [];
+                const hours = Array.isArray(source.hours) ? source.hours : [];
 
-                const projectIds = Array.isArray(source.project_ids) ? source.project_ids : [];
-                const labels = Array.isArray(source.labels) ? source.labels : [];
-                const series = Array.isArray(source.series) ? source.series : [];
-                const projectTasks = source.project_tasks && typeof source.project_tasks === 'object' ? source.project_tasks : {};
-                const total = series.reduce((acc, value) => acc + Number(value || 0), 0);
+                diagramRangeLabel.textContent = source.range_label || getPeriodLabel(period);
 
-                diagramRangeLabel.textContent = getPeriodLabel(period);
-                diagramTotalValue.textContent = source.total_formatted || String(total);
-
-                const minimumCanvasWidth = Math.max(760, labels.length * 78);
-                chartCanvas.width = minimumCanvasWidth;
-
-                if (myTasksChart) {
-                    myTasksChart.destroy();
-                    myTasksChart = null;
+                // Resumen del periodo (con la diferencia frente al periodo anterior de la misma duración)
+                if (isHours) {
+                    const perDay = s.days_with_hours ? (s.minutes || 0) / s.days_with_hours : 0;
+                    diagramSummary.innerHTML = stat(diagT.hours, fmtMinutes(s.minutes), deltaHtml(s.minutes, s.minutes_prev, true)) +
+                        stat(diagT.days, s.days_with_hours || 0) +
+                        stat(diagT.perDay, fmtMinutes(perDay)) +
+                        stat(diagT.projects, hours.length);
+                } else {
+                    diagramSummary.innerHTML = stat(diagT.created, s.created || 0, deltaHtml(s.created, s.created_prev, false)) +
+                        stat(diagT.finished, s.done || 0, deltaHtml(s.done, s.done_prev, false)) +
+                        stat(diagT.hours, fmtMinutes(s.minutes), deltaHtml(s.minutes, s.minutes_prev, true)) +
+                        stat(diagT.projects, projects.length);
                 }
 
-                if (!labels.length) {
-                    chartCanvas.style.display = 'none';
-                    chartCanvas.classList.remove('is-interactive');
-                    chartEmptyState.classList.add('is-visible');
+                diagramHint.innerHTML = '<i class="fa-solid ' + (isHours ? 'fa-clock' : 'fa-hand-pointer') + '"></i>' +
+                    escapeHtml(isHours ? diagT.hintHours : diagT.hintTasks);
+
+                const rows = isHours ? hours : projects;
+                chartEmptyState.classList.toggle('is-visible', rows.length === 0);
+                if (diagramEmptyTitle) diagramEmptyTitle.textContent = isHours ? diagT.emptyHours : diagT.emptyTasks;
+
+                if (isHours) {
+                    const max = Math.max(1, ...hours.map((r) => r.minutes || 0));
+                    const total = hours.reduce((acc, r) => acc + (r.minutes || 0), 0) || 1;
+                    diagramBars.innerHTML = hours.map(function(r) {
+                        const pct = Math.round((r.minutes || 0) * 100 / total);
+                        return '<button type="button" class="my-tasks-diag-row" data-project-name="' + escapeHtml(r.name) + '" title="' + escapeHtml(diagT.seeInTable) + '">' +
+                            '<span class="my-tasks-diag-name">' + escapeHtml(r.name) + subLine(r.delegation, '') + '</span>' +
+                            '<span class="my-tasks-diag-track"><i class="my-tasks-diag-sh" style="width:' + ((r.minutes || 0) * 100 / max) + '%"></i></span>' +
+                            '<span class="my-tasks-diag-val">' + fmtMinutes(r.minutes) + '<small>' + pct + ' %</small></span>' +
+                            '</button>';
+                    }).join('');
+                    diagramLegend.innerHTML = '<span>' + escapeHtml(diagT.legendHours) + '</span>';
                     return;
                 }
 
-                chartCanvas.style.display = 'block';
-                chartCanvas.classList.remove('is-interactive');
-                chartEmptyState.classList.remove('is-visible');
+                // Tareas: cada barra dividida por el estado del encargo, a escala del proyecto con más tareas
+                const max = Math.max(1, ...projects.map((p) => p.total || 0));
+                diagramBars.innerHTML = projects.map(function(p) {
+                    const states = Array.isArray(p.states) ? p.states : [0, 0, 0, 0];
+                    // Orden de lectura: hecho · revisión · en curso · por hacer
+                    const order = [3, 2, 1, 0];
+                    const segments = order.map(function(i) {
+                        return states[i] ? '<i class="my-tasks-diag-s' + (i + 1) + '" style="width:' + (states[i] * 100 / max) + '%"></i>' : '';
+                    }).join('');
+                    const breakdown = order.filter((i) => states[i]).map((i) => diagT.states[i] + ' ' + states[i]).join(' · ');
+                    const milestonesText = p.milestones ? p.milestones + ' ' + (p.milestones === 1 ? diagT.orderForm : diagT.orderForms) : '';
+                    return '<button type="button" class="my-tasks-diag-row" data-project-name="' + escapeHtml(p.name) + '" title="' +
+                        escapeHtml(p.name + ' · ' + breakdown + '\n' + diagT.seeInTable) + '">' +
+                        '<span class="my-tasks-diag-name">' + escapeHtml(p.name) + subLine(p.delegation, milestonesText) + '</span>' +
+                        '<span class="my-tasks-diag-track">' + segments + '</span>' +
+                        '<span class="my-tasks-diag-val">' + (p.total || 0) + '<small>' + escapeHtml(p.total === 1 ? diagT.task : diagT.tasks) + '</small></span>' +
+                        '</button>';
+                }).join('');
+                diagramLegend.innerHTML = [0, 1, 2, 3].map(function(i) {
+                    return '<span><i class="my-tasks-diag-s' + (i + 1) + '"></i>' + escapeHtml(diagT.states[i]) + '</span>';
+                }).join('');
+            }
 
-                const ctx = chartCanvas.getContext('2d');
-                const gradient = ctx.createLinearGradient(0, 0, 0, 320);
-                gradient.addColorStop(0, '#d84b62');
-                gradient.addColorStop(1, '#ad0f2a');
+            // Pulsar un proyecto: vuelve a la tabla filtrada por ese proyecto (todas sus tareas)
+            function showProjectInTable(projectName) {
+                Object.keys(tableFilterState).forEach(function(key) { tableFilterState[key] = null; });
+                tableFilterState.project = new Set([projectName]);
+                quickFilter = 'all';
+                if (searchInput) searchInput.value = '';
+                selectedMode = 'table';
+                setActiveButton(viewModeButtons, selectedMode, 'data-view-mode');
+                toggleViewMode();
+                applyTableFilters();
+                fitTableHeight();
+            }
 
-                const maxValue = Math.max(...series, 0);
-                const roundedMax = Math.ceil(maxValue / 7) * 7;
-
-                myTasksChart = new Chart(ctx, {
-                    type: 'bar',
-                    data: {
-                        labels: labels,
-                        datasets: [{
-                            label: "{{ __('Tasks') }}",
-                            data: series,
-                            borderWidth: 0,
-                            borderRadius: 7,
-                            borderSkipped: false,
-                            barPercentage: 0.72,
-                            categoryPercentage: 0.82,
-                            backgroundColor: gradient
-                        }]
-                    },
-                    options: {
-                        indexAxis: 'x',
-                        maintainAspectRatio: false,
-                        responsive: true,
-                        onHover: function(event, elements) {
-                            const hasActiveBar = Array.isArray(elements) && elements.length > 0;
-                            chartCanvas.classList.toggle('is-interactive', hasActiveBar);
-                        },
-                        onClick: function(event, elements) {
-                            if (!elements || !elements.length) {
-                                return;
-                            }
-
-                            const barIndex = elements[0].index;
-                            const projectId = projectIds[barIndex];
-                            const projectLabel = labels[barIndex] || "{{ __('N/A') }}";
-                            const tasks = projectTasks[String(projectId)] || projectTasks[projectId] || [];
-
-                            openProjectTasksModal(projectLabel, period, tasks);
-                        },
-                        scales: {
-                            y: {
-                                beginAtZero: true,
-                                suggestedMax: roundedMax > 0 ? roundedMax : 7,
-                                ticks: {
-                                    callback: function(value) {
-                                        return value;
-                                    }
-                                },
-                                grid: {
-                                    color: 'rgba(160, 139, 147, 0.20)',
-                                    borderDash: [3, 3]
-                                }
-                            },
-                            x: {
-                                grid: {
-                                    display: false
-                                },
-                                ticks: {
-                                    maxRotation: 0,
-                                    minRotation: 0,
-                                    callback: function(value) {
-                                        const label = this.getLabelForValue(value) || '';
-                                        return label.length > 16 ? label.slice(0, 16) + '...' : label;
-                                    }
-                                }
-                            }
-                        },
-                        plugins: {
-                            legend: {
-                                display: false
-                            },
-                            tooltip: {
-                                callbacks: {
-                                    label: function(context) {
-                                        return "{{ __('Tasks') }}: " + Number(context.parsed.y || 0);
-                                    }
-                                }
-                            }
-                        }
-                    }
+            if (diagramBars) {
+                diagramBars.addEventListener('click', function(event) {
+                    const row = event.target.closest('[data-project-name]');
+                    if (row) showProjectInTable(row.dataset.projectName);
                 });
             }
+
+            metricButtons.forEach(function(button) {
+                button.addEventListener('click', function() {
+                    selectedMetric = button.dataset.metric;
+                    metricButtons.forEach((b) => b.classList.toggle('is-active', b === button));
+                    renderDiagram(selectedPeriod);
+                });
+            });
 
             viewModeButtons.forEach(function(button) {
                 button.addEventListener('click', function() {
                     selectedMode = this.getAttribute('data-view-mode');
                     setActiveButton(viewModeButtons, selectedMode, 'data-view-mode');
                     toggleViewMode();
+                    fitTableHeight();
                 });
             });
 
@@ -2938,6 +3886,6 @@ function moveToReview(meta) {
             applyColumnVisibility();
             applyTableFilters();
             toggleViewMode();
-        })();
-    </script>
+            fitTableHeight();
+        })();    </script>
 @endpush

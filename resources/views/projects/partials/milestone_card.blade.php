@@ -56,14 +56,20 @@
     {{-- ================================== --}}
     {{--  2. PROJECT IMAGE                 --}}
     {{-- ================================== --}}
-    <img class="milestone-image"
-         src="{{ asset('assets/img/' . $milestone['project_type'] . '.png') }}"
-         alt="{{ $milestone['project_name'] }}">
-
-    {{-- ================================== --}}
-    {{--  3. PROJECT NAME                  --}}
-    {{-- ================================== --}}
-    <div class="milestone-project">{{ $milestone['project_name'] }}</div>
+    @php
+        $typeLabel = __($milestone['project_type'] ?? '');
+        $typeLen = mb_strlen($typeLabel);
+        // Textos largos ("Desarrollo I+D", "I+D Development"...): letra algo más pequeña
+        $typeSize = $typeLen >= 15 ? 'is-xlong' : ($typeLen >= 12 ? 'is-long' : '');
+    @endphp
+    <div class="milestone-type">
+        <img class="milestone-image"
+             src="{{ asset('assets/img/types/' . $milestone['project_type'] . '.svg') }}"
+             alt="{{ $milestone['project_name'] }}">
+        @if ($typeLabel !== '')
+            <span class="milestone-type-label {{ $typeSize }}" title="{{ $typeLabel }}">{{ $typeLabel }}</span>
+        @endif
+    </div>
 
     {{-- ================================== --}}
     {{--  4. TITLE                         --}}
@@ -219,7 +225,7 @@
                              data-technician-name="{{ $task['technician']->id }}"
                              data-url="{{ route('create.timesheet.from.orders', [$currentWorkspace->slug, $project_id]) }}"
                              data-ajax-timesheet-popup="true"
-                             data-tooltip-content="{{ $task['technician']->name }} - {{ __('Imputed hours') }}: {{ $task['logged_hours'] }}">
+                             data-tooltip-content="{{ $task['technician']->name }} - {{ __('Total imputed') }}: {{ $task['logged_hours'] }}">
                             <i class="ms-2 me-2 fa-solid fa-hourglass-start fa-xs"></i>
                             <span class="milestone-task-title">{{ __($task['display_name'] ?? $task['name']) }}</span>
                             @if ($reviewState === 'changes' && in_array((int) $status->id, [2, 3], true))
@@ -273,7 +279,17 @@
         </div>
     </div>
 
-    @include('projects.partials.milestone_extra_info', ['milestone' => $milestone, 'status' => $status])
+    {{-- ================================== --}}
+    {{--  9. PIE: estado + proyecto        --}}
+    {{-- ================================== --}}
+    {{-- replaceMilestoneExtraInfo() sustituye solo .milestone-extra-info: el proyecto se mantiene --}}
+    <div class="milestone-foot">
+        @include('projects.partials.milestone_extra_info', ['milestone' => $milestone, 'status' => $status])
+        <div class="milestone-project" title="{{ $milestone['project_name'] }}">
+            <i class="fa-solid fa-diagram-project"></i>
+            <span class="milestone-project-viewport"><span class="milestone-project-track"><span class="milestone-project-text">{{ $milestone['project_name'] }}</span></span></span>
+        </div>
+    </div>
 
     {{-- ================================== --}}
     {{--  10. THREE-DOT MENU               --}}
@@ -282,7 +298,7 @@
         <div class="btn-group card-option">
             @if ($currentWorkspace->permission == 'Owner' || $currentWorkspace->permission == 'Member')
                 <button type="button" class="btn dropdown-toggle" data-bs-toggle="dropdown">
-                    <i class="feather icon-more-vertical"></i>
+                    <i class="fa-solid fa-ellipsis-h"></i>
                 </button>
                 <div class="dropdown-menu dropdown-menu-end">
                     <a href="#" class="dropdown-item" data-ajax-popup="true"
@@ -411,6 +427,18 @@
         $('#pauseMilestoneModal').modal('hide');
     }
 
+    function toggleMilestoneTaskList(toggle) {
+        var taskList = document.getElementById(toggle.getAttribute('data-target'));
+        if (!taskList) return;
+        var inner = taskList.querySelector('.milestone-task-inner');
+        if (!inner) return;
+        var isExpanded = taskList.classList.toggle('expanded');
+        inner.style.maxHeight = isExpanded ? (inner.scrollHeight + 'px') : '52px';
+    }
+
+    // Partes de la caja que conservan su propia acción (abrir la imputación, revisar, la flecha)
+    var TASK_BOX_OWN_ACTIONS = '.milestone-task-title, .milestone-task > i, .task-ack-btn, .milestone-dropdown-toggle, a, button';
+
     function bindMilestoneDropdownToggles(scope) {
         var containers = scope && scope.querySelectorAll ?
             scope.querySelectorAll('.milestone-dropdown-toggle') :
@@ -421,13 +449,23 @@
             toggle.addEventListener('click', function(e) {
                 e.preventDefault();
                 e.stopPropagation();
-                var taskList = document.getElementById(toggle.getAttribute('data-target'));
-                if (!taskList) return;
-                var inner = taskList.querySelector('.milestone-task-inner');
-                if (!inner) return;
-                var isExpanded = taskList.classList.toggle('expanded');
-                inner.style.maxHeight = isExpanded ? (inner.scrollHeight + 'px') : '52px';
+                toggleMilestoneTaskList(toggle);
             });
+
+            // Toda la caja de tareas despliega/pliega, salvo el nombre de cada tarea
+            // (abre la imputación) y los botones. Se captura antes que el clic de la tarea.
+            var box = toggle.closest('.milestone-task-box') ||
+                (document.getElementById(toggle.getAttribute('data-target')) || {}).querySelector?.('.milestone-task-box');
+            if (!box || box.getAttribute('data-toggle-bound') === '1') return;
+            box.setAttribute('data-toggle-bound', '1');
+            box.classList.add('is-toggleable');
+            box.addEventListener('click', function(e) {
+                var current = box.closest('.milestone-task-list')?.querySelector('.milestone-dropdown-toggle');
+                if (!current || e.target.closest(TASK_BOX_OWN_ACTIONS)) return;
+                e.preventDefault();
+                e.stopPropagation();
+                toggleMilestoneTaskList(current);
+            }, true);
         });
     }
 
@@ -457,13 +495,78 @@
         });
     };
 
+    // --- Nombre del proyecto en el pie: si no cabe, marca is-overflowing y calcula el desplazamiento
+    //     que usa la animación al pasar el ratón por la card (milestoneboard.css) ---
+    if (!window.__milestoneProjectScroll) {
+        window.__milestoneProjectScroll = true;
+
+        // Solo se desplaza el texto: el icono queda fijo fuera de .milestone-project-viewport
+        // Desplazamiento en un solo sentido y en bucle: una copia del texto lo sigue a 24px
+        // (gap de .milestone-project-track); al avanzar ancho + 24px la copia ocupa el sitio
+        // del original y la animación vuelve a empezar sin salto.
+        var MARQUEE_GAP = 24;
+        var measureMilestoneProject = function(el) {
+            var txt = el.querySelector('.milestone-project-text:not(.milestone-project-clone)');
+            var track = el.querySelector('.milestone-project-track');
+            var viewport = el.querySelector('.milestone-project-viewport');
+            if (!txt || !track || !viewport) return;
+            var visible = viewport.clientWidth;
+            var width = txt.offsetWidth;
+            var overflowing = visible > 0 && width - visible > 1;
+            el.classList.toggle('is-overflowing', overflowing);
+            if (!overflowing) return;
+            if (!track.querySelector('.milestone-project-clone')) {
+                var clone = txt.cloneNode(true);
+                clone.classList.add('milestone-project-clone');
+                clone.setAttribute('aria-hidden', 'true');
+                track.appendChild(clone);
+            }
+            var shift = width + MARQUEE_GAP;
+            el.style.setProperty('--scroll-shift', shift + 'px');
+            // ~35px por segundo (+12% de pausa al inicio de cada vuelta)
+            el.style.setProperty('--scroll-time', Math.max(4, shift / 35 / 0.88).toFixed(1) + 's');
+        };
+
+        var observer = window.ResizeObserver ? new ResizeObserver(function(entries) {
+            entries.forEach(function(entry) { measureMilestoneProject(entry.target); });
+        }) : null;
+
+        var watchMilestoneProjects = function(scope) {
+            (scope || document).querySelectorAll('.milestone-project:not([data-scroll-watch])').forEach(function(el) {
+                el.setAttribute('data-scroll-watch', '1');
+                measureMilestoneProject(el);
+                if (observer) observer.observe(el);
+            });
+        };
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', function() { watchMilestoneProjects(); });
+        } else {
+            watchMilestoneProjects();
+        }
+        window.addEventListener('load', function() { watchMilestoneProjects(); });
+
+        // Cards añadidas o movidas después de cargar: se mide al pasar el ratón
+        document.addEventListener('mouseover', function(e) {
+            var card = e.target && e.target.closest ? e.target.closest('.milestone-card') : null;
+            if (!card) return;
+            var el = card.querySelector('.milestone-project');
+            if (!el) return;
+            if (!el.hasAttribute('data-scroll-watch')) watchMilestoneProjects(card);
+            else measureMilestoneProject(el);
+        });
+    }
+
     // --- Shared helpers (definidos una vez; usados por milestoneboard y my_milestone_board) ---
     if (typeof window.replaceMilestoneExtraInfo !== 'function') {
         window.replaceMilestoneExtraInfo = function(card, html) {
             if (!html) return;
             var existing = card.querySelector('.milestone-extra-info');
+            var foot = card.querySelector('.milestone-foot');
             if (existing) {
                 existing.outerHTML = html;
+            } else if (foot) {
+                foot.insertAdjacentHTML('afterbegin', html);
             } else {
                 card.insertAdjacentHTML('beforeend', html);
             }
@@ -507,7 +610,7 @@
             if (s === 1) {
                 return '<div class="milestone-extra-info">'
                     + '<i class="fa-solid fa-arrows-alt"></i>'
-                    + '<span>{{ __("Arrastrar a en curso") }}<br>{{ __("para empezar el encargo") }}</span>'
+                    + '<span>{{ __("Mover a en curso") }}</span>'
                     + '</div>';
             }
 
@@ -517,16 +620,16 @@
                 if (hasChanges) {
                     return '<div class="milestone-extra-info milestone-extra-info--changes">'
                         + '<i class="fa-solid fa-triangle-exclamation"></i>'
-                        + '<span>{{ __("There are tasks pending correction") }}<br>{{ __("before moving to review") }}</span>'
+                        + '<span>{{ __("Tareas por corregir") }}</span>'
                         + '</div>';
                 }
                 var statusClass2 = '';
                 var statusIcon2 = 'fa-solid fa-arrow-circle-right';
-                var statusLabel2 = '{{ __("Puede pasar a revisión") }}';
+                var statusLabel2 = '{{ __("Mover a revisión") }}';
                 if (tasks.length === 0) {
                     statusClass2 = 'milestone-extra-info--no-tasks';
                     statusIcon2 = 'fa-solid fa-exclamation-triangle';
-                    statusLabel2 = '{{ __("No puede pasar a revisión.") }}<br>{{ __("Se necesita añadir tareas") }}';
+                    statusLabel2 = '{{ __("Añadir tareas") }}';
                 } else {
                     var allHaveHours = true;
                     for (var i = 0; i < tasks.length; i++) {
@@ -539,7 +642,7 @@
                     if (!allHaveHours) {
                         statusClass2 = 'milestone-extra-info--hours';
                         statusIcon2 = 'far fa-clock';
-                        statusLabel2 = '{{ __("Imputar las horas") }}<br>{{ __("para pasar a revisión") }}';
+                        statusLabel2 = '{{ __("Imputar horas") }}';
                     }
                 }
                 return '<div class="milestone-extra-info milestone-extra-info--ready ' + statusClass2 + '">'
@@ -592,7 +695,7 @@
             var inactiveClass = (String(response.status) === '1' && String(response.project_type_id) === '3') ? 'task-inactive' : '';
             var extraClass = response.task_count > 2 ? 'milestone-task-extra' : '';
             var technicianName = response.technician_name || '';
-            var tooltipContent = technicianName + ' - {{ __("Imputed hours") }}: ' + (response.logged_hours || '00:00');
+            var tooltipContent = technicianName + ' - {{ __("Total imputed") }}: ' + (response.logged_hours || '00:00');
             var timesheetBaseUrl = '{{ route('create.timesheet.from.orders', [$currentWorkspace->slug, ':PID']) }}';
 
             var taskEl = document.createElement('div');
@@ -672,7 +775,7 @@
                 var taskEl = card.querySelector('.milestone-task[data-task-id="' + response.task_id + '"]');
                 if (taskEl) {
                     var technicianName = response.technician_name || '';
-                    taskEl.setAttribute('data-tooltip-content', technicianName + ' - {{ __("Imputed hours") }}: ' + (response.logged_hours || '00:00'));
+                    taskEl.setAttribute('data-tooltip-content', technicianName + ' - {{ __("Total imputed") }}: ' + (response.logged_hours || '00:00'));
                 }
             }
 

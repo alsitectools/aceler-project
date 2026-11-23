@@ -6,7 +6,11 @@
     <li class="breadcrumb-item">
         <a href="{{ route('home') }}">{{ __('Home') }}</a>
     </li>
-    <li class="breadcrumb-item"> {{ __('Projects') }} {{ $currentWorkspace->display_name }}</li>
+    <li class="breadcrumb-item">{{ __('Projects') }}</li>
+    @include('projects.partials.projects_help', [
+        'detail' => __('Here you see all the projects of the current workspace.'),
+        'showActions' => true,
+    ])
 @endsection
 @php
 
@@ -15,6 +19,7 @@
 
 <head>
     <link rel="stylesheet" href="{{ asset('assets/css/index_projects.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/projects_list.css') }}?v={{ filemtime(public_path('assets/css/projects_list.css')) }}">
 </head>
 <style>
     .filterTypo {
@@ -400,77 +405,17 @@
         background-color: #392c34 !important;
     }
 
-    #btnSortProjectsAlpha {
-        min-width: 52px;
-        height: 35px;
-        padding: 0.25rem 0.45rem;
-        background-color: #aa182c;
-        color: #ffffff;
-        justify-content: center;
-        white-space: nowrap;
-        line-height: 1;
-        gap: 0.5rem !important;
-    }
-
-    #btnSortProjectsAlpha .sort-direction-arrow {
-        width: 6px;
-        height: 6px;
-        border-right: 1.6px solid currentColor;
-        border-bottom: 1.6px solid currentColor;
-        transform: rotate(45deg);
-        transition: transform 0.2s ease-in-out;
-        margin-top: -1px;
-    }
-
-    #btnSortProjectsAlpha.active {
-        background-color: #aa182c !important;
-        border-color: #aa182c !important;
-        color: #FFFFFF !important;
-    }
-
-    #btnSortProjectsAlpha.active .sort-direction-arrow {
-        transform: rotate(-135deg);
-    }
-
-    #btnSortProjectsAlpha.active.sort-desc .sort-direction-arrow {
-        transform: rotate(45deg);
-    }
 </style>
 
-@section('multiple-action-button')
-    <div class="d-flex justify-content-start row1">
-        <div id="searchInputProjects" data-popper-placement="bottom-start">
-            <form class="form-inline mr-auto mb-0 formSearch">
-                <div class="search-element" style="width: 77%; !important">
-                    <input type="text" class="input" id="searchInput"
-                        placeholder="{{ __('Enter name or reference M.O') }}">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="input-icon" viewBox="0 0 20 20" fill="currentColor">
-                        <path fill-rule="evenodd"
-                            d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z"
-                            clip-rule="evenodd" />
-                    </svg>
-                    <div class="search-backdrop"></div>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <div class="d-flex justify-content-end row1 align-items-center gap-2">
-        @auth('web')
-            <button type="button" class="btn btn-primary zoom createBut" data-ajax-popup="true"
-                data-title="{{ __('Create New Project') }}" data-url="{{ route('projects.create', $currentWorkspace->slug) }}">
-                <i class="fa-solid fa-diagram-project pe-2"></i>
-                <h6 class="m-1 text-white innerButtonText">{{ __('Create New Project') }}</h6>
-            </button>
-        @endauth
-    </div>
-@endsection
 
 @section('content')
     <section class="section">
         <div class="row">
             @if ($projects && $currentWorkspace)
-                <div class="col-md-8 projectsContainer">
+                <div class="col-12 projectsContainer pl-full">
+                    @include('projects.partials.project_toolbar', ['showCreate' => true])
+                    <div class="pl-list-box">
+                        <div class="pl-list-scroll" id="plListScroll">
                     <div class="grid filters-content">
                         @if ($projects->isEmpty())
                             <!-- seccion para cuando no hay proyectos -->
@@ -522,288 +467,23 @@
                             <!-- fin seccion para cuando no hay proyectos -->
                         @else
                             @foreach ($projects as $project)
-                                <div onclick="if (!event.target.closest('#deleteFormContainer')) { redirectToCurrentProject('{{ route('projects.show', [$currentWorkspace->slug, $project->id]) }}'); }"
-                                    data-project-name="{{ mb_strtolower($project->name) }}"
-                                    class="hover card mb-3 zoom mt-0 ml-0 m-2 All {{ $project->status }} type-{{ $project->type }}">
-                                    <div class="row ms-2">
-                                        <div class="col-md-2 project-type text-center m-2">
-                                            <img src="{{ asset('assets/img/' . $project_type[$project->type - 1]->name . '.png') }}"
-                                                style="width: 45px; height: 45px;" alt="...">
-                                            <small class="text-muted tooltipCus" data-title="{{ __('Project type') }}"
-                                                data-type="$project_type[$project->type - 1]->name">
-                                                <b>{{ __($project_type[$project->type - 1]->name) }}</b>
-                                            </small>
-                                            <span class="text-muted tooltipCus" data-title="{{ __('Reference M.O') }}">
-                                                <b>{{ $project->ref_mo }}</b></span>
-                                        </div>
-                                        <div class="col-md-9">
-                                            <div class="card-header pt-3 pb-1 d-flex p-3">
-                                                @if ($project->is_active)
-                                                    <a style="width: 83%" class="tooltipCus"
-                                                        data-title="{{ __('Project Name') }}">
-                                                        <h4>
-                                                            {{ $project->name }}
-
-                                                        </h4>
-                                                    </a>
-                                                    <div class="card-header-right">
-                                                        <div class="btn-group card-option">
-                                                            <div class="mt-2 me-5">
-
-                                                                @if ($project->delegation)
-                                                                    <span
-                                                                        class="badge rounded-pill p-2 delegationName tooltipCus"
-                                                                        data-title="{{ __('Delegation Name') }}">
-                                                                        {{ \Illuminate\Support\Str::title($project->delegation->delegation_name) }}
-                                                                    </span>
-                                                                    <span
-                                                                        class="badge rounded-pill p-2 delegationTag tooltipCus"
-                                                                        data-title="{{ __('Delegation ID') }}">
-                                                                        {{ \Illuminate\Support\Str::upper($project->ref_delegation) }}
-                                                                    </span>
-                                                                @endif
-
-                                                                @if ($project->status == 'Finished')
-                                                                    <span data-title="{{ __('Status') }}"
-                                                                        class="badge rounded-pill bg-success p-2 tooltipCus project-status-badge"
-                                                                        data-project-id="{{ $project->id }}"
-                                                                        data-current-status="Finished" style="cursor: pointer;"
-                                                                        onclick="event.stopPropagation(); openProjectStatusModal(this);">{{ __('Finished') }}</span>
-                                                                @elseif($project->status == 'Ongoing')
-                                                                    <span data-title="{{ __('Status') }}"
-                                                                        class="badge rounded-pill bg-secondary p-2 tooltipCus project-status-badge"
-                                                                        data-project-id="{{ $project->id }}"
-                                                                        data-current-status="Ongoing" style="cursor: pointer;"
-                                                                        onclick="event.stopPropagation(); openProjectStatusModal(this);">{{ __('Ongoing') }}</span>
-                                                                @else
-                                                                    <span data-title="{{ __('Status') }}"
-                                                                        class="badge rounded-pill bg-warning p-2 tooltipCus project-status-badge"
-                                                                        data-project-id="{{ $project->id }}"
-                                                                        data-current-status="OnHold" style="cursor: pointer;"
-                                                                        onclick="event.stopPropagation(); openProjectStatusModal(this);">{{ __('OnHold') }}</span>
-                                                                @endif
-                                                            </div>
-                                                            @auth('web')
-                                                                @if ($project->users->contains('id', Auth::id()))
-                                                                    @if ((int) $project->created_by !== (int) Auth::user()->id)
-                                                                        <button type="button" class="join-leave-btn join-leave-btn--leave"
-                                                                            title="{{ __('Leave project') }}"
-                                                                            onclick="event.stopPropagation(); document.getElementById('leave-project-{{ $project->id }}').submit();">
-                                                                            <span class="jl-stack">
-                                                                                <i class="fa-solid fa-user"></i>
-                                                                                <span class="jl-badge"><i class="fa-solid fa-check"></i></span>
-                                                                            </span>
-                                                                        </button>
-                                                                        <form id="leave-project-{{ $project->id }}"
-                                                                            action="{{ route('projects.leave', [$currentWorkspace->slug, $project->id]) }}"
-                                                                            method="POST" style="display: none;">
-                                                                                @csrf
-                                                                                @method('DELETE')
-                                                                        </form>
-                                                                    @endif
-                                                                @else
-                                                                    <button type="button" class="join-leave-btn join-leave-btn--join"
-                                                                        title="{{ __('Join project') }}"
-                                                                        onclick="event.stopPropagation(); document.getElementById('join-project-{{ $project->id }}').submit();">
-                                                                        <span class="jl-stack">
-                                                                            <i class="fa-solid fa-user"></i>
-                                                                            <span class="jl-badge"><i class="fa-solid fa-plus"></i></span>
-                                                                        </span>
-                                                                    </button>
-                                                                    <form id="join-project-{{ $project->id }}"
-                                                                        action="{{ route('projects.join', [$currentWorkspace->slug, $project->id]) }}"
-                                                                        method="POST" style="display: none;">
-                                                                        @csrf
-                                                                    </form>
-                                                                @endif
-                                                            @endauth
-                                                            @if ($project->is_active && $project->created_by == Auth::user()->id)
-                                                                @auth('web')
-                                                                    <button type="button" class="btn dropdown-toggle"
-                                                                        onclick="event.stopPropagation();"
-                                                                        data-bs-toggle="dropdown" aria-haspopup="true"
-                                                                        aria-expanded="false">
-                                                                        <i class="feather icon-more-vertical"></i>
-                                                                    </button>
-                                                                    <div class="dropdown-menu dropdown-menu-end">
-                                                                        <a href="#" id="deleteFormContainer"
-                                                                            class="dropdown-item text-danger delete-popup bs-pass-para"
-                                                                            data-confirm="{{ __('Are You Sure?') }}"
-                                                                            data-text="{{ trans('This action can not be undone. Do you want to continue?') }}"
-                                                                            data-confirm-yes="delete-form-{{ $project->id }}">
-                                                                            <i class="ti ti-trash"></i>
-                                                                            <span>{{ __('Delete') }}</span>
-                                                                        </a>
-                                                                        <form id="delete-form-{{ $project->id }}"
-                                                                            action="{{ route('projects.destroy', [$currentWorkspace->slug, $project->id]) }}"
-                                                                            method="POST" style="display: none;">
-                                                                            @csrf
-                                                                            @method('DELETE')
-                                                                        </form>
-                                                                    </div>
-                                                                @endauth
-                                                            @endif
-                                                        </div>
-                                                    </div>
-                                                @else
-                                                    <a href="#" class=""></a>
-                                                @endif
-                                            </div>
-                                            <div class="card-body p-3">
-                                                <div class="card-text text-muted d-flex" style="align-items: center;">
-                                                    <div class="participantsSection" {{-- data-title="{{ __('Location') }}" --}}>
-                                                        {{-- <i class="fa-solid fa-location-dot"></i> --}}
-
-                                                        {{-- para que aparezcan aquí, deben tener al menos algo imputado --}}
-                                                        <span>{{ __('Participants') }}</span>
-                                                    </div>
-
-                                                    <div class="col-md-2">
-                                                        @if ($users = $project->users)
-                                                            @foreach ($users as $key => $user)
-                                                                @if ($key < 2)
-                                                                    <a href="#" class="img_group tooltipCus"
-                                                                        data-title="{{ $user->name }}">
-                                                                        <img alt="{{ $user->name }}" class="iconUSer"
-                                                                            @if ($user->avatar) src="{{ asset($user->avatar) }}" @else avatar="{{ $user->name }}" @endif>
-                                                                    </a>
-                                                                @endif
-                                                            @endforeach
-                                                            @if (count($users) > 2)
-                                                                <a href="#" class="img_group">
-                                                                    <img alt="image" class="iconUSer"
-                                                                        data-original-title="{{ count($users) - 2 }} {{ __('more') }}"
-                                                                        avatar="+ {{ count($users) - 2 }}">
-                                                                </a>
-                                                            @endif
-                                                        @endif
-                                                    </div>
-                                                </div>
-                                                <div class="card-text mt-2">
-                                                    <small class="text-body-secondary tooltipCus"
-                                                        data-title="{{ __('Update') }}">
-                                                        {{ __('Last updated') }}{{ ' ' . $project->updated_at->diffForHumans() }}
-                                                    </small>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
+                                @include('projects.partials.project_row', [
+                                    'projectUrl' => route('projects.show', [$currentWorkspace->slug, $project->id]),
+                                    'showActions' => true,
+                                ])
                             @endforeach
+                        @endif
+                    </div>
+                        </div>
+                        @if (!$projects->isEmpty())
+                            <div class="pl-list-foot">
+                                <span class="pl-list-shown" data-tpl="{{ __('Showing :count projects', ['count' => '__N__']) }}"></span>
+                                <button type="button" class="pl-link pl-to-top"><i class="fa-solid fa-arrow-up"></i> {{ __('Back to top') }}</button>
+                            </div>
                         @endif
                     </div>
                 </div>
 
-                <div class="col-md-4 position-sticky text-muted rightColumn">
-                    <div class="card " id="v-pills-filterSection">
-                        <div class="card-header buttonColocation">
-                            <div>
-                                <h5><i class="bi bi-filter"></i> {{ __('Filter projects') }}</h5>
-                                <p class="text-muted mt-3">
-                                    {{ __('Remember that the projects shown are those of your delegation/group.') }}
-                                </p>
-                            </div>
-                            <div class="d-flex align-items-start gap-2">
-                                @if (isset($projects) && $projects && !$projects->isEmpty())
-                                    <button type="button" id="btnSortProjectsAlpha"
-                                        class="btn btn-sm d-flex align-items-center gap-1"
-                                        title="{{ __('Sort alphabetically') }}"
-                                        aria-label="{{ __('Sort alphabetically') }}">
-                                        <span class="sort-direction-arrow" aria-hidden="true"></span>
-                                        <span style="font-size:0.78rem; font-weight: 700;">AZ</span>
-                                    </button>
-                                @endif
-                                <button class="btn btn-sm btn-primary toggle-section buttonColapse"
-                                    data-target="#filterSection-content">-</button>
-                            </div>
-                        </div>
-                        <div class="card-body collapse-section" id="filterSection-content">
-                            <div class="col-12 d-flex flex-column">
-                                <h5>
-                                    {{ __('Status') }}
-                                </h5>
-                                <div class="divStatus">
-
-                                    <!-- Filtro de Status -->
-                                    <div class="btn-group status-filter">
-                                        <button type="button"
-                                            class="btn d-flex align-items-center zoom  text-muted filterTypo"
-                                            data-filter=".Ongoing">
-                                            <span class="status-indicator bg-secondary me-2 "></span>
-                                            {{ __('Ongoing') }}
-                                        </button>
-                                        <button type="button"
-                                            class="btn d-flex align-items-center zoom text-muted filterTypo"
-                                            data-filter=".OnHold">
-                                            <span class="status-indicator bg-warning me-2 "></span>
-                                            {{ __('OnHold') }}
-                                        </button>
-                                        <button type="button"
-                                            class="btn d-flex align-items-center zoom text-muted filterTypo"
-                                            data-filter=".Finished">
-                                            <span class="status-indicator bg-success me-2 "></span>
-                                            {{ __('Finished') }}
-                                        </button>
-                                    </div>
-                                </div>
-
-                                <h5 class="mt-4">
-                                    {{ __('Project type') }}
-                                </h5>
-                                <!-- Filtro de Type -->
-                                <div class="btn-group type-filter">
-                                    <div>
-                                        <button type="button" class="btn disp-btn zoom text-muted filterTypo"
-                                            data-filter=".type-1">
-                                            <img src="{{ asset('assets/img/Jobsite.png') }}"
-                                                style="width: 25px; height: 25px;" alt="..." class="me-2">
-
-                                            {{ __('Jobsite') }}
-                                        </button>
-                                        <button type="button" class="btn disp-btn zoom  text-muted filterTypo"
-                                            data-filter=".type-2">
-                                            <img src="{{ asset('assets/img/Innovation.png') }}"
-                                                style="width: 25px; height: 25px;" alt="..." class="me-2">
-                                            {{ __('Innovation') }}
-                                        </button>
-                                    </div>
-                                    <div>
-                                        <button type="button" class="btn disp-btn zoom  text-muted filterTypo"
-                                            data-filter=".type-3">
-                                            <img src="{{ asset('assets/img/I+D Project.png') }}"
-                                                style="width: 25px; height: 25px;" alt="..." class="me-1">
-                                            {{ __('I+D Project') }}
-                                        </button>
-                                        <button type="button" class="btn disp-btn zoom  text-muted filterTypo"
-                                            data-filter=".type-5">
-                                            <img src="{{ asset('assets/img/I+D Development.png') }}"
-                                                style="width: 25px; height: 25px;" alt="..." class="me-1">
-                                            {{ __('I+D Development') }}
-                                        </button>
-                                    </div>
-                                    <div>
-
-                                        <button type="button" class="btn disp-btn zoom  text-muted filterTypo"
-                                            data-filter=".type-4">
-                                            <img src="{{ asset('assets/img/Office.png') }}"
-                                                style="width: 25px; height:25px;" alt="..." class="me-2">
-                                            {{ __('Office') }}
-                                        </button>
-                                    </div>
-                                </div>
-                                <hr class="mt-3" style="border: 1px solid #eeeeee; width: 100%">
-                                <div class="mt-4">
-                                    <h5>
-                                        {{ __('Active filters') }}
-                                    </h5>
-                                    <div id="activeFilters" class="mt-3 d-flex flex-wrap gap-3">
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                </div>
             @else
                 <div class="container mt-5">
                     <div class="card">
@@ -837,63 +517,6 @@
     function redirectToCurrentProject(url) {
         window.location.href = url;
     }
-    document.addEventListener("DOMContentLoaded", function() {
-        document.querySelectorAll(".buttonColapse").forEach(button => {
-            button.addEventListener("click", function() {
-                let target = document.querySelector(this.dataset.target);
-
-                if (target) {
-                    target.classList.toggle("d-none");
-                }
-
-                this.textContent = this.textContent === "-" ? "+" : "-";
-            });
-        });
-    });
-
-    document.addEventListener("DOMContentLoaded", function() {
-        const buttons = document.querySelectorAll(".btn-group button, .disp-btn");
-        const activeFiltersContainer = document.getElementById("activeFilters");
-
-        function updateActiveFilters() {
-            activeFiltersContainer.innerHTML = "";
-
-            buttons.forEach(button => {
-                if (button.classList.contains("active") || button.classList.contains("selected")) {
-                    const clone = button.cloneNode(true);
-                    clone.classList.remove("btn");
-                    clone.classList.remove("active");
-                    clone.classList.remove("selected");
-                    clone.classList.add("btn-active-filters");
-
-                    const activeFilterItem = document.createElement("div");
-                    activeFilterItem.classList.add("active-filter-item");
-
-                    const removeButton = document.createElement("button");
-                    removeButton.type = "button";
-                    removeButton.classList.add("active-filter-remove");
-                    removeButton.setAttribute("aria-label", "Remove filter");
-                    removeButton.innerHTML = "&times;";
-                    removeButton.addEventListener("click", function() {
-                        button.click();
-                    });
-
-                    activeFilterItem.appendChild(clone);
-                    activeFilterItem.appendChild(removeButton);
-                    activeFiltersContainer.appendChild(activeFilterItem);
-                }
-            });
-        }
-
-        buttons.forEach(button => {
-            button.addEventListener("click", function() {
-                setTimeout(updateActiveFilters,
-                    100);
-            });
-        });
-
-        updateActiveFilters();
-    });
 </script>
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
 @if (isset($currentWorkspace) && $currentWorkspace)
@@ -987,93 +610,7 @@
 
 @push('scripts')
     <script src="{{ asset('assets/custom/js/isotope.pkgd.min.js') }}"></script>
-    <script>
-        $(document).ready(function() {
-            if (typeof $.fn.isotope === 'undefined') {
-                console.error('Isotope is not loaded');
-                return;
-            }
-
-            // Inicializar Isotope
-            var sortAlphaMode = 'none'; // none | asc | desc (after first click, toggles asc <-> desc)
-            var $grid = $(".grid").isotope({
-                itemSelector: ".All",
-                percentPosition: true,
-                masonry: {
-                    columnWidth: ".All"
-                },
-                getSortData: {
-                    name: '[data-project-name]'
-                }
-            });
-            window._projGrid = $grid;
-
-            $('#btnSortProjectsAlpha').on('click', function() {
-                var $btn = $(this);
-
-                if (sortAlphaMode === 'none' || sortAlphaMode === 'desc') {
-                    sortAlphaMode = 'asc';
-                    $grid.isotope({ sortBy: 'name', sortAscending: true });
-                    $btn.addClass('active').removeClass('sort-desc');
-                } else {
-                    sortAlphaMode = 'desc';
-                    $grid.isotope({ sortBy: 'name', sortAscending: false });
-                    $btn.addClass('active').addClass('sort-desc');
-                }
-
-                $grid.isotope('layout');
-            });
-
-            var filterStatus = '*';
-            var filterType = '*';
-
-            function applyFilter() {
-
-                var filterValue = (filterStatus === '*' && filterType === '*') ?
-                    '*' :
-                    filterStatus + filterType;
-
-
-                $grid.isotope({
-                    filter: filterValue
-                });
-            }
-
-            function toggleActiveClass($element, groupSelector, zoomClass, selectedClass) {
-                var isActive = $element.hasClass('active');
-                $(groupSelector).removeClass('active').removeClass(selectedClass);
-                if (!isActive) {
-                    $element.addClass('active').addClass(selectedClass);
-                } else {
-                    $element.removeClass(selectedClass);
-                }
-            }
-
-
-            $('.status-filter button, .type-filter button').click(function(e) {
-                var $this = $(this);
-                var selectedFilter = $this.attr('data-filter');
-                var filterTypeSelector = '.type-filter button';
-                var filterStatusSelector = '.status-filter button';
-
-
-                if ($this.closest(filterStatusSelector).length > 0) {
-
-                    toggleActiveClass($this, filterStatusSelector);
-                    filterStatus = $this.hasClass('active') ? selectedFilter : '*';
-                }
-
-                if ($this.closest(filterTypeSelector).length > 0) {
-
-                    toggleActiveClass($this, filterTypeSelector, 'types', 'selected');
-                    filterType = $this.hasClass('active') ? selectedFilter : '*';
-                }
-
-
-                applyFilter();
-            });
-        });
-    </script>
+    @include('projects.partials.project_list_script')
     <script>
         // After the section loads or changes
         $(document).ready(function() {
@@ -1146,7 +683,7 @@
                         card.classList.add(res.data.status);
                     }
                     if (window._projGrid) {
-                        window._projGrid.isotope('layout');
+                        if (window.plRefresh) { window.plRefresh(); } else { window._projGrid.isotope('layout'); }
                     }
                     bootstrap.Modal.getOrCreateInstance(document.getElementById('projectStatusModal')).hide();
                 })

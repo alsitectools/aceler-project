@@ -332,3 +332,677 @@ tfoot,
 thead {
     background-color: #F8F9FD;
 }
+
+/* =============================================
+   CELDAS DE LA HOJA DE HORAS (estado visual)
+   Neutras en vez de rojo: el rojo se reserva para avisos.
+   ============================================= */
+.inputsTask.ts-cell,
+.ts-cell--readonly {
+    background-color: #ffffff;
+    color: #9aa0a6;
+    border: 1px solid #d9dce1;
+    text-align: center;
+}
+
+.inputsTask.ts-cell:hover {
+    background-color: #fdf2f3 !important;
+    border-color: #AA182C !important;
+    color: #AA182C;
+}
+
+.ts-cell.ts-cell--filled {
+    color: #1f2937;
+    font-weight: 700;
+}
+
+/* Hoy: borde corporativo para orientarse en la semana */
+.ts-cell.ts-cell--today {
+    border: 2px solid #AA182C;
+}
+
+/* No editable: fin de semana, festivo, futuro o encargo finalizado */
+.inputsTask.ts-cell--off,
+.inputsTask.ts-cell--off:hover {
+    background-color: #f1f2f4 !important;
+    border-color: #e3e5e8 !important;
+    color: #9aa0a6;
+    cursor: not-allowed;
+}
+
+.inputsTask.ts-cell--off.ts-cell--filled {
+    color: #4b5563;
+}
+
+.ts-cell-icon {
+    font-size: 11px;
+    margin-right: 4px;
+}
+
+.ts-cell--locked .ts-cell-icon {
+    color: #6b7280;
+}
+
+.ts-cell--holiday .ts-cell-icon {
+    color: #2a9d8f;
+}
+
+/* Totales por día: imputado / esperado */
+.ts-day-worked {
+    font-weight: 700;
+}
+
+.ts-day-expected {
+    margin-left: 3px;
+    font-size: 11px;
+    opacity: 0.75;
+}
+
+.ts-hidden-hours-notice {
+    margin: 4px 0 8px;
+    padding: 8px 12px;
+    font-size: 13px;
+    color: #4b5563;
+    background-color: #f1f5f9;
+    border-radius: 8px;
+}
+
+.ts-hidden-hours-notice i {
+    margin-right: 6px;
+    color: #64748b;
+}
+
+.ts-legend {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 6px 16px;
+    margin: 12px 0 8px;
+    font-size: 12px;
+    color: #4b5563;
+}
+
+.ts-legend span {
+    display: inline-flex;
+    align-items: center;
+}
+
+.ts-legend-swatch {
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    margin-right: 6px;
+    border-radius: 3px;
+    border: 1px solid rgba(0, 0, 0, 0.12);
+}
+
+.day-total-hours {
+    white-space: nowrap;
+}
+
+.ts-legend .fa-lock {
+    margin-right: 6px;
+}
+
+/* =============================================
+   HOJA DE HORAS · TABLA COMPACTA (.tsg)
+   Cada fila es una rejilla con las mismas columnas: nombre · 7 días · total.
+   ============================================= */
+.tsg {
+    --tsg-cols: minmax(190px, 300px) repeat(7, minmax(58px, 1fr)) 84px;
+    --tsg-brand: #AA182C;
+    --tsg-line: #eef0f3;
+    --tsg-soft: #fafbfc;
+    --tsg-muted: #6b7280;
+    --tsg-sticky-top: 0px;
+    background: #fff;
+    border: 1px solid #e8eaee;
+    border-radius: 14px;
+    margin: 0 4px;
+    color: #1f2937;
+}
+
+.tsg-row {
+    display: grid;
+    grid-template-columns: var(--tsg-cols);
+    align-items: center;
+}
+
+.tsg-row > div {
+    min-width: 0;
+}
+
+.tsg-name {
+    padding-left: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+}
+
+.tsg-total {
+    text-align: center;
+    font-weight: 700;
+    font-size: 13px;
+}
+
+.tsg-z {
+    color: #c4c8cf;
+    font-weight: 600;
+}
+
+/* --- herramientas --- */
+.tsg-tools {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px 10px;
+    padding: 10px 16px;
+    border-bottom: 1px solid var(--tsg-line);
+}
+
+.tsg-search {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    height: 34px;
+    width: 300px;
+    max-width: 100%;
+    margin: 0;
+    padding: 0 10px;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    color: #9ca3af;
+}
+
+.tsg-search:focus-within {
+    border-color: var(--tsg-brand);
+}
+
+.tsg-search input {
+    flex: 1;
+    min-width: 0;
+    border: 0;
+    outline: 0;
+    background: transparent;
+    font-size: 13px;
+    color: #1f2937;
+}
+
+.tsg-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    height: 32px;
+    padding: 0 12px;
+    border: 1px solid #e5e7eb;
+    border-radius: 999px;
+    background: #fff;
+    font-size: 12.5px;
+    color: #374151;
+}
+
+.tsg-pill i {
+    display: none;
+    font-size: 11px;
+}
+
+.tsg-pill[aria-pressed="true"] {
+    background: #fbeaec;
+    border-color: #f3c7cd;
+    color: var(--tsg-brand);
+    font-weight: 600;
+}
+
+.tsg-pill[aria-pressed="true"] i {
+    display: inline;
+}
+
+.tsg-tools-sp {
+    flex: 1;
+}
+
+/* Contraer / expandir todo: en gris, y en rojo el que coincide con el estado actual */
+.tsg-link {
+    border: 0;
+    background: none;
+    padding: 4px 2px;
+    font-size: 12.5px;
+    font-weight: 600;
+    color: var(--tsg-muted);
+}
+
+.tsg-link:hover {
+    color: #4b5563;
+}
+
+.tsg-link.is-active,
+.tsg-link.is-active:hover {
+    color: var(--tsg-brand);
+}
+
+.tsg-link i {
+    margin-right: 5px;
+}
+
+/* --- cabecera de días (fija) --- */
+.tsg-head {
+    position: sticky;
+    top: var(--tsg-sticky-top);
+    z-index: 5;
+    background: #fff;
+    border-bottom: 1px solid var(--tsg-line);
+    box-shadow: 0 4px 8px -6px rgba(0, 0, 0, .12);
+}
+
+.tsg-head-label {
+    align-self: end;
+    padding-bottom: 10px;
+    font-size: 12px;
+    color: var(--tsg-muted);
+}
+
+.tsg-day,
+.tsg-head-total {
+    padding: 9px 6px 8px;
+    text-align: center;
+}
+
+.tsg-day {
+    cursor: pointer;
+    border-radius: 8px 8px 0 0;
+}
+
+.tsg-day:hover {
+    background: #f8f9fb;
+}
+
+.tsg-day.is-today {
+    background: #fdf3f4;
+    box-shadow: inset 0 -3px 0 var(--tsg-brand);
+}
+
+.tsg-day-name {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: .04em;
+    color: var(--tsg-muted);
+    white-space: nowrap;
+}
+
+.tsg-day-num {
+    font-size: 18px;
+    font-weight: 700;
+    line-height: 1.3;
+}
+
+.tsg-day.is-today .tsg-day-name,
+.tsg-day.is-today .tsg-day-num {
+    color: var(--tsg-brand);
+}
+
+/* Día elegido en el calendario (?date=): ámbar, para no confundirlo con «hoy» (rojo) */
+.tsg-day.is-picked {
+    position: relative;
+    background: #fff7e6;
+    box-shadow: inset 0 -3px 0 #f59e0b, inset 0 0 0 2px #f59e0b;
+    border-radius: 8px;
+}
+
+.tsg-picked-tag {
+    position: absolute;
+    top: -9px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 1px 8px;
+    border-radius: 999px;
+    background: #f59e0b;
+    color: #fff;
+    font-size: 10.5px;
+    font-weight: 600;
+    white-space: nowrap;
+    animation: tsgPickedIn .4s ease;
+}
+
+@keyframes tsgPickedIn {
+    from { opacity: 0; transform: translate(-50%, -4px); }
+    to { opacity: 1; transform: translate(-50%, 0); }
+}
+
+.tsg-day.is-off .tsg-day-num {
+    color: #b6bbc4;
+}
+
+.tsg-day-bar {
+    height: 6px;
+    margin: 6px 8px 0;
+    border-radius: 3px;
+    background: #f1f2f4;
+    overflow: hidden;
+}
+
+.tsg-day-bar i {
+    display: block;
+    height: 100%;
+}
+
+.tsg-day-sum {
+    margin-top: 4px;
+    font-size: 11.5px;
+    color: var(--tsg-muted);
+    white-space: nowrap;
+}
+
+.tsg-day-sum b {
+    color: #1f2937;
+}
+
+.tsg-head-total .tsg-day-num {
+    font-size: 18px;
+}
+
+/* colores de estado del día (mismos que la leyenda) */
+.tsg-st--none { background: #e06c71; }
+.tsg-st--partial { background: #fcf75e; }
+.tsg-st--complete { background: #89e186; }
+.tsg-st--overtime { background: #b2e2f2; }
+.tsg-st--holiday { background: rgba(145, 221, 207, .8); }
+.tsg-st-text--none { color: #c0392b; }
+.tsg-st-text--complete { color: #2f9e44; }
+.tsg-st-text--off { color: #c4c8cf; }
+
+/* --- grupo (proyecto o encargo) --- */
+.tsg-row--group {
+    background: var(--tsg-brand);
+    color: #fff;
+    font-weight: 700;
+    font-size: 13px;
+    cursor: pointer;
+    user-select: none;
+}
+
+.tsg-row--group > div {
+    padding-top: 9px;
+    padding-bottom: 9px;
+}
+
+.tsg-row--group .tsg-name {
+    font-size: 13.5px;
+    white-space: nowrap;
+}
+
+.tsg-group-title {
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.tsg-caret {
+    width: 12px;
+    font-size: 11px;
+    transition: transform .15s;
+}
+
+.tsg-chip {
+    flex: none;
+    padding: 1px 8px;
+    border-radius: 999px;
+    background: #111;
+    color: #fff;
+    font-size: 11px;
+}
+
+.tsg-count {
+    flex: none;
+    font-size: 11.5px;
+    font-weight: 600;
+    opacity: .75;
+}
+
+.tsg-sumcell {
+    text-align: center;
+}
+
+.tsg-row--group .tsg-z {
+    color: inherit;
+    opacity: .45;
+}
+
+.tsg-group + .tsg-group .tsg-row--group {
+    border-top: 1px solid rgba(255, 255, 255, .25);
+}
+
+/* contraído: una línea blanca que sigue mostrando las horas de cada día */
+.tsg-group.is-collapsed:not(.is-searching) .tsg-body {
+    display: none;
+}
+
+.tsg-group.is-collapsed:not(.is-searching) .tsg-row--group {
+    background: #fff;
+    color: #374151;
+    border-top: 1px solid var(--tsg-line);
+}
+
+.tsg-group.is-collapsed:not(.is-searching) .tsg-row--group:hover {
+    background: #fafbfc;
+}
+
+.tsg-group.is-collapsed:not(.is-searching) .tsg-row--group .tsg-name {
+    color: #1f2937;
+}
+
+.tsg-group.is-collapsed:not(.is-searching) .tsg-chip {
+    background: #1f2937;
+}
+
+.tsg-group.is-collapsed:not(.is-searching) .tsg-caret {
+    transform: rotate(-90deg);
+}
+
+.tsg-row--group:hover {
+    filter: brightness(1.06);
+}
+
+/* --- subgrupo (encargo o usuario) y tareas --- */
+.tsg-body {
+    background: var(--tsg-soft);
+    padding-bottom: 6px;
+}
+
+.tsg-sub + .tsg-sub {
+    border-top: 1px solid var(--tsg-line);
+}
+
+.tsg-sub-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 16px 2px;
+    font-size: 12.5px;
+    font-weight: 700;
+    color: #374151;
+}
+
+.tsg-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 1px 8px;
+    border-radius: 999px;
+    background: #eef0f3;
+    color: var(--tsg-muted);
+    font-size: 10.5px;
+}
+
+.tsg-row--task > div {
+    padding-top: 4px;
+    padding-bottom: 4px;
+}
+
+.tsg-task {
+    padding-left: 32px;
+    font-size: 13px;
+    color: #374151;
+}
+
+.tsg-task .taskName {
+    cursor: pointer;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: #374151 !important;
+}
+
+.tsg-task .taskName:hover {
+    color: var(--tsg-brand) !important;
+    text-decoration: underline;
+}
+
+.tsg-ref {
+    flex: none;
+    font-family: Consolas, "Courier New", monospace;
+    font-size: 11px;
+    color: #9ca3af;
+}
+
+.tsg-cellwrap {
+    padding: 0 4px;
+}
+
+.tsg-cell {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    height: 34px;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    background: #fff;
+    font-size: 13px;
+    color: #c4c8cf;
+    cursor: pointer;
+    transition: border-color .12s, background-color .12s;
+}
+
+.tsg-cell:hover {
+    border-color: var(--tsg-brand);
+    background: #fdf2f3;
+    color: var(--tsg-brand);
+}
+
+.tsg-cell.is-filled {
+    color: #1f2937;
+    font-weight: 700;
+}
+
+.tsg-cell.is-today {
+    border: 2px solid var(--tsg-brand);
+    box-shadow: 0 0 0 3px rgba(170, 24, 44, .07);
+}
+
+.tsg-cell.is-picked {
+    border: 2px solid #f59e0b;
+    background-color: #fffbeb;
+    box-shadow: 0 0 0 3px rgba(245, 158, 11, .15);
+}
+
+.tsg-cell.is-off,
+.tsg-cell.is-off:hover {
+    cursor: not-allowed;
+    background: transparent;
+    border-color: transparent;
+    color: #d1d5db;
+    box-shadow: none;
+}
+
+.tsg-cell.is-locked,
+.tsg-cell.is-locked:hover {
+    background: #f3f4f6;
+    border-color: #f3f4f6;
+}
+
+.tsg-cell.is-holiday,
+.tsg-cell.is-holiday:hover {
+    background: rgba(145, 221, 207, .18);
+    border-color: transparent;
+}
+
+.tsg-cell.is-off.is-filled {
+    color: #4b5563;
+}
+
+.tsg-cell.is-readonly,
+.tsg-cell.is-readonly:hover {
+    cursor: default;
+    background: #fff;
+    border-color: #eef0f3;
+    color: #9ca3af;
+}
+
+.tsg-cell.is-readonly.is-filled {
+    color: #1f2937;
+}
+
+.tsg-cell-icon {
+    font-size: 10px;
+    color: #9ca3af;
+}
+
+.tsg-cell.is-holiday .tsg-cell-icon {
+    color: #2a9d8f;
+}
+
+/* --- pie: total de cada día --- */
+.tsg-foot {
+    border-top: 2px solid #e5e7eb;
+    border-radius: 0 0 14px 14px;
+    background: #fff;
+}
+
+.tsg-foot > div {
+    padding-top: 10px;
+    padding-bottom: 10px;
+    font-weight: 700;
+    font-size: 14px;
+}
+
+.tsg-foot-label {
+    font-size: 12px !important;
+    color: var(--tsg-muted);
+    text-transform: uppercase;
+    letter-spacing: .04em;
+}
+
+.tsg-foot-day {
+    cursor: pointer;
+    padding: 2px 8px;
+    border-radius: 6px;
+}
+
+.tsg-foot-day:hover {
+    background: #f3f4f6;
+}
+
+.tsg-empty {
+    padding: 28px 16px;
+    text-align: center;
+    color: var(--tsg-muted);
+    font-size: 13px;
+}
+
+@media (max-width: 1100px) {
+    .tsg {
+        --tsg-cols: minmax(150px, 220px) repeat(7, minmax(52px, 1fr)) 66px;
+    }
+
+    .tsg-task {
+        padding-left: 20px;
+    }
+
+    .tsg-count,
+    .tsg-ref {
+        display: none;
+    }
+}

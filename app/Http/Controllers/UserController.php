@@ -488,12 +488,30 @@ class UserController extends Controller
     {
         $user = Auth::user();
         $currentWorkspace = Utility::getWorkspaceBySlug('');
-        $workspaces = Workspace::select('id', 'name')->orderBy('name')->get();
+        $workspaces = Workspace::select('id', 'name', 'country')->orderBy('name')->get();
         $anotherWorkspaces = UserWorkspace::where('user_id', '=', $user->id)
             ->pluck('workspace_id')
             ->toArray();
 
-        return view('users.account', compact('currentWorkspace', 'user', 'workspaces', 'anotherWorkspaces'));
+        // Resumen de excepciones del horario (se gestionan en Mi calendario)
+        $timetable = UserTimetable::where('user_id', $user->id)->first();
+        $holidayCount = $timetable ? count($timetable->holidayDates()) : 0;
+        $intensiveSummary = [];
+        if ($timetable) {
+            $byDate = UserTimetable::parseIntensiveHours($timetable->range_intensive_workday);
+            ksort($byDate);
+            foreach ($byDate as $date => $hours) {
+                $intensiveSummary[$hours][] = $date;
+            }
+            $intensiveSummary = collect($intensiveSummary)->map(fn($dates, $hours) => [
+                'hours' => substr((string) $hours, 0, 5),
+                'from' => reset($dates),
+                'to' => end($dates),
+                'days' => count($dates),
+            ])->values()->all();
+        }
+
+        return view('users.account', compact('currentWorkspace', 'user', 'workspaces', 'anotherWorkspaces', 'holidayCount', 'intensiveSummary'));
     }
     public function edit($slug, $id)
     {

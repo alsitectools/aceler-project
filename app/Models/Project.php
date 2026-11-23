@@ -205,14 +205,31 @@ class Project extends Model
         $first_day = Carbon::parse($days['first_day']);
         $seventh_day = Carbon::parse($days['seventh_day']);
 
+        // Tareas (y sus encargos) en las que el usuario tiene horas esta semana:
+        // se muestran aunque el encargo ya no esté en curso, para no perder horas imputadas
+        $taskIdsWithHours = Timesheet::where('created_by', $user_id)
+            ->whereBetween('date', [$first_day->toDateString(), $seventh_day->toDateString()])
+            ->pluck('task_id')
+            ->unique();
+        $milestoneIdsWithHours = Task::whereIn('id', $taskIdsWithHours)->pluck('milestone_id')->flip();
+        $taskIdsWithHours = $taskIdsWithHours->flip();
+
         foreach ($projects as $project) {
             $milestoneArray = [];
             $hasTasks = false;
 
-            foreach ($project->activeMilestones as $milestone) {
+            foreach ($project->milestones as $milestone) {
+                $isActive = (int) $milestone->status === 2;
+                if (!$isActive && !isset($milestoneIdsWithHours[$milestone->id])) {
+                    continue;
+                }
 
                 $taskArray = [];
                 foreach ($milestone->userTasks($user_id)->get() as $task) {
+                    $hasHoursThisWeek = isset($taskIdsWithHours[$task->id]);
+                    if (!$isActive && !$hasHoursThisWeek) {
+                        continue;
+                    }
 
 
                     $taskStart = Carbon::parse($task->start_date);
@@ -235,17 +252,15 @@ class Project extends Model
                     //     'seventh_day' => $seventh_day->toDateString(),
                     // ]);
                     // Permitir mostrar tareas hasta 5 años atrás
-                    $milestoneStatus = $milestone->status;
-
                     if (
                         $taskStart->gte(Carbon::now()->subYears(5)) &&
                         (
                             !$taskEnd ||
                             $taskEnd->gte($first_day) ||
-                            $milestoneStatus == 3
+                            $hasHoursThisWeek
                         )
                     ) {
-                        $taskData = self::processTaskTimesheets($task, $days, $currentWorkspace, $project->id, $userId);
+                        $taskData = self::processTaskTimesheets($task, $days, $currentWorkspace, $project->id, $userId, $milestone->hoursLockedAfter());
                         $taskArray[] = $taskData;
                         $totalTaskTimes[] = $taskData['totaltime'];
                         $hasTasks = true;
@@ -306,7 +321,7 @@ class Project extends Model
                     )
                 ) {
                     $userID = $task->assign_to;
-                    $taskData = self::processTaskTimesheets($task, $days, $currentWorkspace, $project->id, $userID);
+                    $taskData = self::processTaskTimesheets($task, $days, $currentWorkspace, $project->id, $userID, $milestone->hoursLockedAfter());
 
                     $totalTaskTimes[] = $taskData['totaltime'];
 
@@ -350,7 +365,8 @@ class Project extends Model
         ];
     }
 
-    private static function processTaskTimesheets($task, $days, $currentWorkspace, $projectId, $userId)
+    // $lockedAfter: última fecha imputable del encargo (Milestone::hoursLockedAfter); los días posteriores van bloqueados
+    private static function processTaskTimesheets($task, $days, $currentWorkspace, $projectId, $userId, $lockedAfter = null)
     {
         $taskTimesheets = Timesheet::where('task_id', $task->id)->get();
         $times = [];
@@ -398,6 +414,7 @@ class Project extends Model
                 'time' => $time,
                 'type' => $type,
                 'url'  => $url,
+                'locked' => $lockedAfter !== null && $date > $lockedAfter,
             ];
 
             $times[] = $time;
@@ -412,6 +429,7 @@ class Project extends Model
         return [
             'task_id' => $task->id,
             'task_name' => $taskType ? $taskType->name : 'unknown',
+            'referencia' => $task->referencia ?? '',
             'dateArray' => $dateArray,
             'totaltime' => $calculatedtasktime,
         ];
@@ -555,7 +573,7 @@ class Project extends Model
             }
 
             $projects = $query->with(['milestones' => function ($query) {
-                $query->select(['id', 'title', 'project_id'])
+                $query->select(['id', 'title', 'project_id', 'status', 'finalization_date'])
                     ->whereHas('tasks');
             }])
                 ->get();

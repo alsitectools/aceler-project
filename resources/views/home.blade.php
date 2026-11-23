@@ -877,6 +877,614 @@
             min-width: 110px;
         }
     }
+
+    /* =============================================
+       RESUMEN · rediseño compacto (.hs): mismas cifras, vistas y acciones
+       ============================================= */
+    .hs .page-header-title h4 {
+        font-size: 20px;
+        font-weight: 600;
+    }
+
+    /* título con el botón de ayuda ❓ al lado */
+    .hs .hs-title {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .hs .hs-title h4 {
+        margin-bottom: 0 !important;
+    }
+
+    .hs .view-selector {
+        padding: 3px;
+        border-radius: 999px;
+        background: #fff;
+        border-color: #efd5dc;
+    }
+
+    .hs .view-segment {
+        height: 32px;
+        padding: 6px 14px;
+        border-radius: 999px;
+        font-size: 12.5px;
+        transition: background .2s, color .2s, box-shadow .2s;
+    }
+
+    .hs .view-segment.active {
+        box-shadow: none;
+    }
+
+    /* el alto se adapta al contenido (antes 200 px fijos que cortaban las tarjetas con más estados) */
+    .hs .summary-wrapper,
+    .hs .summary-track,
+    .hs .summary-page .summary,
+    .hs .summary .tabs.ctr {
+        height: auto;
+    }
+
+    .hs .summary-page {
+        align-items: flex-start;
+    }
+
+    .hs .summary-page {
+        margin-bottom: 14px;
+    }
+
+    .hs .summary-page .summary {
+        gap: 12px;
+    }
+
+    /* tarjeta: cabecera (icono · título · total) arriba, barra de reparto y estados debajo */
+    .hs .tabs.ctr {
+        display: flex;
+        flex-direction: column;
+        gap: 0;
+        width: auto;
+        flex: 1 1 0;
+        padding: 14px 16px;
+        border-radius: 14px;
+        border-color: #e8eaee;
+        box-shadow: none;
+    }
+
+    .hs .tabs.ctr:hover {
+        box-shadow: 0 4px 14px rgba(15, 23, 42, .05);
+    }
+
+    .hs .card-header-inner,
+    .hs .tabs.ctr[data-card="3"] .card-header-inner {
+        flex-direction: row;
+        align-items: center;
+        gap: 10px;
+        width: 100%;
+        max-width: none;
+        min-width: 0;
+        padding: 0;
+        border: 0;
+    }
+
+    .hs .tabIcon {
+        width: 36px;
+        height: 36px;
+        filter: none;
+    }
+
+    .hs .tabTexts,
+    .hs .tabTexts--long,
+    .hs .tabs.ctr[data-card="3"] .card-header-inner > .tabTexts:not(.tabNumCounter) {
+        max-width: none;
+        font-size: 13.5px;
+        font-weight: 600;
+        color: #374151;
+        white-space: normal;
+        -webkit-line-clamp: unset;
+        display: block;
+        line-height: 1.3;
+    }
+
+    .hs .tabNumCounter {
+        margin: 0 0 0 auto;
+        width: auto;
+        height: auto;
+        border: 0;
+        box-shadow: none;
+        background: none;
+        font-size: 26px;
+        font-weight: 800;
+        color: #1f2937 !important;
+    }
+
+    /* una regla antigua ponía height:100% y centraba: estiraba las tarjetas y dejaba la barra a 0 px */
+    .hs .statusContainer {
+        height: auto;
+        min-width: 0;
+        align-items: stretch;
+        justify-content: flex-start;
+        gap: 2px;
+        margin-top: 10px;
+    }
+
+    .hs .hs-bar {
+        display: flex;
+        height: 8px;
+        margin-bottom: 8px;
+        border-radius: 999px;
+        overflow: hidden;
+        background: #f1f2f4;
+    }
+
+    .hs .hs-bar i {
+        display: block;
+        height: 100%;
+    }
+
+    .hs .stat-row {
+        column-gap: 8px;
+        padding: 2px 0;
+    }
+
+    .hs .stat-dot {
+        width: 8px;
+        height: 8px;
+    }
+
+    .hs .stat-label,
+    .hs .tabs.ctr .stat-label {
+        font-size: 12.5px;
+        color: #374151;
+    }
+
+    .hs .stat-value,
+    .hs .tabs.ctr .stat-value {
+        min-width: 0;
+        font-size: 13px;
+        font-weight: 700;
+        color: #1f2937;
+        background: none;
+    }
+
+    /* «Horas imputadas este mes»: entera y con aspecto de botón (abre el detalle del mes) */
+    .hs .hs-link-row {
+        margin-top: 6px;
+        padding: 6px 10px;
+        border-radius: 9px;
+        background: #f6f7fb;
+    }
+
+    .hs .hs-link-row:hover {
+        background: #fbeaec;
+    }
+
+    .hs .hs-link-row .stat-label {
+        white-space: normal;
+    }
+
+    .hs .hs-link-icon {
+        color: #6b7280;
+        font-size: 12px;
+    }
+
+    .hs .hs-link-go {
+        margin-left: 6px;
+        font-size: 10px;
+        color: #AA182C;
+    }
+
+    /* tareas por tipo: mini-barra proporcional; los 5 primeros y «+N tipos más» */
+    .hs .hs-types .stat-row {
+        grid-template-columns: auto minmax(0, 1fr) 30% auto;
+    }
+
+    .hs .hs-mini {
+        height: 5px;
+        border-radius: 3px;
+        background: #f1f2f4;
+        overflow: hidden;
+    }
+
+    .hs .hs-mini i {
+        display: block;
+        height: 100%;
+        background: #3b82f6;
+    }
+
+    .hs .hs-types:not(.is-open) .hs-extra {
+        display: none;
+    }
+
+    .hs .hs-more {
+        align-self: flex-start;
+        margin-top: 4px;
+        padding: 0;
+        border: 0;
+        background: none;
+        font-size: 12px;
+        font-weight: 600;
+        color: #AA182C;
+    }
+
+    /* estadísticas */
+    .hs .hs-stats {
+        border-radius: 14px;
+        border: 1px solid #e8eaee;
+        box-shadow: none;
+    }
+
+    .hs .hs-stats .card-header {
+        display: flex;
+        align-items: baseline;
+        gap: 10px;
+        padding: 12px 16px;
+        font-size: 15px;
+        font-weight: 600;
+        color: #4a1421;
+    }
+
+    .hs .hs-stats-sub {
+        font-size: 12px;
+        font-weight: 400;
+        color: #9ca3af;
+    }
+
+    /* Estadísticas: barras de recorrido (inicio → en plazo → retraso), animadas al cargar */
+    .hsj { margin-top: 2px; }
+    .hsj[hidden], .hsj-kpis[hidden] { display: none; }
+    .hs .divStatisticsButtons { flex-wrap: wrap; row-gap: 8px; }
+    .hsj-kpis { display: flex; gap: 8px; margin-left: auto; }
+    .hsj-kpi { display: flex; align-items: baseline; gap: 8px; padding: 6px 12px; border-radius: 9px; background: #f7f8fa; white-space: nowrap; }
+    .hsj-kpi span { font-size: 12px; color: #6b7280; }
+    .hsj-kpi b { font-size: 16px; font-weight: 600; color: #1f2937; font-variant-numeric: tabular-nums; white-space: nowrap; }
+    .hsj-kpi b small { font-size: 12px; font-weight: 400; color: #9ca3af; }
+    .hsj-kpi.is-delay b { color: #c0392b; }
+    .hsj-head { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; padding-bottom: 8px; border-bottom: 1px solid #f0f1f4; }
+    .hsj-title { font-size: 13px; font-weight: 600; color: #374151; }
+    .hsj-legend { display: flex; align-items: center; flex-wrap: wrap; gap: 14px; font-size: 12px; color: #6b7280; }
+    .hsj-legend > span { display: inline-flex; align-items: center; gap: 6px; }
+    .hsj-legend i { width: 10px; height: 10px; border-radius: 2px; }
+    .hsj-toggle { display: inline-flex; align-items: center; gap: 6px; margin: 0; cursor: pointer; }
+    .hsj-toggle input { accent-color: #AA182C; }
+    /* Hasta ~6 periodos sin scroll; con los 12 meses, la lista tiene su propio scroll (la página no) */
+    .hsj-rows { max-height: 236px; overflow-y: auto; scrollbar-width: thin; scrollbar-color: #d1d5db transparent; }
+    .hsj-row { display: grid; grid-template-columns: 96px minmax(0, 1fr) 150px; align-items: center; gap: 12px; padding: 7px 4px 7px 0; border-bottom: 1px solid #f4f5f7; }
+    .hsj-row:last-child { border-bottom: 0; }
+    .hsj-label { font-size: 13.5px; color: #374151; text-transform: capitalize; }
+    .hsj-track { display: flex; gap: 2px; height: 24px; border-radius: 6px; background: #f3f4f6; overflow: hidden; }
+    .hsj-seg { position: relative; width: 0; height: 100%; display: flex; align-items: center; justify-content: center; overflow: hidden;
+        color: #fff; font-size: 11px; font-weight: 600; white-space: nowrap; transition: width .9s cubic-bezier(.22, 1, .36, 1), filter .15s; }
+    .hsj-seg:first-child { border-radius: 6px 0 0 6px; }
+    .hsj-seg:last-child { border-radius: 0 6px 6px 0; }
+    .hsj-seg:hover { filter: brightness(.92); }
+    .hsj-seg--s { background: #b4b2a9; color: #3f3f3c; }
+    .hsj-seg--p { background: #5cb85c; }
+    .hsj-seg--r { background: #e24b4a; }
+    .hsj-seg--r.is-live { animation: hsjPulse 1.8s ease-in-out infinite; }
+    @keyframes hsjPulse { 0%, 100% { opacity: 1; } 50% { opacity: .7; } }
+    .hsj.no-values .hsj-seg { color: transparent !important; }
+    .hsj-same { display: flex; align-items: center; height: 100%; padding-left: 10px; font-size: 12px; color: #6b7280; }
+    .hsj-total { text-align: right; font-size: 13px; color: #374151; white-space: nowrap; }
+    .hsj-total b { font-weight: 600; font-variant-numeric: tabular-nums; }
+    .hsj-total small { color: #9ca3af; font-size: 12px; }
+    @media (prefers-reduced-motion: reduce) { .hsj-seg { transition: none; } .hsj-seg--r.is-live { animation: none; } }
+    @media (max-width: 1100px) { .hsj-kpis { margin-left: 0; flex-wrap: wrap; } }
+    @media (max-width: 700px) { .hsj-row { grid-template-columns: 70px minmax(0, 1fr) 90px; } }
+
+    .hs .divStatisticsButtons {
+        position: relative;
+        gap: 0;
+    }
+
+    /* selector de año: caja compacta con su flecha; la lista se abre justo debajo */
+    .hs .formControlModified {
+        display: inline-flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 18px;
+        width: auto !important;
+        min-width: 96px;
+        height: 32px;
+        margin: 0;
+        padding: 0 10px;
+        border-radius: 8px;
+        font-size: 12.5px;
+    }
+
+    .hs .formControlModified::after {
+        content: "\f078";
+        font-family: "Font Awesome 6 Free";
+        font-weight: 900;
+        font-size: 10px;
+        color: #6b7280;
+    }
+
+    .hs .alignArrowSelect {
+        display: none;
+    }
+
+    .hs .yearListDiv {
+        top: 36px;
+        left: 0;
+        width: 96px;
+        padding: 4px;
+        box-shadow: 0 8px 20px rgba(15, 23, 42, .1);
+    }
+
+    .hs .divStatisticsButtons .btn.btn-primary.active {
+        background: #1f2937 !important;
+        border-color: #1f2937 !important;
+        box-shadow: none !important;
+    }
+
+    .hs .divStatisticsButtons .btn-primary:not(.active):hover {
+        background: #f6f7f9 !important;
+        border-color: #e5e7eb !important;
+        color: #1f2937 !important;
+        box-shadow: none !important;
+    }
+
+    .hs .divStatisticsButtons .btn.btn-primary {
+        margin: 0;
+        padding: 6px 14px;
+        border: 1px solid #e5e7eb;
+        border-radius: 0;
+        background: #fff;
+        color: #374151;
+        font-size: 12.5px;
+        box-shadow: none;
+    }
+
+    .hs .divStatisticsButtons .btn.btn-primary:first-of-type {
+        margin-left: 10px;
+        border-radius: 9px 0 0 9px;
+    }
+
+    .hs .divStatisticsButtons .btn.btn-primary:last-of-type {
+        border-radius: 0 9px 9px 0;
+    }
+
+    .hs .divStatisticsButtons .btn.btn-primary + .btn.btn-primary {
+        border-left: 0;
+    }
+
+    .hs .divStatisticsButtons .btn.btn-primary.active {
+        background: #1f2937;
+        border-color: #1f2937;
+        color: #fff;
+        font-weight: 600;
+    }
+
+    .hs .divStatisticsButtons .btn-primary:not(.active):hover {
+        background: #f6f7f9;
+        color: #1f2937;
+    }
+
+    .hs .hs-empty {
+        align-items: center;
+        gap: 12px;
+        margin: 8px 0;
+        padding: 14px 16px;
+        border: 1px dashed #e5e7eb;
+        border-radius: 12px;
+        color: #6b7280;
+        font-size: 13px;
+        text-align: left;
+    }
+
+    .hs .hs-empty > i {
+        font-size: 22px;
+        color: #c4c8cf;
+    }
+
+    .hs .hs-empty b {
+        display: block;
+        color: #374151;
+    }
+
+    /* comerciales y técnicos/as */
+    .hs .hs-team {
+        border-radius: 14px;
+        border: 1px solid #e8eaee;
+        box-shadow: none;
+    }
+
+    .hs .hs-team .card-header {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 16px;
+    }
+
+    /* Solo se fija el alto: el ancho sale de la proporción de la imagen (antes 22px de ancho
+       con 23px de alto la estrechaban) */
+    .hs .hs-team .comercialTecIcons {
+        width: auto;
+        height: 20px;
+        margin-bottom: 0;
+        object-fit: contain;
+        flex-shrink: 0;
+        opacity: .7;
+    }
+
+    .hs .hs-team .titleTecAndCom {
+        padding-left: 0;
+        font-size: 15px;
+        font-weight: 600;
+        color: #4a1421;
+    }
+
+    .hs .hs-count {
+        padding: 1px 9px;
+        border-radius: 999px;
+        background: #fbeaec;
+        color: #AA182C;
+        font-size: 11.5px;
+        font-weight: 700;
+    }
+
+    .hs .hs-search {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        width: 240px;
+        max-width: 50%;
+        height: 32px;
+        margin: 0 0 0 auto;
+        padding: 0 10px;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        color: #9ca3af;
+    }
+
+    .hs .hs-search:focus-within {
+        border-color: #AA182C;
+    }
+
+    .hs .hs-search .filter-input {
+        flex: 1;
+        min-width: 0;
+        width: auto;
+        height: auto;
+        margin: 0;
+        padding: 0;
+        border: 0;
+        outline: 0;
+        box-shadow: none;
+        background: transparent;
+        font-size: 12.5px;
+    }
+
+    /* lista con su propia barra de scroll: la página no se alarga con muchos comerciales o técnicos/as */
+    .hs .modifiedDivTecAndCom {
+        display: block;
+        max-height: 330px;
+        margin-bottom: 0;
+        padding: 6px 10px;
+        overflow-x: hidden;
+        overflow-y: auto;
+        overscroll-behavior: contain;
+        scrollbar-width: thin;
+        scrollbar-color: #d1a1aa transparent;
+    }
+
+    .hs .modifiedDivTecAndCom::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    .hs .modifiedDivTecAndCom::-webkit-scrollbar-thumb {
+        border-radius: 6px;
+        background: #d1a1aa;
+    }
+
+    .hs .comercialAndTechnicians {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin: 0;
+        padding: 8px;
+        border: 0;
+        border-radius: 10px;
+        background: transparent;
+        box-shadow: none;
+        min-height: 0;
+    }
+
+    .hs .comercialAndTechnicians:hover {
+        background: #fafbfc;
+    }
+
+    .hs .ppcontainer {
+        width: auto;
+        margin: 0;
+    }
+
+    .hs .textContent {
+        flex: 1;
+        min-width: 0;
+        text-align: left;
+    }
+
+    .hs .email-reveal-wrapper .d-flex {
+        justify-content: flex-start !important;
+    }
+
+    .hs .fullName {
+        font-size: 13.5px;
+        font-weight: 600;
+        color: #1f2937;
+    }
+
+    .hs .email-reveal-email {
+        font-size: 12px;
+        cursor: pointer;
+    }
+
+    .hs .email-reveal-email::after {
+        content: "\f0c5";
+        font-family: "Font Awesome 6 Free";
+        font-weight: 400;
+        margin-left: 6px;
+        color: #AA182C;
+    }
+
+    .hs .email-reveal-email.is-copied::after {
+        content: "\f00c";
+        font-weight: 900;
+        color: #2f9e44;
+    }
+
+    .hs .email-reveal-icon {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 30px;
+        height: 30px;
+        padding: 0;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        font-size: 13px;
+    }
+
+    .hs .email-reveal-icon:hover {
+        transform: none;
+        border-color: #f3c7cd;
+        background: #fbeaec;
+    }
+
+    /* avatar con iniciales (mismo componente que el detalle del proyecto) */
+    .hs .pd-av {
+        position: relative;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        flex: none;
+        width: var(--pd-av-size, 34px);
+        height: var(--pd-av-size, 34px);
+        border-radius: 50%;
+        overflow: hidden;
+        font-size: calc(var(--pd-av-size, 34px) * .36);
+        font-weight: 700;
+    }
+
+    .hs .pd-av img {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .hs .pd-av-0 { background: #fde2e4; color: #AA182C; }
+    .hs .pd-av-1 { background: #dbeafe; color: #1D5FA8; }
+    .hs .pd-av-2 { background: #dcfce7; color: #15803d; }
+    .hs .pd-av-3 { background: #fef3c7; color: #b45309; }
+    .hs .pd-av-4 { background: #ede9fe; color: #6d28d9; }
+
+    @media (max-width: 999px) {
+        .hs .summary-page .summary {
+            flex-direction: column;
+        }
+    }
 </style>
 
 @section('content')
@@ -978,10 +1586,11 @@
             </div>
         @elseif($currentWorkspace)
             <div class="row">
-                <div class="col-lg-12 col-md-12">
+                <div class="col-lg-12 col-md-12 hs">
                     <!-- <div class="row"> -->
-                    <div class="page-header-title">
+                    <div class="page-header-title hs-title">
                         <h4 class="m-b-10">{{ __('Resume of') }} {{ $currentWorkspace->display_name }}</h4>
+                        @include('partials.home_help')
                     </div>
                     <div class="view-selector" id="viewSelector">
                         <button type="button" class="view-segment active" data-view="global">
@@ -1016,6 +1625,11 @@
                                             </div>
                                         </div>
                                         <div class="statusContainer">
+                                            @include('partials.home_stat_bar', ['segments' => [
+                                                [$projectProcess['Ongoing'] ?? 0, 'stat-dot--en-curso'],
+                                                [$projectProcess['OnHold'] ?? 0, 'stat-dot--en-espera'],
+                                                [$projectProcess['Finished'] ?? 0, 'stat-dot--finalizado'],
+                                            ]])
 <div class="stat-row">
                                             <span class="stat-dot stat-dot--en-curso"></span>
                                             <span class="stat-label">{{ __('En curso') }}</span>
@@ -1052,6 +1666,13 @@
                                             </div>
                                         </div>
                                         <div class="statusContainer">
+                                            @include('partials.home_stat_bar', ['segments' => [
+                                                [$activeMilestones ?? 0, 'stat-dot--activo'],
+                                                [$reviewMilestones ?? 0, 'stat-dot--por-revisar'],
+                                                [$finishedMilestones ?? 0, 'stat-dot--finalizado'],
+                                                [$unassignedMilestones ?? 0, 'stat-dot--sin-asignar'],
+                                                [$pausedMilestones ?? 0, 'stat-dot--en-pausa'],
+                                            ]])
                                             <div class="stat-row">
                                                 <span class="stat-dot stat-dot--activo"></span>
                                                 <span class="stat-label">{{ __('Active') }}</span>
@@ -1098,14 +1719,25 @@
 
                                             </div>
                                         </div>
-                                        <div class="statusContainer">
-                                            @foreach ($totalTaskByType ?? [] as $type => $count)
-                                                <div class="stat-row">
+                                        <div class="statusContainer hs-types">
+                                            @php
+                                                // Tipos de tarea de más a menos, con una mini-barra proporcional; se ven los 5 primeros
+                                                $hsTypes = collect($totalTaskByType ?? [])->sortDesc();
+                                                $hsTypesMax = max(1, (int) $hsTypes->max());
+                                            @endphp
+                                            @foreach ($hsTypes as $type => $count)
+                                                <div class="stat-row {{ $loop->index >= 5 ? 'hs-extra' : '' }}">
                                                     <span class="stat-dot stat-dot--info1"></span>
                                                     <span class="stat-label">{{ __($type) }}</span>
+                                                    <span class="hs-mini"><i style="width: {{ round($count * 100 / $hsTypesMax) }}%"></i></span>
                                                     <span class="stat-value">{{ $count }}</span>
                                                 </div>
                                             @endforeach
+                                            @if ($hsTypes->count() > 5)
+                                                <button type="button" class="hs-more" data-hs-more
+                                                    data-more="{{ __('+ :n more types', ['n' => $hsTypes->count() - 5]) }}"
+                                                    data-less="{{ __('Show fewer') }}">{{ __('+ :n more types', ['n' => $hsTypes->count() - 5]) }}</button>
+                                            @endif
                                         </div>
                                     </div>
                                 </div>
@@ -1130,6 +1762,13 @@
                                             </div>
                                         </div>
                                         <div class="statusContainer">
+                                            @include('partials.home_stat_bar', ['segments' => [
+                                                [$myEnPlazoMilestones ?? 0, 'stat-dot--active'],
+                                                [$myFueraPlazoMilestones ?? 0, 'stat-dot--pending'],
+                                                [$myEnRevisionMilestones ?? 0, 'stat-dot--por-revisar'],
+                                                [$myFinalizadosMilestones ?? 0, 'stat-dot--review'],
+                                                [$myEnPausaMilestones ?? 0, 'stat-dot--en-pausa'],
+                                            ]])
                                             @if ((int) ($myEnPlazoMilestones ?? 0) > 0)
                                             <div class="stat-row">
                                                 <span class="stat-dot stat-dot--active"></span>
@@ -1153,7 +1792,7 @@
                                             @endif
                                             @if ((int) ($myFinalizadosMilestones ?? 0) > 0)
                                             <div class="stat-row">
-                                                <span class="stat-dot stat-dot--active"></span>
+                                                <span class="stat-dot stat-dot--review"></span>
                                                 <span class="stat-label">{{ __('Finalizados') }}</span>
                                                 <span class="stat-value">{{ $myFinalizadosMilestones ?? 0 }}</span>
                                             </div>
@@ -1185,6 +1824,11 @@
                                             </div>
                                         </div>
                                         <div class="statusContainer">
+                                            @include('partials.home_stat_bar', ['segments' => [
+                                                [$myAltaPriorityMilestones ?? 0, 'stat-dot--pending'],
+                                                [$myMediaPriorityMilestones ?? 0, 'stat-dot--warning'],
+                                                [$myBajaPriorityMilestones ?? 0, 'stat-dot--info'],
+                                            ]])
                                             @if ((int) ($myAltaPriorityMilestones ?? 0) > 0)
                                             <div class="stat-row">
                                                 <span class="stat-dot stat-dot--pending"></span>
@@ -1222,6 +1866,11 @@
                                             </div>
                                         </div>
                                         <div class="statusContainer">
+                                            @include('partials.home_stat_bar', ['segments' => [
+                                                [$myTaskTotal ?? 0, 'stat-dot--active'],
+                                                [$myTaskReviewed ?? 0, 'stat-dot--review'],
+                                                [$myTaskChanges ?? 0, 'stat-dot--change'],
+                                            ]])
                                             @if ((int) ($myTaskTotal ?? 0) > 0)
                                             <div class="stat-row">
                                                 <span class="stat-dot stat-dot--active"></span>
@@ -1243,12 +1892,12 @@
                                                 <span class="stat-value">{{ $myTaskChanges ?? 0 }}</span>
                                             </div>
                                             @endif
-                                            <div class="stat-row" id="monthHoursRow"
+                                            <div class="stat-row hs-link-row" id="monthHoursRow" role="button" tabindex="0"
                                                 title="{{ __('Only in the current workspace') }}"
                                                 style="cursor:pointer;">
-                                                <span class="stat-dot stat-dot--active"></span>
+                                                <i class="fa-regular fa-clock hs-link-icon"></i>
                                                 <span class="stat-label">{{ __('Hours imputed this month') }}</span>
-                                                <span class="stat-value">{{ $myMonthHours ?? '00:00' }}</span>
+                                                <span class="stat-value">{{ $myMonthHours ?? '00:00' }}<i class="fa-solid fa-chevron-right hs-link-go"></i></span>
                                             </div>
                                         </div>
                                     </div>
@@ -1262,9 +1911,10 @@
                     <span>Asignados a ti {{ $assignedMilestones }}</span>
                     <span>En revision {{ $forReviewMilestones }}</span> --}}
                     <div class="col-md-12">
-                        <div class="card min-h">
+                        <div class="card min-h hs-stats">
                             <div class="card-header">
                                 {{ __('Statistics') }}
+                                <small class="hs-stats-sub">{{ __('Average time of finished order forms') }}</small>
                             </div>
                             <div class="card-body p-3">
                                 <div class="divStatisticsButtons">
@@ -1295,40 +1945,65 @@
                                         class="marginRight1 btn btn-primary">{{ __('Quarterly') }}</button>
                                     <button onclick="updateChart('yearly')" data-view="yearly"
                                         class="btn btn-primary">{{ __('Yearly') }}</button>
+                                    {{-- Cifras resumen en la misma fila que los botones: no restan alto a las listas del equipo --}}
+                                    <div class="hsj-kpis" id="hsjKpis" hidden>
+                                        <div class="hsj-kpi"><span>{{ __('Finished order forms') }}</span><b class="hsj-num" data-kpi="count">0</b></div>
+                                        <div class="hsj-kpi"><span>{{ __('Average time') }}</span><b><span class="hsj-num" data-kpi="avg">0</span> <small>{{ __('days') }}</small></b></div>
+                                        <div class="hsj-kpi is-delay"><span>{{ __('Average delay') }}</span><b><span class="hsj-num" data-kpi="delay">0</span> <small>{{ __('days') }}</small></b></div>
+                                    </div>
                                 </div>
-                                <canvas id="myChart" style="height: 400px; width:100%"></canvas>
-                                <div id="chartEmptyMessage"
-                                    style="display:none; min-height:400px; align-items:center; justify-content:center;"
-                                    class="text-center text-muted">
-                                    {{ __('No finalized milestones in this period') }}
+                                {{-- Barras de recorrido: cada periodo es una barra horizontal inicio → en plazo → retraso
+                                     (home-statistics.js la pinta y la anima) --}}
+                                <div id="hsJourney" class="hsj" hidden>
+                                    <div class="hsj-head">
+                                        <span class="hsj-title" id="hsjTitle"></span>
+                                        <span class="hsj-legend">
+                                            <span><i style="background:#b4b2a9"></i>{{ __('Starting time') }}</span>
+                                            <span><i style="background:#5cb85c"></i>{{ __('On time') }}</span>
+                                            <span><i style="background:#e24b4a"></i>{{ __('Delay') }}</span>
+                                            <label class="hsj-toggle"><input type="checkbox" id="hsjValues" checked>{{ __('Show values') }}</label>
+                                        </span>
+                                    </div>
+                                    <div class="hsj-rows" id="hsjRows" role="list"></div>
+                                </div>
+                                {{-- Sin datos: una franja compacta en lugar de un eje vacío a toda pantalla --}}
+                                <div id="chartEmptyMessage" class="hs-empty" style="display:none;">
+                                    <i class="fa-regular fa-chart-bar"></i>
+                                    <div>
+                                        <b>{{ __('No finalized milestones in this period') }}</b>
+                                        <span>{{ __('The chart appears as soon as an order form is finished. Try another year or view.') }}</span>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
                     <div class="row">
                         <div class="col-md-6">
-                            <div class="card min-h">
+                            <div class="card min-h hs-team">
                                 <div class="card-header">
                                     <img src="{{ asset('assets/img/salesManager.png') }}" class="comercialTecIcons" />
                                     <span class="titleTecAndCom">{{ __('Sales managers') }}</span>
+                                    <span class="hs-count">{{ count($comerciales) }}</span>
+                                    <label class="hs-search">
+                                        <i class="fa-solid fa-magnifying-glass"></i>
+                                        <input type="text" class="filter-input" id="filterComerciales"
+                                            placeholder="{{ __('Filter sales managers') }}"
+                                            oninput="filterList('filterComerciales', 'contentCom')" />
+                                    </label>
                                 </div>
                                 <div class="modifiedDivTecAndCom top-10-scroll" id="contentCom">
-                                    <input type="text" class="filter-input" id="filterComerciales"
-                                        placeholder="{{ __('Filter sales managers') }}"
-                                        oninput="filterList('filterComerciales', 'contentCom')" />
-
                                     @foreach ($comerciales as $comercial)
                                         <div class="comercialAndTechnicians">
                                             <div class="ppcontainer">
-                                                <img alt="{{ $comercial->name }}" class="profilePicture"
-                                                    @if ($comercial->avatar) src="{{ asset($comercial->avatar) }}" @else avatar="{{ $comercial->name }}" @endif>
+                                                {{-- Iniciales siempre; la foto encima si carga (antes salía rota cuando faltaba el archivo) --}}
+                                                @include('projects.partials.pd_avatar', ['user' => $comercial, 'size' => 34])
                                             </div>
                                             <div class="textContent">
                                                  <div class="email-reveal-wrapper">
                                                     <div class="d-flex align-items-center gap-2" style="justify-content: center">
                                                         <span class="fullName">{{ $comercial->name }}</span>
                                                     </div>
-                                                    <div class="email-reveal-email"></div>
+                                                    <div class="email-reveal-email" title="{{ __('Click to copy') }}"></div>
                                                  </div>
                                             </div>
                                             <i class="bi bi-envelope-fill email-reveal-icon tooltipCus email-icon-fixed"
@@ -1342,28 +2017,31 @@
                             </div>
                         </div>
                         <div class="col-md-6">
-                            <div class="card min-h">
+                            <div class="card min-h hs-team">
                                 <div class="card-header">
                                     <img src="{{ asset('assets/img/technicians.png') }}" class="comercialTecIcons" />
                                     <span class="titleTecAndCom">{{ __('Technicians') }}</span>
+                                    <span class="hs-count">{{ count($technicians) }}</span>
+                                    <label class="hs-search">
+                                        <i class="fa-solid fa-magnifying-glass"></i>
+                                        <input type="text" class="filter-input" id="filterTechnicians"
+                                            placeholder="{{ __('Filter technicians') }}"
+                                            oninput="filterList('filterTechnicians', 'contentTec')" />
+                                    </label>
                                 </div>
-                                <input type="text" class="filter-input" id="filterTechnicians"
-                                    placeholder="{{ __('Filter technicians') }}"
-                                    oninput="filterList('filterTechnicians', 'contentTec')" />
                                 <div class="modifiedDivTecAndCom top-10-scroll" id="contentTec">
 
                                     @foreach ($technicians as $technician)
                                         <div class="comercialAndTechnicians">
                                             <div class="ppcontainer">
-                                                <img alt="{{ $technician->name }}" class="profilePicture"
-                                                    @if ($technician->avatar) src="{{ asset($technician->avatar) }}" @else avatar="{{ $technician->name }}" @endif>
+                                                @include('projects.partials.pd_avatar', ['user' => $technician, 'size' => 34])
                                             </div>
                                             <div class="textContent">
                                                  <div class="email-reveal-wrapper">
                                                     <div class="d-flex align-items-center gap-2" style="justify-content: center">
                                                         <span class="fullName">{{ $technician->name }}</span>
                                                     </div>
-                                                    <div class="email-reveal-email"></div>
+                                                    <div class="email-reveal-email" title="{{ __('Click to copy') }}"></div>
                                                  </div>
                                             </div>
                                             <i class="bi bi-envelope-fill email-reveal-icon tooltipCus email-icon-fixed"
@@ -1457,13 +2135,8 @@
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels"></script>
 
     <script>
-        $(document).ready(function() {
-            if ($(".modifiedDivTecAndCom").length) {
-                $(".modifiedDivTecAndCom").css({
-                    "max-height": 300
-                }).niceScroll();
-            }
-        });
+        // Las listas de comerciales y técnicos/as usan ya el scroll normal del navegador, con alto máximo por CSS
+        // (niceScroll ocultaba la barra y la rueda acababa moviendo toda la página).
     </script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
@@ -1489,10 +2162,18 @@
             annualAverage: @json(__('Annual average')),
             month: @json(__('Month')),
             quarter: @json(__('Quarter')),
-            noData: @json(__('No finalized milestones in this period'))
+            noData: @json(__('No finalized milestones in this period')),
+            noDataHint: @json(__('The chart appears as soon as an order form is finished. Try another year or view.')),
+            zeroTitle: @json(__(':n finished order forms, with an average time of 0 days')),
+            zeroText: @json(__('They were finished the same day they were created, so there are no days to draw. The chart will show them when they take at least one day.')),
+            finishedCount: @json(__(':n finished order forms')),
+            orders: @json(__(':n order forms')),
+            ordersOne: @json(__(':n order form')),
+            daysUnit: @json(__('days')),
+            sameDay: @json(__('Finished the same day'))
         };
     </script>
-    <script src="{{ asset('assets/custom/js/home-statistics.js') }}"></script>
+    <script src="{{ asset('assets/custom/js/home-statistics.js') }}?v={{ @filemtime(public_path('assets/custom/js/home-statistics.js')) }}"></script>
     <script>
         function filterList(inputId, containerId) {
             const input = document.getElementById(inputId);
@@ -1513,6 +2194,60 @@
 
         document.getElementById('filterComerciales').addEventListener('input', function() {
             filterList('filterComerciales', 'contentCom');
+        });
+
+        // «+N tipos más» en Tareas globales
+        document.addEventListener('click', function(e) {
+            const more = e.target.closest('.hs [data-hs-more]');
+            if (!more) return;
+            const box = more.closest('.hs-types');
+            const open = box.classList.toggle('is-open');
+            more.textContent = open ? more.dataset.less : more.dataset.more;
+        });
+
+        // Clic en el correo mostrado: lo copia al portapapeles
+        document.addEventListener('click', function(e) {
+            const email = e.target.closest('.hs .email-reveal-email');
+            if (!email || !email.textContent.trim() || !navigator.clipboard) return;
+            navigator.clipboard.writeText(email.textContent.trim()).then(function() {
+                email.classList.add('is-copied');
+                setTimeout(function() { email.classList.remove('is-copied'); }, 1500);
+            }).catch(function() {});
+        });
+
+        // Las listas de comerciales y técnicos/as ocupan lo que queda de ventana: la página no hace scroll
+        // (si no cabe ni un mínimo razonable, se deja el scroll de la página)
+        // Mínimo de las listas: hasta 200px (3-4 personas). Si la página no cabe, primero encoge la lista
+        // de periodos de Estadísticas (home-statistics.js) y solo después la página hace scroll.
+        function fitTeamLists() {
+            const lists = Array.from(document.querySelectorAll('.hs .modifiedDivTecAndCom'));
+            if (!lists.length) return;
+            // En pantallas bajas el mínimo baja un poco (768px → ~150px; 1080px → 200px)
+            const TEAM_LIST_MIN = Math.round(Math.min(200, Math.max(140, window.innerHeight * 0.19)));
+            const top = Math.min(...lists.map((l) => l.getBoundingClientRect().top + window.scrollY));
+            // 72px libres abajo: ahí va la burbuja del chatbot (44px + 16px de margen), así no tapa la última fila
+            let h = Math.max(TEAM_LIST_MIN, Math.floor(window.innerHeight - top - 72));
+            lists.forEach((l) => { l.style.maxHeight = h + 'px'; });
+            const over = document.documentElement.scrollHeight - window.innerHeight;
+            if (over > 0 && h > TEAM_LIST_MIN) {
+                h = Math.max(TEAM_LIST_MIN, h - over - 1);
+                lists.forEach((l) => { l.style.maxHeight = h + 'px'; });
+            }
+        }
+        window.fitTeamLists = fitTeamLists; // la usa home-statistics.js al cambiar de vista (cambia el alto)
+        window.addEventListener('load', fitTeamLists);
+        window.addEventListener('resize', fitTeamLists);
+        // Cambiar entre «Resumen global» y «Mi actividad» cambia el alto de las tarjetas: se recalcula al terminar la animación
+        document.addEventListener('click', function(e) {
+            if (e.target.closest('#viewSelector .view-segment')) setTimeout(fitTeamLists, 800);
+        });
+
+        // La fila de horas del mes también se abre con el teclado
+        document.addEventListener('keydown', function(e) {
+            if ((e.key === 'Enter' || e.key === ' ') && e.target.id === 'monthHoursRow') {
+                e.preventDefault();
+                e.target.click();
+            }
         });
 
         document.getElementById('filterTechnicians').addEventListener('input', function() {

@@ -9,15 +9,25 @@
 </script>
 
 <style>
+    /* CofriAI: 44px pegado a la esquina, en el margen libre bajo el contenido
+       (las listas con scroll terminan 72px antes del final de la pantalla).
+       !important: el script de Chatbase pone estilos en línea al botón. */
     #chatbase-bubble-button {
-        position: fixed;
-        width: 60px;
-        height: 60px;
-        bottom: 30px;
-        right: 40px;
+        position: fixed !important;
+        width: 44px !important;
+        height: 44px !important;
+        bottom: 16px !important;
+        right: 16px !important;
         color: #FFF;
         border-radius: 50px;
         text-align: center;
+    }
+
+    #chatbase-bubble-button img,
+    #chatbase-bubble-button svg {
+        width: 100% !important;
+        height: 100% !important;
+        object-fit: contain;
     }
 
     .notification {

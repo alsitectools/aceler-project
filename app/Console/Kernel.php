@@ -17,6 +17,8 @@ class Kernel extends ConsoleKernel
     {
         // $schedule->command('inspire')->hourly();
         $schedule->command('milestones:revisar')->dailyAt('03:00');
+        // Export a Axapta: borra la copia del .fil de los lotes más antiguos que el límite (config/axapta.php)
+        $schedule->command('axapta:prune-batch-files')->dailyAt('03:30');
     }
 
     /**

@@ -10,29 +10,29 @@
 @elseif ($status->id == 1)
     <div class="milestone-extra-info">
         <i class="fa-solid fa-arrows-alt"></i>
-        <span>{{ __('Arrastrar a en curso' ) }}<br>{{ __('para empezar el encargo') }}</span>
+        <span>{{ __('Mover a en curso') }}</span>
     </div>
 @elseif ($status->id == 2)
     @php
         $statusClass2 = '';
         $statusIcon2 = 'fa-solid fa-arrow-circle-right';
-        $statusLabel2 = __('Puede pasar a revisión');
+        $statusLabel2 = __('Mover a revisión');
         $taskList = $milestone['tasks'] ?? [];
         $hasChanges = collect($taskList)->contains(fn($t) => ($t['review_state'] ?? null) === 'changes');
         if (count($taskList) === 0) {
             $statusClass2 = 'milestone-extra-info--no-tasks';
             $statusIcon2 = 'fa-solid fa-exclamation-triangle';
-            $statusLabel2 = __('No puede pasar a revisión.') . '<br>' . __('Se necesita añadir tareas');
+            $statusLabel2 = __('Añadir tareas');
         } elseif (!collect($taskList)->every(fn($t) => ($t['logged_hours'] ?? '00:00') !== '00:00')) {
             $statusClass2 = 'milestone-extra-info--hours';
             $statusIcon2 = 'far fa-clock';
-            $statusLabel2 = __('Imputar las horas') . '<br>' . __('para pasar a revisión');
+            $statusLabel2 = __('Imputar horas');
         }
     @endphp
     @if ($hasChanges)
         <div class="milestone-extra-info milestone-extra-info--changes">
             <i class="fa-solid fa-triangle-exclamation"></i>
-            <span>{!! __('There are tasks pending correction') !!}<br>{{ __('before moving to review') }}</span>
+            <span>{{ __('Tareas por corregir') }}</span>
         </div>
     @else
         <div class="milestone-extra-info milestone-extra-info--ready {{ $statusClass2 }}">

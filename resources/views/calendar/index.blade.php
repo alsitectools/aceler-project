@@ -343,6 +343,505 @@
             font-size: 30px;
         }
     }
+
+    /* =============================================
+       CALENDARIO · horas / jornada en cada día, total semanal, resumen del mes y detalle del día
+       ============================================= */
+    .cal-kpis {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 10px;
+        margin-bottom: 14px;
+    }
+
+    .cal-kpi {
+        border: 1px solid #eef0f3;
+        border-radius: 10px;
+        padding: 8px 12px;
+    }
+
+    .cal-kpi small {
+        display: block;
+        font-size: 10.5px;
+        font-weight: 700;
+        color: #9ca3af;
+        text-transform: uppercase;
+        letter-spacing: .05em;
+    }
+
+    .cal-kpi b {
+        font-size: 19px;
+        color: #1f2937;
+    }
+
+    .cal-kpi span {
+        font-size: 12px;
+        color: #6b7280;
+    }
+
+    .cal-kpi.is-warn b {
+        color: #c0392b;
+    }
+
+    #calendar .fc-toolbar-title {
+        font-size: 20px;
+    }
+
+    #calendar .fc-toolbar-title::first-letter {
+        text-transform: uppercase;
+    }
+
+    /* eventos convertidos en contenido del día (sin la pastilla de color) */
+    #calendar .fc-daygrid-event.cal-ev {
+        background: transparent !important;
+        border: 0 !important;
+        box-shadow: none !important;
+        margin: 0 4px 2px;
+        padding: 0;
+        white-space: normal;
+        cursor: pointer;
+    }
+
+    #calendar .fc-daygrid-event.cal-ev:hover {
+        background: transparent !important;
+    }
+
+    .cal-h {
+        padding: 2px 4px;
+        color: #374151;
+    }
+
+    .cal-h-val {
+        font-size: 11.5px;
+        color: #6b7280;
+        white-space: nowrap;
+    }
+
+    .cal-h-val b {
+        font-size: 15px;
+        color: #1f2937;
+    }
+
+    .cal-st-text--none b {
+        color: #c0392b;
+    }
+
+    .cal-st-text--overtime b {
+        color: #1d6fa5;
+    }
+
+    .cal-h-warn {
+        margin-left: 4px;
+        font-size: 11px;
+        color: #d08700;
+    }
+
+    .cal-h-bar {
+        height: 5px;
+        margin-top: 4px;
+        border-radius: 3px;
+        background: #f1f2f4;
+        overflow: hidden;
+    }
+
+    .cal-h-bar i {
+        display: block;
+        height: 100%;
+    }
+
+    .cal-bg--none { background: #e06c71; }
+    .cal-bg--partial { background: #e8c800; }
+    .cal-bg--complete { background: #5cc45a; }
+    .cal-bg--overtime { background: #63b6dc; }
+
+    .cal-off {
+        padding: 2px 4px;
+        font-size: 11px;
+        color: #b6bbc4;
+    }
+
+    .cal-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        max-width: 100%;
+        padding: 2px 8px;
+        border-radius: 999px;
+        font-size: 11px;
+        font-weight: 600;
+        white-space: nowrap;
+        overflow: hidden;
+    }
+
+    .cal-chip--holiday {
+        background: rgba(145, 221, 207, .35);
+        color: #1f6f63;
+    }
+
+    .cal-chip--intensive {
+        background: rgba(137, 168, 178, .25);
+        color: #3f5a63;
+    }
+
+    .cal-ev-del {
+        margin-left: 2px;
+        font-size: 13px;
+        line-height: 1;
+        opacity: .6;
+    }
+
+    .cal-ev-del:hover {
+        opacity: 1;
+        color: #c0392b;
+    }
+
+    /* tono del día según su estado */
+    #calendar .fc-daygrid-day.cal-st--none {
+        background: #fdf3f4;
+    }
+
+    #calendar .fc-daygrid-day.cal-st--off {
+        background: #fafbfc;
+    }
+
+    #calendar .fc-daygrid-day.cal-st--holiday {
+        background: rgba(145, 221, 207, .12);
+    }
+
+    #calendar .fc-day-other {
+        opacity: .55;
+    }
+
+    /* hoy: número en círculo; seleccionado: borde corporativo */
+    #calendar .fc .fc-daygrid-day.fc-day-today,
+    #calendar .fc-daygrid-day.fc-day-today {
+        background-color: inherit;
+    }
+
+    #calendar .fc-day-today .fc-daygrid-day-number {
+        color: #fff;
+        background: #AA182C;
+        border-radius: 999px;
+        padding: 1px 8px;
+        margin: 3px;
+    }
+
+    #calendar .fc-daygrid-day.cal-selected {
+        box-shadow: inset 0 0 0 2px #AA182C;
+        background: #fff7f8;
+    }
+
+    /* total de la semana en el hueco del número de semana */
+    #calendar .fc-daygrid-week-number {
+        background: transparent;
+        padding: 0;
+        top: 5px;
+        left: 4px;
+        pointer-events: none;
+    }
+
+    /* compacto: el mes entero cabe en la ventana (alto calculado en fitCalendarHeight) */
+    #calendar .fc-header-toolbar.fc-toolbar {
+        margin-bottom: 10px !important;
+    }
+
+    #calendar .fc-button {
+        padding: 4px 10px;
+    }
+
+    #calendar .fc-daygrid-day-number {
+        padding: 3px 6px;
+        font-size: 12.5px;
+    }
+
+    #calendar .fc-daygrid-day-frame {
+        min-height: 0;
+    }
+
+    #calendar .fc-daygrid-day-events {
+        margin-top: 0;
+    }
+
+    .testCol > .card > .card-body {
+        padding-top: 14px;
+        padding-bottom: 12px;
+    }
+
+    .testCol > .card > .card-header {
+        padding-top: 12px;
+        padding-bottom: 12px;
+    }
+
+    .cal-kpis {
+        margin-bottom: 10px;
+    }
+
+    .cal-legend {
+        margin-top: 8px;
+    }
+
+    .cal-side .card-body {
+        overflow-y: auto;
+    }
+
+    /* filas bajas: una línea por día (horas + barra fina), sin el texto de no laborable */
+    #calendar.cal-compact .fc-daygrid-day-number {
+        padding: 1px 5px;
+        font-size: 12px;
+    }
+
+    #calendar.cal-compact .cal-h {
+        padding: 0 2px;
+    }
+
+    #calendar.cal-compact .cal-h-val b {
+        font-size: 12.5px;
+    }
+
+    #calendar.cal-compact .cal-h-val {
+        font-size: 10.5px;
+    }
+
+    #calendar.cal-compact .cal-h-bar {
+        height: 3px;
+        margin-top: 2px;
+    }
+
+    #calendar.cal-compact .cal-off {
+        display: none;
+    }
+
+    #calendar.cal-compact .fc-daygrid-week-number {
+        top: 3px;
+    }
+
+    #calendar.cal-compact .cal-wk {
+        padding: 0 5px;
+        font-size: 9.5px;
+    }
+
+    #calendar.cal-compact .cal-wk-exp {
+        display: none;
+    }
+
+    #calendar.cal-compact .cal-chip {
+        padding: 0 6px;
+        font-size: 10px;
+    }
+
+    @media (max-height: 820px) {
+        .cal-kpi {
+            padding: 5px 10px;
+        }
+
+        .cal-kpi b {
+            font-size: 16px;
+        }
+
+        .cal-h-val b {
+            font-size: 13px;
+        }
+    }
+
+    .cal-wk {
+        display: inline-block;
+        padding: 1px 7px;
+        border-radius: 999px;
+        background: #f3f4f6;
+        color: #6b7280;
+        font-size: 10.5px;
+        white-space: nowrap;
+    }
+
+    .cal-wk b {
+        color: #1f2937;
+    }
+
+    /* panel lateral: detalle del día */
+    .cal-side .card-header small {
+        display: block;
+        font-size: 11px;
+        font-weight: 700;
+        color: #9ca3af;
+        text-transform: uppercase;
+        letter-spacing: .05em;
+    }
+
+    .cal-side .card-header h5 {
+        margin: 2px 0 0;
+    }
+
+    .cal-day {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        padding-bottom: 14px;
+        margin-bottom: 8px;
+        border-bottom: 1px solid #eef0f3;
+    }
+
+    .cal-day-num {
+        font-size: 22px;
+        font-weight: 700;
+        color: #1f2937;
+        white-space: nowrap;
+    }
+
+    .cal-day svg {
+        flex: none;
+    }
+
+    .cal-day-num span {
+        font-size: 13px;
+        font-weight: 600;
+        color: #9ca3af;
+    }
+
+    .cal-day-num #total-hours {
+        font-size: 22px;
+        font-weight: 700;
+        color: #1f2937;
+    }
+
+    .cal-day-state {
+        font-size: 12px;
+        color: #6b7280;
+    }
+
+    .cal-day .btn {
+        margin-left: auto;
+        white-space: nowrap;
+    }
+
+    .cal-proj {
+        margin: 10px 0 2px;
+        font-size: 11px;
+        font-weight: 700;
+        color: #AA182C;
+        text-transform: uppercase;
+        letter-spacing: .03em;
+    }
+
+    .cal-proj small {
+        margin-left: 6px;
+        color: #9ca3af;
+        font-weight: 600;
+        text-transform: none;
+    }
+
+    .cal-task {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 0 10px;
+        padding: 8px 0;
+        border-bottom: 1px solid #f4f5f7;
+    }
+
+    .cal-task-ms {
+        font-size: 11px;
+        color: #9ca3af;
+    }
+
+    .cal-task-name {
+        font-size: 13px;
+        font-weight: 600;
+        color: #1f2937;
+    }
+
+    .cal-task-time {
+        grid-row: 1 / 3;
+        grid-column: 2;
+        align-self: center;
+        font-weight: 700;
+    }
+
+    .cal-empty {
+        padding: 10px 0;
+        font-size: 13px;
+        color: #9ca3af;
+    }
+
+    .cal-pending {
+        margin-top: 14px;
+        padding-top: 12px;
+        border-top: 1px solid #eef0f3;
+    }
+
+    .cal-pending h6 {
+        margin: 0 0 8px;
+        font-size: 11px;
+        font-weight: 700;
+        color: #9ca3af;
+        text-transform: uppercase;
+        letter-spacing: .05em;
+    }
+
+    .cal-pd {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        width: 100%;
+        padding: 5px 0;
+        border: 0;
+        background: none;
+        font-size: 12.5px;
+        color: #374151;
+        text-align: left;
+    }
+
+    .cal-pd:hover {
+        color: #AA182C;
+    }
+
+    .cal-pd i {
+        width: 8px;
+        height: 8px;
+        border-radius: 2px;
+        background: #e06c71;
+        flex: none;
+    }
+
+    .cal-pd span {
+        margin-left: auto;
+        color: #AA182C;
+        font-weight: 600;
+        font-size: 12px;
+        text-transform: none;
+    }
+
+    .cal-pd-more {
+        font-size: 12px;
+        color: #9ca3af;
+    }
+
+    .cal-legend {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 6px 16px;
+        margin-top: 10px;
+        font-size: 12px;
+        color: #6b7280;
+    }
+
+    .cal-legend span {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .cal-legend i {
+        width: 10px;
+        height: 10px;
+        border-radius: 3px;
+        display: inline-block;
+    }
+
+    @media (max-width: 768px) {
+        .cal-kpis {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
 </style>
 @include('loader.loader')
 @push('scripts')
@@ -362,6 +861,7 @@
         <li class="breadcrumb-item"><a href="{{ route('home') }}">{{ __('Home') }}</a></li>
     @endif
     <li class="breadcrumb-item">{{ __('Calendar') }}</li>
+    @include('calendar.partials.calendar_help')
 @endsection
 
 @section('multiple-action-button')
@@ -405,22 +905,54 @@
                     </div>
                 </div>
                 <div class="card-body">
+                    {{-- Resumen del mes visible (se rellena en updateMonthSummary) --}}
+                    <div class="cal-kpis" id="cal-kpis">
+                        <div class="cal-kpi"><small>{{ __('Logged this month') }}</small><b data-kpi="logged">—</b> <span data-kpi="expected"></span></div>
+                        <div class="cal-kpi" data-kpi-box="none"><small>{{ __('Days without hours') }}</small><b data-kpi="none">—</b> <span data-kpi="workdays"></span></div>
+                        <div class="cal-kpi"><small>{{ __('Overtime') }}</small><b data-kpi="overtime">—</b> <span data-kpi="overtimeDays"></span></div>
+                        <div class="cal-kpi"><small>{{ __('Holidays') }}</small><b data-kpi="holidays">—</b> <span>{{ __('this month') }}</span></div>
+                    </div>
                     <div id="calendar" class="calendar"></div>
+                    <div class="cal-legend">
+                        <span><i class="cal-bg--none"></i>{{ __('No hours') }}</span>
+                        <span><i class="cal-bg--partial"></i>{{ __('Partial') }}</span>
+                        <span><i class="cal-bg--complete"></i>{{ __('Complete') }}</span>
+                        <span><i class="cal-bg--overtime"></i>{{ __('Overtime') }}</span>
+                        <span><i style="background: rgba(145, 221, 207, .6)"></i>{{ __('Holiday') }}</span>
+                        <span><i style="background: rgba(137, 168, 178, .5)"></i>{{ __('Intensive workday') }}</span>
+                        <span><i style="background: #eef0f3"></i>{{ __('Non-working day') }}</span>
+                    </div>
                 </div>
             </div>
         </div>
         <div class="col-lg-4 responsiveDivCalendarTask">
-            <div class="card">
+            <div class="card cal-side">
                 <div class="card-header">
-                    <h5>{{ __('Tasks') }}<span id="selected-date"
-                            style="margin-left: 10px; font-size: 0.8em; color: #666;"></span></h5>
+                    <small>{{ __('Day detail') }}</small>
+                    <h5 id="selected-date">{{ __('Select a day to view tasks') }}</h5>
                 </div>
                 <div class="card-body">
-                    <ul class="list-unstyled" id="task-list">
-                        <p>{{ __('Select a day to view tasks') }}</p>
-                    </ul>
-                    <p class="pTotalHours"><strong>{{ __('Total Hours:') }} </strong><span id="total-hours">00:00</span>
-                    </p>
+                    <div class="cal-day" id="cal-day" hidden>
+                        <svg width="64" height="64" viewBox="0 0 36 36" aria-hidden="true">
+                            <circle cx="18" cy="18" r="15.9" fill="none" stroke="#f1f2f4" stroke-width="3.5" />
+                            <circle id="cal-day-ring" cx="18" cy="18" r="15.9" fill="none" stroke="#e8c800" stroke-width="3.5"
+                                stroke-linecap="round" stroke-dasharray="0 100" transform="rotate(-90 18 18)" />
+                        </svg>
+                        <div>
+                            <div class="cal-day-num"><span id="total-hours">0:00</span> <span id="cal-day-expected"></span></div>
+                            <div class="cal-day-state" id="cal-day-state"></div>
+                        </div>
+                        @unless (\Auth::guard('client')->check())
+                            <a class="btn btn-sm btn-primary" id="cal-day-log" href="#" hidden>
+                                <i class="fa-solid fa-plus"></i> {{ __('Log hours') }}
+                            </a>
+                        @endunless
+                    </div>
+                    <div id="task-list"></div>
+                    <div class="cal-pending">
+                        <h6>{{ __('Pending days this month') }}</h6>
+                        <div id="cal-pending-list"></div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -469,6 +1001,28 @@
 @endsection
 
 @push('scripts')
+    @php
+        $calTexts = [
+            'weekShort' => __('W'),
+            'nonWorking' => __('Non-working day'),
+            'holiday' => __('Holiday'),
+            'intensive' => __('Intensive'),
+            'remove' => __('Delete'),
+            'tooMany' => __('Check: more than 12 h in one day'),
+            'ofWorkdays' => __('of :n working days'),
+            'inDays' => __('in :n days'),
+            'noPending' => __('No pending days this month'),
+            'noHours' => __('No hours'),
+            'see' => __('View'),
+            'moreDays' => __('+ :n more days'),
+            'future' => __('Future day'),
+            'missing' => __('Missing :h'),
+            'partial' => __('Partial'),
+            'complete' => __('Complete'),
+            'overtimeLower' => __('overtime'),
+            'noTasks' => __('No tasks available'),
+        ];
+    @endphp
     <script>
         let calendar;
         const currentWorkspaceId = "{{ $currentWorkspace->id }}";
@@ -483,6 +1037,151 @@
             holidayRange: [],
             intensiveWorkRange: {}
         };
+
+        // --- horas / jornada por día (para pintar cada día, el total semanal y el resumen del mes) ---
+        let expectedHoursState = null; // jornada por día de la semana (monday: '08:00:00' | null)
+        let dayInfo = {}; // 'YYYY-MM-DD' => minutos imputados
+        const timesheetUrl = "{{ \Auth::guard('client')->check() ? '' : route('timesheet.index', $currentWorkspace->slug) }}";
+        const calT = @json($calTexts);
+
+        const pad2 = (n) => String(n).padStart(2, '0');
+        const isoLocal = (d) => d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate());
+        const todayIso = () => isoLocal(new Date());
+        const toMin = (t) => {
+            if (!t) return 0;
+            const p = String(t).split(':');
+            return (Number(p[0]) || 0) * 60 + (Number(p[1]) || 0);
+        };
+        const fmtMin = (m) => Math.floor(m / 60) + ':' + pad2(Math.round(m) % 60);
+        const calEsc = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, (c) => ({
+            '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+        }[c]));
+        const weekdayKey = (iso) => new Date(iso + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase();
+
+        function isHolidayDate(iso) {
+            return Array.isArray(specialDaysState.holidayRange) && specialDaysState.holidayRange.includes(iso);
+        }
+
+        function intensiveHoursFor(iso) {
+            const ranges = specialDaysState.intensiveWorkRange || {};
+            for (const [hours, dates] of Object.entries(ranges)) {
+                if (Array.isArray(dates) && dates.includes(iso)) return hours;
+            }
+            return null;
+        }
+
+        // Jornada esperada del día en minutos (0 = no laborable o festivo)
+        function expectedMinFor(iso) {
+            if (isHolidayDate(iso)) return 0;
+            const intensive = intensiveHoursFor(iso);
+            if (intensive) return toMin(intensive);
+            const val = expectedHoursState ? expectedHoursState[weekdayKey(iso)] : null;
+            return val ? toMin(val) : 0;
+        }
+
+        // Estado del día calculado en minutos (el servidor compara texto y marca 8:00 como parcial)
+        function dayState(iso) {
+            if (isHolidayDate(iso)) return 'holiday';
+            const exp = expectedMinFor(iso);
+            if (!exp || iso > todayIso()) return 'off';
+            const min = dayInfo[iso] || 0;
+            if (min === 0) return 'none';
+            if (min < exp) return 'partial';
+            if (min === exp) return 'complete';
+            return 'overtime';
+        }
+
+        function selectDay(iso) {
+            document.querySelectorAll('#calendar .fc-daygrid-day.cal-selected').forEach((el) => el.classList.remove('cal-selected'));
+            const cell = document.querySelector(`#calendar .fc-daygrid-day[data-date="${iso}"]`);
+            if (cell) cell.classList.add('cal-selected');
+        }
+
+        const capFirst = (s) => s ? s.charAt(0).toUpperCase() + s.slice(1) : s;
+
+        function formatLongDate(iso) {
+            return capFirst(new Date(iso + 'T00:00:00').toLocaleDateString('{{ app()->getLocale() }}', {
+                weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'
+            }));
+        }
+
+        // Total de la semana en el hueco del número de semana (lunes a domingo)
+        function weekNumberContent(arg) {
+            const start = new Date(arg.date);
+            let min = 0, exp = 0, any = false;
+            for (let i = 0; i < 7; i++) {
+                const d = new Date(start);
+                d.setDate(start.getDate() + i);
+                const iso = isoLocal(d);
+                min += dayInfo[iso] || 0;
+                exp += expectedMinFor(iso);
+                if (iso <= todayIso()) any = true;
+            }
+            const label = calT.weekShort + arg.num;
+            if (!any && !min) {
+                return { html: `<span class="cal-wk">${label}</span>` };
+            }
+            return { html: `<span class="cal-wk" title="${fmtMin(min)} / ${fmtMin(exp)}">${label} · <b>${fmtMin(min)}</b><span class="cal-wk-exp"> / ${fmtMin(exp)}</span></span>` };
+        }
+
+        // Resumen del mes visible y lista de días pendientes
+        function updateMonthSummary() {
+            if (!calendar) return;
+            const view = calendar.view;
+            const start = new Date(view.currentStart);
+            const end = new Date(view.currentEnd);
+            const today = todayIso();
+            let logged = 0, expected = 0, workdays = 0, overtime = 0, overtimeDays = 0, holidays = 0;
+            const pending = [];
+
+            for (let d = new Date(start); d < end; d.setDate(d.getDate() + 1)) {
+                const iso = isoLocal(d);
+                const min = dayInfo[iso] || 0;
+                if (isHolidayDate(iso)) holidays++;
+                if (iso > today) continue;
+                logged += min;
+                const exp = expectedMinFor(iso);
+                if (!exp) continue;
+                workdays++;
+                expected += exp;
+                if (min === 0) pending.push(iso);
+                if (min > exp) {
+                    overtime += min - exp;
+                    overtimeDays++;
+                }
+            }
+
+            const set = (k, v) => { const el = document.querySelector(`#cal-kpis [data-kpi="${k}"]`); if (el) el.textContent = v; };
+            set('logged', fmtMin(logged));
+            set('expected', '/ ' + fmtMin(expected));
+            set('none', pending.length);
+            set('workdays', calT.ofWorkdays.replace(':n', workdays));
+            set('overtime', overtime ? '+' + fmtMin(overtime) : '0:00');
+            set('overtimeDays', overtimeDays ? calT.inDays.replace(':n', overtimeDays) : '');
+            set('holidays', holidays);
+            const noneBox = document.querySelector('#cal-kpis [data-kpi-box="none"]');
+            if (noneBox) noneBox.classList.toggle('is-warn', pending.length > 0);
+
+            const list = document.getElementById('cal-pending-list');
+            if (!list) return;
+            if (!pending.length) {
+                list.innerHTML = `<div class="cal-empty">${calT.noPending}</div>`;
+                return;
+            }
+            pending.reverse();
+            const shown = pending.slice(0, 4).map((iso) => {
+                const label = capFirst(new Date(iso + 'T00:00:00').toLocaleDateString('{{ app()->getLocale() }}', { weekday: 'long', day: 'numeric' }));
+                return `<button type="button" class="cal-pd" data-cal-day="${iso}"><i></i>${calEsc(label)} · ${calT.noHours.toLowerCase()}<span>${calT.see} →</span></button>`;
+            }).join('');
+            const more = pending.length > 4 ? `<div class="cal-pd-more">${calT.moreDays.replace(':n', pending.length - 4)}</div>` : '';
+            list.innerHTML = shown + more;
+        }
+
+        $(document).on('click', '[data-cal-day]', function() {
+            const iso = $(this).data('cal-day');
+            selectDay(iso);
+            loadTasksByDate(iso);
+        });
 
         $(document).ready(function() {
 
@@ -526,6 +1225,39 @@
             } else {
                 $('.testCol').removeClass('col-12').addClass('col-lg-8');
             }
+            fitCalendarHeight();
+        }
+
+        // El mes entero cabe en la ventana sin scroll: alto del calendario = lo que queda hasta abajo
+        // (menos la leyenda y el margen de la tarjeta). Por debajo de 460 px se deja scroll para que se pueda leer.
+        function calendarHeight() {
+            const el = document.getElementById('calendar');
+            if (!el) return 600;
+            const top = el.getBoundingClientRect().top + window.scrollY;
+            const legend = document.querySelector('.cal-legend');
+            const below = (legend ? legend.offsetHeight + 10 : 0) + 34;
+            return Math.max(360, Math.floor(window.innerHeight - top - below));
+        }
+
+        function fitCalendarHeight() {
+            // Panel lateral primero: su lista lleva scroll propio para no alargar la página
+            const side = document.querySelector('.cal-side .card-body');
+            if (side) {
+                const sideTop = side.getBoundingClientRect().top + window.scrollY;
+                side.style.maxHeight = Math.max(260, window.innerHeight - sideTop - 48) + 'px';
+            }
+            if (!calendar) return;
+            let h = calendarHeight();
+            calendar.setOption('height', h);
+            // Lo que aún sobresale de la ventana (márgenes del layout) se descuenta del calendario
+            const over = document.documentElement.scrollHeight - window.innerHeight;
+            if (over > 0 && h > 360) {
+                h = Math.max(360, h - over - 2);
+                calendar.setOption('height', h);
+            }
+            // Filas bajas (portátiles): versión compacta del contenido del día para que no salga «+1 más»
+            const calEl = document.getElementById('calendar');
+            if (calEl) calEl.classList.toggle('cal-compact', (h - 90) / 6 < 88);
         }
 
         function hexToRgba(hex, alpha) {
@@ -676,6 +1408,12 @@
                         calendarRange.maxDate
                     );
 
+                    expectedHoursState = expectedHours;
+                    dayInfo = {};
+                    sourceColorData.forEach((item) => {
+                        if (item?.date) dayInfo[item.date] = toMin(item.hours);
+                    });
+
                     imputedDatesState = new Set(Array.isArray(effectiveColorData) ? effectiveColorData
                         .filter(item => hasImputedHours(item.hours))
                         .map(item => item.date) : []);
@@ -704,10 +1442,9 @@
                                     nonWorkingEvents.push({
                                         title: '{{ __('Non-working day') }}',
                                         start: nonWorkingDate,
-                                        backgroundColor: hexToRgba("#d3d3d3", opacity),
-                                        borderColor: '#d3d3d3',
-                                        textColor: 'black',
-                                        allDay: true
+                                        allDay: true,
+                                        classNames: ['cal-ev'],
+                                        kind: 'off'
                                     });
                                 }
                             }
@@ -723,25 +1460,22 @@
                                 return true;
                             })
                             .map(item => ({
-                                title: item.hours ? item.hours + ' hours' : '',
+                                title: item.hours || '',
                                 start: item.date,
-                                backgroundColor: hexToRgba(item.color, opacity),
-                                borderColor: item.color,
-                                textColor: 'black',
                                 allDay: true,
+                                classNames: ['cal-ev'],
+                                kind: 'hours',
                                 date: item.date
                             }));
 
                         if (data.specialColorData && data.specialColorData.holidayRange) {
                             data.specialColorData.holidayRange.forEach(day => {
                                 events.push({
-                                    title: 'Holiday',
+                                    title: '{{ __('Holiday') }}',
                                     start: day,
-                                    backgroundColor: hexToRgba(data.specialColorData
-                                        .holidayColor, opacity),
-                                    borderColor: data.specialColorData.holidayColor,
-                                    textColor: 'black',
                                     allDay: true,
+                                    classNames: ['cal-ev'],
+                                    kind: 'holiday',
                                     id: `holiday_${day}`,
                                     type: 'holiday'
                                 });
@@ -753,13 +1487,12 @@
                                     .intensiveWorkRange)) {
                                 days.forEach(day => {
                                     events.push({
-                                        title: `${hours} hours`,
+                                        title: `${hours}`,
                                         start: day,
-                                        backgroundColor: hexToRgba(data.specialColorData
-                                            .intensiveWorkColor, opacity),
-                                        borderColor: data.specialColorData.intensiveWorkColor,
-                                        textColor: 'black',
                                         allDay: true,
+                                        classNames: ['cal-ev'],
+                                        kind: 'intensive',
+                                        hours: hours,
                                         id: `intensive_${day}`,
                                         type: 'intensive_work'
                                     });
@@ -790,8 +1523,14 @@
             const locale = '{{ app()->getLocale() }}';
 
             if (calendar) {
+                document.querySelectorAll('#calendar .fc-daygrid-day').forEach((el) => {
+                    el.classList.remove('cal-st--none', 'cal-st--off', 'cal-st--holiday');
+                });
                 calendar.removeAllEvents();
                 calendar.addEventSource(events);
+                // Función nueva para que FullCalendar vuelva a pintar los totales semanales con los datos nuevos
+                calendar.setOption('weekNumberContent', (arg) => weekNumberContent(arg));
+                updateMonthSummary();
                 refreshSpecialDayButtonsState();
                 document.getElementById('loader-overlay').style.display = 'none';
                 return;
@@ -801,6 +1540,9 @@
                 locale: locale,
                 initialView: 'dayGridMonth',
                 firstDay: 1,
+                height: calendarHeight(),
+                // Si algún día no cabe (p. ej. festivo + intensiva), se resume en «+1» en vez de crecer la fila
+                dayMaxEvents: true,
                 headerToolbar: {
                     left: 'prev,next today',
                     center: 'title',
@@ -810,24 +1552,43 @@
                     today: "{{ trans('messages.today') }}"
                 },
                 events: events,
+                weekNumbers: true,
+                weekNumberContent: weekNumberContent,
+                datesSet: function() {
+                    updateMonthSummary();
+                },
+                // Cada día: horas / jornada con barra; no laborable, festivo e intensiva como etiqueta
+                eventContent: function(arg) {
+                    const p = arg.event.extendedProps;
+                    const iso = arg.event.startStr;
+                    if (p.kind === 'off') {
+                        return { html: `<div class="cal-off">${calT.nonWorking}</div>` };
+                    }
+                    if (p.type === 'holiday') {
+                        return { html: `<span class="cal-chip cal-chip--holiday"><i class="fa-solid fa-umbrella-beach"></i>${calT.holiday}<span class="cal-ev-del" title="${calT.remove}">&times;</span></span>` };
+                    }
+                    if (p.type === 'intensive_work') {
+                        return { html: `<span class="cal-chip cal-chip--intensive"><i class="fa-regular fa-clock"></i>${calT.intensive} ${calEsc(String(p.hours || '').slice(0, 5))}<span class="cal-ev-del" title="${calT.remove}">&times;</span></span>` };
+                    }
+                    const min = dayInfo[iso] || 0;
+                    const exp = expectedMinFor(iso);
+                    const state = dayState(iso);
+                    const pct = state === 'none' ? 100 : (exp ? Math.min(100, Math.round(min * 100 / exp)) : 0);
+                    const warn = min > 12 * 60 ? `<i class="fa-solid fa-triangle-exclamation cal-h-warn" title="${calT.tooMany}"></i>` : '';
+                    return {
+                        html: `<div class="cal-h"><span class="cal-h-val cal-st-text--${state}"><b>${fmtMin(min)}</b>${exp ? ' / ' + fmtMin(exp) : ''}</span>${warn}` +
+                            `<div class="cal-h-bar"><i class="cal-bg--${state}" style="width:${pct}%"></i></div></div>`
+                    };
+                },
                 dateClick: function(info) {
                     if (isMultiSelectMode) {
                         toggleDateInMultiSelection(info.dateStr);
                         return;
                     }
 
-                    // Al hacer clic en un día, obtener las tareas
-                    const selectedDate = info.dateStr;
-
-                    // Remover la clase de todos los días
-                    document.querySelectorAll('.fc-daygrid-day.fc-day-today').forEach(el => {
-                        el.classList.remove('fc-day-today');
-                    });
-
-                    // Agregar la clase al día seleccionado
-                    info.dayEl.classList.add('fc-day-today');
-
-                    loadTasksByDate(selectedDate);
+                    // Al hacer clic en un día: marcarlo y cargar su detalle
+                    selectDay(info.dateStr);
+                    loadTasksByDate(info.dateStr);
                 },
                 dayCellDidMount: function(arg) {
                     const dateNumber = arg.el.querySelector('.fc-daygrid-day-number');
@@ -867,44 +1628,40 @@
                         'intensive_work') {
                         showDeleteModal(info.event);
                     } else {
-                        // Cargar tareas para ese día
-                        const selectedDate = info.event.startStr;
-
-                        // Remover la clase de todos los días
-                        document.querySelectorAll('.fc-daygrid-day.fc-day-today').forEach(el => {
-                            el.classList.remove('fc-day-today');
-                        });
-
-                        // Buscar y agregar la clase al día padre del evento
-                        const dayCell = info.el.closest('.fc-daygrid-day');
-                        if (dayCell) {
-                            dayCell.classList.add('fc-day-today');
+                        if (isMultiSelectMode) {
+                            toggleDateInMultiSelection(info.event.startStr);
+                            return;
                         }
-
-                        loadTasksByDate(selectedDate);
+                        // Cargar el detalle de ese día
+                        selectDay(info.event.startStr);
+                        loadTasksByDate(info.event.startStr);
                     }
                 },
                 eventDidMount: function(info) {
-                    if (info.event.extendedProps.type === 'holiday' || info.event.extendedProps.type ===
-                        'intensive_work') {
-                        const deleteBtn = document.createElement('span');
-                        deleteBtn.innerHTML = '❌';
-                        deleteBtn.style.cursor = 'pointer';
-                        deleteBtn.style.marginLeft = '10px';
-                        deleteBtn.style.color = 'red';
-                        deleteBtn.style.fontSize = '14px';
+                    const p = info.event.extendedProps;
+                    const cell = info.el.closest('.fc-daygrid-day');
 
-                        deleteBtn.addEventListener('click', function(e) {
-                            e.stopPropagation();
-                            showDeleteModal(info.event);
-                        });
+                    // Tono de la celda según el estado del día
+                    if (cell) {
+                        if (p.kind === 'off') cell.classList.add('cal-st--off');
+                        else if (p.type === 'holiday') cell.classList.add('cal-st--holiday');
+                        else if (p.kind === 'hours' && dayState(info.event.startStr) === 'none') cell.classList.add('cal-st--none');
+                    }
 
-                        info.el.querySelector('.fc-event-title').appendChild(deleteBtn);
+                    if (p.type === 'holiday' || p.type === 'intensive_work') {
+                        const deleteBtn = info.el.querySelector('.cal-ev-del');
+                        if (deleteBtn) {
+                            deleteBtn.addEventListener('click', function(e) {
+                                e.stopPropagation();
+                                showDeleteModal(info.event);
+                            });
+                        }
                     }
                 }
             });
 
             calendar.render();
+            fitCalendarHeight();
             updateCalendarEditModeUI();
             refreshSpecialDayButtonsState();
             refreshMultiSelectedDayCells();
@@ -915,12 +1672,10 @@
             document.getElementById('loader-overlay').style.display = 'none';
 
             // Seleccionar el día de hoy por defecto
-            const today = new Date().toISOString().split('T')[0];
-            const todayElement = document.querySelector(`[data-date="${today}"]`);
-            if (todayElement) {
-                todayElement.classList.add('fc-day-today');
-            }
+            const today = todayIso();
+            selectDay(today);
             loadTasksByDate(today);
+            updateMonthSummary();
 
             // Add Workspace Select Dropdown event listener
             $('#workspace-select').on('change', function() {
@@ -928,9 +1683,8 @@
                 document.getElementById('loader-overlay').style.display = 'flex';
 
                 getCalendarInfo();
-                const selectedDate = document.querySelector('.fc-day-today') ?
-                    document.querySelector('.fc-day-today').getAttribute('data-date') :
-                    new Date().toISOString().split('T')[0];
+                const selectedCell = document.querySelector('#calendar .cal-selected');
+                const selectedDate = selectedCell ? selectedCell.getAttribute('data-date') : todayIso();
                 loadTasksByDate(selectedDate);
             });
         }
@@ -1207,111 +1961,62 @@
                     'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                 },
                 success: function(response) {
-                    console.log("Tasks loaded:", response);
-
-                    // Actualizar el encabezado con la fecha seleccionada
-                    const dateObj = new Date(date + 'T00:00:00');
-                    const formattedDate = dateObj.toLocaleDateString('{{ app()->getLocale() }}', {
-                        weekday: 'long',
-                        year: 'numeric',
-                        month: 'long',
-                        day: 'numeric'
-                    });
-                    $('#selected-date').text('(' + formattedDate + ')');
-
-                    // Limpiar lista de tareas
-                    const taskList = $('#task-list');
-                    taskList.empty();
-
-                    // Filtrar tareas con totalTime diferente de 00:00
-                    const filteredTasks = response.tasks ? response.tasks.filter(task => task.totalTime !==
-                        '00:00') : [];
-
-                    if (filteredTasks.length > 0) {
-                        // Agrupar tareas por proyecto (y workspace si aplica)
-                        const projectsMap = {};
-
-                        filteredTasks.forEach(function(task) {
-                            // Crear clave única combinando proyecto y workspace para evitar mezclar si hay nombres repetidos
-                            const key = mode === 'all' ? `${task.projectName}__${task.workspaceName}` :
-                                task.projectName;
-
-                            if (!projectsMap[key]) {
-                                projectsMap[key] = {
-                                    projectName: task.projectName,
-                                    workspaceName: task.workspaceName,
-                                    tasks: []
-                                };
-                            }
-                            projectsMap[key].tasks.push(task);
-                        });
-
-                        // Crear acordeón por proyectos
-                        const accordion = document.createElement('ul');
-                        accordion.className = 'project-accordion';
-
-                        Object.values(projectsMap).forEach(function(group, index) {
-                            const projectItem = document.createElement('li');
-                            projectItem.className = 'project-item';
-
-                            let headerText = group.projectName;
-
-                            const projectHeader = document.createElement('div');
-                            projectHeader.className = 'project-header collapsed';
-                            projectHeader.innerHTML = `
-                                <span>${headerText}</span>
-                                <span class="icon"><i class="fa-solid fa-chevron-down"></i></span>
-                            `;
-
-                            const projectContent = document.createElement('div');
-                            projectContent.className = 'project-content';
-
-                            // Agregar tareas del proyecto
-                            group.tasks.forEach(function(task) {
-                                // console.log(task);
-                                const taskItem = document.createElement('div');
-                                taskItem.className = 'task-item';
-
-                                let workspaceHtml = '';
-                                if (mode === 'all' && task.workspaceName) {
-                                    workspaceHtml = `
-                                        <div class="task-item-label">{{ __('Workspace') }}</div>
-                                        <div class="task-item-text">${task.workspaceName}</div>
-                                    `;
-                                }
-                                taskItem.innerHTML = `
-                                ${workspaceHtml}
-                                    <div class="task-item-label">{{ __('Milestone') }}</div>
-                                    <div class="task-item-text">${task.milestoneTitle}</div>
-                                    <div class="task-item-label">{{ __('Task') }}</div>
-                                    <div class="task-item-text">${task.taskTitle}</div>
-                                    
-                                    <div class="task-item-time">⏱️ ${task.totalTime}</div>
-                                `;
-                                projectContent.appendChild(taskItem);
-                            });
-
-                            // Event listener para expandir/contraer
-                            projectHeader.addEventListener('click', function() {
-                                projectHeader.classList.toggle('collapsed');
-                                projectHeader.classList.toggle('expanded');
-                                projectContent.classList.toggle('expanded');
-                            });
-
-                            projectItem.appendChild(projectHeader);
-                            projectItem.appendChild(projectContent);
-                            accordion.appendChild(projectItem);
-
-                        });
-
-                        taskList.append(accordion);
-
-                    } else {
-                        taskList.append('<p>{{ __('No tasks available') }}</p>');
+                    // --- cabecera: fecha, anillo con horas / jornada y estado del día ---
+                    $('#selected-date').text(formatLongDate(date));
+                    const worked = toMin(response.formattedTotalHours);
+                    const exp = expectedMinFor(date);
+                    const state = dayState(date);
+                    const ringColors = { none: '#e06c71', partial: '#e8c800', complete: '#5cc45a', overtime: '#63b6dc', holiday: '#91DDCF', off: '#d1d5db' };
+                    const pct = exp ? Math.min(100, Math.round(worked * 100 / exp)) : (worked ? 100 : 0);
+                    $('#cal-day').prop('hidden', false);
+                    $('#cal-day-ring').attr('stroke', ringColors[state] || '#d1d5db').attr('stroke-dasharray', pct + ' 100');
+                    $('#total-hours').text(fmtMin(worked));
+                    $('#cal-day-expected').text(exp ? '/ ' + fmtMin(exp) : '');
+                    let stateText = '';
+                    if (state === 'holiday') stateText = calT.holiday;
+                    else if (state === 'off') stateText = date > todayIso() ? calT.future : calT.nonWorking;
+                    else if (state === 'none') stateText = calT.noHours;
+                    else if (state === 'partial') stateText = calT.missing.replace(':h', fmtMin(exp - worked)) + ' · ' + calT.partial;
+                    else if (state === 'complete') stateText = calT.complete;
+                    else stateText = '+' + fmtMin(worked - exp) + ' ' + calT.overtimeLower;
+                    $('#cal-day-state').text(stateText);
+                    const logBtn = $('#cal-day-log');
+                    if (logBtn.length) {
+                        const canLog = timesheetUrl && date <= todayIso() && state !== 'holiday';
+                        logBtn.prop('hidden', !canLog).attr('href', canLog ? timesheetUrl + '?date=' + date : '#');
                     }
 
-                    // Actualizar las horas totales
-                    $('#total-hours').text(response.formattedTotalHours);
+                    // --- tareas del día agrupadas por proyecto ---
+                    const taskList = $('#task-list');
+                    taskList.empty();
+                    const filteredTasks = response.tasks ? response.tasks.filter(task => task.totalTime !== '00:00') : [];
+
+                    if (!filteredTasks.length) {
+                        taskList.html(`<div class="cal-empty">${calT.noTasks}</div>`);
+                        return;
+                    }
+
+                    const projectsMap = {};
+                    filteredTasks.forEach(function(task) {
+                        // Clave con el espacio de trabajo para no mezclar proyectos con el mismo nombre
+                        const key = mode === 'all' ? `${task.projectName}__${task.workspaceName}` : task.projectName;
+                        if (!projectsMap[key]) {
+                            projectsMap[key] = { projectName: task.projectName, workspaceName: task.workspaceName, tasks: [] };
+                        }
+                        projectsMap[key].tasks.push(task);
+                    });
+
+                    let html = '';
+                    Object.values(projectsMap).forEach(function(group) {
+                        html += `<div class="cal-proj">${calEsc(group.projectName)}` +
+                            (mode === 'all' && group.workspaceName ? `<small>${calEsc(group.workspaceName)}</small>` : '') + `</div>`;
+                        group.tasks.forEach(function(task) {
+                            html += `<div class="cal-task"><span class="cal-task-ms">${calEsc(task.milestoneTitle)}</span>` +
+                                `<span class="cal-task-time">${fmtMin(toMin(task.totalTime))}</span>` +
+                                `<span class="cal-task-name">${calEsc(task.taskTitle)}</span></div>`;
+                        });
+                    });
+                    taskList.html(html);
                 },
                 error: function(xhr) {
                     console.error("Error loading tasks:", xhr.responseText);

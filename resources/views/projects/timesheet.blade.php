@@ -14,6 +14,7 @@
         </li>
     @endif
     <li class="breadcrumb-item"> {{ __('Timesheet') }}</li>
+    @include('projects.partials.timesheet_help')
 @endsection
 @section('action-button')
     <div class="d-flex justify-content-end align-items-center row1">
@@ -58,6 +59,8 @@
                         <i class="fa-solid fa-chevron-right"></i>
                     </button>
                 </div>
+                <button type="button" id="currentWeekBtn" class="btn btn-outline-primary weekTodayBtn"
+                    title="{{ __('Go to the current week') }}">{{ __('Today') }}</button>
                 <input type="date" id="weekPicker" class="weekPickerHidden" tabindex="-1" aria-hidden="true">
 
                 <input type="hidden" id="weeknumber" value="0">
@@ -147,6 +150,25 @@
             }
         }
 
+        // La semana guardada solo se recupera al recargar o al volver a esta misma página
+        // (tras imputar horas el formulario vuelve aquí con redirect()->back()).
+        // Si se entra desde el menú u otra página, se abre la semana actual.
+        function shouldRestoreSavedWeek() {
+            var navEntry = performance.getEntriesByType ? performance.getEntriesByType('navigation')[0] : null;
+            var navType = navEntry ? navEntry.type :
+                (performance.navigation && performance.navigation.type === 1 ? 'reload' : 'navigate');
+
+            if (navType === 'reload' || navType === 'back_forward') {
+                return true;
+            }
+
+            try {
+                return !!document.referrer && new URL(document.referrer).pathname === window.location.pathname;
+            } catch (e) {
+                return false;
+            }
+        }
+
         function formatWeekRange(rangeStr) {
             // Espera: "YYYY-MM-DD - YYYY-MM-DD" => "DD-MM-YYYY → DD-MM-YYYY"
             if (!rangeStr) {
@@ -182,6 +204,27 @@
 
             var weekOffset = targetWeekStart.diff(currentWeekStart, 'weeks');
             $('#weeknumber').val(weekOffset);
+        }
+
+        // Día elegido en el calendario (?date=YYYY-MM-DD): se resalta su columna en la hoja para saber
+        // a qué día se iban a imputar las horas. Se mantiene al recargar la semana (filtros, guardar…).
+        function markPickedDay() {
+            var date = window.__tsPickedDate;
+            if (!date) return;
+            var grid = document.getElementById('timesheet-table-view');
+            if (!grid) return;
+            grid.querySelectorAll('.is-picked').forEach(function(el) { el.classList.remove('is-picked'); });
+            var head = grid.querySelector('.tsg-head .tsg-day[data-date="' + date + '"]');
+            if (!head) return; // la semana cargada no incluye ese día
+            head.classList.add('is-picked');
+            if (!head.querySelector('.tsg-picked-tag')) {
+                var tag = document.createElement('span');
+                tag.className = 'tsg-picked-tag';
+                tag.innerHTML = '<i class="fa-regular fa-calendar-check" aria-hidden="true"></i>' + @json(__('Chosen'));
+                tag.title = @json(__('Day chosen in the calendar'));
+                head.appendChild(tag);
+            }
+            grid.querySelectorAll('.tsg-cell[data-date="' + date + '"]').forEach(function(c) { c.classList.add('is-picked'); });
         }
 
         function ajaxFilterTimesheetTableView() {
@@ -249,6 +292,7 @@
                     }
 
                     mainEle.html(data.html);
+                    markPickedDay();
                 },
                 error: function() {
                     // Ocultar spinner y mostrar texto en caso de error
@@ -260,8 +304,12 @@
 
         $(function() {
             // Restaurar semana seleccionada tras recarga (fallback: hoy)
-            var savedWeekStart = loadSelectedWeekStart();
-            var initialDate = savedWeekStart || moment().format('YYYY-MM-DD');
+            // ?date=YYYY-MM-DD (p. ej. desde el calendario) abre la semana de ese día
+            var urlDate = new URLSearchParams(window.location.search).get('date');
+            var linkedDate = urlDate && moment(urlDate, 'YYYY-MM-DD', true).isValid() ? urlDate : null;
+            window.__tsPickedDate = linkedDate; // markPickedDay() lo resalta al cargar la semana
+            var savedWeekStart = shouldRestoreSavedWeek() ? loadSelectedWeekStart() : null;
+            var initialDate = linkedDate || savedWeekStart || moment().format('YYYY-MM-DD');
             $('#weekPicker').val(initialDate);
 
             // Importantísimo: setea el offset antes del primer AJAX
@@ -311,6 +359,15 @@
             $('#weekPicker').val(targetWeekStart.format('YYYY-MM-DD'));
             saveSelectedWeekStart(targetWeekStart.format('YYYY-MM-DD'));
 
+            ajaxFilterTimesheetTableView();
+        });
+
+        // Volver a la semana actual
+        $(document).on('click', '#currentWeekBtn', function() {
+            var today = moment().format('YYYY-MM-DD');
+            $('#weekPicker').val(today);
+            saveSelectedWeekStart(moment().startOf('isoWeek').format('YYYY-MM-DD'));
+            setWeekFromDate(today);
             ajaxFilterTimesheetTableView();
         });
 
@@ -401,7 +458,7 @@
 
             var dateFormatted = $(this).data('date-formatted');
             var dateValue = $(this).data('date');
-            var hoursValue = $(this).text().trim();
+            var hoursValue = String($(this).data('hours') || $(this).text().trim());
             var tasksData = $(this).data('tasks') || [];
             var isHoliday = String($(this).data('is-holiday')) === '1';
 
@@ -565,6 +622,11 @@
 
     .weekly-dates-div #weekRangeDisplay.weekPickerBtn {
         cursor: pointer;
+    }
+
+    .weekly-dates-div .weekTodayBtn {
+        height: 38px;
+        white-space: nowrap;
     }
 
     /* Input date oculto: se usa solo para abrir el calendario */

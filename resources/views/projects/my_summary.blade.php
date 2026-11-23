@@ -9,6 +9,7 @@
         <a href="{{ route('home') }}">{{ __('Home') }}</a>
     </li>
     <li class="breadcrumb-item">{{ __('My Summary') }}</li>
+    @include('projects.partials.my_summary_help')
 @endsection
 
 @php
@@ -722,6 +723,219 @@
             flex: 0 1 auto;
         }
     }
+
+    /* =============================================
+       REDISEÑO COMPACTO (solo visual: mismos filtros, vistas, enlaces y datos)
+       Prefijo .my-summary-page para mandar sobre el CSS de los parciales que llegan por AJAX.
+       ============================================= */
+    .my-summary-page .my-summary-section-shell {
+        min-height: 0;
+        padding: 16px 18px;
+        gap: 12px;
+        border-radius: 14px;
+    }
+
+    .my-summary-page .my-summary-title-wrap h3 {
+        font-size: 1.15rem;
+        color: #4a1421;
+    }
+
+    /* filtros de periodo y de entrega: píldoras neutras, la activa en rosa (como en el resto de vistas) */
+    .my-summary-page .my-summary-filter-button {
+        min-height: 32px;
+        padding: 6px 12px;
+        border-color: #e5e7eb;
+        color: #374151;
+        font-size: 12.5px;
+        font-weight: 500;
+    }
+
+    .my-summary-page .my-summary-filter-button:hover {
+        background: #fff;
+        border-color: #f3c7cd;
+        color: #aa182c;
+    }
+
+    .my-summary-page .my-summary-filter-button.is-active {
+        background: #fbeaec;
+        border-color: #f3c7cd;
+        color: #aa182c;
+        font-weight: 600;
+    }
+
+    .my-summary-page .my-summary-view-option {
+        min-height: 30px;
+        padding: 6px 13px;
+        font-size: 12.5px;
+    }
+
+    /* gráfico: sin el degradado de fondo y con cabecera compacta */
+    .my-summary-page .my-summary-visualization-shell {
+        gap: 10px;
+        padding: 14px 16px;
+        border-radius: 12px;
+        background: #fff;
+    }
+
+    .my-summary-page .my-summary-chart-kicker {
+        display: none;
+    }
+
+    .my-summary-page .my-summary-chart-title {
+        font-size: 15px;
+    }
+
+    .my-summary-hbars {
+        display: flex;
+        flex-direction: column;
+        max-height: 460px;
+        overflow-y: auto;
+        scrollbar-width: thin;
+    }
+
+    .my-summary-hbar {
+        display: grid;
+        grid-template-columns: 28px minmax(180px, 320px) 1fr 130px 18px;
+        gap: 12px;
+        align-items: center;
+        padding: 7px 8px;
+        border-radius: 8px;
+        color: inherit;
+        text-decoration: none;
+    }
+
+    .my-summary-hbar.is-link:hover {
+        background: #fdf7f8;
+        color: inherit;
+    }
+
+    .my-summary-hbar-icon {
+        width: 26px;
+        height: 26px;
+        object-fit: contain;
+        border-radius: 6px;
+        background: #f9fafb;
+        padding: 3px;
+    }
+
+    .my-summary-hbar-name {
+        min-width: 0;
+        font-size: 13px;
+        font-weight: 600;
+        color: #1f2937;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .my-summary-hbar-name small {
+        display: block;
+        font-size: 11px;
+        font-weight: 400;
+        color: #9ca3af;
+    }
+
+    .my-summary-hbar-track {
+        height: 18px;
+        border-radius: 6px;
+        background: #f6f7f9;
+        overflow: hidden;
+    }
+
+    .my-summary-hbar-fill {
+        display: block;
+        height: 100%;
+        border-radius: 6px;
+        background: linear-gradient(90deg, #c43a52, #aa182c);
+    }
+
+    .my-summary-hbar-value {
+        text-align: right;
+        font-size: 13px;
+        font-weight: 700;
+        color: #1f2937;
+        white-space: nowrap;
+    }
+
+    .my-summary-hbar-value small {
+        margin-left: 5px;
+        font-weight: 400;
+        color: #9ca3af;
+    }
+
+    .my-summary-hbar-go {
+        color: #d1d5db;
+        font-size: 11px;
+    }
+
+    .my-summary-hbar.is-link:hover .my-summary-hbar-go {
+        color: #aa182c;
+    }
+
+    /* tarjetas de proyecto: mismas piezas (icono del tipo, horas, nombre, tipo y espacio), más compactas */
+    .my-summary-page .my-summary-grid {
+        grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr));
+        gap: 10px;
+        padding: 2px;
+    }
+
+    .my-summary-page .my-summary-project-card {
+        min-height: 0;
+        border-color: #eceef2;
+        box-shadow: none;
+    }
+
+    .my-summary-page a.my-summary-project-card:hover {
+        transform: none;
+        border-color: #f3c7cd;
+        box-shadow: 0 4px 14px rgba(170, 24, 44, 0.07);
+    }
+
+    .my-summary-page .my-summary-project-card-left {
+        width: 96px;
+        padding: 12px 10px;
+        background: #fbeaec;
+        color: #4a1421;
+    }
+
+    .my-summary-page .my-summary-type-icon {
+        width: 30px;
+        height: 30px;
+        margin-bottom: 6px;
+        background: #fff;
+        border-color: #f3e3e6;
+    }
+
+    .my-summary-page .my-summary-hours-value {
+        font-size: 1.35rem;
+        color: #4a1421;
+    }
+
+    .my-summary-page .my-summary-hours-label {
+        font-size: 10px;
+        color: #9d6b75;
+    }
+
+    .my-summary-page .my-summary-project-card-right {
+        padding: 12px 14px;
+    }
+
+    .my-summary-page .my-summary-project-name {
+        font-size: 14px;
+        margin-bottom: 6px;
+    }
+
+    .my-summary-page .my-summary-badge {
+        padding: 1px 8px;
+        font-size: 11.5px;
+        border-radius: 999px;
+    }
+
+    @media (max-width: 768px) {
+        .my-summary-hbar {
+            grid-template-columns: 24px minmax(110px, 1fr) 1fr 90px 0;
+        }
+    }
 </style>
 
 @section('content')
@@ -1118,67 +1332,41 @@
                     return;
                 }
 
-                const rawMaxHours = data.maxHours && data.maxHours > 0 ? data.maxHours : 1;
-                const scale = buildNiceChartScale(rawMaxHours);
+                // Barras horizontales ordenadas de más a menos horas (los datos ya llegan ordenados):
+                // nombre completo, tipo y espacio de trabajo (si es otro), horas y % del periodo; cada fila abre el proyecto
+                const currentWorkspaceId = @json(optional($currentWorkspace)->id);
+                const maxHours = data.maxHours && data.maxHours > 0 ? data.maxHours : 1;
+                const totalHours = data.projects.reduce((acc, p) => acc + (Number(p.hours) || 0), 0) || 1;
 
-                const layout = document.createElement('div');
-                layout.className = 'my-summary-chart-layout';
-
-                const yAxis = document.createElement('div');
-                yAxis.className = 'my-summary-chart-y-axis';
-                for (let i = scale.ticks.length - 1; i >= 0; i--) {
-                    const span = document.createElement('span');
-                    span.textContent = formatChartTick(scale.ticks[i]);
-                    yAxis.appendChild(span);
-                }
-
-                const scrollArea = document.createElement('div');
-                scrollArea.className = 'my-summary-chart-scroll';
-
-                const innerArea = document.createElement('div');
-                innerArea.className = 'my-summary-chart-inner';
-
-                const gridLines = document.createElement('div');
-                gridLines.className = 'my-summary-chart-grid-lines';
-                for (let i = 0; i < scale.ticks.length; i++) {
-                    const line = document.createElement('div');
-                    line.className = 'my-summary-chart-grid-line';
-                    gridLines.appendChild(line);
-                }
-
-                const track = document.createElement('div');
-                track.className = 'my-summary-chart-track';
-                applyChartDensity(track, data.projects.length);
+                const list = document.createElement('div');
+                list.className = 'my-summary-hbars';
 
                 data.projects.forEach(project => {
-                    const column = document.createElement(project.project_url ? 'a' : 'div');
-                    const height = Math.max((project.hours / scale.max) * 100, 1.5);
-
-                    column.className = project.project_url ?
-                        'my-summary-chart-column-link' :
-                        'my-summary-chart-column';
-
+                    const row = document.createElement(project.project_url ? 'a' : 'div');
+                    row.className = 'my-summary-hbar' + (project.project_url ? ' is-link' : '');
                     if (project.project_url) {
-                        column.href = project.project_url;
+                        row.href = project.project_url;
                     }
 
-                    column.innerHTML = `
-                        <span class="my-summary-chart-bar-wrap" title="${project.formatted_time} - ${escapeHtml(project.name)}">
-                            <span class="my-summary-chart-bar" style="height:${height}%"></span>
-                        </span>
-                        <span class="my-summary-chart-label" title="${escapeHtml(project.name)}">${escapeHtml(project.short_name)}</span>
-                    `;
+                    const width = Math.max(((Number(project.hours) || 0) / maxHours) * 100, 1.5);
+                    const pct = Math.round(((Number(project.hours) || 0) * 100) / totalHours);
+                    const isExternal = project.workspace && currentWorkspaceId && Number(project.workspace_id) !== Number(currentWorkspaceId);
+                    const meta = [project.type, isExternal ? project.workspace : null].filter(Boolean).map(escapeHtml).join(' · ');
+                    const icon = project.type_icon
+                        ? `<img class="my-summary-hbar-icon" src="${escapeHtml(project.type_icon)}" alt="${escapeHtml(project.type || '')}">`
+                        : '<span class="my-summary-hbar-icon"></span>';
 
-                    track.appendChild(column);
+                    row.innerHTML = `
+                        ${icon}
+                        <span class="my-summary-hbar-name" title="${escapeHtml(project.name)}">${escapeHtml(project.name)}${meta ? `<small>${meta}</small>` : ''}</span>
+                        <span class="my-summary-hbar-track" title="${escapeHtml(project.formatted_time)} - ${escapeHtml(project.name)}"><span class="my-summary-hbar-fill" style="width:${width}%"></span></span>
+                        <span class="my-summary-hbar-value">${escapeHtml(project.formatted_time)}<small>${pct} %</small></span>
+                        <span class="my-summary-hbar-go">${project.project_url ? '<i class="fa-solid fa-arrow-right"></i>' : ''}</span>
+                    `;
+                    list.appendChild(row);
                 });
 
-                innerArea.appendChild(gridLines);
-                innerArea.appendChild(track);
-                scrollArea.appendChild(innerArea);
-
-                layout.appendChild(yAxis);
-                layout.appendChild(scrollArea);
-                chartContainer.appendChild(layout);
+                chartContainer.appendChild(list);
             }
 
             function buildNiceChartScale(maxHours) {

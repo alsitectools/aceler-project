@@ -166,15 +166,7 @@ class ProjectController extends Controller
 
     private function parseTimeToDecimal(?string $time): float
     {
-        if (empty($time)) {
-            return 0.0;
-        }
-
-        $parts = explode(':', $time);
-        $hours = (int) ($parts[0] ?? 0);
-        $minutes = (int) ($parts[1] ?? 0);
-
-        return $hours + ($minutes / 60);
+        return UserTimetable::timeToDecimal($time);
     }
 
     private function formatSecondsAsHoursMinutes(int $totalSeconds): string
@@ -194,6 +186,11 @@ class ProjectController extends Controller
                 'hours' => (float) $summary->decimal_total_time,
                 'formatted_time' => $summary->formatted_total_time,
                 'project_url' => $summary->project_url,
+                // Mismos datos que las tarjetas (tipo con su icono y espacio de trabajo) para el gráfico de barras horizontales
+                'type' => $summary->project_type_name ? __($summary->project_type_name) : null,
+                'type_icon' => $summary->project_type_name ? asset('assets/img/types/' . $summary->project_type_name . '.svg') : null,
+                'workspace_id' => (int) $summary->workspace_id,
+                'workspace' => $summary->workspace_display_name ?? $summary->workspace_name,
             ];
         })->values();
 
@@ -341,32 +338,7 @@ class ProjectController extends Controller
 
     private function getIntensiveHoursByDate(?string $rangeIntensiveWorkday): array
     {
-        if (empty($rangeIntensiveWorkday)) {
-            return [];
-        }
-
-        $decodedIntensive = json_decode($rangeIntensiveWorkday, true);
-        if (!is_array($decodedIntensive)) {
-            return [];
-        }
-
-        $intensiveHoursByDate = [];
-
-        foreach ($decodedIntensive as $hours => $dates) {
-            if (!is_array($dates)) {
-                continue;
-            }
-
-            foreach ($dates as $date) {
-                if (empty($date)) {
-                    continue;
-                }
-
-                $intensiveHoursByDate[$date] = $hours;
-            }
-        }
-
-        return $intensiveHoursByDate;
+        return UserTimetable::parseIntensiveHours($rangeIntensiveWorkday);
     }
 
     private function getExpectedHoursByDate(?UserTimetable $timeTable, ?string $date): float
@@ -375,15 +347,7 @@ class ProjectController extends Controller
             return 0.0;
         }
 
-        $targetDate = Carbon::parse($date)->toDateString();
-        $intensiveHoursByDate = $this->getIntensiveHoursByDate($timeTable->range_intensive_workday ?? null);
-
-        if (isset($intensiveHoursByDate[$targetDate])) {
-            return $this->parseTimeToDecimal($intensiveHoursByDate[$targetDate]);
-        }
-
-        $dayOfWeek = strtolower(Carbon::parse($targetDate)->format('l'));
-        return $this->parseTimeToDecimal($timeTable->$dayOfWeek ?? '00:00');
+        return $timeTable->expectedHoursOn($date);
     }
 
     private function resolveDayColor(float $workedHours, float $expectedHour): string
@@ -407,29 +371,7 @@ class ProjectController extends Controller
     {
         $timeTable = UserTimetable::where('user_id', $userId)->first();
 
-        if (!$timeTable || empty($timeTable->range_holidays)) {
-            return [];
-        }
-
-        $decodedHolidays = json_decode($timeTable->range_holidays, true);
-        if (!is_array($decodedHolidays)) {
-            return [];
-        }
-
-        $holidayDates = [];
-        foreach (array_values($decodedHolidays) as $holidayDate) {
-            if (empty($holidayDate)) {
-                continue;
-            }
-
-            try {
-                $holidayDates[] = Carbon::parse($holidayDate)->toDateString();
-            } catch (\Throwable $e) {
-                continue;
-            }
-        }
-
-        return array_values(array_unique($holidayDates));
+        return $timeTable ? $timeTable->holidayDates() : [];
     }
 
     private function isUserHolidayDate(int $userId, string $date): bool
@@ -858,313 +800,147 @@ class ProjectController extends Controller
     }
     public function exportProjectsToAxapta()
     {
-        //el campo puntos en axapta no pilla las horas y lo pilla en hDecimal
-        //el export no debe ser por suma del total, sino por dia, es decir, cada dia imputado tendra unas puntuaciones, cada linea es un dia imputado
-        \Log::info("=== EXPORT AXAPTA - DELTA MODE ===");
-
-        // Export global: todos los proyectos tipo Obra (type = 1) de todas las workspaces/delegaciones
-        $user = Auth::user();
-        $projects = Project::where('type', 1)
-            // ->where('workspace', $user->currant_workspace) // restricción desactivada: export global
-            ->get();
-
-        if ($projects->isEmpty()) {
-            \Log::warning("No hay proyectos de tipo 1 para exportar");
-            return response()->json(['message' => 'No hay proyectos tipo Obra para exportar'], 200);
+        // Formato Axapta: ancho fijo de 234, sin cabecera, una línea por tarea y día
+        // trabajado del empleado asignado (ver AxaptaExportHelper)
+        if (!Auth::user() || !Auth::user()->is_exporter) {
+            return response()->json(['message' => __('You do not have permission to export to Axapta.')], 403);
         }
 
-        $fileContent = '';
-        $fieldWidths = [
-            'regId' => 10,
-            'fecha' => 10,
-            'empresa' => 20,
-            'delegacion' => 20,
-            'empleado' => 20,
-            'masterobrasid' => 20,
-            'obra' => 20,
-            'descripcion' => 50,
-            'op' => 10,
-            'horas' => 10,
-            'ref' => 20,
-            'linea' => 10,
-            'hrDecimal' => 10,
-            'puntos' => 10,
-        ];
+        \Log::info("=== EXPORT AXAPTA ===");
 
-        // Contador global para regId - sembrado con el total de líneas ya exportadas
-        // para que siga siendo consecutivo entre archivos
-        $regId = (int) ExportLedgerLine::count();
-        // Almacenar líneas a exportar
-        $linesToExport = [];
-        // Almacenar registros para ledger
-        $ledgerRecords = [];
+        $export = AxaptaExportHelper::buildExport(
+            fn($milestone, $project) => $this->buildAutomaticExportReference($milestone, $project)
+        );
 
-        // Agregar encabezado
-        $headerLine = '';
-        $headerLine .= str_pad('RegId', $fieldWidths['regId']);
-        $headerLine .= str_pad('fecha', $fieldWidths['fecha']);
-        $headerLine .= str_pad('Empresa', $fieldWidths['empresa']);
-        $headerLine .= str_pad('delegacion', $fieldWidths['delegacion']);
-        $headerLine .= str_pad('Empleado', $fieldWidths['empleado']);
-        $headerLine .= str_pad('Masterobrasid', $fieldWidths['masterobrasid']);
-        $headerLine .= str_pad('Obra', $fieldWidths['obra']);
-        $headerLine .= str_pad('Descripcion', $fieldWidths['descripcion']);
-        $headerLine .= str_pad('Op', $fieldWidths['op']);
-        $headerLine .= str_pad('Horas', $fieldWidths['horas']);
-        $headerLine .= str_pad('Ref', $fieldWidths['ref']);
-        $headerLine .= str_pad('Linea', $fieldWidths['linea']);
-        $headerLine .= str_pad('HrDecimal', $fieldWidths['hrDecimal']);
-        $headerLine .= str_pad('Puntos', $fieldWidths['puntos']);
+        $notice = $this->axaptaExportNotice($export['skipped'], $export['warnings']);
 
-        $fileContent .= $headerLine . PHP_EOL;
+        if (empty($export['lines'])) {
+            \Log::info("Export Axapta: nada que enviar", ['skipped' => $export['skipped']]);
 
-        // Procesar cada proyecto
-        foreach ($projects as $project) {
-            \Log::info("Procesando proyecto: {$project->id} - {$project->name}");
+            return response()->json([
+                'message' => $export['skipped']
+                    ? __('There is nothing to export: the order forms below have hours but could not be exported.') . "\n\n" . $notice
+                    : trim(__('Todos los proyectos están al día de la exportación') . "\n\n" . $notice),
+                'skipped' => $export['skipped'],
+            ], 200);
+        }
 
-            // Obtener datos del proyecto
-            $projectData = AxaptaExportHelper::getProjectExportData($project);
+        $fileContent = implode("\r\n", $export['lines']) . "\r\n";
 
-            // Obtener milestones en estado Hecho (4)
-            $milestones = Milestone::where('project_id', $project->id)
-                ->where('status', 4)
-                ->get();
-            \Log::info("  Milestones en hecho encontrados: " . $milestones->count());
+        $batch = DB::transaction(function () use ($export, $fileContent) {
+            // Se guarda una copia comprimida del .fil exacto para poder redescargarlo desde el perfil
+            $batch = ExportBatch::create([
+                'file_name' => "Exp_TiemposAX_" . now()->format('Y-m-d-H-i-s') . ".fil",
+                'created_by' => Auth::id(),
+                'created_at' => now(),
+            ] + ExportBatch::packFile($fileContent));
 
-            // Procesar cambios (deltas) en datos actuales
-            foreach ($milestones as $milestone) {
-                \Log::info("  Procesando milestone: {$milestone->id} - {$milestone->title}");
-
-                // Empleado asignado al encargo
-                $assignedUserId = $milestone->milestone_assigned_to_user;
-                if (empty($assignedUserId)) {
-                    \Log::info("    Sin empleado asignado - omitido");
-                    continue;
-                }
-
-                $user = User::find($assignedUserId);
-                if (!$user) {
-                    \Log::info("    Empleado asignado no encontrado (id: {$assignedUserId}) - omitido");
-                    continue;
-                }
-
-                $employeeNumber = $user->number_employee ?? '0';
-                \Log::info("    Usuario asignado: {$user->id} - {$employeeNumber}");
-
-                // Calcular estado deseado (actual) del encargo
-                $desired = AxaptaExportHelper::calculateDesiredState($milestone->id, $user->id);
-                \Log::info("      Desired - Horas: {$desired->hours_decimal}, Puntos: {$desired->puntos}, HrDecimal: {$desired->hr_decimal}");
-
-                // Calcular estado exportado (histórico) del encargo
-                $exported = AxaptaExportHelper::calculateExportedState($project->id, $milestone->id, $user);
-                \Log::info("      Exported - Horas: {$exported->hours_decimal}, Puntos: {$exported->puntos}, HrDecimal: {$exported->hr_decimal}");
-
-                // Calcular delta
-                $delta = AxaptaExportHelper::calculateDelta($desired, $exported);
-                \Log::info("      Delta - Horas: {$delta->hours_decimal}, Puntos: {$delta->puntos}, HrDecimal: {$delta->hr_decimal}");
-
-                // Si hay delta, generar líneas
-                if (AxaptaExportHelper::hasDelta($delta)) {
-                    $this->generateExportLines(
-                        $project,
-                        $milestone,
-                        null,
-                        $user,
-                        $delta,
-                        $projectData,
-                        $fieldWidths,
-                        $regId,
-                        $linesToExport,
-                        $ledgerRecords
-                    );
-                }
+            foreach ($export['ledger'] as $record) {
+                $record['batch_id'] = $batch->id;
+                ExportLedgerLine::create($record);
             }
 
-            // Detectar registros borrados (a nivel encargo)
-            $deletedRecords = AxaptaExportHelper::detectDeletedRecords($project->id);
-            \Log::info("  Registros borrados detectados: " . count($deletedRecords));
+            return $batch;
+        });
 
-            foreach ($deletedRecords as $deleted) {
-                \Log::info("  Generando reversión para encargo borrado: {$deleted['milestone_id']} - {$deleted['reason']}");
-
-                // Obtener el último estado exportado
-                $exported = ExportLedgerLine::where('project_id', $deleted['project_id'])
-                    ->where('milestone_id', $deleted['milestone_id'])
-                    ->where('employee_number', $deleted['employee_number'])
-                    ->get();
-
-                if ($exported->isNotEmpty()) {
-                    $totalHours = $exported->sum('hours_decimal');
-                    $totalPuntos = $exported->sum('puntos');
-                    $totalHrDecimal = $exported->sum('hr_decimal');
-
-                    // Generar delta negativo
-                    $negativeDelta = (object)[
-                        'hours_decimal' => -$totalHours,
-                        'puntos' => -$totalPuntos,
-                        'hr_decimal' => -$totalHrDecimal
-                    ];
-
-                    $user = User::where('number_employee', $deleted['employee_number'])->first();
-                    if ($user) {
-                        $milestone = Milestone::find($deleted['milestone_id']);
-                        $this->generateExportLines(
-                            $project,
-                            $milestone,
-                            null,
-                            $user,
-                            $negativeDelta,
-                            $projectData,
-                            $fieldWidths,
-                            $regId,
-                            $linesToExport,
-                            $ledgerRecords,
-                            $deleted['reason'],
-                            $exported->first()->ref ?? null
-                        );
-                    }
-                }
-            }
-        }
-
-        // Si no hay líneas, retornar advertencia
-        if (empty($linesToExport)) {
-            \Log::info("No hay cambios para exportar - todos los proyectos están al día");
-            return response()->json(['message' => 'Todos los proyectos están al día de la exportación'], 200);
-        }
-
-        // Agregar líneas al contenido del archivo
-        foreach ($linesToExport as $line) {
-            $fileContent .= $line . PHP_EOL;
-        }
-
-        \Log::info("Contenido final: " . strlen($fileContent) . " caracteres");
-
-        // Crear batch de exportación
-        $batch = ExportBatch::create([
-            'file_name' => "Exp_TiemposAX_" . now()->format('Y-m-d-H-i-s') . ".fil",
-            'created_by' => Auth::id(),
-            'created_at' => now()
+        \Log::info("Export Axapta: lote {$batch->id}, " . count($export['ledger']) . " líneas", [
+            'skipped' => $export['skipped'],
+            'warnings' => $export['warnings'],
         ]);
 
-        // Insertar registros en ledger
-        foreach ($ledgerRecords as $record) {
-            $record['batch_id'] = $batch->id;
-            ExportLedgerLine::create($record);
-        }
-
-        \Log::info("Batch creado: {$batch->id}, Registros in ledger: " . count($ledgerRecords));
-
-        // Generar nombre del archivo
-        $fileName = $batch->file_name;
-
-        // Retornar el contenido en base64 para descarga
         return response()->json([
             'success' => true,
-            'fileName' => $fileName,
+            'fileName' => $batch->file_name,
             'fileContent' => base64_encode($fileContent),
             'batchId' => $batch->id,
-            'linesExported' => count($ledgerRecords)
+            'linesExported' => count($export['ledger']),
+            'skipped' => $export['skipped'],
+            'warnings' => $export['warnings'],
+            'notice' => $notice,
         ]);
     }
 
     /**
-     * Genera las líneas de exportación (considerando división de horas)
+     * Resumen para el perfil antes de exportar: lo que saldría ahora (simulación, no escribe nada),
+     * lo que no se puede exportar y por qué, y los últimos lotes enviados.
      */
-    private function generateExportLines(
-        $project,
-        $milestone,
-        $task,
-        $user,
-        $delta,
-        $projectData,
-        $fieldWidths,
-        &$regId,
-        &$linesToExport,
-        &$ledgerRecords,
-        $reason = null,
-        $refOverride = null
-    ) {
-        // Dividir horas si es necesario
-        $splitLines = AxaptaExportHelper::splitHoursIfNeeded(
-            $delta->hours_decimal,
-            $delta->puntos,
-            $delta->hr_decimal
+    public function exportAxaptaPreview()
+    {
+        if (!Auth::user() || !Auth::user()->is_exporter) {
+            return response()->json(['message' => __('You do not have permission to export to Axapta.')], 403);
+        }
+
+        $export = AxaptaExportHelper::buildExport(
+            fn($milestone, $project) => $this->buildAutomaticExportReference($milestone, $project)
         );
 
-        // Primera tarea del encargo con referencia (se usa solo para la empresa)
-        $firstTask = $milestone
-            ? Task::where('milestone_id', $milestone->id)
-                ->whereNotNull('referencia')
-                ->where('referencia', '!=', '')
-                ->orderBy('id')
-                ->first()
-            : null;
+        $pendingHours = array_sum(array_map(fn($row) => (float) $row['hours_decimal'], $export['ledger']));
 
-        // Referencia: solo la parte automática (año + delegación + letra + nº obra)
-        $ref = $this->buildAutomaticExportReference($milestone, $project);
+        // Sin leer la copia del archivo: solo si existe
+        $batches = ExportBatch::select(ExportBatch::LIST_COLUMNS)
+            ->selectRaw('file_content IS NOT NULL AS has_file')
+            ->orderByDesc('id')->limit(6)->get()->map(function ($batch) {
+                $lines = ExportLedgerLine::where('batch_id', $batch->id);
 
-        // Empresa: de la primera tarea (o fallback al de la delegación)
-        $empresa = ($firstTask && !empty($firstTask->empresa)) ? $firstTask->empresa : $projectData->empresa;
+                return [
+                    'id' => $batch->id,
+                    'date' => $batch->created_at ? Carbon::parse($batch->created_at)->format('d/m/Y H:i') : '',
+                    'lines' => (clone $lines)->count(),
+                    'hours' => AxaptaExportHelper::secondsToTimeFormat((int) round(((float) (clone $lines)->sum('hours_decimal')) * 3600)),
+                    'rejected' => !empty($batch->rejected_at),
+                    'download_url' => $batch->has_file ? route('projects.export.axapta.download', $batch->id) : null,
+                ];
+            });
 
-        // Descripción del encargo: texto plano en una sola línea, recortado al ancho del campo
-        $descripcion = '';
-        if ($milestone && !empty($milestone->summary)) {
-            $descripcion = preg_replace('/\s+/u', ' ', trim((string) $milestone->summary));
-            $descripcion = mb_substr($descripcion, 0, $fieldWidths['descripcion']);
+        return response()->json([
+            'pending_lines' => count($export['lines']),
+            'pending_hours' => AxaptaExportHelper::secondsToTimeFormat((int) round($pendingHours * 3600)),
+            'skipped' => $export['skipped'],
+            'warnings' => $export['warnings'],
+            'batches' => $batches,
+        ]);
+    }
+
+    /**
+     * Redescarga el .fil de un lote ya exportado: el mismo archivo, byte a byte (mismos RegId).
+     * No crea ni marca nada; si el lote no tiene copia (anterior a esta función o ya caducada), 404.
+     */
+    public function downloadAxaptaBatch($batchId)
+    {
+        if (!Auth::user() || !Auth::user()->is_exporter) {
+            abort(403, __('You do not have permission to export to Axapta.'));
         }
 
-        $fecha = date('Ymd'); // YYYYMMDD
-        $op = '210'; // siempre 210
-        $lineNumberInMilestone = 0;
-
-        foreach ($splitLines as $splitLine) {
-            $lineNumberInMilestone++;
-            $regId++;
-
-            // Convertir horas decimales a formato HH:MM:SS
-            $horasFormatted = AxaptaExportHelper::decimalToTimeFormat($splitLine->hours_decimal);
-
-            // Preparar línea con ancho fijo
-            $line = '';
-            $line .= str_pad($regId, $fieldWidths['regId'], ' ', STR_PAD_LEFT);
-            $line .= str_pad($fecha, $fieldWidths['fecha']);
-            $line .= str_pad($empresa, $fieldWidths['empresa']);
-            $line .= str_pad($projectData->delegacion, $fieldWidths['delegacion']);
-            $line .= str_pad($user->number_employee ?? '0', $fieldWidths['empleado']);
-            $line .= str_pad($projectData->masterobrasid, $fieldWidths['masterobrasid']);
-            $line .= str_pad('', $fieldWidths['obra']); // obra vacío
-            $line .= str_pad($descripcion, $fieldWidths['descripcion']);
-            $line .= str_pad($op, $fieldWidths['op'], ' ', STR_PAD_LEFT);
-            $line .= str_pad($horasFormatted, $fieldWidths['horas']);
-            $line .= str_pad($ref, $fieldWidths['ref']);
-            $line .= str_pad($lineNumberInMilestone, $fieldWidths['linea'], ' ', STR_PAD_LEFT);
-            // HrDecimal: valor fijo, no se calcula. El cálculo original queda desactivado:
-            // $line .= str_pad(number_format($splitLine->hr_decimal, 7, '.', ''), $fieldWidths['hrDecimal']);
-            $line .= str_pad('00.0000000', $fieldWidths['hrDecimal']);
-            $line .= str_pad(number_format($splitLine->puntos, 2, '.', ''), $fieldWidths['puntos']);
-
-            $linesToExport[] = $line;
-
-            // Registrar en ledger
-            $ledgerRecords[] = [
-                'project_id' => $project->id,
-                'milestone_id' => $milestone ? $milestone->id : null,
-                'task_id' => null,
-                'employee_number' => $user->number_employee ?? '0',
-                'empresa' => $empresa,
-                'delegacion' => $projectData->delegacion,
-                'masterobrasid' => $projectData->masterobrasid,
-                'ref' => $ref,
-                'op' => $op,
-                'hours_decimal' => $splitLine->hours_decimal,
-                'puntos' => $splitLine->puntos,
-                'hr_decimal' => $splitLine->hr_decimal,
-                'created_at' => now()
-            ];
-
-            \Log::info("      Línea generada {$regId} - Milestone: " . ($milestone ? $milestone->id : 'deleted') . " - Horas: {$splitLine->hours_decimal}, Puntos: {$splitLine->puntos}, HrDecimal: {$splitLine->hr_decimal}");
+        $batch = ExportBatch::findOrFail((int) $batchId);
+        $content = $batch->unpackFile();
+        if ($content === null) {
+            abort(404, __('The file of this batch is no longer available.'));
         }
+
+        \Log::info("Export Axapta: redescarga del lote {$batch->id}", ['user_id' => Auth::id()]);
+
+        return response($content, 200, [
+            'Content-Type' => 'application/octet-stream',
+            'Content-Disposition' => 'attachment; filename="' . basename($batch->file_name) . '"',
+            'Content-Length' => strlen($content),
+            'Cache-Control' => 'no-store',
+        ]);
+    }
+
+    /**
+     * Texto para el usuario con lo que no se ha exportado y los avisos
+     */
+    private function axaptaExportNotice(array $skipped, array $warnings): string
+    {
+        $text = '';
+        if ($skipped) {
+            $text .= __('Not exported (fix it in the app and export again):') . "\n- " . implode("\n- ", $skipped);
+        }
+        if ($warnings) {
+            $text .= ($text ? "\n\n" : '') . __('Warnings:') . "\n- " . implode("\n- ", $warnings);
+        }
+
+        return $text;
     }
 
     /**
@@ -2126,7 +1902,9 @@ class ProjectController extends Controller
                 'scoreHtml' => view('projects.partials.my_summary_score', compact(
                     'userScore',
                     'selectedFilters',
-                    'dateRange'
+                    'dateRange',
+                    'totalImputedTime',
+                    'projectSummaries'
                 ))->render(),
                 'myDayHtml' => view('projects.partials.my_summary_day', compact(
                     'currentWorkspace',
@@ -3244,6 +3022,14 @@ class ProjectController extends Controller
                     $milestone->finalization_date = date('Y-m-d');
                     $milestone->save();
                     $this->syncMilestoneTaskEndDates($milestone, $milestone->finalization_date);
+
+                    // Encargos de obra sin puntuación de la revisión: puntos automáticos (horas + puntos por tipo de tarea).
+                    // Si falla no debe impedir el cambio de estado.
+                    try {
+                        \App\Helpers\MilestonePointsHelper::ensureAutomatic($milestone);
+                    } catch (\Throwable $e) {
+                        \Log::error('Puntos automáticos del encargo ' . $milestone->id . ': ' . $e->getMessage());
+                    }
 
                     $project = Project::find($milestone->project_id);
                     if (isset($project)) {
@@ -5533,15 +5319,44 @@ MilestoneFile::create([
             'yearly' => $now->copy()->subYear(),
         ];
 
+        // Tareas asignadas creadas entre dos fechas: [total, de encargos ya hechos (status 4)]
+        $countCreatedTasks = function (Carbon $from, Carbon $to) use ($user) {
+            $rows = Task::leftJoin('milestones', 'milestones.id', '=', 'tasks.milestone_id')
+                ->whereNotNull('tasks.project_id')
+                ->where(function ($query) use ($user) {
+                    $query->whereRaw("find_in_set(?, tasks.assign_to)", [(string) $user->id])
+                        ->orWhere('tasks.assign_to', (string) $user->id);
+                })
+                ->where('tasks.created_at', '>=', $from->copy()->startOfDay())
+                ->where('tasks.created_at', '<', $to)
+                ->selectRaw('COUNT(*) as total, SUM(CASE WHEN milestones.status = 4 THEN 1 ELSE 0 END) as done')
+                ->first();
+
+            return [(int) ($rows->total ?? 0), (int) ($rows->done ?? 0)];
+        };
+
+        // Horas imputadas por el usuario entre dos fechas, por proyecto (minutos)
+        $loggedMinutesByProject = function (Carbon $from, Carbon $to) use ($user) {
+            return Timesheet::join('projects', 'projects.id', '=', 'timesheets.project_id')
+                ->where('timesheets.created_by', $user->id)
+                ->whereBetween('timesheets.date', [$from->toDateString(), $to->toDateString()])
+                ->groupBy('timesheets.project_id', 'projects.name', 'projects.ref_delegation')
+                ->selectRaw("timesheets.project_id, projects.name as project_name, projects.ref_delegation,
+                    SUM(TIME_TO_SEC(timesheets.time)) DIV 60 as minutes,
+                    COUNT(DISTINCT timesheets.date) as days")
+                ->orderByDesc('minutes')
+                ->get();
+        };
+
         $diagramDataByPeriod = [];
         foreach ($periods as $periodKey => $startDate) {
             $periodTasks = Task::with([
-                'milestone:id,title',
+                'milestone:id,title,status',
                 'type:id,name',
                 'customTask:id,id_task,name',
             ])
                 ->leftJoin('projects', 'projects.id', '=', 'tasks.project_id')
-                ->select('tasks.*', 'projects.name as project_name')
+                ->select('tasks.*', 'projects.name as project_name', 'projects.ref_delegation as project_delegation')
                 ->whereNotNull('tasks.project_id')
                 ->where(function ($query) use ($user) {
                     $query->whereRaw("find_in_set(?, assign_to)", [(string) $user->id])
@@ -5564,11 +5379,20 @@ MilestoneFile::create([
                     $projectCounters[$projectId] = [
                         'project_id' => $projectId,
                         'project_name' => $taskModel->project_name ?: __('N/A'),
+                        'delegation' => trim((string) ($taskModel->project_delegation ?? '')),
                         'tasks_done' => 0,
+                        'states' => [1 => 0, 2 => 0, 3 => 0, 4 => 0],
+                        'milestones' => [],
                     ];
                 }
 
                 $projectCounters[$projectId]['tasks_done']++;
+                // Estado del encargo de la tarea (1 por hacer · 2 en curso · 3 revisión · 4 hecho); sin encargo cuenta como «por hacer»
+                $milestoneStatus = (int) optional($taskModel->milestone)->status;
+                $projectCounters[$projectId]['states'][$milestoneStatus >= 1 && $milestoneStatus <= 4 ? $milestoneStatus : 1]++;
+                if ($taskModel->milestone_id) {
+                    $projectCounters[$projectId]['milestones'][$taskModel->milestone_id] = true;
+                }
 
                 $createdAt = $taskModel->created_at ? Carbon::parse($taskModel->created_at) : null;
                 $taskTypeName = optional($taskModel->type)->name;
@@ -5614,6 +5438,17 @@ MilestoneFile::create([
             $tasksSeries = $diagramRows->pluck('tasks_done')->map(fn($value) => (int) ($value ?? 0))->toArray();
             $totalTasks = array_sum($tasksSeries);
 
+            // Periodo anterior de la misma duración, para comparar
+            $previousStart = $startDate->copy()->sub($startDate->diff($now));
+            [$createdPrev, $donePrev] = $countCreatedTasks($previousStart, $startDate->copy()->startOfDay());
+            $doneNow = array_sum(array_map(fn($row) => $row['states'][4] ?? 0, $projectCounters));
+
+            $hoursRows = $loggedMinutesByProject($startDate, $now);
+            $hoursPrevMinutes = (int) $loggedMinutesByProject($previousStart, $startDate->copy()->subDay())->sum('minutes');
+            $daysWithHours = Timesheet::where('created_by', $user->id)
+                ->whereBetween('date', [$startDate->toDateString(), $now->toDateString()])
+                ->distinct()->count('date');
+
             $diagramDataByPeriod[$periodKey] = [
                 'project_ids' => $diagramRows->pluck('project_id')->map(fn($id) => (int) $id)->toArray(),
                 'labels' => $diagramRows->pluck('project_name')->toArray(),
@@ -5622,6 +5457,30 @@ MilestoneFile::create([
                 'unit' => 'tasks',
                 'total_formatted' => (string) $totalTasks,
                 'range_label' => $startDate->format('d/m/Y') . ' - ' . $now->format('d/m/Y'),
+                // Vista en diagrama: barras por estado del encargo y horas imputadas por proyecto
+                'projects' => $diagramRows->map(fn($row) => [
+                    'id' => (int) $row['project_id'],
+                    'name' => $row['project_name'],
+                    'delegation' => $row['delegation'],
+                    'milestones' => count($row['milestones']),
+                    'total' => (int) $row['tasks_done'],
+                    'states' => array_values($row['states']),
+                ])->values()->toArray(),
+                'hours' => $hoursRows->map(fn($row) => [
+                    'id' => (int) $row->project_id,
+                    'name' => $row->project_name ?: __('N/A'),
+                    'delegation' => trim((string) ($row->ref_delegation ?? '')),
+                    'minutes' => (int) $row->minutes,
+                ])->values()->toArray(),
+                'summary' => [
+                    'created' => $totalTasks,
+                    'created_prev' => $createdPrev,
+                    'done' => $doneNow,
+                    'done_prev' => $donePrev,
+                    'minutes' => (int) $hoursRows->sum('minutes'),
+                    'minutes_prev' => $hoursPrevMinutes,
+                    'days_with_hours' => $daysWithHours,
+                ],
             ];
         }
 
@@ -6128,6 +5987,37 @@ MilestoneFile::create([
         }
     }
 
+    /**
+     * Devuelve el motivo por el que no se pueden imputar/modificar horas de esa tarea en esa fecha,
+     * o null si está permitido. Un encargo finalizado solo admite fechas hasta su finalization_date.
+     */
+    private function timesheetDateLockedMessage($task, $date): ?string
+    {
+        if (!$task || !$date) {
+            return null;
+        }
+
+        $milestone = Milestone::select('id', 'status', 'finalization_date')->find($task->milestone_id);
+        $lockedAfter = $milestone ? $milestone->hoursLockedAfter() : null;
+
+        if ($lockedAfter && Carbon::parse($date)->toDateString() > $lockedAfter) {
+            return __('This order form was finished on :date. Hours cannot be logged or modified after that date.', [
+                'date' => Carbon::parse($lockedAfter)->format('d/m/Y'),
+            ]);
+        }
+
+        return null;
+    }
+
+    private function timesheetErrorResponse(Request $request, string $message)
+    {
+        if ($request->wantsJson()) {
+            return response()->json(['success' => false, 'message' => $message], 422);
+        }
+
+        return redirect()->back()->withInput()->with('error', $message);
+    }
+
     public function timesheetStore($slug, Request $request)
     {
         \Log::info(['recibido en timesheetStore' => $request->all()]);
@@ -6221,6 +6111,10 @@ MilestoneFile::create([
             return redirect()->back()->with('error', 'No tienes acceso a esta tarea.');
         }
 
+        if ($lockedMessage = $this->timesheetDateLockedMessage($task, $request->date)) {
+            return $this->timesheetErrorResponse($request, $lockedMessage);
+        }
+
         $timesheetEdit = Timesheet::where('project_id', $project->id)
             ->where('task_id', $task->id)
             ->whereDate('date', $request->date)
@@ -6246,8 +6140,16 @@ MilestoneFile::create([
             if (is_null($milestone->task_start_date) || $request->date < $milestone->task_start_date) {
                 $milestone->task_start_date = $request->date;
             }
-            $milestone->status = 2;
+            // Imputar horas solo arranca un encargo pendiente; nunca reabre uno en revisión o finalizado
+            $started = (int) $milestone->status === 1;
+            if ($started) {
+                $milestone->status = 2;
+            }
             $milestone->save();
+
+            if ($started) {
+                $project->fresh()->updateProjectStatus();
+            }
         }
 
         $this->employeesInProject(Auth::user()->id, $project->id);
@@ -6501,6 +6403,18 @@ MilestoneFile::create([
         );
 
         $timesheet = Timesheet::find($timesheetID);
+        if (!$timesheet) {
+            return redirect()->back()->with('error', __('Timesheet Not Found.'));
+        }
+
+        // La entrada actual y la nueva fecha tienen que estar dentro del periodo permitido del encargo
+        $task = Task::find($timesheet->task_id);
+        $lockedMessage = $this->timesheetDateLockedMessage($task, $timesheet->date)
+            ?? $this->timesheetDateLockedMessage($task, $request->date);
+        if ($lockedMessage) {
+            return $this->timesheetErrorResponse($request, $lockedMessage);
+        }
+
         $timesheet->project_id = $request->project_id;
         // $timesheet->task_id = $request->task_id;
         $timesheet->date = $request->date;
@@ -6511,10 +6425,18 @@ MilestoneFile::create([
         return redirect()->back()->with('success', __('Timesheet Updated Successfully!'));
     }
 
-    public function timesheetDestroy($slug, $timesheetID)
+    public function timesheetDestroy($slug, $timesheetID, Request $request)
     {
         $currentWorkspace = Utility::getWorkspaceBySlug($slug);
         $timesheet = Timesheet::find($timesheetID);
+        if (!$timesheet) {
+            return redirect()->back()->with('error', __('Timesheet Not Found.'));
+        }
+
+        if ($lockedMessage = $this->timesheetDateLockedMessage(Task::find($timesheet->task_id), $timesheet->date)) {
+            return $this->timesheetErrorResponse($request, $lockedMessage);
+        }
+
         $timesheet->delete();
 
         return redirect()->back()->with('success', __('Timesheet deleted Successfully!'));
@@ -6669,13 +6591,21 @@ MilestoneFile::create([
         \Log::info('DESPUÉS DEL VALIDATE');
         $milestoneId = $request->milestone_id ?? null;
 
+        // El encargo (y su proyecto) se guardan en la notificación para poder abrirlo desde la campana
+        $linkedMilestone = $milestoneId ? Milestone::select('id', 'project_id')->find((int) $milestoneId) : null;
+        $relatedId = $linkedMilestone ? (int) $linkedMilestone->id : 0;
+        $relatedProjectId = $linkedMilestone ? (int) $linkedMilestone->project_id : 0;
+
         if ($request->milestoneAssignedTo != -2) {
             // Crear notificación para el usuario indicado en milestoneAssignedTo
             $notification = new Notification();
             $notification->workspace_id = $request->workspace_id;
             $notification->user_id      = $request->milestoneAssignedTo;
+            $notification->project_id   = $relatedProjectId;
+            $notification->related_id   = $relatedId;
             $notification->type         = $request->ntipe;
             $notification->data         = $request->msg;
+            $notification->is_read      = 0;
             $notification->save();
 
             $usersNotified = 1;
@@ -6709,8 +6639,11 @@ MilestoneFile::create([
                 $notification = new Notification();
                 $notification->workspace_id = $request->workspace_id;
                 $notification->user_id      = $userId;
+                $notification->project_id   = $relatedProjectId;
+                $notification->related_id   = $relatedId;
                 $notification->type         = $request->ntipe;
                 $notification->data         = $request->msg;
+                $notification->is_read      = 0;
                 $notification->save();
             }
             $usersNotified = count($userIds);
@@ -7885,6 +7818,17 @@ MilestoneFile::create([
             $time = sprintf('%02d:%02d:00', (int) $hour, (int) $minute);
 
             $timesheet = Timesheet::find($timesheet_id);
+            if (!$timesheet) {
+                return redirect()->back()->with('error', __('Timesheet Not Found.'));
+            }
+
+            // Se comprueba la entrada actual y el destino (puede cambiar de tarea y de fecha)
+            $lockedMessage = $this->timesheetDateLockedMessage(Task::find($timesheet->task_id), $timesheet->date)
+                ?? $this->timesheetDateLockedMessage(Task::find($request->task_id), $selectedDate);
+            if ($lockedMessage) {
+                return redirect()->back()->withInput()->with('error', $lockedMessage);
+            }
+
             $timesheet->project_id = $request->project_id;
             $timesheet->task_id = $request->task_id;
             $timesheet->date = $selectedDate;

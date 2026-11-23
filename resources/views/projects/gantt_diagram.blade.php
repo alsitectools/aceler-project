@@ -41,6 +41,7 @@
 @endsection
 
 @section('content')
+    <script src="{{ asset('assets/custom/js/board-height.js') }}?v={{ filemtime(public_path('assets/custom/js/board-height.js')) }}"></script>
     <section class="section" id="ganttSection">
         {{-- Filter row --}}
         <div class="row mb-3 gantt-filters" id="ganttFilters">
@@ -300,6 +301,8 @@
             </div>
         </div>
     </section>
+    {{-- Alto del diagrama calculado antes del primer pintado (board-height.js) --}}
+    <script>window.acelerFitHeights && window.acelerFitHeights();</script>
 @endsection
 
 @push('css-page')
@@ -333,13 +336,25 @@
                 max-width: none;
                 min-width: 0;
             }
+            /* Interruptores: ocupan solo lo que necesitan y van en la misma fila que los filtros
+               (antes se repartían el ancho con los filtros y, sin sitio, se partían en dos líneas) */
             #ganttFilters .gantt-toggle-col {
+                flex: 0 0 auto;
                 display: flex;
                 align-items: center;
-                justify-content: center;
-                flex-wrap: wrap;
-                gap: 55px;
+                justify-content: flex-end;
+                flex-wrap: nowrap;
+                gap: 18px;
+                min-height: 36px;
             }
+            #ganttFilters #exitFullscreenWrapper {
+                flex: 0 0 auto;
+            }
+        }
+
+        #ganttFilters .gantt-switch {
+            white-space: nowrap;
+            margin-bottom: 0;
         }
 
         /* === B — FORM CONTROLS === */
@@ -1058,8 +1073,10 @@
         }
 
         /* === LAYOUT === */
+        /* Alto mínimo para que la ventana de detalle de una barra (hasta ~240px) quepa entera
+           aunque el diagrama tenga solo una o dos filas */
         .gantt-container .gantt {
-            min-height: 200px;
+            min-height: 250px;
         }
 
         /* Read-only: no drag */
@@ -1178,8 +1195,10 @@
             overflow: hidden;
         }
 
+        /* Pantalla completa: ocupa toda la altura, sin el tope del modo normal */
         #ganttSection.gantt-fullscreen #ganttLayout {
             height: calc(100vh - 80px);
+            max-height: none;
         }
 
         #ganttSection.gantt-fullscreen .gantt-container {
@@ -1284,7 +1303,11 @@
             background: #fff;
             box-shadow: 0 4px 20px rgba(15, 23, 42, .05);
             position: relative;
-            height: 560px;
+            /* Crece con el diagrama hasta llegar abajo de la pantalla (tope que calcula
+               board-height.js; 560px si no) y a partir de ahí hace scroll por dentro.
+               Con pocas filas el recuadro acaba en la última, sin panel blanco debajo. */
+            height: auto;
+            max-height: var(--gantt-h, 560px);
             scrollbar-color: #aa182c #f1f5f9;
         }
 
@@ -2380,7 +2403,9 @@
                     const label = document.createElement('span');
                     label.className = 'gantt-sidebar-label';
                     label.textContent = item.name.trim();
-                    label.title = item.name.trim();
+                    // Tooltip discreto (el del menú lateral) a la derecha: el nombre completo si se corta
+                    label.setAttribute('data-aceler-tip', item.name.trim());
+                    label.setAttribute('data-aceler-tip-pos', 'right');
                     row.appendChild(label);
 
                     // Single click handler on the row
@@ -2608,6 +2633,13 @@
                     language: '{{ $currantLang }}'
                 });
 
+                // Frappe deja el SVG ~120px más alto que la última fila: al final del diagrama quedaba
+                // un hueco en blanco. Se recorta al fondo de la cuadrícula (antes de la línea de hoy y
+                // del sidebar, que toman el alto del SVG).
+                trimGanttHeight();
+                // Sin ese hueco, la ventana de las últimas filas se cortaba: se recoloca para que quepa
+                fitGanttPopupInside(ganttChart);
+
                 // #3 - Draw today line
                 drawTodayLine();
                 // #17 - Draw project separators
@@ -2621,6 +2653,84 @@
 
                 // #13 - Scroll to today (deferred to ensure SVG layout is complete)
                 setTimeout(scrollToToday, 300);
+            }
+
+            function trimGanttHeight() {
+                const svg = document.querySelector('.gantt-target svg');
+                const grid = svg && svg.querySelector('.grid-background');
+                if (!grid) return;
+                const bottom = (parseFloat(grid.getAttribute('y')) || 0) + (parseFloat(grid.getAttribute('height')) || 0);
+                const current = parseFloat(svg.getAttribute('height')) || 0;
+                if (bottom > 0 && current > bottom + 2) {
+                    svg.setAttribute('height', bottom + 2);
+                }
+            }
+
+            // Ventana de detalle de una barra: Frappe la pone siempre a la derecha de la barra y a su
+            // altura, dentro de .gantt-container (que recorta lo que sobresale). Después de colocarla:
+            // - si no cabe por abajo, sube lo justo (la flechita sigue apuntando a la barra);
+            // - si no cabe por la derecha de lo visible, pasa al lado izquierdo de la barra.
+            function fitGanttPopupInside(chart) {
+                if (!chart || typeof chart.show_popup !== 'function' || chart.__popupFit) return;
+                chart.__popupFit = true;
+                const original = chart.show_popup.bind(chart);
+                chart.show_popup = function(options) {
+                    original(options);
+                    try {
+                        placeGanttPopup(chart, options);
+                    } catch (e) {
+                        console.warn('Gantt popup:', e);
+                    }
+                };
+            }
+
+            function placeGanttPopup(chart, options) {
+                const wrap = chart.popup_wrapper;
+                const box = chart.$container;
+                const target = options && options.target_element;
+                if (!wrap || !box || !target || typeof target.getBBox !== 'function') return;
+
+                const bar = target.getBBox();
+                const w = wrap.offsetWidth;
+                const h = wrap.offsetHeight;
+                const gap = 6;
+
+                // Vertical: dentro del alto visible del diagrama
+                let top = bar.y;
+                const maxTop = box.clientHeight - h - gap;
+                if (top > maxTop) top = Math.max(gap, maxTop);
+
+                // Horizontal: a la derecha de la barra si cabe en lo visible; si no, a su izquierda
+                let side = 'right';
+                let left = bar.x + bar.width + 10;
+                const visibleLeft = box.scrollLeft + gap;
+                const visibleRight = box.scrollLeft + box.clientWidth - gap;
+                if (left + w > visibleRight) {
+                    const leftOfBar = bar.x - w - 10;
+                    if (leftOfBar >= visibleLeft) {
+                        left = leftOfBar;
+                        side = 'left';
+                    } else {
+                        left = Math.max(visibleLeft, visibleRight - w);
+                        side = 'over';
+                    }
+                }
+
+                wrap.style.top = Math.round(top) + 'px';
+                wrap.style.left = Math.round(left) + 'px';
+
+                const pointer = wrap.querySelector('.pointer');
+                if (pointer) {
+                    pointer.style.display = side === 'over' ? 'none' : '';
+                    pointer.style.top = Math.round(Math.min(Math.max(bar.y - top + 2, 4), h - 14)) + 'px';
+                    if (side === 'left') {
+                        pointer.style.left = (w + 7) + 'px';
+                        pointer.style.transform = 'rotateZ(-90deg)';
+                    } else {
+                        pointer.style.left = '-7px';
+                        pointer.style.transform = 'rotateZ(90deg)';
+                    }
+                }
             }
 
             // #3 - Today vertical line
@@ -3042,7 +3152,9 @@
                         svg.setAttribute('onload', 'window.scrollTo(' + scrollX + ', 0);');
                     }
 
-                    const xml = '<?xml version="1.0" encoding="UTF-8"?>\n' +
+                    // Cabecera XML partida en trozos: con short_open_tag activado (staging), PHP leería
+                    // el "menor que" seguido de interrogación como inicio de código y rompería la vista
+                    const xml = '<' + '?xml version="1.0" encoding="UTF-8"?' + '>\n' +
                         new XMLSerializer().serializeToString(svg);
                     const blob = new Blob([xml], {
                         type: 'image/svg+xml;charset=utf-8'
@@ -3130,5 +3242,6 @@
             loadFiltersFromURL();
             fetchAndRender();
         })();
+        // Los title de esta pantalla pasan a los tooltips discretos de toda la app (acelerTipify, sidebar.blade.php)
     </script>
 @endpush

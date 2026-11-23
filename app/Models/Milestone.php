@@ -31,6 +31,19 @@ class Milestone extends Model
         'obra_number'
     ];
 
+    /**
+     * Última fecha (Y-m-d) en la que se pueden imputar horas, o null si no hay límite.
+     * Un encargo finalizado solo admite horas hasta su fecha de finalización.
+     */
+    public function hoursLockedAfter(): ?string
+    {
+        if ((int) $this->status !== 4 || empty($this->finalization_date) || $this->finalization_date === '0000-00-00') {
+            return null;
+        }
+
+        return Carbon::parse($this->finalization_date)->toDateString();
+    }
+
     public function daysLeft()
     {
 

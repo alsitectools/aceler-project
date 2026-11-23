@@ -116,20 +116,27 @@
         width: 100%;
     }
 
+    /* Espacio que ocupaba la píldora de delegaciones (mt-2 8 + botón 38 + margen 15) */
+    .workspace-pill-spacer {
+        height: 61px;
+    }
+
+    /* ---------- Menú de espacios de trabajo ---------- */
     .workspace-dropdown {
         display: none;
         position: absolute;
         top: 100%;
         left: 0;
-        right: 0;
-        background-color: #ffffff;
-        min-width: 100%;
-        max-width: 95vw;
-        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
-        border-radius: 8px;
-        z-index: 1000;
-        margin-top: -8px;
-        border: 1px solid #e0e0e0;
+        width: 320px;
+        max-width: calc(100vw - 24px);
+        margin-top: 6px;
+        overflow: hidden;
+        border-radius: 14px;
+        background: #fff;
+        box-shadow: 0 18px 50px rgba(15, 23, 42, .22), 0 0 0 1px rgba(15, 23, 42, .06);
+        z-index: 1065;
+        color: #1f2937;
+        text-align: left;
         box-sizing: border-box;
     }
 
@@ -138,54 +145,185 @@
     }
 
     .workspace-search {
-        padding: 12px;
-        border-bottom: 1px solid #e0e0e0;
+        padding: 12px 14px 10px;
     }
 
-    .workspace-search input {
-        width: 100%;
-        padding: 8px 12px;
-        border: 1px solid #ddd;
-        border-radius: 6px;
-        font-size: 13px;
-        box-sizing: border-box;
+    .workspace-dropdown .ws-title {
+        margin: 0 0 8px;
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: .05em;
+        text-transform: uppercase;
+        color: #94a3b8;
     }
 
-    .workspace-search input:focus {
-        outline: none;
+    .workspace-dropdown .ws-search-box {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        height: 34px;
+        margin: 0;
+        padding: 0 10px;
+        border: 1px solid #e2e8f0;
+        border-radius: 9px;
+        color: #94a3b8;
+        cursor: text;
+    }
+
+    .workspace-dropdown .ws-search-box:focus-within {
         border-color: #aa182c;
-        box-shadow: 0 0 0 3px rgba(170, 24, 44, 0.1);
+        box-shadow: 0 0 0 3px rgba(170, 24, 44, .1);
+    }
+
+    .workspace-dropdown .ws-search-box input {
+        flex: 1;
+        min-width: 0;
+        padding: 0;
+        border: 0;
+        outline: 0;
+        box-shadow: none;
+        background: transparent;
+        color: #1f2937;
+        font-size: 13px;
+    }
+
+    .workspace-dropdown .ws-search-box kbd {
+        padding: 0 5px;
+        border: 1px solid #e2e8f0;
+        border-radius: 5px;
+        background: #fff;
+        color: #94a3b8;
+        font-family: inherit;
+        font-size: 10.5px;
+        box-shadow: none;
     }
 
     .workspace-list {
-        max-height: 300px;
+        max-height: min(360px, calc(100vh - 220px));
         overflow-y: auto;
-        padding: 8px 0;
+        padding: 0 0 6px;
+        scrollbar-width: thin;
+    }
+
+    .workspace-dropdown .ws-grp {
+        padding: 8px 14px 4px;
+        border-top: 1px solid #f1f5f9;
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: .05em;
+        text-transform: uppercase;
+        color: #94a3b8;
+    }
+
+    .workspace-dropdown .ws-grp[hidden] {
+        display: none;
     }
 
     .workspace-item {
-        padding: 10px 16px;
+        display: flex;
+        align-items: center;
+        gap: 11px;
+        padding: 8px 14px;
         cursor: pointer;
-        transition: background-color 0.2s ease;
-        border-left: 3px solid transparent;
-        color: #333;
-        font-size: 13px;
+        color: #334155;
+        font-size: 13.5px;
+        transition: background-color .15s ease;
     }
 
-    .workspace-item:hover {
-        background-color: #f5f5f5;
-        border-left-color: #aa182c;
+    .workspace-item:hover,
+    .workspace-item.is-kb {
+        background: #f8fafc;
+    }
+
+    .workspace-item.is-kb {
+        box-shadow: inset 3px 0 0 #aa182c;
     }
 
     .workspace-item.active {
-        background-color: #f0f0f0;
-        border-left-color: #aa182c;
-        font-weight: 600;
+        background: #fdf2f4;
+    }
+
+    .workspace-item.active .ws-name {
         color: #aa182c;
+        font-weight: 600;
     }
 
     .workspace-item.hidden {
         display: none;
+    }
+
+    .workspace-item .ws-text {
+        display: flex;
+        flex-direction: column;
+        min-width: 0;
+        line-height: 1.25;
+    }
+
+    .workspace-item .ws-name {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .workspace-item .ws-text small {
+        margin-top: 1px;
+        font-size: 11.5px;
+        color: #94a3b8;
+    }
+
+    .workspace-item .ws-check {
+        margin-left: auto;
+        font-size: 16px;
+        color: #aa182c;
+    }
+
+    .workspace-dropdown .ws-empty {
+        padding: 14px;
+        text-align: center;
+        font-size: 13px;
+        color: #94a3b8;
+    }
+
+    .workspace-dropdown .ws-empty[hidden] {
+        display: none;
+    }
+
+    /* Iniciales de color de cada espacio en la lista (el botón conserva su icono) */
+    .ws-badge {
+        flex: 0 0 auto;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 30px;
+        height: 30px;
+        border-radius: 8px;
+        font-size: 11px;
+        font-weight: 800;
+        letter-spacing: .02em;
+        line-height: 1;
+    }
+
+    .ws-tone-0 { background: #fdf2f4; color: #aa182c; }
+    .ws-tone-1 { background: #eef2ff; color: #4338ca; }
+    .ws-tone-2 { background: #ecfdf5; color: #047857; }
+    .ws-tone-3 { background: #fff7ed; color: #c2410c; }
+    .ws-tone-4 { background: #f0f9ff; color: #0369a1; }
+
+    .workspace-name-header .ws-btn-text {
+        display: flex;
+        flex-direction: column;
+        min-width: 0;
+        line-height: 1.2;
+        text-align: left;
+    }
+
+    .workspace-name-header .ws-btn-country {
+        font-size: 11px;
+        font-weight: 400;
+        opacity: .8;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
     }
 
     .workspace-dropdown-icon {
@@ -545,56 +683,71 @@
         }
     }
 </style>
-<nav style="padding-top: 5px; padding-left: 5px;"
+@php
+    // Pestañas Equipo / Mi actividad: grupo de la página actual ('' si no es de ninguno)
+    $sbRoute = optional(Request::route())->getName();
+    $sbScopePage = in_array($sbRoute, ['my_summary', 'my_projects', 'projects.my_milestone_board', 'projects.my_tasks', 'timesheet.index', 'calender.index', 'calender.google.calendar'], true)
+        ? 'mine'
+        : (in_array($sbRoute, ['home', 'client.home', 'projects.index', 'projects.show', 'projects.milestone.board', 'gantt.diagram'], true) ? 'team' : '');
+@endphp
+<nav style="padding-top: 5px; padding-left: 5px;" data-scope-page="{{ $sbScopePage }}"
     class="vistaPortatil dash-sidebar light-sidebar {{ isset($cust_theme_bg) && $cust_theme_bg == 'on' ? 'transprent-bg' : '' }}">
     <div class="navbar-wrapper">
         <div class="m-header">
             <a href="{{ route('home') }}" class="mt-2">
                 <img class="ajustarImg" src="{{ asset('assets/img/acerlerRemastered.png') }}" alt="logo" />
+                <img class="logo-mini" src="{{ asset('assets/img/alsina-a-mark.png') }}" alt="aCeler" />
+                <img class="logo-mini-text" src="{{ asset('assets/img/alsina-aceler-mark.png') }}" alt="" />
             </a>
-
+            {{-- Detalle oculto: gorro navideño sobre la "A" al escribir "navidad" en el buscador --}}
+            <span class="sb-xmas-hat" aria-hidden="true">
+                <svg viewBox="0 0 64 56" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M8 44 C14 22 30 6 50 8 C44 16 46 26 52 34 C40 36 22 40 8 44 Z" fill="#E11D2E"/>
+                    <path d="M18 34 C26 24 36 16 46 13" stroke="#B3141F" stroke-width="2.5" fill="none" stroke-linecap="round" opacity=".55"/>
+                    <rect x="2" y="40" width="54" height="12" rx="6" fill="#FFFFFF"/>
+                    <circle cx="52" cy="8" r="7" fill="#FFFFFF"/>
+                </svg>
+            </span>
+        </div>
+        {{-- Escritorio: aquí se coloca el selector de espacio de trabajo de la cabecera
+             (lo mueve el script del final; en móvil se queda en la cabecera) --}}
+        <div class="sb-slot sb-slot-workspace" id="sbSlotWorkspace"></div>
+        {{-- Pestañas: qué opciones del menú se ven (script del final; se recuerda en el navegador) --}}
+        {{-- Textos de los tooltips (title) de lo que se mueve de la cabecera al sidebar --}}
+        <span id="sbTooltipText" hidden data-workspace="{{ __('Workspace') }}" data-notifications="{{ __('Notifications') }}"
+            data-language="{{ __('Language') }}" data-switch="{{ __('Switch to') }}" data-home="{{ __('Home') }}"></span>
+        <div class="sb-scope-tabs" role="tablist">
+            <button type="button" class="sb-scope-tab" role="tab" data-scope="team">
+                <i class="fa-solid fa-users"></i><span>{{ __('Team') }}</span>
+            </button>
+            <button type="button" class="sb-scope-tab" role="tab" data-scope="mine">
+                <i class="fa-solid fa-user"></i><span>{{ __('My activity') }}</span>
+                <span class="sb-scope-dot" aria-hidden="true"></span>
+            </button>
+            {{-- Sidebar colapsado: un solo botón (flechas de ida y vuelta) que alterna el grupo;
+                 la insignia indica el grupo actual --}}
+            <button type="button" class="sb-scope-swap" data-label-team="{{ __('Team') }}"
+                data-label-mine="{{ __('My activity') }}" aria-label="{{ __('Team') }} / {{ __('My activity') }}">
+                <i class="fa-solid fa-right-left sb-swap-arrows"></i>
+                <span class="sb-swap-badge" aria-hidden="true">
+                    <i class="fa-solid fa-users" data-scope-icon="team"></i>
+                    <i class="fa-solid fa-user" data-scope-icon="mine"></i>
+                </span>
+                <span class="sb-scope-dot" aria-hidden="true"></span>
+            </button>
         </div>
         <div class="navbar-content">
             <ul class="dash-navbar ">
-                @if ($userWorkspaces->isNotEmpty())
-                    <div class="workspace-dropdown-container mt-2">
-                        <button class="workspace-name-header" id="workspaceButton">
-                            <span id="workspaceName">{{ $currentWorkspace?->display_name ?? __('Select workspace') }}</span>
-                            <i class="fa-solid fa-chevron-down workspace-dropdown-icon"></i>
-                        </button>
-                        <div class="workspace-dropdown" id="workspaceDropdown">
-                            <div class="workspace-search">
-                                <input type="text" id="workspaceSearchInput"
-                                    placeholder="{{ __('Search workspace...') }}">
-                            </div>
-                            <div class="workspace-list" id="workspaceList">
-                                @forelse(Auth::user()->workspaces() as $ws)
-                                    <div class="workspace-item @if ($ws->workspace_id == $currentWorkspace->id) active @endif"
-                                        data-workspace-id="{{ $ws->workspace_id }}"
-                                        data-workspace-name="{{ $ws->name }}"
-                                        data-workspace-display-name="{{ \App\Models\Workspace::translateName($ws->name) }}"
-                                        data-workspace-url="{{ route('change-workspace', $ws->workspace_id) }}">
-                                        {{ \App\Models\Workspace::translateName($ws->name) }}
-                                    </div>
-                                @empty
-                                    <div style="padding: 12px 16px; color: #999; font-size: 13px;">
-                                        {{ __('No workspaces available') }}
-                                    </div>
-                                @endforelse
-                            </div>
-                        </div>
-                    </div>
-                @endif
-                <li
-                    class="dash-item  dash-hasmenu {{ Request::route()->getName() == 'home' || Request::route()->getName() == null || Request::route()->getName() == 'client.home' ? 'active' : '' }}">
+                <li data-scope="team"
+                    class="dash-item icons-collapsible dash-hasmenu {{ Request::route()->getName() == 'home' || Request::route()->getName() == null || Request::route()->getName() == 'client.home' ? 'active' : '' }}">
                     <a href="{{ route('home') }}" class="dash-link menu-element">
                         <span class="dash-micon"><i class="fa-solid fa-bookmark"></i></span>
                         <span class="dash-mtext">{{ __('Resume') }}</span>
                     </a>
                 </li>
                 @if (isset($currentWorkspace) && $currentWorkspace)
-                    <li
-                        class="dash-item  {{ (Request::route()->getName() == 'projects.index' || Request::segment(2) == 'projects') && Request::route()->getName() != 'projects.milestone.board' ? 'active' : '' }}">
+                    <li data-scope="team"
+                        class="dash-item icons-collapsible {{ (Request::route()->getName() == 'projects.index' || Request::segment(2) == 'projects') && Request::route()->getName() != 'projects.milestone.board' ? 'active' : '' }}">
                         <a href="{{ route('projects.index', $currentWorkspace->slug) }}"
                             class="dash-link  menu-element">
                             <span class="dash-micon"><i class="fa-solid fa-diagram-project"></i></span><span
@@ -602,14 +755,14 @@
                     </li>
 
                     </li>
-                    <li
-                        class="dash-item {{ Request::route()->getName() == 'projects.milestone.board' ? 'active' : '' }}">
+                    <li data-scope="team"
+                        class="dash-item icons-collapsible {{ Request::route()->getName() == 'projects.milestone.board' ? 'active' : '' }}">
                         <a href="{{ route('projects.milestone.board', [$currentWorkspace->slug, -1]) }}"
                             class="dash-link  menu-element">
                             <span class="dash-micon"><i class="fa-solid fa-file-lines"></i></span><span
                                 class="dash-mtext">{{ __('Order Forms') }}</span></a>
                     </li>
-                    <li class="dash-item {{ Request::route()->getName() == 'gantt.diagram' ? 'active' : '' }}">
+                    <li data-scope="team" class="dash-item icons-collapsible {{ Request::route()->getName() == 'gantt.diagram' ? 'active' : '' }}">
                         <a href="{{ route('gantt.diagram') }}" class="dash-link menu-element">
                             <span class="dash-micon"
                                 style="position: relative; display: inline-flex; align-items: center; justify-content: center; overflow:hidden;">
@@ -618,7 +771,7 @@
                             <span class="dash-mtext">{{ __('Gantt Diagram') }}</span>
                         </a>
                     </li>
-                    <li class="dash-item {{ Request::route()->getName() == 'my_summary' ? 'active' : '' }}">
+                    <li data-scope="mine" class="dash-item icons-collapsible {{ Request::route()->getName() == 'my_summary' ? 'active' : '' }}">
                         <a href="{{ route('my_summary') }}" class="dash-link menu-element">
                             <span class="dash-micon"
                                 style="position: relative; display: inline-flex; align-items: center; justify-content: center; overflow:hidden;">
@@ -631,7 +784,7 @@
                     </li>
 
                     {{-- si mostramos todos los proyectos enviamos -1 o proyecto en especifico --}}
-                    <li class="dash-item {{ Request::route()->getName() == 'my_projects' ? 'active' : '' }}">
+                    <li data-scope="mine" class="dash-item icons-collapsible {{ Request::route()->getName() == 'my_projects' ? 'active' : '' }}">
                         <a href="{{ route('my_projects', $currentWorkspace->slug) }}" class="dash-link menu-element">
                             <span class="dash-micon"
                                 style="position: relative; display: inline-flex; align-items: center; justify-content: center; overflow:hidden;">
@@ -642,7 +795,7 @@
                             <span class="dash-mtext">{{ __('My Projects') }}</span>
                         </a>
                     </li>
-                    <li class="dash-item ">
+                    <li data-scope="mine" class="dash-item icons-collapsible {{ Request::route()->getName() == 'projects.my_milestone_board' ? 'active' : '' }}">
                         <a href="{{ route('projects.my_milestone_board') }}" class="dash-link menu-element">
                             <span class="dash-micon"
                                 style="position: relative; display: inline-flex; align-items: center; justify-content: center; overflow:hidden;">
@@ -653,7 +806,7 @@
                             <span class="dash-mtext">{{ __('My Order Forms') }}</span>
                         </a>
                     </li>
-                    <li class="dash-item ">
+                    <li data-scope="mine" class="dash-item icons-collapsible {{ Request::route()->getName() == 'projects.my_tasks' ? 'active' : '' }}">
                         <a href="{{ route('projects.my_tasks') }}" class="dash-link menu-element">
                             <span class="dash-micon"
                                 style="position: relative; display: inline-flex; align-items: center; justify-content: center; overflow:hidden;">
@@ -664,7 +817,7 @@
                             <span class="dash-mtext">{{ __('My Tasks') }}</span>
                         </a>
                     </li>
-                    <li class="dash-item  {{ Request::route()->getName() == 'timesheet.index' ? 'active' : '' }}">
+                    <li data-scope="mine" class="dash-item icons-collapsible {{ Request::route()->getName() == 'timesheet.index' ? 'active' : '' }}">
                         <a href="{{ route('timesheet.index', $currentWorkspace->slug) }}"
                             class="dash-link  menu-element">
                             <span class="dash-micon"
@@ -674,7 +827,7 @@
                                     style="position: absolute; bottom: -2px; right: -1px; font-size: 15px; color: #525a69; background: #fcf9f9; border-radius: 50%; padding: 2px;"></i>
                             </span><span class="dash-mtext">{{ __('My Timesheet') }}</span></a>
                     </li>
-                    <li class="dash-item  {{ Request::route()->getName() == 'calender.index' ? 'active' : '' }}">
+                    <li data-scope="mine" class="dash-item icons-collapsible {{ Request::route()->getName() == 'calender.index' ? 'active' : '' }}">
                         <a href="{{ route('calender.google.calendar', $currentWorkspace->slug) }}"
                             class="dash-link  menu-element"><span class="dash-micon"
                                 style="position: relative; display: inline-flex; align-items: center; justify-content: center; overflow:hidden;"><i
@@ -741,10 +894,22 @@
             @endif
             </ul>
         </div>
+        {{-- «Reportar un problema»: enlace sobre la línea del pie y su formulario --}}
+        @include('partials.problem_report')
+        {{-- Escritorio: notificaciones, idioma (y chat) + menú de usuario de la cabecera --}}
+        <div class="sb-bottom">
+            <ul class="sb-slot sb-slot-tools list-unstyled" id="sbSlotTools"></ul>
+            <ul class="sb-slot sb-slot-user list-unstyled" id="sbSlotUser"></ul>
+        </div>
+        <div class="menu-icons-row">
+            <button type="button" id="aCeler-menu-toggle" class="menu-icons-btn"
+                title="Colapsar menú / Expandir menú" aria-label="Colapsar menú / Expandir menú"
+                aria-expanded="true">
+                <i class="fa-solid fa-angles-left"></i>
+            </button>
+        </div>
     </div>
 </nav>
-<!-- Agrega jQuery -->
-<script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {
@@ -757,88 +922,565 @@
             return;
         }
 
-        const workspaceItems = workspaceList.querySelectorAll('.workspace-item');
+        const workspaceItems = Array.from(workspaceList.querySelectorAll('.workspace-item'));
         const dropdownIcon = workspaceButton.querySelector('.workspace-dropdown-icon');
+        const emptyMsg = document.getElementById('workspaceEmpty');
+        let kbIndex = -1;
 
-        // Toggle dropdown cuando se hace click en el botón
-        workspaceButton.addEventListener('click', function(e) {
-            e.preventDefault();
-            workspaceDropdown.classList.toggle('active');
-            dropdownIcon.classList.toggle('rotate');
-        });
+        // Sin tildes ni mayúsculas: «peru» encuentra «Perú», «espana» encuentra «España»
+        const norm = (v) => (v || '').toString().normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim();
+        const visibleItems = () => workspaceItems.filter((i) => !i.classList.contains('hidden'));
 
-        // Cerrar dropdown cuando se hace click fuera
-        document.addEventListener('click', function(e) {
-            if (!e.target.closest('.workspace-dropdown-container')) {
-                workspaceDropdown.classList.remove('active');
-                dropdownIcon.classList.remove('rotate');
+        const setOpen = function(open) {
+            workspaceDropdown.classList.toggle('active', open);
+            if (dropdownIcon) dropdownIcon.classList.toggle('rotate', open);
+            workspaceButton.setAttribute('aria-expanded', open ? 'true' : 'false');
+            // Dentro del sidebar se separa de su borde lo mismo que los demás menús (notificaciones,
+            // idioma, usuario: 10px de --sb-gap más el desplazamiento de Bootstrap ≈ 12px)
+            const sidebar = workspaceButton.closest('.dash-sidebar');
+            const box = workspaceDropdown.offsetParent;
+            if (open && sidebar && box) {
+                const left = sidebar.getBoundingClientRect().right - box.getBoundingClientRect().left + 12;
+                workspaceDropdown.style.left = Math.round(left) + 'px';
+            } else if (!sidebar) {
+                workspaceDropdown.style.left = '';
+            }
+            if (open) {
+                // Con el teclado o el ratón se puede escribir directamente para buscar
+                setTimeout(function() { workspaceSearchInput.focus(); }, 30);
+            } else {
                 workspaceSearchInput.value = '';
                 filterWorkspaces('');
             }
+        };
+
+        const highlight = function(i) {
+            const items = visibleItems();
+            workspaceItems.forEach((it) => it.classList.remove('is-kb'));
+            if (!items.length) { kbIndex = -1; return; }
+            kbIndex = (i + items.length) % items.length;
+            items[kbIndex].classList.add('is-kb');
+            items[kbIndex].scrollIntoView({ block: 'nearest' });
+        };
+
+        const go = function(item) {
+            const url = item.getAttribute('data-workspace-url');
+            document.getElementById('workspaceName').textContent = item.getAttribute('data-workspace-display-name');
+            setOpen(false);
+            if (url) window.location.href = url;
+        };
+
+        workspaceButton.addEventListener('click', function(e) {
+            e.preventDefault();
+            setOpen(!workspaceDropdown.classList.contains('active'));
         });
 
-        // Búsqueda de workspaces
+        // Cerrar al pulsar fuera
+        document.addEventListener('click', function(e) {
+            if (!e.target.closest('.workspace-dropdown-container') && workspaceDropdown.classList.contains('active')) {
+                setOpen(false);
+            }
+        });
+
         workspaceSearchInput.addEventListener('input', function() {
-            const searchTerm = this.value.toLowerCase();
-            filterWorkspaces(searchTerm);
+            filterWorkspaces(norm(this.value));
         });
 
-        // Cambiar workspace cuando se selecciona uno
-        workspaceItems.forEach(item => {
-            item.addEventListener('click', function() {
-                const workspaceDisplayName = this.getAttribute('data-workspace-display-name');
-                const workspaceUrl = this.getAttribute('data-workspace-url');
-
-                // Actualizar el nombre mostrado
-                document.getElementById('workspaceName').textContent = workspaceDisplayName;
-
-                // Cerrar el dropdown
-                workspaceDropdown.classList.remove('active');
-                dropdownIcon.classList.remove('rotate');
-                workspaceSearchInput.value = '';
-                filterWorkspaces('');
-
-                // Navegar al workspace usando la URL correcta generada con route()
-                if (workspaceUrl) {
-                    window.location.href = workspaceUrl;
-                }
-            });
+        workspaceItems.forEach(function(item) {
+            item.addEventListener('click', function() { go(item); });
         });
 
-        // Función para filtrar workspaces
-        function filterWorkspaces(searchTerm) {
-            const items = workspaceList.querySelectorAll('.workspace-item');
-            items.forEach(item => {
-                const originalName = item.getAttribute('data-workspace-name') || '';
-                const displayName = item.getAttribute('data-workspace-display-name') || '';
-
-                if (!originalName && !displayName) {
-                    item.classList.add('hidden');
-                    return;
-                }
-
-                const matches = originalName.toLowerCase().includes(searchTerm) ||
-                                displayName.toLowerCase().includes(searchTerm);
-
-                if (matches) {
-                    item.classList.remove('hidden');
-                } else {
-                    item.classList.add('hidden');
-                }
+        // Busca por nombre (original o traducido) y por país; oculta los grupos que se quedan vacíos
+        function filterWorkspaces(term) {
+            workspaceItems.forEach(function(item) {
+                const text = norm([
+                    item.getAttribute('data-workspace-name'),
+                    item.getAttribute('data-workspace-display-name'),
+                    item.getAttribute('data-workspace-country')
+                ].join(' '));
+                item.classList.toggle('hidden', !!term && !text.includes(term));
             });
+            workspaceList.querySelectorAll('.ws-grp').forEach(function(g) {
+                g.hidden = !workspaceItems.some((i) => !i.classList.contains('hidden') && i.dataset.wsGroup === g.dataset.wsGroup);
+            });
+            if (emptyMsg) emptyMsg.hidden = visibleItems().length > 0;
+            // Al buscar se marca el primero (Intro entra en él); sin búsqueda no hay ninguno marcado
+            if (term) {
+                highlight(0);
+            } else {
+                workspaceItems.forEach((it) => it.classList.remove('is-kb'));
+                kbIndex = -1;
+            }
         }
 
-        // Permitir navegación con Enter cuando se busca
-        workspaceSearchInput.addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                const visibleItems = Array.from(document.querySelectorAll(
-                    '.workspace-item:not(.hidden)'));
-                if (visibleItems.length === 1) {
-                    visibleItems[0].click();
-                }
+        // Teclado: ↑ ↓ para moverse, Intro para entrar, Esc para cerrar
+        workspaceDropdown.addEventListener('keydown', function(e) {
+            if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+                e.preventDefault();
+                if (kbIndex < 0) highlight(e.key === 'ArrowDown' ? 0 : -1);
+                else highlight(kbIndex + (e.key === 'ArrowDown' ? 1 : -1));
+            } else if (e.key === 'Enter') {
+                const items = visibleItems();
+                const target = items[kbIndex] || (items.length === 1 ? items[0] : null);
+                if (target) { e.preventDefault(); go(target); }
+            } else if (e.key === 'Escape') {
+                e.preventDefault();
+                setOpen(false);
+                workspaceButton.focus();
             }
         });
     });
+
+    // ------------------------------------------------------------------
+    // Cabecera dentro del sidebar (escritorio, >= 1025px).
+    // Se mueven al sidebar los MISMOS elementos de la cabecera (topnav): selector de espacio
+    // de trabajo, chat, notificaciones, idioma y menú de usuario. Al moverlos conservan sus
+    // eventos (cambiar espacio, borrar notificaciones, idioma, cerrar sesión...).
+    // En móvil vuelven a la cabecera, que sigue teniendo el botón del menú.
+    // Se ejecuta justo después de la cabecera (layouts/admin.blade.php), antes de que el
+    // navegador pinte, para que no se vean aparecer; DOMContentLoaded queda de respaldo.
+    // ------------------------------------------------------------------
+    window.acelerPlaceHeader = function() {
+        if (window.__sbHeaderInit) return;
+        var header = document.querySelector('.dash-header');
+        var slotWs = document.getElementById('sbSlotWorkspace');
+        var slotTools = document.getElementById('sbSlotTools');
+        var slotUser = document.getElementById('sbSlotUser');
+        if (!header || !slotWs || !slotTools || !slotUser) return;
+        window.__sbHeaderInit = true;
+
+        var parts = [];
+        var add = function(el, slot, extraClass) {
+            if (!el) return;
+            var marker = document.createComment('sb-origin');
+            el.parentNode.insertBefore(marker, el);
+            parts.push({ el: el, slot: slot, marker: marker, extraClass: extraClass || '' });
+        };
+
+        add(header.querySelector('.drp-workspace'), slotWs);
+        header.querySelectorAll('.ms-auto .dash-h-item:not(.drp-workspace)').forEach(function(li) {
+            // Chat, notificaciones e idioma: sus menús se abren a la derecha del sidebar
+            add(li, slotTools, 'dropend');
+        });
+        add(header.querySelector('.drp-company'), slotUser, 'dropend');
+
+        var desktop = window.matchMedia('(min-width: 1025px)');
+        var place = function() {
+            var inSidebar = desktop.matches;
+            parts.forEach(function(p) {
+                if (inSidebar) {
+                    p.slot.appendChild(p.el);
+                } else {
+                    p.marker.parentNode.insertBefore(p.el, p.marker.nextSibling);
+                }
+                if (p.extraClass) p.el.classList.toggle(p.extraClass, inSidebar);
+                // En la cabecera los menús se alinean a la derecha; en el sidebar, no
+                p.el.querySelectorAll(':scope > .dropdown-menu').forEach(function(menu) {
+                    if (inSidebar && menu.classList.contains('dropdown-menu-end')) {
+                        menu.classList.remove('dropdown-menu-end');
+                        menu.setAttribute('data-sb-was-end', '1');
+                    } else if (!inSidebar && menu.getAttribute('data-sb-was-end') === '1') {
+                        menu.classList.add('dropdown-menu-end');
+                    }
+                });
+            });
+            document.body.classList.toggle('aCeler-header-in-sidebar', inSidebar);
+            userNameOnly(inSidebar);
+            fitWorkspaceName();
+        };
+
+        // En el sidebar solo el nombre del usuario (sin "Hola,"); en la cabecera, el saludo original
+        var userNameOnly = function(inSidebar) {
+            var span = document.querySelector('.drp-company .dash-head-link .hide-mob');
+            var img = document.querySelector('.drp-company .theme-avtar');
+            if (!span) return;
+            if (!span.hasAttribute('data-sb-greeting')) span.setAttribute('data-sb-greeting', span.textContent);
+            // El avatar es un <span> con iniciales (data-name) o, en versiones antiguas, un <img> (alt)
+            var name = (img && (img.getAttribute('data-name') || img.getAttribute('alt'))) || span.getAttribute('data-sb-greeting');
+            span.textContent = inSidebar ? name.trim() : span.getAttribute('data-sb-greeting');
+        };
+
+        // Nombre del espacio de trabajo: si no cabe, la letra baja hasta 10px; si aun así
+        // no cabe, pasa a dos líneas a 11px (y solo entonces "…")
+        var fitWorkspaceName = function() {
+            var nameEl = document.querySelector('.sb-slot-workspace #workspaceName');
+            if (!nameEl) return;
+            nameEl.style.fontSize = '';
+            nameEl.classList.remove('is-two-lines');
+            if (!document.body.classList.contains('aCeler-header-in-sidebar') ||
+                document.body.classList.contains('aCeler-menu-icons')) return;
+            var size = parseFloat(window.getComputedStyle(nameEl).fontSize) || 12.5;
+            while (nameEl.scrollWidth > nameEl.clientWidth + 1 && size > 10) {
+                size -= 0.5;
+                nameEl.style.fontSize = size + 'px';
+            }
+            if (nameEl.scrollWidth > nameEl.clientWidth + 1) {
+                nameEl.style.fontSize = '11px';
+                nameEl.classList.add('is-two-lines');
+            }
+            nameEl.setAttribute('title', nameEl.textContent.trim());
+        };
+        window.addEventListener('resize', fitWorkspaceName);
+        // Al expandir el sidebar (cambia la clase del body) se vuelve a ajustar cuando
+        // termina la animación de ancho (0.2s), para medir con el ancho final
+        // Al colapsar/expandir, notificaciones e idioma cambian de fila a columna: solo
+        // entonces aparecen con un fundido (no en cada carga de página)
+        var wasCollapsed = document.body.classList.contains('aCeler-menu-icons');
+        new MutationObserver(function() {
+            var collapsed = document.body.classList.contains('aCeler-menu-icons');
+            if (collapsed !== wasCollapsed) {
+                wasCollapsed = collapsed;
+                slotTools.classList.remove('sb-fade');
+                void slotTools.offsetWidth;
+                slotTools.classList.add('sb-fade');
+            }
+            window.setTimeout(fitWorkspaceName, 260);
+            window.acelerRailTitles();
+        }).observe(document.body, { attributes: true, attributeFilter: ['class'] });
+
+        place();
+        if (desktop.addEventListener) desktop.addEventListener('change', place);
+        else if (desktop.addListener) desktop.addListener(place);
+
+        // Tooltips (title) de lo que viene de la cabecera: en el raíl solo se ve el icono
+        var tipText = document.getElementById('sbTooltipText');
+        // El texto va a data-rail-title: acelerRailTitles() lo pone como title solo con el
+        // sidebar colapsado (abierto ya se lee el texto). Un title propio del HTML (p. ej. el
+        // aviso de horas sin imputar) se respeta y se ve siempre.
+        var setTitle = function(el, text) {
+            if (el && text && !el.getAttribute('title')) el.setAttribute('data-rail-title', text.trim());
+        };
+        if (tipText) {
+            var wsName = document.getElementById('workspaceName');
+            setTitle(document.getElementById('workspaceButton'),
+                tipText.dataset.workspace + (wsName ? ': ' + wsName.textContent.trim() : ''));
+            setTitle(document.querySelector('.drp-notification > .dash-head-link'), tipText.dataset.notifications);
+            var lang = document.querySelector('.drp-language .drp-text');
+            setTitle(document.querySelector('.drp-language > .dash-head-link'),
+                tipText.dataset.language + (lang ? ': ' + lang.textContent.trim() : ''));
+            var avatar = document.querySelector('.drp-company .theme-avtar');
+            setTitle(document.querySelector('.drp-company > .dash-head-link'), avatar && avatar.getAttribute('alt'));
+            var chat = document.querySelector('.sb-slot-tools a[href*="chats"]');
+            setTitle(chat, 'Chat');
+            // Logo (lleva al inicio) y opciones del menú: el layout también lo hace, pero así
+            // no depende del orden de los scripts
+            setTitle(document.querySelector('.dash-sidebar .m-header > a'), 'aCeler · ' + tipText.dataset.home);
+            document.querySelectorAll('.dash-sidebar .dash-navbar .dash-link').forEach(function(a) {
+                var label = a.querySelector('.dash-mtext');
+                setTitle(a, label && label.textContent);
+            });
+            // El botón de colapsar trae su title del HTML: también solo en el raíl
+            var toggle = document.getElementById('aCeler-menu-toggle');
+            if (toggle && toggle.getAttribute('title')) {
+                toggle.setAttribute('data-rail-title', toggle.getAttribute('title'));
+                toggle.removeAttribute('title');
+            }
+        }
+        window.acelerRailTitles();
+
+        // Los menús (dropend) se colocan junto a su botón, que puede ocupar media fila:
+        // se separan lo justo para que empiecen 10px a la derecha del borde del sidebar.
+        document.addEventListener('show.bs.dropdown', function(e) {
+            var li = e.target && e.target.closest ? e.target.closest('.sb-slot > li') : null;
+            if (!li) return;
+            var menu = li.querySelector(':scope > .dropdown-menu');
+            var sidebar = document.querySelector('.dash-sidebar');
+            if (!menu || !sidebar) return;
+            var gap = sidebar.getBoundingClientRect().right - e.target.getBoundingClientRect().right + 10;
+            menu.style.setProperty('--sb-gap', Math.max(8, Math.round(gap)) + 'px');
+        });
+    };
+    // Tooltips solo con el sidebar colapsado (escritorio): los elementos guardan su texto en
+    // data-rail-title y se enseña un tooltip negro propio a la derecha del icono (el title del
+    // navegador no se puede pintar de negro). Abierto, no hay tooltip: el texto ya se lee.
+    window.acelerRailTitles = function() {
+        var rail = document.body.classList.contains('aCeler-menu-icons') &&
+            window.matchMedia('(min-width: 1025px)').matches;
+        document.body.classList.toggle('sb-rail-tips', rail);
+        document.querySelectorAll('[data-rail-title]').forEach(function(el) {
+            el.removeAttribute('title');
+        });
+        if (!rail && window.acelerRailTipHide) window.acelerRailTipHide();
+    };
+
+    (function() {
+        if (window.acelerRailTipHide) return;
+        var tip = null, current = null, timer = null;
+        var hide = function() {
+            clearTimeout(timer);
+            current = null;
+            if (tip) tip.classList.remove('is-on');
+        };
+        // Pequeña espera: al pasar el ratón de largo por el menú no van saltando tooltips
+        var show = function(el) {
+            clearTimeout(timer);
+            current = el;
+            timer = setTimeout(function() { if (current === el) reveal(el); }, 250);
+        };
+        // Dos fuentes: data-rail-title (menú colapsado, a la derecha) y data-aceler-tip (cualquier
+        // pantalla que lo quiera, p. ej. el Gantt; debajo, o a la derecha con data-aceler-tip-pos="right")
+        var reveal = function(el) {
+            var rail = el.hasAttribute('data-rail-title') && !el.hasAttribute('data-aceler-tip');
+            var text = rail ? el.getAttribute('data-rail-title') : el.getAttribute('data-aceler-tip');
+            if (!text) return hide();
+            if (!tip) {
+                tip = document.createElement('div');
+                tip.className = 'sb-rail-tip';
+                tip.setAttribute('role', 'tooltip');
+                document.body.appendChild(tip);
+            }
+            tip.textContent = text;
+            var r = el.getBoundingClientRect();
+            var below = !rail && el.getAttribute('data-aceler-tip-pos') !== 'right';
+            tip.classList.toggle('is-below', below);
+            if (below) {
+                tip.style.top = Math.round(r.bottom + 6) + 'px';
+                tip.style.left = Math.round(r.left + r.width / 2) + 'px';
+                tip.classList.add('is-on');
+                // Que no se salga por los lados de la ventana
+                var tr = tip.getBoundingClientRect();
+                var shift = tr.right > window.innerWidth - 8 ? window.innerWidth - 8 - tr.right : (tr.left < 8 ? 8 - tr.left : 0);
+                if (shift) tip.style.left = Math.round(r.left + r.width / 2 + shift) + 'px';
+            } else {
+                tip.style.left = Math.round(r.right + 8) + 'px';
+                tip.style.top = Math.round(r.top + r.height / 2) + 'px';
+                tip.classList.add('is-on');
+            }
+        };
+        var target = function(e) {
+            var t = e.target && e.target.closest ? e.target : null;
+            if (!t) return null;
+            var generic = t.closest('[data-aceler-tip]');
+            if (generic) return generic;
+            if (!document.body.classList.contains('sb-rail-tips')) return null;
+            var el = t.closest('[data-rail-title]');
+            // Solo los del menú lateral (y su cabecera movida dentro)
+            return el && el.closest('.dash-sidebar') ? el : null;
+        };
+        document.addEventListener('mouseover', function(e) {
+            var el = target(e);
+            if (el && el !== current) show(el);
+            else if (!el && current) hide();
+        });
+        document.addEventListener('focusin', function(e) {
+            var el = target(e);
+            if (el) show(el);
+        });
+        document.addEventListener('focusout', hide);
+        document.addEventListener('mousedown', hide);
+        window.addEventListener('scroll', hide, true);
+        window.acelerRailTipHide = hide;
+
+        // Toda la aplicación usa estos tooltips: acelerTipify(contenedor) pasa sus title a
+        // data-aceler-tip, también los que se pongan después por JS. Deja en paz lo que tiene
+        // su propio tooltip o lo necesita así: tooltips/popovers de Bootstrap ya creados,
+        // data-toggle="tooltip", tooltipCus, SVG, las opciones del menú (data-rail-title, solo con
+        // el menú plegado), opciones de un select, iframes y campos con pattern (el navegador usa
+        // el title en el aviso de validación). Para excluir algo a mano: data-no-aceler-tip.
+        var skipTip = function(el) {
+            var tag = el.tagName;
+            if (tag === 'OPTION' || tag === 'OPTGROUP' || tag === 'IFRAME' || tag === 'LINK' || tag === 'STYLE') return true;
+            if (el.hasAttribute('pattern') || el.hasAttribute('data-rail-title') || el.hasAttribute('data-bs-original-title')) return true;
+            if ((el.getAttribute('data-bs-toggle') || el.getAttribute('data-toggle')) === 'tooltip') return true;
+            if (el.classList && el.classList.contains('tooltipCus')) return true;
+            return !!el.closest('svg, [data-no-aceler-tip]');
+        };
+        window.acelerTipify = function(root) {
+            if (!root || root.__acelerTips) return;
+            for (var p = root.parentElement; p; p = p.parentElement) if (p.__acelerTips) return; // ya cubierto
+            root.__acelerTips = true;
+            var convert = function(el) {
+                if (!el.getAttribute || !el.hasAttribute('title')) return;
+                if (skipTip(el)) return;
+                var t = (el.getAttribute('title') || '').trim();
+                el.removeAttribute('title');
+                if (!t) { el.removeAttribute('data-aceler-tip'); return; }
+                el.setAttribute('data-aceler-tip', t);
+                if (!el.getAttribute('aria-label') && !el.textContent.trim()) el.setAttribute('aria-label', t);
+            };
+            convert(root);
+            root.querySelectorAll('[title]').forEach(convert);
+            new MutationObserver(function(list) {
+                list.forEach(function(m) {
+                    if (m.type === 'attributes') convert(m.target);
+                    else m.addedNodes.forEach(function(n) {
+                        if (n.nodeType !== 1) return;
+                        convert(n);
+                        if (n.querySelectorAll) n.querySelectorAll('[title]').forEach(convert);
+                    });
+                });
+            }).observe(root, { subtree: true, childList: true, attributes: true, attributeFilter: ['title'] });
+        };
+        var tipifyPage = function() { window.acelerTipify(document.body); };
+        if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', tipifyPage);
+        else tipifyPage();
+    })();
+
+    // ------------------------------------------------------------------
+    // Pestañas "Equipo" / "Mi actividad": solo se ven las opciones del grupo elegido
+    // (las que no son de ningún grupo, como Configuración, se ven siempre).
+    // - Si la página actual es de un grupo, se abre en ese grupo.
+    // - Si no, se usa el último elegido (se recuerda en el navegador).
+    // Se aplica aquí, antes de pintar, para que no se vea el cambio.
+    // ------------------------------------------------------------------
+    (function() {
+        var nav = document.querySelector('.dash-sidebar');
+        var tabs = document.querySelectorAll('.sb-scope-tab');
+        if (!nav || !tabs.length) return;
+        var KEY = 'aceler.sidebar.scope';
+
+        var apply = function(scope, remember) {
+            nav.setAttribute('data-scope', scope);
+            tabs.forEach(function(t) {
+                var on = t.getAttribute('data-scope') === scope;
+                t.classList.toggle('active', on);
+                t.setAttribute('aria-selected', on ? 'true' : 'false');
+            });
+            if (remember) {
+                try { window.localStorage.setItem(KEY, scope); } catch (e) {}
+            }
+            // Tooltip del botón de cambio (raíl): grupo actual y a cuál cambia
+            var sw = document.querySelector('.sb-scope-swap');
+            var tip = document.getElementById('sbTooltipText');
+            if (sw) {
+                var labelTeam = sw.getAttribute('data-label-team');
+                var labelMine = sw.getAttribute('data-label-mine');
+                var current = scope === 'mine' ? labelMine : labelTeam;
+                var other = scope === 'mine' ? labelTeam : labelMine;
+                var text = current + ' · ' + ((tip && tip.dataset.switch) || '→') + ' ' + other;
+                sw.setAttribute('data-rail-title', text);
+                sw.setAttribute('aria-label', text);
+                window.acelerRailTitles();
+            }
+        };
+
+        var saved = null;
+        try { saved = window.localStorage.getItem(KEY); } catch (e) {}
+        var page = nav.getAttribute('data-scope-page');
+        apply(page || (saved === 'mine' ? 'mine' : 'team'), !!page);
+
+        tabs.forEach(function(t) {
+            t.addEventListener('click', function() { apply(t.getAttribute('data-scope'), true); });
+        });
+
+        // Sidebar colapsado: botón de flechas que alterna el grupo, con animación
+        // (giro de las flechas, rebote de la insignia, fundido del menú y tooltip breve)
+        var swap = document.querySelector('.sb-scope-swap');
+        if (swap) {
+            var menu = document.querySelector('.dash-navbar');
+            var restart = function(el, cls) {
+                if (!el) return;
+                el.classList.remove(cls);
+                void el.offsetWidth;
+                el.classList.add(cls);
+            };
+            swap.addEventListener('click', function() {
+                var next = nav.getAttribute('data-scope') === 'mine' ? 'team' : 'mine';
+                apply(next, true);
+                restart(swap, 'is-swapping');
+                restart(menu, 'sb-list-swap');
+
+                var old = swap.querySelector('.sb-swap-tip');
+                if (old) old.remove();
+                var tip = document.createElement('span');
+                tip.className = 'sb-swap-tip';
+                tip.textContent = swap.getAttribute(next === 'mine' ? 'data-label-mine' : 'data-label-team');
+                swap.appendChild(tip);
+                window.setTimeout(function() { tip.remove(); }, 1500);
+            });
+            swap.addEventListener('animationend', function(e) {
+                if (e.target === swap.querySelector('.sb-swap-arrows')) swap.classList.remove('is-swapping');
+            });
+        }
+    })();
+
+    // La cabecera se incluye ANTES que el sidebar (layouts/admin.blade.php): ya está en el
+    // DOM, así que se coloca aquí mismo, sin que el navegador llegue a pintar los huecos vacíos.
+    window.acelerPlaceHeader();
+    document.addEventListener('DOMContentLoaded', window.acelerPlaceHeader);
+
+    // Detalle oculto: "navidad" en el buscador de proyectos pone un gorro al logo y hace nevar
+    (function() {
+        var snow = null;
+        var makeSnow = function() {
+            snow = document.createElement('div');
+            snow.className = 'aceler-snow';
+            snow.setAttribute('aria-hidden', 'true');
+            var flakes = window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 60;
+            for (var i = 0; i < flakes; i++) {
+                var f = document.createElement('span');
+                f.className = 'aceler-snowflake';
+                f.textContent = Math.random() < 0.35 ? '❄' : '•';
+                f.style.left = (Math.random() * 100) + 'vw';
+                f.style.fontSize = (8 + Math.random() * 12).toFixed(1) + 'px';
+                f.style.opacity = (0.55 + Math.random() * 0.45).toFixed(2);
+                f.style.setProperty('--fall', (7 + Math.random() * 8).toFixed(1) + 's');
+                f.style.setProperty('--sway', (2.5 + Math.random() * 3).toFixed(1) + 's');
+                f.style.setProperty('--drift', (Math.random() * 60 - 30).toFixed(0) + 'px');
+                // Retraso negativo: la nieve ya está repartida por la pantalla al aparecer
+                f.style.animationDelay = '-' + (Math.random() * 15).toFixed(1) + 's, -' + (Math.random() * 5).toFixed(1) + 's';
+                snow.appendChild(f);
+            }
+            document.body.appendChild(snow);
+        };
+
+        // Del 1 de diciembre al 6 de enero (Reyes), ambos incluidos, se activa solo, sin escribir nada
+        var today = new Date();
+        var month = today.getMonth(); // 0 = enero, 11 = diciembre
+        var isSeason = month === 11 || (month === 0 && today.getDate() <= 6);
+
+        // El usuario puede quitar la nieve (el gorro se queda). Se recuerda en este navegador
+        // y por temporada: quien la quite este año la vuelve a ver la Navidad siguiente.
+        var seasonYear = month === 0 ? today.getFullYear() - 1 : today.getFullYear();
+        var snowKey = 'aceler.snow.off.' + seasonYear;
+        var snowOff = false;
+        try { snowOff = localStorage.getItem(snowKey) === '1'; } catch (e) {}
+
+        var setXmas = function(on) {
+            document.body.classList.toggle('aceler-xmas', on);
+            document.body.classList.toggle('aceler-nosnow', snowOff);
+            if (on && !snowOff && !snow) makeSnow();
+        };
+
+        var syncSnowButton = function() {
+            var btn = document.getElementById('acelerSnowToggle');
+            if (!btn) return;
+            var text = snowOff ? btn.dataset.onText : btn.dataset.offText;
+            btn.setAttribute('aria-pressed', snowOff ? 'false' : 'true');
+            btn.setAttribute('title', text);
+            btn.setAttribute('aria-label', text);
+        };
+
+        var initSnowButton = function() {
+            var item = document.getElementById('acelerSnowItem');
+            if (!item || !isSeason) return;
+            item.hidden = false;
+            syncSnowButton();
+        };
+
+        document.addEventListener('click', function(e) {
+            var btn = e.target.closest && e.target.closest('#acelerSnowToggle');
+            if (!btn) return;
+            snowOff = !snowOff;
+            try {
+                if (snowOff) localStorage.setItem(snowKey, '1');
+                else localStorage.removeItem(snowKey);
+            } catch (err) {}
+            setXmas(document.body.classList.contains('aceler-xmas'));
+            syncSnowButton();
+        });
+
+        if (isSeason) setXmas(true);
+        // El botón está en la cabecera, que puede pintarse después de este script
+        initSnowButton();
+        document.addEventListener('DOMContentLoaded', initSnowButton);
+
+        document.addEventListener('input', function(e) {
+            if (!e.target || e.target.id !== 'searchInput') return;
+            // En temporada sigue activo aunque se borre el texto; fuera de ella, el truco de siempre
+            setXmas(isSeason || /navidad/i.test(e.target.value || ''));
+        });
+    })();
 
     //when the user clicks on create timetable redirect it to timetable creation
     /*$(document).ready(function() {
@@ -850,3 +1492,5 @@
         });
     });*/
 </script>
+<!-- Agrega jQuery (al final: un script externo antes de colocar la cabecera dejaba pintar el sidebar a medias) -->
+<script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>

@@ -1,0 +1,133 @@
+<?php
+
+/*
+|--------------------------------------------------------------------------
+| Export de horas a Axapta (fichero .fil de ancho fijo)
+|--------------------------------------------------------------------------
+| Las parejas delegación => empresa salen de un fichero que Axapta acepta
+| (Exp_TiemposAX_open-and-closed_12_2026-08-24). Si aparece una delegación o
+| empresa nueva, se añade aquí.
+*/
+
+return [
+
+    // Primer RegId que usará la app. Tiene que estar por encima de los RegId que
+    // ya existen en Axapta (en el fichero de referencia el máximo es 1145853).
+    'regid_start' => (int) env('AXAPTA_REGID_START', 2000000),
+
+    // Código de operación de cada línea
+    'op' => '210',
+
+    // Meses que se guarda la copia del .fil de cada lote para poder redescargarlo desde el perfil.
+    // Pasado ese tiempo el comando axapta:prune-batch-files borra solo el archivo (el lote y sus
+    // líneas se conservan). 0 = no borrar nunca.
+    'batch_file_retention_months' => (int) env('AXAPTA_BATCH_FILE_RETENTION_MONTHS', 6),
+
+    // Empresa por defecto de cada delegación (la más usada en Axapta)
+    'empresa_por_delegacion' => [
+        'AB' => 'IN1',
+        'AC' => 'CL0',
+        'AL' => 'ES0',
+        'AR' => 'ES0',
+        'AZ' => 'PT0',
+        'CB' => 'CO0',
+        'CS' => 'AE1',
+        'DL' => 'US0',
+        'DU' => 'AE1',
+        'E1' => 'ES0',
+        'E2' => 'CO0',
+        'EN' => 'ES0',
+        'EX' => 'ES0',
+        'FL' => 'US0',
+        'GA' => 'ES0',
+        'IB' => 'ES0',
+        'ID' => 'ES0',
+        'IN' => 'IN1',
+        'IT' => 'IT0',
+        'IX' => 'IN1',
+        'KA' => 'IN1',
+        'MA' => 'MA1',
+        'MD' => 'ES1',
+        'MI' => 'ES0',
+        'MS' => 'ES1',
+        'NA' => 'ES0',
+        'PA' => 'PA0',
+        'PE' => 'PE0',
+        'PH' => 'PH0',
+        'PO' => 'PL0',
+        'PR' => 'PY0',
+        'PT' => 'PT0',
+        'PV' => 'ES0',
+        'PY' => 'PY0',
+        'PZ' => 'PL0',
+        'RM' => 'IT0',
+        'RO' => 'RO0',
+        'SE' => 'ES1',
+        'T1' => 'ES0',
+        'T2' => 'ES0',
+        'T4' => 'ES0',
+        'T5' => 'ES0',
+        'TF' => 'ES0',
+        'TG' => 'IN1',
+        'TX' => 'US0',
+        'UY' => 'UY0',
+        'VA' => 'ES0',
+        'VG' => 'US0',
+        'WA' => 'PL0',
+        'XA' => 'CL0',
+    ],
+
+    // Empresas que Axapta acepta para cada delegación
+    'empresas_validas' => [
+        'AB' => ['IN1'],
+        'AC' => ['CL0', 'ES0'],
+        'AL' => ['ES0'],
+        'AR' => ['ES0'],
+        'AZ' => ['CO0', 'PT0'],
+        'CB' => ['CO0'],
+        'CS' => ['AE1'],
+        'DL' => ['US0'],
+        'DU' => ['AE0', 'AE1', 'ES0'],
+        'E1' => ['ES0', 'ES1'],
+        'E2' => ['CO0'],
+        'EN' => ['ES0', 'ES2'],
+        'EX' => ['ES0', 'ES3', 'PA0', 'PE0', 'PT0', 'RO0'],
+        'FL' => ['ES0', 'US0'],
+        'GA' => ['ES0', 'ES3'],
+        'IB' => ['ES0'],
+        'ID' => ['ES0'],
+        'IN' => ['ES0', 'IN1', 'RO0'],
+        'IT' => ['AE1', 'ES0', 'IT0'],
+        'IX' => ['IN1'],
+        'KA' => ['IN0', 'IN1'],
+        'MA' => ['ES0', 'MA0', 'MA1'],
+        'MD' => ['ES0', 'ES1'],
+        'MI' => ['ES0', 'ES1'],
+        'MS' => ['ES0', 'ES1', 'ES2'],
+        'NA' => ['ES0'],
+        'PA' => ['ES0', 'PA0'],
+        'PE' => ['CL0', 'ES0', 'PE0'],
+        'PH' => ['ES0', 'PH0'],
+        'PO' => ['PL0'],
+        'PR' => ['PY0'],
+        'PT' => ['ES0', 'PT0'],
+        'PV' => ['ES0'],
+        'PY' => ['ES0', 'PY0'],
+        'PZ' => ['ES0', 'PL0'],
+        'RM' => ['IT0'],
+        'RO' => ['RO0'],
+        'SE' => ['ES1'],
+        'T1' => ['ES0'],
+        'T2' => ['ES0', 'ES2'],
+        'T4' => ['ES0', 'ES2', 'IT0'],
+        'T5' => ['ES0'],
+        'TF' => ['ES0', 'ES2', 'ES3'],
+        'TG' => ['IN0', 'IN1'],
+        'TX' => ['US0'],
+        'UY' => ['ES0', 'UY0'],
+        'VA' => ['ES0'],
+        'VG' => ['US0'],
+        'WA' => ['ES0', 'PL0'],
+        'XA' => ['CL0'],
+    ],
+];

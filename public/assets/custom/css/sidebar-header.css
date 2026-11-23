@@ -1,0 +1,948 @@
+/* aCeler — cabecera dentro del sidebar (solo escritorio, >= 1025px)
+   El script del final de partials/sidebar.blade.php mueve al sidebar los elementos de la
+   cabecera (topnav): espacio de trabajo bajo el logo; chat, notificaciones, idioma y
+   usuario al pie. La cabecera queda oculta y la página empieza arriba del todo.
+   En móvil todo sigue en la cabecera (con el botón del menú). */
+
+@media (min-width: 1025px) {
+
+    /* ---------- Sin barra superior ---------- */
+    .dash-header {
+        display: none !important;
+    }
+
+    .dash-container,
+    .dash-header:not(.transprent-bg):not(.dash-mob-header) ~ .dash-container {
+        top: 0 !important;
+    }
+
+    /* ---------- Sidebar en columna: logo · espacio · menú (con scroll) · pie ----------
+       El contenido ocupa SIEMPRE todo el sidebar (que es fijo, de arriba abajo): se ancla a
+       sus cuatro bordes, así el pie y el botón de colapsar quedan pegados abajo aunque
+       otros estilos de la app cambien el alto o el display del sidebar.
+       Los 5px de arriba/izquierda son el padding en línea del <nav>. */
+    .dash-sidebar .navbar-wrapper {
+        position: absolute;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        left: 0;
+        /* !important: otro estilo de la app fuerza display:block en este contenedor */
+        display: flex !important;
+        flex-direction: column !important;
+        width: auto !important;
+        height: auto !important;
+        min-height: 0;
+        padding: 5px 0 0 5px;
+        box-sizing: border-box;
+    }
+
+    .dash-sidebar .navbar-wrapper > .m-header,
+    .dash-sidebar .sb-slot-workspace,
+    .dash-sidebar .sb-bottom,
+    .dash-sidebar .menu-icons-row {
+        flex-shrink: 0;
+    }
+
+    /* Pestañas y menú arriba, justo bajo el espacio de trabajo; el menú ocupa el espacio
+       libre (con scroll si no cabe) y el pie queda abajo */
+    .dash-sidebar .navbar-content {
+        flex: 1 1 auto !important;
+        min-height: 0;
+        height: auto !important;
+        /* Columna: el menú (ul) se apila dentro y hace scroll si no cabe */
+        display: flex !important;
+        flex-direction: column;
+        padding-top: 14px !important;
+        padding-bottom: 8px;
+        overflow-y: auto;
+        overflow-x: hidden;
+        scrollbar-width: none;
+    }
+
+    .dash-sidebar .navbar-content::-webkit-scrollbar {
+        display: none;
+    }
+
+    .dash-sidebar .menu-icons-row {
+        position: static;
+    }
+
+    /* ---------- Logo: misma caja en los dos estados y fundido entre versiones ----------
+       Antes la marca completa y la "A" + "aCeler" se intercambiaban de golpe (display),
+       con distinto relleno, mientras el ancho del sidebar se animaba: el logo se
+       estiraba/encogía y saltaba. Ahora las tres imágenes están siempre colocadas en el
+       mismo sitio y solo cambia su opacidad. */
+    .dash-sidebar.light-sidebar .m-header {
+        position: relative;
+        height: 70px !important;
+        padding: 0 !important;
+        justify-content: center;
+    }
+
+    .dash-sidebar.light-sidebar .m-header > a {
+        position: absolute;
+        inset: 0;
+        display: block;
+        margin: 0 !important;
+    }
+
+    .dash-sidebar.light-sidebar .m-header .ajustarImg,
+    .dash-sidebar.light-sidebar .m-header .logo-mini,
+    .dash-sidebar.light-sidebar .m-header .logo-mini-text {
+        display: block !important;
+        position: absolute;
+        transition: opacity 0.15s ease;
+    }
+
+    /* Marca completa: centrada en el sidebar abierto (ancho fijo, no se estira) */
+    .dash-sidebar.light-sidebar .m-header .ajustarImg {
+        top: 50%;
+        left: 108px;
+        width: 180px !important;
+        max-width: none !important;
+        height: auto;
+        transform: translate(-50%, -50%);
+        opacity: 1;
+        transition-delay: 0.1s;
+    }
+
+    /* "A" + "aCeler": en el eje del raíl (x = 35px, como los iconos del menú) */
+    .dash-sidebar.light-sidebar .m-header .logo-mini,
+    .dash-sidebar.light-sidebar .m-header .logo-mini-text {
+        left: 30px;
+        transform: translateX(-50%);
+        opacity: 0;
+        pointer-events: none;
+    }
+
+    .dash-sidebar.light-sidebar .m-header .logo-mini {
+        top: 13px;
+        width: auto;
+        height: 28px;
+    }
+
+    .dash-sidebar.light-sidebar .m-header .logo-mini-text {
+        top: 44px;
+        width: 48px;
+        height: auto;
+    }
+
+    body.aCeler-menu-icons .dash-sidebar.light-sidebar .m-header .ajustarImg {
+        opacity: 0;
+        transition-delay: 0s;
+        pointer-events: none;
+    }
+
+    body.aCeler-menu-icons .dash-sidebar.light-sidebar .m-header .logo-mini,
+    body.aCeler-menu-icons .dash-sidebar.light-sidebar .m-header .logo-mini-text {
+        opacity: 1;
+        transition-delay: 0.1s;
+    }
+
+    /* ---------- Espacio de trabajo bajo el logo ---------- */
+    /* Mismos márgenes laterales (8px) que las opciones del menú */
+    .sb-slot-workspace {
+        position: relative;
+        z-index: 30;
+        box-sizing: border-box;
+        /* Hueco reservado (2 + 44 + 10) aunque el selector aún no se haya colocado */
+        min-height: 56px;
+        padding: 2px 8px 10px;
+    }
+
+    .sb-slot-workspace .drp-workspace,
+    .sb-slot-workspace .workspace-dropdown-container {
+        display: block;
+        width: 100%;
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    .sb-slot-workspace .workspace-name-header {
+        display: flex;
+        align-items: center;
+        justify-content: flex-start;
+        gap: 8px;
+        box-sizing: border-box;
+        width: 100%;
+        min-width: 0;
+        height: 44px;
+        margin: 0;
+        padding: 0 10px 0 6px;
+        border: 1px solid rgba(255, 255, 255, 0.22);
+        border-radius: 10px;
+        background: rgba(255, 255, 255, 0.12);
+        box-shadow: none;
+        color: #fff;
+        font-size: 12.5px;
+        font-weight: 600;
+        text-align: left;
+        transform: none;
+        /* El estilo original anima "all" 0.3s: al colapsar se animaban ancho, relleno y
+           borde y el icono resbalaba. Solo se anima el fondo del hover. */
+        transition: background-color 0.15s ease !important;
+    }
+
+    .sb-slot-workspace .workspace-name-header:hover {
+        background: rgba(255, 255, 255, 0.2);
+        box-shadow: none;
+        transform: none;
+    }
+
+    /* Icono de "espacio de trabajo" delante del nombre */
+    .sb-slot-workspace .workspace-name-header::before {
+        content: "\f5fd"; /* fa-layer-group */
+        font-family: "Font Awesome 6 Free", "Font Awesome 5 Free";
+        font-weight: 900;
+        flex-shrink: 0;
+        width: 30px;
+        height: 30px;
+        border-radius: 8px;
+        /* Invertido: icono blanco sobre granate, con un aro claro para que destaque */
+        background: #AA182C;
+        color: #fff;
+        box-shadow: 0 0 0 1.5px rgba(255, 255, 255, 0.45);
+        font-size: 13px;
+        line-height: 30px;
+        text-align: center;
+    }
+
+    .sb-slot-workspace #workspaceName {
+        flex: 1;
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        line-height: 1.25;
+    }
+
+    /* Si ni con la letra reducida cabe, pasa a dos líneas */
+    .sb-slot-workspace #workspaceName.is-two-lines {
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        white-space: normal;
+    }
+
+    .sb-slot-workspace .ws-btn-text {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .sb-slot-workspace .ws-btn-text #workspaceName {
+        flex: none;
+    }
+
+    /* Si el nombre necesita dos líneas no cabe también el país */
+    .sb-slot-workspace .ws-btn-text:has(#workspaceName.is-two-lines) .ws-btn-country {
+        display: none;
+    }
+
+    /* El menú de espacios sale a la derecha del menú lateral, como los demás menús */
+    .sb-slot-workspace .workspace-dropdown {
+        top: 0;
+        left: calc(100% + 10px);
+        right: auto;
+        margin-top: 0;
+        color: #1f2937;
+    }
+
+    /* ---------- Pie: chat / notificaciones / idioma + usuario ---------- */
+    .sb-bottom {
+        margin-top: auto;
+        padding: 8px 8px 6px;
+        border-top: 1px solid rgba(255, 255, 255, 0.15);
+    }
+
+    .sb-slot-tools,
+    .sb-slot-user {
+        margin: 0;
+        padding: 0;
+    }
+
+    /* .dash-sidebar delante: la plantilla pone margin-bottom:0 a todos los ul del sidebar */
+    .dash-sidebar .sb-slot-tools {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 8px;
+    }
+
+    .sb-slot-tools > li {
+        position: relative;
+        flex: 1 1 0;
+        min-width: 0;
+        list-style: none;
+    }
+
+    /* El <li> de la cabecera trae ms-4 (margen izquierdo con !important) */
+    .sb-slot-user > li {
+        position: relative;
+        margin: 0 !important;
+        list-style: none;
+    }
+
+    .sb-slot .dash-head-link {
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        height: 34px;
+        margin: 0 !important;
+        padding: 0 8px;
+        border-radius: 9px;
+        background: rgba(255, 255, 255, 0.1);
+        color: #fff !important;
+        font-size: 12.5px;
+        text-decoration: none;
+        white-space: nowrap;
+    }
+
+    .sb-slot .dash-head-link:hover,
+    .sb-slot .dash-head-link.show {
+        background: rgba(255, 255, 255, 0.2);
+    }
+
+    .sb-slot .dash-head-link > i {
+        color: #fff !important;
+        font-size: 16px;
+    }
+
+    .sb-slot .dash-head-link .drp-arrow {
+        display: none;
+    }
+
+    .sb-slot .drp-language .drp-text {
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    /* Aviso de notificaciones / mensajes sin leer: punto ámbar sobre el icono */
+    .sb-slot .dash-head-link .dash-h-badge {
+        position: absolute;
+        top: 5px;
+        left: calc(50% + 4px);
+        min-width: 8px;
+        height: 8px;
+        padding: 0;
+        border: 2px solid #AA182C;
+        border-radius: 50%;
+        background: #fbbf24 !important;
+        font-size: 0;
+    }
+
+    .sb-slot .drp-language .dash-head-link .dash-h-badge,
+    .sb-slot .message-counter:empty {
+        display: none;
+    }
+
+    /* Usuario */
+    .sb-slot-user .dash-head-link {
+        width: 100%;
+        justify-content: flex-start;
+        text-align: left;
+        gap: 10px;
+        height: auto;
+        padding: 6px;
+        background: transparent;
+    }
+
+    .sb-slot-user .dash-head-link:hover,
+    .sb-slot-user .dash-head-link.show {
+        background: rgba(255, 255, 255, 0.1);
+    }
+
+    .sb-slot-user .theme-avtar {
+        flex-shrink: 0;
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        object-fit: cover;
+        background: #fff;
+        box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.35);
+    }
+
+    /* Nombre (la flecha también lleva hide-mob: se trata aparte) */
+    .sb-slot-user .dash-head-link span.hide-mob {
+        display: block !important;
+        flex: 1;
+        min-width: 0;
+        margin: 0 !important;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        font-size: 12.5px;
+        font-weight: 600;
+    }
+
+    /* Flecha del menú de usuario: pegada a la derecha, separada del nombre */
+    .sb-slot-user .dash-head-link .drp-arrow {
+        display: inline-block !important;
+        flex: 0 0 auto;
+        margin: 0 6px 0 auto !important;
+        font-size: 13px;
+        color: rgba(255, 255, 255, 0.85) !important;
+    }
+
+    /* Menús: se abren a la derecha del sidebar, con texto oscuro */
+    /* --sb-gap lo calcula el script al abrir: el menú empieza fuera del sidebar */
+    .sb-slot .dropdown-menu {
+        z-index: 1060;
+        margin-left: var(--sb-gap, 10px) !important;
+        color: #1f2937;
+    }
+
+    .sb-slot .dropdown-menu .dropdown-item {
+        color: #374151;
+    }
+
+    .sb-slot .drp-notification .dropdown-menu {
+        min-width: 440px;
+    }
+
+    .sb-slot .drp-notification .noti-header,
+    .sb-slot .drp-notification .noti-footer,
+    .sb-slot .drp-notification .noti-body {
+        padding: 10px 20px;
+    }
+
+    .sb-slot .drp-notification .noti-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    .sb-slot .drp-notification .noti-body {
+        position: relative;
+        max-height: calc(100vh - 200px);
+        overflow-y: auto;
+    }
+
+    .sb-slot .dash-h-dropdown .fa-circle {
+        font-size: 5px;
+        vertical-align: middle;
+    }
+
+    /* ---------- Sidebar colapsado (raíl de 70px): solo iconos ---------- */
+    /* Todos los iconos del raíl quedan en el mismo eje (x = 35px), igual que con el
+       sidebar abierto, para que nada salte de sitio al colapsar o expandir */
+    body.aCeler-menu-icons .sb-slot-workspace .workspace-dropdown-container {
+        width: auto;
+    }
+
+    body.aCeler-menu-icons .sb-slot-workspace .workspace-name-header {
+        justify-content: center;
+        width: 44px;
+        height: 44px;
+        padding: 0;
+        border-color: transparent;
+        background: transparent;
+    }
+
+    body.aCeler-menu-icons .sb-slot-workspace .workspace-name-header::before {
+        box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.35);
+    }
+
+    body.aCeler-menu-icons .sb-slot-workspace #workspaceName,
+    body.aCeler-menu-icons .sb-slot-workspace .ws-btn-text,
+    body.aCeler-menu-icons .sb-slot-workspace .workspace-dropdown-icon {
+        display: none;
+    }
+
+    /* El menú de espacios sale a la derecha del raíl */
+    body.aCeler-menu-icons .sb-slot-workspace .workspace-dropdown {
+        top: 0;
+        left: calc(100% + 10px);
+        right: auto;
+        margin-top: 0;
+    }
+
+    /* Colapsado: notificaciones e idioma uno encima del otro */
+    body.aCeler-menu-icons .sb-slot-tools {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
+
+    body.aCeler-menu-icons .sb-slot-tools > li {
+        flex: none;
+    }
+
+    body.aCeler-menu-icons .sb-slot .dash-head-link {
+        width: 44px;
+        height: 38px;
+        padding: 0;
+    }
+
+    /* El usuario conserva su alto (no el de 34px de los botones pequeños): el pie mide
+       lo mismo abierto y colapsado y el menú centrado no se mueve */
+    body.aCeler-menu-icons .sb-slot-user .dash-head-link {
+        width: 44px;
+        height: auto;
+    }
+
+    /* Idioma plegado: se ve el código (ES, EN…) en vez del globo, así se sabe cuál está puesto */
+    body.aCeler-menu-icons .sb-slot .drp-language .drp-code {
+        display: inline;
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: .04em;
+    }
+
+    body.aCeler-menu-icons .sb-slot .drp-language .dash-head-link > .ti-world {
+        display: none;
+    }
+
+    body.aCeler-menu-icons .sb-slot .drp-text,
+    body.aCeler-menu-icons .sb-slot-user .dash-head-link .hide-mob,
+    body.aCeler-menu-icons .sb-slot-user .dash-head-link .drp-arrow {
+        display: none !important;
+    }
+
+    body.aCeler-menu-icons .sb-slot-user .dash-head-link {
+        width: 44px;
+        padding: 6px;
+        background: transparent;
+    }
+
+    /* Notificaciones/idioma pasan de fila a columna al colapsar/expandir: el script les
+       pone .sb-fade en ese momento (no en cada carga) y aparecen con un fundido corto */
+    .sb-slot-tools.sb-fade {
+        animation: sbFadeIn 0.25s ease;
+    }
+
+    @keyframes sbFadeIn {
+        0%, 40% { opacity: 0; }
+        100% { opacity: 1; }
+    }
+}
+
+/* En móvil los huecos del sidebar no ocupan sitio */
+@media (max-width: 1024px) {
+    .sb-slot-workspace,
+    .sb-bottom {
+        display: none;
+    }
+}
+
+/* ---------- Detalle oculto: gorro navideño sobre la "A" del logo ----------
+   Aparece al escribir "navidad" en el buscador de proyectos (script de sidebar.blade.php). */
+.sb-xmas-hat {
+    position: absolute;
+    z-index: 3;
+    display: none;
+    width: 32px;
+    height: 28px;
+    pointer-events: none;
+    filter: drop-shadow(0 1px 1.5px rgba(0, 0, 0, 0.35));
+}
+
+.sb-xmas-hat svg {
+    display: block;
+    width: 100%;
+    height: 100%;
+}
+
+body.aceler-xmas .sb-xmas-hat {
+    display: block;
+    animation: sbXmasHatDrop 0.45s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* Medido sobre los logos reales (posición dentro de .m-header, que mide 70px de alto):
+   - marca completa: la "A" ocupa x 24–41, y 26–43 (17px) → gorro de 22px con el ala
+     sobre el vértice de la A;
+   - "A" pequeña (colapsado): x 18–43, y 15–39 (25px) → gorro de 28px. */
+@media (min-width: 1025px) {
+    .sb-xmas-hat {
+        top: 11px;
+        left: 22px;
+        width: 22px;
+        height: 19px;
+        transform: rotate(-12deg);
+        transform-origin: 45% 85%;
+    }
+
+    body.aCeler-menu-icons .sb-xmas-hat {
+        top: -2px;
+        left: 18px;
+        width: 28px;
+        height: 24px;
+        transform: rotate(-10deg);
+    }
+}
+
+@keyframes sbXmasHatDrop {
+    0% { opacity: 0; translate: 0 -14px; }
+    100% { opacity: 1; translate: 0 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    body.aceler-xmas .sb-xmas-hat {
+        animation: none;
+    }
+}
+
+/* ---------- Detalle oculto: nieve con "navidad" en el buscador ----------
+   Capa fija por encima de la página que no recibe clics; se muestra con body.aceler-xmas. */
+.aceler-snow {
+    position: fixed;
+    inset: 0;
+    z-index: 1040;
+    display: none;
+    overflow: hidden;
+    pointer-events: none;
+}
+
+body.aceler-xmas .aceler-snow {
+    display: block;
+    animation: acelerSnowIn 0.8s ease;
+}
+
+.aceler-snowflake {
+    position: absolute;
+    top: -24px;
+    color: #f7faff;
+    line-height: 1;
+    /* Contorno azulado: se ve sobre el granate del sidebar y sobre el blanco del contenido */
+    text-shadow: 0 0 1.5px rgba(70, 100, 145, 0.85), 0 0 6px rgba(70, 100, 145, 0.35);
+    user-select: none;
+    animation: acelerSnowFall var(--fall, 10s) linear infinite, acelerSnowSway var(--sway, 3s) ease-in-out infinite alternate;
+}
+
+@keyframes acelerSnowFall {
+    to { transform: translateY(calc(100vh + 48px)); }
+}
+
+@keyframes acelerSnowSway {
+    from { margin-left: calc(-1 * var(--drift, 20px)); }
+    to { margin-left: var(--drift, 20px); }
+}
+
+@keyframes acelerSnowIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+/* Tooltip negro del menú colapsado (sidebar.blade.php → acelerRailTitles): a la derecha del icono */
+/* Discreto: pequeño, sin flecha, negro algo translúcido y sin desplazamiento al aparecer */
+.sb-rail-tip {
+    position: fixed;
+    z-index: 2000;
+    transform: translateY(-50%);
+    padding: 3px 8px;
+    border-radius: 4px;
+    background: rgba(17, 24, 39, .86);
+    color: #f9fafb;
+    font-size: 11.5px;
+    font-weight: 400;
+    line-height: 1.35;
+    white-space: nowrap;
+    pointer-events: none;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity .1s ease, visibility .1s;
+}
+
+.sb-rail-tip.is-on {
+    opacity: 1;
+    visibility: visible;
+}
+
+/* Mismo tooltip para otras pantallas (data-aceler-tip): centrado debajo del elemento */
+.sb-rail-tip.is-below {
+    transform: translateX(-50%);
+}
+
+/* El usuario ha quitado la nieve con el botón ❄ (el gorro se queda) */
+body.aceler-xmas.aceler-nosnow .aceler-snow {
+    display: none;
+}
+
+/* Botón ❄ para quitar / poner la nieve: solo visible en temporada (lo muestra el script) */
+.drp-snow[hidden] {
+    display: none !important;
+}
+
+.drp-snow .dash-head-link {
+    border: 0;
+    cursor: pointer;
+}
+
+.dash-header .drp-snow .dash-head-link {
+    background: transparent;
+}
+
+.drp-snow .dash-head-link[aria-pressed="false"] > i {
+    opacity: 0.45;
+}
+
+/* En el sidebar, cuadrado y sin estirarse: la campana y el idioma se reparten el resto */
+.sb-slot-tools > li.drp-snow {
+    flex: 0 0 auto;
+}
+
+.sb-slot .drp-snow .dash-head-link {
+    width: 34px;
+    padding: 0;
+}
+
+/* Con el copo a la vista, la campana también va cuadrada para que el idioma no se corte */
+.sb-slot-tools:has(> .drp-snow:not([hidden])) > li.drp-notification {
+    flex: 0 0 auto;
+}
+
+.sb-slot-tools:has(> .drp-snow:not([hidden])) > li.drp-notification > .dash-head-link {
+    width: 40px;
+    padding: 0;
+}
+
+body.aCeler-menu-icons .sb-slot .drp-snow .dash-head-link {
+    width: 44px;
+}
+
+/* ---------- Pestañas "Equipo" / "Mi actividad" ----------
+   El script de partials/sidebar.blade.php pone data-scope en el sidebar; aquí se ocultan
+   las opciones del otro grupo (las que no tienen data-scope se ven siempre). */
+.dash-sidebar[data-scope="team"] .dash-navbar > li[data-scope="mine"],
+.dash-sidebar[data-scope="mine"] .dash-navbar > li[data-scope="team"] {
+    display: none !important;
+}
+
+.sb-scope-tabs {
+    display: flex;
+    flex-shrink: 0;
+    justify-content: center;
+    gap: 18px;
+    /* 42px (igual abierto y colapsado): en el raíl, la insignia del botón de cambio no toca la línea */
+    height: 42px;
+    margin: 0 8px 4px;
+    padding: 0 12px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.sb-scope-tab {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    height: 100%;
+    margin-bottom: -1px;
+    padding: 0;
+    border: none;
+    border-bottom: 2px solid transparent;
+    background: none;
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 12.5px;
+    font-weight: 600;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: color 0.15s ease, border-color 0.15s ease;
+}
+
+.sb-scope-tab:hover {
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.sb-scope-tab.active {
+    color: #fff;
+    border-bottom-color: #fff;
+}
+
+.sb-scope-tab:focus-visible {
+    outline: 2px solid rgba(255, 255, 255, 0.6);
+    outline-offset: 2px;
+    border-radius: 4px;
+}
+
+/* Abierto: solo el texto */
+.sb-scope-tab > i {
+    display: none;
+    font-size: 13px;
+}
+
+/* Aviso de horas sin imputar en "Mi actividad" mientras se ve "Equipo" */
+.sb-scope-dot {
+    display: none;
+    position: absolute;
+    top: 6px;
+    right: -9px;
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #fbbf24;
+}
+
+.dash-sidebar.sb-mine-warning[data-scope="team"] .sb-scope-tab[data-scope="mine"] .sb-scope-dot {
+    display: block;
+}
+
+/* Colapsado (raíl de 70px): dos iconos en el mismo alto y en el eje del raíl */
+@media (min-width: 1025px) {
+    body.aCeler-menu-icons .sb-scope-tabs {
+        width: 44px;
+        gap: 4px;
+        padding: 0;
+        justify-content: space-between;
+    }
+
+    body.aCeler-menu-icons .sb-scope-tab {
+        justify-content: center;
+        width: 20px;
+    }
+
+    body.aCeler-menu-icons .sb-scope-tab > span:not(.sb-scope-dot) {
+        display: none;
+    }
+
+    body.aCeler-menu-icons .sb-scope-tab > i {
+        display: inline-block;
+    }
+
+    body.aCeler-menu-icons .sb-scope-dot {
+        top: 4px;
+        right: -3px;
+    }
+}
+
+/* ---------- Botón de cambio Equipo <-> Mi actividad (sidebar colapsado) ----------
+   En el raíl no caben las pestañas: se ocultan y aparece un botón con dos flechas de ida y
+   vuelta. La insignia indica el grupo actual. Al pulsar (script de partials/sidebar.blade.php):
+   las flechas giran media vuelta, la insignia rebota con el icono nuevo, el menú aparece con
+   un fundido y un tooltip breve dice a qué grupo se ha cambiado. Ocupa el mismo hueco que
+   las pestañas, así que nada se mueve al colapsar. */
+.sb-scope-swap {
+    display: none;
+}
+
+@media (min-width: 1025px) {
+    body.aCeler-menu-icons .sb-scope-tabs {
+        justify-content: center;
+    }
+
+    body.aCeler-menu-icons .sb-scope-tab {
+        display: none;
+    }
+
+    body.aCeler-menu-icons .sb-scope-swap {
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 40px;
+        height: 30px;
+        margin: 2px 0;
+        padding: 0;
+        border: none;
+        border-radius: 9px;
+        background: transparent;
+        color: #fff;
+        font-size: 15px;
+        cursor: pointer;
+        transition: background-color 0.15s ease;
+    }
+
+    body.aCeler-menu-icons .sb-scope-swap:hover,
+    body.aCeler-menu-icons .sb-scope-swap:focus-visible {
+        background: rgba(255, 255, 255, 0.14);
+        outline: none;
+    }
+
+    .sb-swap-arrows {
+        display: inline-block;
+    }
+
+    /* Insignia: grupo actual */
+    .sb-swap-badge {
+        position: absolute;
+        right: -1px;
+        bottom: -3px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        background: #fff;
+        color: #AA182C;
+        font-size: 8px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+    }
+
+    .dash-sidebar[data-scope="team"] .sb-swap-badge [data-scope-icon="mine"],
+    .dash-sidebar[data-scope="mine"] .sb-swap-badge [data-scope-icon="team"] {
+        display: none;
+    }
+
+    /* Aviso de horas sin imputar mientras se ve "Equipo" */
+    .sb-scope-swap .sb-scope-dot {
+        top: 3px;
+        right: 4px;
+    }
+
+    .dash-sidebar.sb-mine-warning[data-scope="team"] .sb-scope-swap .sb-scope-dot {
+        display: block;
+    }
+
+    /* Animación al cambiar */
+    .sb-scope-swap.is-swapping .sb-swap-arrows {
+        animation: sbSwapSpin 0.4s ease;
+    }
+
+    .sb-scope-swap.is-swapping .sb-swap-badge {
+        animation: sbSwapBadge 0.4s ease;
+    }
+
+    .dash-navbar.sb-list-swap {
+        animation: sbSwapList 0.3s ease;
+    }
+
+    .sb-swap-tip {
+        position: absolute;
+        top: 50%;
+        left: calc(100% + 12px);
+        z-index: 60;
+        padding: 4px 9px;
+        border-radius: 6px;
+        background: #1f2937;
+        color: #fff;
+        font-size: 11.5px;
+        font-weight: 600;
+        white-space: nowrap;
+        pointer-events: none;
+        transform: translateY(-50%);
+        animation: sbSwapTip 1.5s ease forwards;
+    }
+
+    @keyframes sbSwapSpin {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(180deg); }
+    }
+
+    @keyframes sbSwapBadge {
+        0% { transform: scale(1); }
+        40% { transform: scale(0.3); }
+        75% { transform: scale(1.18); }
+        100% { transform: scale(1); }
+    }
+
+    @keyframes sbSwapList {
+        from { opacity: 0; transform: translateY(-4px); }
+        to { opacity: 1; transform: none; }
+    }
+
+    @keyframes sbSwapTip {
+        0% { opacity: 0; transform: translate(-4px, -50%); }
+        15%, 75% { opacity: 1; transform: translate(0, -50%); }
+        100% { opacity: 0; transform: translate(0, -50%); }
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .sb-scope-swap.is-swapping .sb-swap-arrows,
+    .sb-scope-swap.is-swapping .sb-swap-badge,
+    .dash-navbar.sb-list-swap {
+        animation: none;
+    }
+}

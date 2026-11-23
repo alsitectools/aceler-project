@@ -7,6 +7,9 @@
         <a href="{{ route('home') }}">{{ __('Home') }}</a>
     </li>
     <li class="breadcrumb-item"> {{ __('My Projects') }}</li>
+    @include('projects.partials.projects_help', [
+        'detail' => __('Here you see the projects you take part in, from all your workspaces.'),
+    ])
 @endsection
 @php
 
@@ -15,6 +18,7 @@
 
 <head>
     <link rel="stylesheet" href="{{ asset('assets/css/index_projects.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/projects_list.css') }}?v={{ filemtime(public_path('assets/css/projects_list.css')) }}">
 </head>
 <style>
     .filterTypo {
@@ -312,69 +316,17 @@
         background-color: #392c34 !important;
     }
 
-    #btnSortProjectsAlpha {
-        min-width: 52px;
-        height: 35px;
-        padding: 0.25rem 0.45rem;
-        background-color: #aa182c;
-        color: #ffffff;
-        justify-content: center;
-        white-space: nowrap;
-        line-height: 1;
-        gap: 0.5rem !important;
-    }
-
-    #btnSortProjectsAlpha .sort-direction-arrow {
-        width: 6px;
-        height: 6px;
-        border-right: 1.6px solid currentColor;
-        border-bottom: 1.6px solid currentColor;
-        transform: rotate(45deg);
-        transition: transform 0.2s ease-in-out;
-        margin-top: -1px;
-    }
-
-    #btnSortProjectsAlpha.active {
-        background-color: #aa182c !important;
-        border-color: #aa182c !important;
-        color: #FFFFFF !important;
-    }
-
-    #btnSortProjectsAlpha.active .sort-direction-arrow {
-        transform: rotate(-135deg);
-    }
-
-    #btnSortProjectsAlpha.active.sort-desc .sort-direction-arrow {
-        transform: rotate(45deg);
-    }
 </style>
 
-@section('multiple-action-button')
-    <div class="d-flex justify-content-start row1">
-        <div id="searchInputProjects" data-popper-placement="bottom-start">
-            <form class="form-inline mr-auto mb-0 formSearch">
-                <div class="search-element" style="width: 77%; !important">
-                    <input type="text" class="input" id="searchInput"
-                        placeholder="{{ __('Enter name or reference M.O') }}">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="input-icon" viewBox="0 0 20 20" fill="currentColor">
-                        <path fill-rule="evenodd"
-                            d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z"
-                            clip-rule="evenodd" />
-                    </svg>
-                    <div class="search-backdrop"></div>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <div class="d-flex justify-content-end row1 align-items-center"></div>
-@endsection
 
 @section('content')
     <section class="section">
         <div class="row">
             @if ($projects && $currentWorkspace)
-                <div class="col-md-8 projectsContainer">
+                <div class="col-12 projectsContainer pl-full">
+                    @include('projects.partials.project_toolbar', ['showWorkspace' => true])
+                    <div class="pl-list-box">
+                        <div class="pl-list-scroll" id="plListScroll">
                     <div class="grid filters-content">
                         @if ($projects->isEmpty())
                             <!-- seccion para cuando no hay proyectos -->
@@ -430,258 +382,31 @@
                                     $workspaceSlug = $project->workspaceData
                                         ? $project->workspaceData->slug
                                         : 'unknown-' . $project->workspace;
-                                    // Debug info
                                     if (!$project->workspaceData) {
                                         \Log::warning(
                                             "Project {$project->id} no tiene workspaceData cargado. workspace_id: {$project->workspace}",
                                         );
                                     }
                                 @endphp
-                                <div onclick="if (!event.target.closest('#deleteFormContainer')) { 
-        console.log('Opening project:', { projectId: {{ $project->id }}, workspaceSlug: '{{ $workspaceSlug }}', workspaceId: {{ $project->workspace }} });
-        redirectToCurrentProject('{{ route('projects.show', [$workspaceSlug, $project->id]) }}'); 
-    }"
-                                    data-project-name="{{ mb_strtolower($project->name) }}"
-                                    class="hover card mb-3 zoom mt-0 ml-0 m-2 All {{ $project->status }} type-{{ $project->type }} workspace-{{ $workspaceSlug }}">
-
-                                    <div class="row ms-2">
-                                        <div class="col-md-2 project-type text-center m-2">
-                                            <img src="{{ asset('assets/img/' . $project_type[$project->type - 1]->name . '.png') }}"
-                                                style="width: 45px; height: 45px;" alt="...">
-                                            <small class="text-muted">
-                                                <b>{{ __($project_type[$project->type - 1]->name) }}</b>
-                                            </small>
-                                            <span class="text-muted">
-                                                <b>{{ $project->ref_mo }}</b>
-                                            </span>
-                                        </div>
-
-                                        <div class="col-md-9">
-                                            <div class="card-header pt-3 pb-1 d-flex p-3">
-                                                <a style="width: 83%">
-                                                    <h4>{{ $project->name }}</h4>
-                                                </a>
-
-                                                <div class="card-header-right">
-                                                    <div class="btn-group card-option">
-                                                        <div class="mt-2 me-5 d-flex flex-wrap gap-2">
-
-                                                            {{-- Delegation --}}
-                                                            @if ($project->delegation)
-                                                                <span class="badge rounded-pill p-2 delegationName">
-                                                                    {{ \Illuminate\Support\Str::title($project->delegation->delegation_name) }}
-                                                                </span>
-                                                                <span class="badge rounded-pill p-2 delegationTag">
-                                                                    {{ \Illuminate\Support\Str::upper($project->ref_delegation) }}
-                                                                </span>
-                                                            @endif
-
-                                                            {{-- Status --}}
-                                                            @if ($project->status == 'Finished')
-                                                                <span class="badge rounded-pill bg-success p-2 project-status-badge"
-                                                                    data-current-status="Finished"
-                                                                    data-status-url="{{ route('projects.status.update', [$workspaceSlug, $project->id]) }}"
-                                                                    style="cursor: pointer;"
-                                                                    onclick="event.stopPropagation(); openProjectStatusModal(this);">
-                                                                    {{ __('Finished') }}
-                                                                </span>
-                                                            @elseif($project->status == 'Ongoing')
-                                                                <span class="badge rounded-pill bg-secondary p-2 project-status-badge"
-                                                                    data-current-status="Ongoing"
-                                                                    data-status-url="{{ route('projects.status.update', [$workspaceSlug, $project->id]) }}"
-                                                                    style="cursor: pointer;"
-                                                                    onclick="event.stopPropagation(); openProjectStatusModal(this);">
-                                                                    {{ __('Ongoing') }}
-                                                                </span>
-                                                            @else
-                                                                <span class="badge rounded-pill bg-warning p-2 project-status-badge"
-                                                                    data-current-status="OnHold"
-                                                                    data-status-url="{{ route('projects.status.update', [$workspaceSlug, $project->id]) }}"
-                                                                    style="cursor: pointer;"
-                                                                    onclick="event.stopPropagation(); openProjectStatusModal(this);">
-                                                                    {{ __('OnHold') }}
-                                                                </span>
-                                                            @endif
-
-                                                            {{-- Workspace name --}}
-                                                            @if ($project->workspaceData)
-                                                                <span class="badge rounded-pill bg-dark p-2">
-                                                                     {{ $project->workspaceData->display_name }}
-                                                                </span>
-                                                            @endif
-
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                            <div class="card-body p-3">
-                                                <div class="card-text text-muted d-flex align-items-center">
-                                                    <div class="participantsSection">
-                                                        {{ __('Participants') }}
-                                                    </div>
-
-                                                    <div class="col-md-2">
-                                                        @foreach ($project->users as $key => $user)
-                                                            @if ($key < 2)
-                                                                <img class="iconUSer"
-                                                                    @if ($user->avatar) src="{{ asset($user->avatar) }}"
-                                        @else
-                                            avatar="{{ $user->name }}" @endif>
-                                                            @endif
-                                                        @endforeach
-                                                    </div>
-                                                </div>
-
-                                                <div class="card-text mt-2">
-                                                    <small class="text-body-secondary">
-                                                        {{ __('Last updated') }}
-                                                        {{ $project->updated_at->diffForHumans() }}
-                                                    </small>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
+                                @include('projects.partials.project_row', [
+                                    'projectUrl' => route('projects.show', [$workspaceSlug, $project->id]),
+                                    'statusUrl' => route('projects.status.update', [$workspaceSlug, $project->id]),
+                                    'workspaceSlug' => $workspaceSlug,
+                                    'showWorkspace' => true,
+                                ])
                             @endforeach
+                        @endif
+                    </div>
+                        </div>
+                        @if (!$projects->isEmpty())
+                            <div class="pl-list-foot">
+                                <span class="pl-list-shown" data-tpl="{{ __('Showing :count projects', ['count' => '__N__']) }}"></span>
+                                <button type="button" class="pl-link pl-to-top"><i class="fa-solid fa-arrow-up"></i> {{ __('Back to top') }}</button>
+                            </div>
                         @endif
                     </div>
                 </div>
 
-                <div class="col-md-4 position-sticky text-muted rightColumn">
-                    <div class="card " id="v-pills-filterSection">
-                        <div class="card-header buttonColocation">
-                            <div>
-                                <h5><i class="bi bi-filter"></i> {{ __('Filter projects') }}</h5>
-                                <p class="text-muted mt-3">
-                                    {{ __('Remember that the projects shown are those of your delegation/group.') }}
-                                </p>
-                            </div>
-                            <div class="d-flex align-items-start gap-2">
-                                @if (isset($projects) && $projects && !$projects->isEmpty())
-                                    <button type="button" id="btnSortProjectsAlpha"
-                                        class="btn btn-sm d-flex align-items-center gap-1"
-                                        title="{{ __('Sort alphabetically') }}"
-                                        aria-label="{{ __('Sort alphabetically') }}">
-                                        <span class="sort-direction-arrow" aria-hidden="true"></span>
-                                        <span style="font-size:0.78rem; font-weight: 700;">AZ</span>
-                                    </button>
-                                @endif
-                                <button class="btn btn-sm btn-primary toggle-section buttonColapse"
-                                    data-target="#filterSection-content">-</button>
-                            </div>
-                        </div>
-                        <div class="card-body collapse-section" id="filterSection-content">
-                            <div class="col-12 d-flex flex-column">
-                                <h5>
-                                    {{ __('Status') }}
-                                </h5>
-                                <div class="divStatus">
-
-                                    <!-- Filtro de Status -->
-                                    <div class="btn-group status-filter">
-                                        <button type="button"
-                                            class="btn d-flex align-items-center zoom  text-muted filterTypo "
-                                            data-filter=".Ongoing">
-                                            <span class="status-indicator bg-secondary me-2"></span>
-                                            {{ __('Ongoing') }}
-                                        </button>
-                                        <button type="button"
-                                            class="btn d-flex align-items-center zoom text-muted filterTypo "
-                                            data-filter=".OnHold">
-                                            <span class="status-indicator bg-warning me-2"></span>
-                                            {{ __('OnHold') }}
-                                        </button>
-                                        <button type="button"
-                                            class="btn d-flex align-items-center zoom text-muted filterTypo "
-                                            data-filter=".Finished">
-                                            <span class="status-indicator bg-success me-2"></span>
-                                            {{ __('Finished') }}
-                                        </button>
-                                    </div>
-                                </div>
-
-                                <h5 class="mt-4">
-                                    {{ __('Project type') }}
-                                </h5>
-                                <!-- Filtro de Type -->
-                                <div class="btn-group type-filter">
-                                    <div>
-                                        <button type="button" class="btn disp-btn zoom text-muted filterTypo"
-                                            data-filter=".type-1">
-                                            <img src="{{ asset('assets/img/Jobsite.png') }}"
-                                                style="width: 25px; height: 25px;" alt="..." class="me-2">
-
-                                            {{ __('Jobsite') }}
-                                        </button>
-                                        <button type="button" class="btn disp-btn zoom  text-muted filterTypo"
-                                            data-filter=".type-2">
-                                            <img src="{{ asset('assets/img/Innovation.png') }}"
-                                                style="width: 25px; height: 25px;" alt="..." class="me-2">
-                                            {{ __('Innovation') }}
-                                        </button>
-                                    </div>
-                                    <div>
-                                        <button type="button" class="btn disp-btn zoom  text-muted filterTypo"
-                                            data-filter=".type-3">
-                                            <img src="{{ asset('assets/img/I+D Project.png') }}"
-                                                style="width: 25px; height: 25px;" alt="..." class="me-1">
-                                            {{ __('I+D Project') }}
-                                        </button>
-                                        <button type="button" class="btn disp-btn zoom  text-muted filterTypo"
-                                            data-filter=".type-5">
-                                            <img src="{{ asset('assets/img/I+D Development.png') }}"
-                                                style="width: 25px; height: 25px;" alt="..." class="me-1">
-                                            {{ __('I+D Development') }}
-                                        </button>
-                                    </div>
-                                    <div>
-                                        <button type="button" class="btn disp-btn zoom  text-muted filterTypo"
-                                            data-filter=".type-4">
-                                            <img src="{{ asset('assets/img/Office.png') }}"
-                                                style="width: 25px; height:25px;" alt="..." class="me-2">
-                                            {{ __('Office') }}
-                                        </button>
-                                    </div>
-                                </div>
-                                <hr class="mt-3" style="border: 1px solid #eeeeee; width: 100%">
-
-                                <h5 class="mt-4">
-                                    {{ __('Workspace') }}
-                                </h5>
-                                <!-- Filtro de Workspace -->
-                                <div class="btn-group workspace-filter">
-                                    @php
-                                        $workspaces = $projects
-                                            ->map(function ($project) {
-                                                return $project->workspaceData;
-                                            })
-                                            ->unique('id')
-                                            ->values();
-                                    @endphp
-                                    @foreach ($workspaces as $workspace)
-                                        <button type="button" class="btn disp-btn zoom text-muted filterTypo"
-                                            data-filter=".workspace-{{ $workspace->slug }}"
-                                                                     style="    background-color: #f6f6f6;">
-                                                                     <i class="fa-solid fa-layer-group"style="width: 18px; height: 18px;"></i>
-                                                                     {{ $workspace->display_name }}
-                                        </button>
-                                    @endforeach
-                                </div>
-
-                                <hr class="mt-3" style="border: 1px solid #eeeeee; width: 100%">
-                                <div class="mt-4">
-                                    <h5>
-                                        {{ __('Active filters') }}
-                                    </h5>
-                                    <div id="activeFilters" class="mt-3 d-flex flex-wrap gap-3">
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                </div>
             @else
                 <div class="container mt-5">
                     <div class="card">
@@ -715,57 +440,6 @@
     function redirectToCurrentProject(url) {
         window.location.href = url;
     }
-    document.addEventListener("DOMContentLoaded", function() {
-        document.querySelectorAll(".buttonColapse").forEach(button => {
-            button.addEventListener("click", function() {
-                let target = document.querySelector(this.dataset.target);
-
-                if (target) {
-                    target.classList.toggle("d-none");
-                }
-
-                this.textContent = this.textContent === "-" ? "+" : "-";
-            });
-        });
-    });
-
-    document.addEventListener("DOMContentLoaded", function() {
-        // Detectar botones de workspace con texto truncado
-        const workspaceButtons = document.querySelectorAll('.workspace-filter button');
-        workspaceButtons.forEach(button => {
-            if (button.scrollWidth > button.clientWidth) {
-                button.classList.add('truncated');
-            }
-        });
-    });
-
-    document.addEventListener("DOMContentLoaded", function() {
-        const buttons = document.querySelectorAll(".btn-group button, .disp-btn");
-        const activeFiltersContainer = document.getElementById("activeFilters");
-
-        function updateActiveFilters() {
-
-            activeFiltersContainer.innerHTML = "";
-
-            buttons.forEach(button => {
-                if (button.classList.contains("active") || button.classList.contains("selected")) {
-                    const clone = button.cloneNode(true);
-                    clone.classList.remove("btn");
-                    clone.classList.add("btn-active-filters");
-                    activeFiltersContainer.appendChild(clone);
-                }
-            });
-        }
-
-        buttons.forEach(button => {
-            button.addEventListener("click", function() {
-                setTimeout(updateActiveFilters,
-                    100);
-            });
-        });
-
-        updateActiveFilters();
-    });
 </script>
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
 @if (isset($currentWorkspace) && $currentWorkspace)
@@ -859,101 +533,7 @@
 
 @push('scripts')
     <script src="{{ asset('assets/custom/js/isotope.pkgd.min.js') }}"></script>
-    <script>
-        $(document).ready(function() {
-            if (typeof $.fn.isotope === 'undefined') {
-                console.error('Isotope is not loaded');
-                return;
-            }
-
-            // Inicializar Isotope
-            var sortAlphaMode = 'none'; // none | asc | desc (after first click, toggles asc <-> desc)
-            var $grid = $(".grid").isotope({
-                itemSelector: ".All",
-                percentPosition: true,
-                masonry: {
-                    columnWidth: ".All"
-                },
-                getSortData: {
-                    name: '[data-project-name]'
-                }
-            });
-            window._projGrid = $grid;
-
-            $('#btnSortProjectsAlpha').on('click', function() {
-                var $btn = $(this);
-
-                if (sortAlphaMode === 'none' || sortAlphaMode === 'desc') {
-                    sortAlphaMode = 'asc';
-                    $grid.isotope({ sortBy: 'name', sortAscending: true });
-                    $btn.addClass('active').removeClass('sort-desc');
-                } else {
-                    sortAlphaMode = 'desc';
-                    $grid.isotope({ sortBy: 'name', sortAscending: false });
-                    $btn.addClass('active').addClass('sort-desc');
-                }
-
-                $grid.isotope('layout');
-            });
-
-            var filterStatus = '*';
-            var filterType = '*';
-            var filterWorkspace = '*';
-
-            function applyFilter() {
-
-                var filterValue = (filterStatus === '*' && filterType === '*' && filterWorkspace === '*') ?
-                    '*' :
-                    filterStatus + filterType + filterWorkspace;
-
-
-                $grid.isotope({
-                    filter: filterValue
-                });
-            }
-
-            function toggleActiveClass($element, groupSelector, zoomClass, selectedClass) {
-                var isActive = $element.hasClass('active');
-                $(groupSelector).removeClass('active').removeClass(selectedClass);
-                if (!isActive) {
-                    $element.addClass('active').addClass(selectedClass);
-                } else {
-                    $element.removeClass(selectedClass);
-                }
-            }
-
-
-            $('.status-filter button, .type-filter button, .workspace-filter button').click(function(e) {
-                var $this = $(this);
-                var selectedFilter = $this.attr('data-filter');
-                var filterTypeSelector = '.type-filter button';
-                var filterStatusSelector = '.status-filter button';
-                var filterWorkspaceSelector = '.workspace-filter button';
-
-
-                if ($this.closest(filterStatusSelector).length > 0) {
-
-                    toggleActiveClass($this, filterStatusSelector);
-                    filterStatus = $this.hasClass('active') ? selectedFilter : '*';
-                }
-
-                if ($this.closest(filterTypeSelector).length > 0) {
-
-                    toggleActiveClass($this, filterTypeSelector, 'types', 'selected');
-                    filterType = $this.hasClass('active') ? selectedFilter : '*';
-                }
-
-                if ($this.closest(filterWorkspaceSelector).length > 0) {
-
-                    toggleActiveClass($this, filterWorkspaceSelector, 'workspace', 'selected');
-                    filterWorkspace = $this.hasClass('active') ? selectedFilter : '*';
-                }
-
-
-                applyFilter();
-            });
-        });
-    </script>
+    @include('projects.partials.project_list_script')
     <script>
         // After the section loads or changes
         $(document).ready(function() {
@@ -1024,7 +604,7 @@
                         card.classList.add(res.data.status);
                     }
                     if (window._projGrid) {
-                        window._projGrid.isotope('layout');
+                        if (window.plRefresh) { window.plRefresh(); } else { window._projGrid.isotope('layout'); }
                     }
                     bootstrap.Modal.getOrCreateInstance(document.getElementById('projectStatusModal')).hide();
                 })

@@ -129,6 +129,11 @@
         <link rel="stylesheet" href="{{ asset('assets/css/style.css') }}" id="main-style-link">
     @endif
 
+    <link rel="stylesheet" href="{{ asset('assets/custom/css/menu-icons.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/custom/css/skin-corporativo.css') }}">
+    {{-- Cabecera (espacio, notificaciones, idioma, usuario) dentro del sidebar en escritorio --}}
+    <link rel="stylesheet" href="{{ asset('assets/custom/css/sidebar-header.css') }}?v={{ filemtime(public_path('assets/custom/css/sidebar-header.css')) }}">
+
     <meta name="url" content="{{ url('') . '/' . config('chatify.routes.prefix') }}"
         data-user="{{ Auth::user()->id }}">
     <script src='https://unpkg.com/nprogress@0.2.0/nprogress.js'></script>
@@ -436,6 +441,14 @@
 
 <body class="{{ $color }}">
 
+    <script>
+        try {
+            if (localStorage.getItem('acelerMenuIconsOnly') === '1') {
+                document.body.classList.add('aCeler-menu-icons');
+            }
+        } catch (e) {}
+    </script>
+
     <!-- [ Pre-loader ] start -->
     <div class="loader-bg">
         <div class="loader-track">
@@ -474,9 +487,12 @@
             processing: "{{ __('Processing...') }}"
         }
     </script>
-    @include('partials.sidebar')
-
+    {{-- La cabecera va antes que el sidebar: así el sidebar coloca en sus huecos el espacio de
+         trabajo, las notificaciones, el idioma y el usuario nada más leerse, antes de pintar
+         (en escritorio la cabecera está oculta; ver partials/sidebar.blade.php) --}}
     @include('partials.topnav')
+
+    @include('partials.sidebar')
     <div class="dash-container">
         <div class="dash-content">
             <!-- [ breadcrumb ] start -->
@@ -613,6 +629,21 @@
     <script src="{{ asset('assets/js/plugins/datepicker-full.min.js') }}"></script>
     <script src="{{ asset('assets/js/plugins/feather.min.js') }}"></script>
     <script src="{{ asset('assets/js/dash.js') }}"></script>
+    <script>
+        (function() {
+            var KEY = 'acelerMenuIconsOnly';
+            var btn = document.getElementById('aCeler-menu-toggle');
+            // Los tooltips de las opciones del menú los gestiona el sidebar (solo con el
+            // sidebar colapsado): ver acelerRailTitles en partials/sidebar.blade.php
+            if (!btn) return;
+            btn.addEventListener('click', function() {
+                var on = document.body.classList.toggle('aCeler-menu-icons');
+                try { localStorage.setItem(KEY, on ? '1' : '0'); } catch (e) {}
+                btn.setAttribute('aria-expanded', String(!on));
+            });
+            btn.setAttribute('aria-expanded', String(!document.body.classList.contains('aCeler-menu-icons')));
+        })();
+    </script>
     <script src="{{ asset('assets/custom/libs/summernote/summernote-bs4.js') }}"></script>
     <script>
         $('.summernote').summernote({
