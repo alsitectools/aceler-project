@@ -637,6 +637,43 @@ body:has(.ua) .page-header .page-block > .row {
     background: #f6fef9;
 }
 
+/* Axapta: estado del cálculo (calculando… / calculado en X s · Recalcular) */
+.ua .ua-calc {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: -4px 0 12px;
+    min-height: 18px;
+    font-size: 12px;
+    color: #94a3b8;
+}
+
+.ua .ua-calc-status.is-error {
+    color: #b91c1c;
+}
+
+.ua #axapta-content.is-loading .ua-calc-status::before {
+    content: "";
+    display: inline-block;
+    width: 11px;
+    height: 11px;
+    margin-right: 6px;
+    vertical-align: -1px;
+    border: 2px solid #e2e8f0;
+    border-top-color: #AA182C;
+    border-radius: 50%;
+    animation: ua-calc-spin .7s linear infinite;
+}
+
+.ua #axapta-content.is-loading .ua-kpi b,
+.ua #axapta-content.is-loading .ua-kpi #uaPendingHours {
+    opacity: .45;
+}
+
+@keyframes ua-calc-spin {
+    to { transform: rotate(360deg); }
+}
+
 .ua .ua-issues {
     padding: 10px 12px;
     border-left: 3px solid #f59e0b;

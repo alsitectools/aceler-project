@@ -46,6 +46,19 @@ class MilestonePointsHelper
             ->whereIn('id', Task::where('milestone_id', $milestone->id)->pluck('type_id')->filter()->unique())
             ->sum('puntuacion');
 
+        return self::pointsFrom($seconds, $typePoints);
+    }
+
+    /**
+     * La fórmula, con los datos ya calculados (la usa también el export a Axapta, que los carga en bloque):
+     * segundos imputados del encargo y suma de puntos fijos de sus tipos de tarea. null si no hay horas.
+     */
+    public static function pointsFrom(int $seconds, float $typePoints): ?float
+    {
+        if ($seconds <= 0) {
+            return null;
+        }
+
         return round($seconds / 3600 + $typePoints, 2);
     }
 

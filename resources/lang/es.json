@@ -2158,5 +2158,8 @@
     "Unauthorized": "No autorizado",
     "You can no longer postpone it: enter your employee number to continue.": "Ya no puedes posponerlo más: introduce tu número de empleado para continuar.",
     "You can postpone it :count more times. We will ask you again in :minutes minutes.": "Puedes posponerlo :count veces más. Te lo volveremos a pedir en :minutes minutos.",
-    "You can postpone it one last time. We will ask you again in :minutes minutes.": "Puedes posponerlo una última vez. Te lo volveremos a pedir en :minutes minutos."
+    "You can postpone it one last time. We will ask you again in :minutes minutes.": "Puedes posponerlo una última vez. Te lo volveremos a pedir en :minutes minutos.",
+    "Recalculate": "Recalcular",
+    "Calculating what is pending…": "Calculando lo pendiente…",
+    "Calculated in :seconds s": "Calculado en :seconds s"
 }

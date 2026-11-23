@@ -1736,5 +1736,8 @@
     "Unauthorized": "Unauthorized",
     "You can no longer postpone it: enter your employee number to continue.": "You can no longer postpone it: enter your employee number to continue.",
     "You can postpone it :count more times. We will ask you again in :minutes minutes.": "You can postpone it :count more times. We will ask you again in :minutes minutes.",
-    "You can postpone it one last time. We will ask you again in :minutes minutes.": "You can postpone it one last time. We will ask you again in :minutes minutes."
+    "You can postpone it one last time. We will ask you again in :minutes minutes.": "You can postpone it one last time. We will ask you again in :minutes minutes.",
+    "Recalculate": "Recalculate",
+    "Calculating what is pending…": "Calculating what is pending…",
+    "Calculated in :seconds s": "Calculated in :seconds s"
 }
