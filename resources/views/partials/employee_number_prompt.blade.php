@@ -1,7 +1,7 @@
 {{--
     Modal «Falta tu número de empleado»: sale al entrar en la aplicación a quien no lo tiene
     (users.number_employee vacío). Se guarda con users.my.employee_number (solo una vez).
-    «Más tarde» lo pospone ENP_SNOOZE_MINUTES y solo se puede usar ENP_MAX_SNOOZES veces; después
+    «Más tarde» lo pospone SNOOZE_MINUTES (vuelve a salir solo, aunque no se cambie de página) y solo se puede usar MAX_SNOOZES veces; después
     el botón desaparece y hay que rellenarlo (se guarda por usuario en localStorage).
     Se incluye en layouts/admin.blade.php; solo se pinta para usuarios (guard web) sin número.
 --}}
@@ -93,16 +93,25 @@
                 try { localStorage.setItem(STATE_KEY, JSON.stringify(s)); } catch (e) {}
             };
 
-            const state = readState();
-            const canSnooze = state.count < MAX_SNOOZES;
-            // Pospuesto y aún dentro de la pausa: no se muestra en esta página
-            if (canSnooze && state.until > Date.now()) return;
+            let done = false;      // número guardado: no se vuelve a mostrar
+            let timer = null;
 
-            later.hidden = !canSnooze;
-            const left = MAX_SNOOZES - state.count;
-            hint.textContent = !canSnooze ? msgLast
-                : (left === 1 ? msgLeftOne : msgLeftMany).replace(':count', left).replace(':minutes', SNOOZE_MINUTES);
-            hint.classList.toggle('is-final', !canSnooze);
+            // Prepara el modal según el estado actual (se relee cada vez: puede haber cambiado en otra pestaña)
+            const prepare = function() {
+                const s = readState();
+                const canSnooze = s.count < MAX_SNOOZES;
+                const left = MAX_SNOOZES - s.count;
+                later.hidden = !canSnooze;
+                hint.textContent = !canSnooze ? msgLast
+                    : (left === 1 ? msgLeftOne : msgLeftMany).replace(':count', left).replace(':minutes', SNOOZE_MINUTES);
+                hint.classList.toggle('is-final', !canSnooze);
+            };
+
+            // ms que faltan para volver a mostrarlo (0 = ya toca). También la última pausa se respeta:
+            // al acabar, sale ya sin «Más tarde».
+            const waitMs = function() {
+                return Math.max(0, readState().until - Date.now());
+            };
 
             const showError = function(text) {
                 error.textContent = text;
@@ -126,9 +135,11 @@
             });
 
             later.addEventListener('click', function() {
-                if (!canSnooze) return;
-                writeState({ count: state.count + 1, until: Date.now() + SNOOZE_MINUTES * 60000 });
+                const s = readState();
+                if (s.count >= MAX_SNOOZES) return;
+                writeState({ count: s.count + 1, until: Date.now() + SNOOZE_MINUTES * 60000 });
                 close();
+                schedule();
             });
 
             form.addEventListener('submit', function(e) {
@@ -145,13 +156,18 @@
                     headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-CSRF-TOKEN': csrf },
                     body: JSON.stringify({ number_employee: value })
                 })
-                    .then(function(r) { return r.json().catch(function() { return {}; }); })
+                    .then(function(r) {
+                        return r.json().catch(function() { return {}; }).then(function(d) { d = d || {}; d.status = r.status; return d; });
+                    })
                     .then(function(d) {
                         save.disabled = false;
-                        if (d && d.is_success) {
+                        // 409: ya lo tiene (p. ej. lo guardó en otra pestaña): no hay nada más que pedir
+                        if (d.is_success || d.status === 409) {
+                            done = true;
+                            clearTimeout(timer);
                             try { localStorage.removeItem(STATE_KEY); } catch (e) {}
                             close();
-                            if (typeof show_toastr === 'function') show_toastr('success', d.success || msgSaved, 'success');
+                            if (d.is_success && typeof show_toastr === 'function') show_toastr('success', d.success || msgSaved, 'success');
                         } else {
                             showError((d && d.error) || msgError);
                             input.focus();
@@ -163,14 +179,39 @@
                     });
             });
 
-            // Se abre al terminar de cargar la página, sin tapar el primer pintado
             const open = function() {
+                if (done || !modal.hidden) return;
+                prepare();
+                showError('');
                 modal.hidden = false;
                 document.addEventListener('keydown', onKey);
                 setTimeout(function() { input.focus(); }, 50);
             };
-            if (document.readyState === 'complete') setTimeout(open, 400);
-            else window.addEventListener('load', function() { setTimeout(open, 400); });
+
+            // Lo abre ya o programa cuándo volver a abrirlo, sin necesidad de cambiar de página.
+            // Se recalcula al dispararse porque otra pestaña puede haberlo pospuesto entretanto.
+            const schedule = function() {
+                clearTimeout(timer);
+                if (done) return;
+                const ms = waitMs();
+                if (ms === 0) {
+                    open();
+                } else {
+                    // setTimeout admite como mucho ~24,8 días; la pausa es mucho menor
+                    timer = setTimeout(schedule, Math.min(ms + 250, 2147000000));
+                }
+            };
+
+            // Con la pestaña en segundo plano o el portátil en reposo los temporizadores se retrasan:
+            // al volver a la pestaña se comprueba si ya toca
+            document.addEventListener('visibilitychange', function() {
+                if (document.visibilityState === 'visible') schedule();
+            });
+
+            // Primera vez: al terminar de cargar la página, sin tapar el primer pintado
+            const start = function() { setTimeout(schedule, 400); };
+            if (document.readyState === 'complete') start();
+            else window.addEventListener('load', start);
         })();
     </script>
 @endif
