@@ -58,6 +58,22 @@
         top: 60px !important;
     }
 
+    /* Estado vacío genérico (también lo usan los tableros de encargos: «Encargos ocultos»,
+       «Aún no hay encargos»): centrado en su contenedor, en columna. La campana lo ajusta abajo (.acn). */
+    .noNotificationsContainer {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 100%;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+    }
+
     /* ---------- Campana: panel de notificaciones ---------- */
     .drp-notification .dropdown-menu.acn {
         width: 392px;
@@ -330,6 +346,8 @@
     .acn .noNotificationsContainer {
         position: static;
         transform: none;
+        width: auto;
+        height: auto;
         display: flex;
         flex-direction: column;
         align-items: center;

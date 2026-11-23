@@ -583,6 +583,8 @@ Route::delete('/{slug}/users/{id}', [UserController::class, 'removeUser'])->name
 
 
 Route::get('/my-account', [UserController::class, 'account'])->name('users.my.account')->middleware(['auth', 'XSS']);
+// Modal al entrar: quien no tiene número de empleado lo introduce (solo una vez)
+Route::post('/my-account/employee-number', [UserController::class, 'saveEmployeeNumber'])->name('users.my.employee_number')->middleware(['auth', 'XSS']);
 Route::post('/{slug}/my-account/{id}/update', [UserController::class, 'update'])->name('update.account')->middleware(['auth', 'XSS']);
 Route::post('/my-account/password', [UserController::class, 'updatePassword'])->name('update.password')->middleware(['auth', 'XSS']);
 Route::delete('/my-account', [UserController::class, 'deleteAvatar'])->name('delete.avatar')->middleware(['auth', 'XSS']);

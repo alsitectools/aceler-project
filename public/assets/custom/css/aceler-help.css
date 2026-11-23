@@ -189,11 +189,11 @@
 .board-legend-tour i { font-size: 9px; }
 .board-legend-tour:hover { background: #AA182C; color: #fff; }
 
-/* Aviso de primera visita: encima del botón de CofrAI */
+/* Aviso de primera visita: abajo a la derecha */
 .board-tour-toast {
     position: fixed;
     right: 16px;
-    bottom: 76px;
+    bottom: 16px;
     z-index: 1060;
     display: flex;
     gap: 11px;

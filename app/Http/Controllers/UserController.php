@@ -1565,4 +1565,50 @@ class UserController extends Controller
             ], 404);
         }
     }
+
+    /**
+     * Número de empleado que pide el modal al entrar (partials/employee_number_prompt) a quien no
+     * lo tiene. Solo se puede poner una vez: si ya tiene uno, no se cambia desde aquí. Lo usa la
+     * exportación de horas a Axapta, así que no puede estar repetido.
+     */
+    public function saveEmployeeNumber(Request $request)
+    {
+        $user = Auth::guard('web')->user();
+        if (!$user) {
+            return response()->json(['is_success' => false, 'error' => __('Unauthorized')], 403);
+        }
+
+        if (trim((string) $user->number_employee) !== '') {
+            return response()->json([
+                'is_success' => false,
+                'error'      => __('You already have an employee number. Ask an administrator to change it.'),
+            ], 409);
+        }
+
+        $number = preg_replace('/\s+/', '', (string) $request->input('number_employee', ''));
+        if (!preg_match('/^\d{1,9}$/', $number) || (int) $number <= 0) {
+            return response()->json([
+                'is_success' => false,
+                'error'      => __('The employee number must contain only digits (up to 9).'),
+            ], 422);
+        }
+
+        $number = (int) $number;
+        $taken = User::where('number_employee', $number)->where('id', '!=', $user->id)->exists();
+        if ($taken) {
+            return response()->json([
+                'is_success' => false,
+                'error'      => __('This employee number is already assigned to another user. Check it or contact support.'),
+            ], 422);
+        }
+
+        $user->number_employee = $number;
+        $user->save();
+
+        return response()->json([
+            'is_success'      => true,
+            'success'         => __('Employee number saved.'),
+            'number_employee' => $number,
+        ]);
+    }
 }

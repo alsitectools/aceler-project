@@ -1722,5 +1722,19 @@
     "Switch workspace": "Switch workspace",
     "Search workspace or country…": "Search workspace or country…",
     "Other workspaces": "Other workspaces",
-    "No workspaces match your search": "No workspaces match your search"
+    "No workspaces match your search": "No workspaces match your search",
+    "Add your employee number": "Add your employee number",
+    "We need it to send your hours to Axapta. You only have to enter it once.": "We need it to send your hours to Axapta. You only have to enter it once.",
+    "Employee number": "Employee number",
+    "E.g. 11840": "E.g. 11840",
+    "Later": "Later",
+    "The employee number must contain only digits (up to 9).": "The employee number must contain only digits (up to 9).",
+    "It could not be saved. Try again.": "It could not be saved. Try again.",
+    "Employee number saved.": "Employee number saved.",
+    "You already have an employee number. Ask an administrator to change it.": "You already have an employee number. Ask an administrator to change it.",
+    "This employee number is already assigned to another user. Check it or contact support.": "This employee number is already assigned to another user. Check it or contact support.",
+    "Unauthorized": "Unauthorized",
+    "You can no longer postpone it: enter your employee number to continue.": "You can no longer postpone it: enter your employee number to continue.",
+    "You can postpone it :count more times. We will ask you again in :minutes minutes.": "You can postpone it :count more times. We will ask you again in :minutes minutes.",
+    "You can postpone it one last time. We will ask you again in :minutes minutes.": "You can postpone it one last time. We will ask you again in :minutes minutes."
 }

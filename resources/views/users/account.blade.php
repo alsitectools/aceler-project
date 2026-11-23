@@ -369,7 +369,7 @@
                             <p class="ua-empty" id="uaNoResults" hidden>{{ __('No workspaces match the search.') }}</p>
                         </div>
 
-                        {{-- Guardar a la izquierda (a la derecha lo tapaba el botón de CofrAI); activo solo con cambios --}}
+                        {{-- Guardar a la izquierda; activo solo con cambios --}}
                         <div class="ua-card-foot">
                             <button id="saveWorkspaces" class="ua-btn ua-btn-primary" disabled><i class="fa-solid fa-check"></i>{{ __('Save changes') }}</button>
                             <span class="ua-changes" id="uaWsChanges"></span>

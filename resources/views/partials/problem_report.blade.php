@@ -138,9 +138,6 @@
 
     .apr { position: fixed; inset: 0; z-index: 1085; display: flex; align-items: flex-start; justify-content: center; padding: 8vh 16px 16px; font-size: 14px; color: #1f2937; }
     .apr[hidden] { display: none; }
-    /* Con el formulario abierto, la burbuja del chatbot no tapa los botones */
-    body.apr-open #chatbase-bubble-button,
-    body.apr-open #chatbase-bubble-window { display: none !important; }
     .apr-backdrop { position: absolute; inset: 0; background: rgba(17, 24, 39, .35); }
     .apr-panel { position: relative; width: 600px; max-width: 100%; max-height: 84vh; display: flex; flex-direction: column; background: #fff; border-radius: 16px; box-shadow: 0 24px 60px rgba(0, 0, 0, .25); overflow: hidden; }
     .apr-head { display: flex; align-items: flex-start; gap: 12px; padding: 20px 22px 10px; }
@@ -284,7 +281,6 @@
                 '<span><i class="fa-solid fa-display"></i>' + esc(c.viewport) + '</span>';
             dialog.hidden = false;
             document.documentElement.style.overflow = 'hidden';
-            document.body.classList.add('apr-open');
             show(view || 'form');
             if ((view || 'form') === 'form') setTimeout(function () { $('#aprDescription').focus(); }, 30);
         }
@@ -293,7 +289,6 @@
             if (!dialog || dialog.hidden) return;
             dialog.hidden = true;
             document.documentElement.style.overflow = '';
-            document.body.classList.remove('apr-open');
             if (lastFocus && lastFocus.focus) lastFocus.focus();
         }
 
