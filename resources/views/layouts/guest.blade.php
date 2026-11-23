@@ -27,9 +27,6 @@
     $logo = \App\Models\Utility::get_file('logo/');
     use App\Models\Utility;
 @endphp
-{{-- --------- CHATBOT ------------ --}}
-@include('layouts.chatbot')
-{{-- ---------------------------- --}}
 
 <style>
     .buttonLogin{

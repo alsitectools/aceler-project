@@ -46,13 +46,6 @@
 @endphp
 {{-- <html lang="{{ str_replace('_', '-', app()->getLocale()) }}" dir="{{ $SITE_RTL == 'on' ? 'rtl' : '' }}"> --}}
 <html lang="{{ config('app.locale') }}">
-{{-- --------- CHATBOT ------------ --}}
-@include('layouts.chatbot')
-{{-- ---------------------------- --}}
-
-{{-- --------- COPILOT ------------ --}}
-{{-- @include('layouts.chatCopilot') --}}
-{{-- ---------------------------- --}}
 
 <head>
 
@@ -493,6 +486,8 @@
     @include('partials.topnav')
 
     @include('partials.sidebar')
+    {{-- Pide el número de empleado a quien no lo tiene (solo se pinta en ese caso) --}}
+    @include('partials.employee_number_prompt')
     <div class="dash-container">
         <div class="dash-content">
             <!-- [ breadcrumb ] start -->

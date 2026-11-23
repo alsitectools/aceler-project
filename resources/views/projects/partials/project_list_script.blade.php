@@ -121,7 +121,7 @@
         }
         $grid.on('arrangeComplete', updateShown);
 
-        // Caja con scroll: termina 72px antes del final de la pantalla (hueco para CofriAI, 44px a 16px del borde)
+        // Caja con scroll: termina 72px antes del final de la pantalla (margen inferior común)
         var $scroll = $('#plListScroll');
         var BOTTOM_GAP = 72;
         function fitListBox() {

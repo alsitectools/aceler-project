@@ -2225,7 +2225,7 @@
             // En pantallas bajas el mínimo baja un poco (768px → ~150px; 1080px → 200px)
             const TEAM_LIST_MIN = Math.round(Math.min(200, Math.max(140, window.innerHeight * 0.19)));
             const top = Math.min(...lists.map((l) => l.getBoundingClientRect().top + window.scrollY));
-            // 72px libres abajo: ahí va la burbuja del chatbot (44px + 16px de margen), así no tapa la última fila
+            // 72px libres abajo: el mismo margen inferior que las demás listas
             let h = Math.max(TEAM_LIST_MIN, Math.floor(window.innerHeight - top - 72));
             lists.forEach((l) => { l.style.maxHeight = h + 'px'; });
             const over = document.documentElement.scrollHeight - window.innerHeight;

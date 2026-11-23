@@ -1,5 +1,5 @@
 /* aCeler — alto de las vistas de tablero para que lleguen hasta abajo de la pantalla.
-   Terminan 72px antes del final (el hueco de CofriAI, como la lista de proyectos):
+   Terminan 72px antes del final (el mismo margen inferior que la lista de proyectos):
    - Tablón de encargos / Mis encargos: columnas .kanban-box.fixedHeight
      (variable CSS --board-col-h; 600px si no hay script)
    - Diagrama de Gantt: #ganttLayout (variable CSS --gantt-h; 560px si no hay script;

@@ -354,7 +354,7 @@
 }
 
 /* ---------- Caja con scroll propio para la lista ----------
-   La altura máxima la fija project_list_script (pantalla - 72px de margen inferior, hueco de CofriAI). */
+   La altura máxima la fija project_list_script (pantalla - 72px de margen inferior). */
 .pl-list-box {
     position: relative;
     display: flex;

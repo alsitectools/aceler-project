@@ -2145,5 +2145,18 @@
     "Switch workspace": "Cambiar de espacio de trabajo",
     "Search workspace or country…": "Buscar espacio o país…",
     "Other workspaces": "Otros espacios",
-    "No workspaces match your search": "Ningún espacio coincide con la búsqueda"
+    "No workspaces match your search": "Ningún espacio coincide con la búsqueda",
+    "Add your employee number": "Añade tu número de empleado",
+    "We need it to send your hours to Axapta. You only have to enter it once.": "Lo necesitamos para enviar tus horas a Axapta. Solo tendrás que introducirlo una vez.",
+    "E.g. 11840": "Ej. 11840",
+    "Later": "Más tarde",
+    "The employee number must contain only digits (up to 9).": "El número de empleado solo puede tener cifras (hasta 9).",
+    "It could not be saved. Try again.": "No se ha podido guardar. Inténtalo de nuevo.",
+    "Employee number saved.": "Número de empleado guardado.",
+    "You already have an employee number. Ask an administrator to change it.": "Ya tienes un número de empleado. Para cambiarlo, pídeselo a un administrador.",
+    "This employee number is already assigned to another user. Check it or contact support.": "Ese número de empleado ya lo tiene otro usuario. Revísalo o contacta con soporte.",
+    "Unauthorized": "No autorizado",
+    "You can no longer postpone it: enter your employee number to continue.": "Ya no puedes posponerlo más: introduce tu número de empleado para continuar.",
+    "You can postpone it :count more times. We will ask you again in :minutes minutes.": "Puedes posponerlo :count veces más. Te lo volveremos a pedir en :minutes minutos.",
+    "You can postpone it one last time. We will ask you again in :minutes minutes.": "Puedes posponerlo una última vez. Te lo volveremos a pedir en :minutes minutos."
 }

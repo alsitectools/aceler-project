@@ -844,7 +844,7 @@ body:has(.ua) .page-header .page-block > .row {
     font-size: 10.5px;
 }
 
-/* Pie: Guardar a la izquierda; Descartar a la derecha, separado del botón de CofrAI */
+/* Pie: Guardar a la izquierda; Descartar a la derecha */
 .ua .ua-card-foot .ua-btn {
     margin-left: 0;
 }
