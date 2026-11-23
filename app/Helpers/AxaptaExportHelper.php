@@ -9,6 +9,7 @@ use App\Models\Milestone;
 use App\Models\Project;
 use App\Models\PuntuacionTarea;
 use App\Models\Task;
+use App\Models\TaskType;
 use App\Models\Timesheet;
 use App\Models\User;
 use App\Models\Workspace;
@@ -59,6 +60,12 @@ class AxaptaExportHelper
     private static ?array $rejectedBatchIds = null;
     private static array $taskCache = [];
     private static array $pointsCache = [];
+    // Precargados por buildExport() para no consultar encargo a encargo
+    private static ?array $puntuacionByTask = null;   // id_tarea => cantidad_puntaje (null si no tiene)
+    private static array $milestoneCache = [];        // id => Milestone
+    private static array $milestonePointsCache = [];  // id => puntos automáticos del encargo (o null)
+    private static ?array $businessUnitByProject = null; // project_id => business_unit de su master obra
+    private static ?array $businessUnitByRefMo = null;   // ref_mo => business_unit
 
     /**
      * "HH:MM[:SS]" a horas decimales: h + m/60 + s/3600 (misma fórmula que el fichero original de Axapta)
@@ -187,16 +194,24 @@ class AxaptaExportHelper
             return $delegationId;
         }
 
-        $businessUnit = MasterObra::where('project_id', $project->id)
-            ->whereNotNull('business_unit')
-            ->where('business_unit', '!=', '')
-            ->value('business_unit');
-
-        if (empty($businessUnit) && !empty($project->ref_mo)) {
-            $businessUnit = MasterObra::where('ref_mo', $project->ref_mo)
+        // Precargado por buildExport(); si no, se consulta aquí
+        if (self::$businessUnitByProject !== null) {
+            $businessUnit = self::$businessUnitByProject[$project->id] ?? null;
+            if (empty($businessUnit) && !empty($project->ref_mo)) {
+                $businessUnit = self::$businessUnitByRefMo[$project->ref_mo] ?? null;
+            }
+        } else {
+            $businessUnit = MasterObra::where('project_id', $project->id)
                 ->whereNotNull('business_unit')
                 ->where('business_unit', '!=', '')
                 ->value('business_unit');
+
+            if (empty($businessUnit) && !empty($project->ref_mo)) {
+                $businessUnit = MasterObra::where('ref_mo', $project->ref_mo)
+                    ->whereNotNull('business_unit')
+                    ->where('business_unit', '!=', '')
+                    ->value('business_unit');
+            }
         }
 
         $businessUnit = trim((string) ($businessUnit ?? ''));
@@ -207,9 +222,12 @@ class AxaptaExportHelper
     /**
      * Obtiene datos del proyecto y workspace para la exportación
      */
-    public static function getProjectExportData($project)
+    public static function getProjectExportData($project, $workspace = false)
     {
-        $workspace = Workspace::find($project->workspace);
+        // $workspace precargado por buildExport(); false = buscarlo aquí
+        if ($workspace === false) {
+            $workspace = Workspace::find($project->workspace);
+        }
         $delegationId = strtoupper((string) (self::resolveProjectDelegationId($project)
             ?? $workspace?->delegation_id
             ?? ''));
@@ -288,11 +306,18 @@ class AxaptaExportHelper
             return null;
         }
         if (!array_key_exists($taskId, self::$pointsCache)) {
-            $value = PuntuacionTarea::where('id_tarea', $taskId)->value('cantidad_puntaje');
+            $value = self::$puntuacionByTask !== null
+                ? (self::$puntuacionByTask[$taskId] ?? null)
+                : PuntuacionTarea::where('id_tarea', $taskId)->value('cantidad_puntaje');
             if ($value === null) {
+                // Los puntos automáticos son del encargo (iguales en todas sus tareas): una vez por encargo
                 $task = self::task($taskId);
-                $milestone = $task ? Milestone::find($task->milestone_id) : null;
-                $value = $milestone ? MilestonePointsHelper::automaticPoints($milestone) : null;
+                $milestoneId = $task ? (int) $task->milestone_id : 0;
+                if ($milestoneId && !array_key_exists($milestoneId, self::$milestonePointsCache)) {
+                    $milestone = self::$milestoneCache[$milestoneId] ?? Milestone::find($milestoneId);
+                    self::$milestonePointsCache[$milestoneId] = $milestone ? MilestonePointsHelper::automaticPoints($milestone) : null;
+                }
+                $value = $milestoneId ? self::$milestonePointsCache[$milestoneId] : null;
             }
             self::$pointsCache[$taskId] = $value !== null ? (float) $value : null;
         }
@@ -325,6 +350,12 @@ class AxaptaExportHelper
             ->where('created_by', $userId)
             ->get(['task_id', 'date', 'time']);
 
+        return self::secondsByTaskDate($rows);
+    }
+
+    /** Imputado(k, d) a partir de filas de imputación (task_id, date, time) ya cargadas */
+    private static function secondsByTaskDate($rows): array
+    {
         $map = [];
         foreach ($rows as $row) {
             $seconds = self::timeToSeconds($row->time);
@@ -336,6 +367,20 @@ class AxaptaExportHelper
         }
 
         return $map;
+    }
+
+    /** ¿Alguna imputación con horas? ($byUser: [usuario => filas]) */
+    private static function hasHours(array $byUser): bool
+    {
+        foreach ($byUser as $rows) {
+            foreach ($rows as $row) {
+                if (self::timeToSeconds($row->time) > 0) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
     }
 
     /**
@@ -352,15 +397,36 @@ class AxaptaExportHelper
             ->orderBy('id')
             ->get();
 
+        return self::exportedFromRows($rows);
+    }
+
+    /** Enviado(k, d) a partir de líneas del ledger ya cargadas (en orden de id); ignora las sin fecha */
+    private static function exportedFromRows($rows): array
+    {
         $seconds = [];
         $last = [];
         foreach ($rows as $row) {
+            if (empty($row->work_date)) {
+                continue;
+            }
             $key = $row->task_id . '|' . date('Y-m-d', strtotime($row->work_date));
             $seconds[$key] = ($seconds[$key] ?? 0) + (int) round(((float) $row->hours_decimal) * 3600);
             $last[$key] = $row;
         }
 
         return [$seconds, $last];
+    }
+
+    /** ¿Hay líneas del formato anterior (sin fecha) entre estas líneas del ledger? */
+    private static function hasLegacyRows($rows): bool
+    {
+        foreach ($rows as $row) {
+            if (empty($row->work_date)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**
@@ -387,6 +453,11 @@ class AxaptaExportHelper
         self::$rejectedBatchIds = null;
         self::$taskCache = [];
         self::$pointsCache = [];
+        self::$milestoneCache = [];
+        self::$milestonePointsCache = [];
+        self::$puntuacionByTask = null;
+        self::$businessUnitByProject = null;
+        self::$businessUnitByRefMo = null;
 
         $state = [
             'lines' => [],
@@ -397,52 +468,171 @@ class AxaptaExportHelper
             'lineaPorEncargo' => [],
         ];
 
-        foreach (Project::where('type', 1)->get() as $project) {
-            $projectData = self::getProjectExportData($project);
+        // ---------------------------------------------------------------------------------
+        // 1) Todo lo necesario se carga en bloque (unas pocas consultas en total, no por encargo)
+        // ---------------------------------------------------------------------------------
+        $projects = Project::where('type', 1)->get();
+        if ($projects->isEmpty()) {
+            return ['lines' => [], 'ledger' => [], 'skipped' => [], 'warnings' => []];
+        }
+        $projectIds = $projects->pluck('id')->all();
+        $workspaces = Workspace::whereIn('id', $projects->pluck('workspace')->filter()->unique()->all())->get()->keyBy('id');
+
+        // Parejas (encargo, empleado) con horas ya enviadas desde la app, por proyecto
+        $pairsByProject = [];
+        foreach (self::validLedger()
+            ->whereIn('project_id', $projectIds)
+            ->whereNotNull('work_date')
+            ->select('project_id', 'milestone_id', 'employee_number')
+            ->distinct()
+            ->get() as $pair) {
+            $pairsByProject[$pair->project_id][] = $pair;
+        }
+
+        // Encargos finalizados de esos proyectos
+        $milestonesByProject = [];
+        foreach (Milestone::whereIn('project_id', $projectIds)->where('status', 4)->orderBy('id')->get() as $milestone) {
+            $milestonesByProject[$milestone->project_id][] = $milestone;
+            self::$milestoneCache[(int) $milestone->id] = $milestone;
+        }
+        $milestoneIds = array_keys(self::$milestoneCache);
+
+        // Responsables de esos encargos
+        $users = User::whereIn('id', array_filter(array_map(fn ($m) => (int) $m->milestone_assigned_to_user, self::$milestoneCache)))
+            ->get()->keyBy('id');
+
+        // Lo ya enviado (líneas con y sin fecha) de esos encargos, en orden
+        $ledgerByMilestone = [];
+        if ($milestoneIds) {
+            foreach (self::validLedger()->whereIn('milestone_id', $milestoneIds)->orderBy('id')->get() as $row) {
+                $ledgerByMilestone[(int) $row->milestone_id][] = $row;
+            }
+        }
+
+        // Imputaciones de horas de esos encargos: [encargo][usuario] => filas
+        $timesheetsByMilestone = [];
+        if ($milestoneIds) {
+            $rows = Timesheet::join('tasks', 'tasks.id', '=', 'timesheets.task_id')
+                ->whereIn('tasks.milestone_id', $milestoneIds)
+                ->get(['timesheets.task_id', 'timesheets.date', 'timesheets.time', 'timesheets.created_by', 'tasks.milestone_id']);
+            foreach ($rows as $row) {
+                $timesheetsByMilestone[(int) $row->milestone_id][(int) $row->created_by][] = $row;
+            }
+        }
+
+        // Tareas y su puntuación
+        if ($milestoneIds) {
+            foreach (Task::whereIn('milestone_id', $milestoneIds)->get() as $task) {
+                self::$taskCache[$task->id] = $task;
+            }
+        }
+        self::$puntuacionByTask = [];
+        if (self::$taskCache) {
+            foreach (PuntuacionTarea::whereIn('id_tarea', array_keys(self::$taskCache))->get(['id_tarea', 'cantidad_puntaje']) as $p) {
+                if ($p->cantidad_puntaje !== null && !isset(self::$puntuacionByTask[$p->id_tarea])) {
+                    self::$puntuacionByTask[$p->id_tarea] = $p->cantidad_puntaje;
+                }
+            }
+        }
+
+        // Puntos automáticos de cada encargo (para las tareas sin puntuación): misma fórmula que
+        // MilestonePointsHelper::automaticPoints, con las horas y tareas ya cargadas
+        $typePuntuacion = TaskType::where('project_type', 1)->pluck('puntuacion', 'id')->all();
+        $typesByMilestone = [];
+        foreach (self::$taskCache as $task) {
+            if (!empty($task->type_id)) {
+                $typesByMilestone[(int) $task->milestone_id][(int) $task->type_id] = true;
+            }
+        }
+        foreach ($milestoneIds as $mid) {
+            $seconds = 0;
+            foreach ($timesheetsByMilestone[$mid] ?? [] as $rows) {
+                foreach ($rows as $row) {
+                    $seconds += self::timeToSeconds($row->time);
+                }
+            }
+            $typePoints = 0.0;
+            foreach (array_keys($typesByMilestone[$mid] ?? []) as $typeId) {
+                $typePoints += (float) ($typePuntuacion[$typeId] ?? 0);
+            }
+            self::$milestonePointsCache[$mid] = MilestonePointsHelper::pointsFrom($seconds, $typePoints);
+        }
+
+        // Delegación desde la master obra (solo hace falta en proyectos sin ref_delegation)
+        self::$businessUnitByProject = [];
+        self::$businessUnitByRefMo = [];
+        $noDelegation = $projects->filter(fn ($p) => trim((string) ($p->ref_delegation ?? '')) === '');
+        if ($noDelegation->isNotEmpty()) {
+            foreach (MasterObra::whereIn('project_id', $noDelegation->pluck('id')->all())
+                ->whereNotNull('business_unit')->where('business_unit', '!=', '')
+                ->orderBy('id')->get(['project_id', 'business_unit']) as $mo) {
+                self::$businessUnitByProject[$mo->project_id] ??= $mo->business_unit;
+            }
+            $refMos = $noDelegation->pluck('ref_mo')->filter()->unique()->values()->all();
+            if ($refMos) {
+                foreach (MasterObra::whereIn('ref_mo', $refMos)
+                    ->whereNotNull('business_unit')->where('business_unit', '!=', '')
+                    ->orderBy('id')->get(['ref_mo', 'business_unit']) as $mo) {
+                    self::$businessUnitByRefMo[$mo->ref_mo] ??= $mo->business_unit;
+                }
+            }
+        }
+
+        // ---------------------------------------------------------------------------------
+        // 2) Cálculo, igual que antes pero con los datos ya cargados
+        // ---------------------------------------------------------------------------------
+        foreach ($projects as $project) {
+            $projectData = self::getProjectExportData($project, $workspaces[$project->workspace] ?? null);
             $processed = [];
 
-            foreach (Milestone::where('project_id', $project->id)->where('status', 4)->get() as $milestone) {
+            foreach ($milestonesByProject[$project->id] ?? [] as $milestone) {
                 $label = "{$project->name} / {$milestone->title}";
+                $milestoneTimesheets = $timesheetsByMilestone[(int) $milestone->id] ?? [];
 
-                $user = $milestone->milestone_assigned_to_user ? User::find($milestone->milestone_assigned_to_user) : null;
+                $user = $milestone->milestone_assigned_to_user ? ($users[(int) $milestone->milestone_assigned_to_user] ?? null) : null;
                 if (!$user) {
-                    self::skip($state, $label, 'el encargo no tiene empleado asignado');
+                    // Solo se avisa si el encargo tiene horas que habría que enviar
+                    if (self::hasHours($milestoneTimesheets)) {
+                        self::skip($state, $label, 'el encargo no tiene empleado asignado');
+                    }
                     continue;
                 }
 
+                $desired = self::secondsByTaskDate($milestoneTimesheets[(int) $user->id] ?? []);
+
                 $employeeNumber = trim((string) $user->number_employee);
                 if ($employeeNumber === '') {
-                    self::skip($state, $label, "{$user->name} no tiene número de empleado");
+                    if ($desired) {
+                        self::skip($state, $label, "{$user->name} no tiene número de empleado");
+                    }
                     continue;
                 }
                 $processed[$milestone->id . '|' . $employeeNumber] = true;
 
-                if (self::hasLegacyExport($milestone->id, $employeeNumber)) {
+                $ledgerRows = array_values(array_filter(
+                    $ledgerByMilestone[(int) $milestone->id] ?? [],
+                    fn ($row) => (string) $row->employee_number === $employeeNumber
+                ));
+
+                if (self::hasLegacyRows($ledgerRows)) {
                     self::skip($state, $label, 'tiene horas enviadas con el formato anterior; marca ese lote como rechazado (php artisan axapta:reject-batch) para reenviarlas');
                     continue;
                 }
 
-                [$exported, $lastRows] = self::exportedSecondsByTaskDate($milestone->id, $employeeNumber);
-                $desired = self::desiredSecondsByTaskDate($milestone->id, $user->id);
+                [$exported, $lastRows] = self::exportedFromRows($ledgerRows);
 
                 self::appendDeltaLines($state, $project, $projectData, $milestone, $employeeNumber, $desired, $exported, $lastRows, $fallbackRef, $label);
             }
 
             // Reversiones: lo enviado de encargos borrados o de empleados que ya no tienen horas en el encargo.
             // Un encargo que ya no está finalizado no se revierte: lo enviado queda en Axapta.
-            $pairs = self::validLedger()
-                ->where('project_id', $project->id)
-                ->whereNotNull('work_date')
-                ->select('milestone_id', 'employee_number')
-                ->distinct()
-                ->get();
-
-            foreach ($pairs as $pair) {
+            // Son casos raros: se consultan uno a uno.
+            foreach ($pairsByProject[$project->id] ?? [] as $pair) {
                 if (empty($pair->milestone_id) || isset($processed[$pair->milestone_id . '|' . $pair->employee_number])) {
                     continue;
                 }
 
-                $milestone = Milestone::find($pair->milestone_id);
+                $milestone = self::$milestoneCache[(int) $pair->milestone_id] ?? Milestone::find($pair->milestone_id);
                 if ($milestone && (int) $milestone->status !== 4) {
                     continue;
                 }
@@ -463,6 +653,11 @@ class AxaptaExportHelper
                 self::appendDeltaLines($state, $project, $projectData, $milestone, $pair->employee_number, [], $exported, $lastRows, $fallbackRef, $label);
             }
         }
+
+        // Fuera de buildExport() las funciones públicas vuelven a consultar la base de datos
+        self::$puntuacionByTask = null;
+        self::$businessUnitByProject = null;
+        self::$businessUnitByRefMo = null;
 
         return [
             'lines' => $state['lines'],

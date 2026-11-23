@@ -490,6 +490,11 @@
                                 <div><b id="uaSkippedCount">…</b> <span>{{ __('order forms') }}</span></div>
                             </div>
                         </div>
+                        {{-- Estado del cálculo: mientras calcula, cuánto ha tardado y «Recalcular» --}}
+                        <div class="ua-calc" id="uaCalc">
+                            <span class="ua-calc-status" id="uaCalcStatus" aria-live="polite"></span>
+                            <button type="button" class="ua-link" id="uaCalcRefresh" hidden>{{ __('Recalculate') }}</button>
+                        </div>
                         <div class="ua-issues" id="uaIssues" hidden>
                             <div class="ua-issues-head">
                                 <b>{{ __('Check before exporting') }}</b>
@@ -1264,14 +1269,41 @@
 
                 // --- Axapta: resumen antes de exportar (simulación) e historial de lotes ---
                 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+                const calcStatus = document.getElementById('uaCalcStatus');
+                const calcRefresh = document.getElementById('uaCalcRefresh');
+                let calcTicker = null;
+                const calcDone = function(text, isError) {
+                    clearInterval(calcTicker);
+                    document.getElementById('axapta-content')?.classList.remove('is-loading');
+                    if (calcStatus) {
+                        calcStatus.textContent = text;
+                        calcStatus.classList.toggle('is-error', !!isError);
+                    }
+                    if (calcRefresh) calcRefresh.hidden = false;
+                };
+                const seconds = (ms) => (ms / 1000).toLocaleString(document.documentElement.lang || 'es', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+
                 window.uaLoadAxaptaPreview = function() {
                     const lines = document.getElementById('uaPendingLines');
                     if (!lines) return;
                     window.__uaAxaptaLoaded = true;
+                    // Mientras calcula: aviso con el tiempo que lleva
+                    const started = performance.now();
+                    document.getElementById('axapta-content')?.classList.add('is-loading');
+                    if (calcRefresh) calcRefresh.hidden = true;
+                    if (calcStatus) {
+                        calcStatus.classList.remove('is-error');
+                        calcStatus.textContent = @json(__('Calculating what is pending…'));
+                        clearInterval(calcTicker);
+                        calcTicker = setInterval(function() {
+                            calcStatus.textContent = @json(__('Calculating what is pending…')) + ' ' + seconds(performance.now() - started) + ' s';
+                        }, 200);
+                    }
                     $.ajax({
                         url: @json(route('projects.export.axapta.preview')),
                         type: 'GET',
                         success: function(r) {
+                            calcDone(@json(__('Calculated in :seconds s')).replace(':seconds', seconds(performance.now() - started)));
                             lines.textContent = r.pending_lines;
                             document.getElementById('uaPendingHours').textContent = String(r.pending_hours || '').replace(/:\d{2}$/, ''); // HH:MM
                             const skipped = r.skipped || [], warnings = r.warnings || [];
@@ -1295,11 +1327,20 @@
                                 : '<tr><td colspan="5" class="ua-muted">' + esc(@json(__('No exports yet.'))) + '</td></tr>';
                         },
                         error: function() {
+                            calcDone(@json(__('The summary could not be loaded.')) + ' (' + seconds(performance.now() - started) + ' s)', true);
                             lines.textContent = '—';
                             document.getElementById('uaBatches').innerHTML = '<tr><td colspan="5" class="ua-muted">' + esc(@json(__('The summary could not be loaded.'))) + '</td></tr>';
                         }
                     });
                 };
+                if (calcRefresh) calcRefresh.addEventListener('click', () => window.uaLoadAxaptaPreview());
+
+                // Si la página se abrió ya en la sección de Axapta (#axapta), show() se ejecutó antes de que
+                // existiera esta función y no cargó nada: se carga ahora
+                const axaptaSection = document.querySelector('.ua-section[data-ua-section="axapta"]');
+                if (axaptaSection && axaptaSection.classList.contains('is-active') && !window.__uaAxaptaLoaded) {
+                    window.uaLoadAxaptaPreview();
+                }
 
                 // Redescargar un lote: es el mismo archivo (mismos RegId). Si se vuelve a importar
                 // en Axapta un lote que ya entró, las horas se duplican: se avisa antes.
